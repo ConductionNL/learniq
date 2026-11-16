@@ -38,6 +38,11 @@ namespace OCA\Learniq\Service;
 use DateTimeImmutable;
 use OCA\Learniq\Kernel\Contracts\CourseEvaluationAnswerServiceInterface;
 use OCA\Learniq\Support\SerialisedRow;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectDeletion;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\SaveActor;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
@@ -216,10 +221,11 @@ class CourseEvaluationAnswerService implements CourseEvaluationAnswerServiceInte
 
 		$response = $this->objectService->saveObject(
 			object: $this->builder->responsePayload(invitation: $invitation, answers: $checked['answers']),
-			register: self::REGISTER,
-			schema: 'course-evaluation-response',
-			_rbac: false,
-			_unowned: true,
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::REGISTER, schema: 'course-evaluation-response'),
+				actor: new SaveActor(unowned: true)
+			),
+			_rbac: false
 		);
 		$responseId = (string)($response->getUuid() ?? '');
 
@@ -233,7 +239,10 @@ class CourseEvaluationAnswerService implements CourseEvaluationAnswerServiceInte
 				'[CourseEvaluationAnswerService] The submit of an evaluation answer was refused; the draft is removed: {error}',
 				['error' => $exception->getMessage(), 'exception' => $exception, 'invitationId' => $invitationId]
 			);
-			$this->objectService->deleteObject(uuid: $responseId, register: self::REGISTER, schema: 'course-evaluation-response', _rbac: false);
+			$this->objectService->deleteObject(
+				new ObjectDeletion(uuid: $responseId, target: new ObjectFindTarget(register: self::REGISTER, schema: 'course-evaluation-response')),
+				_rbac: false
+			);
 			$error = 'Your answer could not be submitted.';
 			if (str_contains($exception->getMessage(), self::GUARD_DENIAL) === true) {
 				$error = self::GUARD_DENIAL;
@@ -375,7 +384,7 @@ class CourseEvaluationAnswerService implements CourseEvaluationAnswerServiceInte
 		}
 
 		try {
-			$object = $this->objectService->find(id: $id, register: self::REGISTER, schema: $schema, _rbac: false);
+			$object = $this->objectService->find(id: $id, options: new ObjectFindOptions(register: self::REGISTER, schema: $schema), _rbac: false);
 		} catch (Throwable) {
 			return null;
 		}

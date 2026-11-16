@@ -30,6 +30,9 @@ use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use RuntimeException;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectDeletion;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Drives the rollup against an in-memory OpenRegister double.
@@ -97,7 +100,11 @@ class CurriculumCoverageRollupTest extends TestCase {
 	private function rollup(): CurriculumCoverageRollup {
 		$service = $this->createMock(ObjectService::class);
 		$service->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend=[], bool $files=false, mixed $register=null, mixed $schema=null, bool $_rbac=true): ?object {
+			function (int|string $id, ?ObjectFindOptions $options = null, bool $_rbac = true): ?object {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				$this->finds[] = (string) $id;
 				self::assertFalse($_rbac);
 				if (isset($this->store[$schema][$id]) === false) {
@@ -118,13 +125,18 @@ class CurriculumCoverageRollupTest extends TestCase {
 			}
 		);
 		$service->method('saveObject')->willReturnCallback(
-			function (array $object, ?array $extend=[], mixed $register=null, mixed $schema=null, ?string $uuid=null): object {
+			function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()): object {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
+				$uuid = $options->uuid;
 				$this->saved[] = [$uuid, $object];
 				return OrEntityFactory::make($object, (string) $schema);
 			}
 		);
 		$service->method('deleteObject')->willReturnCallback(
-			function (string $uuid): bool {
+			function (ObjectDeletion $deletion): bool {
+				$uuid = $deletion->uuid;
 				$this->deleted[] = $uuid;
 				return true;
 			}

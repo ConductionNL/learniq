@@ -39,6 +39,8 @@ use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\Learniq\Kernel\Contracts\WalletClaimSyncServiceInterface;
 use OCA\Learniq\Kernel\Contracts\WalletOfferDelegationServiceInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -110,9 +112,10 @@ class CredentialWalletTransitionListener implements IEventListener {
 
 		$this->objectService->saveObject(
 			object: $updated,
-			register: self::LEARNIQ_REGISTER,
-			schema: self::CREDENTIAL_SCHEMA,
-			uuid: $entity->getUuid()
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::CREDENTIAL_SCHEMA),
+				uuid: $entity->getUuid()
+			)
 		);
 
 		$this->logger->info(

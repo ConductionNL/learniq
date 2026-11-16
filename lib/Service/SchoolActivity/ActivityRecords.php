@@ -30,6 +30,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\SchoolActivity;
 
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -182,9 +184,10 @@ class ActivityRecords {
 		try {
 			$saved = $this->objectService->saveObject(
 				object: $data,
-				register: self::REGISTER,
-				schema: $schema,
-				uuid: $uuid,
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::REGISTER, schema: $schema),
+					uuid: $uuid
+				),
 				_rbac: false,
 				_multitenancy: false
 			);

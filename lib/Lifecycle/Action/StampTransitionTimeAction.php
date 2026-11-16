@@ -36,7 +36,7 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
 use OCA\OpenRegister\Lifecycle\LifecycleActionContext;
-use OCA\OpenRegister\Lifecycle\LifecycleActionInterface;
+use OCA\OpenRegister\Lifecycle\ContextLifecycleActionInterface;
 use RuntimeException;
 
 /**
@@ -44,7 +44,7 @@ use RuntimeException;
  *
  * @spec openspec/changes/compliance-attestation-locked-after-signing/specs/compliance-audit/spec.md#requirement-revoking-a-signed-attestation-records-a-reason-and-changes-nothing-else
  */
-class StampTransitionTimeAction implements LifecycleActionInterface {
+class StampTransitionTimeAction implements ContextLifecycleActionInterface {
 
 	/**
 	 * Stamp the current UTC time onto the declared field.

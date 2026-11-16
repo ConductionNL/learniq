@@ -32,6 +32,7 @@ use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IUserManager;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * PortalEmployerBookings over a store that behaves like OpenRegister.
@@ -81,7 +82,7 @@ class PortalEmployerBookingsTest extends TestCase {
 			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $this->store->findAll($config, false, false)
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			fn (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null): object => $this->store->save((string)$schema, $object, $uuid, false)
+			fn (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()): object => $this->store->save((string)($options->target->schema), $object, ($options->uuid), false)
 		);
 
 		// A fixed day before the edition, so the booking stays coming whatever the date the suite runs on.

@@ -33,6 +33,9 @@ namespace OCA\Learniq\Service\Course;
 use OCA\Learniq\Exception\CourseTemplateRefusedException;
 use OCA\Learniq\Kernel\Contracts\CourseTemplateServiceInterface;
 use OCA\OpenRegister\Exception\NotAuthorizedException;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectDeletion;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -279,7 +282,10 @@ class CourseTemplateService implements CourseTemplateServiceInterface {
 	private function rollback(array $created): void {
 		foreach (array_reverse($created) as $object) {
 			try {
-				$this->objects->objectService->deleteObject(uuid: $object['id'], register: self::REGISTER, schema: $object['schema'], _rbac: true);
+				$this->objects->objectService->deleteObject(
+					new ObjectDeletion(uuid: $object['id'], target: new ObjectFindTarget(register: self::REGISTER, schema: $object['schema'])),
+					_rbac: true
+				);
 			} catch (Throwable $failure) {
 				$this->logger->warning(
 					'[CourseTemplateService] Could not remove {schema} {id} after a failed instantiation: {error}',
@@ -334,7 +340,11 @@ class CourseTemplateService implements CourseTemplateServiceInterface {
 		);
 
 		try {
-			$record = $this->objects->objectService->find(id: $id, register: self::REGISTER, schema: $schema, _rbac: true, _render: false)?->jsonSerialize();
+			$record = $this->objects->objectService->find(
+				id: $id,
+				options: new ObjectFindOptions(register: self::REGISTER, schema: $schema, render: false),
+				_rbac: true
+			)?->jsonSerialize();
 		} catch (DoesNotExistException) {
 			throw $missing;
 		} catch (NotAuthorizedException) {

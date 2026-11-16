@@ -40,6 +40,7 @@ use OCP\IRequest;
 use OCP\IUser;
 use OCP\IUserSession;
 use PHPUnit\Framework\TestCase;
+use OCA\Learniq\Tests\Support\LegacyObjectArgs;
 
 /**
  * Session, action and ownership checks, and the answers.
@@ -223,12 +224,12 @@ class ExchangeControllersTest extends TestCase {
 			'coordinator-1'
 		)->willReturn('job-8');
 		$objects = $this->createMock(ObjectService::class);
-		$objects->expects($this->once())->method('saveObject')->with(
-			['exchangeJobId' => 'job-8', 'target' => 'oso', 'learnerUserId' => 'pupil-1', 'status' => 'pending'],
-			$this->anything(),
-			'learniq',
-			'dossier-review'
-		);
+		$objects->expects($this->once())->method('saveObject')->with(...LegacyObjectArgs::with(method: 'saveObject', expected: [
+				'object' => ['exchangeJobId' => 'job-8', 'target' => 'oso', 'learnerUserId' => 'pupil-1', 'status' => 'pending'],
+				'extend' => $this->anything(),
+				'register' => 'learniq',
+				'schema' => 'dossier-review',
+			]));
 
 		$response = $this->requestController($integriq, $objects)->create();
 

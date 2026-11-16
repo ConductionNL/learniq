@@ -32,6 +32,10 @@ namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Kernel\Contracts\ExampleSetDatesInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\SavePolicy;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IAppConfig;
@@ -209,12 +213,9 @@ class ExampleSetDates implements ExampleSetDatesInterface {
 		try {
 			$entity = $this->objects->find(
 				id: $uuid,
-				register: $register,
-				schema: $schema,
+				options: new ObjectFindOptions(register: $register, schema: $schema, render: false, audit: false),
 				_rbac: false,
-				_multitenancy: false,
-				_render: false,
-				_audit: false
+				_multitenancy: false
 			);
 			if ($entity === null) {
 				return 'missing';
@@ -228,13 +229,13 @@ class ExampleSetDates implements ExampleSetDatesInterface {
 
 			$this->objects->saveObject(
 				object: $moved,
-				register: $register,
-				schema: $schema,
-				uuid: $uuid,
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: $register, schema: $schema),
+					uuid: $uuid,
+					policy: new SavePolicy(silent: true, validation: false)
+				),
 				_rbac: false,
-				_multitenancy: false,
-				silent: true,
-				_validation: false
+				_multitenancy: false
 			);
 			return 'moved';
 		} catch (Throwable $exception) {

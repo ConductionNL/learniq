@@ -30,6 +30,7 @@ use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use RuntimeException;
+use OCA\Learniq\Tests\Support\LegacyObjectArgs;
 
 /**
  * The resolve transition against the stored flag.
@@ -48,6 +49,7 @@ class AttendanceFlagResolveGuardTest extends TestCase {
 		$objects = $this->createMock(ObjectService::class);
 		$objects->method('find')->willReturnCallback(
 			static function (...$args) use ($stored, &$calls) {
+				$args = LegacyObjectArgs::positional(method: 'find', args: $args);
 				$calls[] = $args;
 				if ($stored === null) {
 					throw new RuntimeException('not found');

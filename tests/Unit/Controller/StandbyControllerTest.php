@@ -32,6 +32,7 @@ use OCP\IRequest;
 use OCP\IUser;
 use OCP\IUserSession;
 use PHPUnit\Framework\TestCase;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 
 /**
  * Only the lesson's teachers and coordinators read the candidates; everyone reads their own standby.
@@ -60,7 +61,11 @@ class StandbyControllerTest extends TestCase {
 
 		$objects = $this->createMock(ObjectService::class);
 		$objects->method('find')->willReturnCallback(
-			static function (int|string $id, ?array $_extend = [], bool $files = false, mixed $register = null, mixed $schema = null) {
+			static function (int|string $id, ?ObjectFindOptions $options = null) {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				$rows = [
 					'session' => ['s-1' => ['id' => 's-1', 'cohortId' => 'c-1']],
 					'cohort' => ['c-1' => ['id' => 'c-1', 'teacherIds' => ['tom']]],

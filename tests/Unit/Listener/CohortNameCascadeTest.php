@@ -41,6 +41,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use ReflectionMethod;
 use RuntimeException;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * A rename is queued by the listener and written by the job, after the request.
@@ -107,7 +108,7 @@ class CohortNameCascadeTest extends TestCase {
 			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $this->store->findAll($config, $_rbac, $_multitenancy)
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			fn (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null) => $this->store->save((string)$schema, $object, $uuid)
+			fn (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) => $this->store->save((string)($options->target->schema), $object, ($options->uuid))
 		);
 
 		return new CohortNameRestamp(objectService: $objectService, logger: new NullLogger());
@@ -222,7 +223,11 @@ class CohortNameCascadeTest extends TestCase {
 			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $this->store->findAll($config, $_rbac, $_multitenancy)
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null) {
+			function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
+				$uuid = $options->uuid;
 				if ($uuid === 'enrolment-broken') {
 					throw new RuntimeException('locked');
 				}

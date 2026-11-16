@@ -43,6 +43,7 @@ use OCP\Files\IRootFolder;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use OCA\Learniq\Tests\Support\LegacyObjectArgs;
 
 /**
  * Pins every write, transition and log line of import(), and its result or
@@ -187,6 +188,7 @@ class LessonOnboardingImportGoldenTest extends TestCase {
 		);
 		$objects->method('saveObject')->willReturnCallback(
 			function (...$args) {
+				$args = LegacyObjectArgs::positional(method: 'saveObject', args: $args);
 				$this->calls[] = ['saveObject' => PassedArguments::of(method: [ObjectService::class, 'saveObject'], args: $args)];
 				return OrEntityFactory::make([], 'lesson');
 			}
