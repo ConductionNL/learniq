@@ -533,6 +533,22 @@
 					}
 				},
 				{
+					"id": "ExamRegistrationsMenu",
+					"label": "Exam registrations",
+					"icon": "Calendar",
+					"route": "ExamRegistrations",
+					"order": 56,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
+				},
+				{
 					"id": "SessionsThisWeekMenu",
 					"label": "This week's sessions",
 					"icon": "Calendar",
@@ -3044,7 +3060,153 @@
 				"defaultSort": "dayDate",
 				"rowRoute": "CohortDetail",
 				"countText": "{shown} of {total} course days",
-				"bulkNoun": "course days"
+				"bulkNoun": "course days",
+				"actions": [
+					{
+						"id": "issue-certificates",
+						"label": "Issue certificates",
+						"icon": "CertificateOutline",
+						"type": "api-call",
+						"method": "POST",
+						"url": "/apps/learniq/api/course-days/@objectId/certificates",
+						"successMessage": "The certificates of the passed participants were issued.",
+						"visibleWhen": {
+							"field": "dayStatus",
+							"op": "eq",
+							"value": "rounding-off"
+						}
+					}
+				]
+			}
+		},
+		{
+			"id": "ExamRegistrations",
+			"route": "/exam-registrations",
+			"type": "index",
+			"title": "Exam registrations",
+			"_note": "exam-registration-and-certificate-issue T1/T3: the administration registers the participants of a course day with an external examining body. A list is opened with Open a registration list (POST /api/exam-registrations); its lines (who is complete for the fields the body requires) are written by ExamRegistrationService and refreshed while the list is open; ExamRegistrationCloseJob closes it at its moment. A closed list downloads as CSV in the body's column order (GET /api/exam-registrations/{id}/export) and is marked sent. Every endpoint is guarded by exam-registration.manage.",
+			"config": {
+				"register": "learniq",
+				"schema": "ExamRegistration",
+				"showTitle": true,
+				"showDeleteAction": false,
+				"showMassImport": false,
+				"showMassCopy": false,
+				"showMassDelete": false,
+				"headerActions": [
+					{
+						"id": "open-exam-registration",
+						"label": "Open a registration list",
+						"icon": "ClipboardListOutline",
+						"type": "open-form",
+						"register": "learniq",
+						"endpoint": {
+							"url": "/apps/learniq/api/exam-registrations",
+							"method": "POST"
+						},
+						"formProperties": {
+							"cohortId": {
+								"type": "string",
+								"format": "uuid",
+								"$ref": "cohort",
+								"title": "Course day"
+							},
+							"bodyName": {
+								"type": "string",
+								"title": "Examining body"
+							},
+							"closesAt": {
+								"type": "string",
+								"format": "date-time",
+								"title": "Closes at",
+								"description": "After this moment the list closes and can be exported."
+							},
+							"examDate": {
+								"type": "string",
+								"format": "date",
+								"title": "Exam date",
+								"description": "Leave empty for the date of the course day."
+							}
+						}
+					}
+				],
+				"columns": [
+					{
+						"key": "courseName",
+						"label": "Course"
+					},
+					{
+						"key": "examDate",
+						"label": "Exam date",
+						"formatter": "date"
+					},
+					{
+						"key": "bodyName",
+						"label": "Examining body"
+					},
+					{
+						"key": "closesAt",
+						"label": "Closes at",
+						"formatter": "date"
+					},
+					{
+						"key": "completeCount",
+						"label": "Complete"
+					},
+					{
+						"key": "participantCount",
+						"label": "Participants"
+					},
+					{
+						"key": "lifecycle",
+						"label": "Status"
+					}
+				],
+				"actions": [
+					{
+						"id": "close-registration",
+						"label": "Close the list",
+						"icon": "LockOutline",
+						"type": "api-call",
+						"method": "POST",
+						"url": "/apps/learniq/api/exam-registrations/@objectId/close",
+						"successMessage": "The list is closed.",
+						"visibleWhen": {
+							"field": "lifecycle",
+							"op": "eq",
+							"value": "open"
+						}
+					},
+					{
+						"id": "export-registration",
+						"label": "Download the list",
+						"icon": "Download",
+						"type": "navigate",
+						"target": "/index.php/apps/learniq/api/exam-registrations/{objectId}/export",
+						"visibleWhen": {
+							"field": "lifecycle",
+							"op": "neq",
+							"value": "open"
+						}
+					},
+					{
+						"id": "mark-registration-sent",
+						"label": "Mark as sent",
+						"icon": "SendOutline",
+						"type": "api-call",
+						"method": "POST",
+						"url": "/apps/learniq/api/exam-registrations/@objectId/sent",
+						"successMessage": "The list is marked as sent.",
+						"visibleWhen": {
+							"field": "lifecycle",
+							"op": "eq",
+							"value": "closed"
+						}
+					}
+				],
+				"defaultSort": "examDate",
+				"countText": "{shown} of {total} registration lists",
+				"bulkNoun": "registration lists"
 			}
 		},
 		{
