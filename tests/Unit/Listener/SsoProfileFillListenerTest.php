@@ -31,6 +31,7 @@ use OCP\User\Events\UserLoggedInEvent;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * @covers \OCA\Learniq\Listener\SsoProfileFillListener
@@ -117,7 +118,11 @@ final class SsoProfileFillListenerTest extends TestCase {
 			}
 		);
 		$objects->method('saveObject')->willReturnCallback(
-			function ($object, $extend = [], $register = null, $schema = null, $uuid = null, $rbac = true) {
+			function ($object, ObjectSaveOptions $options = new ObjectSaveOptions(), bool $rbac = true) {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
+				$uuid = $options->uuid;
 				$this->saved[] = ['object' => $object, 'register' => $register, 'schema' => $schema, 'uuid' => $uuid, '_rbac' => $rbac];
 				return null;
 			}

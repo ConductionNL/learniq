@@ -33,6 +33,9 @@ use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Kernel\Contracts\EnrolmentForecastServiceInterface;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\CallerActions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -121,7 +124,10 @@ class EnrolmentForecastController extends Controller {
 		}
 
 		$forecast['result'] = $result;
-		$this->objectService->saveObject(object: $forecast, register: self::REGISTER, schema: self::SCHEMA);
+		$this->objectService->saveObject(
+			object: $forecast,
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: self::SCHEMA))
+		);
 
 		return new JSONResponse(data: $result);
 	}//end compute()
@@ -135,7 +141,7 @@ class EnrolmentForecastController extends Controller {
 	 */
 	private function load(string $id): ?array {
 		try {
-			$row = $this->objectService->find(id: $id, register: self::REGISTER, schema: self::SCHEMA);
+			$row = $this->objectService->find(id: $id, options: new ObjectFindOptions(register: self::REGISTER, schema: self::SCHEMA));
 		} catch (Throwable $exception) {
 			unset($exception);
 			return null;

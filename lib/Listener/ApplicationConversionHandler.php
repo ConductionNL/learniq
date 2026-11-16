@@ -55,6 +55,9 @@ namespace OCA\Learniq\Listener;
 use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\Learniq\Kernel\Contracts\ProgrammeRequirementsInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
@@ -151,15 +154,14 @@ class ApplicationConversionHandler implements IEventListener {
 		$enrolmentIds = $this->createEnrolments(programmeId: $programmeId, ncUserId: $ncUserId, tenantId: $tenantId);
 
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::APPLICATION_SCHEMA,
 			object: array_merge(
 				$application,
 				[
 					'convertedLearnerProfileId' => $learnerProfileId,
 					'convertedEnrolmentIds' => $enrolmentIds,
 				]
-			)
+			),
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::APPLICATION_SCHEMA))
 		);
 
 		$this->transitionEngine->transition($applicationId, 'convert');
@@ -192,8 +194,6 @@ class ApplicationConversionHandler implements IEventListener {
 		// System context (learner-profile): admissions staff (coordinators, administration managers)
 		// place the applicant, and LearnerProfile create is hr and compliance officers only.
 		$saved = $this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::LEARNER_PROFILE_SCHEMA,
 			object: [
 				'ncUserId' => $ncUserId,
 				'givenName' => $application['applicantGivenName'] ?? '',
@@ -203,6 +203,7 @@ class ApplicationConversionHandler implements IEventListener {
 				'guardianRefs' => $guardianRefs,
 				'tenant_id' => $tenantId,
 			],
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::LEARNER_PROFILE_SCHEMA)),
 			_rbac: false
 		);
 
@@ -234,8 +235,6 @@ class ApplicationConversionHandler implements IEventListener {
 			// System context (enrolment): admissions staff place the applicant, and Enrolment create is
 			// instructors, hr, compliance officers and team leads only.
 			$saved = $this->objectService->saveObject(
-				register: self::LEARNIQ_REGISTER,
-				schema: self::ENROLMENT_SCHEMA,
 				object: [
 					'learnerId' => $ncUserId,
 					'courseId' => $courseId,
@@ -244,6 +243,7 @@ class ApplicationConversionHandler implements IEventListener {
 					'source' => 'admission',
 					'tenant_id' => $tenantId,
 				],
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::ENROLMENT_SCHEMA)),
 				_rbac: false
 			);
 
@@ -270,8 +270,7 @@ class ApplicationConversionHandler implements IEventListener {
 
 		$programme = $this->objectService->find(
 			id: $programmeId,
-			register: self::LEARNIQ_REGISTER,
-			schema: self::PROGRAMME_SCHEMA
+			options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::PROGRAMME_SCHEMA)
 		);
 
 		if ($programme === null) {

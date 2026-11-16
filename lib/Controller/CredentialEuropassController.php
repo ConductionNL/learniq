@@ -34,6 +34,9 @@ use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Kernel\Contracts\CredentialLearnerInterface;
 use OCA\Learniq\Kernel\Contracts\EuropassIssuerInterface;
 use OCA\Learniq\Support\FindOrNull;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -203,7 +206,11 @@ class CredentialEuropassController extends Controller {
 			$row = $credential;
 			unset($row['@self']);
 			$row['edciPayload'] = $payload;
-			$this->objects->saveObject(object: $row, register: self::REGISTER, schema: self::SCHEMA, uuid: $id, _rbac: false);
+			$this->objects->saveObject(
+				object: $row,
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: self::SCHEMA), uuid: $id),
+				_rbac: false
+			);
 		} catch (Throwable) {
 			return new JSONResponse(data: ['error' => 'save_failed'], statusCode: Http::STATUS_INTERNAL_SERVER_ERROR);
 		}
@@ -247,7 +254,11 @@ class CredentialEuropassController extends Controller {
 			return null;
 		}
 
-		$find = fn () => $this->objects->find(id: $id, register: self::REGISTER, schema: $schema, _rbac: false, _render: false);
+		$find = fn () => $this->objects->find(
+			id: $id,
+			options: new ObjectFindOptions(register: self::REGISTER, schema: $schema, render: false),
+			_rbac: false
+		);
 		return $this->findRowWithIdOrNull(find: $find, id: $id);
 	}//end read()
 }//end class

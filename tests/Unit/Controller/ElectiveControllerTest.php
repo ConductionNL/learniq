@@ -36,6 +36,7 @@ use OCP\IRequest;
 use OCP\IUser;
 use OCP\IUserSession;
 use PHPUnit\Framework\TestCase;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Who may write what, and how a refusal comes back.
@@ -85,7 +86,11 @@ class ElectiveControllerTest extends TestCase {
 
 		$objects = $this->createMock(ObjectService::class);
 		$objects->method('saveObject')->willReturnCallback(
-			function ($object, $extend=[], $register=null, $schema=null, $uuid=null, $_rbac=true) use ($refuse) {
+			function ($object, ObjectSaveOptions $options = new ObjectSaveOptions(), bool $_rbac = true) use ($refuse) {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
+				$uuid = $options->uuid;
 				if ($refuse !== null) {
 					throw new \RuntimeException($refuse);
 				}

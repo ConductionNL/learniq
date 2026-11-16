@@ -34,6 +34,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\Service\SsoAttributeMappingApplier;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -154,9 +156,10 @@ class SsoProfileFillListener implements IEventListener {
 
 		$this->objectService->saveObject(
 			object: $object,
-			register: self::REGISTER,
-			schema: self::PROFILE_SCHEMA,
-			uuid: (string)($profile['id'] ?? ($profile['uuid'] ?? '')),
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::REGISTER, schema: self::PROFILE_SCHEMA),
+				uuid: (string)($profile['id'] ?? ($profile['uuid'] ?? ''))
+			),
 			_rbac: false,
 			_multitenancy: false
 		);

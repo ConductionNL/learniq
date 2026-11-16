@@ -31,6 +31,8 @@ use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCP\EventDispatcher\Event;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Tests for SubjectChoiceValidator::handle() on SubjectChoice -> submitted.
@@ -81,7 +83,11 @@ class SubjectChoiceValidatorTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($plan): ?ObjectEntity {
+			function (int|string $id, ?ObjectFindOptions $options = null) use ($plan): ?ObjectEntity {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				if ($schema === 'curriculum-plan' && $plan !== null) {
 					return OrEntityFactory::make($plan, 'curriculum-plan');
 				}
@@ -102,7 +108,10 @@ class SubjectChoiceValidatorTest extends TestCase {
 		);
 
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
+			function (array|ObjectEntity $object, ObjectSaveOptions $options = new ObjectSaveOptions()): ObjectEntity {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
 				$data = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
 				$this->savedObjects[] = [
 					'register' => (string)$register,

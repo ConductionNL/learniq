@@ -41,6 +41,10 @@ namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
 use OCA\Learniq\Kernel\Contracts\CurriculumCoverageRollupInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectDeletion;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -287,9 +291,10 @@ class CurriculumCoverageRollup implements CurriculumCoverageRollupInterface {
 
 		$this->objectService->saveObject(
 			object: $row,
-			register: self::REGISTER,
-			schema: self::COVERAGE_SCHEMA,
-			uuid: $uuid,
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::REGISTER, schema: self::COVERAGE_SCHEMA),
+				uuid: $uuid
+			),
 			_rbac: false,
 			_multitenancy: false
 		);
@@ -308,9 +313,10 @@ class CurriculumCoverageRollup implements CurriculumCoverageRollupInterface {
 		}
 
 		$this->objectService->deleteObject(
-			uuid: $id,
-			register: self::REGISTER,
-			schema: self::COVERAGE_SCHEMA,
+			new ObjectDeletion(
+				uuid: $id,
+				target: new ObjectFindTarget(register: self::REGISTER, schema: self::COVERAGE_SCHEMA)
+			),
 			_rbac: false,
 			_multitenancy: false
 		);
@@ -332,8 +338,7 @@ class CurriculumCoverageRollup implements CurriculumCoverageRollupInterface {
 		try {
 			$object = $this->objectService->find(
 				id: $id,
-				register: self::REGISTER,
-				schema: $schema,
+				options: new ObjectFindOptions(register: self::REGISTER, schema: $schema),
 				_rbac: false,
 				_multitenancy: false
 			);

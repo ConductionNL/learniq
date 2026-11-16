@@ -35,6 +35,7 @@ namespace OCA\Learniq\Controller;
 use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Kernel\Contracts\StandbyCalendarInterface;
 use OCA\Learniq\Kernel\Contracts\SubstitutionCandidateServiceInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -171,7 +172,7 @@ class StandbyController extends Controller {
 		}
 
 		try {
-			$object = $this->objectService->find(id: $id, register: 'learniq', schema: $schema, _rbac: false);
+			$object = $this->objectService->find(id: $id, options: new ObjectFindOptions(register: 'learniq', schema: $schema), _rbac: false);
 		} catch (Throwable $exception) {
 			return null;
 		}
