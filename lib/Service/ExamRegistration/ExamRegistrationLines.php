@@ -134,10 +134,13 @@ final class ExamRegistrationLines {
 
 	/**
 	 * One participant's line: who, which company, which required fields are
-	 * missing. The result, the moment the employer was told and the
-	 * certificate of an earlier line for the same enrolment are kept; the
-	 * moment the employer was told is set the first time a field is missing
-	 * and cleared once the line is complete.
+	 * missing, and the task the employer's portal gives for it. The employer
+	 * has a task when the enrolment carries one (`openTask`, written by the
+	 * company booking's projection, for example "Vul de geboortedatum van
+	 * Youssef El Amrani in"). The result, the moment the employer was told and
+	 * the certificate of an earlier line for the same enrolment are kept; the
+	 * moment the employer was told is set the first time the task is seen and
+	 * cleared once the line is complete.
 	 *
 	 * @param array<string, mixed>      $enrolment    The enrolment.
 	 * @param array<string, mixed>      $profile      The learner profile ([] when unknown).
@@ -163,12 +166,14 @@ final class ExamRegistrationLines {
 			$name = trim((string)($profile['fullName'] ?? ($enrolment['learnerName'] ?? '')));
 		}
 
+		$task       = self::textOrNull(value: ($enrolment['openTask'] ?? null));
 		$notifiedAt = null;
-		if ($missing !== []) {
-			$notifiedAt = ($previous['employerNotifiedAt'] ?? null);
-			if ($notifiedAt === null && ($organisation['id'] ?? null) !== null) {
-				$notifiedAt = $now;
-			}
+		if ($missing !== [] && $task !== null) {
+			$notifiedAt = ($previous['employerNotifiedAt'] ?? $now);
+		}
+
+		if ($missing === []) {
+			$task = null;
 		}
 
 		return [
@@ -180,6 +185,7 @@ final class ExamRegistrationLines {
 			'contactName' => self::textOrNull(value: ($organisation['contactName'] ?? null)),
 			'missing' => $missing,
 			'complete' => $missing === [],
+			'employerTask' => $task,
 			'employerNotifiedAt' => $notifiedAt,
 			'result' => ($previous['result'] ?? null),
 			'resultBy' => ($previous['resultBy'] ?? null),

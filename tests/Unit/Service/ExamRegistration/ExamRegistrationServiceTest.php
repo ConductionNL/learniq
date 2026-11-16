@@ -66,7 +66,7 @@ class ExamRegistrationServiceTest extends TestCase {
 		}
 
 		$profiles[]   = ['id' => 'p-youssef', 'givenName' => 'Youssef', 'familyName' => 'El Amrani', 'placeOfBirth' => 'Utrecht', 'organisationRef' => 'o-jansen'];
-		$enrolments[] = ['id' => 'e-youssef', 'cohortId' => 'c-8', 'learnerRef' => 'p-youssef', 'lifecycle' => 'active', 'organisationRef' => 'o-jansen'];
+		$enrolments[] = ['id' => 'e-youssef', 'cohortId' => 'c-8', 'learnerRef' => 'p-youssef', 'lifecycle' => 'active', 'organisationRef' => 'o-jansen', 'openTask' => 'Vul de geboortedatum van Youssef El Amrani in'];
 		$enrolments[] = ['id' => 'e-left', 'cohortId' => 'c-8', 'learnerRef' => 'p-0', 'lifecycle' => 'withdrawn'];
 		$enrolments[] = ['id' => 'e-other', 'cohortId' => 'c-other', 'learnerRef' => 'p-0', 'lifecycle' => 'active'];
 
@@ -153,6 +153,7 @@ class ExamRegistrationServiceTest extends TestCase {
 		self::assertSame('Van Youssef El Amrani (Jansen Installatietechniek) ontbreekt de geboortedatum.', $list['incomplete'][0]['sentence']);
 		self::assertSame('Linda Jansen', $list['incomplete'][0]['contactName']);
 		self::assertSame('De werkgever kreeg vanochtend bericht.', $list['incomplete'][0]['notice']);
+		self::assertSame('Vul de geboortedatum van Youssef El Amrani in', $list['incomplete'][0]['employerTask'], 'the task on Linda Jansen\'s portal');
 
 		[$schema, $stored] = end($this->saves);
 		self::assertSame('exam-registration', $schema);

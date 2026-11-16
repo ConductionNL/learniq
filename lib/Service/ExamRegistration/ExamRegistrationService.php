@@ -360,6 +360,7 @@ class ExamRegistrationService implements ExamRegistrationServiceInterface {
 				'enrolmentId' => ($line['enrolmentId'] ?? null),
 				'learnerName' => ($line['learnerName'] ?? null),
 				'contactName' => ($line['contactName'] ?? null),
+				'employerTask' => ($line['employerTask'] ?? null),
 				'missing' => ($line['missing'] ?? []),
 				'sentence' => ExamRegistrationLines::missingSentence(line: $line),
 				'notice' => ExamRegistrationLines::notice(notifiedAt: ($line['employerNotifiedAt'] ?? null), now: $this->now()),

@@ -32,6 +32,8 @@ class ExamRegistrationLinesTest extends TestCase {
 
 	private const YOUSSEF = ['id' => 'p-youssef', 'givenName' => 'Youssef', 'familyName' => 'El Amrani', 'placeOfBirth' => 'Utrecht'];
 
+	private const TASK = 'Vul de geboortedatum van Youssef El Amrani in';
+
 	private const JANSEN = ['id' => 'o-jansen', 'name' => 'Jansen Installatietechniek', 'contactName' => 'Linda Jansen'];
 
 	public function testABodyRequiresTheDefaultFieldsUnlessItNamesKnownOnes(): void {
@@ -42,7 +44,7 @@ class ExamRegistrationLinesTest extends TestCase {
 
 	public function testAMissingBirthDateNamesTheFieldAndTellsTheEmployerOnce(): void {
 		$line = ExamRegistrationLines::line(
-			enrolment: ['id' => 'e-youssef'],
+			enrolment: ['id' => 'e-youssef', 'openTask' => self::TASK],
 			profile: self::YOUSSEF,
 			organisation: self::JANSEN,
 			required: ExamRegistrationLines::DEFAULT_REQUIRED,
@@ -55,12 +57,13 @@ class ExamRegistrationLinesTest extends TestCase {
 		self::assertSame('Youssef El Amrani', $line['learnerName']);
 		self::assertSame('Linda Jansen', $line['contactName']);
 		self::assertSame('2026-10-05T07:30:00+02:00', $line['employerNotifiedAt']);
+		self::assertSame(self::TASK, $line['employerTask']);
 		self::assertArrayNotHasKey('birthDate', $line, 'the list never carries the birth date');
 		self::assertSame('Van Youssef El Amrani (Jansen Installatietechniek) ontbreekt de geboortedatum.', ExamRegistrationLines::missingSentence(line: $line));
 
 		// A later refresh keeps the moment the employer was first told.
 		$again = ExamRegistrationLines::line(
-			enrolment: ['id' => 'e-youssef'],
+			enrolment: ['id' => 'e-youssef', 'openTask' => self::TASK],
 			profile: self::YOUSSEF,
 			organisation: self::JANSEN,
 			required: ExamRegistrationLines::DEFAULT_REQUIRED,
@@ -71,9 +74,9 @@ class ExamRegistrationLinesTest extends TestCase {
 		self::assertSame('pass', $again['result']);
 	}//end testAMissingBirthDateNamesTheFieldAndTellsTheEmployerOnce()
 
-	public function testACompleteLineClearsTheTaskAndAParticipantWithoutEmployerIsNotTold(): void {
+	public function testACompleteLineClearsTheTaskAndWithoutAPortalTaskNobodyIsTold(): void {
 		$complete = ExamRegistrationLines::line(
-			enrolment: ['id' => 'e-1'],
+			enrolment: ['id' => 'e-1', 'openTask' => self::TASK],
 			profile: array_merge(self::YOUSSEF, ['birthDate' => '1998-03-04']),
 			organisation: self::JANSEN,
 			required: ExamRegistrationLines::DEFAULT_REQUIRED,
@@ -83,6 +86,7 @@ class ExamRegistrationLinesTest extends TestCase {
 		self::assertTrue($complete['complete']);
 		self::assertSame([], $complete['missing']);
 		self::assertNull($complete['employerNotifiedAt']);
+		self::assertNull($complete['employerTask'], 'a stale task is not repeated');
 
 		$alone = ExamRegistrationLines::line(
 			enrolment: ['id' => 'e-2', 'learnerName' => 'Kim'],
@@ -94,9 +98,10 @@ class ExamRegistrationLinesTest extends TestCase {
 		);
 		self::assertSame(['fullName', 'birthDate'], $alone['missing'], 'a name needs both parts');
 		self::assertSame('Kim', $alone['learnerName']);
-		self::assertNull($alone['employerNotifiedAt']);
+		self::assertNull($alone['employerNotifiedAt'], 'no task on the portal, so nobody was told');
+		self::assertNull($alone['employerTask']);
 		self::assertSame('Van Kim ontbreekt de naam en de geboortedatum.', ExamRegistrationLines::missingSentence(line: $alone));
-	}//end testACompleteLineClearsTheTaskAndAParticipantWithoutEmployerIsNotTold()
+	}//end testACompleteLineClearsTheTaskAndWithoutAPortalTaskNobodyIsTold()
 
 	public function testTheSummaryCountsTheCompleteParticipants(): void {
 		$lines = array_fill(0, 10, ['complete' => true]);

@@ -35035,12 +35035,18 @@
                                     "title": "Complete",
                                     "description": "True when no required field is missing."
                                 },
+                                "employerTask": {
+                                    "type": "string",
+                                    "nullable": true,
+                                    "title": "Employer task",
+                                    "description": "The task the employer's portal gives for the missing field, for example \"Vul de geboortedatum van Youssef El Amrani in\". Copied from the enrolment."
+                                },
                                 "employerNotifiedAt": {
                                     "type": "string",
                                     "format": "date-time",
                                     "nullable": true,
                                     "title": "Employer told",
-                                    "description": "When the employer was given the task to complete the missing field."
+                                    "description": "When the list first saw the employer's task for the missing field."
                                 },
                                 "result": {
                                     "type": "string",
