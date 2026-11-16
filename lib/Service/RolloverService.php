@@ -337,7 +337,8 @@ class RolloverService implements RolloverServiceInterface {
 	/**
 	 * Count carryable enrolments for a member set (preview only — no writes).
 	 *
-	 * @param array{members: array<int,string>, overrides: array<string,array>, mapping: array<string,mixed>} $job The mapping's members, indexed overrides and mapping (its carryNonMandatory says whether non-mandatory counts).
+	 * @param array<string,mixed> $job The mapping's `members`, indexed `overrides` and `mapping`
+	 *                                 (its carryNonMandatory says whether non-mandatory counts).
 	 *
 	 * @return int Count of enrolments that would be carried over.
 	 */

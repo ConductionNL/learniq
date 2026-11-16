@@ -217,9 +217,9 @@ class RolloverExecutionService implements RolloverExecutionServiceInterface {
 	 * Execute a single promote mapping: create cohort, move members, sync group,
 	 * carry enrolments, queue outflow.
 	 *
-	 * @param array<string,mixed>                                                            $mapping The mapping.
-	 * @param array<int,string>                                                              $members The from-cohort learner IDs.
-	 * @param array{overrides: array<string,array>, toAcademicYear: string, tenantId: string} $context The plan's indexed learner overrides, to-year academic year and tenant ID.
+	 * @param array<string,mixed> $mapping The mapping.
+	 * @param array<int,string>   $members The from-cohort learner IDs.
+	 * @param array<string,mixed> $context The plan's indexed learner `overrides`, `toAcademicYear` and `tenantId`.
 	 *
 	 * @return void
 	 */
