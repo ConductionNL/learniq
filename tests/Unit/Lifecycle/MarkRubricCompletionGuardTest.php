@@ -25,6 +25,7 @@ namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
 use OCA\Learniq\Lifecycle\MarkRubricCompletionGuard;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -65,7 +66,8 @@ class MarkRubricCompletionGuardTest extends TestCase {
 	private function makeGuard(?array $assignment, ?array $rubric, bool $throws=false): MarkRubricCompletionGuard {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($assignment, $rubric, $throws) {
+			function (int|string $id, ?ObjectFindOptions $options = null) use ($assignment, $rubric, $throws) {
+				$schema = $options?->schema;
 				if ($throws === true) {
 					throw new RuntimeException('database gone');
 				}

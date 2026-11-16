@@ -48,6 +48,9 @@ use Exception;
 use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\Learniq\Kernel\Contracts\SessionChangeNoticeHandlerInterface;
 use OCA\OpenRegister\Event\ObjectUpdatedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -210,9 +213,8 @@ class SessionMoveNoticeHandler implements IEventListener {
 		$session['movedAt'] = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
 
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::SESSION_SCHEMA,
-			object: $session
+			object: $session,
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::SESSION_SCHEMA))
 		);
 
 		$this->logger->info(
@@ -231,7 +233,10 @@ class SessionMoveNoticeHandler implements IEventListener {
 	private function roomName(array $session): string {
 		$roomId = $session['roomId'] ?? null;
 		if (is_string($roomId) === true && $roomId !== '') {
-			$room = $this->objectService->find(id: $roomId, register: self::LEARNIQ_REGISTER, schema: self::ROOM_SCHEMA);
+			$room = $this->objectService->find(
+				id: $roomId,
+				options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::ROOM_SCHEMA)
+			);
 			if ($room !== null) {
 				$data = $room->jsonSerialize();
 				foreach (['name', 'code'] as $field) {

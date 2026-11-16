@@ -29,6 +29,8 @@ use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\Learniq\Tests\Support\TransitionScope;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectUpdatedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -67,7 +69,8 @@ class SessionMoveNoticeHandlerTest extends TestCase {
 		$this->saved = [];
 		$this->objectService = $this->createMock(ObjectService::class);
 		$this->objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null): ?ObjectEntity {
+			function (int|string $id, ?ObjectFindOptions $options = null): ?ObjectEntity {
+				$schema = $options?->schema;
 				$rooms = [
 					self::ROOM_214 => ['id' => self::ROOM_214, 'name' => '2.14'],
 					self::ROOM_108 => ['id' => self::ROOM_108, 'name' => '1.08'],
@@ -80,9 +83,9 @@ class SessionMoveNoticeHandlerTest extends TestCase {
 			}
 		);
 		$this->objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
+			function (array|ObjectEntity $object, ObjectSaveOptions $options = new ObjectSaveOptions()): ObjectEntity {
 				$this->saved[] = $object;
-				return OrEntityFactory::make($object, (string)$schema, (string)$register);
+				return OrEntityFactory::make($object, (string)$options->target->schema, (string)$options->target->register);
 			}
 		);
 	}//end setUp()
