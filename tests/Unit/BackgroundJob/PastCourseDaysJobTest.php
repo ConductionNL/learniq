@@ -29,6 +29,7 @@ use DateTimeZone;
 use OCA\Learniq\BackgroundJob\PastCourseDaysJob;
 use OCA\Learniq\Service\Portal\EmployerBookingProjection;
 use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IUserManager;
@@ -124,7 +125,7 @@ class PastCourseDaysJobTest extends TestCase {
 			static fn (array $config=[], bool $_rbac=true, bool $_multitenancy=true): array => $store->findAll($config, false, false)
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			static fn (array $object, ?array $extend=[], $register=null, $schema=null, ?string $uuid=null): object => $store->save((string)$schema, $object, $uuid, false)
+			static fn (array $object, ObjectSaveOptions $options=new ObjectSaveOptions()): object => $store->save((string)$options->target->schema, $object, $options->uuid, false)
 		);
 
 		$projection = new EmployerBookingProjection($objectService, $this->createMock(IUserManager::class), $time);
