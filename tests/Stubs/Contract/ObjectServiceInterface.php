@@ -5,6 +5,8 @@
  *
  * @license EUPL-1.2
  * @copyright Conduction B.V.
+ *
+ * SPDX-License-Identifier: EUPL-1.2
  */
 
 declare(strict_types=1);
