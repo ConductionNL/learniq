@@ -5330,16 +5330,34 @@
                         "title": "xAPI Statement ID"
                     },
                     "signature": {
+                        "authorization": {
+                            "update": [
+                                "hr",
+                                "compliance-officers"
+                            ]
+                        },
                         "type": "string",
                         "description": "HMAC-SHA256 signature computed by AttestationSigningGuard at the drafted→signed transition.",
                         "title": "HMAC Signature"
                     },
                     "signingKeyId": {
+                        "authorization": {
+                            "update": [
+                                "hr",
+                                "compliance-officers"
+                            ]
+                        },
                         "type": "string",
                         "description": "OR tenant-key rotation ID used to compute the signature. Required for offline verification.",
                         "title": "Signing Key ID"
                     },
                     "tenant_id": {
+                        "authorization": {
+                            "update": [
+                                "hr",
+                                "compliance-officers"
+                            ]
+                        },
                         "type": "string",
                         "format": "uuid",
                         "description": "Tenant identifier for multi-tenant isolation.",
