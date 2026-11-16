@@ -159,4 +159,20 @@ class PeerFeedbackSummaryLearnerReadTest extends TestCase {
 		$this->assertStringNotContainsString(needle: 'reviewerId', haystack: $encoded);
 		$this->assertStringNotContainsString(needle: 'peerReviewId', haystack: $encoded);
 	}//end testTheSummaryHasNoReviewerField()
+	/**
+	 * A schema block replaces the register's baseline, so the writes keep its staff groups:
+	 * a learner who may read a summary may not create, change or delete one.
+	 *
+	 * @return void
+	 */
+	public function testWritesKeepTheRegisterStaffGroups(): void {
+		$authorization = self::schema()['authorization'];
+		foreach (['create', 'update', 'delete'] as $action) {
+			$this->assertSame(
+				expected: ['instructors', 'hr', 'compliance-officers', 'team-leads'],
+				actual: ($authorization[$action] ?? null),
+				message: 'PeerFeedbackSummary ' . $action . ' must name the register baseline groups.'
+			);
+		}
+	}//end testWritesKeepTheRegisterStaffGroups()
 }//end class

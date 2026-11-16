@@ -10941,6 +10941,24 @@
                                 }
                             }
                         }
+                    ],
+                    "create": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ],
+                    "update": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ],
+                    "delete": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
                     ]
                 },
                 "required": [
