@@ -167,9 +167,7 @@ class RolloverExecutionService implements RolloverExecutionServiceInterface {
 			$this->executePromotion(
 				mapping: $this->withProgrammeTarget(mapping: $mapping, fromCohort: $cohort),
 				members: $members,
-				overrides: $context['overrides'],
-				toAcademicYear: $context['toAcademicYear'],
-				tenantId: $context['tenantId']
+				context: $context
 			);
 		}
 
@@ -219,19 +217,21 @@ class RolloverExecutionService implements RolloverExecutionServiceInterface {
 	 * Execute a single promote mapping: create cohort, move members, sync group,
 	 * carry enrolments, queue outflow.
 	 *
-	 * @param array<string,mixed> $mapping The mapping.
-	 * @param array<int,string> $members The from-cohort learner IDs.
-	 * @param array<string,array> $overrides Indexed learner overrides.
-	 * @param string $toAcademicYear To-year academic year.
-	 * @param string $tenantId Tenant ID.
+	 * @param array<string,mixed>                                                            $mapping The mapping.
+	 * @param array<int,string>                                                              $members The from-cohort learner IDs.
+	 * @param array{overrides: array<string,array>, toAcademicYear: string, tenantId: string} $context The plan's indexed learner overrides, to-year academic year and tenant ID.
 	 *
 	 * @return void
 	 */
-	private function executePromotion(array $mapping, array $members, array $overrides, string $toAcademicYear, string $tenantId): void {
+	private function executePromotion(array $mapping, array $members, array $context): void {
 		$toCohortName = (string)($mapping['toCohortName'] ?? '');
 		if ($toCohortName === '') {
 			return;
 		}
+
+		$overrides = $context['overrides'];
+		$toAcademicYear = $context['toAcademicYear'];
+		$tenantId = $context['tenantId'];
 
 		// Members that move forward: promote + retain (retain joins the new-year
 		// cohort of the same leerjaar conceptually; in execution it still lands in
