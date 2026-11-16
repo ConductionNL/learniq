@@ -129,14 +129,13 @@ class PortalExamSittingDocuments implements PortalExamSittingDocumentsInterface 
 	private function assignedSitting(string $assessorRef, string $sittingId): ?array {
 		$assigned = $this->rows(
 			schema: 'exam-assessor-assignment',
-			filters: ['externalAssessorId' => $assessorRef, 'examSittingId' => $sittingId, 'lifecycle' => 'assigned'],
-			ids: []
+			filters: ['externalAssessorId' => $assessorRef, 'examSittingId' => $sittingId, 'lifecycle' => 'assigned']
 		);
 		if ($assigned === []) {
 			return null;
 		}
 
-		return ($this->rows(schema: 'exam-sitting', filters: [], ids: [$sittingId])[0] ?? null);
+		return ($this->rowsWithIds(schema: 'exam-sitting', ids: [$sittingId])[0] ?? null);
 	}//end assignedSitting()
 
 	/**
@@ -186,7 +185,7 @@ class PortalExamSittingDocuments implements PortalExamSittingDocumentsInterface 
 		}
 
 		$byId = [];
-		foreach ($this->rows(schema: 'material', filters: [], ids: $ids) as $material) {
+		foreach ($this->rowsWithIds(schema: 'material', ids: $ids) as $material) {
 			$byId[$this->idOf(row: $material)] = $material;
 		}
 
@@ -201,27 +200,22 @@ class PortalExamSittingDocuments implements PortalExamSittingDocumentsInterface 
 	}//end documents()
 
 	/**
-	 * The rows of one schema matching the filters, and the ids when given.
+	 * The rows of one schema matching the filters.
 	 *
-	 * Every field filtered on is checked again on the row, and an id asked for
-	 * is checked on the row's id: the store's filter is not trusted alone.
+	 * Every field filtered on is checked again on the row: the store's filter
+	 * is not trusted alone.
 	 *
 	 * @param string               $schema  The schema slug.
 	 * @param array<string, mixed> $filters Field => value.
-	 * @param array<int, string>   $ids     Object ids, or [] for any.
 	 *
 	 * @return array<int, array<string, mixed>> The rows.
 	 */
-	private function rows(string $schema, array $filters, array $ids): array {
+	private function rows(string $schema, array $filters): array {
 		$config = ['filters' => array_merge(['register' => self::REGISTER, 'schema' => $schema], $filters), 'limit' => 50];
-		if ($ids !== []) {
-			$config['ids'] = $ids;
-		}
 
 		$rows = [];
-		foreach ($this->objectService->findAll(config: $config, _rbac: false, _multitenancy: false) as $object) {
-			$row = $this->objectRow->asArray(object: $object);
-			if ($this->matches(row: $row, filters: $filters, ids: $ids) === true) {
+		foreach ($this->fetch(config: $config) as $row) {
+			if ($this->matches(row: $row, filters: $filters) === true) {
 				$rows[] = $row;
 			}
 		}
@@ -230,22 +224,61 @@ class PortalExamSittingDocuments implements PortalExamSittingDocumentsInterface 
 	}//end rows()
 
 	/**
-	 * Whether a row holds every filtered value and, when ids were asked for, one of them.
+	 * The rows of one schema with one of the given ids.
+	 *
+	 * The id asked for is checked again on the row's id: the store's filter is
+	 * not trusted alone.
+	 *
+	 * @param string             $schema The schema slug.
+	 * @param array<int, string> $ids    Object ids.
+	 *
+	 * @return array<int, array<string, mixed>> The rows.
+	 */
+	private function rowsWithIds(string $schema, array $ids): array {
+		$config = ['filters' => ['register' => self::REGISTER, 'schema' => $schema], 'limit' => 50, 'ids' => $ids];
+
+		$rows = [];
+		foreach ($this->fetch(config: $config) as $row) {
+			if (in_array($this->idOf(row: $row), $ids, true) === true) {
+				$rows[] = $row;
+			}
+		}
+
+		return $rows;
+	}//end rowsWithIds()
+
+	/**
+	 * The rows one findAll() configuration returns, as arrays.
+	 *
+	 * @param array<string, mixed> $config The findAll() configuration.
+	 *
+	 * @return array<int, array<string, mixed>> The rows.
+	 */
+	private function fetch(array $config): array {
+		$rows = [];
+		foreach ($this->objectService->findAll(config: $config, _rbac: false, _multitenancy: false) as $object) {
+			$rows[] = $this->objectRow->asArray(object: $object);
+		}
+
+		return $rows;
+	}//end fetch()
+
+	/**
+	 * Whether a row holds every filtered value.
 	 *
 	 * @param array<string, mixed> $row     The row.
 	 * @param array<string, mixed> $filters Field => value.
-	 * @param array<int, string>   $ids     Object ids, or [] for any.
 	 *
 	 * @return bool True when it matches.
 	 */
-	private function matches(array $row, array $filters, array $ids): bool {
+	private function matches(array $row, array $filters): bool {
 		foreach ($filters as $field => $value) {
 			if (($row[$field] ?? null) !== $value) {
 				return false;
 			}
 		}
 
-		return $ids === [] || in_array($this->idOf(row: $row), $ids, true) === true;
+		return true;
 	}//end matches()
 
 	/**

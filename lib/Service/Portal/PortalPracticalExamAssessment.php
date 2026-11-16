@@ -134,7 +134,7 @@ class PortalPracticalExamAssessment implements PortalPracticalExamAssessmentInte
 	public function submit(string $assessorRef, string $trust, array $body): PortalOutcome {
 		$assurance = (self::TRUST_TO_ASSURANCE[$trust] ?? 'basic');
 		$pair = ['sittingId' => $this->text(value: ($body['examSittingId'] ?? null)), 'learnerRef' => $this->text(value: ($body['learnerRef'] ?? null))];
-		$refusal = $this->requestRefusal(assurance: $assurance, assessorRef: $assessorRef, pair: $pair);
+		$refusal = $this->requestRefusal(assurance: $assurance, required: [$assessorRef, $pair['sittingId'], $pair['learnerRef']]);
 		if ($refusal !== null) {
 			return $refusal;
 		}
@@ -185,8 +185,8 @@ class PortalPracticalExamAssessment implements PortalPracticalExamAssessmentInte
 					'lifecycle' => $request['lifecycle'],
 					'tenant' => $this->text(value: ($assignment['tenant_id'] ?? null)),
 					'body' => $request['body'],
-				],
-				existing: $existing
+					'existing' => $existing,
+				]
 			);
 		} catch (Throwable $exception) {
 			$this->logger->error(
@@ -196,24 +196,23 @@ class PortalPracticalExamAssessment implements PortalPracticalExamAssessmentInte
 			return new PortalOutcome(status: 502, body: ['error' => 'downstream_error'], reason: 'downstream');
 		}//end try
 
-		return $this->stored(saved: $saved, request: $request, created: $existing === null);
+		return $this->stored(saved: $saved, request: array_merge($request, ['created' => $existing === null]));
 	}//end store()
 
 	/**
 	 * Save the stamped assessment, over the assessor's own earlier one when there is one.
 	 *
-	 * @param array<string, mixed>      $assessor The assessor.
-	 * @param array<string, mixed>      $stamp    What the portal stamps on the body.
-	 * @param array<string, mixed>|null $existing The assessor's own earlier assessment.
+	 * @param array<string, mixed> $assessor The assessor.
+	 * @param array<string, mixed> $stamp    What the portal stamps on the body, with `existing` (the assessor's own earlier assessment, or null).
 	 *
 	 * @return mixed The saved object.
 	 */
-	private function save(array $assessor, array $stamp, ?array $existing): mixed {
+	private function save(array $assessor, array $stamp): mixed {
 		return $this->objectService->saveObject(
 			object: $this->stamped(assessor: $assessor, stamp: $stamp),
 			options: new ObjectSaveOptions(
 				target: new ObjectFindTarget(register: self::REGISTER, schema: self::ASSESSMENT_SCHEMA),
-				uuid: $this->idOf(row: $existing)
+				uuid: $this->idOf(row: $stamp['existing'])
 			),
 			_rbac: false,
 			_multitenancy: false
@@ -224,14 +223,13 @@ class PortalPracticalExamAssessment implements PortalPracticalExamAssessmentInte
 	 * The answer to a stored assessment: 201 when it is new, 200 when it replaced a draft.
 	 *
 	 * @param mixed                $saved   The saved object.
-	 * @param array<string, mixed> $request The request.
-	 * @param bool                 $created Whether the assessment is new.
+	 * @param array<string, mixed> $request The request, with `created` (whether the assessment is new).
 	 *
 	 * @return PortalOutcome
 	 */
-	private function stored(mixed $saved, array $request, bool $created): PortalOutcome {
+	private function stored(mixed $saved, array $request): PortalOutcome {
 		$status = 200;
-		if ($created === true) {
+		if ($request['created'] === true) {
 			$status = 201;
 		}
 
@@ -325,19 +323,18 @@ class PortalPracticalExamAssessment implements PortalPracticalExamAssessmentInte
 	/**
 	 * Why the request is refused before any read: assurance below the floor, or an incomplete request.
 	 *
-	 * @param string                $assurance   The caller's assurance level.
-	 * @param string                $assessorRef The assessor.
-	 * @param array<string, string> $pair        The sitting and the candidate.
+	 * @param string             $assurance The caller's assurance level.
+	 * @param array<int, string> $required  The assessor, the sitting and the candidate: none may be empty.
 	 *
 	 * @return PortalOutcome|null Null when the request may proceed.
 	 */
-	private function requestRefusal(string $assurance, string $assessorRef, array $pair): ?PortalOutcome {
+	private function requestRefusal(string $assurance, array $required): ?PortalOutcome {
 		$floor = $this->floor();
 		if (self::ASSURANCE_ORDER[$assurance] < self::ASSURANCE_ORDER[$floor]) {
 			return new PortalOutcome(status: 403, body: ['error' => 'assurance_too_low', 'required' => $floor], reason: 'assurance-too-low');
 		}
 
-		if (self::anyEmpty(values: [$assessorRef, $pair['sittingId'], $pair['learnerRef']]) === true) {
+		if (self::anyEmpty(values: $required) === true) {
 			return new PortalOutcome(status: 422, body: ['error' => 'incomplete'], reason: 'incomplete');
 		}
 

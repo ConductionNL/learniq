@@ -171,7 +171,7 @@ class PortalPracticalExamSigning implements PortalPracticalExamSigningInterface 
 			return new PortalOutcome(status: 409, body: ['error' => 'already_signed'], reason: 'already-signed');
 		}
 
-		return $this->store(own: $own, assurance: $assurance, assignment: $assignment, assessment: $assessment);
+		return $this->store(own: $own, context: ['assurance' => $assurance, 'assignment' => $assignment, 'assessment' => $assessment]);
 	}//end signChecked()
 
 	/**
@@ -201,14 +201,16 @@ class PortalPracticalExamSigning implements PortalPracticalExamSigningInterface 
 	/**
 	 * Store the assessor's signature on the assessment and answer 201.
 	 *
-	 * @param array<string, mixed> $own        The subject and the signer.
-	 * @param string               $assurance  The assurance level of his session.
-	 * @param array<string, mixed> $assignment His assignment.
-	 * @param array<string, mixed> $assessment The assessment.
+	 * @param array<string, mixed> $own     The subject and the signer.
+	 * @param array<string, mixed> $context `assurance` (the assurance level of his session),
+	 *                                      `assignment` (his assignment) and `assessment`.
 	 *
 	 * @return PortalOutcome The outcome.
 	 */
-	private function store(array $own, string $assurance, array $assignment, array $assessment): PortalOutcome {
+	private function store(array $own, array $context): PortalOutcome {
+		$assurance  = $context['assurance'];
+		$assignment = $context['assignment'];
+		$assessment = $context['assessment'];
 		$signedAt = $this->timeFactory->getDateTime()->format(DateTimeInterface::ATOM);
 		$saved    = $this->objectService->saveObject(
 			object: array_merge(
