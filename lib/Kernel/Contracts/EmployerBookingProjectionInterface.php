@@ -40,8 +40,8 @@ interface EmployerBookingProjectionInterface {
 	/**
 	 * The rows of a schema whose fields equal the filters.
 	 *
-	 * @param string                $schema  The schema slug.
-	 * @param array<string, string> $filters Field equals value.
+	 * @param string                     $schema  The schema slug.
+	 * @param array<string, string|bool> $filters Field equals value.
 	 *
 	 * @return array<int, array<string, mixed>>
 	 *

@@ -30,11 +30,13 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Portal;
 
+use DateTimeImmutable;
 use OCA\Learniq\Kernel\Contracts\EmployerBookingProjectionInterface;
 use OCA\Learniq\Support\SerialisedRow;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
+use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IUserManager;
 
 /**
@@ -51,12 +53,14 @@ class EmployerBookingProjection implements EmployerBookingProjectionInterface {
 	 *
 	 * @param ObjectService $objectService Reads and writes the rows.
 	 * @param IUserManager  $users         Names the trainer.
+	 * @param ITimeFactory|null $time      Today, so a booking whose last day has passed is no longer coming.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly IUserManager $users,
+		private readonly ?ITimeFactory $time=null,
 	) {
 	}//end __construct()
 
@@ -104,7 +108,8 @@ class EmployerBookingProjection implements EmployerBookingProjectionInterface {
 			sessions: $sessions,
 			participants: $participants,
 			renewed: $renewed,
-			context: ['trainerName' => $this->trainerName(cohort: $cohort), 'placeLabel' => $this->placeLabel(cohort: $cohort)]
+			context: ['trainerName' => $this->trainerName(cohort: $cohort), 'placeLabel' => $this->placeLabel(cohort: $cohort)],
+			today: $this->today()
 		);
 
 		foreach ($participants as $row) {
@@ -119,6 +124,19 @@ class EmployerBookingProjection implements EmployerBookingProjectionInterface {
 
 		return $this->saveWhenMoved(schema: 'course-booking', row: $booking, fields: $fields);
 	}//end project()
+
+	/**
+	 * Today, from the time factory, or the clock when there is none.
+	 *
+	 * @return DateTimeImmutable
+	 */
+	private function today(): DateTimeImmutable {
+		if ($this->time !== null) {
+			return $this->time->now();
+		}
+
+		return new DateTimeImmutable('now');
+	}//end today()
 
 	/**
 	 * The edition's first trainer by display name, or null.
@@ -235,7 +253,7 @@ class EmployerBookingProjection implements EmployerBookingProjectionInterface {
 	 * The rows of a schema whose fields equal the filters.
 	 *
 	 * @param string                $schema  The schema slug.
-	 * @param array<string, string> $filters Field equals value.
+	 * @param array<string, string|bool> $filters Field equals value.
 	 *
 	 * @return array<int, array<string, mixed>>
 	 *
