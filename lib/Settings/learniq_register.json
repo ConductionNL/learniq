@@ -7498,6 +7498,8 @@
                         "properties": {
                             "status": {
                                 "type": "string",
+                                "title": "Moved to",
+                                "description": "The status the planner moved the course day to.",
                                 "enum": [
                                     "open",
                                     "goes-ahead",
@@ -7509,17 +7511,25 @@
                             },
                             "from": {
                                 "type": "string",
+                                "title": "Moved from",
+                                "description": "The status the course day had before the move.",
                                 "nullable": true
                             },
                             "movedBy": {
-                                "type": "string"
+                                "type": "string",
+                                "title": "Moved by",
+                                "description": "The user who moved the course day."
                             },
                             "movedAt": {
                                 "type": "string",
+                                "title": "Moved at",
+                                "description": "When the course day was moved.",
                                 "format": "date-time"
                             },
                             "facts": {
-                                "type": "string"
+                                "type": "string",
+                                "title": "Facts at the move",
+                                "description": "A fingerprint of the facts the move was made on; when they change, the derived status takes over again."
                             }
                         }
                     },
@@ -7533,6 +7543,8 @@
                             "properties": {
                                 "kind": {
                                     "type": "string",
+                                    "title": "Kind of change",
+                                    "description": "What happened: a derived status change, a manual move, a go/no-go decision or participants moved to another day.",
                                     "enum": [
                                         "derived",
                                         "manual",
@@ -7542,18 +7554,26 @@
                                 },
                                 "from": {
                                     "type": "string",
+                                    "title": "Status before",
+                                    "description": "The status before the change.",
                                     "nullable": true
                                 },
                                 "to": {
                                     "type": "string",
+                                    "title": "Status after",
+                                    "description": "The status after the change.",
                                     "nullable": true
                                 },
                                 "by": {
                                     "type": "string",
+                                    "title": "Changed by",
+                                    "description": "The user who made the change; empty when the status changed by itself.",
                                     "nullable": true
                                 },
                                 "at": {
                                     "type": "string",
+                                    "title": "Changed at",
+                                    "description": "When the change happened.",
                                     "format": "date-time"
                                 }
                             }
@@ -8222,6 +8242,8 @@
                             "properties": {
                                 "key": {
                                     "type": "string",
+                                    "title": "Part of the day",
+                                    "description": "Which part of the day this is.",
                                     "enum": [
                                         "morning",
                                         "afternoon"
@@ -8233,10 +8255,14 @@
                                 },
                                 "startsAt": {
                                     "type": "string",
+                                    "title": "Starts at",
+                                    "description": "When this part of the day starts.",
                                     "format": "date-time"
                                 },
                                 "endsAt": {
                                     "type": "string",
+                                    "title": "Ends at",
+                                    "description": "When this part of the day ends.",
                                     "format": "date-time"
                                 }
                             }

@@ -13,6 +13,7 @@
 
  @spec openspec/changes/training-provider-course-days/specs/attendance/spec.md#requirement-a-trainer-registers-attendance-per-part-of-the-day
 -->
+<!-- @visual exclude Dashboard card rendered inside LearniqDashboards (teacher role); the visual surface is LearniqDashboards, which carries the baseline. -->
 <template>
 	<div class="course-day-parts" data-testid="course-day-parts-widget">
 		<NcLoadingIcon v-if="loading" :size="32" />
@@ -62,11 +63,21 @@ export default {
 	watch: {
 		filter: {
 			deep: true,
+			/**
+			 * Reload the notices when the teacher's session filter changes.
+			 *
+			 * @spec openspec/changes/training-provider-course-days/specs/attendance/spec.md#requirement-a-trainer-registers-attendance-per-part-of-the-day
+			 */
 			handler() {
 				this.load()
 			},
 		},
 
+		/**
+		 * Reload the notices once the dashboard has worked out the filter.
+		 *
+		 * @spec openspec/changes/training-provider-course-days/specs/attendance/spec.md#requirement-a-trainer-registers-attendance-per-part-of-the-day
+		 */
 		pending() {
 			this.load()
 		},
