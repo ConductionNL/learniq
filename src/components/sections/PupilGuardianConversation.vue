@@ -88,6 +88,11 @@ export default {
 	watch: {
 		path: {
 			immediate: true,
+			/**
+			 * Reload the conversation whenever the pupil, and so the endpoint, changes.
+			 *
+			 * @spec openspec/changes/learner-list-and-page-follow-the-boards/tasks.md#T5
+			 */
 			handler() {
 				this.load()
 			},
