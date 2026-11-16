@@ -240,6 +240,20 @@ class CourseEvaluationResponseSubmittedHandler implements IEventListener {
 			]
 		);
 
+		return $this->callersInvitation(invitations: $invitations, callerUid: $callerUid);
+	}//end findInvitation()
+
+	/**
+	 * The first invitation found, when it names the caller as its learner.
+	 *
+	 * @param array<int,mixed> $invitations The invitations the query found.
+	 * @param string           $callerUid   The submitting user.
+	 *
+	 * @return array<string,mixed>|null The invitation, or null when there is none.
+	 *
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-a-successful-submission-flips-the-invitation-without-linking-to-the-response
+	 */
+	private function callersInvitation(array $invitations, string $callerUid): ?array {
 		if (empty($invitations) === true) {
 			return null;
 		}
@@ -256,5 +270,5 @@ class CourseEvaluationResponseSubmittedHandler implements IEventListener {
 		}
 
 		return (array)$invitation;
-	}//end findInvitation()
+	}//end callersInvitation()
 }//end class

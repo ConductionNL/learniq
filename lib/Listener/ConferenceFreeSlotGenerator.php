@@ -171,6 +171,21 @@ class ConferenceFreeSlotGenerator implements IEventListener {
 			return 0;
 		}
 
+		return $this->writeFreeSlots(round: $round, roundId: $roundId);
+	}//end generateForRound()
+
+	/**
+	 * Write a free slot for every candidate interval of the round's teacher
+	 * availabilities that no slot holds yet.
+	 *
+	 * @param array<string,mixed> $round   The round.
+	 * @param string              $roundId Its id.
+	 *
+	 * @return int How many slots were written.
+	 *
+	 * @spec openspec/changes/direct-conference-booking/specs/parent-conferences/spec.md
+	 */
+	private function writeFreeSlots(array $round, string $roundId): int {
 		$held = $this->heldIntervals(roundId: $roundId);
 		$eligible = [];
 		$written = 0;
@@ -199,7 +214,7 @@ class ConferenceFreeSlotGenerator implements IEventListener {
 		}//end foreach
 
 		return $written;
-	}//end generateForRound()
+	}//end writeFreeSlots()
 
 	/**
 	 * The slot times one availability offers, sliced by the round's slot length and buffer.

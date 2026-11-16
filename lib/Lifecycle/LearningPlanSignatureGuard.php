@@ -255,6 +255,19 @@ class LearningPlanSignatureGuard implements LifecycleGuardInterface {
 			]
 		);
 
+		return $this->requiredRolesOf(templates: $templates);
+	}//end fetchRequiredRoles()
+
+	/**
+	 * The requiredSignerRoles of the found template, or none without one.
+	 *
+	 * @param array<int,mixed> $templates The templates found, at most one.
+	 *
+	 * @return string[] Empty array when no template or no roles defined.
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-15
+	 */
+	private function requiredRolesOf(array $templates): array {
 		if (empty($templates) === true) {
 			return [];
 		}
@@ -265,7 +278,7 @@ class LearningPlanSignatureGuard implements LifecycleGuardInterface {
 		}
 
 		return $template['requiredSignerRoles'] ?? [];
-	}//end fetchRequiredRoles()
+	}//end requiredRolesOf()
 
 	/**
 	 * Fetch all Signature objects for the given plan and version.

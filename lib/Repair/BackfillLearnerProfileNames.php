@@ -130,6 +130,18 @@ class BackfillLearnerProfileNames implements IRepairStep {
 			return null;
 		}
 
+		return $this->saveNamed(row: $row, uuid: $uuid);
+	}//end nameRow()
+
+	/**
+	 * Save the learner profile so OpenRegister stores its derived name.
+	 *
+	 * @param array<string,mixed> $row  The learner profile, its name derived.
+	 * @param string              $uuid Its uuid.
+	 *
+	 * @return string Counter to bump: named, or failed when the save threw.
+	 */
+	private function saveNamed(array $row, string $uuid): string {
 		try {
 			// The `@self` block would make OpenRegister check the acting
 			// user's folder rights, which a session-less step never has.
@@ -154,7 +166,7 @@ class BackfillLearnerProfileNames implements IRepairStep {
 		}
 
 		return 'named';
-	}//end nameRow()
+	}//end saveNamed()
 
 	/**
 	 * The name OpenRegister computes from `{{ givenName }} {{ familyName }}`.
