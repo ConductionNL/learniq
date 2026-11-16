@@ -133,19 +133,15 @@ class PeerFeedbackSummaryLearnerReadTest extends TestCase {
 	}//end testALearnerReadsOnlyTheirOwnReleasedSummary()
 
 	/**
-	 * The groups that read the Submission keep reading its summary.
+	 * Staff read access stays as it was: the schema block replaces the
+	 * register's baseline, so it names the register's staff groups itself.
 	 *
 	 * @return void
 	 */
 	public function testStaffWhoReadTheSubmissionReadItsSummary(): void {
-		$register = json_decode(
-			json: (string)file_get_contents(filename: __DIR__ . '/../../../lib/Settings/learniq_register.json'),
-			associative: true
-		);
-		$submissionGroups = array_values(array_filter($register['components']['schemas']['Submission']['authorization']['read'], 'is_string'));
-		$summaryGroups    = array_values(array_filter(self::schema()['authorization']['read'], 'is_string'));
+		$summaryGroups = array_values(array_filter(self::schema()['authorization']['read'], 'is_string'));
 
-		$this->assertSame(expected: $submissionGroups, actual: $summaryGroups);
+		$this->assertSame(expected: ['instructors', 'hr', 'compliance-officers', 'team-leads'], actual: $summaryGroups);
 	}//end testStaffWhoReadTheSubmissionReadItsSummary()
 
 	/**
@@ -161,18 +157,21 @@ class PeerFeedbackSummaryLearnerReadTest extends TestCase {
 	}//end testTheSummaryHasNoReviewerField()
 	/**
 	 * A schema block replaces the register's baseline, so the writes keep its staff groups:
-	 * a learner who may read a summary may not create, change or delete one.
+	 * a learner who may read a summary may not create or change one, and delete stays
+	 * unnamed, as the baseline left it, so nobody but an admin deletes a summary.
 	 *
 	 * @return void
 	 */
 	public function testWritesKeepTheRegisterStaffGroups(): void {
 		$authorization = self::schema()['authorization'];
-		foreach (['create', 'update', 'delete'] as $action) {
+		foreach (['create', 'update'] as $action) {
 			$this->assertSame(
 				expected: ['instructors', 'hr', 'compliance-officers', 'team-leads'],
 				actual: ($authorization[$action] ?? null),
 				message: 'PeerFeedbackSummary ' . $action . ' must name the register baseline groups.'
 			);
 		}
+
+		$this->assertArrayNotHasKey(key: 'delete', array: $authorization, message: 'The register baseline grants no delete.');
 	}//end testWritesKeepTheRegisterStaffGroups()
 }//end class

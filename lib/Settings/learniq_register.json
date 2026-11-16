@@ -10917,7 +10917,7 @@
                 "icon": "MessageTextOutline",
                 "version": "0.2.0",
                 "title": "PeerFeedbackSummary",
-                "description": "Computed, read-only aggregate of a Submission's released PeerReviews — one row per Submission. The only surface a submission's author reads peer feedback through (Anonymity Enforcement, design.md): it carries the comments and rubric scores but no reviewer name, user id or PeerReview id, in every anonymity mode. Recomputed by PeerFeedbackAggregator whenever a linked PeerReview transitions to released, which is also when it is first written. No lifecycle — fully derived, mirrors FinalGrade. Read: the groups that read the Submission, and the Submission's own learner once a PeerReview on it is released (reviewCount >= 1); another learner reads none.",
+                "description": "Computed, read-only aggregate of a Submission's released PeerReviews — one row per Submission. The only surface a submission's author reads peer feedback through (Anonymity Enforcement, design.md): it carries the comments and rubric scores but no reviewer name, user id or PeerReview id, in every anonymity mode. Recomputed by PeerFeedbackAggregator whenever a linked PeerReview transitions to released, which is also when it is first written. No lifecycle — fully derived, mirrors FinalGrade. Read: the register's staff groups, as before, and the Submission's own learner once a PeerReview on it is released (reviewCount >= 1); another learner reads none.",
                 "type": "object",
                 "x-openregister": {
                     "active": true,
@@ -10928,6 +10928,7 @@
                 "authorization": {
                     "read": [
                         "instructors",
+                        "hr",
                         "compliance-officers",
                         "team-leads",
                         {
@@ -10949,12 +10950,6 @@
                         "team-leads"
                     ],
                     "update": [
-                        "instructors",
-                        "hr",
-                        "compliance-officers",
-                        "team-leads"
-                    ],
-                    "delete": [
                         "instructors",
                         "hr",
                         "compliance-officers",
