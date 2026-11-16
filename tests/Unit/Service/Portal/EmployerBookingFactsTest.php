@@ -92,6 +92,36 @@ class EmployerBookingFactsTest extends TestCase {
 	}//end testAMissingBirthDateBeforeAnExamWaitsForTheEmployer()
 
 	/**
+	 * With today given, a booking is coming up to and including its last
+	 * course day and no longer after it; a two-day course is still coming on
+	 * its second day. Without today the days are left out of it, as the
+	 * example sets write it.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/past-course-days-drop-off/specs/portal-contribution/spec.md#requirement-a-course-day-that-has-passed-is-no-longer-coming
+	 */
+	public function testABookingStopsBeingComingAfterItsLastDay(): void {
+		$zone = new \DateTimeZone('Europe/Amsterdam');
+		$sessions = [self::session('2026-10-20T08:30:00+02:00', '2026-10-20T16:30:00+02:00'), self::session('2026-10-21T08:30:00+02:00', '2026-10-21T16:30:00+02:00')];
+		$derive = static fn (?string $today): array => (new EmployerBookingFacts())->derive(
+			booking: ['participantCount' => 1, 'lifecycle' => 'confirmed'],
+			course: ['name' => 'Basis'],
+			sessions: $sessions,
+			participants: [self::person('1', 'Daan', null)],
+			today: ($today === null ? null : new \DateTimeImmutable($today, $zone))
+		);
+
+		self::assertTrue($derive('2026-10-20 09:00')['booking']['upcoming'], 'on the first day');
+		self::assertTrue($derive('2026-10-21 23:30')['booking']['upcoming'], 'on the last day');
+		$after = $derive('2026-10-22 00:10');
+		self::assertFalse($after['booking']['upcoming'], 'the day after');
+		self::assertFalse($after['enrolments']['en-1']['upcoming'], 'his course day drops off too');
+		self::assertTrue($derive(null)['booking']['upcoming'], 'the seeded copies leave the days out');
+		self::assertFalse((new EmployerBookingFacts())->upcoming(lifecycle: 'completed', days: [], today: null));
+	}//end testABookingStopsBeingComingAfterItsLastDay()
+
+	/**
 	 * A course without an exam never asks for a birth date.
 	 *
 	 * @return void

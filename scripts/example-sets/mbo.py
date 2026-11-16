@@ -139,6 +139,10 @@ SCHEMAS = [
     # leerplicht limit. Appended for the same reason; its parent,
     # learner-profile, sits above it.
     "attendance-summary",
+    # practical-exam-assessment: the proeve's two assessors and the candidates
+    # each of them assesses. Appended for the same reason; its parents,
+    # external-assessor, learner-profile and exam-sitting, sit above it.
+    "exam-assessor-assignment",
 ]
 IDENTITY = SetIdentity(SET, SET_NUMBER, SCHEMAS)
 
@@ -615,7 +619,7 @@ STEPS = (
     "add_accommodations", "add_exemption_cases", "pick_result_cases", "add_unit_results", "add_pvb_entries",
     "add_fraud_case", "add_dismissed_fraud_case", "add_final_grades", "add_trajectories", "add_progress_flags",
     "add_warnings", "add_bsa_decisions", "settle_diplomas", "add_support_requests", "add_dossier_notes",
-    "add_hour_plans", "add_assessor_shares", "add_hour_weeks", "add_story_and_stamps",
+    "add_hour_plans", "add_assessor_shares", "add_hour_weeks", "add_story_and_stamps", "add_practical_exam",
 )
 
 
@@ -1683,6 +1687,7 @@ class SchoolYear:
             "email": "ruud.jansen@examinering-zuiddrecht.example",
             "organisationName": "Examinering Zuiddrecht", "active": True,
         })
+        self.assessor = assessor
         # Two students who are actually on a placement, so the portfolios belong to
         # people the rest of the set knows.
         for index, s in enumerate([p["student"] for p in self.placements][:2], start=1):
@@ -1739,6 +1744,40 @@ class SchoolYear:
         add_story(self)
         stamp_hour_totals(self.b)
         stamp_group_labels(self.b)
+
+    # --- practical-exam-assessment: a proeve with two assessors -------------
+    # Added last, so no earlier uuid moves, and with no random draws. Ruud Jansen
+    # assesses first and Sanne Bakker second, each for the same three candidates,
+    # the first three students on a placement, in one sitting.
+    def add_practical_exam(self) -> None:
+        second = self.b.add("external-assessor", {
+            "givenName": "Sanne", "familyName": "Bakker",
+            "email": "sanne.bakker@examinering-zuiddrecht.example",
+            "organisationName": "Examinering Zuiddrecht", "active": True,
+        })
+        candidates = [p["student"] for p in self.placements][:3]
+        period = self.b.add("exam-period", {
+            "name": "Proeven van bekwaamheid november 2026", "startsOn": "2026-11-16", "endsOn": "2026-11-20",
+            "cohortIds": sorted({self.cohorts[s["class"]]["uuid"] for s in candidates}), "lifecycle": "published",
+        })
+        exam = self.b.add("exam", {
+            "title": "Proeve van bekwaamheid installeren", "description": "Praktijkexamen: de kandidaat installeert en meet na, twee beoordelaars kijken mee.",
+            "scoringScheme": "passMark", "passMark": 5.5, "timeLimitMinutes": 180, "maxAttempts": 1, "lifecycle": "published",
+        })
+        starts = stamp(dt.date(2026, 11, 16), 9, 0)
+        sitting = self.b.add("exam-sitting", {
+            "examPeriodId": period["uuid"], "assessmentId": exam["uuid"], "cohortIds": period["cohortIds"],
+            "startsAt": starts, "endsAt": stamp(dt.date(2026, 11, 16), 12, 0),
+            "roomIds": [self.rooms[candidates[0]["class"]]["uuid"]], "headcount": len(candidates), "invigilatorsNeeded": 0,
+            "lifecycle": "planned",
+        })
+        for s in candidates:
+            for role, assessor in (("first", self.assessor), ("second", second)):
+                self.b.add("exam-assessor-assignment", {
+                    "examSittingId": sitting["uuid"], "externalAssessorId": assessor["uuid"], "learnerRef": s["profile"]["uuid"],
+                    "role": role, "lifecycle": "assigned", "learnerName": f"{s['given']} {s['surname']}",
+                    "sittingStartsAt": starts, "examTitle": exam["title"],
+                })
 
 
 def programme_unit_codes(key: str) -> list[str]:

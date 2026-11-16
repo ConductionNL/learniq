@@ -134,6 +134,10 @@ use OCA\Learniq\Kernel\Contracts\PortalMessagesInterface;
 use OCA\Learniq\Kernel\Contracts\PortalResultReaderInterface;
 use OCA\Learniq\Kernel\Contracts\PortalSubmissionHandInInterface;
 use OCA\Learniq\Kernel\Contracts\PortalWerkprocesAssessmentInterface;
+use OCA\Learniq\Kernel\Contracts\PortalExamSittingDocumentsInterface;
+use OCA\Learniq\Kernel\Contracts\PortalPracticalExamAssessmentInterface;
+use OCA\Learniq\Kernel\Contracts\PortalPracticalExamSigningInterface;
+use OCA\Learniq\Kernel\Contracts\PracticalExamBoardResultsInterface;
 use OCA\Learniq\Kernel\Contracts\PortalWriteSubjectInterface;
 use OCA\Learniq\Kernel\Contracts\ProgrammeProgressInterface;
 use OCA\Learniq\Kernel\Contracts\ProgrammeRequirementsInterface;
@@ -203,6 +207,7 @@ use OCA\Learniq\Service\CourseStore\CourseStoreInstaller;
 use OCA\Learniq\Service\CourseStore\CourseStorePublisher;
 use OCA\Learniq\Service\CourseStore\StoreAccessService;
 use OCA\Learniq\Service\Enrolment\BulkEnrolService;
+use OCA\Learniq\Service\Exam\PracticalExamBoardResults;
 use OCA\Learniq\Service\Grading\CorrectionApprovals;
 use OCA\Learniq\Service\Grading\ReportPeriodLocks;
 use OCA\Learniq\Service\LessonOnboarding\LessonOnboardingImporter;
@@ -221,6 +226,9 @@ use OCA\Learniq\Service\Portal\PortalMessages;
 use OCA\Learniq\Service\Portal\PortalResultReader;
 use OCA\Learniq\Service\Portal\PortalSubmissionHandIn;
 use OCA\Learniq\Service\Portal\PortalWerkprocesAssessment;
+use OCA\Learniq\Service\Portal\PortalExamSittingDocuments;
+use OCA\Learniq\Service\Portal\PortalPracticalExamAssessment;
+use OCA\Learniq\Service\Portal\PortalPracticalExamSigning;
 use OCA\Learniq\Service\Portal\PortalWriteSubject;
 use OCA\Learniq\Service\Programme\ProgrammeProgress;
 use OCA\Learniq\Service\Programme\ProgrammeRequirements;
@@ -369,6 +377,10 @@ final class ContractBindings {
 		PortalResultReaderInterface::class => PortalResultReader::class,
 		PortalSubmissionHandInInterface::class => PortalSubmissionHandIn::class,
 		PortalWerkprocesAssessmentInterface::class => PortalWerkprocesAssessment::class,
+		PortalPracticalExamAssessmentInterface::class => PortalPracticalExamAssessment::class,
+		PortalPracticalExamSigningInterface::class => PortalPracticalExamSigning::class,
+		PortalExamSittingDocumentsInterface::class => PortalExamSittingDocuments::class,
+		PracticalExamBoardResultsInterface::class => PracticalExamBoardResults::class,
 		PortalWriteSubjectInterface::class => PortalWriteSubject::class,
 		ProgrammeProgressInterface::class => ProgrammeProgress::class,
 		ProgrammeRequirementsInterface::class => ProgrammeRequirements::class,
