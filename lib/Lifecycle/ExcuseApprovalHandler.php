@@ -174,9 +174,11 @@ class ExcuseApprovalHandler implements IEventListener {
 
 		$flippedCount = $this->flipRecordsInWindow(
 			records: $this->unexcusedRecordsOf(learnerId: $learnerId),
-			fromDay: $window['fromDay'],
-			toDay: $window['toDay'],
-			requestId: (string)$requestId
+			args: [
+				'fromDay' => $window['fromDay'],
+				'toDay' => $window['toDay'],
+				'requestId' => (string)$requestId,
+			]
 		);
 
 		$this->logger->info(
@@ -260,15 +262,17 @@ class ExcuseApprovalHandler implements IEventListener {
 	 * A record with no parseable `markedAt` is left alone rather than guessed at.
 	 *
 	 * @param array<int,mixed> $records Candidate AttendanceRecords.
-	 * @param int $fromDay Inclusive window start as `Ymd`.
-	 * @param int $toDay Inclusive window end as `Ymd`.
-	 * @param string $requestId ExcuseRequest id stamped onto each flipped record.
+	 * @param array{fromDay: int, toDay: int, requestId: string} $args The fromDay, toDay, requestId.
 	 *
 	 * @return int How many records were flipped.
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-10
 	 */
-	private function flipRecordsInWindow(array $records, int $fromDay, int $toDay, string $requestId): int {
+	private function flipRecordsInWindow(array $records, array $args): int {
+		$fromDay = $args['fromDay'];
+		$toDay = $args['toDay'];
+		$requestId = $args['requestId'];
+
 		$flippedCount = 0;
 
 		foreach ($records as $raw) {

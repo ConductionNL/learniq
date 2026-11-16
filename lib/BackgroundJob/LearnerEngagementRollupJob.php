@@ -91,7 +91,7 @@ class LearnerEngagementRollupJob extends ForwardedJob {
 			$sourceKind = (string)($entry['sourceKind'] ?? '');
 
 			try {
-				$this->rollUp(learnerId: $learnerId, tenantId: $tenantId, sourceKind: $sourceKind);
+				$this->rollUp(learnerId: $learnerId, args: ['tenantId' => $tenantId, 'sourceKind' => $sourceKind]);
 			} catch (\Throwable $e) {
 				$this->logger->warning(
 					message: '[LearnerEngagementRollupJob] Roll-up failed for entry',
@@ -111,14 +111,16 @@ class LearnerEngagementRollupJob extends ForwardedJob {
 	 * Recompute one learner's engagement row, then check milestones.
 	 *
 	 * @param string $learnerId  The learner.
-	 * @param string $tenantId   The tenant.
-	 * @param string $sourceKind The award kind that triggered this.
+	 * @param array{tenantId: string, sourceKind: string} $args The tenantId, sourceKind.
 	 *
 	 * @return void
 	 *
 	 * @spec openspec/specs/engagement/spec.md#scenario-a-learner-sees-their-own-points-and-level-regardless-of-leaderboard-opt-out
 	 */
-	private function rollUp(string $learnerId, string $tenantId, string $sourceKind): void {
+	private function rollUp(string $learnerId, array $args): void {
+		$tenantId = $args['tenantId'];
+		$sourceKind = $args['sourceKind'];
+
 		$existing = $this->findExistingEngagement(learnerId: $learnerId, tenantId: $tenantId);
 		$previousStreak = (int)($existing['currentStreakDays'] ?? 0);
 
@@ -157,9 +159,11 @@ class LearnerEngagementRollupJob extends ForwardedJob {
 
 		$this->checkStreakMilestones(
 			learnerId: $learnerId,
-			tenantId: $tenantId,
-			previousStreak: $previousStreak,
-			newStreak: $result['currentStreakDays']
+			args: [
+				'tenantId' => $tenantId,
+				'previousStreak' => $previousStreak,
+				'newStreak' => $result['currentStreakDays'],
+			]
 		);
 
 	}//end rollUp()
@@ -204,15 +208,17 @@ class LearnerEngagementRollupJob extends ForwardedJob {
 	 * Award any streak milestone the learner has newly crossed.
 	 *
 	 * @param string $learnerId      The learner.
-	 * @param string $tenantId       The tenant.
-	 * @param int    $previousStreak The streak before this roll-up.
-	 * @param int    $newStreak      The streak after it.
+	 * @param array{tenantId: string, previousStreak: int, newStreak: int} $args The tenantId, previousStreak, newStreak.
 	 *
 	 * @return void
 	 *
 	 * @spec openspec/specs/engagement/spec.md#scenario-a-learner-sees-their-own-points-and-level-regardless-of-leaderboard-opt-out
 	 */
-	private function checkStreakMilestones(string $learnerId, string $tenantId, int $previousStreak, int $newStreak): void {
+	private function checkStreakMilestones(string $learnerId, array $args): void {
+		$tenantId = $args['tenantId'];
+		$previousStreak = $args['previousStreak'];
+		$newStreak = $args['newStreak'];
+
 		if ($newStreak <= $previousStreak) {
 			// No forward progress -- nothing can have been newly crossed.
 			return;

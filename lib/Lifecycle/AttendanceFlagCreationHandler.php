@@ -294,7 +294,7 @@ class AttendanceFlagCreationHandler implements IEventListener {
 			return;
 		}
 
-		$jobId = $this->requestExchangeJob(target: $dataExchangeTarget, flagId: $flagId, tenantId: (string)$detail['tenantId']);
+		$jobId = $this->requestExchangeJob(target: $dataExchangeTarget, args: ['flagId' => $flagId, 'tenantId' => (string)$detail['tenantId']]);
 		if ($jobId === null) {
 			return;
 		}
@@ -357,14 +357,16 @@ class AttendanceFlagCreationHandler implements IEventListener {
 	 * human in the loop the old `pending-review` job state stood for).
 	 *
 	 * @param string $target   The exchange target (e.g. 'leerplicht').
-	 * @param string $flagId   UUID of the saved AttendanceFlag.
-	 * @param string $tenantId Tenant UUID.
+	 * @param array{flagId: string, tenantId: string} $args The flagId, tenantId.
 	 *
 	 * @return string|null The integriq job id, or null when integriq did not take it.
 	 *
 	 * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
 	 */
-	private function requestExchangeJob(string $target, string $flagId, string $tenantId): ?string {
+	private function requestExchangeJob(string $target, array $args): ?string {
+		$flagId = $args['flagId'];
+		$tenantId = $args['tenantId'];
+
 		$mapping = null;
 		if ($target === self::LEERPLICHT_TARGET) {
 			$mapping = self::LEERPLICHT_MAPPING;

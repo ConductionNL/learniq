@@ -233,7 +233,7 @@ class LearnerMergeService implements LearnerMergeServiceInterface {
 
 		$moved = 0;
 		foreach (self::LEARNER_OWNED as $schema => $fields) {
-			$moved += $this->moveSchema(schema: $schema, fields: $fields, rewrites: $rewrites);
+			$moved += $this->moveSchema(schema: $schema, args: ['fields' => $fields, 'rewrites' => $rewrites]);
 		}
 
 		$this->logger->info(
@@ -271,12 +271,14 @@ class LearnerMergeService implements LearnerMergeServiceInterface {
 	 * Re-point one schema's records.
 	 *
 	 * @param string               $schema   Schema slug.
-	 * @param array<int,string>    $fields   Reference fields on the schema.
-	 * @param array<string,string> $rewrites Old value to new value.
+	 * @param array{fields: array<int,string>, rewrites: array<string,string>} $args The fields, rewrites.
 	 *
 	 * @return int How many records were saved.
 	 */
-	private function moveSchema(string $schema, array $fields, array $rewrites): int {
+	private function moveSchema(string $schema, array $args): int {
+		$fields = $args['fields'];
+		$rewrites = $args['rewrites'];
+
 		$pending = [];
 		foreach ($fields as $field) {
 			foreach (array_keys($rewrites) as $old) {

@@ -147,7 +147,7 @@ class LessonReleaseEvaluator implements LessonReleaseEvaluatorInterface {
 			}
 		}
 
-		$drip = $this->evaluateDrip(item: $item, enrolment: $enrolment, now: $now);
+		$drip = $this->evaluateDrip(item: $item, args: ['enrolment' => $enrolment, 'now' => $now]);
 		if ($drip['blocked'] === true) {
 			return [
 				'available' => false,
@@ -207,12 +207,14 @@ class LessonReleaseEvaluator implements LessonReleaseEvaluatorInterface {
 	 * Enrolment.created.
 	 *
 	 * @param array<string, mixed> $item The Lesson or Assessment row.
-	 * @param array<string, mixed> $enrolment The learner's own Enrolment row, or `[]`.
-	 * @param DateTimeInterface $now Evaluation instant.
+	 * @param array{enrolment: array<string, mixed>, now: DateTimeInterface} $args The enrolment, now.
 	 *
 	 * @return array{blocked: bool, reason: string|null, availableAt: string|null}
 	 */
-	private function evaluateDrip(array $item, array $enrolment, DateTimeInterface $now): array {
+	private function evaluateDrip(array $item, array $args): array {
+		$enrolment = $args['enrolment'];
+		$now = $args['now'];
+
 		$availableAfterDays = ($item['availableAfterDays'] ?? null);
 		if (is_numeric($availableAfterDays) === false) {
 			return $this->dripNotBlocked();

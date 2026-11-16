@@ -162,7 +162,7 @@ class RollCallService implements RollCallServiceInterface {
 		$session = ($session ?? $this->lessons->create(cohort: $cohort, date: $date, zone: $zone));
 		$context = ['user' => $user->getUID(), 'cohort' => $cohort, 'session' => $session, 'profiles' => $profiles, 'date' => $date];
 		foreach ($marks as $mark) {
-			$this->writeMark(mark: $mark, record: ($records[(string)$mark['learnerId']] ?? null), context: $context);
+			$this->writeMark(mark: $mark, args: ['record' => ($records[(string)$mark['learnerId']] ?? null), 'context' => $context]);
 		}
 
 		return $this->open(user: $user, cohortId: $cohortId, date: $date, sessionId: $this->idOf(row: $session));
@@ -172,12 +172,14 @@ class RollCallService implements RollCallServiceInterface {
 	 * Write one mark as an AttendanceRecord, unless the saved record already holds it.
 	 *
 	 * @param array<string, mixed>      $mark    A valid mark.
-	 * @param array<string, mixed>|null $record  The pupil's saved record.
-	 * @param array<string, mixed>      $context user, cohort, session, profiles and date.
+	 * @param array{record: array<string, mixed>|null, context: array<string, mixed>} $args The record (the pupil's saved record), context.
 	 *
 	 * @return void
 	 */
-	private function writeMark(array $mark, ?array $record, array $context): void {
+	private function writeMark(array $mark, array $args): void {
+		$record = $args['record'];
+		$context = $args['context'];
+
 		$learnerId = (string)$mark['learnerId'];
 		$normal = $this->marks->normalise(mark: $mark);
 		if ($record !== null && $this->marks->unchanged(record: $record, mark: $normal) === true) {

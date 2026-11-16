@@ -179,14 +179,16 @@ class GradeRollupHandler implements IEventListener {
 		// declared calculation, not a TimedJob").
 		$this->recomputeFinalGrade(
 			learnerId: $learnerId,
-			curriculumPlanId: $curriculumPlanId,
-			tenantId: $tenantId,
-			entry: $entry
+			args: [
+				'curriculumPlanId' => $curriculumPlanId,
+				'tenantId' => $tenantId,
+				'entry' => $entry,
+			]
 		);
 
 		$visibleFrom = $this->resolveAndPersistVisibleFrom(curriculumPlanId: $curriculumPlanId, entry: $entry);
 
-		$this->fanOutParentNotifications(learnerId: $learnerId, gradeEntry: $entry, visibleFrom: $visibleFrom);
+		$this->fanOutParentNotifications(learnerId: $learnerId, args: ['gradeEntry' => $entry, 'visibleFrom' => $visibleFrom]);
 
 	}//end handleGradeEntryPublished()
 
@@ -270,21 +272,18 @@ class GradeRollupHandler implements IEventListener {
 	 * Find or create the FinalGrade, evaluate, and persist.
 	 *
 	 * @param string $learnerId NC user ID.
-	 * @param string $curriculumPlanId Plan UUID.
-	 * @param string $tenantId Tenant ID.
-	 * @param array $entry The published GradeEntry.
+	 * @param array{curriculumPlanId: string, tenantId: string, entry: array} $args The curriculumPlanId, tenantId, entry.
 	 *
 	 * @return void
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-21
 	 * @spec openspec/specs/grading/spec.md#requirement-the-final-grade-roll-up-writes-only-declared-properties
 	 */
-	private function recomputeFinalGrade(
-		string $learnerId,
-		string $curriculumPlanId,
-		string $tenantId,
-		array $entry,
-	): void {
+	private function recomputeFinalGrade(string $learnerId, array $args): void {
+		$curriculumPlanId = $args['curriculumPlanId'];
+		$tenantId = $args['tenantId'];
+		$entry = $args['entry'];
+
 		$result = $this->evaluator->evaluate(
 			curriculumPlanId: $curriculumPlanId,
 			learnerId: $learnerId
@@ -442,8 +441,7 @@ class GradeRollupHandler implements IEventListener {
 	 * Notification is best-effort — a failure here does not roll back the FinalGrade recompute.
 	 *
 	 * @param string $learnerId NC user ID.
-	 * @param array $gradeEntry Published GradeEntry data.
-	 * @param string $visibleFrom ISO-8601 resolved visibleFrom, stamped onto every fanned-out
+	 * @param array{gradeEntry: array, visibleFrom: string} $args The gradeEntry, visibleFrom.
 	 *                            GradeNotification so parent notifications fire on the same
 	 *                            schedule as the learner's.
 	 *
@@ -452,7 +450,10 @@ class GradeRollupHandler implements IEventListener {
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-22
 	 * @spec openspec/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
 	 */
-	private function fanOutParentNotifications(string $learnerId, array $gradeEntry, string $visibleFrom): void {
+	private function fanOutParentNotifications(string $learnerId, array $args): void {
+		$gradeEntry = $args['gradeEntry'];
+		$visibleFrom = $args['visibleFrom'];
+
 		// LearnerProfile keys the pupil on ncUserId; it has no learnerId, and a
 		// filter on an undeclared property matches nothing. Read without RBAC:
 		// the publisher may not read LearnerProfile, and only parentIds is used.

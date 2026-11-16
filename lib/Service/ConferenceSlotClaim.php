@@ -105,7 +105,7 @@ class ConferenceSlotClaim implements ConferenceSlotClaimInterface {
 				$held[] = $path;
 			}
 
-			return $this->claimLocked(slotId: $slotId, round: $round, booking: $booking);
+			return $this->claimLocked(slotId: $slotId, args: ['round' => $round, 'booking' => $booking]);
 		} catch (LockedException $exception) {
 			return ['refuse' => 'slot-taken'];
 		} finally {
@@ -135,12 +135,14 @@ class ConferenceSlotClaim implements ConferenceSlotClaimInterface {
 	 * The check and the write, with both locks held.
 	 *
 	 * @param string $slotId The slot uuid.
-	 * @param array<string, mixed> $round The round.
-	 * @param array<string, string> $booking What to stamp.
+	 * @param array{round: array<string, mixed>, booking: array<string, string>} $args The round, booking.
 	 *
 	 * @return array{slot?: array<string, mixed>, refuse?: string}
 	 */
-	private function claimLocked(string $slotId, array $round, array $booking): array {
+	private function claimLocked(string $slotId, array $args): array {
+		$round = $args['round'];
+		$booking = $args['booking'];
+
 		$roundId = (string)($round['id'] ?? '');
 		$found = $this->objectService->find(
 			id: $slotId,

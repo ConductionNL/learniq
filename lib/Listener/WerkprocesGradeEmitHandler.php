@@ -162,9 +162,11 @@ class WerkprocesGradeEmitHandler implements IEventListener {
 
 		$existing = $this->findExistingGradeEntry(
 			learnerId: $learner['learnerId'],
-			curriculumPlanId: $refs['curriculum'],
-			componentId: $refs['component'],
-			tenantId: $learner['tenantId']
+			args: [
+				'curriculumPlanId' => $refs['curriculum'],
+				'componentId' => $refs['component'],
+				'tenantId' => $learner['tenantId'],
+			]
 		);
 
 		// System context (grade-entry): coordinators and praktijkopleiders confirm a werkproces
@@ -321,20 +323,17 @@ class WerkprocesGradeEmitHandler implements IEventListener {
 	 * Find an existing GradeEntry for the same learner/plan/component pair, if any.
 	 *
 	 * @param string $learnerId NC user id.
-	 * @param string $curriculumPlanId Plan UUID.
-	 * @param string $componentId Component identifier.
-	 * @param string $tenantId Tenant UUID scope filter.
+	 * @param array{curriculumPlanId: string, componentId: string, tenantId: string} $args The curriculumPlanId, componentId, tenantId.
 	 *
 	 * @return array<string,mixed>|null The existing GradeEntry data, or null when none exists.
 	 *
 	 * @spec openspec/specs/bpv/spec.md#requirement-werkprocesassessment-aligns-to-the-kwalificatiedossier-and-emits-a-gradeentry
 	 */
-	private function findExistingGradeEntry(
-		string $learnerId,
-		string $curriculumPlanId,
-		string $componentId,
-		string $tenantId,
-	): ?array {
+	private function findExistingGradeEntry(string $learnerId, array $args): ?array {
+		$curriculumPlanId = $args['curriculumPlanId'];
+		$componentId = $args['componentId'];
+		$tenantId = $args['tenantId'];
+
 		$filters = [
 			'learnerId' => $learnerId,
 			'curriculumPlanId' => $curriculumPlanId,

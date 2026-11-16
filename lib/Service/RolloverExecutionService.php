@@ -139,10 +139,12 @@ class RolloverExecutionService implements RolloverExecutionServiceInterface {
 				if ($action === 'promote') {
 					$this->executePromotion(
 						mapping: $this->withProgrammeTarget(mapping: $mapping, fromCohort: $cohort),
-						members: $members,
-						overrides: $overrides,
-						toAcademicYear: $toAcademicYear,
-						tenantId: $tenantId
+						args: [
+							'members' => $members,
+							'overrides' => $overrides,
+							'toAcademicYear' => $toAcademicYear,
+							'tenantId' => $tenantId,
+						]
 					);
 				}
 
@@ -200,14 +202,16 @@ class RolloverExecutionService implements RolloverExecutionServiceInterface {
 	 * carry enrolments, queue outflow.
 	 *
 	 * @param array<string,mixed> $mapping The mapping.
-	 * @param array<int,string> $members The from-cohort learner IDs.
-	 * @param array<string,array> $overrides Indexed learner overrides.
-	 * @param string $toAcademicYear To-year academic year.
-	 * @param string $tenantId Tenant ID.
+	 * @param array{members: array<int,string>, overrides: array<string,array>, toAcademicYear: string, tenantId: string} $args The rest.
 	 *
 	 * @return void
 	 */
-	private function executePromotion(array $mapping, array $members, array $overrides, string $toAcademicYear, string $tenantId): void {
+	private function executePromotion(array $mapping, array $args): void {
+		$members = $args['members'];
+		$overrides = $args['overrides'];
+		$toAcademicYear = $args['toAcademicYear'];
+		$tenantId = $args['tenantId'];
+
 		$toCohortName = (string)($mapping['toCohortName'] ?? '');
 		if ($toCohortName === '') {
 			return;
@@ -252,8 +256,10 @@ class RolloverExecutionService implements RolloverExecutionServiceInterface {
 		foreach ($movingMembers as $learnerId) {
 			$this->carryEnrolments(
 				learnerId: $learnerId,
-				toCohortId: $toCohortId,
-				carryNonMandatory: (bool)($mapping['carryNonMandatory'] ?? false)
+				args: [
+					'toCohortId' => $toCohortId,
+					'carryNonMandatory' => (bool)($mapping['carryNonMandatory'] ?? false),
+				]
 			);
 		}
 
@@ -367,12 +373,14 @@ class RolloverExecutionService implements RolloverExecutionServiceInterface {
 	 * Non-mandatory enrolments are carried only when carryNonMandatory is set.
 	 *
 	 * @param string $learnerId Learner UUID.
-	 * @param string $toCohortId New cohort UUID.
-	 * @param bool $carryNonMandatory Per-mapping opt-in for non-mandatory carry.
+	 * @param array{toCohortId: string, carryNonMandatory: bool} $args The toCohortId, carryNonMandatory.
 	 *
 	 * @return void
 	 */
-	private function carryEnrolments(string $learnerId, string $toCohortId, bool $carryNonMandatory): void {
+	private function carryEnrolments(string $learnerId, array $args): void {
+		$toCohortId = $args['toCohortId'];
+		$carryNonMandatory = $args['carryNonMandatory'];
+
 		if ($toCohortId === '') {
 			return;
 		}

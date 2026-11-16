@@ -233,8 +233,10 @@ class ReportCardComposer implements IEventListener {
 		if ($this->templateSections->sectionEnabled(kind: 'grades', sectionKinds: $sectionKinds) === true) {
 			$subjectGrades = $this->buildSubjectGrades(
 				learnerId: $learnerId,
-				curriculumPlanIds: $context['qualifyingPlanIds'],
-				periodCode: $context['periodCode']
+				args: [
+					'curriculumPlanIds' => $context['qualifyingPlanIds'],
+					'periodCode' => $context['periodCode'],
+				]
 			);
 		}
 
@@ -341,7 +343,13 @@ class ReportCardComposer implements IEventListener {
 
 		$subjectGrades = [];
 		if ($this->templateSections->sectionEnabled(kind: 'grades', sectionKinds: $sectionKinds) === true) {
-			$subjectGrades = $this->buildSubjectGrades(learnerId: $learnerId, curriculumPlanIds: $qualifyingPlanIds, periodCode: $periodCode);
+			$subjectGrades = $this->buildSubjectGrades(
+				learnerId: $learnerId,
+				args: [
+					'curriculumPlanIds' => $qualifyingPlanIds,
+					'periodCode' => $periodCode,
+				]
+			);
 		}
 
 		$attendanceSummary = null;
@@ -446,12 +454,14 @@ class ReportCardComposer implements IEventListener {
 	 * published `GradeEntry` ids for that (learner, curriculumPlanId, period).
 	 *
 	 * @param string $learnerId NC user ID.
-	 * @param array<int,string> $curriculumPlanIds Qualifying CurriculumPlan UUIDs.
-	 * @param string $periodCode The ReportPeriod's periodCode.
+	 * @param array{curriculumPlanIds: array<int,string>, periodCode: string} $args The curriculumPlanIds, periodCode.
 	 *
 	 * @return array<int,array<string,mixed>>
 	 */
-	private function buildSubjectGrades(string $learnerId, array $curriculumPlanIds, string $periodCode): array {
+	private function buildSubjectGrades(string $learnerId, array $args): array {
+		$curriculumPlanIds = $args['curriculumPlanIds'];
+		$periodCode = $args['periodCode'];
+
 		$rows = [];
 
 		foreach ($curriculumPlanIds as $curriculumPlanId) {
