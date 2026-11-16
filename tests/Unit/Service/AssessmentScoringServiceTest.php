@@ -32,6 +32,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
+use OCA\Learniq\Tests\Support\LegacyObjectArgs;
 
 /**
  * @covers \OCA\Learniq\Service\AssessmentScoringService
@@ -137,12 +138,12 @@ class AssessmentScoringServiceTest extends TestCase {
 		$entity = $this->createMock(ObjectEntity::class);
 		$entity->method('jsonSerialize')->willReturn(['id' => 'r-1', 'assessmentId' => 'a-1', 'responses' => []]);
 		$this->objectService->method('findAll')->willReturn([$entity]);
-		$this->objectService->expects(self::once())->method('saveObject')->with(
-			['id' => 'r-1', 'assessmentId' => 'a-1', 'responses' => []],
-			self::anything(),
-			'learniq',
-			'assessment-result'
-		);
+		$this->objectService->expects(self::once())->method('saveObject')->with(...LegacyObjectArgs::with(method: 'saveObject', expected: [
+				'object' => ['id' => 'r-1', 'assessmentId' => 'a-1', 'responses' => []],
+				'extend' => self::anything(),
+				'register' => 'learniq',
+				'schema' => 'assessment-result',
+			]));
 		$this->logger->expects(self::once())->method('info')->with(self::stringContains('Auto-scoring complete'), ['id' => 'r-1']);
 
 		$this->service->autoScore('r-1');
@@ -159,7 +160,12 @@ class AssessmentScoringServiceTest extends TestCase {
 		$this->objectService->method('findAll')->willReturnCallback(
 			static fn (array $config): array => ($config['filters']['schema'] ?? '') === 'assessment-result' ? [$result] : []
 		);
-		$this->objectService->expects(self::once())->method('saveObject')->with($result, self::anything(), 'learniq', 'assessment-result');
+		$this->objectService->expects(self::once())->method('saveObject')->with(...LegacyObjectArgs::with(method: 'saveObject', expected: [
+				'object' => $result,
+				'extend' => self::anything(),
+				'register' => 'learniq',
+				'schema' => 'assessment-result',
+			]));
 
 		$this->service->autoScore('r-2');
 	}//end testAnUnresolvableAssessmentSavesTheResultUnchanged()

@@ -35,6 +35,7 @@ use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Pins, per seeded data set, what ItemAnalysisService computes per item and
@@ -292,7 +293,11 @@ class ItemAnalysisGoldenTest extends TestCase {
 			}
 		);
 		$service->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null, $uuid = null, bool $_rbac = true): ObjectEntity {
+			function (array|ObjectEntity $object, ObjectSaveOptions $options = new ObjectSaveOptions(), bool $_rbac = true): ObjectEntity {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
+				$uuid = $options->uuid;
 				$this->calls[] = ['saveObject' => [$register, $schema, $object, $_rbac]];
 				$object['id'] = $object['id'] ?? ($schema . '-' . count($this->calls));
 				$this->db[(string)$schema][] = $object;

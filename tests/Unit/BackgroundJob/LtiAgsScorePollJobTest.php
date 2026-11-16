@@ -49,6 +49,8 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Tests for LtiAgsScorePollJob::run().
@@ -192,7 +194,11 @@ class LtiAgsScorePollJobTest extends TestCase {
 		// willReturnCallback() hands the closure the mock's arguments
 		// POSITIONALLY, so the closure must mirror that order.
 		$this->objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null, bool $_rbac = true, bool $_multitenancy = true): ObjectEntity {
+			function (array|ObjectEntity $object, ObjectSaveOptions $options = new ObjectSaveOptions(), bool $_rbac = true, bool $_multitenancy = true): ObjectEntity {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
+				$uuid = $options->uuid;
 				$this->refusesCaller(action: 'create', schema: (string)$schema, rbac: $_rbac, multitenancy: $_multitenancy);
 				$this->savedObjects[] = ['register' => $register, 'schema' => $schema, 'object' => $object];
 				$object['id'] = 'grade-entry-new';
@@ -426,7 +432,11 @@ class LtiAgsScorePollJobTest extends TestCase {
 			'tenant_id' => 'tenant-1',
 		];
 		$this->objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null, bool $_rbac = true, bool $_multitenancy = true): ?ObjectEntity {
+			function (int|string $id, ?ObjectFindOptions $options = null, bool $_rbac = true, bool $_multitenancy = true): ?ObjectEntity {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				if ($this->refusesCaller(action: 'read', schema: (string)$schema, rbac: $_rbac, multitenancy: $_multitenancy) === true) {
 					return null;
 				}
@@ -577,7 +587,11 @@ class LtiAgsScorePollJobTest extends TestCase {
 			'placement-x' => array_merge($this->placementFixture, ['id' => 'placement-x', 'openconnectorDeploymentId' => 'deployment-9']),
 		];
 		$this->objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null, bool $_rbac = true, bool $_multitenancy = true) use ($byId): ?ObjectEntity {
+			function (int|string $id, ?ObjectFindOptions $options = null, bool $_rbac = true, bool $_multitenancy = true) use ($byId): ?ObjectEntity {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				if ($this->refusesCaller(action: 'read', schema: (string)$schema, rbac: $_rbac, multitenancy: $_multitenancy) === true) {
 					return null;
 				}
@@ -744,7 +758,11 @@ class LtiAgsScorePollJobTest extends TestCase {
 			'gradeScaleId' => 'scale-broken',
 		];
 		$this->objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null): ?ObjectEntity {
+			function (int|string $id, ?ObjectFindOptions $options = null): ?ObjectEntity {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				if ((string)$schema === 'grade-scale') {
 					throw new \RuntimeException('scale store down');
 				}

@@ -32,6 +32,7 @@ use OCP\AppFramework\Db\DoesNotExistException;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use RuntimeException;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 
 /**
  * Tests for AssessmentResultPortalStamp::stamp().
@@ -60,7 +61,11 @@ class AssessmentResultPortalStampTest extends TestCase {
 
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('find')->willReturnCallback(
-			static function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) {
+			static function (int|string $id, ?ObjectFindOptions $options = null) {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				if ($schema !== 'exam' || $id !== 'exam-1') {
 					throw new DoesNotExistException('not found');
 				}

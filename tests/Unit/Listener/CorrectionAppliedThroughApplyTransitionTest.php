@@ -59,6 +59,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use ReflectionMethod;
 use RuntimeException;
+use OCA\Learniq\Tests\Support\LegacyObjectArgs;
 
 /**
  * The correction is applied by the declared transition, not by a readOnly write.
@@ -111,7 +112,7 @@ class CorrectionAppliedThroughApplyTransitionTest extends TestCase {
 	 */
 	private static function named(string $method, array $args): array {
 		$named = [];
-		foreach ((new ReflectionMethod(ObjectService::class, $method))->getParameters() as $position => $parameter) {
+		foreach (LegacyObjectArgs::parameters(ObjectService::class, $method) as $position => $parameter) {
 			if (array_key_exists($position, $args) === true) {
 				$named[$parameter->getName()] = $args[$position];
 			}
@@ -134,6 +135,7 @@ class CorrectionAppliedThroughApplyTransitionTest extends TestCase {
 		);
 		$objects->method('find')->willReturnCallback(
 			static function (mixed ...$args) use ($store): ?ObjectEntity {
+				$args = LegacyObjectArgs::positional(method: 'find', args: $args);
 				$named = self::named(method: 'find', args: $args);
 				$schema = (string)($named['schema'] ?? '');
 				foreach (($store->rows[$schema] ?? []) as $row) {
@@ -147,6 +149,7 @@ class CorrectionAppliedThroughApplyTransitionTest extends TestCase {
 		);
 		$objects->method('saveObject')->willReturnCallback(
 			static function (mixed ...$args) use ($store): ObjectEntity {
+				$args = LegacyObjectArgs::positional(method: 'saveObject', args: $args);
 				$named = self::named(method: 'saveObject', args: $args);
 				$object = $named['object'];
 				$data = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;

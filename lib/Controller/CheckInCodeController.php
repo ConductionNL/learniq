@@ -32,6 +32,7 @@ use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Kernel\Contracts\CheckInCodeServiceInterface;
 use OCA\Learniq\Service\StaffGroupCheck;
 use OCA\Learniq\Support\FindOrNull;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -169,7 +170,11 @@ class CheckInCodeController extends Controller {
 	 * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException When the id matches more than one object; LookupIntegrityMiddleware answers it.
 	 */
 	private function window(string $windowId): ?array {
-		$find = fn () => $this->objects->find(id: $windowId, register: 'learniq', schema: 'check-in-window', _rbac: false, _render: false);
+		$find = fn () => $this->objects->find(
+			id: $windowId,
+			options: new ObjectFindOptions(register: 'learniq', schema: 'check-in-window', render: false),
+			_rbac: false
+		);
 		return $this->findRowOrNull(find: $find);
 	}//end window()
 }//end class

@@ -32,6 +32,8 @@ use OCA\Learniq\Service\ExternalTrainingService;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Tests for ExternalTrainingService.
@@ -205,7 +207,10 @@ class ExternalTrainingServiceTest extends TestCase {
 		$objectService->expects($this->exactly(2))
 			->method('saveObject')
 			->willReturnCallback(
-				static function (array $object, ?array $extend = [], $register = null, $schema = null) use (&$saved) {
+				static function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) use (&$saved) {
+					$extend = $options->extend ?? [];
+					$register = $options->target->register;
+					$schema = $options->target->schema;
 					$saved[] = $object;
 					return OrEntityFactory::make($object, (string)$schema, (string)$register);
 				}
@@ -289,7 +294,7 @@ class ExternalTrainingServiceTest extends TestCase {
 		$profileId = '3c9e1f2a-4b5d-4e6f-8a7b-0c1d2e3f4a5b';
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('find')->willReturnCallback(
-			static fn (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) => ($schema === 'learner-profile' && $id === $profileId)
+			static fn (int|string $id, ?ObjectFindOptions $options = null) => (($options?->schema) === 'learner-profile' && $id === $profileId)
 				? OrEntityFactory::make(['id' => $profileId, 'ncUserId' => 'r.devries'], 'learner-profile')
 				: null
 		);

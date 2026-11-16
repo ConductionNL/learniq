@@ -43,6 +43,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use ReflectionMethod;
 use RuntimeException;
+use OCA\Learniq\Tests\Support\LegacyObjectArgs;
 
 /**
  * Pins every call CommonCartridgeCourseImporter::importManifest() makes, its
@@ -169,9 +170,10 @@ class CommonCartridgeImportGoldenTest extends TestCase {
 	private function callsFor(string $dir, array $manifest): array {
 		$calls   = [];
 		$service = $this->createMock(ObjectService::class);
-		$params   = (new ReflectionMethod(ObjectService::class, 'saveObject'))->getParameters();
+		$params   = LegacyObjectArgs::parameters(ObjectService::class, 'saveObject');
 		$service->method('saveObject')->willReturnCallback(
 			static function (...$args) use ($params, &$calls) {
+				$args = LegacyObjectArgs::positional(method: 'saveObject', args: $args);
 				$named = [];
 				foreach ($args as $i => $value) {
 					if ($params[$i]->isDefaultValueAvailable() === true && $params[$i]->getDefaultValue() === $value) {
@@ -190,9 +192,10 @@ class CommonCartridgeImportGoldenTest extends TestCase {
 			}
 		);
 
-		$deleteParams = (new ReflectionMethod(ObjectService::class, 'deleteObject'))->getParameters();
+		$deleteParams = LegacyObjectArgs::parameters(ObjectService::class, 'deleteObject');
 		$service->method('deleteObject')->willReturnCallback(
 			static function (...$args) use ($deleteParams, &$calls): bool {
+				$args = LegacyObjectArgs::positional(method: 'deleteObject', args: $args);
 				$named = [];
 				foreach ($args as $i => $value) {
 					if ($deleteParams[$i]->isDefaultValueAvailable() === false || $deleteParams[$i]->getDefaultValue() !== $value) {

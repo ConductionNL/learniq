@@ -34,6 +34,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
@@ -152,8 +153,7 @@ class FraudCaseInvalidationGuard implements LifecycleGuardInterface {
 	private function fetchFraudCase(string $fraudCaseId): ?array {
 		$obj = $this->objectService->find(
 			id: $fraudCaseId,
-			register: self::LEARNIQ_REGISTER,
-			schema: self::FRAUD_CASE_SCHEMA
+			options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::FRAUD_CASE_SCHEMA)
 		);
 
 		if ($obj === null) {

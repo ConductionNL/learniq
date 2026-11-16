@@ -26,6 +26,7 @@ use OCA\OpenRegister\Service\ObjectService;
 use OCP\Migration\IOutput;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * @covers \OCA\Learniq\Repair\BackfillLvsResultLearnerRef
@@ -51,7 +52,11 @@ class BackfillLvsResultLearnerRefFailuresTest extends TestCase {
 			static fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $store->findAll($config, $_rbac, $_multitenancy)
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			static function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null) use ($store, $failing) {
+			static function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) use ($store, $failing) {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
+				$uuid = $options->uuid;
 				if (in_array($uuid, $failing, true) === true) {
 					throw new \RuntimeException('save refused');
 				}

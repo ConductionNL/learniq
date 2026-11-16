@@ -50,6 +50,9 @@ namespace OCA\Learniq\Service;
 use InvalidArgumentException;
 use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Kernel\Contracts\ContributionRaiserInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IAppConfig;
 use OCP\IUserManager;
@@ -125,7 +128,7 @@ class ContributionRaiser implements ContributionRaiserInterface {
 			return null;
 		}
 
-		$found = $this->objectService->find(id: $id, register: self::REGISTER, schema: 'fee-item');
+		$found = $this->objectService->find(id: $id, options: new ObjectFindOptions(register: self::REGISTER, schema: 'fee-item'));
 		$feeItem = $found?->jsonSerialize();
 		if (is_array($feeItem) === false || ($feeItem['lifecycle'] ?? '') !== 'active') {
 			return null;
@@ -303,7 +306,12 @@ class ContributionRaiser implements ContributionRaiserInterface {
 
 		$ids = $this->courseLearners(courseId: $courseId);
 		if ($cohortId !== '') {
-			$cohort = $this->objectService->find(id: $cohortId, register: self::REGISTER, schema: 'cohort', _rbac: false, _multitenancy: false);
+			$cohort = $this->objectService->find(
+				id: $cohortId,
+				options: new ObjectFindOptions(register: self::REGISTER, schema: 'cohort'),
+				_rbac: false,
+				_multitenancy: false
+			);
 			$ids = (array)($cohort?->jsonSerialize()['learnerIds'] ?? []);
 		}
 
@@ -424,9 +432,10 @@ class ContributionRaiser implements ContributionRaiserInterface {
 
 			$this->objectService->saveObject(
 				object: array_merge($entitlement, ['paymentRequestRef' => $requestId]),
-				register: self::REGISTER,
-				schema: 'entitlement',
-				uuid: ($entitlement['id'] ?? null),
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::REGISTER, schema: 'entitlement'),
+					uuid: $entitlement['id'] ?? null
+				),
 				_rbac: false,
 				_multitenancy: false
 			);

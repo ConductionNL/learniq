@@ -32,6 +32,8 @@ namespace OCA\Learniq\Listener;
 use DateTimeImmutable;
 use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
@@ -90,6 +92,9 @@ class ApplicationSubmittedAtStamp implements IEventListener {
 		}
 
 		$application['submittedAt'] = (new DateTimeImmutable('@' . $this->time->getTime()))->format(DATE_ATOM);
-		$this->objectService->saveObject(register: self::REGISTER, schema: self::SCHEMA, object: $application);
+		$this->objectService->saveObject(
+			object: $application,
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: self::SCHEMA))
+		);
 	}//end handle()
 }//end class

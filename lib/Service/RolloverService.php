@@ -38,6 +38,7 @@ namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Kernel\Contracts\RolloverServiceInterface;
 use OCA\Learniq\Support\ObjectRow;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Db\DoesNotExistException;
 
@@ -310,7 +311,7 @@ class RolloverService implements RolloverServiceInterface {
 		}
 
 		try {
-			$obj = $this->objectService->find(id: $cohortId, register: self::LEARNIQ_REGISTER, schema: 'cohort');
+			$obj = $this->objectService->find(id: $cohortId, options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: 'cohort'));
 		} catch (DoesNotExistException) {
 			return [];
 		}

@@ -49,6 +49,7 @@ use OCP\IUserSession;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use RuntimeException;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 
 /**
  * Tests for AssessmentAttemptGateListener::handle().
@@ -113,7 +114,12 @@ class AssessmentAttemptGateListenerTest extends TestCase {
 
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null, bool $_rbac = true, bool $_multitenancy = true, bool $_render = true) use ($findThrows) {
+			function (int|string $id, ?ObjectFindOptions $options = null, bool $_rbac = true, bool $_multitenancy = true) use ($findThrows) {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
+				$_render = $options?->render ?? true;
 				$this->findCalls[] = ['id' => $id, 'schema' => $schema, 'rbac' => $_rbac, 'render' => $_render];
 				if ($findThrows === true) {
 					throw new RuntimeException('database gone');
