@@ -640,8 +640,9 @@ test('the full profile is exactly the plain manifest build', () => {
 	// MyGrades became the learner lens of GradeEntries; 349 with
 	// AttendanceNearingLimit (attendance-warns-before-the-threshold); 350 with
 	// CourseDays (training-provider-course-days); 352 with the permission-slips
-	// list and detail; 353 with CourseParticipants (training-provider-course-days T7).
-	assert.equal(plain.pages.length, 353)
+	// list and detail; 354 with CourseParticipants and CourseParticipantDetail
+	// (training-provider-course-days T7).
+	assert.equal(plain.pages.length, 354)
 })
 
 test('menu-layout.json holds no profile key, so the full profile cannot gain an overlay', () => {

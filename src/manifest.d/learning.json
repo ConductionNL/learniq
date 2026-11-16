@@ -3146,7 +3146,161 @@
 				],
 				"defaultSort": "firstDay",
 				"countText": "{shown} of {total} participants",
-				"bulkNoun": "participants"
+				"bulkNoun": "participants",
+				"rowRoute": "CourseParticipantDetail"
+			}
+		},
+		{
+			"id": "CourseParticipantDetail",
+			"route": "/course-participants/:id",
+			"type": "detail",
+			"title": "Participant",
+			"_note": "training-provider-course-days T7: one participant of a course day (board LqDetail). The header shows the steps of his booking (enrolment.step, written by EmployerBookingProjection) as a read-only strip, and the What now? card says what the stage still needs; with nothing left it reads \"What now? Nothing, until <day>\".",
+			"config": {
+				"register": "learniq",
+				"schema": "Enrolment",
+				"headerFields": [
+					"courseName",
+					"dayLabel",
+					{
+						"key": "lifecycle",
+						"format": "badge"
+					},
+					{
+						"key": "certificateValidUntil",
+						"format": "date",
+						"warnWhenPast": true
+					}
+				],
+				"headerWidget": "participant-steps",
+				"stageField": "step",
+				"nextStep": {
+					"stages": {
+						"confirmed": {
+							"title": "What now?",
+							"checklist": [
+								{
+									"label": "Confirm the booking"
+								}
+							],
+							"after": "Then the employer fills in the details of the participants."
+						},
+						"details": {
+							"title": "What now?",
+							"checklist": [
+								{
+									"label": "Booking confirmed",
+									"done": true
+								},
+								{
+									"label": "The employer fills in the missing details",
+									"doneWhen": {
+										"field": "detailsStatus",
+										"op": "eq",
+										"value": "complete"
+									}
+								}
+							],
+							"after": "{openTask}"
+						},
+						"course-day": {
+							"title": [
+								"What now? Nothing, until {dayLabel}",
+								"What now? Nothing"
+							],
+							"checklist": [
+								{
+									"label": "Booking confirmed",
+									"done": true
+								},
+								{
+									"label": "Details complete",
+									"doneWhen": {
+										"field": "detailsStatus",
+										"op": "eq",
+										"value": "complete"
+									}
+								}
+							]
+						},
+						"result": {
+							"title": "What now?",
+							"checklist": [
+								{
+									"label": "Record the result and the certificate"
+								}
+							],
+							"after": "Within 10 working days after the course"
+						}
+					}
+				},
+				"widgets": [
+					{
+						"id": "participant-steps",
+						"type": "stages",
+						"title": "Steps",
+						"content": {
+							"currentField": "step",
+							"variant": "bars",
+							"stages": [
+								{
+									"id": "booked",
+									"label": "Booked"
+								},
+								{
+									"id": "confirmed",
+									"label": "Confirmed"
+								},
+								{
+									"id": "details",
+									"label": "Details complete"
+								},
+								{
+									"id": "course-day",
+									"label": "Course day"
+								},
+								{
+									"id": "result",
+									"label": "Result and certificate",
+									"final": true
+								}
+							]
+						}
+					},
+					{
+						"id": "participant-day",
+						"type": "data",
+						"title": "Course day",
+						"icon": "Calendar",
+						"content": {
+							"columns": 2,
+							"include": [
+								"courseName",
+								"dayLabel",
+								"timeLabel",
+								"placeLabel",
+								"trainerName",
+								"bringList"
+							]
+						}
+					},
+					{
+						"id": "participant-certificate",
+						"type": "data",
+						"title": "Certificate",
+						"icon": "CertificateOutline",
+						"content": {
+							"columns": 2,
+							"include": [
+								"learnerName",
+								"certificateLine",
+								"certificateValidUntil",
+								"certificateStatus",
+								"openTask"
+							]
+						}
+					}
+				]
 			}
 		},
 		{

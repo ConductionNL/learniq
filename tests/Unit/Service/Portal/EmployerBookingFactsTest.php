@@ -198,6 +198,30 @@ class EmployerBookingFactsTest extends TestCase {
 	}//end testTheParticipantsCourseDayCarriesWhatToBring()
 
 	/**
+	 * The participant's current step of his booking: confirmation while the
+	 * booking is received, details while one of his is missing, the course day
+	 * when nothing is left, the result once completed, none when cancelled.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/training-provider-course-days/tasks.md#t7
+	 */
+	public function testTheParticipantsStepOfHisBooking(): void {
+		$facts = (new EmployerBookingFacts())->derive(
+			booking: ['participantCount' => 2, 'lifecycle' => 'confirmed'],
+			course: ['name' => 'F-gassen: herhaling en examen', 'tags' => ['examen']],
+			sessions: [self::session('2026-10-08T08:30:00+02:00', '2026-10-08T16:30:00+02:00')],
+			participants: [self::person('1', 'Tom', '1988-06-12'), self::person('2', 'Youssef', null)]
+		);
+		self::assertSame('course-day', $facts['enrolments']['en-1']['step']);
+		self::assertSame('details', $facts['enrolments']['en-2']['step']);
+
+		self::assertSame('confirmed', EmployerBookingFacts::participantStep(lifecycle: 'received', detailsStatus: 'complete'));
+		self::assertSame('result', EmployerBookingFacts::participantStep(lifecycle: 'completed', detailsStatus: 'birth-date-missing'));
+		self::assertNull(EmployerBookingFacts::participantStep(lifecycle: 'cancelled', detailsStatus: 'complete'));
+	}//end testTheParticipantsStepOfHisBooking()
+
+	/**
 	 * The seeded bookings of the training set carry exactly what the server would write.
 	 *
 	 * @return void

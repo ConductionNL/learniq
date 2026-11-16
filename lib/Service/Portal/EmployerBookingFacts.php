@@ -116,6 +116,7 @@ class EmployerBookingFacts {
 		$missing = 0;
 		foreach ($participants as $row) {
 			$fields = $this->participant(row: $row, needsBirthDate: $needsBirthDate, firstDay: $firstDay, renewed: $renewed);
+			$fields['step'] = self::participantStep(lifecycle: $lifecycle, detailsStatus: $fields['detailsStatus']);
 			$enrolments[(string)($row['enrolment']['id'] ?? '')] = $fields;
 			$names[] = $this->fullName(profile: $row['profile']);
 			$refs[] = (string)($row['profile']['id'] ?? ($row['enrolment']['learnerRef'] ?? ''));
@@ -168,6 +169,31 @@ class EmployerBookingFacts {
 			'enrolments' => $enrolments,
 		];
 	}//end derive()
+
+	/**
+	 * Where the participant is in the steps of his booking: booked, confirmed,
+	 * details complete, course day, result and certificate. The value names
+	 * the current step: `confirmed` while the booking waits for its
+	 * confirmation, `details` while a detail of his is missing, `course-day`
+	 * when nothing is left before the day, `result` once the booking is
+	 * completed; null for a cancelled booking.
+	 *
+	 * @param string $lifecycle     The booking's state.
+	 * @param string $detailsStatus The participant's details status.
+	 *
+	 * @return string|null
+	 *
+	 * @spec openspec/changes/training-provider-course-days/tasks.md#t7
+	 */
+	public static function participantStep(string $lifecycle, string $detailsStatus): ?string {
+		return match (true) {
+			$lifecycle === 'completed' => 'result',
+			$lifecycle === 'confirmed' && $detailsStatus !== 'complete' => 'details',
+			$lifecycle === 'confirmed' => 'course-day',
+			$lifecycle === 'received' => 'confirmed',
+			default => null,
+		};
+	}//end participantStep()
 
 	/**
 	 * What the participant brings to the course day: the course's bring list,

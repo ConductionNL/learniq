@@ -3412,7 +3412,7 @@
             "Enrolment": {
                 "slug": "enrolment",
                 "icon": "AccountSchoolOutline",
-                "version": "0.6.0",
+                "version": "0.6.1",
                 "title": "Enrolment",
                 "description": "Learner enrolment in a course (Schema.org EnrollmentRequest)",
                 "type": "object",
@@ -3807,6 +3807,25 @@
                         "type": "boolean",
                         "title": "Coming",
                         "description": "True while the participant's booking is received or confirmed, so the participant's portal lists what is still to come. Written by the server."
+                    },
+                    "step": {
+                        "type": "string",
+                        "enum": [
+                            "confirmed",
+                            "details",
+                            "course-day",
+                            "result",
+                            null
+                        ],
+                        "nullable": true,
+                        "title": "Step",
+                        "description": "The participant's current step of his booking: confirmed while it waits for its confirmation, details while a detail of his is missing, course-day when nothing is left before the day, result once it is completed. Written by the server (training-provider-course-days).",
+                        "x-enum-labels": {
+                            "confirmed": "Confirmed",
+                            "details": "Details complete",
+                            "course-day": "Course day",
+                            "result": "Result and certificate"
+                        }
                     },
                     "withdrawReason": {
                         "type": "string",

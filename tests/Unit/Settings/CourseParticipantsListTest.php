@@ -97,7 +97,10 @@ class CourseParticipantsListTest extends TestCase {
 		$columns = array_column($page['config']['columns'], null, 'key');
 		self::assertSame(['learnerName', 'courseName', 'dayLabel', 'lifecycle', 'certificateValidUntil', 'certificateStatus'], array_keys($columns));
 		self::assertSame('date', $columns['certificateValidUntil']['formatter']);
-		self::assertSame(['valid' => 'success', 'expiring' => 'warning', 'expired' => 'error', 'none' => 'default'], $columns['certificateStatus']['colorMap']);
+		self::assertSame(
+			['valid' => 'success', 'expiring' => 'warning', 'expired' => 'error', 'none' => 'default'],
+			$columns['certificateStatus']['colorMap']
+		);
 
 		$filters = array_column($page['config']['quickFilters'], 'filter', 'label');
 		self::assertSame(['certificateStatus' => ['expiring', 'expired']], $filters['Certificate runs out']);
@@ -114,6 +117,34 @@ class CourseParticipantsListTest extends TestCase {
 	}//end testThePageShowsTheCertificateInItsColour()
 
 	/**
+	 * A row opens the participant's page: his booking's steps in the header,
+	 * read-only, and a What now? card per step; with nothing left before the
+	 * day it reads "What now? Nothing, until <day>". Every step the server
+	 * writes has a place on the strip and a card.
+	 *
+	 * @return void
+	 */
+	public function testTheParticipantPageShowsHisStepsAndWhatNow(): void {
+		$fragment = json_decode((string)file_get_contents(__DIR__ . '/../../../src/manifest.d/learning.json'), true);
+		$pages = array_column($fragment['pages'], null, 'id');
+		self::assertSame('CourseParticipantDetail', $pages['CourseParticipants']['config']['rowRoute']);
+
+		$config = $pages['CourseParticipantDetail']['config'];
+		self::assertSame(['Enrolment', 'step'], [$config['schema'], $config['stageField']]);
+		$widgets = array_column($config['widgets'], null, 'id');
+		$strip = $widgets[$config['headerWidget']];
+		self::assertSame(['stages', 'step', 'bars'], [$strip['type'], $strip['content']['currentField'], $strip['content']['variant']]);
+		self::assertArrayNotHasKey('transition', $strip['content']);
+
+		$written = array_values(array_filter(self::enrolmentSchema()['properties']['step']['enum'], 'is_string'));
+		$onStrip = array_column($strip['content']['stages'], 'id');
+		self::assertSame([], array_diff($written, $onStrip));
+		self::assertSame($written, array_keys($config['nextStep']['stages']));
+		self::assertSame('What now? Nothing, until {dayLabel}', $config['nextStep']['stages']['course-day']['title'][0]);
+		self::assertContains('bringList', $widgets['participant-day']['content']['include']);
+	}//end testTheParticipantPageShowsHisStepsAndWhatNow()
+
+	/**
 	 * The four operators the colour rule uses, as OpenRegister evaluates them.
 	 *
 	 * @param mixed                $expression The expression.
@@ -128,9 +159,17 @@ class CourseParticipantsListTest extends TestCase {
 
 		$operator = (string)array_key_first($expression);
 		$args     = $expression[$operator];
+		if ($operator === 'if') {
+			$branch = $args[2];
+			if (self::evaluate(expression: $args[0], row: $row) === true) {
+				$branch = $args[1];
+			}
+
+			return self::evaluate(expression: $branch, row: $row);
+		}
+
 		return match ($operator) {
 			'prop' => ($row[$args] ?? null),
-			'if' => self::evaluate(expression: (self::evaluate(expression: $args[0], row: $row) === true ? $args[1] : $args[2]), row: $row),
 			'eq' => self::evaluate(expression: $args[0], row: $row) === self::evaluate(expression: $args[1], row: $row),
 			'lt' => self::evaluate(expression: $args[0], row: $row) < self::evaluate(expression: $args[1], row: $row),
 			'lte' => self::evaluate(expression: $args[0], row: $row) <= self::evaluate(expression: $args[1], row: $row),

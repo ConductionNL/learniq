@@ -796,6 +796,7 @@ def employer_booking_facts(order: Booking, context: BookingContext) -> dict:
     for e, p in participants:
         name = f"{p.get('givenName', '')} {p.get('familyName', '')}".strip()
         fields = participant_facts(p, name, context.renewed.get(e["uuid"]), needs, first)
+        fields["step"] = participant_step(lifecycle, fields["detailsStatus"])
         missing += fields["detailsStatus"] == "birth-date-missing"
         enrolments[e["uuid"]] = fields
         names.append(name)
@@ -858,6 +859,15 @@ def booking_lifecycle(booking: dict, states: list[str]) -> str:
     if all(x in ("completed", "failed") for x in states):
         return "completed"
     return "confirmed" if "active" in states else "received"
+
+
+def participant_step(lifecycle: str, details_status: str) -> str | None:
+    """A port of EmployerBookingFacts::participantStep(): the participant's current step of his booking."""
+    if lifecycle == "completed":
+        return "result"
+    if lifecycle == "confirmed":
+        return "details" if details_status != "complete" else "course-day"
+    return "confirmed" if lifecycle == "received" else None
 
 
 def participant_facts(p: dict, name: str, credential: dict | None, needs: bool, first: dt.date | None) -> dict:
