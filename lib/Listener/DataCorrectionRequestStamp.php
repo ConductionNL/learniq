@@ -112,6 +112,20 @@ class DataCorrectionRequestStamp implements IEventListener {
 			return;
 		}
 
+		$this->stampOrKeep(event: $event);
+	}//end handle()
+
+	/**
+	 * For a data correction request: keep what an update may not change, stamp a
+	 * new one; any other schema is left alone.
+	 *
+	 * @param ObjectCreatingEvent|ObjectUpdatingEvent $event The save, not stopped.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#scenario-an-auditor-reads-the-trail
+	 */
+	private function stampOrKeep(ObjectCreatingEvent|ObjectUpdatingEvent $event): void {
 		try {
 			$slug = $this->schemaResolver->guardSchemaSlug(entity: $this->entityOf(event: $event));
 		} catch (Throwable) {
@@ -129,7 +143,7 @@ class DataCorrectionRequestStamp implements IEventListener {
 		}
 
 		$this->stampRequest(event: $event);
-	}//end handle()
+	}//end stampOrKeep()
 
 	/**
 	 * Stamp a new request: the session user asks, the value before the change
