@@ -65,6 +65,7 @@ use OCA\Learniq\Kernel\Contracts\CourseStoreInstallerInterface;
 use OCA\Learniq\Kernel\Contracts\CourseStorePublisherInterface;
 use OCA\Learniq\Kernel\Contracts\CourseTemplateServiceInterface;
 use OCA\Learniq\Kernel\Contracts\CredentialLearnerInterface;
+use OCA\Learniq\Kernel\Contracts\CredentialMigrationServiceInterface;
 use OCA\Learniq\Kernel\Contracts\CredentialReissueServiceInterface;
 use OCA\Learniq\Kernel\Contracts\CredentialSigningServiceInterface;
 use OCA\Learniq\Kernel\Contracts\CurriculumCoverageRollupInterface;
@@ -140,6 +141,7 @@ use OCA\Learniq\Kernel\Contracts\PortalWriteSubjectInterface;
 use OCA\Learniq\Kernel\Contracts\ProgrammeProgressInterface;
 use OCA\Learniq\Kernel\Contracts\ProgrammeRequirementsInterface;
 use OCA\Learniq\Kernel\Contracts\PupilGroupTeachersInterface;
+use OCA\Learniq\Kernel\Contracts\PupilPageServiceInterface;
 use OCA\Learniq\Kernel\Contracts\QtiChoiceOrderResolverInterface;
 use OCA\Learniq\Kernel\Contracts\QtiExportServiceInterface;
 use OCA\Learniq\Kernel\Contracts\QtiImportServiceInterface;
@@ -162,6 +164,7 @@ use OCA\Learniq\Kernel\Contracts\SegmentServiceInterface;
 use OCA\Learniq\Kernel\Contracts\SessionChangeBatchServiceInterface;
 use OCA\Learniq\Kernel\Contracts\SigningServiceInterface;
 use OCA\Learniq\Kernel\Contracts\SovereigntyPolicyServiceInterface;
+use OCA\Learniq\Kernel\Contracts\SsoAttributeMappingApplierInterface;
 use OCA\Learniq\Kernel\Contracts\StandbyCalendarInterface;
 use OCA\Learniq\Kernel\Contracts\StoreAccessServiceInterface;
 use OCA\Learniq\Kernel\Contracts\SubmissionMarkAllocationServiceInterface;
@@ -184,6 +187,7 @@ use OCA\Learniq\Kernel\Contracts\XapiDocumentStoreInterface;
 use OCA\Learniq\Kernel\Contracts\XapiEnrolmentCompletionInterface;
 use OCA\Learniq\Kernel\Contracts\XapiStatementIngestInterface;
 use OCA\Learniq\Kernel\Contracts\SchoolActivityStaffInterface;
+use OCA\Learniq\Service\Pupil\PupilPageService;
 use OCA\Learniq\Service\SchoolActivity\SchoolActivityStaff;
 use OCA\Learniq\Service\Accessibility\ConformanceEvidence;
 use OCA\Learniq\Service\Attendance\AttendanceSummaryService;
@@ -301,6 +305,7 @@ final class ContractBindings {
 		CourseStorePublisherInterface::class => CourseStorePublisher::class,
 		CourseTemplateServiceInterface::class => CourseTemplateService::class,
 		CredentialLearnerInterface::class => CredentialLearner::class,
+		CredentialMigrationServiceInterface::class => CredentialMigrationService::class,
 		CredentialReissueServiceInterface::class => CredentialReissueService::class,
 		CredentialSigningServiceInterface::class => CredentialSigningService::class,
 		CurriculumCoverageRollupInterface::class => CurriculumCoverageRollup::class,
@@ -311,6 +316,7 @@ final class ContractBindings {
 		ElectiveBoardInterface::class => ElectiveBoard::class,
 		ElectiveServiceInterface::class => ElectiveService::class,
 		ElectiveSlotServiceInterface::class => ElectiveSlotService::class,
+		PupilPageServiceInterface::class => PupilPageService::class,
 		SchoolActivityStaffInterface::class => SchoolActivityStaff::class,
 		EmployerBookingProjectionInterface::class => EmployerBookingProjection::class,
 		EmployerBookingStepsInterface::class => EmployerBookingSteps::class,
@@ -399,6 +405,7 @@ final class ContractBindings {
 		SessionChangeBatchServiceInterface::class => SessionChangeBatchService::class,
 		SigningServiceInterface::class => SigningService::class,
 		SovereigntyPolicyServiceInterface::class => SovereigntyPolicyService::class,
+		SsoAttributeMappingApplierInterface::class => SsoAttributeMappingApplier::class,
 		StandbyCalendarInterface::class => StandbyCalendar::class,
 		StoreAccessServiceInterface::class => StoreAccessService::class,
 		SubmissionMarkAllocationServiceInterface::class => SubmissionMarkAllocationService::class,
