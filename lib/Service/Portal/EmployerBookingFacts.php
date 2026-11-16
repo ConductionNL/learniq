@@ -136,6 +136,7 @@ class EmployerBookingFacts {
 			'placeLabel' => ($context['placeLabel'] ?? null),
 			'trainerName' => ($context['trainerName'] ?? null),
 			'upcoming' => $upcoming,
+			'bringList' => self::bringList(course: $course),
 		];
 		foreach (array_keys($enrolments) as $id) {
 			$enrolments[$id] = array_merge($enrolments[$id], $day);
@@ -167,6 +168,27 @@ class EmployerBookingFacts {
 			'enrolments' => $enrolments,
 		];
 	}//end derive()
+
+	/**
+	 * What the participant brings to the course day: the course's bring list,
+	 * one trimmed line each, empty lines and non-text left out.
+	 *
+	 * @param array<string, mixed> $course The course.
+	 *
+	 * @return list<string>
+	 *
+	 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-says-what-to-bring
+	 */
+	public static function bringList(array $course): array {
+		$lines = [];
+		foreach ((array)($course['bringList'] ?? []) as $line) {
+			if (is_string($line) === true && trim($line) !== '') {
+				$lines[] = trim($line);
+			}
+		}
+
+		return $lines;
+	}//end bringList()
 
 	/**
 	 * Whether the booking is still coming: it is open, and its last day is

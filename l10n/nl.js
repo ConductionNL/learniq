@@ -4088,6 +4088,7 @@ OC.L10N.register(
         "Reported sick": "Ziek gemeld",
         "At school": "Op school",
         "After that": "Daarna",
+        "What to bring": "Meenemen",
         "Latest grades": "Laatste cijfers",
         "Absence this school year": "Afwezigheid dit schooljaar",
         "Without a report": "Zonder melding",

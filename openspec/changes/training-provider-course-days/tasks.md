@@ -1,6 +1,7 @@
 # Tasks: training-provider-course-days
 
 - [x] **T1**: register: `cohort.minParticipants`, `goDecisionBy`, `dayStatus` (derived); `course.bringList[]` (plus `cohort.goDecision`, the go/no-go the derivation reads)
+  - The participant's next course day shows the bring list: `EmployerBookingFacts` copies `course.bringList` onto each participant's `enrolment.bringList` with the other day facts, and the participant portal's course day collections show it under "What to bring" ("Meenemen"). Asserted in `EmployerBookingFactsTest` and `ParticipantSitePagesTest`. The public course page is portaliq's public index item, which has no list field yet, so it does not show the list.
 - [x] **T2**: status derivation on every booking, enrolment, decision and date change; manual move log
   - Derivation: `CourseDayStatus` (rules), `CourseDayStatusService::restamp()`, queued by `CourseDayStatusCascade` and run by `CourseDayRestampJob`.
   - Manual move: `CourseDayStatusService::move()` (`POST /api/course-days/{id}/status`) stores `cohort.dayStatusMove` with a fingerprint of the facts; it stands until those facts change. Every move, derived change and decision is appended to `cohort.dayStatusLog`.

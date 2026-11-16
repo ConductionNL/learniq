@@ -3412,7 +3412,7 @@
             "Enrolment": {
                 "slug": "enrolment",
                 "icon": "AccountSchoolOutline",
-                "version": "0.5.1",
+                "version": "0.5.2",
                 "title": "Enrolment",
                 "description": "Learner enrolment in a course (Schema.org EnrollmentRequest)",
                 "type": "object",
@@ -3770,6 +3770,15 @@
                         "nullable": true,
                         "title": "Trainer",
                         "description": "The trainer of the edition. Copied from the company booking. Written by the server."
+                    },
+                    "bringList": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "default": [],
+                        "title": "What to bring",
+                        "description": "What the participant brings to the course day, one short line each. Copied from the course's bring list. Written by the server (training-provider-course-days)."
                     },
                     "upcoming": {
                         "type": "boolean",

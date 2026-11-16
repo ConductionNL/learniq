@@ -3571,6 +3571,7 @@ OC.L10N.register(
         "Reported sick": "Reported sick",
         "At school": "At school",
         "After that": "After that",
+        "What to bring": "What to bring",
         "Latest grades": "Latest grades",
         "Absence this school year": "Absence this school year",
         "Without a report": "Without a report",

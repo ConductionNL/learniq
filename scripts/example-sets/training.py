@@ -811,7 +811,8 @@ def employer_booking_facts(order: Booking, context: BookingContext) -> dict:
     time_label = first_day_times(sessions, first)
     course_name = (course.get("name") or "").strip() or None
     day = {"firstDay": first.isoformat() if first else None, "dayLabel": label, "timeLabel": time_label, "placeLabel": context.place,
-           "trainerName": context.trainer, "upcoming": lifecycle in ("received", "confirmed")}
+           "trainerName": context.trainer, "upcoming": lifecycle in ("received", "confirmed"),
+           "bringList": [x.strip() for x in course.get("bringList") or [] if isinstance(x, str) and x.strip()]}
     for key in enrolments:
         enrolments[key].update(day)
     return {

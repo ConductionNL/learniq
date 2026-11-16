@@ -172,6 +172,30 @@ class EmployerBookingFactsTest extends TestCase {
 	}//end testOpenPlacesAndAReceivedBooking()
 
 	/**
+	 * Every participant's course day carries the course's bring list, trimmed,
+	 * with empty lines and non-text left out; a course without one gives an empty list.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-says-what-to-bring
+	 */
+	public function testTheParticipantsCourseDayCarriesWhatToBring(): void {
+		$facts = (new EmployerBookingFacts())->derive(
+			booking: ['participantCount' => 2, 'lifecycle' => 'confirmed'],
+			course: ['name' => 'F-gassen: herhaling en examen', 'bringList' => [' Een geldig legitimatiebewijs ', '', 42, 'Werkschoenen en werkkleding']],
+			sessions: [self::session('2026-10-08T08:30:00+02:00', '2026-10-08T16:30:00+02:00')],
+			participants: [self::person('1', 'Tom', '1988-06-12'), self::person('2', 'Sanne', '1990-01-01')]
+		);
+
+		$expected = ['Een geldig legitimatiebewijs', 'Werkschoenen en werkkleding'];
+		self::assertSame($expected, $facts['enrolments']['en-1']['bringList']);
+		self::assertSame($expected, $facts['enrolments']['en-2']['bringList']);
+		self::assertArrayNotHasKey('bringList', $facts['booking']);
+		self::assertSame([], EmployerBookingFacts::bringList(course: ['name' => 'Basis']));
+		self::assertSame([], EmployerBookingFacts::bringList(course: ['bringList' => null]));
+	}//end testTheParticipantsCourseDayCarriesWhatToBring()
+
+	/**
 	 * The seeded bookings of the training set carry exactly what the server would write.
 	 *
 	 * @return void
