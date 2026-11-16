@@ -239,9 +239,9 @@ class LearningRecordImportIntakeService implements LearningRecordImportIntakeSer
 	 *
 	 * @param string $createdId The created import's id.
 	 *
-	 * @return array<string,mixed>|null
+	 * @return array<string,mixed>
 	 */
-	private function parsedImport(string $createdId): ?array {
+	private function parsedImport(string $createdId): array {
 		try {
 			$this->transitionEngine->transition($createdId, 'parse');
 		} catch (\Throwable $e) {

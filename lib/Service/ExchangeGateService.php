@@ -133,21 +133,6 @@ class ExchangeGateService implements ExchangeGateServiceInterface {
 			return $this->importAnswer(jobId: $jobId, target: $target, scope: $scope);
 		}
 
-		return $this->exportAnswer(job: ['jobId' => $jobId, 'target' => $target, 'scope' => $scope]);
-	}//end evaluate()
-
-	/**
-	 * The answer for an export or sync job that passed the refusals: the
-	 * records the mapping lets leave, or why none may.
-	 *
-	 * @param array<string, mixed> $job The integriq job's uuid (`jobId`), the exchange `target` and the job's `scope`.
-	 *
-	 * @return array{decision: string, code: string, reason: string, checkedAt: string, records: array<int, array<string, mixed>>}
-	 */
-	private function exportAnswer(array $job): array {
-		$jobId = $job['jobId'];
-		$target = $job['target'];
-		$scope = $job['scope'];
 		$mappingSlug = $this->mappingOf(jobId: $jobId);
 		if ($this->disclosure->fieldsFor(mappingSlug: $mappingSlug) === null && $this->disclosure->isStatutory(target: $target) === true) {
 			return $this->refuse(
@@ -170,7 +155,7 @@ class ExchangeGateService implements ExchangeGateServiceInterface {
 		}
 
 		return $this->allow(records: $records);
-	}//end exportAnswer()
+	}//end evaluate()
 
 	/**
 	 * Condition 1: a leerplicht report waits until a person took up the flag.
