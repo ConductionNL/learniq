@@ -130,6 +130,20 @@ class SovereigntyPolicyService implements SovereigntyPolicyServiceInterface {
 			return self::DEFAULT_POLICY;
 		}
 
+		return $this->policyOf(existing: $existing);
+	}//end currentPolicy()
+
+	/**
+	 * The policy of the first stored row, or the default when the row cannot be
+	 * read or names no valid policy.
+	 *
+	 * @param array<int,mixed> $existing The SovereigntyPolicy rows found, at least one.
+	 *
+	 * @return string One of `on-premises-only`, `eu-hosted-allowed`, `third-country-allowed`.
+	 *
+	 * @spec openspec/specs/ai-locality-guarantee/spec.md#scenario-no-policy-set-yet-defaults-to-the-documented-default
+	 */
+	private function policyOf(array $existing): string {
 		$row = $existing[0];
 		if (is_array($row) === false) {
 			if (is_object($row) === false || method_exists($row, 'jsonSerialize') === false) {
@@ -146,7 +160,7 @@ class SovereigntyPolicyService implements SovereigntyPolicyServiceInterface {
 		}
 
 		return $policy;
-	}//end currentPolicy()
+	}//end policyOf()
 
 	/**
 	 * Whether a classified `{locality, verified}` pair complies with the

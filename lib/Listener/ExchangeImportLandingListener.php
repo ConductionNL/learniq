@@ -88,6 +88,21 @@ class ExchangeImportLandingListener implements IEventListener {
 			$records = [];
 		}
 
+		$this->landRecords(event: $event, records: $records);
+	}//end handle()
+
+	/**
+	 * Land the records and answer the event with what was accepted and rejected;
+	 * a failed landing rejects every record.
+	 *
+	 * @param Event                          $event   The import event to answer.
+	 * @param array<int,array<string,mixed>> $records The records it carries.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-records-integriq-hands-back-for-an-import-land-in-learniq
+	 */
+	private function landRecords(Event $event, array $records): void {
 		$scope = $this->read(event: $event, getter: 'getScope');
 		if (is_array($scope) === false) {
 			$scope = [];
@@ -113,7 +128,7 @@ class ExchangeImportLandingListener implements IEventListener {
 		}
 
 		$this->answer(event: $event, accepted: (int)($outcome['accepted'] ?? 0), rejected: (array)($outcome['rejected'] ?? []));
-	}//end handle()
+	}//end landRecords()
 
 	/**
 	 * Answer through the event's accept(), when it has one.
