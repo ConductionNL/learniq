@@ -149,6 +149,24 @@ class BpvLeerbedrijfVerificationHandler implements IEventListener {
 			$verification = [];
 		}
 
+		$this->verifyWithProvider(placement: $placement, verification: $verification);
+
+	}//end runVerification()
+
+	/**
+	 * Verify the placement's training company with the configured provider and
+	 * record the result; logs and leaves it unresolved without a provider or KvK number.
+	 *
+	 * @param array<string,mixed> $placement    The BpvPlacement data, with an id.
+	 * @param array<string,mixed> $verification Its trainingCompanyVerification block.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/bpv/spec.md#requirement-leerbedrijf-verification-is-a-pluggable-provider
+	 */
+	private function verifyWithProvider(array $placement, array $verification): void {
+		$placementId = $placement['id'] ?? ($placement['uuid'] ?? '');
+
 		$providerClass = $verification['provider'] ?? null;
 		$kvkNumber = $placement['trainingCompanyKvkNumber'] ?? '';
 
@@ -181,8 +199,7 @@ class BpvLeerbedrijfVerificationHandler implements IEventListener {
 			placement: ['object' => $placement, 'id' => $placementId, 'verification' => $verification],
 			result: $result
 		);
-
-	}//end runVerification()
+	}//end verifyWithProvider()
 
 	/**
 	 * Ask the provider about the company; null when the call failed (and was logged).
