@@ -122,6 +122,7 @@ use OCA\Learniq\Kernel\Contracts\OpenMaterialSearchInterface;
 use OCA\Learniq\Kernel\Contracts\PeerReviewAllocationServiceInterface;
 use OCA\Learniq\Kernel\Contracts\PeerReviewWorkProjectionInterface;
 use OCA\Learniq\Kernel\Contracts\PersonalTimetableServiceInterface;
+use OCA\Learniq\Kernel\Contracts\PlannerTodayServiceInterface;
 use OCA\Learniq\Kernel\Contracts\PointEngagementEvaluatorInterface;
 use OCA\Learniq\Kernel\Contracts\PokParentSignatureRuleInterface;
 use OCA\Learniq\Kernel\Contracts\PortalAttemptServiceInterface;
@@ -195,6 +196,7 @@ use OCA\Learniq\Service\CheckIn\CheckInMessages;
 use OCA\Learniq\Service\CheckIn\CheckInService;
 use OCA\Learniq\Service\Course\CourseTemplateService;
 use OCA\Learniq\Service\CourseDay\CourseDayStatusService;
+use OCA\Learniq\Service\CourseDay\PlannerTodayService;
 use OCA\Learniq\Service\CourseDay\SessionPartsService;
 use OCA\Learniq\Service\CourseStore\CourseStoreDescriptor;
 use OCA\Learniq\Service\CourseStore\CourseStoreInstaller;
@@ -355,6 +357,7 @@ final class ContractBindings {
 		PeerReviewAllocationServiceInterface::class => PeerReviewAllocationService::class,
 		PeerReviewWorkProjectionInterface::class => PeerReviewWorkProjection::class,
 		PersonalTimetableServiceInterface::class => PersonalTimetableService::class,
+		PlannerTodayServiceInterface::class => PlannerTodayService::class,
 		PointEngagementEvaluatorInterface::class => PointEngagementEvaluator::class,
 		PokParentSignatureRuleInterface::class => PokParentSignatureRule::class,
 		PortalAttemptServiceInterface::class => PortalAttemptService::class,

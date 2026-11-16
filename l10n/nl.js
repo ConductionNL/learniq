@@ -5839,7 +5839,23 @@ OC.L10N.register(
         "Part of the day": "Dagdeel",
         "Which part of the day this is.": "Welk deel van de dag dit is.",
         "When this part of the day starts.": "Wanneer dit dagdeel begint.",
-        "When this part of the day ends.": "Wanneer dit dagdeel eindigt."
+        "When this part of the day ends.": "Wanneer dit dagdeel eindigt.",
+        "Decide by {date} whether the day goes ahead.": "Beslis uiterlijk {date} of de dag doorgaat.",
+        "No other day of this course has places.": "Geen andere dag van deze cursus heeft nog plek.",
+        "Open the course day": "Cursusdag openen",
+        "No course day waits for a decision.": "Geen cursusdag wacht op een beslissing.",
+        "Occupancy until {date}": "Bezetting tot {date}",
+        "Trainers and rooms": "Trainers en lokalen",
+        "All course days": "Alle cursusdagen",
+        "On {date} there are still places free.": "Op {date} zijn nog plekken vrij.",
+        "{taken} of {capacity}": "{taken} van {capacity}",
+        "No trainer": "Geen trainer",
+        "No room": "Geen lokaal",
+        "Course days today": "Cursusdagen vandaag",
+        "_%n enrolment to confirm_::_%n enrolments to confirm_": ["%n inschrijving om te bevestigen","%n inschrijvingen om te bevestigen"],
+        "_{course} on {date} has %n participant. The minimum is {minimum}._::_{course} on {date} has %n participants. The minimum is {minimum}._": ["{course} op {date} heeft %n deelnemer. Het minimum is {minimum}.","{course} op {date} heeft %n deelnemers. Het minimum is {minimum}."],
+        "_On {date} there is still %n place free._::_On {date} there are still %n places free._": ["Op {date} is nog %n plek vrij.","Op {date} zijn nog %n plekken vrij."],
+        "_%n trainer_::_%n trainers_": ["%n trainer","%n trainers"]
     },
     "nplurals=2; plural=(n != 1);"
 )

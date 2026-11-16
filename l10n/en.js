@@ -5345,7 +5345,23 @@ OC.L10N.register(
         "Part of the day": "Part of the day",
         "Which part of the day this is.": "Which part of the day this is.",
         "When this part of the day starts.": "When this part of the day starts.",
-        "When this part of the day ends.": "When this part of the day ends."
+        "When this part of the day ends.": "When this part of the day ends.",
+        "Decide by {date} whether the day goes ahead.": "Decide by {date} whether the day goes ahead.",
+        "No other day of this course has places.": "No other day of this course has places.",
+        "Open the course day": "Open the course day",
+        "No course day waits for a decision.": "No course day waits for a decision.",
+        "Occupancy until {date}": "Occupancy until {date}",
+        "Trainers and rooms": "Trainers and rooms",
+        "All course days": "All course days",
+        "On {date} there are still places free.": "On {date} there are still places free.",
+        "{taken} of {capacity}": "{taken} of {capacity}",
+        "No trainer": "No trainer",
+        "No room": "No room",
+        "Course days today": "Course days today",
+        "_%n enrolment to confirm_::_%n enrolments to confirm_": ["%n enrolment to confirm","%n enrolments to confirm"],
+        "_{course} on {date} has %n participant. The minimum is {minimum}._::_{course} on {date} has %n participants. The minimum is {minimum}._": ["{course} on {date} has %n participant. The minimum is {minimum}.","{course} on {date} has %n participants. The minimum is {minimum}."],
+        "_On {date} there is still %n place free._::_On {date} there are still %n places free._": ["On {date} there is still %n place free.","On {date} there are still %n places free."],
+        "_%n trainer_::_%n trainers_": ["%n trainer","%n trainers"]
     },
     "nplurals=2; plural=(n != 1);"
 )

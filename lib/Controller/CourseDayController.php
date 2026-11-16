@@ -28,6 +28,7 @@ namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Kernel\Contracts\CourseDayStatusServiceInterface;
+use OCA\Learniq\Kernel\Contracts\PlannerTodayServiceInterface;
 use OCA\Learniq\Kernel\Contracts\SessionPartsServiceInterface;
 use OCA\Learniq\Service\CallerActions;
 use OCA\Learniq\Service\CourseDay\CourseDayException;
@@ -61,6 +62,7 @@ class CourseDayController extends Controller {
 	 * @param CallerActions                   $caller  The signed-in user and the action matrix.
 	 * @param CourseDayStatusServiceInterface $days    The course day rules.
 	 * @param SessionPartsServiceInterface    $parts   Attendance per part of the day.
+	 * @param PlannerTodayServiceInterface    $planner The planner's Today.
 	 * @param LoggerInterface                 $logger  PSR logger.
 	 *
 	 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
@@ -70,6 +72,7 @@ class CourseDayController extends Controller {
 		private readonly CallerActions $caller,
 		private readonly CourseDayStatusServiceInterface $days,
 		private readonly SessionPartsServiceInterface $parts,
+		private readonly PlannerTodayServiceInterface $planner,
 		private readonly LoggerInterface $logger,
 	) {
 		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
@@ -144,6 +147,20 @@ class CourseDayController extends Controller {
 			call: fn (IUser $user): array => $this->days->moveParticipants(cohortId: $id, targetId: $targetId, userId: $user->getUID())
 		);
 	}//end moveParticipants()
+
+	/**
+	 * The planner's Today: the course days that ask for a decision now, what
+	 * waits for confirmation, and the occupancy, trainers and rooms of the
+	 * coming course days.
+	 *
+	 * @return JSONResponse
+	 *
+	 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#scenario-four-of-six
+	 */
+	#[NoAdminRequired]
+	public function today(): JSONResponse {
+		return $this->answer(call: fn (IUser $user): array => $this->planner->today());
+	}//end today()
 
 	/**
 	 * A session's attendance per part of the day, for the trainer's Today. The

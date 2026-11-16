@@ -26,6 +26,7 @@ use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\CallerActions;
 use OCA\Learniq\Service\CourseDay\CourseDayException;
 use OCA\Learniq\Service\CourseDay\CourseDayStatusService;
+use OCA\Learniq\Service\CourseDay\PlannerTodayService;
 use OCA\Learniq\Service\CourseDay\SessionPartsService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\OCS\OCSForbiddenException;
@@ -51,6 +52,8 @@ class CourseDayControllerTest extends TestCase {
 
 	private SessionPartsService&MockObject $parts;
 
+	private PlannerTodayService&MockObject $planner;
+
 	private function controller(bool $allowed=true, bool $loggedIn=true): CourseDayController {
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('sophie');
@@ -65,12 +68,14 @@ class CourseDayControllerTest extends TestCase {
 
 		$this->days  = $this->createMock(CourseDayStatusService::class);
 		$this->parts = $this->createMock(SessionPartsService::class);
+		$this->planner = $this->createMock(PlannerTodayService::class);
 
 		return new CourseDayController(
 			request: $this->createMock(IRequest::class),
 			caller: new CallerActions(userSession: $session, actionAuth: $auth),
 			days: $this->days,
 			parts: $this->parts,
+			planner: $this->planner,
 			logger: $this->createMock(LoggerInterface::class)
 		);
 	}//end controller()
@@ -98,6 +103,24 @@ class CourseDayControllerTest extends TestCase {
 
 		self::assertSame(['dayStatus' => 'cancelled'], $controller->decide(id: 'c-22', decision: 'no-go')->getData());
 	}//end testANoGoDecisionIsPassedOn()
+
+	public function testAPlannerReadsToday(): void {
+		$controller = $this->controller();
+		$today      = ['today' => '2026-10-05', 'decisions' => [], 'toConfirm' => ['bookings' => 5, 'enrolments' => 0], 'occupancy' => ['until' => '2026-10-23', 'days' => []]];
+		$this->planner->expects($this->once())->method('today')->willReturn($today);
+
+		$response = $controller->today();
+
+		self::assertSame(Http::STATUS_OK, $response->getStatus());
+		self::assertSame($today, $response->getData());
+	}//end testAPlannerReadsToday()
+
+	public function testTodayIsRefusedWithoutThePlanningAction(): void {
+		$controller = $this->controller(allowed: false);
+		$this->planner->expects($this->never())->method('today');
+
+		self::assertSame(Http::STATUS_FORBIDDEN, $controller->today()->getStatus());
+	}//end testTodayIsRefusedWithoutThePlanningAction()
 
 	public function testAlternativesAndMovingParticipants(): void {
 		$controller = $this->controller();
