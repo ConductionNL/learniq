@@ -32,8 +32,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\BackgroundJob;
 
 use DateTimeZone;
-use OCA\Learniq\Service\Portal\EmployerBookingFacts;
-use OCA\Learniq\Service\Portal\EmployerBookingProjection;
+use OCA\Learniq\Kernel\Contracts\EmployerBookingProjectionInterface;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\IJob;
 use OCP\BackgroundJob\TimedJob;
@@ -50,17 +49,22 @@ class PastCourseDaysJob extends TimedJob {
 	public const INTERVAL_SECONDS = 3600;
 
 	/**
+	 * The zone a course day is dated in (the portal's course-day lines use the same).
+	 */
+	public const ZONE = 'Europe/Amsterdam';
+
+	/**
 	 * Constructor.
 	 *
-	 * @param ITimeFactory              $time       The clock.
-	 * @param EmployerBookingProjection $projection Re-derives a booking with today's date.
-	 * @param LoggerInterface           $logger     PSR logger.
+	 * @param ITimeFactory                       $time       The clock.
+	 * @param EmployerBookingProjectionInterface $projection Re-derives a booking with today's date.
+	 * @param LoggerInterface                    $logger     PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		ITimeFactory $time,
-		private readonly EmployerBookingProjection $projection,
+		private readonly EmployerBookingProjectionInterface $projection,
 		private readonly LoggerInterface $logger,
 	) {
 		parent::__construct(time: $time);
@@ -80,7 +84,7 @@ class PastCourseDaysJob extends TimedJob {
 	 * @spec openspec/changes/past-course-days-drop-off/specs/portal-contribution/spec.md#requirement-a-course-day-that-has-passed-is-no-longer-coming
 	 */
 	protected function run(mixed $argument): void {
-		$today = $this->time->now()->setTimezone(new DateTimeZone(EmployerBookingFacts::ZONE))->format('Y-m-d');
+		$today = $this->time->now()->setTimezone(new DateTimeZone(self::ZONE))->format('Y-m-d');
 		$moved = 0;
 		try {
 			foreach ($this->projection->many(schema: 'course-booking', filters: ['upcoming' => true]) as $booking) {
