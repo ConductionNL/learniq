@@ -35,6 +35,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Settings;
 
 use DateTimeImmutable;
+use OCA\Learniq\Service\ExamRegistration\ExamRegistrationLines;
 use OCA\Learniq\Service\ExampleSetPreparation;
 use OCA\Learniq\Service\ExampleSetSources;
 use OCA\Learniq\Service\DemoDataService;
@@ -897,4 +898,46 @@ class TrainingExampleSetTest extends TestCase {
 			$courses['F-gassen: herhaling en examen']['bringList']
 		);
 	}//end testTheCourseDaysOfThePlanner()
+
+	/**
+	 * The registration of the 8 October F-gassen exam reads as the administration's Today: closing on
+	 * Wednesday at 12.00, two of three complete, Youssef's birth date missing and Linda told this
+	 * morning. Every line is what ExamRegistrationLines writes for the seeded enrolment and profile,
+	 * and the list carries no birth date.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-youssefs-birth-date
+	 */
+	public function testTheExamRegistrationOfTheFGassenDay(): void {
+		$lists = self::of('exam-registration');
+		self::assertCount(1, $lists);
+		$list = $lists[0];
+
+		$profiles = array_column(self::of('learner-profile'), null, 'uuid');
+		$enrolments = array_column(self::of('enrolment'), null, 'uuid');
+		$companies = array_column(self::of('client-organisation'), null, 'uuid');
+		foreach ($list['lines'] as $line) {
+			$enrolment = $enrolments[$line['enrolmentId']];
+			self::assertSame($list['cohortId'], $enrolment['cohortId']);
+			$expected = ExamRegistrationLines::line(
+				enrolment: array_merge($enrolment, ['id' => $enrolment['uuid']]),
+				profile: array_merge($profiles[$line['learnerRef']], ['id' => $line['learnerRef']]),
+				organisation: array_merge($companies[$line['organisationRef']], ['id' => $line['organisationRef']]),
+				required: ExamRegistrationLines::required(required: $list['requiredFields']),
+				previous: $line,
+				now: '2026-10-05T07:45:00+02:00'
+			);
+			self::assertSame($expected, $line, $line['learnerName']);
+		}
+
+		self::assertSame('De aanmelding voor het examen van donderdag sluit woensdag om 12.00 uur.', ExamRegistrationLines::closingSentence(examDate: $list['examDate'], closesAt: $list['closesAt']));
+		self::assertSame('2 van de 3 deelnemers zijn compleet.', ExamRegistrationLines::summary(lines: $list['lines']));
+		self::assertSame([2, 3], [$list['completeCount'], $list['participantCount']]);
+		$youssef = array_values(array_filter($list['lines'], static fn (array $line): bool => $line['complete'] === false));
+		self::assertCount(1, $youssef);
+		self::assertSame('Van Youssef El Amrani (Jansen Installatietechniek BV) ontbreekt de geboortedatum.', ExamRegistrationLines::missingSentence(line: $youssef[0]));
+		self::assertSame('De werkgever kreeg vanochtend bericht.', ExamRegistrationLines::notice(notifiedAt: $youssef[0]['employerNotifiedAt'], now: '2026-10-05T09:00:00+02:00'));
+		self::assertStringNotContainsString('1988-06-12', json_encode($list), 'the list carries no birth date');
+	}//end testTheExamRegistrationOfTheFGassenDay()
 }//end class
