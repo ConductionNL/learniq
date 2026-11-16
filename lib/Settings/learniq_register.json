@@ -1866,6 +1866,15 @@
                         "nullable": true,
                         "x-notes": "Materialised value of the isPublished calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
                     },
+                    "bringList": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "default": [],
+                        "title": "What to bring",
+                        "description": "Short lines a participant brings to the course day, shown on the next course day and the public course page (training-provider-course-days)."
+                    },
                     "price": {
                         "type": "object",
                         "nullable": true,
@@ -7217,7 +7226,7 @@
             "Cohort": {
                 "slug": "cohort",
                 "icon": "AccountGroupOutline",
-                "version": "0.3.0",
+                "version": "0.5.0",
                 "title": "Cohort",
                 "description": "A group of learners doing a Course or Programme together in a given period. Members are LearnerProfile UUIDs; backed by a Nextcloud group for permissioning. Lifecycle: planned → active → completed | archived.",
                 "type": "object",
@@ -7423,6 +7432,154 @@
                         "minimum": 0,
                         "description": "How many participants fit in this course date. The portal shows how many places are left.",
                         "title": "Places"
+                    },
+                    "minParticipants": {
+                        "type": "integer",
+                        "nullable": true,
+                        "default": null,
+                        "minimum": 0,
+                        "title": "Minimum participants",
+                        "description": "How many participants the course day needs to go ahead. Reaching it moves the day to goes-ahead by itself (training-provider-course-days)."
+                    },
+                    "goDecisionBy": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true,
+                        "title": "Decide by",
+                        "description": "The date by which the provider decides whether the course day goes ahead."
+                    },
+                    "dayDate": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true,
+                        "title": "Course day date",
+                        "description": "The date of the course day, from its last session. Derived by CourseDayStatusService on every change; the course days calendar places the day on it."
+                    },
+                    "goDecision": {
+                        "type": "string",
+                        "enum": [
+                            "go",
+                            "no-go"
+                        ],
+                        "nullable": true,
+                        "title": "Decision",
+                        "description": "The provider's decision: go (Gaat door) or no-go (Gaat niet door). Empty while undecided.",
+                        "x-enum-labels": {
+                            "go": "Goes ahead",
+                            "no-go": "Does not go ahead"
+                        }
+                    },
+                    "dayStatus": {
+                        "type": "string",
+                        "enum": [
+                            "open",
+                            "goes-ahead",
+                            "full",
+                            "rounding-off",
+                            "done",
+                            "cancelled"
+                        ],
+                        "default": "open",
+                        "title": "Course day status",
+                        "description": "Derived from the day's bookings, enrolments, decision and date by CourseDayStatusService on every change; a manual move on the board lasts until the next change.",
+                        "x-enum-labels": {
+                            "open": "Open",
+                            "goes-ahead": "Goes ahead",
+                            "full": "Full",
+                            "rounding-off": "Rounding off",
+                            "done": "Done",
+                            "cancelled": "Cancelled"
+                        }
+                    },
+                    "dayStatusMove": {
+                        "type": "object",
+                        "nullable": true,
+                        "default": null,
+                        "title": "Manual status move",
+                        "description": "A planner's manual move of the course day on the board: status, from, movedBy, movedAt and a fingerprint of the facts it was made on. It stands until the next change to those facts; then the derived status takes over (training-provider-course-days).",
+                        "properties": {
+                            "status": {
+                                "type": "string",
+                                "title": "Moved to",
+                                "description": "The status the planner moved the course day to.",
+                                "enum": [
+                                    "open",
+                                    "goes-ahead",
+                                    "full",
+                                    "rounding-off",
+                                    "done",
+                                    "cancelled"
+                                ]
+                            },
+                            "from": {
+                                "type": "string",
+                                "title": "Moved from",
+                                "description": "The status the course day had before the move.",
+                                "nullable": true
+                            },
+                            "movedBy": {
+                                "type": "string",
+                                "title": "Moved by",
+                                "description": "The user who moved the course day."
+                            },
+                            "movedAt": {
+                                "type": "string",
+                                "title": "Moved at",
+                                "description": "When the course day was moved.",
+                                "format": "date-time"
+                            },
+                            "facts": {
+                                "type": "string",
+                                "title": "Facts at the move",
+                                "description": "A fingerprint of the facts the move was made on; when they change, the derived status takes over again."
+                            }
+                        }
+                    },
+                    "dayStatusLog": {
+                        "type": "array",
+                        "default": [],
+                        "title": "Course day log",
+                        "description": "The latest fifty moves of the course day: derived status changes, manual moves, go/no-go decisions and participants moved to another day (training-provider-course-days).",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "kind": {
+                                    "type": "string",
+                                    "title": "Kind of change",
+                                    "description": "What happened: a derived status change, a manual move, a go/no-go decision or participants moved to another day.",
+                                    "enum": [
+                                        "derived",
+                                        "manual",
+                                        "decision",
+                                        "participants-moved"
+                                    ]
+                                },
+                                "from": {
+                                    "type": "string",
+                                    "title": "Status before",
+                                    "description": "The status before the change.",
+                                    "nullable": true
+                                },
+                                "to": {
+                                    "type": "string",
+                                    "title": "Status after",
+                                    "description": "The status after the change.",
+                                    "nullable": true
+                                },
+                                "by": {
+                                    "type": "string",
+                                    "title": "Changed by",
+                                    "description": "The user who made the change; empty when the status changed by itself.",
+                                    "nullable": true
+                                },
+                                "at": {
+                                    "type": "string",
+                                    "title": "Changed at",
+                                    "description": "When the change happened.",
+                                    "format": "date-time"
+                                }
+                            }
+                        }
                     }
                 },
                 "x-openregister-lifecycle": {
@@ -7854,7 +8011,7 @@
             "Session": {
                 "slug": "session",
                 "icon": "CalendarClockOutline",
-                "version": "0.2.2",
+                "version": "0.3.0",
                 "title": "Session",
                 "description": "A scheduled occurrence of a Cohort meeting: a les, hoorcollege, or workshop. Carries start/end datetime, location (room or online URL), attached Materials, and linked Assignments. The unit a teacher takes attendance against.",
                 "type": "object",
@@ -8073,6 +8230,45 @@
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the sessionDayBucket calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
+                    },
+                    "parts": {
+                        "type": "array",
+                        "default": [],
+                        "title": "Parts of the day",
+                        "description": "The parts a course day's session is split into (morning, afternoon), each with its own start and end. Attendance is then registered per part (training-provider-course-days).",
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "key"
+                            ],
+                            "properties": {
+                                "key": {
+                                    "type": "string",
+                                    "title": "Part of the day",
+                                    "description": "Which part of the day this is.",
+                                    "enum": [
+                                        "morning",
+                                        "afternoon"
+                                    ],
+                                    "x-enum-labels": {
+                                        "morning": "Morning",
+                                        "afternoon": "Afternoon"
+                                    }
+                                },
+                                "startsAt": {
+                                    "type": "string",
+                                    "title": "Starts at",
+                                    "description": "When this part of the day starts.",
+                                    "format": "date-time"
+                                },
+                                "endsAt": {
+                                    "type": "string",
+                                    "title": "Ends at",
+                                    "description": "When this part of the day ends.",
+                                    "format": "date-time"
+                                }
+                            }
+                        }
                     }
                 },
                 "x-openregister-lifecycle": {
@@ -18751,7 +18947,7 @@
                 },
                 "slug": "attendance-record",
                 "icon": "ClipboardCheckOutline",
-                "version": "0.4.2",
+                "version": "0.5.0",
                 "title": "AttendanceRecord",
                 "description": "Per-Session per-learner attendance fact. Records whether a learner was present, absent, late, or left early. Not appendOnly — a teacher may correct a mis-marked record; OR's update audit trail is sufficient.",
                 "type": "object",
@@ -18921,6 +19117,27 @@
                         "readOnly": true,
                         "nullable": true,
                         "x-notes": "Materialised value of the lesuren calculation, written by OpenRegister on every save and by its temporal sweep. Declared so the value is stored: OpenRegister discards a materialised calculation that has no backing property, and does not compute it on read either. Never edit by hand."
+                    },
+                    "part": {
+                        "type": "string",
+                        "enum": [
+                            "morning",
+                            "afternoon"
+                        ],
+                        "nullable": true,
+                        "title": "Part of the day",
+                        "description": "The part of the session this record registers, when the session is split into parts (training-provider-course-days).",
+                        "x-enum-labels": {
+                            "morning": "Morning",
+                            "afternoon": "Afternoon"
+                        }
+                    },
+                    "arrivedAt": {
+                        "type": "string",
+                        "nullable": true,
+                        "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$",
+                        "title": "Arrived at",
+                        "description": "The time (HH:MM) a late participant came in (training-provider-course-days)."
                     }
                 },
                 "x-openregister-calculations": {

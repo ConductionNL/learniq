@@ -517,6 +517,22 @@
 					}
 				},
 				{
+					"id": "CourseDaysMenu",
+					"label": "Course days",
+					"icon": "Calendar",
+					"route": "CourseDays",
+					"order": 57,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
+				},
+				{
 					"id": "SessionsThisWeekMenu",
 					"label": "This week's sessions",
 					"icon": "Calendar",
@@ -2967,6 +2983,71 @@
 			}
 		},
 		{
+			"id": "CourseDays",
+			"route": "/course-days",
+			"type": "index",
+			"title": "Course days",
+			"_note": "training-provider-course-days T4: the course days of a training provider per status. The status moves by itself (CourseDayStatusService); a drag is a manual move through POST /api/course-days/{id}/status (handler moveCourseDay), logged and lasting until the next change. The calendar places a day on its derived dayDate.",
+			"config": {
+				"register": "learniq",
+				"schema": "Cohort",
+				"showTitle": true,
+				"columns": [
+					{
+						"key": "name",
+						"label": "Course day"
+					},
+					{
+						"key": "dayDate",
+						"label": "Date",
+						"formatter": "date"
+					},
+					{
+						"key": "capacity",
+						"label": "Maximum"
+					},
+					{
+						"key": "minParticipants",
+						"label": "Minimum"
+					},
+					{
+						"key": "goDecisionBy",
+						"label": "Decide by",
+						"formatter": "date"
+					},
+					{
+						"key": "dayStatus",
+						"label": "Status"
+					}
+				],
+				"viewModes": [
+					"board",
+					"table",
+					"calendar"
+				],
+				"viewMode": "board",
+				"board": {
+					"statusField": "dayStatus",
+					"cardFields": [
+						"name",
+						"dayDate",
+						"minParticipants",
+						"capacity"
+					],
+					"moveHandler": "moveCourseDay",
+					"hint": "A day moves by itself when the minimum is reached or the day is over. Dragging also works; it lasts until the next change."
+				},
+				"calendar": {
+					"dateField": "dayDate",
+					"titleField": "name"
+				},
+				"defaultSort": "dayDate",
+				"rowRoute": "CohortDetail",
+				"countText": "{shown} of {total} course days",
+				"bulkNoun": "course days"
+			}
+		},
+		{
 			"id": "WorkGroups",
 			"route": "/work-groups",
 			"type": "index",
@@ -3103,6 +3184,7 @@
 					"location",
 					"materialIds",
 					"onlineMeetingUrl",
+					"parts",
 					"roomId",
 					"sessionDayBucket",
 					"startsAt",
