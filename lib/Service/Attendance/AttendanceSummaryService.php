@@ -44,6 +44,9 @@ use OCA\Learniq\Service\LearnerManagerLookup;
 use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Service\PupilGroupTeachers;
 use OCA\Learniq\Support\ObjectRow;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\SaveActor;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use Psr\Log\LoggerInterface;
@@ -478,12 +481,13 @@ class AttendanceSummaryService implements AttendanceSummaryServiceInterface {
 
 		$this->objectService->saveObject(
 			object: $object,
-			register: self::REGISTER,
-			schema: self::SUMMARY_SCHEMA,
-			uuid: $uuid,
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::REGISTER, schema: self::SUMMARY_SCHEMA),
+				uuid: $uuid,
+				actor: new SaveActor(unowned: true)
+			),
 			_rbac: false,
-			_multitenancy: false,
-			_unowned: true
+			_multitenancy: false
 		);
 	}//end save()
 

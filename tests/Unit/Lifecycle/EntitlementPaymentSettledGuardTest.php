@@ -32,6 +32,7 @@ use OCP\App\IAppManager;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use RuntimeException;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 
 /**
  * Tests for EntitlementPaymentSettledGuard::check().
@@ -58,7 +59,11 @@ class EntitlementPaymentSettledGuardTest extends TestCase {
 	private function makeGuard(?array $request, bool $installed = true, bool $readFails = false): EntitlementPaymentSettledGuard {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null, bool $_rbac = true) use ($request, $readFails) {
+			function (int|string $id, ?ObjectFindOptions $options = null, bool $_rbac = true) use ($request, $readFails) {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				if ($schema === 'learner-profile') {
 					return ($id === 'lp-1') ? OrEntityFactory::make(['id' => 'lp-1', 'ncUserId' => 'leerling-001'], 'learner-profile') : null;
 				}

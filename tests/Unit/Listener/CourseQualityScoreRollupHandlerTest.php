@@ -30,6 +30,7 @@ use OCA\Learniq\Service\CourseQualityScoreEvaluator;
 use OCA\Learniq\Listener\CourseQualityScoreRollupHandler;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\TestCase;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Tests for CourseQualityScoreRollupHandler::handle() on CourseEvaluationResponse → submitted.
@@ -86,7 +87,10 @@ class CourseQualityScoreRollupHandlerTest extends TestCase {
 		);
 
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
+			function (array|ObjectEntity $object, ObjectSaveOptions $options = new ObjectSaveOptions()): ObjectEntity {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
 				$this->savedObjects[] = [
 					'register' => (string)$register,
 					'schema' => (string)$schema,

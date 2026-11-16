@@ -36,6 +36,7 @@ use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use OCA\Learniq\Tests\Support\LegacyObjectArgs;
 
 /**
  * Pins every read, the saved drawnItemRefs and the log of handle() per
@@ -195,6 +196,7 @@ class AssessmentDrawGoldenTest extends TestCase {
 		);
 		$service->method('saveObject')->willReturnCallback(
 			function (...$args): ObjectEntity {
+				$args = LegacyObjectArgs::positional(method: 'saveObject', args: $args);
 				$this->calls[] = ['saveObject' => PassedArguments::of(method: [ObjectService::class, 'saveObject'], args: $args)];
 				return OrEntityFactory::make([], 'assessment-result');
 			}

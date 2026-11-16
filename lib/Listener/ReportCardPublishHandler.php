@@ -43,6 +43,8 @@ use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\Learniq\Kernel\Contracts\ReportSubjectGradeRowsInterface;
 use OCA\Learniq\Support\EntityRow;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
@@ -165,8 +167,6 @@ class ReportCardPublishHandler implements IEventListener {
 			}
 
 			$this->objectService->saveObject(
-				register: self::LEARNIQ_REGISTER,
-				schema: self::REPORT_CARD_PARENT_NOTIFICATION_SCHEMA,
 				object: [
 					'event' => 'reportCardPublished',
 					'recipient' => $parentId,
@@ -177,7 +177,11 @@ class ReportCardPublishHandler implements IEventListener {
 					'visibleFrom' => $visibleFrom,
 					'subject' => $subject,
 					'tenant_id' => $tenantId,
-				]
+				],
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(
+						register: self::LEARNIQ_REGISTER,
+						schema: self::REPORT_CARD_PARENT_NOTIFICATION_SCHEMA
+					))
 			);
 			$notifiedCount++;
 		}//end foreach

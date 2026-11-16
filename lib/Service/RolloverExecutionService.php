@@ -44,6 +44,8 @@ namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Exception\RolloverInterruptedException;
 use OCA\Learniq\Kernel\Contracts\RolloverExecutionServiceInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IGroupManager;
 use Psr\Log\LoggerInterface;
@@ -290,7 +292,10 @@ class RolloverExecutionService implements RolloverExecutionServiceInterface {
 			$found = $this->rolloverService->toArray(row: $existing[0]);
 			// Idempotent re-run: ensure members are present without duplicating.
 			$found['learnerIds'] = array_values(array_unique(array_merge((array)($found['learnerIds'] ?? []), $learnerIds)));
-			$saved = $this->objectService->saveObject(register: self::LEARNIQ_REGISTER, schema: 'cohort', object: $found);
+			$saved = $this->objectService->saveObject(
+				object: $found,
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: 'cohort'))
+			);
 			return $this->rolloverService->toArray(row: $saved);
 		}
 
@@ -313,7 +318,10 @@ class RolloverExecutionService implements RolloverExecutionServiceInterface {
 			$cohort['programmeYear'] = $target['programmeYear'];
 		}
 
-		$saved = $this->objectService->saveObject(register: self::LEARNIQ_REGISTER, schema: 'cohort', object: $cohort);
+		$saved = $this->objectService->saveObject(
+			object: $cohort,
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: 'cohort'))
+		);
 		return $this->rolloverService->toArray(row: $saved);
 	}//end createOrFindToCohort()
 
@@ -346,7 +354,10 @@ class RolloverExecutionService implements RolloverExecutionServiceInterface {
 		}
 
 		$cohort['lifecycle'] = 'archived';
-		$this->objectService->saveObject(register: self::LEARNIQ_REGISTER, schema: 'cohort', object: $cohort);
+		$this->objectService->saveObject(
+			object: $cohort,
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: 'cohort'))
+		);
 	}//end archiveCohort()
 
 	/**
@@ -394,7 +405,10 @@ class RolloverExecutionService implements RolloverExecutionServiceInterface {
 			}
 
 			$enrolment['cohortId'] = $toCohortId;
-			$this->objectService->saveObject(register: self::LEARNIQ_REGISTER, schema: 'enrolment', object: $enrolment);
+			$this->objectService->saveObject(
+				object: $enrolment,
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: 'enrolment'))
+			);
 		}//end foreach
 	}//end carryEnrolments()
 
@@ -466,9 +480,8 @@ class RolloverExecutionService implements RolloverExecutionServiceInterface {
 		}
 
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: 'dossier-review',
-			object: ['exchangeJobId' => $jobId, 'target' => 'oso', 'learnerUserId' => $learnerId, 'status' => 'pending', 'tenant_id' => $tenantId]
+			object: ['exchangeJobId' => $jobId, 'target' => 'oso', 'learnerUserId' => $learnerId, 'status' => 'pending', 'tenant_id' => $tenantId],
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: 'dossier-review'))
 		);
 	}//end queueOutflow()
 }//end class

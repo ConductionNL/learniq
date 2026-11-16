@@ -30,6 +30,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 
 /**
  * Edges of a learner's programme progress over a mocked ObjectService.
@@ -56,7 +57,11 @@ class ProgrammeProgressEdgesTest extends TestCase {
 		$objects = $this->createMock(ObjectService::class);
 		$objects->method('findAll')->willReturn($enrolments);
 		$objects->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null): ObjectEntity {
+			function (int|string $id, ?ObjectFindOptions $options = null): ObjectEntity {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				$row = ($this->records[(string)$schema][(string)$id] ?? null);
 				if ($row === null) {
 					throw new DoesNotExistException('gone');

@@ -36,6 +36,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use RuntimeException;
+use OCA\Learniq\Tests\Support\LegacyObjectArgs;
 
 /**
  * Recounting one learner's summaries.
@@ -141,6 +142,7 @@ class AttendanceSummaryServiceTest extends TestCase {
 			// position 9). Name them from the loaded class's own signature, so
 			// the test reads the same call on the stub and on OpenRegister.
 			function (mixed ...$args): ObjectEntity {
+				$args = LegacyObjectArgs::positional(method: 'saveObject', args: $args);
 				$named = self::saveObjectArguments($args);
 				$this->saved[] = [
 					'object'  => $named['object'],
@@ -198,7 +200,7 @@ class AttendanceSummaryServiceTest extends TestCase {
 	 */
 	private static function saveObjectArguments(array $args): array {
 		$named = [];
-		foreach ((new \ReflectionMethod(ObjectService::class, 'saveObject'))->getParameters() as $position => $parameter) {
+		foreach (LegacyObjectArgs::parameters(ObjectService::class, 'saveObject') as $position => $parameter) {
 			if (array_key_exists($position, $args) === true) {
 				$named[$parameter->getName()] = $args[$position];
 			}

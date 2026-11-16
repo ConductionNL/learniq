@@ -34,6 +34,8 @@ use DateTimeInterface;
 use DateTimeZone;
 use OCA\Learniq\Kernel\Contracts\ExternalTrainingImportInterface;
 use OCA\Learniq\Support\ResultArrays;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -261,7 +263,10 @@ class ExternalTrainingImport implements ExternalTrainingImportInterface {
 
 		try {
 			// No lifecycle: OR starts the record in `submitted`, as bulkRecord does.
-			$this->objectService->saveObject(register: self::REGISTER, schema: self::RECORD_SCHEMA, object: $object);
+			$this->objectService->saveObject(
+				object: $object,
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: self::RECORD_SCHEMA))
+			);
 		} catch (Throwable $failure) {
 			$this->logger->warning(
 				'[ExternalTrainingImport] row {row} could not be saved: {message}',

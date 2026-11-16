@@ -28,6 +28,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Edges of bulk enrolment over a mocked ObjectService.
@@ -102,7 +103,10 @@ class BulkEnrolServiceEdgesTest extends TestCase {
 			->willReturn([]);
 		$saved = [];
 		$objects->expects($this->once())->method('saveObject')->willReturnCallback(
-			static function (array $object, ?array $extend = [], $register = null, $schema = null) use (&$saved): ObjectEntity {
+			static function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) use (&$saved): ObjectEntity {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
 				$saved = [$object, $register, $schema];
 
 				return OrEntityFactory::make($object, 'enrolment');
