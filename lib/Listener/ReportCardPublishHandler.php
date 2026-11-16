@@ -159,9 +159,40 @@ class ReportCardPublishHandler implements IEventListener {
 		$tenantId = (string)($reportCard['tenant_id'] ?? '');
 		$visibleFrom = $this->timeFactory->getDateTime()->format(\DATE_ATOM);
 
+		$notifiedCount = $this->notifyParents(
+			parentIds: $profile['parentIds'],
+			notice: [
+				'sourceId' => $reportCardId,
+				'learnerId' => $learnerId,
+				'learnerRef' => $learnerRef,
+				'visibleFrom' => $visibleFrom,
+				'subject' => $subject,
+				'tenant_id' => $tenantId,
+			]
+		);
+
+		$this->logger->info(
+			'[ReportCardPublishHandler] ReportCard {id} published — {count} parent notification(s) created.',
+			['id' => $reportCardId, 'count' => $notifiedCount]
+		);
+
+	}//end fanOutParentNotifications()
+
+	/**
+	 * Create one `ReportCardParentNotification` per non-empty parent id.
+	 *
+	 * @param iterable<mixed>      $parentIds The learner's parent ids.
+	 * @param array<string, mixed> $notice    The fields every parent's notification shares:
+	 *                                        sourceId, learnerId, learnerRef, visibleFrom, subject, tenant_id.
+	 *
+	 * @return integer The number of notifications created.
+	 *
+	 * @spec openspec/specs/report-card/spec.md#scenario-publishing-notifies-the-learner-directly-and-fans-out-to-each-parent
+	 */
+	private function notifyParents(iterable $parentIds, array $notice): int {
 		$notifiedCount = 0;
 
-		foreach ($profile['parentIds'] as $parentId) {
+		foreach ($parentIds as $parentId) {
 			if (empty($parentId) === true) {
 				continue;
 			}
@@ -170,13 +201,13 @@ class ReportCardPublishHandler implements IEventListener {
 				object: [
 					'event' => 'reportCardPublished',
 					'recipient' => $parentId,
-					'sourceId' => $reportCardId,
-					'learnerId' => $learnerId,
-					'learnerRef' => $learnerRef,
-					'idempotencyKey' => $reportCardId . '-parent-' . $parentId,
-					'visibleFrom' => $visibleFrom,
-					'subject' => $subject,
-					'tenant_id' => $tenantId,
+					'sourceId' => $notice['sourceId'],
+					'learnerId' => $notice['learnerId'],
+					'learnerRef' => $notice['learnerRef'],
+					'idempotencyKey' => $notice['sourceId'] . '-parent-' . $parentId,
+					'visibleFrom' => $notice['visibleFrom'],
+					'subject' => $notice['subject'],
+					'tenant_id' => $notice['tenant_id'],
 				],
 				options: new ObjectSaveOptions(target: new ObjectFindTarget(
 						register: self::LEARNIQ_REGISTER,
@@ -186,12 +217,9 @@ class ReportCardPublishHandler implements IEventListener {
 			$notifiedCount++;
 		}//end foreach
 
-		$this->logger->info(
-			'[ReportCardPublishHandler] ReportCard {id} published — {count} parent notification(s) created.',
-			['id' => $reportCardId, 'count' => $notifiedCount]
-		);
+		return $notifiedCount;
 
-	}//end fanOutParentNotifications()
+	}//end notifyParents()
 
 	/**
 	 * The learner's LearnerProfile when it lists at least one parent, else null.
