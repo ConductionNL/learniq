@@ -31,6 +31,7 @@ use DateTimeImmutable;
 use OCA\Learniq\Portal\PortalContributionProvider;
 use OCA\Learniq\Portal\PortalPublicIndex;
 use OCA\Learniq\Portal\PublicEventIndex;
+use OCA\Learniq\Portal\PublicTestScheduleIndex;
 use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -46,15 +47,21 @@ class PortalPublicIndexTest extends TestCase {
 	 * An index over ALL example sets at once, as the proof instance carries
 	 * them: OpenRegister answers from every set's seed objects together.
 	 *
+	 * @param callable|null $edit Changes the seed objects first, as a school would.
+	 *
 	 * @return PortalPublicIndex
 	 */
-	private function index(): PortalPublicIndex {
+	private function index(?callable $edit=null): PortalPublicIndex {
 		$objects = [];
 		foreach (['po', 'vo', 'mbo', 'training'] as $set) {
 			$seed = json_decode((string)file_get_contents(__DIR__ . '/../../../lib/Settings/profiles/' . $set . '.json'), true)['x-openregister']['seedData']['objects'];
 			foreach ($seed as $schema => $rows) {
 				$objects[$schema] = array_merge(($objects[$schema] ?? []), $rows);
 			}
+		}
+
+		if ($edit !== null) {
+			$objects = $edit($objects);
 		}
 
 		$store = $this->createMock(ObjectService::class);
@@ -86,13 +93,14 @@ class PortalPublicIndexTest extends TestCase {
 	/**
 	 * The items of one type for one portal on Monday 5 October 2026.
 	 *
-	 * @param string $portal The portal slug.
-	 * @param string $type   The item type.
+	 * @param string        $portal The portal slug.
+	 * @param string        $type   The item type.
+	 * @param callable|null $edit   Changes the seed objects first.
 	 *
 	 * @return array<string, array<string, mixed>> By title.
 	 */
-	private function items(string $portal, string $type): array {
-		$items = array_filter($this->index()->forPortal(portal: $portal, today: new DateTimeImmutable(self::MONDAY)), static fn (array $i): bool => $i['type'] === $type);
+	private function items(string $portal, string $type, ?callable $edit=null): array {
+		$items = array_filter($this->index(edit: $edit)->forPortal(portal: $portal, today: new DateTimeImmutable(self::MONDAY)), static fn (array $i): bool => $i['type'] === $type);
 
 		return array_column(array_values($items), null, 'title');
 	}//end items()
@@ -242,4 +250,154 @@ class PortalPublicIndexTest extends TestCase {
 		self::assertSame([], (new PortalContributionProvider())->getPublicIndex('wilgenboom'));
 		self::assertNotSame([], (new PortalContributionProvider(publicIndex: $this->index()))->getPublicIndex('esdoornveen'));
 	}//end testTheProviderAnswersThroughTheService()
+
+	/**
+	 * The school marked toetsweek 1 public: the website's test schedule reads
+	 * day, time, subject and room for 4 havo, and nothing about who sits it or
+	 * who invigilates.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/portal-public-index/specs/portal-contribution/spec.md#requirement-the-public-index-carries-a-schools-published-test-schedule
+	 */
+	public function testAPublicTestWeekIsInTheIndexWithoutNames(): void {
+		$tests = $this->items(portal: 'vaartveld', type: 'test');
+
+		self::assertSame(['Nederlands', 'Wiskunde A', 'Engels', 'Geschiedenis'], array_keys($tests), 'in order of day and time');
+
+		$wa = $tests['Wiskunde A'];
+		self::assertSame('Di 10 nov, 08.30 - 10.10, Wiskunde A', $wa['line']);
+		self::assertSame(['2026-11-10', '08.30', '10.10'], [$wa['date'], $wa['startTime'], $wa['endTime']]);
+		self::assertSame('Lokaal H1.03 (4H1)', $wa['room']);
+		self::assertSame('Toetsweek 1, 9 - 13 november', $wa['period']);
+		self::assertSame([['department' => 'havo', 'year' => 4, 'label' => '4 havo']], $wa['groups']);
+		self::assertSame(['Department and year' => ['4 havo'], 'Test week' => ['Toetsweek 1, 9 - 13 november']], $wa['facets']);
+		self::assertSame('Exam schedule', $wa['kind']);
+		self::assertSame(1, $wa['weight'], 'tw1 of the wiskunde A plan');
+		self::assertStringContainsString('grafische rekenmachine', $wa['bring']);
+
+		// Only these keys leave the index: no learner ids, no invigilators, no headcount.
+		self::assertSame(
+			['bring', 'date', 'endTime', 'facets', 'groups', 'id', 'kind', 'line', 'period', 'periodId', 'room', 'startTime', 'title', 'type', 'weight'],
+			$this->sortedKeys($wa)
+		);
+		$encoded = (string)json_encode($tests);
+		self::assertStringNotContainsString('learnerIds', $encoded);
+		self::assertStringNotContainsString('vo-leerling', $encoded);
+
+		self::assertSame([], $this->items(portal: 'wilgenboom', type: 'test'), 'another set has no test week of vaartveld');
+	}//end testAPublicTestWeekIsInTheIndexWithoutNames()
+
+	/**
+	 * The roostermaker moves the wiskunde A test to Wednesday: the next read
+	 * of the index has it on Wednesday.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/portal-public-index/specs/portal-contribution/spec.md#requirement-the-public-index-carries-a-schools-published-test-schedule
+	 */
+	public function testARescheduledTestFollows(): void {
+		$moved = $this->items(
+			portal: 'vaartveld',
+			type: 'test',
+			edit: static function (array $objects): array {
+				foreach ($objects['exam-sitting'] as $i => $sitting) {
+					if ($sitting['startsAt'] === '2026-11-10T08:30:00+01:00') {
+						$objects['exam-sitting'][$i]['startsAt'] = '2026-11-11T13:00:00+01:00';
+						$objects['exam-sitting'][$i]['endsAt']   = '2026-11-11T14:40:00+01:00';
+					}
+				}
+
+				return $objects;
+			}
+		);
+
+		self::assertSame('Wo 11 nov, 13.00 - 14.40, Wiskunde A', $moved['Wiskunde A']['line']);
+		self::assertSame(['Nederlands', 'Engels', 'Wiskunde A', 'Geschiedenis'], array_keys($moved));
+	}//end testARescheduledTestFollows()
+
+	/**
+	 * A week the school did not mark public, a week still in planning, and a
+	 * cancelled test stay off the website.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/portal-public-index/specs/portal-contribution/spec.md#requirement-the-public-index-carries-a-schools-published-test-schedule
+	 */
+	public function testAWeekNotPublicOrInPlanningStaysOut(): void {
+		$period = static function (array $changes): callable {
+			return static function (array $objects) use ($changes): array {
+				foreach ($objects['exam-period'] as $i => $row) {
+					if ($row['name'] === 'Toetsweek 1') {
+						$objects['exam-period'][$i] = array_merge($row, $changes);
+					}
+				}
+
+				return $objects;
+			};
+		};
+
+		self::assertSame([], $this->items(portal: 'vaartveld', type: 'test', edit: $period(['public' => false])));
+		self::assertSame([], $this->items(portal: 'vaartveld', type: 'test', edit: $period(['lifecycle' => 'planning'])));
+		self::assertSame([], $this->items(portal: 'vaartveld', type: 'test', edit: $period(['endsOn' => '2026-10-02'])), 'a week that is over');
+
+		$cancelled = $this->items(
+			portal: 'vaartveld',
+			type: 'test',
+			edit: static function (array $objects): array {
+				$objects['exam-sitting'][0]['lifecycle'] = 'cancelled';
+				return $objects;
+			}
+		);
+		self::assertArrayNotHasKey('Nederlands', $cancelled);
+		self::assertCount(3, $cancelled);
+	}//end testAWeekNotPublicOrInPlanningStaysOut()
+
+	/**
+	 * The labels of a test week and a test line.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/portal-public-index/specs/portal-contribution/spec.md#requirement-the-public-index-carries-a-schools-published-test-schedule
+	 */
+	public function testTheTestWeekAndLineRead(): void {
+		$week = static fn (string $name, string $first, string $last): string => PublicTestScheduleIndex::periodLabel(
+			period: ['name' => $name, 'startsOn' => $first, 'endsOn' => $last]
+		);
+		self::assertSame(expected: 'Toetsweek 2, 7 - 11 december', actual: $week('Toetsweek 2', '2026-12-07', '2026-12-11'));
+		self::assertSame(expected: 'Toetsweek 3, 30 maart - 3 april', actual: $week('Toetsweek 3', '2027-03-30', '2027-04-03'));
+		self::assertSame(expected: 'Herkansing, 4 juni', actual: $week('Herkansing', '2027-06-04', '2027-06-04'));
+		self::assertSame(
+			expected: 'Vr 4 jun, Frans',
+			actual: PublicTestScheduleIndex::line(startsAt: '2027-06-04', endsAt: '', subject: 'Frans')
+		);
+		self::assertSame(
+			expected: 'Ma 9 nov, 08.30 - 10.10, Nederlands',
+			actual: PublicTestScheduleIndex::line(startsAt: '2026-11-09T08:30:00+01:00', endsAt: '2026-11-09T10:10:00+01:00', subject: 'Nederlands')
+		);
+		self::assertFalse(
+			condition: PublicTestScheduleIndex::isPublicAndToCome(period: ['endsOn' => '2026-11-13', 'lifecycle' => 'published'], today: self::MONDAY),
+			message: 'not marked public'
+		);
+		self::assertTrue(
+			condition: PublicTestScheduleIndex::isPublicAndToCome(
+				period: ['endsOn' => '2026-11-13', 'lifecycle' => 'published', 'public' => true],
+				today: self::MONDAY
+			)
+		);
+	}//end testTheTestWeekAndLineRead()
+
+	/**
+	 * An item's keys, sorted.
+	 *
+	 * @param array<string, mixed> $item The item.
+	 *
+	 * @return array<int, string>
+	 */
+	private function sortedKeys(array $item): array {
+		$keys = array_keys($item);
+		sort($keys);
+
+		return $keys;
+	}//end sortedKeys()
 }//end class
