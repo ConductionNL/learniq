@@ -62,12 +62,12 @@ class InfoXmlPhpRangeTest extends TestCase
         $min = (string) $range['min-version'];
         $max = (string) $range['max-version'];
 
-        $this->assertNotSame('', $min);
-        $this->assertTrue(version_compare($php, $min, '>='), "PHP $php is below min-version $min");
+        $this->assertNotSame(expected: '', actual: $min);
+        $this->assertTrue(condition: version_compare($php, $min, '>='), message: "PHP $php is below min-version $min");
         if ($max !== '') {
             // DependencyAnalyzer compares against max-version cut to the same precision.
             $cut = implode('.', array_slice(explode('.', $php), 0, count(explode('.', $max))));
-            $this->assertTrue(version_compare($cut, $max, '<='), "PHP $php is above max-version $max");
+            $this->assertTrue(condition: version_compare($cut, $max, '<='), message: "PHP $php is above max-version $max");
         }
     }//end testTheDeclaredRangeAdmitsASupportedPhp()
 }//end class
