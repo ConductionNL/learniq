@@ -55,6 +55,13 @@ class PortalEmployerControllerTenancyTest extends TestCase {
 	private array $writes = [];
 
 	/**
+	 * The body each write received, in order.
+	 *
+	 * @var list<array<string, mixed>>
+	 */
+	private array $bodies = [];
+
+	/**
 	 * The audience the next assertion is signed for.
 	 *
 	 * @var string
@@ -147,18 +154,34 @@ class PortalEmployerControllerTenancyTest extends TestCase {
 	}//end testANonStringCompanyClaimIsRefused()
 
 	/**
+	 * A substitution hands the bookings the claim's company and only the three fields it names.
+	 *
+	 * @return void
+	 */
+	public function testASubstitutionPassesOnlyItsOwnFields(): void {
+		$params = ['bookingRef' => 'b-1', 'learnerRef' => 'tom', 'substituteRef' => 'bram', 'lifecycle' => 'confirmed'];
+
+		$response = $this->controller(company: 'co-a', params: $params)->substitute();
+
+		self::assertSame(expected: [201, ['ok' => true]], actual: [$response->getStatus(), $response->getData()]);
+		self::assertSame(expected: [['substituteParticipant', 'co-a']], actual: $this->writes);
+		self::assertSame(expected: [['bookingRef' => 'b-1', 'learnerRef' => 'tom', 'substituteRef' => 'bram']], actual: $this->bodies);
+	}//end testASubstitutionPassesOnlyItsOwnFields()
+
+	/**
 	 * The controller for an employer assertion signed for school-a, naming this company.
 	 *
 	 * @param string      $company      The organisationRef portaliq stamped into the body.
 	 * @param string|null $organisation The assertion's organisation claim; null leaves it out.
 	 * @param mixed       $claim        The assertion's own organisationRef claim; '*' signs the body's company, null leaves it out.
+	 * @param array       $params       Further request parameters.
 	 *
 	 * @return PortalEmployerController
 	 */
-	private function controller(string $company, ?string $organisation='school-a', mixed $claim='*'): PortalEmployerController {
+	private function controller(string $company, ?string $organisation='school-a', mixed $claim='*', array $params=[]): PortalEmployerController {
 		$request = $this->createMock(originalClassName: IRequest::class);
 		$request->method('getHeader')->willReturn('signed');
-		$request->method('getParam')->willReturnCallback(static fn (string $name): mixed => (['organisationRef' => $company][$name] ?? null));
+		$request->method('getParam')->willReturnCallback(static fn (string $name): mixed => ((['organisationRef' => $company] + $params)[$name] ?? null));
 
 		$claims = ['sub' => 'linda', 'audience' => $this->audience];
 		if ($organisation !== null) {
@@ -189,6 +212,7 @@ class PortalEmployerControllerTenancyTest extends TestCase {
 			$bookings->method($method)->willReturnCallback(
 				function (string $organisationRef, array $body) use ($method): PortalOutcome {
 					$this->writes[] = [$method, $organisationRef];
+					$this->bodies[] = $body;
 					return new PortalOutcome(status: 201, body: ['ok' => true], reason: 'stored');
 				}
 			);
