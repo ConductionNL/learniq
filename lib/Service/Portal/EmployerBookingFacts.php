@@ -113,6 +113,7 @@ class EmployerBookingFacts {
 				'needsBirthDate' => $this->needsBirthDate(course: $course) && in_array($lifecycle, self::OPEN, true) === true,
 				'firstDay' => ($days[0] ?? null),
 				'renewed' => $renewed,
+				'lifecycle' => $lifecycle,
 			]
 		);
 		$day = $this->courseDay(
@@ -123,6 +124,8 @@ class EmployerBookingFacts {
 				'upcoming' => $this->upcoming(lifecycle: $lifecycle, days: $days, today: $today),
 			]
 		);
+		// The participant reads what to bring on his enrolment; the booking does not copy it.
+		$day['bringList'] = self::bringList(course: $course);
 
 		return [
 			'booking' => $this->bookingFields(
@@ -141,12 +144,58 @@ class EmployerBookingFacts {
 	}//end derive()
 
 	/**
+	 * Where the participant is in the steps of his booking: booked, confirmed,
+	 * details complete, course day, result and certificate. The value names
+	 * the current step: `confirmed` while the booking waits for its
+	 * confirmation, `details` while a detail of his is missing, `course-day`
+	 * when nothing is left before the day, `result` once the booking is
+	 * completed; null for a cancelled booking.
+	 *
+	 * @param string $lifecycle     The booking's state.
+	 * @param string $detailsStatus The participant's details status.
+	 *
+	 * @return string|null
+	 *
+	 * @spec openspec/changes/training-provider-course-days/tasks.md#t7
+	 */
+	public static function participantStep(string $lifecycle, string $detailsStatus): ?string {
+		return match (true) {
+			$lifecycle === 'completed' => 'result',
+			$lifecycle === 'confirmed' && $detailsStatus !== 'complete' => 'details',
+			$lifecycle === 'confirmed' => 'course-day',
+			$lifecycle === 'received' => 'confirmed',
+			default => null,
+		};
+	}//end participantStep()
+
+	/**
+	 * What the participant brings to the course day: the course's bring list,
+	 * one trimmed line each, empty lines and non-text left out.
+	 *
+	 * @param array<string, mixed> $course The course.
+	 *
+	 * @return list<string>
+	 *
+	 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-says-what-to-bring
+	 */
+	public static function bringList(array $course): array {
+		$lines = [];
+		foreach ((array)($course['bringList'] ?? []) as $line) {
+			if (is_string($line) === true && trim($line) !== '') {
+				$lines[] = trim($line);
+			}
+		}
+
+		return $lines;
+	}//end bringList()
+
+	/**
 	 * Each present participant's employer fields by enrolment id, with the
 	 * names, refs and the count of missing details the booking shows.
 	 *
 	 * @param array<int, array<string, mixed>> $participants The present `{enrolment, profile}` rows.
-	 * @param array<string, mixed>             $terms        `needsBirthDate`, the `firstDay` and the `renewed`
-	 *                                                       certificate by enrolment id.
+	 * @param array<string, mixed>             $terms        `needsBirthDate`, the `firstDay`, the `renewed`
+	 *                                                       certificate by enrolment id and the booking's `lifecycle`.
 	 *
 	 * @return array{enrolments: array<string, array<string, mixed>>, names: array<int, string>, refs: array<int, string>, missing: int}
 	 */
@@ -154,6 +203,7 @@ class EmployerBookingFacts {
 		$roster = ['enrolments' => [], 'names' => [], 'refs' => [], 'missing' => 0];
 		foreach ($participants as $row) {
 			$fields = $this->participant(row: $row, terms: $terms);
+			$fields['step'] = self::participantStep(lifecycle: (string)$terms['lifecycle'], detailsStatus: (string)$fields['detailsStatus']);
 			$roster['enrolments'][(string)($row['enrolment']['id'] ?? '')] = $fields;
 			$roster['names'][] = $this->fullName(profile: $row['profile']);
 			$roster['refs'][] = (string)($row['profile']['id'] ?? ($row['enrolment']['learnerRef'] ?? ''));
@@ -316,6 +366,7 @@ class EmployerBookingFacts {
 			'openTaskNote' => null,
 			'openTaskDueAt' => null,
 			'certificateLine' => $this->certificateLine(credential: ($renewed[(string)($row['enrolment']['id'] ?? '')] ?? null)),
+			'certificateValidUntil' => $this->lines->date(value: ($renewed[(string)($row['enrolment']['id'] ?? '')]['expiresAt'] ?? null))?->format('Y-m-d'),
 		];
 		if ($terms['needsBirthDate'] === false || trim((string)($profile['birthDate'] ?? '')) !== '') {
 			return $fields;
