@@ -5388,6 +5388,7 @@ OC.L10N.register(
         "This material is not available in this course.": "This material is not available in this course.",
         "The licence allows a copy, but learniq cannot fetch files from Edurep yet, so it adds a link. The learner opens the material at the source.": "The licence allows a copy, but learniq cannot fetch files from Edurep yet, so it adds a link. The learner opens the material at the source.",
         "Render the PDF again": "Render the PDF again",
+        "Recompose": "Recompose",
         "Report card PDF": "Report card PDF",
         "rendered": "rendered",
         "failed": "failed",
