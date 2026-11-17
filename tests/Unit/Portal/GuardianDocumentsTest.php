@@ -132,6 +132,8 @@ class GuardianDocumentsTest extends TestCase {
 		self::assertSame('application/pdf', $entries[0]['mimeType']);
 		self::assertSame(86016, $entries[0]['size']);
 		self::assertTrue($entries[0]['isNew']);
+		// The shared row shape (school-documents-on-the-portal T1).
+		self::assertSame(['PDF, 84 KB', '', ''], [$entries[0]['meta'], $entries[0]['group'], $entries[0]['status']]);
 	}//end testAChildsPublishedReportIsOfferedAndNothingElse()
 
 	/**

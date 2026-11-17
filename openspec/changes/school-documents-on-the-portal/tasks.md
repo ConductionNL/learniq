@@ -1,6 +1,6 @@
 # Tasks: school-documents-on-the-portal
 
-- [ ] **T1**: a shared document-row shape (`group`, `title`, `meta`, `isNew`, `status`, download) for learniq's documents providers
+- [x] **T1**: a shared document-row shape (`group`, `title`, `meta`, `isNew`, `status`, download) for learniq's documents providers. Built 2026-11-17 as `lib/Portal/DocumentRow.php` (`complete()`: meta in words, context first, then the file's kind and size, e.g. "Groep 6, PDF, 84 KB"; the download stays the entry's `file` reference). `PortalFileEntries` hands every entry through it, so `parentDocuments` rows carry the shape today; the page count the boards show ("2 pagina's") is not derivable from the stored file and is left out. Tests: `DocumentRowTest`, `GuardianDocumentsTest`.
 - [ ] **T2**: `parentDocuments`: report-card PDFs per child, consent answers. Partial: the page, the reports per child and the school's papers are built in `guardian-reports-and-documents` (school papers as learniq `school-document` records, not portaliq media); consent answers are not.
 - [ ] **T3**: `studentDocuments` (vo and mbo): report cards, subject choice, POK with signing state, results, certificates; `uploadStudentDocument`
 - [ ] **T4**: `requestProofOfEnrolment` through filinq's render endpoint
