@@ -130,6 +130,7 @@ use OCA\Learniq\Kernel\Contracts\PointEngagementEvaluatorInterface;
 use OCA\Learniq\Kernel\Contracts\PokParentSignatureRuleInterface;
 use OCA\Learniq\Kernel\Contracts\PortalAttemptServiceInterface;
 use OCA\Learniq\Kernel\Contracts\PortalEmployerBookingsInterface;
+use OCA\Learniq\Kernel\Contracts\PortalHourDayWriteInterface;
 use OCA\Learniq\Kernel\Contracts\PortalHourWeekApprovalInterface;
 use OCA\Learniq\Kernel\Contracts\PortalPermissionAnswerInterface;
 use OCA\Learniq\Kernel\Contracts\PortalLearnerResolverInterface;
@@ -192,6 +193,7 @@ use OCA\Learniq\Kernel\Contracts\XapiDocumentStoreInterface;
 use OCA\Learniq\Kernel\Contracts\XapiEnrolmentCompletionInterface;
 use OCA\Learniq\Kernel\Contracts\XapiStatementIngestInterface;
 use OCA\Learniq\Kernel\Contracts\SchoolActivityStaffInterface;
+use OCA\Learniq\Kernel\Contracts\SchoolPhoneInterface;
 use OCA\Learniq\Service\Pupil\PupilPageService;
 use OCA\Learniq\Service\SchoolActivity\SchoolActivityStaff;
 use OCA\Learniq\Service\Accessibility\ConformanceEvidence;
@@ -225,6 +227,7 @@ use OCA\Learniq\Service\Portal\EmployerBookingProjection;
 use OCA\Learniq\Service\Portal\EmployerBookingSteps;
 use OCA\Learniq\Service\Portal\PortalAttemptService;
 use OCA\Learniq\Service\Portal\PortalEmployerBookings;
+use OCA\Learniq\Service\Portal\PortalHourDayWrite;
 use OCA\Learniq\Service\Portal\PortalHourWeekApproval;
 use OCA\Learniq\Service\Portal\PortalPermissionAnswer;
 use OCA\Learniq\Service\Portal\PortalLearnerResolver;
@@ -240,6 +243,7 @@ use OCA\Learniq\Service\Programme\ProgrammeProgress;
 use OCA\Learniq\Service\Programme\ProgrammeRequirements;
 use OCA\Learniq\Service\Settings\AppealTerm;
 use OCA\Learniq\Service\Settings\MenuStructure;
+use OCA\Learniq\Service\Settings\SchoolPhone;
 use OCA\Learniq\Service\Signing\SigningService;
 use OCA\Learniq\Service\WorkGroup\WorkGroupMembershipService;
 use OCA\Learniq\Service\WorkGroup\WorkGroupMessages;
@@ -329,6 +333,7 @@ final class ContractBindings {
 		ElectiveSlotServiceInterface::class => ElectiveSlotService::class,
 		PupilPageServiceInterface::class => PupilPageService::class,
 		SchoolActivityStaffInterface::class => SchoolActivityStaff::class,
+		SchoolPhoneInterface::class => SchoolPhone::class,
 		EmployerBookingProjectionInterface::class => EmployerBookingProjection::class,
 		EmployerBookingStepsInterface::class => EmployerBookingSteps::class,
 		EngagementScoreEvaluatorInterface::class => EngagementScoreEvaluator::class,
@@ -380,6 +385,7 @@ final class ContractBindings {
 		PokParentSignatureRuleInterface::class => PokParentSignatureRule::class,
 		PortalAttemptServiceInterface::class => PortalAttemptService::class,
 		PortalEmployerBookingsInterface::class => PortalEmployerBookings::class,
+		PortalHourDayWriteInterface::class => PortalHourDayWrite::class,
 		PortalHourWeekApprovalInterface::class => PortalHourWeekApproval::class,
 		PortalPermissionAnswerInterface::class => PortalPermissionAnswer::class,
 		PortalLearnerResolverInterface::class => PortalLearnerResolver::class,
