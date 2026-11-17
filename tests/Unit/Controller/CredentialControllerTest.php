@@ -23,6 +23,7 @@ use OCA\Learniq\Service\CredentialLearner;
 use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Db\ObjectEntity;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http\DataDownloadResponse;
@@ -66,7 +67,8 @@ class CredentialControllerTest extends TestCase {
 		];
 		$objects = $this->createMock(ObjectService::class);
 		$objects->method('find')->willReturnCallback(
-			static function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($credentials): ObjectEntity {
+			static function (int|string $id, ?ObjectFindOptions $options = null) use ($credentials): ObjectEntity {
+				$schema = $options?->schema;
 				if ($schema === 'course' && $id === 'c-1') {
 					return OrEntityFactory::make(['id' => 'c-1', 'code' => 'VCA basis'], 'course');
 				}

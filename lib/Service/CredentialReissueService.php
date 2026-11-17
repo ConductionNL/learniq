@@ -44,6 +44,7 @@ use DateTimeInterface;
 use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Kernel\Contracts\CertificatePdfDelegationServiceInterface;
 use OCA\Learniq\Kernel\Contracts\CredentialReissueServiceInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IAppConfig;
@@ -318,7 +319,12 @@ class CredentialReissueService implements CredentialReissueServiceInterface {
 	 */
 	private function course(string $courseId): array {
 		try {
-			$course = $this->objects->find(id: $courseId, register: self::REGISTER, schema: 'course', _rbac: false, _multitenancy: false);
+			$course = $this->objects->find(
+				id: $courseId,
+				options: new ObjectFindOptions(register: self::REGISTER, schema: 'course'),
+				_rbac: false,
+				_multitenancy: false
+			);
 		} catch (Throwable $exception) {
 			$this->logger->warning(
 				'[CredentialReissueService] Course {id} could not be read for the PDF render: {msg}',
