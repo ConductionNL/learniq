@@ -88,16 +88,14 @@ final class SubstitutionDeadline {
 	/**
 	 * The refusal once the deadline passed, or null while a substitute may still be sent.
 	 *
-	 * @param array<string, mixed> $cohort   The course date (cohort).
-	 * @param string|null          $firstDay The first course day, `Y-m-d`.
-	 * @param DateTimeImmutable    $now      The moment of the request.
+	 * @param DateTimeImmutable|null $deadline The deadline, from {@see self::moment()}; null when there is none yet.
+	 * @param DateTimeImmutable      $now      The moment of the request.
 	 *
 	 * @return string|null The refusal in words, e.g. "Vervangen kan tot woensdag 12:00 uur. Bel de planning."
 	 *
 	 * @spec openspec/changes/employer-substitutes-a-colleague/specs/portal-contribution/spec.md
 	 */
-	public static function refusal(array $cohort, ?string $firstDay, DateTimeImmutable $now): ?string {
-		$deadline = self::moment(cohort: $cohort, firstDay: $firstDay);
+	public static function refusal(?DateTimeImmutable $deadline, DateTimeImmutable $now): ?string {
 		if ($deadline === null || $now <= $deadline) {
 			return null;
 		}

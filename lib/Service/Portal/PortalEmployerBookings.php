@@ -272,12 +272,12 @@ class PortalEmployerBookings implements PortalEmployerBookingsInterface {
 					return new PortalOutcome(status: 404, body: ['error' => 'not_found'], reason: 'not-yours');
 				}
 
-				$replaced = $this->substitutionRefusal(booking: $booking, learnerRef: $learnerRef, substituteRef: $substituteRef);
+				$replaced = $this->substitutionRefusal(booking: $booking, refs: ['learner' => $learnerRef, 'substitute' => $substituteRef]);
 				if ($replaced instanceof PortalOutcome) {
 					return $replaced;
 				}
 
-				$this->swap(booking: $booking, replaced: $replaced, substitute: $substitute);
+				$this->swap(replaced: $replaced, substitute: $substitute);
 				$booking = ($this->projection->project(bookingId: $bookingId) ?? $booking);
 
 				return new PortalOutcome(status: 200, body: $this->bookingBody(booking: $booking));
@@ -288,13 +288,12 @@ class PortalEmployerBookings implements PortalEmployerBookingsInterface {
 	/**
 	 * Why a substitution cannot go ahead, or the enrolment it replaces.
 	 *
-	 * @param array<string, mixed> $booking       The booking.
-	 * @param string               $learnerRef    The participant to replace.
-	 * @param string               $substituteRef The colleague sent instead.
+	 * @param array<string, mixed>  $booking The booking.
+	 * @param array<string, string> $refs    `learner`, the participant to replace, and `substitute`, the colleague sent instead.
 	 *
 	 * @return PortalOutcome|array<string, mixed> The refusal, or the replaced enrolment.
 	 */
-	private function substitutionRefusal(array $booking, string $learnerRef, string $substituteRef): PortalOutcome|array {
+	private function substitutionRefusal(array $booking, array $refs): PortalOutcome|array {
 		if (in_array(($booking['lifecycle'] ?? 'received'), ['received', 'confirmed'], true) === false) {
 			return new PortalOutcome(status: 409, body: ['error' => 'booking_closed'], reason: 'booking-closed');
 		}
@@ -305,11 +304,11 @@ class PortalEmployerBookings implements PortalEmployerBookingsInterface {
 				continue;
 			}
 
-			if (($enrolment['learnerRef'] ?? null) === $substituteRef) {
+			if (($enrolment['learnerRef'] ?? null) === $refs['substitute']) {
 				return new PortalOutcome(status: 409, body: ['error' => 'already_on_booking'], reason: 'already-on-booking');
 			}
 
-			if (($enrolment['learnerRef'] ?? null) === $learnerRef) {
+			if (($enrolment['learnerRef'] ?? null) === $refs['learner']) {
 				$replaced = $enrolment;
 			}
 		}
@@ -319,7 +318,10 @@ class PortalEmployerBookings implements PortalEmployerBookingsInterface {
 		}
 
 		$cohort = ($this->projection->one(schema: 'cohort', id: (string)($booking['cohortId'] ?? '')) ?? []);
-		$late = SubstitutionDeadline::refusal(cohort: $cohort, firstDay: ($booking['firstDay'] ?? null), now: $this->now());
+		$late = SubstitutionDeadline::refusal(
+			deadline: SubstitutionDeadline::moment(cohort: $cohort, firstDay: ($booking['firstDay'] ?? null)),
+			now: $this->now()
+		);
 		if ($late !== null) {
 			return new PortalOutcome(status: 409, body: ['error' => 'too_late', 'message' => $late], reason: 'too-late');
 		}
@@ -330,13 +332,12 @@ class PortalEmployerBookings implements PortalEmployerBookingsInterface {
 	/**
 	 * Withdraw the replaced participant's enrolment and enrol the substitute on the same booking.
 	 *
-	 * @param array<string, mixed> $booking    The booking.
 	 * @param array<string, mixed> $replaced   The replaced participant's enrolment.
 	 * @param array<string, mixed> $substitute The substitute's learner profile.
 	 *
 	 * @return void
 	 */
-	private function swap(array $booking, array $replaced, array $substitute): void {
+	private function swap(array $replaced, array $substitute): void {
 		$withdrawn = $replaced;
 		unset($withdrawn['@self']);
 		$withdrawn['lifecycle'] = 'withdrawn';

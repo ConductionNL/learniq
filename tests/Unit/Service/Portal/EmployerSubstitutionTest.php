@@ -199,10 +199,10 @@ class EmployerSubstitutionTest extends TestCase {
 			SubstitutionDeadline::moment(cohort: ['substituteUntil' => '2026-10-20T15:00:00Z'], firstDay: '2026-10-22')?->format(DATE_ATOM)
 		);
 		self::assertNull(SubstitutionDeadline::moment(cohort: [], firstDay: null));
-		self::assertNull(SubstitutionDeadline::refusal(cohort: [], firstDay: '2026-10-22', now: new DateTimeImmutable('2026-10-21T12:00:00+02:00')));
+		self::assertNull(SubstitutionDeadline::refusal(deadline: SubstitutionDeadline::moment(cohort: [], firstDay: '2026-10-22'), now: new DateTimeImmutable('2026-10-21T12:00:00+02:00')));
 		self::assertSame(
 			'Vervangen kan tot vrijdag 12:00 uur. Bel de planning.',
-			SubstitutionDeadline::refusal(cohort: [], firstDay: '2026-10-26', now: new DateTimeImmutable('2026-10-24T09:00:00+02:00'))
+			SubstitutionDeadline::refusal(deadline: SubstitutionDeadline::moment(cohort: [], firstDay: '2026-10-26'), now: new DateTimeImmutable('2026-10-24T09:00:00+02:00'))
 		);
 	}//end testTheDeadline()
 }//end class
