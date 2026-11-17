@@ -179,7 +179,7 @@ final class PlacementPhase {
 		}
 
 		if ($until !== null && $until < $today) {
-			return $this->afterThePeriod(placement: $placement, visits: $visits, until: $until);
+			return $this->afterThePeriod(placement: $placement, visits: $visits);
 		}
 
 		$assessment = self::dueAssessment(visits: $visits, today: $today);
@@ -196,11 +196,10 @@ final class PlacementPhase {
 	 *
 	 * @param array<string, mixed>             $placement The placement.
 	 * @param array<int, array<string, mixed>> $visits    Its visits.
-	 * @param DateTimeImmutable                $until     The end of the period.
 	 *
 	 * @return array{0: string, 1: ?string}
 	 */
-	private function afterThePeriod(array $placement, array $visits, DateTimeImmutable $until): array {
+	private function afterThePeriod(array $placement, array $visits): array {
 		$finalDone = false;
 		foreach ($visits as $visit) {
 			if (($visit['visitKind'] ?? '') === self::FINAL_KIND && ($visit['lifecycle'] ?? '') === 'done') {
@@ -212,7 +211,7 @@ final class PlacementPhase {
 			return ['done', null];
 		}
 
-		return ['rounding-off', $until->format('Y-m-d')];
+		return ['rounding-off', self::date(value: ($placement['periodTo'] ?? null))?->format('Y-m-d')];
 
 	}//end afterThePeriod()
 

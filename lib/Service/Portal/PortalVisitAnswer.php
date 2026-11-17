@@ -89,7 +89,8 @@ class PortalVisitAnswer implements PortalVisitAnswerInterface {
 		$visitId  = $this->text(value: ($body['bpvVisitId'] ?? null));
 		$outcome  = $this->text(value: ($body['outcome'] ?? null));
 		$response = $this->text(value: ($body['trainerResponse'] ?? null));
-		$refusal  = self::requestRefusal(trainerRef: $trainerRef, visitId: $visitId, outcome: $outcome, response: $response);
+		$answer   = ['trainerRef' => $trainerRef, 'visitId' => $visitId, 'outcome' => $outcome, 'response' => $response];
+		$refusal  = self::requestRefusal(answer: $answer);
 		if ($refusal !== null) {
 			return $refusal;
 		}
@@ -101,7 +102,7 @@ class PortalVisitAnswer implements PortalVisitAnswerInterface {
 			}
 
 			$saved = $this->objectService->saveObject(
-				object: self::answered(visit: $checked, trainerRef: $trainerRef, outcome: $outcome, response: $response),
+				object: self::answered(visit: $checked, answer: $answer),
 				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: self::VISIT_SCHEMA), uuid: $visitId),
 				_rbac: false,
 				_multitenancy: false
@@ -129,14 +130,12 @@ class PortalVisitAnswer implements PortalVisitAnswerInterface {
 	/**
 	 * Why the request is refused before any read, or null.
 	 *
-	 * @param string $trainerRef The trainer.
-	 * @param string $visitId    The visit.
-	 * @param string $outcome    `accept` or `answer`.
-	 * @param string $response   Her note.
+	 * @param array{trainerRef: string, visitId: string, outcome: string, response: string} $answer The trainer, the visit, `accept` or `answer`, and her note.
 	 *
 	 * @return PortalOutcome|null
 	 */
-	private static function requestRefusal(string $trainerRef, string $visitId, string $outcome, string $response): ?PortalOutcome {
+	private static function requestRefusal(array $answer): ?PortalOutcome {
+		['trainerRef' => $trainerRef, 'visitId' => $visitId, 'outcome' => $outcome, 'response' => $response] = $answer;
 		if ($trainerRef === '' || $visitId === '') {
 			return new PortalOutcome(status: 422, body: ['error' => 'incomplete'], reason: 'incomplete');
 		}
@@ -202,14 +201,13 @@ class PortalVisitAnswer implements PortalVisitAnswerInterface {
 	 * answering sends it back unplanned with her note, and the proposed moment
 	 * stays so the coach reads what she answered to.
 	 *
-	 * @param array<string, mixed> $visit      The stored visit.
-	 * @param string               $trainerRef The trainer.
-	 * @param string               $outcome    `accept` or `answer`.
-	 * @param string               $response   Her note.
+	 * @param array<string, mixed>                                                         $visit  The stored visit.
+	 * @param array{trainerRef: string, visitId: string, outcome: string, response: string} $answer The trainer, the visit, `accept` or `answer`, and her note.
 	 *
 	 * @return array<string, mixed>
 	 */
-	private static function answered(array $visit, string $trainerRef, string $outcome, string $response): array {
+	private static function answered(array $visit, array $answer): array {
+		['trainerRef' => $trainerRef, 'outcome' => $outcome, 'response' => $response] = $answer;
 		$visit['practicalTrainerId'] = $trainerRef;
 		if ($outcome === self::OUTCOME_ACCEPT) {
 			$visit['plannedAt']       = ($visit['proposedAt'] ?? null);
