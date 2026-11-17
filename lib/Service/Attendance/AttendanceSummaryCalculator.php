@@ -38,6 +38,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service\Attendance;
 
 use DateTimeImmutable;
+use OCA\Learniq\Support\SchoolYear;
 use Throwable;
 
 /**
@@ -55,11 +56,6 @@ class AttendanceSummaryCalculator {
 	 * The statuses the summary counts; a recount reads only these.
 	 */
 	public const COUNTED_STATUSES = [self::ABSENT_AUTHORISED, self::ABSENT_UNAUTHORISED, self::LATE];
-
-	/**
-	 * The month a school year starts in.
-	 */
-	private const FIRST_MONTH = 8;
 
 	/**
 	 * The counts of a summary with nothing in it.
@@ -82,16 +78,7 @@ class AttendanceSummaryCalculator {
 	 * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#scenario-july-and-august-fall-in-different-school-years
 	 */
 	public static function schoolYearOf(string $date): ?string {
-		if (preg_match('/^(\d{4})-(\d{2})-\d{2}$/', $date, $parts) !== 1) {
-			return null;
-		}
-
-		$year = (int)$parts[1];
-		if ((int)$parts[2] < self::FIRST_MONTH) {
-			$year--;
-		}
-
-		return $year . '-' . ($year + 1);
+		return SchoolYear::of(date: $date);
 	}//end schoolYearOf()
 
 	/**
@@ -336,6 +323,11 @@ class AttendanceSummaryCalculator {
 	private function sameValue(mixed $stored, mixed $value): bool {
 		if (is_int($value) === true) {
 			$stored = $this->intOrNull(value: $stored);
+		}
+
+		// A stored 14.0 comes back from JSON as 14.
+		if (is_float($value) === true && is_numeric($stored) === true) {
+			$stored = (float)$stored;
 		}
 
 		return $stored === $value;

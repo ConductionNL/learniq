@@ -27,6 +27,7 @@ use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\TestCase;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Pins importFromDirectory() over a directory of QTI item files without a manifest (every
@@ -83,7 +84,10 @@ class QtiItemImportGoldenTest extends TestCase {
 		$saved = [];
 		$objects = $this->createMock(ObjectService::class);
 		$objects->method('saveObject')->willReturnCallback(
-			static function (array $object, ?array $extend = [], $register = null, $schema = null) use (&$saved): ObjectEntity {
+			static function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) use (&$saved): ObjectEntity {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
 				$saved[] = [$register, $schema, $object];
 				$uuid = 'item-' . count($saved);
 				if ($object['title'] === 'nouuid') {

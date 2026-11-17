@@ -22,6 +22,7 @@ use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
 use PHPUnit\Framework\TestCase;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Tests LearniqJsonCourseImporter::importPackage(): the objects a
@@ -334,7 +335,10 @@ class LearniqJsonCourseImporterTest extends TestCase {
 		$counters = [];
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array $object, ?array $extend = [], $register = null, $schema = null) use (&$counters) {
+			function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) use (&$counters) {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
 				$schema = (string)$schema;
 				$this->assertSame('learniq', $register);
 				$this->saved[] = ['schema' => $schema, 'object' => $object];

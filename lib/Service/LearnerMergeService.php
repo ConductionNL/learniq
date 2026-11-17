@@ -38,6 +38,9 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Kernel\Contracts\LearnerMergeServiceInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
@@ -303,9 +306,10 @@ class LearnerMergeService implements LearnerMergeServiceInterface {
 			unset($row['@self']);
 			$this->objectService->saveObject(
 				object: $row,
-				register: self::LEARNIQ_REGISTER,
-				schema: $schema,
-				uuid: $rowId
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: $schema),
+					uuid: $rowId
+				)
 			);
 			$this->logger->info('[LearnerMergeService] Moved {schema} {id} to the surviving learner.', ['schema' => $schema, 'id' => $rowId]);
 		}
@@ -398,7 +402,10 @@ class LearnerMergeService implements LearnerMergeServiceInterface {
 		}
 
 		try {
-			$entity = $this->objectService->find(id: $id, register: self::LEARNIQ_REGISTER, schema: self::PROFILE_SCHEMA);
+			$entity = $this->objectService->find(
+				id: $id,
+				options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::PROFILE_SCHEMA)
+			);
 		} catch (\Throwable $e) {
 			$this->logger->warning('[LearnerMergeService] Profile {id} could not be loaded: {m}', ['id' => $id, 'm' => $e->getMessage()]);
 			return null;

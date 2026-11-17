@@ -35,6 +35,9 @@ namespace OCA\Learniq\Service\LessonOnboarding;
 use OCA\Learniq\Kernel\Contracts\LessonOnboardingImporterInterface;
 use OCA\Learniq\Service\CoursePackage\CoursePackageFileWriter;
 use OCA\Learniq\Service\CoursePackage\CoursePackageObjectWriter;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Files\File;
@@ -278,7 +281,10 @@ class LessonOnboardingImporter implements LessonOnboardingImporterInterface {
 		$draft = $this->noteSplitter->split(blocks: $this->draftBuilder->build(sections: $run['lesson']['sections'], materialIds: $run['materialIds']));
 		$run['payload']['blocks'] = $draft['blocks'];
 		$run['notes'] = $draft['notes'];
-		$this->objectService->saveObject(object: $run['payload'], register: self::REGISTER, schema: 'lesson', uuid: $run['lessonId']);
+		$this->objectService->saveObject(
+			object: $run['payload'],
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: 'lesson'), uuid: $run['lessonId'])
+		);
 
 		return $run;
 	}//end attachImages()
@@ -478,7 +484,7 @@ class LessonOnboardingImporter implements LessonOnboardingImporterInterface {
 	 */
 	private function findArray(string $id, string $schema): ?array {
 		try {
-			$entity = $this->objectService->find(id: $id, register: self::REGISTER, schema: $schema);
+			$entity = $this->objectService->find(id: $id, options: new ObjectFindOptions(register: self::REGISTER, schema: $schema));
 		} catch (Throwable $e) {
 			return null;
 		}

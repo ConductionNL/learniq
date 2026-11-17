@@ -4,7 +4,7 @@
 		"spdx-copyright": "2026 Conduction B.V.",
 		"change": "portal-parent-child-record",
 		"adr": "ADR-037 modular manifest fragment, never edit src/manifest.json",
-		"description": "SchoolEventsMenu: the school's own calendar (study days, the sports day, trips, celebrations). Coordinators, the school office and the director keep it; parents read it in the portal calendar of their children. Writes are enforced by SchoolEvent.authorization in the register; this gate only hides the entry from everyone else."
+		"description": "SchoolEventsMenu: the school's own calendar (study days, the sports day, trips, celebrations). Coordinators, the school office and the director keep it; parents read it in the portal calendar of their children. Writes are enforced by SchoolEvent.authorization in the register; this gate only hides the entry from everyone else. PermissionRequestsMenu (permission-slips): the school asks guardians for permission and the teacher reads, per request, who answered yes, who answered no and who has not answered."
 	},
 	"menu": [
 		{
@@ -15,10 +15,40 @@
 			"order": 74,
 			"visibleIf": {
 				"user.primaryRole": {
-					"in": ["coordinator", "administration-manager", "team-lead", "admin"]
+					"in": [
+						"coordinator",
+						"administration-manager",
+						"team-lead",
+						"admin"
+					]
 				},
 				"workspace.chosenSegment": {
-					"notIn": ["corporate"]
+					"notIn": [
+						"corporate"
+					]
+				}
+			}
+		},
+		{
+			"id": "PermissionRequestsMenu",
+			"label": "Permission slips",
+			"icon": "FileSignOutline",
+			"route": "PermissionRequests",
+			"order": 75,
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"instructor",
+						"coordinator",
+						"administration-manager",
+						"team-lead",
+						"admin"
+					]
+				},
+				"workspace.chosenSegment": {
+					"notIn": [
+						"corporate"
+					]
 				}
 			}
 		}
@@ -34,11 +64,28 @@
 				"register": "learniq",
 				"schema": "school-event",
 				"columns": [
-					{ "key": "title", "label": "Title" },
-					{ "key": "kind", "label": "Kind" },
-					{ "key": "audience", "label": "For" },
-					{ "key": "startsAt", "label": "Starts", "formatter": "date" },
-					{ "key": "endsAt", "label": "Ends", "formatter": "date" }
+					{
+						"key": "title",
+						"label": "Title"
+					},
+					{
+						"key": "kind",
+						"label": "Kind"
+					},
+					{
+						"key": "audience",
+						"label": "For"
+					},
+					{
+						"key": "startsAt",
+						"label": "Starts",
+						"formatter": "date"
+					},
+					{
+						"key": "endsAt",
+						"label": "Ends",
+						"formatter": "date"
+					}
 				]
 			}
 		},
@@ -88,6 +135,100 @@
 						}
 					]
 				}
+			}
+		},
+		{
+			"id": "PermissionRequests",
+			"route": "/permission-slips",
+			"type": "index",
+			"title": "Permission slips",
+			"config": {
+				"showTitle": true,
+				"register": "learniq",
+				"schema": "permission-request",
+				"columns": [
+					{
+						"key": "title",
+						"label": "Title"
+					},
+					{
+						"key": "happensOn",
+						"label": "Date",
+						"formatter": "date"
+					},
+					{
+						"key": "respondBy",
+						"label": "Answer by",
+						"formatter": "date"
+					},
+					{
+						"key": "lifecycle",
+						"label": "Status"
+					}
+				]
+			}
+		},
+		{
+			"id": "PermissionRequestDetail",
+			"route": "/permission-slips/:id",
+			"type": "detail",
+			"title": "Permission slip",
+			"config": {
+				"register": "learniq",
+				"schema": "permission-request",
+				"_note": "permission-slips: one request for permission to the guardians of named learners. The data widget shows what is asked, the date and the deadline; the Answers section lists who answered yes, who answered no and who has not answered, by name, and whether silence counts as no. The close action stops further answers.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"widgets": [
+					{
+						"id": "pr-data",
+						"type": "data",
+						"title": "Data",
+						"content": {
+							"columns": 2
+						},
+						"icon": "FileSignOutline"
+					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "pr-data",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 6,
+						"showTitle": false
+					}
+				],
+				"sidebar": {
+					"enabled": true,
+					"showMetadata": true,
+					"tabs": [
+						{
+							"id": "audit",
+							"label": "History",
+							"icon": "History",
+							"widgets": [
+								{
+									"type": "audit"
+								}
+							]
+						}
+					]
+				},
+				"bodyWidgets": [
+					{
+						"id": "pr-outcome",
+						"component": "PermissionRequestOutcome",
+						"title": "Answers",
+						"placement": "after-data",
+						"props": {
+							"requestId": "@objectId"
+						}
+					}
+				]
 			}
 		}
 	]

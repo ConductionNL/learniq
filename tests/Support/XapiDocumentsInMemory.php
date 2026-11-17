@@ -33,6 +33,9 @@ use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\MockObject\MockObject;
 use RuntimeException;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectDeletion;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Builds the ObjectService double; use from a TestCase.
@@ -52,7 +55,11 @@ trait XapiDocumentsInMemory {
 			static fn (array $config = [], bool $rbac = true, bool $multitenancy = true): array => $store->findAll($config, $rbac, $multitenancy)
 		);
 		$objects->method('saveObject')->willReturnCallback(
-			static function (array|ObjectEntity $object, ?array $extend = [], mixed $register = null, mixed $schema = null, ?string $uuid = null) use ($store): ObjectEntity {
+			static function (array|ObjectEntity $object, ObjectSaveOptions $options = new ObjectSaveOptions()) use ($store): ObjectEntity {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
+				$uuid = $options->uuid;
 				$row = (array)$object;
 				foreach ($row as $name => $value) {
 					if (is_string($value) === true && is_array(json_decode($value, true)) === true) {
@@ -64,7 +71,11 @@ trait XapiDocumentsInMemory {
 			}
 		);
 		$objects->method('find')->willReturnCallback(
-			static function (int|string $id, ?array $extend = [], bool $files = false, mixed $register = null, mixed $schema = null) use ($store): ?ObjectEntity {
+			static function (int|string $id, ?ObjectFindOptions $options = null) use ($store): ?ObjectEntity {
+				$extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				foreach (($store->rows[(string)$schema] ?? []) as $row) {
 					if (($row['id'] ?? null) === $id) {
 						return OrEntityFactory::make($row, (string)$schema);
@@ -75,7 +86,10 @@ trait XapiDocumentsInMemory {
 			}
 		);
 		$objects->method('deleteObject')->willReturnCallback(
-			static function (string $uuid, mixed $register = null, mixed $schema = null, bool $rbac = true, bool $multitenancy = true) use ($store): bool {
+			static function (ObjectDeletion $deletion, bool $rbac = true, bool $multitenancy = true) use ($store): bool {
+				$uuid = $deletion->uuid;
+				$register = $deletion->target->register;
+				$schema = $deletion->target->schema;
 				if ($multitenancy === true) {
 					throw new RuntimeException('Object not found in magic table');
 				}

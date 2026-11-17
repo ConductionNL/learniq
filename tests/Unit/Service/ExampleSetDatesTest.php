@@ -33,6 +33,7 @@ use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IAppConfig;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use OCA\Learniq\Tests\Support\LegacyObjectArgs;
 
 /**
  * Stand-in for an OpenRegister object.
@@ -78,6 +79,7 @@ class FakeObjectStore {
 	 * @return ObjectEntity|null
 	 */
 	public function find(string $id, mixed ...$rest): ?ObjectEntity {
+		$rest = LegacyObjectArgs::ordered(method: 'find', named: LegacyObjectArgs::flatten(args: $rest));
 		$this->finds[] = ['id' => $id] + $rest;
 		if (isset($this->objects[$id]) === false) {
 			return null;
@@ -93,6 +95,7 @@ class FakeObjectStore {
 	 * @return ObjectEntity
 	 */
 	public function saveObject(array $object, mixed ...$rest): ObjectEntity {
+		$rest = LegacyObjectArgs::flatten(args: $rest);
 		$this->saves[] = ['object' => $object] + $rest;
 		return OrEntityFactory::make($object);
 	}//end saveObject()

@@ -34,6 +34,7 @@ namespace OCA\Learniq\Service\Portal;
 use OCA\Learniq\Kernel\Contracts\PortalSubmissionHandInInterface;
 use OCA\Learniq\Kernel\Contracts\SubmissionWindowGuardInterface;
 use OCA\Learniq\Support\FindOrNull;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Http;
@@ -239,7 +240,7 @@ class PortalSubmissionHandIn implements PortalSubmissionHandInInterface {
 		}
 
 		$find = fn () => $this->objectService
-			->find(id: $id, register: self::REGISTER, schema: self::SCHEMA, _rbac: false, _multitenancy: false, _render: false);
+			->find(id: $id, options: new ObjectFindOptions(register: self::REGISTER, schema: self::SCHEMA, render: false), _rbac: false, _multitenancy: false);
 		return $this->findRowWithIdOrNull(find: $find, id: $id);
 	}//end submission()
 }//end class
