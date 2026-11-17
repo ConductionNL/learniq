@@ -6172,8 +6172,7 @@
         "requirement": [
           "openspec/specs/attendance :: Threshold crossing is a declared calculation trigger",
           "openspec/changes/capability-rows-say-what-they-do/specs/attendance :: A school sets its own absence limit next to the statutory one"
-        ],
-        "plan": "openspec/changes/attendance-warns-before-the-threshold"
+        ]
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -6208,8 +6207,7 @@
         "evidence": "lib/Settings/learniq_register.json components.schemas.AttendanceFlag (not appendOnly since learniq#977, so its handling transitions run); lib/Lifecycle/AttendanceFlagCreationHandler.php",
         "owner": "ConductionNL/learniq",
         "change": "attendance",
-        "requirement": "openspec/specs/attendance :: Threshold crossing is a declared calculation trigger",
-        "plan": "openspec/changes/attendance-warns-before-the-threshold"
+        "requirement": "openspec/specs/attendance :: Threshold crossing is a declared calculation trigger"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -10911,17 +10909,17 @@
       "name": "Set a minimum on a course day and decide in time whether it goes ahead.",
       "origin": "change",
       "built": {
-        "state": "specified",
-        "evidence": "Not built yet: openspec/changes/training-provider-course-days carries the work.",
+        "state": "built",
+        "evidence": "lib/Service/CourseDay/CourseDayStatusService.php; lib/BackgroundJob/CourseDayRestampJob.php; lib/Listener/CourseDayStatusCascade.php; lib/Controller/CourseDayController.php",
         "owner": "ConductionNL/learniq",
         "change": "training-provider-course-days",
-        "requirement": "openspec/changes/training-provider-course-days/specs/course-management :: A course day has a minimum, a decision date and a status that moves by itself",
-        "plan": "openspec/changes/training-provider-course-days"
+        "spec": "openspec/specs/course-management",
+        "requirement": "openspec/specs/course-management :: A course day has a minimum, a decision date and a status that moves by itself"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
       "feature": "training-provider-course-days",
-      "learniq": "no",
+      "learniq": "yes",
       "moodle": "unknown",
       "moodle-workplace": "unknown",
       "ilias": "unknown",

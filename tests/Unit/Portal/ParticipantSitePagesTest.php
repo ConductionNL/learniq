@@ -187,7 +187,7 @@ class ParticipantSitePagesTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-says-what-to-bring
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-course-says-what-to-bring
 	 */
 	public function testTomReadsWhatToBringOnHisNextCourseDay(): void {
 		$set = json_decode((string)file_get_contents(__DIR__ . '/../../../lib/Settings/profiles/training.json'), true);
