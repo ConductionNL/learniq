@@ -24,6 +24,7 @@ use OCP\AppFramework\Db\DoesNotExistException;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 use RuntimeException;
+use OCA\Learniq\Tests\Support\LegacyObjectArgs;
 
 /**
  * Pins apply() against golden/SessionChangeBatch.json: per lesson the
@@ -108,9 +109,10 @@ class SessionChangeBatchGoldenTest extends TestCase {
 				return OrEntityFactory::make($lessons[$id], 'session');
 			}
 		);
-		$saveNames = array_map(static fn ($param): string => $param->getName(), (new ReflectionMethod(ObjectService::class, 'saveObject'))->getParameters());
+		$saveNames = array_map(static fn ($param): string => $param->getName(), LegacyObjectArgs::parameters(ObjectService::class, 'saveObject'));
 		$objects->method('saveObject')->willReturnCallback(
 			function (...$args) use ($saveNames) {
+				$args = LegacyObjectArgs::positional(method: 'saveObject', args: $args);
 				$named = array_combine(array_slice($saveNames, 0, count($args)), $args);
 				$object = $named['object'];
 				$this->calls[] = ['save' => [$named['schema'] ?? null, $named['uuid'] ?? null, $object]];

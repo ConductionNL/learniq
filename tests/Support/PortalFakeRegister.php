@@ -33,6 +33,8 @@ use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IUser;
 use PHPUnit\Framework\TestCase;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * A fake register with write and transition logs.
@@ -110,7 +112,11 @@ final class PortalFakeRegister {
 		$service = $test->getMockBuilder(ObjectService::class)->disableOriginalConstructor()->getMock();
 
 		$service->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null): ObjectEntity {
+			function (int|string $id, ?ObjectFindOptions $options = null): ObjectEntity {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				$row = $this->rows[(string)$schema][(string)$id] ?? null;
 				if ($register !== 'learniq' || $row === null) {
 					throw new DoesNotExistException('not found');
@@ -127,7 +133,11 @@ final class PortalFakeRegister {
 		);
 
 		$service->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null): ObjectEntity {
+			function (array|ObjectEntity $object, ObjectSaveOptions $options = new ObjectSaveOptions()): ObjectEntity {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
+				$uuid = $options->uuid;
 				return $this->save(data: (array)$object, schema: (string)$schema, uuid: $uuid);
 			}
 		);

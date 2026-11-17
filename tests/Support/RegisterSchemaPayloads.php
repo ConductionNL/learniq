@@ -36,6 +36,13 @@ use Opis\JsonSchema\Validator;
 trait RegisterSchemaPayloads {
 
 	/**
+	 * Keywords whose value is a schema, so an empty one is `{}`, never `[]`.
+	 *
+	 * @var list<string>
+	 */
+	private const SUBSCHEMA_KEYS = ['if', 'then', 'else', 'not', 'items', 'additionalProperties', 'properties'];
+
+	/**
 	 * The shipped schema with this slug.
 	 *
 	 * @param string $slug The schema slug.
@@ -91,6 +98,11 @@ trait RegisterSchemaPayloads {
 			$clean[$key] = $value;
 			if (is_array($value) === true && $key !== 'required' && $key !== 'enum') {
 				$clean[$key] = self::withoutOrKeys(schema: $value);
+			}
+
+			// An empty sub-schema (`"then": {}`) decodes to [] and would encode as a list.
+			if ($value === [] && in_array($key, self::SUBSCHEMA_KEYS, true) === true) {
+				$clean[$key] = new \stdClass();
 			}
 		}
 

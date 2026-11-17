@@ -30,6 +30,7 @@ use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCP\IGroupManager;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 
 /**
  * Tests for the RubricScoresCompletionGuard (PeerReview.submit / SelfAssessment.submit).
@@ -69,7 +70,11 @@ class RubricScoresCompletionGuardTest extends TestCase {
 		// and returns ?ObjectEntity. willReturnCallback() hands the closure the
 		// mock's arguments POSITIONALLY, so the closure must mirror that order.
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($assignment, $rubric, $submission) {
+			function (int|string $id, ?ObjectFindOptions $options = null) use ($assignment, $rubric, $submission) {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				if ($schema === 'assignment' && $assignment !== null) {
 					return OrEntityFactory::make($assignment, 'assignment');
 				}
@@ -245,7 +250,11 @@ class RubricScoresCompletionGuardTest extends TestCase {
 	private function recordingGuard(array $rows, \ArrayObject $calls, bool $admin = false): RubricScoresCompletionGuard {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('find')->willReturnCallback(
-			static function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($rows, $calls) {
+			static function (int|string $id, ?ObjectFindOptions $options = null) use ($rows, $calls) {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				$calls[] = 'find ' . $register . '/' . $schema . '/' . $id;
 				$row = ($rows[$schema . ':' . $id] ?? null);
 				if ($row === null) {

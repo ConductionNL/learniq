@@ -206,3 +206,7 @@ if (class_exists('\\OCA\\Integriq\\Event\\ConnectionStatusReportedEvent') === fa
 if (class_exists('\\OCA\\Portaliq\\Event\\PortalClaimScopeEvent') === false) {
 	require_once __DIR__ . '/Stubs/Portaliq/Event/PortalClaimScopeEvent.php';
 }
+
+// Test helpers for OpenRegister's option objects.
+require_once __DIR__ . '/Support/ReleaseObjectSignatures.php';
+require_once __DIR__ . '/Support/LegacyObjectArgs.php';

@@ -34,6 +34,7 @@ use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use OCA\Learniq\Tests\Support\LegacyObjectArgs;
 
 /**
  * Pins every evaluate, read and write of handle() per scenario against
@@ -138,6 +139,7 @@ class CourseQualityScoreRollupGoldenTest extends TestCase {
 		);
 		$service->method('saveObject')->willReturnCallback(
 			function (...$args): ObjectEntity {
+				$args = LegacyObjectArgs::positional(method: 'saveObject', args: $args);
 				$this->calls[] = ['saveObject' => PassedArguments::of(method: [ObjectService::class, 'saveObject'], args: $args)];
 				return OrEntityFactory::make([], 'course-quality-score');
 			}

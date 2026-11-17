@@ -57,6 +57,7 @@ use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Kernel\Contracts\PersonalTimetableServiceInterface;
 use OCA\Learniq\Kernel\Contracts\TimetableProjectorInterface;
 use OCA\Learniq\Kernel\Contracts\TimetableSourceResolverInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -217,7 +218,7 @@ class TimetableController extends Controller {
 	 */
 	private function canReadCohort(string $cohortId): bool {
 		try {
-			$cohort = $this->objectService->find(id: $cohortId, register: self::LEARNIQ_REGISTER, schema: 'cohort');
+			$cohort = $this->objectService->find(id: $cohortId, options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: 'cohort'));
 		} catch (\Exception $e) {
 			$this->logger->debug('[TimetableController] Cohort {id} not readable: {msg}', ['id' => $cohortId, 'msg' => $e->getMessage()]);
 			return false;

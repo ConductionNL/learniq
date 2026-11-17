@@ -27,6 +27,7 @@ use OCA\Learniq\Listener\ExchangeImportLandingListener;
 use OCA\Learniq\Service\ClassRosterSync;
 use OCA\Learniq\Service\ExchangeImportLanding;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use Opis\JsonSchema\Validator;
@@ -90,7 +91,9 @@ class ClassRosterSyncTest extends TestCase {
 			}
 		);
 		$objects->method('saveObject')->willReturnCallback(
-			function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null, bool $_rbac = true) {
+			function (array $object, ObjectSaveOptions $options, bool $_rbac = true) {
+				$schema = $options->target->schema;
+				$uuid   = $options->uuid;
 				$this->writes[] = ['schema' => (string)$schema, 'row' => $object, 'uuid' => $uuid, 'rbac' => $_rbac];
 				$object['id'] = $uuid ?? sprintf('00000000-0000-4000-8000-%012d', count($this->writes));
 				$this->db[(string)$schema] = array_values(array_filter($this->db[(string)$schema] ?? [], static fn (array $r): bool => ($r['id'] ?? null) !== $object['id']));

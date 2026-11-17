@@ -98,6 +98,21 @@ class InvigilatorAssignmentCheck implements IEventListener {
 
 		$request = array_merge(($event->getObject()->getObject() ?? []), $event->getModifiedData());
 
+		$this->pendOrRefuse(event: $event, request: $request);
+	}//end handle()
+
+	/**
+	 * Create the invigilation request as pending, or refuse it with the reason it
+	 * cannot be granted.
+	 *
+	 * @param ObjectCreatingEvent $event   The invigilation request being created.
+	 * @param array<string,mixed> $request The request as it will be saved.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/exam-schedule/spec.md#requirement-invigilator-assignment
+	 */
+	private function pendOrRefuse(ObjectCreatingEvent $event, array $request): void {
 		try {
 			$reason = $this->refusal(request: $request);
 		} catch (Throwable $exception) {
@@ -113,7 +128,7 @@ class InvigilatorAssignmentCheck implements IEventListener {
 		}
 
 		$event->setModifiedData(array_merge($event->getModifiedData(), ['lifecycle' => 'pending']));
-	}//end handle()
+	}//end pendOrRefuse()
 
 	/**
 	 * Why this request cannot be made, or null.

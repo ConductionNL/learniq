@@ -40,6 +40,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use RuntimeException;
@@ -461,9 +463,7 @@ class ClassRosterSync {
 		unset($row['id'], $row['@self']);
 		$saved = $this->objectService->saveObject(
 			object: $row,
-			register: self::REGISTER,
-			schema: $schema,
-			uuid: $uuid,
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: $schema), uuid: $uuid),
 			_rbac: false,
 			_multitenancy: false
 		);

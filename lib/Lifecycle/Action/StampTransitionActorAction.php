@@ -29,7 +29,7 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
 use OCA\OpenRegister\Lifecycle\LifecycleActionContext;
-use OCA\OpenRegister\Lifecycle\LifecycleActionInterface;
+use OCA\OpenRegister\Lifecycle\ContextLifecycleActionInterface;
 use OCP\IUserSession;
 use RuntimeException;
 
@@ -50,7 +50,7 @@ use RuntimeException;
  *
  * @spec openspec/specs/external-training-recording/spec.md#requirement-verification-must-be-gated-and-tamper-resistant
  */
-class StampTransitionActorAction implements LifecycleActionInterface {
+class StampTransitionActorAction implements ContextLifecycleActionInterface {
 
 	/**
 	 * Constructor.
