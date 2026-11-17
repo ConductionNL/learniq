@@ -220,7 +220,9 @@ class ParticipantSitePages {
 	 * @spec openspec/changes/participant-portal/specs/portal-contribution/spec.md#requirement-a-participant-lands-on-his-next-course-day
 	 */
 	public function collections(): array {
-		$dayFields = ['learnerRef', 'courseName', 'firstDay', 'dayLabel', 'timeLabel', 'placeLabel', 'trainerName', 'upcoming', 'lifecycle'];
+		$dayFields = ['learnerRef', 'courseName', 'firstDay', 'dayLabel', 'timeLabel', 'placeLabel', 'trainerName', 'bringList', 'upcoming', 'lifecycle'];
+		// "Meenemen" on his course day: the course's bring list, one line each (training-provider-course-days).
+		$dayConfigs = ['bringList' => ['label' => 'What to bring']];
 		$dayColumns = [
 			['field' => 'firstDay', 'label' => 'First day', 'render' => 'date'],
 			['field' => 'courseName', 'label' => 'Course name'],
@@ -240,6 +242,7 @@ class ParticipantSitePages {
 					'filter' => ['upcoming' => true],
 					'defaultSort' => ['field' => 'firstDay', 'direction' => 'asc'],
 					'columns' => $dayColumns,
+					'fieldConfigs' => $dayConfigs,
 				]
 			),
 			$this->direct(
@@ -247,7 +250,7 @@ class ParticipantSitePages {
 				schema: 'enrolment',
 				label: 'My course days',
 				fields: $dayFields,
-				extra: ['defaultSort' => ['field' => 'firstDay', 'direction' => 'desc'], 'columns' => $dayColumns]
+				extra: ['defaultSort' => ['field' => 'firstDay', 'direction' => 'desc'], 'columns' => $dayColumns, 'fieldConfigs' => $dayConfigs]
 			),
 			$this->direct(
 				id: 'participantCertificates',

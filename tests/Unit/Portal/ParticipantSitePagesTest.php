@@ -179,4 +179,33 @@ class ParticipantSitePagesTest extends TestCase {
 			}
 		}
 	}//end testHeIsToldWhenAColleagueGoesInHisPlace()
+
+	/**
+	 * Tom's next course day, F-gassen: herhaling en examen, carries the three
+	 * lines of its bring list, and his course day collections show them under
+	 * "What to bring" ("Meenemen").
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-says-what-to-bring
+	 */
+	public function testTomReadsWhatToBringOnHisNextCourseDay(): void {
+		$set = json_decode((string)file_get_contents(__DIR__ . '/../../../lib/Settings/profiles/training.json'), true);
+		$objects = $set['x-openregister']['seedData']['objects'];
+		$tom = array_values(array_filter($objects['learner-profile'], static fn (array $p): bool => ($p['fullName'] ?? '') === 'Tom Verbeek'))[0];
+		$next = array_values(
+			array_filter(
+				$objects['enrolment'],
+				static fn (array $e): bool => $e['learnerRef'] === $tom['uuid'] && ($e['firstDay'] ?? '') === '2026-10-08'
+			)
+		)[0];
+
+		self::assertSame(['Een geldig legitimatiebewijs', 'Uw huidige F-gassencertificaat', 'Werkschoenen en werkkleding'], $next['bringList']);
+
+		$collections = array_column(self::manifest()['collections'], null, 'id');
+		foreach (['participantComingDays', 'participantCourseDays'] as $id) {
+			self::assertContains('bringList', $collections[$id]['fields'], $id);
+			self::assertSame('What to bring', $collections[$id]['fieldConfigs']['bringList']['label'], $id);
+		}
+	}//end testTomReadsWhatToBringOnHisNextCourseDay()
 }//end class

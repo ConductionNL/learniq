@@ -130,6 +130,7 @@ use OCA\Learniq\Kernel\Contracts\PortalAttemptServiceInterface;
 use OCA\Learniq\Kernel\Contracts\PortalEmployerBookingsInterface;
 use OCA\Learniq\Kernel\Contracts\PortalHourDayWriteInterface;
 use OCA\Learniq\Kernel\Contracts\PortalHourWeekApprovalInterface;
+use OCA\Learniq\Kernel\Contracts\PortalVisitAnswerInterface;
 use OCA\Learniq\Kernel\Contracts\PortalPermissionAnswerInterface;
 use OCA\Learniq\Kernel\Contracts\PortalLearnerResolverInterface;
 use OCA\Learniq\Kernel\Contracts\PortalMessagesInterface;
@@ -227,6 +228,7 @@ use OCA\Learniq\Service\Portal\PortalAttemptService;
 use OCA\Learniq\Service\Portal\PortalEmployerBookings;
 use OCA\Learniq\Service\Portal\PortalHourDayWrite;
 use OCA\Learniq\Service\Portal\PortalHourWeekApproval;
+use OCA\Learniq\Service\Portal\PortalVisitAnswer;
 use OCA\Learniq\Service\Portal\PortalPermissionAnswer;
 use OCA\Learniq\Service\Portal\PortalLearnerResolver;
 use OCA\Learniq\Service\Portal\PortalMessages;
@@ -383,6 +385,7 @@ final class ContractBindings {
 		PortalEmployerBookingsInterface::class => PortalEmployerBookings::class,
 		PortalHourDayWriteInterface::class => PortalHourDayWrite::class,
 		PortalHourWeekApprovalInterface::class => PortalHourWeekApproval::class,
+		PortalVisitAnswerInterface::class => PortalVisitAnswer::class,
 		PortalPermissionAnswerInterface::class => PortalPermissionAnswer::class,
 		PortalLearnerResolverInterface::class => PortalLearnerResolver::class,
 		PortalMessagesInterface::class => PortalMessages::class,
