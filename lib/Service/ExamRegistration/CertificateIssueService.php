@@ -122,6 +122,7 @@ class CertificateIssueService implements CertificateIssueServiceInterface {
 		$issued  = [];
 		$skipped = [];
 		$already = 0;
+		$day     = ['course' => $course, 'cohort' => $cohort, 'userId' => $userId, 'now' => $now];
 		foreach ($this->participants(cohortId: $cohortId) as $enrolment) {
 			$enrolmentId = (string)($enrolment['id'] ?? ($enrolment['uuid'] ?? ''));
 			$name        = self::nameOf(enrolment: $enrolment, line: ($results[$enrolmentId] ?? null));
@@ -136,7 +137,7 @@ class CertificateIssueService implements CertificateIssueServiceInterface {
 				continue;
 			}
 
-			$credentialId = $this->issueOne(enrolment: $enrolment, course: $course, cohort: $cohort, userId: $userId, now: $now);
+			$credentialId = $this->issueOne(enrolment: $enrolment, day: $day);
 			if ($credentialId === null) {
 				$skipped[] = self::skip(enrolmentId: $enrolmentId, name: $name, reason: 'unsigned');
 				continue;
@@ -303,14 +304,16 @@ class CertificateIssueService implements CertificateIssueServiceInterface {
 	 * Sign and save one certificate; null when it cannot be signed.
 	 *
 	 * @param array<string, mixed> $enrolment The enrolment.
-	 * @param array<string, mixed> $course    The course.
-	 * @param array<string, mixed> $cohort    The course day.
-	 * @param string               $userId    Who issues it.
-	 * @param string               $now       Now (ISO 8601).
+	 * @param array<string, mixed> $day       The issuing context: `course`, `cohort` (the course day),
+	 *                                        `userId` (who issues it) and `now` (ISO 8601).
 	 *
 	 * @return string|null The certificate's uuid.
 	 */
-	private function issueOne(array $enrolment, array $course, array $cohort, string $userId, string $now): ?string {
+	private function issueOne(array $enrolment, array $day): ?string {
+		$course     = (array)$day['course'];
+		$cohort     = (array)$day['cohort'];
+		$userId     = (string)$day['userId'];
+		$now        = (string)$day['now'];
 		$tenantId   = (string)($enrolment['tenant_id'] ?? ($cohort['tenant_id'] ?? ''));
 		$credential = [
 			'learnerId' => (string)($enrolment['learnerRef'] ?? ''),
