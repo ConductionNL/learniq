@@ -29,7 +29,9 @@
             "reasonKind": "illness",
             "reason": "flu",
             "dateFrom": "2026-01-05",
-            "dateTo": "2026-01-06"
+            "dateTo": "2026-01-06",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "no profile \/ no record \/ approved medical": {
@@ -49,7 +51,9 @@
             "reasonKind": "medical-appointment",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "no profile \/ no record \/ approved other": {
@@ -69,7 +73,9 @@
             "reasonKind": "family",
             "reason": "wedding",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "no profile \/ no record \/ pending": {
@@ -89,7 +95,9 @@
             "reasonKind": "illness",
             "reason": "cold",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "no profile \/ no record \/ no lifecycle": {
@@ -109,7 +117,9 @@
             "reasonKind": "illness",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "no profile \/ late \/ no report": {
@@ -142,7 +152,9 @@
             "reasonKind": "illness",
             "reason": "flu",
             "dateFrom": "2026-01-05",
-            "dateTo": "2026-01-06"
+            "dateTo": "2026-01-06",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "no profile \/ late \/ approved medical": {
@@ -162,7 +174,9 @@
             "reasonKind": "medical-appointment",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "no profile \/ late \/ approved other": {
@@ -182,7 +196,9 @@
             "reasonKind": "family",
             "reason": "wedding",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "no profile \/ late \/ pending": {
@@ -202,7 +218,9 @@
             "reasonKind": "illness",
             "reason": "cold",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "no profile \/ late \/ no lifecycle": {
@@ -222,7 +240,9 @@
             "reasonKind": "illness",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "no profile \/ absent text minutes \/ no report": {
@@ -255,7 +275,9 @@
             "reasonKind": "illness",
             "reason": "flu",
             "dateFrom": "2026-01-05",
-            "dateTo": "2026-01-06"
+            "dateTo": "2026-01-06",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "no profile \/ absent text minutes \/ approved medical": {
@@ -275,7 +297,9 @@
             "reasonKind": "medical-appointment",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "no profile \/ absent text minutes \/ approved other": {
@@ -295,7 +319,9 @@
             "reasonKind": "family",
             "reason": "wedding",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "no profile \/ absent text minutes \/ pending": {
@@ -315,7 +341,9 @@
             "reasonKind": "illness",
             "reason": "cold",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "no profile \/ absent text minutes \/ no lifecycle": {
@@ -335,7 +363,9 @@
             "reasonKind": "illness",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "no profile \/ bad values \/ no report": {
@@ -368,7 +398,9 @@
             "reasonKind": "illness",
             "reason": "flu",
             "dateFrom": "2026-01-05",
-            "dateTo": "2026-01-06"
+            "dateTo": "2026-01-06",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "no profile \/ bad values \/ approved medical": {
@@ -388,7 +420,9 @@
             "reasonKind": "medical-appointment",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "no profile \/ bad values \/ approved other": {
@@ -408,7 +442,9 @@
             "reasonKind": "family",
             "reason": "wedding",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "no profile \/ bad values \/ pending": {
@@ -428,7 +464,9 @@
             "reasonKind": "illness",
             "reason": "cold",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "no profile \/ bad values \/ no lifecycle": {
@@ -448,7 +486,9 @@
             "reasonKind": "illness",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "no profile \/ bare record \/ no report": {
@@ -481,7 +521,9 @@
             "reasonKind": "illness",
             "reason": "flu",
             "dateFrom": "2026-01-05",
-            "dateTo": "2026-01-06"
+            "dateTo": "2026-01-06",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "no profile \/ bare record \/ approved medical": {
@@ -501,7 +543,9 @@
             "reasonKind": "medical-appointment",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "no profile \/ bare record \/ approved other": {
@@ -521,7 +565,9 @@
             "reasonKind": "family",
             "reason": "wedding",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "no profile \/ bare record \/ pending": {
@@ -541,7 +587,9 @@
             "reasonKind": "illness",
             "reason": "cold",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "no profile \/ bare record \/ no lifecycle": {
@@ -561,7 +609,9 @@
             "reasonKind": "illness",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile id \/ no record \/ no report": {
@@ -594,7 +644,9 @@
             "reasonKind": "illness",
             "reason": "flu",
             "dateFrom": "2026-01-05",
-            "dateTo": "2026-01-06"
+            "dateTo": "2026-01-06",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile id \/ no record \/ approved medical": {
@@ -614,7 +666,9 @@
             "reasonKind": "medical-appointment",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile id \/ no record \/ approved other": {
@@ -634,7 +688,9 @@
             "reasonKind": "family",
             "reason": "wedding",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile id \/ no record \/ pending": {
@@ -654,7 +710,9 @@
             "reasonKind": "illness",
             "reason": "cold",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile id \/ no record \/ no lifecycle": {
@@ -674,7 +732,9 @@
             "reasonKind": "illness",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile id \/ late \/ no report": {
@@ -707,7 +767,9 @@
             "reasonKind": "illness",
             "reason": "flu",
             "dateFrom": "2026-01-05",
-            "dateTo": "2026-01-06"
+            "dateTo": "2026-01-06",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile id \/ late \/ approved medical": {
@@ -727,7 +789,9 @@
             "reasonKind": "medical-appointment",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile id \/ late \/ approved other": {
@@ -747,7 +811,9 @@
             "reasonKind": "family",
             "reason": "wedding",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile id \/ late \/ pending": {
@@ -767,7 +833,9 @@
             "reasonKind": "illness",
             "reason": "cold",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile id \/ late \/ no lifecycle": {
@@ -787,7 +855,9 @@
             "reasonKind": "illness",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile id \/ absent text minutes \/ no report": {
@@ -820,7 +890,9 @@
             "reasonKind": "illness",
             "reason": "flu",
             "dateFrom": "2026-01-05",
-            "dateTo": "2026-01-06"
+            "dateTo": "2026-01-06",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile id \/ absent text minutes \/ approved medical": {
@@ -840,7 +912,9 @@
             "reasonKind": "medical-appointment",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile id \/ absent text minutes \/ approved other": {
@@ -860,7 +934,9 @@
             "reasonKind": "family",
             "reason": "wedding",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile id \/ absent text minutes \/ pending": {
@@ -880,7 +956,9 @@
             "reasonKind": "illness",
             "reason": "cold",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile id \/ absent text minutes \/ no lifecycle": {
@@ -900,7 +978,9 @@
             "reasonKind": "illness",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile id \/ bad values \/ no report": {
@@ -933,7 +1013,9 @@
             "reasonKind": "illness",
             "reason": "flu",
             "dateFrom": "2026-01-05",
-            "dateTo": "2026-01-06"
+            "dateTo": "2026-01-06",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile id \/ bad values \/ approved medical": {
@@ -953,7 +1035,9 @@
             "reasonKind": "medical-appointment",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile id \/ bad values \/ approved other": {
@@ -973,7 +1057,9 @@
             "reasonKind": "family",
             "reason": "wedding",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile id \/ bad values \/ pending": {
@@ -993,7 +1079,9 @@
             "reasonKind": "illness",
             "reason": "cold",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile id \/ bad values \/ no lifecycle": {
@@ -1013,7 +1101,9 @@
             "reasonKind": "illness",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile id \/ bare record \/ no report": {
@@ -1046,7 +1136,9 @@
             "reasonKind": "illness",
             "reason": "flu",
             "dateFrom": "2026-01-05",
-            "dateTo": "2026-01-06"
+            "dateTo": "2026-01-06",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile id \/ bare record \/ approved medical": {
@@ -1066,7 +1158,9 @@
             "reasonKind": "medical-appointment",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile id \/ bare record \/ approved other": {
@@ -1086,7 +1180,9 @@
             "reasonKind": "family",
             "reason": "wedding",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile id \/ bare record \/ pending": {
@@ -1106,7 +1202,9 @@
             "reasonKind": "illness",
             "reason": "cold",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile id \/ bare record \/ no lifecycle": {
@@ -1126,7 +1224,9 @@
             "reasonKind": "illness",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile uuid \/ no record \/ no report": {
@@ -1159,7 +1259,9 @@
             "reasonKind": "illness",
             "reason": "flu",
             "dateFrom": "2026-01-05",
-            "dateTo": "2026-01-06"
+            "dateTo": "2026-01-06",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile uuid \/ no record \/ approved medical": {
@@ -1179,7 +1281,9 @@
             "reasonKind": "medical-appointment",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile uuid \/ no record \/ approved other": {
@@ -1199,7 +1303,9 @@
             "reasonKind": "family",
             "reason": "wedding",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile uuid \/ no record \/ pending": {
@@ -1219,7 +1325,9 @@
             "reasonKind": "illness",
             "reason": "cold",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile uuid \/ no record \/ no lifecycle": {
@@ -1239,7 +1347,9 @@
             "reasonKind": "illness",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile uuid \/ late \/ no report": {
@@ -1272,7 +1382,9 @@
             "reasonKind": "illness",
             "reason": "flu",
             "dateFrom": "2026-01-05",
-            "dateTo": "2026-01-06"
+            "dateTo": "2026-01-06",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile uuid \/ late \/ approved medical": {
@@ -1292,7 +1404,9 @@
             "reasonKind": "medical-appointment",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile uuid \/ late \/ approved other": {
@@ -1312,7 +1426,9 @@
             "reasonKind": "family",
             "reason": "wedding",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile uuid \/ late \/ pending": {
@@ -1332,7 +1448,9 @@
             "reasonKind": "illness",
             "reason": "cold",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile uuid \/ late \/ no lifecycle": {
@@ -1352,7 +1470,9 @@
             "reasonKind": "illness",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile uuid \/ absent text minutes \/ no report": {
@@ -1385,7 +1505,9 @@
             "reasonKind": "illness",
             "reason": "flu",
             "dateFrom": "2026-01-05",
-            "dateTo": "2026-01-06"
+            "dateTo": "2026-01-06",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile uuid \/ absent text minutes \/ approved medical": {
@@ -1405,7 +1527,9 @@
             "reasonKind": "medical-appointment",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile uuid \/ absent text minutes \/ approved other": {
@@ -1425,7 +1549,9 @@
             "reasonKind": "family",
             "reason": "wedding",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile uuid \/ absent text minutes \/ pending": {
@@ -1445,7 +1571,9 @@
             "reasonKind": "illness",
             "reason": "cold",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile uuid \/ absent text minutes \/ no lifecycle": {
@@ -1465,7 +1593,9 @@
             "reasonKind": "illness",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile uuid \/ bad values \/ no report": {
@@ -1498,7 +1628,9 @@
             "reasonKind": "illness",
             "reason": "flu",
             "dateFrom": "2026-01-05",
-            "dateTo": "2026-01-06"
+            "dateTo": "2026-01-06",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile uuid \/ bad values \/ approved medical": {
@@ -1518,7 +1650,9 @@
             "reasonKind": "medical-appointment",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile uuid \/ bad values \/ approved other": {
@@ -1538,7 +1672,9 @@
             "reasonKind": "family",
             "reason": "wedding",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile uuid \/ bad values \/ pending": {
@@ -1558,7 +1694,9 @@
             "reasonKind": "illness",
             "reason": "cold",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile uuid \/ bad values \/ no lifecycle": {
@@ -1578,7 +1716,9 @@
             "reasonKind": "illness",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile uuid \/ bare record \/ no report": {
@@ -1611,7 +1751,9 @@
             "reasonKind": "illness",
             "reason": "flu",
             "dateFrom": "2026-01-05",
-            "dateTo": "2026-01-06"
+            "dateTo": "2026-01-06",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile uuid \/ bare record \/ approved medical": {
@@ -1631,7 +1773,9 @@
             "reasonKind": "medical-appointment",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile uuid \/ bare record \/ approved other": {
@@ -1651,7 +1795,9 @@
             "reasonKind": "family",
             "reason": "wedding",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile uuid \/ bare record \/ pending": {
@@ -1671,7 +1817,9 @@
             "reasonKind": "illness",
             "reason": "cold",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile uuid \/ bare record \/ no lifecycle": {
@@ -1691,7 +1839,9 @@
             "reasonKind": "illness",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile self \/ no record \/ no report": {
@@ -1724,7 +1874,9 @@
             "reasonKind": "illness",
             "reason": "flu",
             "dateFrom": "2026-01-05",
-            "dateTo": "2026-01-06"
+            "dateTo": "2026-01-06",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile self \/ no record \/ approved medical": {
@@ -1744,7 +1896,9 @@
             "reasonKind": "medical-appointment",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile self \/ no record \/ approved other": {
@@ -1764,7 +1918,9 @@
             "reasonKind": "family",
             "reason": "wedding",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile self \/ no record \/ pending": {
@@ -1784,7 +1940,9 @@
             "reasonKind": "illness",
             "reason": "cold",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile self \/ no record \/ no lifecycle": {
@@ -1804,7 +1962,9 @@
             "reasonKind": "illness",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile self \/ late \/ no report": {
@@ -1837,7 +1997,9 @@
             "reasonKind": "illness",
             "reason": "flu",
             "dateFrom": "2026-01-05",
-            "dateTo": "2026-01-06"
+            "dateTo": "2026-01-06",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile self \/ late \/ approved medical": {
@@ -1857,7 +2019,9 @@
             "reasonKind": "medical-appointment",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile self \/ late \/ approved other": {
@@ -1877,7 +2041,9 @@
             "reasonKind": "family",
             "reason": "wedding",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile self \/ late \/ pending": {
@@ -1897,7 +2063,9 @@
             "reasonKind": "illness",
             "reason": "cold",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile self \/ late \/ no lifecycle": {
@@ -1917,7 +2085,9 @@
             "reasonKind": "illness",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile self \/ absent text minutes \/ no report": {
@@ -1950,7 +2120,9 @@
             "reasonKind": "illness",
             "reason": "flu",
             "dateFrom": "2026-01-05",
-            "dateTo": "2026-01-06"
+            "dateTo": "2026-01-06",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile self \/ absent text minutes \/ approved medical": {
@@ -1970,7 +2142,9 @@
             "reasonKind": "medical-appointment",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile self \/ absent text minutes \/ approved other": {
@@ -1990,7 +2164,9 @@
             "reasonKind": "family",
             "reason": "wedding",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile self \/ absent text minutes \/ pending": {
@@ -2010,7 +2186,9 @@
             "reasonKind": "illness",
             "reason": "cold",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile self \/ absent text minutes \/ no lifecycle": {
@@ -2030,7 +2208,9 @@
             "reasonKind": "illness",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile self \/ bad values \/ no report": {
@@ -2063,7 +2243,9 @@
             "reasonKind": "illness",
             "reason": "flu",
             "dateFrom": "2026-01-05",
-            "dateTo": "2026-01-06"
+            "dateTo": "2026-01-06",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile self \/ bad values \/ approved medical": {
@@ -2083,7 +2265,9 @@
             "reasonKind": "medical-appointment",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile self \/ bad values \/ approved other": {
@@ -2103,7 +2287,9 @@
             "reasonKind": "family",
             "reason": "wedding",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile self \/ bad values \/ pending": {
@@ -2123,7 +2309,9 @@
             "reasonKind": "illness",
             "reason": "cold",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile self \/ bad values \/ no lifecycle": {
@@ -2143,7 +2331,9 @@
             "reasonKind": "illness",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile self \/ bare record \/ no report": {
@@ -2176,7 +2366,9 @@
             "reasonKind": "illness",
             "reason": "flu",
             "dateFrom": "2026-01-05",
-            "dateTo": "2026-01-06"
+            "dateTo": "2026-01-06",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile self \/ bare record \/ approved medical": {
@@ -2196,7 +2388,9 @@
             "reasonKind": "medical-appointment",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile self \/ bare record \/ approved other": {
@@ -2216,7 +2410,9 @@
             "reasonKind": "family",
             "reason": "wedding",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile self \/ bare record \/ pending": {
@@ -2236,7 +2432,9 @@
             "reasonKind": "illness",
             "reason": "cold",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile self \/ bare record \/ no lifecycle": {
@@ -2256,7 +2454,9 @@
             "reasonKind": "illness",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile empty \/ no record \/ no report": {
@@ -2289,7 +2489,9 @@
             "reasonKind": "illness",
             "reason": "flu",
             "dateFrom": "2026-01-05",
-            "dateTo": "2026-01-06"
+            "dateTo": "2026-01-06",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile empty \/ no record \/ approved medical": {
@@ -2309,7 +2511,9 @@
             "reasonKind": "medical-appointment",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile empty \/ no record \/ approved other": {
@@ -2329,7 +2533,9 @@
             "reasonKind": "family",
             "reason": "wedding",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile empty \/ no record \/ pending": {
@@ -2349,7 +2555,9 @@
             "reasonKind": "illness",
             "reason": "cold",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile empty \/ no record \/ no lifecycle": {
@@ -2369,7 +2577,9 @@
             "reasonKind": "illness",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile empty \/ late \/ no report": {
@@ -2402,7 +2612,9 @@
             "reasonKind": "illness",
             "reason": "flu",
             "dateFrom": "2026-01-05",
-            "dateTo": "2026-01-06"
+            "dateTo": "2026-01-06",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile empty \/ late \/ approved medical": {
@@ -2422,7 +2634,9 @@
             "reasonKind": "medical-appointment",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile empty \/ late \/ approved other": {
@@ -2442,7 +2656,9 @@
             "reasonKind": "family",
             "reason": "wedding",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile empty \/ late \/ pending": {
@@ -2462,7 +2678,9 @@
             "reasonKind": "illness",
             "reason": "cold",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile empty \/ late \/ no lifecycle": {
@@ -2482,7 +2700,9 @@
             "reasonKind": "illness",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile empty \/ absent text minutes \/ no report": {
@@ -2515,7 +2735,9 @@
             "reasonKind": "illness",
             "reason": "flu",
             "dateFrom": "2026-01-05",
-            "dateTo": "2026-01-06"
+            "dateTo": "2026-01-06",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile empty \/ absent text minutes \/ approved medical": {
@@ -2535,7 +2757,9 @@
             "reasonKind": "medical-appointment",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile empty \/ absent text minutes \/ approved other": {
@@ -2555,7 +2779,9 @@
             "reasonKind": "family",
             "reason": "wedding",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile empty \/ absent text minutes \/ pending": {
@@ -2575,7 +2801,9 @@
             "reasonKind": "illness",
             "reason": "cold",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile empty \/ absent text minutes \/ no lifecycle": {
@@ -2595,7 +2823,9 @@
             "reasonKind": "illness",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile empty \/ bad values \/ no report": {
@@ -2628,7 +2858,9 @@
             "reasonKind": "illness",
             "reason": "flu",
             "dateFrom": "2026-01-05",
-            "dateTo": "2026-01-06"
+            "dateTo": "2026-01-06",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile empty \/ bad values \/ approved medical": {
@@ -2648,7 +2880,9 @@
             "reasonKind": "medical-appointment",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile empty \/ bad values \/ approved other": {
@@ -2668,7 +2902,9 @@
             "reasonKind": "family",
             "reason": "wedding",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile empty \/ bad values \/ pending": {
@@ -2688,7 +2924,9 @@
             "reasonKind": "illness",
             "reason": "cold",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile empty \/ bad values \/ no lifecycle": {
@@ -2708,7 +2946,9 @@
             "reasonKind": "illness",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile empty \/ bare record \/ no report": {
@@ -2741,7 +2981,9 @@
             "reasonKind": "illness",
             "reason": "flu",
             "dateFrom": "2026-01-05",
-            "dateTo": "2026-01-06"
+            "dateTo": "2026-01-06",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile empty \/ bare record \/ approved medical": {
@@ -2761,7 +3003,9 @@
             "reasonKind": "medical-appointment",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile empty \/ bare record \/ approved other": {
@@ -2781,7 +3025,9 @@
             "reasonKind": "family",
             "reason": "wedding",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile empty \/ bare record \/ pending": {
@@ -2801,7 +3047,9 @@
             "reasonKind": "illness",
             "reason": "cold",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     },
     "profile empty \/ bare record \/ no lifecycle": {
@@ -2821,7 +3069,9 @@
             "reasonKind": "illness",
             "reason": "",
             "dateFrom": "",
-            "dateTo": ""
+            "dateTo": "",
+            "seenBy": "",
+            "seenAt": ""
         }
     }
 }
