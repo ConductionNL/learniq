@@ -33,7 +33,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\SsoAttributeMappingApplier;
+use OCA\Learniq\Kernel\Contracts\SsoAttributeMappingApplierInterface;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
@@ -64,7 +64,7 @@ class SsoProfileFillListener implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param SsoAttributeMappingApplier $applier       Turns the attributes into profile fields.
+	 * @param SsoAttributeMappingApplierInterface $applier       Turns the attributes into profile fields.
 	 * @param ObjectService              $objectService Reads and writes the profile.
 	 * @param ISession                   $session       Holds the sign-in's attributes.
 	 * @param LoggerInterface            $logger        Logs a failed write.
@@ -72,7 +72,7 @@ class SsoProfileFillListener implements IEventListener {
 	 * @return void
 	 */
 	public function __construct(
-		private readonly SsoAttributeMappingApplier $applier,
+		private readonly SsoAttributeMappingApplierInterface $applier,
 		private readonly ObjectService $objectService,
 		private readonly ISession $session,
 		private readonly LoggerInterface $logger,

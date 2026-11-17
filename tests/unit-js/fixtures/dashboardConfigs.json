@@ -237,6 +237,11 @@
 				"id": "teacher-cohorts",
 				"title": "My cohorts",
 				"type": "custom"
+			},
+			{
+				"id": "teacher-course-day-parts",
+				"title": "Attendance per part of the day",
+				"type": "custom"
 			}
 		],
 		"layout": [
@@ -289,6 +294,14 @@
 				"gridY": 6,
 				"gridWidth": 6,
 				"gridHeight": 4
+			},
+			{
+				"id": 7,
+				"widgetId": "teacher-course-day-parts",
+				"gridX": 0,
+				"gridY": 10,
+				"gridWidth": 12,
+				"gridHeight": 3
 			}
 		]
 	},
@@ -364,6 +377,11 @@
 				"id": "teacher-cohorts",
 				"title": "My cohorts",
 				"type": "custom"
+			},
+			{
+				"id": "teacher-course-day-parts",
+				"title": "Attendance per part of the day",
+				"type": "custom"
 			}
 		],
 		"layout": [
@@ -416,6 +434,14 @@
 				"gridY": 6,
 				"gridWidth": 6,
 				"gridHeight": 4
+			},
+			{
+				"id": 7,
+				"widgetId": "teacher-course-day-parts",
+				"gridX": 0,
+				"gridY": 10,
+				"gridWidth": 12,
+				"gridHeight": 3
 			}
 		]
 	},
@@ -463,6 +489,11 @@
 				"id": "teacher-cohorts",
 				"title": "My cohorts",
 				"type": "custom"
+			},
+			{
+				"id": "teacher-course-day-parts",
+				"title": "Attendance per part of the day",
+				"type": "custom"
 			}
 		],
 		"layout": [
@@ -515,6 +546,14 @@
 				"gridY": 6,
 				"gridWidth": 6,
 				"gridHeight": 4
+			},
+			{
+				"id": 7,
+				"widgetId": "teacher-course-day-parts",
+				"gridX": 0,
+				"gridY": 10,
+				"gridWidth": 12,
+				"gridHeight": 3
 			}
 		]
 	},
