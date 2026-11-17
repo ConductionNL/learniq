@@ -709,8 +709,42 @@ class StudentPortalPages {
 			$pages[] = (new StudentSelfAssessment())->page();
 		}
 
+		// Her documents, a group per enrolment (school-documents-on-the-portal T3).
+		if (in_array('studentEnrolments', array_column($collections, 'id'), true) === true) {
+			$pages[] = $this->documentsPage();
+		}
+
 		return $pages;
 	}//end pages()
+
+	/**
+	 * Her documents (vaartveld/Documenten, esdoornveen/Documenten): a group
+	 * per enrolment with her reports, statements, agreements and
+	 * certificates. Portaliq lists every group through the per-row route,
+	 * which proves the enrolment is hers before LearnerDocuments is asked.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-each-school-audience-offers-its-own-documents-grouped-per-record
+	 */
+	public function documentsPage(): array {
+		return [
+			'id' => 'studentDocuments',
+			'label' => 'Documents',
+			'icon' => 'FileDocumentMultipleOutline',
+			'group' => ParentSitePages::GROUP,
+			'blocks' => [
+				['type' => 'richText', 'markdown' => 'Your reports, choices, agreements and certificates. You can download and keep them all.'],
+				[
+					'type' => 'documents',
+					'collection' => 'studentEnrolments',
+					'eachRecord' => true,
+					'titleFields' => ['cohortName'],
+					'emptyLabel' => 'There are no documents yet.',
+				],
+			],
+		];
+	}//end documentsPage()
 
 	/**
 	 * The overview, in the order of the board (school-design vaartveld,

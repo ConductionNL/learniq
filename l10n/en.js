@@ -5674,7 +5674,15 @@ OC.L10N.register(
         "The phase the card was moved to by hand.": "The phase the card was moved to by hand.",
         "Nextcloud user ID of who moved the card; stamped by the server.": "Nextcloud user ID of who moved the card; stamped by the server.",
         "When the card was moved; stamped by the server.": "When the card was moved; stamped by the server.",
-        "The facts the manual move holds for; the move lapses when one of them changes. Stamped by the server.": "The facts the manual move holds for; the move lapses when one of them changes. Stamped by the server."
+        "The facts the manual move holds for; the move lapses when one of them changes. Stamped by the server.": "The facts the manual move holds for; the move lapses when one of them changes. Stamped by the server.",
+        "Choices and statements": "Choices and statements",
+        "Contracts": "Contracts",
+        "Signed by all three": "Signed by all three",
+        "Waiting for your signature": "Waiting for your signature",
+        "Waiting for the training company": "Waiting for the training company",
+        "Waiting for your parent": "Waiting for your parent",
+        "Your reports, choices, agreements and certificates. You can download and keep them all.": "Your reports, choices, agreements and certificates. You can download and keep them all.",
+        "There are no documents yet.": "There are no documents yet."
     },
     "nplurals=2; plural=(n != 1);"
 )
