@@ -25,6 +25,7 @@
 		"BpvHourWeeksMenu",
 		"BpvPlacementsMenu",
 		"BpvVisitReportsMenu",
+		"BpvVisitsMenu",
 		"BsaDecisionsMenu",
 		"BsaRiskDashboardMenu",
 		"BsaTrajectoriesMenu",
@@ -37,6 +38,7 @@
 		"ConferenceReportsMenu",
 		"ConferenceScheduleBoardMenu",
 		"CourseDaysMenu",
+		"CourseParticipantsMenu",
 		"CourseEvaluationResponsesMenu",
 		"CoursePackageImportReportsMenu",
 		"CourseQualityReportMenu",
@@ -84,6 +86,7 @@
 		"LearnerEngagementsMenu",
 		"LearnerProfilesMenu",
 		"LearningPlans",
+		"LeaveRequestsMenu",
 		"LessonCompletionsMenu",
 		"PermissionRequestsMenu",
 		"PointAwardsMenu",
@@ -1317,6 +1320,13 @@
 						"icon": "CalendarRemoveOutline",
 						"handler": "navigate",
 						"route": "ExcuseRequests"
+					},
+					{
+						"id": "open-leave-requests",
+						"label": "Leave to decide",
+						"icon": "CalendarQuestion",
+						"handler": "navigate",
+						"route": "LeaveRequests"
 					},
 					{
 						"id": "open-nearing-limit",

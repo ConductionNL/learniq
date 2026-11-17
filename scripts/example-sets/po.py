@@ -107,6 +107,8 @@ SCHEMAS = [
     # Appended last (permission-slips): every earlier schema keeps its uuid namespace.
     "permission-request",
     "permission-response",
+    # Appended last (leave-requests-decided-by-the-school, after permission-slips): every earlier schema keeps its uuid namespace.
+    "leave-request",
 ]
 
 # School events a parent sees in the portal calendar: (title, start, end, kind, groups or None for the whole
@@ -931,6 +933,8 @@ class SchoolYear:
         add_nearing_pupils(self.b, self.pupils, self.cohorts)
         # learner-list-and-page-follow-the-boards: groep 7's Monday on the list board, after every other object.
         add_group7_today(self.b, self.pupils, self.cohorts)
+        # leave-requests-decided-by-the-school: added last, so no uuid moves.
+        add_leave_requests(self.b, LEAVE_REQUESTS)
         stamp_group_labels(self.b)
 
     def assemble(self) -> dict:
@@ -1513,6 +1517,34 @@ def add_conference_invitations(b: Builder) -> None:
             row["status"] = status
             row["tenant_id"] = round_.get("tenant_id", TENANT)
             b.add("conference-invitation", row)
+
+
+# Leave requests that wait for the directeur or teamleider (leave-requests-decided-by-the-school): (class,
+# skip ncUserIds, kind, first day, last day, reason, school days, decide by). The school days and the deadline are
+# what LeaveRequestSchoolDaysStamp writes on a live save; the families are the set's own, standing in for the
+# board's El Idrissi and Jansen.
+LEAVE_REQUESTS = [
+    ("Groep 7", set(), "wedding", "2026-10-29", "2026-10-30", "Bruiloft in de familie, in Rabat.", 2, "2026-10-07"),
+    ("Groep 4", set(), "family-circumstance", "2026-11-13", "2026-11-13", "Vijftigjarig huwelijk van opa en oma.", 1, "2026-10-09"),
+]
+
+
+def add_leave_requests(b: Builder, rows: list[tuple]) -> None:
+    """An open leave request per row, asked by the pupil's first guardian, for the first pupil of the class on
+    its list that the row does not skip. Runs last and draws no random number, so no earlier uuid moves.
+
+    @spec openspec/changes/leave-requests-decided-by-the-school/tasks.md
+    """
+    profiles = {p["ncUserId"]: p for p in b.buckets["learner-profile"]}
+    for class_name, skip, kind, first, last, reason, school_days, decide_by in rows:
+        cohort = next(c for c in b.buckets["cohort"] if c["name"] == class_name)
+        pupil = next(profiles[nc] for nc in sorted(cohort["learnerIds"]) if nc not in skip and profiles[nc].get("guardianRefs"))
+        b.add("leave-request", {
+            "learnerRef": pupil["uuid"], "requestedByRef": pupil["guardianRefs"][0],
+            "dateFrom": first, "dateTo": last, "kind": kind, "reason": reason,
+            "schoolDays": school_days, "decideBy": decide_by, "lifecycle": "submitted",
+            "teacherIds": list(cohort.get("teacherIds") or []),
+        })
 
 
 def add_detail_records(b: Builder, pupils: list[dict], subject_courses: dict) -> None:

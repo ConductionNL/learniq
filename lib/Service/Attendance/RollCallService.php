@@ -332,7 +332,12 @@ class RollCallService implements RollCallServiceInterface {
 	private function pupils(array $cohort, array $records, string $date, string $userId): array {
 		$learnerIds = $this->learnerIdsOf(cohort: $cohort);
 		$profiles = $this->reader->profilesOf(learnerIds: $learnerIds);
-		$reports = $this->seen->seen(reports: $this->reader->reportsOn(learnerIds: $learnerIds, date: $date), userId: $userId);
+		// Allowed leave reads as an absence with permission, the way an approved report does;
+		// a group teacher's first look is recorded on the real reports only.
+		$reports = RollCallReader::withLeave(
+			reports: $this->seen->seen(reports: $this->reader->reportsOn(learnerIds: $learnerIds, date: $date), userId: $userId),
+			leave: $this->reader->allowedLeaveOn(learnerIds: $learnerIds, date: $date)
+		);
 
 		$rows = [];
 		foreach ($learnerIds as $learnerId) {
