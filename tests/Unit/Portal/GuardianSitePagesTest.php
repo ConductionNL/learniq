@@ -28,6 +28,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Portal;
 
+use OCA\Learniq\Portal\ParentLeaveRequests;
 use OCA\Learniq\Portal\ParentPermissionSlips;
 use OCA\Learniq\Portal\ParentSitePages;
 use OCA\Learniq\Portal\PortalContributionProvider;
@@ -95,16 +96,18 @@ class GuardianSitePagesTest extends TestCase {
 		// An open permission request is the second kind of task, with its deadline (permission-slips T4).
 		self::assertSame(expected: ParentPermissionSlips::tasksBlock(), actual: $overview['blocks'][2]);
 		self::assertSame(expected: ['parentPermissionRequests', 'respondBy'], actual: [$overview['blocks'][2]['collection'], $overview['blocks'][2]['dueField']]);
-		$events = array_values(array_filter($overview['blocks'][5]['sources'], static fn (array $src): bool => $src['collection'] === 'parentSchoolEvents'))[0];
+		$events = array_values(array_filter($overview['blocks'][6]['sources'], static fn (array $src): bool => $src['collection'] === 'parentSchoolEvents'))[0];
 		self::assertSame('description', $events['metaField'], 'the line under each tile');
 		self::assertSame('parentOverview', $manifest['pages'][0]['id']);
-		// The board's order (school-design wilgenboom MijnOverzicht): greeting, the task, the children, news, this month,
-		// the latest grades with the link to the reports, and nothing else.
+		// The board's order (school-design wilgenboom MijnOverzicht): greeting, the two kinds of task, a leave request the school
+		// still decides (leave-requests-decided-by-the-school), the children, news, this month, the latest grades with
+		// the link to the reports, and nothing else.
 		self::assertSame(
-			expected: ['greeting', 'tasks', 'tasks', 'collection', 'news', 'calendar', 'collection', 'cta'],
+			expected: ['greeting', 'tasks', 'tasks', 'collection', 'collection', 'news', 'calendar', 'collection', 'cta'],
 			actual: array_column(array: $overview['blocks'], column_key: 'type')
 		);
-		$grades = $overview['blocks'][6];
+		self::assertSame(expected: (new ParentLeaveRequests())->overviewBlock(), actual: $overview['blocks'][3]);
+		$grades = $overview['blocks'][7];
 		self::assertSame(expected: ParentSitePages::latestGradesBlock(), actual: $grades);
 		self::assertSame(expected: ['parentGrades', 'Latest grades', 'value'], actual: [$grades['collection'], $grades['label'], $grades['statusField']]);
 		$projected = array_column(array: $manifest['collections'], column_key: null, index_key: 'id')['parentGrades']['fields'];
@@ -112,25 +115,25 @@ class GuardianSitePagesTest extends TestCase {
 			self::assertContains(needle: $field, haystack: $projected, message: $field);
 		}
 
-		self::assertSame(expected: ['type' => 'cta', 'page' => 'parentChildren', 'label' => 'Reports'], actual: $overview['blocks'][7]);
+		self::assertSame(expected: ['type' => 'cta', 'page' => 'parentChildren', 'label' => 'Reports'], actual: $overview['blocks'][8]);
 		// Lane L2's greeting: `label` plus exactly one target.
 		self::assertSame(['type' => 'greeting', 'label' => 'Report absent', 'action' => 'createExcuseRequest'], $overview['blocks'][0]);
-		self::assertSame(['groupLabel'], $overview['blocks'][3]['subtitleFields']);
+		self::assertSame(['groupLabel'], $overview['blocks'][4]['subtitleFields']);
 		// "Deze maand" is this month only, and a booked conversation reads as words with the teacher under it.
-		self::assertSame('month', $overview['blocks'][5]['range']);
-		$slots = array_values(array_filter($overview['blocks'][5]['sources'], static fn (array $src): bool => $src['collection'] === 'parentConferenceSlots'))[0];
+		self::assertSame('month', $overview['blocks'][6]['range']);
+		$slots = array_values(array_filter($overview['blocks'][6]['sources'], static fn (array $src): bool => $src['collection'] === 'parentConferenceSlots'))[0];
 		self::assertArrayNotHasKey('titleField', $slots);
 		self::assertSame(['Parent-teacher conversation', 'teacherName'], [$slots['title'], $slots['metaField']]);
 		self::assertSame(['type' => 'tasks', 'label' => 'Still to do', 'display' => 'highlight', 'collection' => 'parentConferenceInvitations', 'dueField' => 'bookingClosesAt', 'titleFields' => ['roundName'], 'buttonLabel' => 'Pick a time', 'dueInLine' => true], array_diff_key($overview['blocks'][1], ['lookups' => 1, 'titleTemplate' => 1]));
-		self::assertSame(['parentChildren', 'cards'], [$overview['blocks'][3]['collection'], $overview['blocks'][3]['display']]);
+		self::assertSame(['parentChildren', 'cards'], [$overview['blocks'][4]['collection'], $overview['blocks'][4]['display']]);
 		// The child's chip is derived from the guardian's own reports, every field it reads projected.
-		$status = $overview['blocks'][3]['status'];
+		$status = $overview['blocks'][4]['status'];
 		self::assertSame(['parentExcuseRequests', 'Reported sick', 'At school'], [$status['collection'], $status['label'], $status['otherLabel']]);
 		$reports = array_column($manifest['collections'], null, 'id')['parentExcuseRequests'];
 		foreach ([$status['matchField'], $status['fromField'], $status['toField'], $status['only']['field']] as $field) {
 			self::assertContains($field, $reports['fields'], $field);
 		}
-		self::assertSame('tiles', $overview['blocks'][5]['display']);
+		self::assertSame('tiles', $overview['blocks'][6]['display']);
 		$absence = self::pages(audience: 'parent')['parentAbsence'];
 		$reports = array_values(array_filter($absence['blocks'], static fn (array $b): bool => ($b['collection'] ?? '') === 'parentExcuseRequests'))[0];
 		self::assertSame(['rows', 'dateFrom', 'lifecycle', 'decidedBy'], [$reports['display'], $reports['dateField'], $reports['statusField'], $reports['statusNoteField']]);
@@ -222,7 +225,11 @@ class GuardianSitePagesTest extends TestCase {
 		self::assertSame('Another reason', $configs['reasonKind']['otherLabel']);
 		self::assertSame('dateChoices', $configs['dateFrom']['widget']);
 		self::assertSame('dateChoices', $configs['dateTo']['widget']);
-		self::assertSame('Choose the last day your child is absent.', $configs['dateTo']['requiredMessage']);
+		// An illness may stay open until the child is better (absence-reports-seen-and-ended).
+		self::assertFalse($configs['dateTo']['required']);
+		self::assertSame('Ill and not better yet? Leave it empty and report better later.', $configs['dateTo']['help']);
+		self::assertSame(['label' => 'From lesson hour', 'required' => false], $configs['fromLessonHour']);
+		self::assertSame(['label' => 'To lesson hour', 'required' => false], $configs['toLessonHour']);
 
 		// Every card is a real absence kind, so portaliq keeps it.
 		$register = json_decode((string)file_get_contents(__DIR__ . '/../../../lib/Settings/learniq_register.json'), true);
@@ -291,6 +298,12 @@ class GuardianSitePagesTest extends TestCase {
 		self::assertSame('studentHomework', $overview['blocks'][3]['collection']);
 		self::assertSame('dueAt', $overview['blocks'][3]['dueField']);
 		self::assertSame('highlight', $overview['blocks'][3]['display']);
+		// Handed-in work leaves the list: her own submission per assignment, by its lifecycle (portaliq REQ-SMO-025).
+		self::assertSame(
+			[['as' => 'submission', 'collection' => 'studentSubmissions', 'matchField' => 'assignmentId', 'valueField' => 'lifecycle']],
+			$overview['blocks'][3]['lookups']
+		);
+		self::assertSame(['lookup' => 'submission', 'in' => ['submitted', 'late', 'returned']], $overview['blocks'][3]['excludeWhen']);
 		self::assertSame(['studentGrades', 3], [$overview['blocks'][4]['collection'], $overview['blocks'][4]['limit']]);
 		self::assertSame('studentAttendanceSummary', $overview['blocks'][5]['collection']);
 		self::assertSame(['absentDays', 'lateCount', 'absentUnauthorisedDays'], array_column($overview['blocks'][5]['cards'], 'field'));
@@ -344,7 +357,11 @@ class GuardianSitePagesTest extends TestCase {
 		$absence = $actions['createExcuseRequest']['fieldConfigs'];
 		self::assertSame('dateChoices', $absence['dateFrom']['widget']);
 		self::assertSame('choices', $absence['reasonKind']['widget']);
-		self::assertSame('Choose the last day you are absent.', $absence['dateTo']['requiredMessage']);
+		// She may leave an illness open and name lesson hours (absence-reports-seen-and-ended).
+		self::assertFalse($absence['dateTo']['required']);
+		self::assertSame('Ill and not better yet? Leave it empty and report better later.', $absence['dateTo']['help']);
+		self::assertSame('From lesson hour', $absence['fromLessonHour']['label']);
+		self::assertSame('To lesson hour', $absence['toLessonHour']['label']);
 	}//end testThePupilsFormsLabelEveryFieldTheyAskFor()
 
 	/**
@@ -381,7 +398,7 @@ class GuardianSitePagesTest extends TestCase {
 		self::assertTrue($overview['home']);
 		self::assertSame('My space', $overview['group']);
 		self::assertSame(
-			['greeting', 'tasks', 'collection', 'collection', 'collection', 'cta', 'cta', 'cta', 'inbox'],
+			['greeting', 'tasks', 'collection', 'collection', 'collection', 'tasks', 'cta', 'cta', 'cta', 'cta', 'inbox'],
 			array_column($overview['blocks'], 'type')
 		);
 		self::assertSame(['field' => 'assessedAt', 'direction' => 'desc'], $overview['blocks'][4]['sort']);
@@ -400,8 +417,20 @@ class GuardianSitePagesTest extends TestCase {
 		self::assertSame('My BPV placements', $overview['blocks'][3]['label']);
 		self::assertArrayNotHasKey('label', $overview['blocks'][4]);
 
+		// bpv-coach-today-and-placement-board T3: the visit dates waiting for
+		// her answer, soonest first, with the form to answer them on their page.
+		$visits = $overview['blocks'][5];
+		self::assertSame('poBpvVisits', $visits['collection']);
+		self::assertSame('proposedAt', $visits['dueField']);
+		self::assertSame(['type' => 'action', 'action' => 'answerBpvVisit'], $pages['poBpvVisits']['blocks'][0]);
+		$visitCollection = array_column($manifest['collections'], null, 'id')['poBpvVisits'];
+		self::assertSame(['lifecycle' => 'proposed'], $visitCollection['filter']);
+		self::assertSame('bpv-placement', $visitCollection['via']['schema']);
+		self::assertSame('practicalTrainerId', $visitCollection['via']['scopeField']);
+		self::assertNotContains('schoolCoachId', $visitCollection['fields']);
+
 		self::assertSame(
-			['poOverview', 'poBpvPlacements', 'poSharedPortfolios', 'poWerkprocesAssessments', 'poHourWeeks', 'poLearners'],
+			['poOverview', 'poBpvPlacements', 'poSharedPortfolios', 'poWerkprocesAssessments', 'poHourWeeks', 'poLearners', 'poBpvVisits'],
 			array_keys($pages)
 		);
 

@@ -45,6 +45,8 @@ $routes = [
         // Public credential verification — no auth, per ADR-031 external-system contract.
         // Controller: CredentialVerifyController (slug: credentialVerify).
         ['name' => 'credentialVerify#verify', 'url' => '/api/credentials/{id}/verify', 'verb' => 'GET'],
+        // The readable page a browser is sent to from that link (certificate-verification-and-key-rotation).
+        ['name' => 'credentialVerifyPage#show', 'url' => '/verify/{id}', 'verb' => 'GET', 'requirements' => ['id' => '[^/]+']],
         // Europass file check (credentials-europass-edci-export): public like the
         // GET, answers validity only, never the stored payload.
         ['name' => 'credentialVerify#verifyEuropass', 'url' => '/api/credentials/{id}/verify', 'verb' => 'POST'],
@@ -220,6 +222,9 @@ $routes = [
         // student's hours. Same assertion receiver pattern: the assertion is
         // the only place her sign-in level can be read.
         ['name' => 'portalHourWeek#approve',     'url' => '/api/portal/hour-weeks/approve', 'verb' => 'POST'],
+        // bpv-coach-today-and-placement-board: the trainer accepts or answers a
+        // visit date the school coach proposed. Same assertion receiver pattern.
+        ['name' => 'portalBpvVisit#answer',      'url' => '/api/portal/bpv-visits/answer', 'verb' => 'POST'],
         // A student writes one day of her week of hours (bpv-hours-per-day).
         ['name' => 'portalHourDay#write',        'url' => '/api/portal/hour-weeks/day',     'verb' => 'POST'],
         // A guardian's answer to a permission request (permission-slips).
@@ -230,6 +235,8 @@ $routes = [
         ['name' => 'portalEmployer#book',            'url' => '/api/portal/employer/bookings',     'verb' => 'POST'],
         ['name' => 'portalEmployer#addParticipant',  'url' => '/api/portal/employer/participants', 'verb' => 'POST'],
         ['name' => 'portalEmployer#supplyBirthDate', 'url' => '/api/portal/employer/birth-date',   'verb' => 'POST'],
+        // employer-substitutes-a-colleague: a colleague in a participant's place, before the deadline.
+        ['name' => 'portalEmployer#substitute',      'url' => '/api/portal/employer/substitutions', 'verb' => 'POST'],
 
         // Personal timetable — the caller's own sessions for a window, resolved
         // from cohort membership (teacher/learner) via ObjectService (RBAC-scoped).
@@ -371,6 +378,9 @@ $routes = [
         // today's state, the "Wat nu?" next step and the people around the pupil.
         // Controller: PupilPageController (slug: pupilPage); access as the group's register.
         ['name' => 'pupilPage#show', 'url' => '/api/pupils/{learnerId}/page', 'verb' => 'GET'],
+        ['name' => 'pupilConversation#show', 'url' => '/api/pupils/{learnerId}/conversation', 'verb' => 'GET'],
+        ['name' => 'pupilConversation#reply', 'url' => '/api/pupils/{learnerId}/conversation', 'verb' => 'POST'],
+        ['name' => 'pupilList#index', 'url' => '/api/pupil-list', 'verb' => 'GET'],
         // Course catalogue (enrolment-catalogue-self-signup): the signed-in
         // learner lists what they may sign up for, signs up for a course or a
         // programme, and withdraws an own sign-up; every write is for the

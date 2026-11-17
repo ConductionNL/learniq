@@ -7,7 +7,8 @@
 		"description": "GroupPeople. Also carries the former people-dashboard.json content (GroupPeople.route + the PeopleDashboard page).",
 		"menuNotes": {
 			"RollCallMenu": "attendance-roll-call: the day's register of one group. A group teacher lands on their own group and today; coordinators and administration-managers pick any group. The server (RollCallService) decides who may open which group, so the gate here only decides who sees the entry.",
-			"AbsenceReportsMenu": "The absence reports guardians and the school file (ExcuseRequest). The list reads only what the register lets the user read: a group teacher sees the reports of their own groups (teacherIds), coordinators and directors the whole school. hr is left out because ExcuseRequest does not grant it. Compliance officers can read the reports too, but GroupPeople does not reach them, so AbsenceReportsComplianceMenu gives them the same page under Compliance. School-only, like the AttendanceFlags report card."
+			"AbsenceReportsMenu": "The absence reports guardians and the school file (ExcuseRequest). The list reads only what the register lets the user read: a group teacher sees the reports of their own groups (teacherIds), coordinators and directors the whole school. hr is left out because ExcuseRequest does not grant it. Compliance officers can read the reports too, but GroupPeople does not reach them, so AbsenceReportsComplianceMenu gives them the same page under Compliance. School-only, like the AttendanceFlags report card.",
+			"LeaveRequestsMenu": "leave-requests-decided-by-the-school: the leave requests that wait for a decision, oldest first. Only the directeur or teamleider (administration-manager) decides, so only they and admin see the entry; LeaveDecisionGuard refuses a decision by anyone else. School-only, like AbsenceReportsMenu."
 		}
 	},
 	"menu": [
@@ -119,6 +120,26 @@
 							"in": [
 								"instructor",
 								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						},
+						"workspace.chosenSegment": {
+							"notIn": [
+								"corporate"
+							]
+						}
+					}
+				},
+				{
+					"id": "LeaveRequestsMenu",
+					"label": "Leave to decide",
+					"icon": "CalendarQuestion",
+					"route": "LeaveRequests",
+					"order": 32,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
 								"administration-manager",
 								"admin"
 							]
@@ -1834,6 +1855,272 @@
 			}
 		},
 		{
+			"id": "LeaveRequests",
+			"route": "/attendance/leave",
+			"type": "index",
+			"title": "Leave to decide",
+			"config": {
+				"showTitle": true,
+				"register": "learniq",
+				"schema": "leave-request",
+				"_note": "leave-requests-decided-by-the-school (T4): the requests that wait for a decision, oldest first (sorted on the deadline, which follows the day of asking), with the date the school must answer by. A request opens on LeaveRequestDetail, where Allow, Refuse and Forward are the lifecycle's transitions.",
+				"filter": {
+					"lifecycle": "submitted"
+				},
+				"defaultSort": {
+					"field": "decideBy",
+					"direction": "asc"
+				},
+				"rowRoute": "LeaveRequestDetail",
+				"columns": [
+					{
+						"key": "learnerRef",
+						"label": "Pupil",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "learner-profile",
+							"labelTemplate": "{fullName}, {groupLabel}"
+						}
+					},
+					{
+						"key": "dateFrom",
+						"label": "From",
+						"formatter": "date"
+					},
+					{
+						"key": "dateTo",
+						"label": "Until",
+						"formatter": "date"
+					},
+					{
+						"key": "kind",
+						"label": "Kind of leave"
+					},
+					{
+						"key": "schoolDays",
+						"label": "School days"
+					},
+					{
+						"key": "decideBy",
+						"label": "Decide by",
+						"formatter": "date"
+					}
+				],
+				"showAdd": false,
+				"showFormDialog": false,
+				"showCopyAction": false,
+				"showDeleteAction": false,
+				"showMassImport": false,
+				"showMassCopy": false,
+				"showMassDelete": false
+			}
+		},
+		{
+			"id": "LeaveRequestDetail",
+			"route": "/attendance/leave/:id",
+			"type": "detail",
+			"title": "Leave request",
+			"config": {
+				"register": "learniq",
+				"schema": "leave-request",
+				"_note": "leave-requests-decided-by-the-school (T4): the request as the guardian asked it and the decision. Allow, Refuse (a note is required) and Forward are the lifecycle's transitions; LeaveDecisionGuard allows the school's own decision up to ten school days and only the forward above ten, and says so in words.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"statusPill": {
+					"field": "lifecycle",
+					"labels": {
+						"submitted": "Submitted",
+						"allowed": "Allowed",
+						"refused": "Refused",
+						"forwarded": "Forwarded to the attendance officer",
+						"withdrawn": "Request withdrawn"
+					},
+					"colorMap": {
+						"allowed": "success",
+						"refused": "error",
+						"submitted": "warning"
+					}
+				},
+				"breadcrumb": {
+					"label": "Leave to decide",
+					"route": "LeaveRequests"
+				},
+				"headerMeta": "decide by {decideBy}",
+				"widgets": [
+					{
+						"id": "lr-request",
+						"type": "facts",
+						"title": "Request",
+						"content": {
+							"fields": [
+								{
+									"path": "learnerRef",
+									"label": "Pupil",
+									"resolve": {
+										"register": "learniq",
+										"schema": "learner-profile",
+										"labelField": "fullName"
+									}
+								},
+								{
+									"path": "dateFrom",
+									"label": "From",
+									"format": "longdate"
+								},
+								{
+									"path": "dateTo",
+									"label": "Until",
+									"format": "longdate"
+								},
+								{
+									"path": "kind",
+									"label": "Kind of leave",
+									"map": {
+										"wedding": "Wedding",
+										"funeral": "Funeral",
+										"religious-observance": "Religious observance",
+										"family-circumstance": "Family circumstance",
+										"holiday-outside-school-holidays": "Holiday outside the school holidays",
+										"other": "Other"
+									}
+								},
+								{
+									"path": "reason",
+									"label": "Reason"
+								},
+								{
+									"path": "schoolDays",
+									"label": "School days"
+								},
+								{
+									"path": "decideBy",
+									"label": "Decide by",
+									"format": "longdate"
+								}
+							],
+							"columns": 2,
+							"notice": {
+								"text": "Up to ten school days the school decides. Above ten, forward the request to the attendance officer. A refusal needs a reason: the parents read it."
+							}
+						}
+					},
+					{
+						"id": "lr-decision",
+						"type": "facts",
+						"title": "Decision",
+						"content": {
+							"fields": [
+								{
+									"path": "decidedBy",
+									"label": "Decided by",
+									"emptyValue": "Not decided yet"
+								},
+								{
+									"path": "decidedAt",
+									"label": "Decided at",
+									"format": "longdate"
+								},
+								{
+									"path": "decisionNote",
+									"label": "Explanation"
+								}
+							],
+							"columns": 1
+						}
+					},
+					{
+						"id": "lr-files",
+						"type": "integration",
+						"integrationId": "files",
+						"title": "Attachment",
+						"icon": "FolderOutline"
+					},
+					{
+						"id": "board-history",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 50,
+							"layout": "stacked"
+						}
+					},
+					{
+						"id": "board-tabs",
+						"type": "tabs",
+						"title": "Panels",
+						"content": {
+							"ariaLabel": "Details",
+							"tabs": [
+								{
+									"label": "Request",
+									"widgetIds": [
+										"lr-request"
+									]
+								},
+								{
+									"label": "Attachment",
+									"widgetId": "lr-files"
+								},
+								{
+									"widgetId": "board-history",
+									"label": "Record history"
+								}
+							]
+						}
+					}
+				],
+				"sideColumn": [
+					"lr-decision",
+					{
+						"id": "board-history-card",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 5,
+							"layout": "stacked"
+						}
+					}
+				],
+				"board": {
+					"tabs": [
+						{
+							"label": "Request",
+							"widgetIds": [
+								"lr-request"
+							]
+						},
+						{
+							"label": "Attachment",
+							"widgetId": "lr-files"
+						}
+					]
+				},
+				"follow": false,
+				"showWidgetActions": false,
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "board-tabs",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 18,
+						"showTitle": false
+					}
+				]
+			}
+		},
+		{
 			"id": "AttendanceThresholds",
 			"route": "/attendance/thresholds",
 			"type": "index",
@@ -2655,7 +2942,161 @@
 				"massActionNameField": "fullName",
 				"bulkNoun": "learners",
 				"bulkBandAlways": true,
-				"allowSavedViews": true
+				"allowSavedViews": true,
+				"headerActions": [
+					{
+						"id": "open-group-pupils",
+						"label": "Pupils of my group",
+						"icon": "AccountMultipleOutline",
+						"handler": "navigate",
+						"route": "GroupPupils"
+					}
+				]
+			}
+		},
+		{
+			"id": "GroupPupils",
+			"route": "/pupils",
+			"type": "index",
+			"title": "Pupils of my group",
+			"config": {
+				"_note": "learner-list-and-page-follow-the-boards T1/T2 (boards LqLijst): the staff list of the pupils of one group, read from GET /api/pupil-list (PupilListController), which answers only a teacher of the group or school-wide staff, a row per pupil with today's state (TodayState) and what the school kind acts on, and the total of the asked saved view, so each quick filter counts its pupils. The columns here are the primary school's (Vandaag, Afwezig dit jaar, Te laat, Oudergesprek, Zorg); the simple structure profile replaces them for vo and mbo (workspace.segment). A row opens the pupil's page (its id is the learner profile's). No Add, import or delete: pupils are added on the Learners list. spec: openspec/changes/learner-list-and-page-follow-the-boards/specs/pupil-dossier/spec.md#requirement-the-pupil-list-shows-what-the-school-kind-acts-on-and-its-saved-views-count",
+				"showTitle": true,
+				"entitySource": "endpoint",
+				"sourceConfig": {
+					"url": "/apps/learniq/api/pupil-list",
+					"rowsPath": "results",
+					"totalPath": "total",
+					"refusedText": "Only the teachers of a group and school-wide staff see its pupils."
+				},
+				"rowRoute": "LearnerProfileDetail",
+				"columns": [
+					{
+						"key": "name",
+						"label": "Pupil",
+						"widget": "avatar",
+						"widgetProps": {
+							"nameField": "name"
+						}
+					},
+					{
+						"key": "todayState",
+						"label": "Today",
+						"enum": [
+							"in-class",
+							"reported-ill",
+							"appointment",
+							"reported-absent",
+							"late",
+							"absent",
+							"not-registered"
+						],
+						"enumLabels": {
+							"in-class": "In class",
+							"reported-ill": "Reported ill",
+							"appointment": "Appointment",
+							"reported-absent": "Reported absent",
+							"late": "Late",
+							"absent": "Absent",
+							"not-registered": "Not registered yet"
+						}
+					},
+					{
+						"key": "absentDays",
+						"label": "Absent this year",
+						"widget": "number",
+						"widgetProps": {
+							"unit": {
+								"one": "{count} day",
+								"other": "{count} days"
+							}
+						}
+					},
+					{
+						"key": "lateCount",
+						"label": "Late",
+						"widget": "number",
+						"widgetProps": {
+							"unit": {
+								"one": "{count} time",
+								"other": "{count} times"
+							}
+						}
+					},
+					{
+						"key": "conferenceAt",
+						"label": "Parent conference",
+						"formatter": "datetime"
+					},
+					{
+						"key": "conferenceState",
+						"label": "Conference time",
+						"enum": [
+							"none",
+							"proposed",
+							"booked",
+							"confirmed",
+							"acknowledged"
+						],
+						"enumLabels": {
+							"none": "No time yet",
+							"proposed": "Waiting for the parents",
+							"booked": "Waiting on you",
+							"confirmed": "Confirmed",
+							"acknowledged": "Confirmed"
+						}
+					},
+					{
+						"key": "care",
+						"label": "Care",
+						"enum": [
+							"plan",
+							"support-request"
+						],
+						"enumLabels": {
+							"plan": "Plan running",
+							"support-request": "Support requested"
+						}
+					}
+				],
+				"quickFilters": [
+					{
+						"label": "All pupils",
+						"filter": {},
+						"showCount": true,
+						"default": true
+					},
+					{
+						"label": "Absent today",
+						"filter": {
+							"view": "absent-today"
+						},
+						"showCount": true
+					},
+					{
+						"label": "No conference time yet",
+						"filter": {
+							"view": "no-conference-time"
+						},
+						"showCount": true
+					},
+					{
+						"label": "With care",
+						"filter": {
+							"view": "with-care"
+						},
+						"showCount": true
+					},
+					{
+						"label": "With a signal",
+						"filter": {
+							"view": "with-signal"
+						},
+						"showCount": true
+					}
+				],
+				"countText": "{shown} of {total} pupils",
+				"emptyText": "No pupils in this group"
 			}
 		},
 		{
@@ -2666,7 +3107,7 @@
 			"config": {
 				"register": "learniq",
 				"schema": "learner-profile",
-				"_note": "Board LqLeerling (G2): the overview stacks recent grades, the latest attendance, the learner as a card and what else is in the dossier (counts); the other lists are tabs; the contact card beside it. The 'What now?' card and the people beside it read the pupil page endpoint (learner-list-and-page-follow-the-boards T3/T4); the header shows no learner number, because personalNumber is the BSN-type number. The conversation with the guardians waits on portaliq (T5). Actions holds Merge into another account (learner-merge-page-action): on an active learner it asks for the surviving account from a picker of the other active learners, confirms, and runs the merge transition; LearnerMergeGuard refuses a pair with an open enrolment in the same course and the dialog shows its reason. The HR system card (compliance-assign-from-hr-roles) shows department, job title, roles, manager and the HR source read only, only on a profile with hrSource; HrFieldOwnershipGuard refuses a manual change to them.",
+				"_note": "Board LqLeerling (G2): the overview stacks recent grades, the latest attendance, the learner as a card and what else is in the dossier (counts); the other lists are tabs; the contact card beside it. The 'What now?' card and the people beside it read the pupil page endpoint (learner-list-and-page-follow-the-boards T3/T4); the header shows no learner number, because personalNumber is the BSN-type number. The conversation with the guardians is a body section at the end (PupilGuardianConversation, T5): the reader's messages with the pupil's guardians through portaliq's staff messaging, with a reply box for a participant. Actions holds Merge into another account (learner-merge-page-action): on an active learner it asks for the surviving account from a picker of the other active learners, confirms, and runs the merge transition; LearnerMergeGuard refuses a pair with an open enrolment in the same course and the dialog shows its reason. The HR system card (compliance-assign-from-hr-roles) shows department, job title, roles, manager and the HR source read only, only on a profile with hrSource; HrFieldOwnershipGuard refuses a manual change to them.",
 				"lifecycleActions": {
 					"field": "lifecycle",
 					"transitions": [
@@ -3658,6 +4099,16 @@
 						"gridWidth": 12,
 						"gridHeight": 18,
 						"showTitle": false
+					}
+				],
+				"bodyWidgets": [
+					{
+						"id": "lprof-guardian-conversation",
+						"component": "PupilGuardianConversation",
+						"title": "Conversation with the parents",
+						"props": {
+							"learnerId": "@object.ncUserId"
+						}
 					}
 				]
 			}
