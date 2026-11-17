@@ -21,4 +21,5 @@
 ## 3. Tests and close out
 
 - [ ] 3.1 Playwright `tests/e2e/report-card-pdf.spec.ts` with filinq installed: publish a seeded finalised card, see the PDF on the staff page; sign in as the seeded guardian (nextcloud mode in the test portal) and download it; request another child's file and get 404. Tag the scenarios with `@e2e`.
+  - Written: `tests/e2e/report-card-pdf.spec.ts`, run with `tests/e2e/po-flow.config.ts` on the po-parent-flows instance with filinq enabled. The guardian signs in through the stub DigiD broker, not the `nextcloud` mode: a password sign-in is trust `low` and `parentReportCards` asks `substantial`. Left unticked until it has run live.
 - [ ] 3.2 Set row `grd-report-card-as-pdf` to `built`, `learniq: yes`, owner learniq, evidence and `reachedOn: "portal > child > report cards > Download as PDF"`; archive this change.
