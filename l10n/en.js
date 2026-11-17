@@ -5674,7 +5674,13 @@ OC.L10N.register(
         "The phase the card was moved to by hand.": "The phase the card was moved to by hand.",
         "Nextcloud user ID of who moved the card; stamped by the server.": "Nextcloud user ID of who moved the card; stamped by the server.",
         "When the card was moved; stamped by the server.": "When the card was moved; stamped by the server.",
-        "The facts the manual move holds for; the move lapses when one of them changes. Stamped by the server.": "The facts the manual move holds for; the move lapses when one of them changes. Stamped by the server."
+        "The facts the manual move holds for; the move lapses when one of them changes. Stamped by the server.": "The facts the manual move holds for; the move lapses when one of them changes. Stamped by the server.",
+        "Keuzedelen": "Keuzedelen",
+        "There are no keuzedelen to choose right now.": "There are no keuzedelen to choose right now.",
+        "{hours} SBU": "{hours} SBU",
+        "You chose this keuzedeel": "You chose this keuzedeel",
+        "Choose": "Choose",
+        "Choose a keuzedeel": "Choose a keuzedeel"
     },
     "nplurals=2; plural=(n != 1);"
 )

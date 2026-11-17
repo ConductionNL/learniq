@@ -18,6 +18,8 @@ namespace OCA\Learniq\Service\Exam;
 
 use DateTimeImmutable;
 use DateTimeZone;
+use OCA\Learniq\Service\Keuzedeel\KeuzedeelRules;
+use OCA\Learniq\Service\Keuzedeel\KeuzedeelStore;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
@@ -25,7 +27,8 @@ use Psr\Log\LoggerInterface;
 use Throwable;
 
 /**
- * Writes a student's exam progress and next sitting onto her learner profile.
+ * Writes a student's exam progress, next sitting and keuzedeel line onto her
+ * learner profile (the page's "Examens en keuzedelen" block).
  *
  * Reads her programme enrolment, its curriculum plan, her grade entries and
  * the planned sittings of her cohorts, derives the lines with ExamProgress
@@ -48,7 +51,7 @@ class ExamProgressRestamp {
 	 *
 	 * @var list<string>
 	 */
-	public const FIELDS = ['examComponentsPassed', 'examComponentsTotal', 'examProgressLabel', 'nextExamSittingId', 'nextExamLabel'];
+	public const FIELDS = ['examComponentsPassed', 'examComponentsTotal', 'examProgressLabel', 'nextExamSittingId', 'nextExamLabel', 'keuzedeelLabel'];
 
 	/**
 	 * Constructor.
@@ -148,7 +151,14 @@ class ExamProgressRestamp {
 			}
 		}
 
-		return $this->progress->derive(plan: $plan, entries: $entries, sittings: $sittings, now: $now);
+		$keuzedelen = new KeuzedeelStore(objectService: $this->objectService);
+		$line       = (new KeuzedeelRules())->line(
+			offers: $keuzedelen->offersFor(learnerUserId: $learnerUserId),
+			mine: $keuzedelen->choices(filters: ['learnerId' => $learnerUserId]),
+			now: $now
+		);
+
+		return $this->progress->derive(plan: $plan, entries: $entries, sittings: $sittings, now: $now) + ['keuzedeelLabel' => $line];
 	}//end copies()
 
 	/**

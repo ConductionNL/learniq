@@ -29,6 +29,8 @@ use Psr\Log\NullLogger;
  * @covers \OCA\Learniq\Service\Exam\ExamProgressRestamp
  * @uses   \OCA\Learniq\Service\Exam\ExamProgress
  * @uses   \OCA\Learniq\Service\Portal\CourseDayLines
+ * @uses   \OCA\Learniq\Service\Keuzedeel\KeuzedeelRules
+ * @uses   \OCA\Learniq\Service\Keuzedeel\KeuzedeelStore
  */
 class ExamProgressRestampTest extends TestCase {
 

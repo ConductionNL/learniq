@@ -300,6 +300,10 @@ $routes = [
         // user, never a body value); the roster and placing behind elective.manage.
         // Every write passes ElectiveSignUpRules. #[NoAdminRequired], checks in the body.
         ['name' => 'elective#mine', 'url' => '/api/electives', 'verb' => 'GET'],
+        // Keuzedelen (exam-committee-today-and-keuzedelen): the offers open to the signed-in
+        // student and choosing one; the student is the session user, never a body value.
+        ['name' => 'keuzedeel#mine', 'url' => '/api/keuzedelen', 'verb' => 'GET'],
+        ['name' => 'keuzedeel#choose', 'url' => '/api/keuzedelen/{offerId}/choose', 'verb' => 'POST', 'requirements' => ['offerId' => '[^/]+']],
         ['name' => 'elective#signUp', 'url' => '/api/electives/{offerId}/sign-up', 'verb' => 'POST', 'requirements' => ['offerId' => '[^/]+']],
         ['name' => 'elective#roster', 'url' => '/api/electives/{offerId}/roster', 'verb' => 'GET', 'requirements' => ['offerId' => '[^/]+']],
         ['name' => 'elective#place', 'url' => '/api/electives/{offerId}/place', 'verb' => 'POST', 'requirements' => ['offerId' => '[^/]+']],

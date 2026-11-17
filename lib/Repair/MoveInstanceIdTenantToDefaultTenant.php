@@ -79,6 +79,8 @@ class MoveInstanceIdTenantToDefaultTenant implements IRepairStep {
 		'group-plan',
 		'group-plan-evaluation',
 		'group-plan-subgroup',
+		'keuzedeel-choice',
+		'keuzedeel-offer',
 		'learning-plan',
 		'learning-plan-evaluation',
 		'learning-plan-template',

@@ -538,6 +538,14 @@
 			"title": "My evaluations",
 			"component": "MyEvaluationsView",
 			"_note": "Mounts MyEvaluationsView (assessment-course-evaluation-answer-page): the learner's open course evaluation invitations from learniq's GET /api/evaluations/mine and an answer form that posts to POST /api/evaluations/{invitationId}/answer, which stores the response without an owner and submits it through the guarded transition. Custom on purpose: a form built from another object's questions against learniq endpoints, not a list or record page of one schema."
+		},
+		{
+			"id": "MyKeuzedelen",
+			"route": "/my-keuzedelen",
+			"type": "custom",
+			"title": "Keuzedelen",
+			"component": "MyKeuzedelen",
+			"_note": "exam-committee-today-and-keuzedelen: the keuzedelen open to the student, through GET /api/keuzedelen; choosing goes through POST /api/keuzedelen/{offerId}/choose so KeuzedeelRules decides. No menu entry of its own (the learner menu is capped): reached from the Keuzedelen link on MyElectives."
 		}
 	]
 }

@@ -29,7 +29,8 @@ use Throwable;
  * Re-derives the exam progress of the students a change touches.
  *
  * A published result restamps its student; a new sitting, or a sitting that
- * is established or cancelled, restamps the students of its cohorts.
+ * is established or cancelled, restamps the students of its cohorts; an
+ * approved, placed or withdrawn keuzedeel choice restamps its student.
  *
  * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#task-T4
  *
@@ -71,6 +72,10 @@ class ExamProgressCascade implements IEventListener {
 			$schema = $this->schemas->eventSchema(event: $event);
 			$object = $event->getObject()->jsonSerialize();
 			if ($schema === 'grade-entry' && $event->getTo() === 'published') {
+				$this->restamp->restamp(learnerUserId: (string) ($object['learnerId'] ?? ''));
+			}
+
+			if ($schema === 'keuzedeel-choice') {
 				$this->restamp->restamp(learnerUserId: (string) ($object['learnerId'] ?? ''));
 			}
 
