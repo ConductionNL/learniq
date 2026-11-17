@@ -151,7 +151,7 @@ class ApplicationConversionHandler implements IEventListener {
 
 		$learnerProfileId = $this->createLearnerProfile(application: $application, ncUserId: $ncUserId, tenantId: $tenantId);
 
-		$enrolmentIds = $this->createEnrolments(programmeId: $programmeId, ncUserId: $ncUserId, tenantId: $tenantId);
+		$enrolmentIds = $this->createEnrolments(programmeId: $programmeId, args: ['ncUserId' => $ncUserId, 'tenantId' => $tenantId]);
 
 		$this->objectService->saveObject(
 			object: array_merge(
@@ -215,15 +215,17 @@ class ApplicationConversionHandler implements IEventListener {
 	 * entry, naming the programme and carrying the part's mandatory default.
 	 *
 	 * @param string $programmeId The Programme UUID applied for.
-	 * @param string $ncUserId The learner's (placeholder) Nextcloud user id.
-	 * @param string $tenantId Tenant ID.
+	 * @param array{ncUserId: string, tenantId: string} $args The ncUserId, tenantId.
 	 *
 	 * @return array<int,mixed> The created Enrolment ids.
 	 *
 	 * @spec openspec/specs/enrolment/spec.md#scenario-placement-creates-a-learnerprofile-and-enrolments
 	 * @spec openspec/changes/enrolment-programme-mandatory-per-person/specs/programme-mandatory-parts/spec.md#scenario-an-author-marks-a-part-optional
 	 */
-	private function createEnrolments(string $programmeId, string $ncUserId, string $tenantId): array {
+	private function createEnrolments(string $programmeId, array $args): array {
+		$ncUserId = $args['ncUserId'];
+		$tenantId = $args['tenantId'];
+
 		$programme = $this->fetchProgramme(programmeId: $programmeId);
 		$courseIds = $programme['courseIds'] ?? [];
 		if (is_array($courseIds) === false) {

@@ -8,7 +8,8 @@ Built in waves. A key is declared only once portaliq development keeps it.
   - portaliq `PortalObjectReaderTest::testAJoinRowOutsideWhenGrantsNothing` (already on development, site-mijn-omgeving-components T1); PHPUnit `StudentTimetableTest` pins the declared `when`
 - [x] **T3a**: `studentHomework` over published assignments by `learnerRefs` (never projected); the overview's `tasks` block over it
   - PHPUnit `PortalContributionProviderTest`, `GuardianSitePagesTest`
-- [ ] **T3b** (waits for portaliq wave 6): the submission status lookup on the `tasks` block and `excludeWhen: { lookup: submission, in: [submitted, late, returned] }`
+- [x] **T3b**: the submission status lookup on the `tasks` block and `excludeWhen: { lookup: submission, in: [submitted, late, returned] }` (portaliq REQ-SMO-025 is on development)
+  - PHPUnit `GuardianSitePagesTest::testThePupilOverviewAndShortMenu`, `PortalManifestGoldenTest`; run through portaliq's `ListBlockNormaliser::tasksBlock()`: both keys kept
 - [x] **T4**: `studentGrades` projects `courseName`, `methodName`, `methodBlock`, `weight`
   - PHPUnit `PortalContributionProviderTest`
 - [x] **T5a**: `StudentPortalPages`: the overview (`home: true`, `group`, tasks, two `cta` tiles on actions, grades, inbox), the menu pages Inleveren, Cijfers, Toetsen and Afwezig melden, the other pages with `menu: false`
