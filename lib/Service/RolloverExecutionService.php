@@ -166,8 +166,7 @@ class RolloverExecutionService implements RolloverExecutionServiceInterface {
 		if ($action === 'promote') {
 			$this->executePromotion(
 				mapping: $this->withProgrammeTarget(mapping: $mapping, fromCohort: $cohort),
-				members: $members,
-				context: $context
+				context: $context + ['members' => $members]
 			);
 		}
 
@@ -218,12 +217,13 @@ class RolloverExecutionService implements RolloverExecutionServiceInterface {
 	 * carry enrolments, queue outflow.
 	 *
 	 * @param array<string,mixed> $mapping The mapping.
-	 * @param array<int,string>   $members The from-cohort learner IDs.
-	 * @param array<string,mixed> $context The plan's indexed learner `overrides`, `toAcademicYear` and `tenantId`.
+	 * @param array<string,mixed> $context The plan's indexed learner `overrides`, `toAcademicYear`, `tenantId`
+	 *                                     and the from-cohort learner IDs (`members`).
 	 *
 	 * @return void
 	 */
-	private function executePromotion(array $mapping, array $members, array $context): void {
+	private function executePromotion(array $mapping, array $context): void {
+		$members = $context['members'];
 		$toCohortName = (string)($mapping['toCohortName'] ?? '');
 		if ($toCohortName === '') {
 			return;

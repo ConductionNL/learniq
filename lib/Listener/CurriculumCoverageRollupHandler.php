@@ -108,7 +108,7 @@ class CurriculumCoverageRollupHandler implements IEventListener {
 
 		try {
 			$slug = $this->schemaResolver->guardSchemaSlug(entity: $write['entity']);
-			foreach ($this->touchedFrameworks(slug: $slug, entity: $write['entity'], new: $write['new'], old: $write['old']) as $frameworkId) {
+			foreach ($this->touchedFrameworks(slug: $slug, write: $write) as $frameworkId) {
 				$this->rollup->recompute(frameworkId: $frameworkId);
 			}
 		} catch (Throwable $exception) {
@@ -155,16 +155,17 @@ class CurriculumCoverageRollupHandler implements IEventListener {
 	/**
 	 * The frameworks a write touched.
 	 *
-	 * @param string               $slug   The entity's schema slug.
-	 * @param ObjectEntity         $entity The entity.
-	 * @param array<string, mixed> $new    Data after the write ([] for a delete).
-	 * @param array<string, mixed> $old    Data before the write ([] for a create).
+	 * @param string               $slug  The entity's schema slug.
+	 * @param array<string, mixed> $write The `entity`, its data after the write (`new`, [] for a delete)
+	 *                                    and before it (`old`, [] for a create).
 	 *
 	 * @return array<int, string>
 	 *
 	 * @spec openspec/specs/competency/spec.md#requirement-coverage-is-recomputed-on-save-for-the-touched-frameworks-only-never-by-a-timedjob
 	 */
-	private function touchedFrameworks(string $slug, ObjectEntity $entity, array $new, array $old): array {
+	private function touchedFrameworks(string $slug, array $write): array {
+		$new = $write['new'];
+		$old = $write['old'];
 		if (in_array(needle: $slug, haystack: self::ALIGNED_SCHEMAS, strict: true) === true) {
 			return $this->rollup->frameworksForGoals(
 				goalIds: array_values(array_unique(array_merge($this->goalIds(row: $new), $this->goalIds(row: $old))))
@@ -183,7 +184,7 @@ class CurriculumCoverageRollupHandler implements IEventListener {
 		}
 
 		if ($slug === self::FRAMEWORK_SCHEMA) {
-			$frameworkId = (string) ($entity->getUuid() ?? ($new['id'] ?? ($old['id'] ?? '')));
+			$frameworkId = (string) ($write['entity']->getUuid() ?? ($new['id'] ?? ($old['id'] ?? '')));
 			return array_values(array_filter([$frameworkId], static fn (string $id): bool => $id !== ''));
 		}
 

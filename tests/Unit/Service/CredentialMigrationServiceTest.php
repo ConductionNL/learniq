@@ -31,6 +31,8 @@ use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
  * @uses   \OCA\Learniq\Service\CredentialMigrationRun
  * @uses   \OCA\Learniq\Service\CredentialMigrationRow
  * @uses   \OCA\Learniq\Service\CredentialMigrationLookup
+ * @uses   \OCA\Learniq\Support\ResultArrays
+ * @uses   \OCA\Learniq\Support\RowId
  */
 final class CredentialMigrationServiceTest extends TestCase {
 
