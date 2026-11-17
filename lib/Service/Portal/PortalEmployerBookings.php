@@ -332,18 +332,16 @@ class PortalEmployerBookings implements PortalEmployerBookingsInterface {
 	/**
 	 * Withdraw the replaced participant's enrolment and enrol the substitute on the same booking.
 	 *
+	 * The substitute is enrolled first: a withdrawn enrolment cannot be put
+	 * back, so when the substitute's enrolment cannot be written the replaced
+	 * participant stays enrolled and the request can be sent again.
+	 *
 	 * @param array<string, mixed> $replaced   The replaced participant's enrolment.
 	 * @param array<string, mixed> $substitute The substitute's learner profile.
 	 *
 	 * @return void
 	 */
 	private function swap(array $replaced, array $substitute): void {
-		$withdrawn = $replaced;
-		unset($withdrawn['@self']);
-		$withdrawn['lifecycle'] = 'withdrawn';
-		$withdrawn['withdrawReason'] = self::SUBSTITUTED;
-		$this->save(schema: 'enrolment', row: $withdrawn);
-
 		$enrolment = $replaced;
 		unset($enrolment['@self'], $enrolment['id'], $enrolment['uuid'], $enrolment['withdrawReason']);
 		$this->save(
@@ -358,6 +356,12 @@ class PortalEmployerBookings implements PortalEmployerBookingsInterface {
 				]
 			)
 		);
+
+		$withdrawn = $replaced;
+		unset($withdrawn['@self']);
+		$withdrawn['lifecycle'] = 'withdrawn';
+		$withdrawn['withdrawReason'] = self::SUBSTITUTED;
+		$this->save(schema: 'enrolment', row: $withdrawn);
 	}//end swap()
 
 	/**

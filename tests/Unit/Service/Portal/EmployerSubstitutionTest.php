@@ -51,6 +51,13 @@ class EmployerSubstitutionTest extends TestCase {
 	private RegisterFaithfulStore $store;
 
 	/**
+	 * The learner whose enrolment write fails, or '' when every write succeeds.
+	 *
+	 * @var string
+	 */
+	private string $failingLearner = '';
+
+	/**
 	 * The service at a given moment, over a booking of Tom and Youssef on Thursday 22 October.
 	 *
 	 * @param string $now The moment of the request, ISO 8601.
@@ -84,7 +91,13 @@ class EmployerSubstitutionTest extends TestCase {
 			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $this->store->findAll($config, false, false)
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			fn (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()): object => $this->store->save((string)($options->target->schema), $object, ($options->uuid), false)
+			function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()): object {
+				if ($this->failingLearner !== '' && ($object['learnerRef'] ?? null) === $this->failingLearner) {
+					throw new \RuntimeException('OpenRegister is down');
+				}
+
+				return $this->store->save((string)($options->target->schema), $object, ($options->uuid), false);
+			}
 		);
 
 		$time = $this->createMock(ITimeFactory::class);
@@ -145,6 +158,29 @@ class EmployerSubstitutionTest extends TestCase {
 		self::assertNotSame('withdrawn', $enrolments['lp-youssef']['lifecycle'] ?? null);
 		self::assertSame(2, (int)array_column($this->store->rows['course-booking'], null, 'id')[$id]['participantCount']);
 	}//end testBramGoesInsteadOfTom()
+
+	/**
+	 * Bram's enrolment cannot be written: Tom stays enrolled, so the request can be sent again.
+	 *
+	 * @return void
+	 */
+	public function testAFailedSubstitutionLeavesTheParticipantEnrolled(): void {
+		$service = $this->bookings(now: '2026-10-19T10:00:00+02:00');
+		$id = $this->tomAndYoussef(service: $service);
+		$this->failingLearner = 'lp-bram';
+
+		$outcome = $service->substituteParticipant(organisationRef: self::COMPANY, body: ['bookingRef' => $id, 'learnerRef' => 'lp-tom', 'substituteRef' => 'lp-bram']);
+
+		self::assertSame(502, $outcome->status);
+		$enrolments = $this->enrolments(bookingId: $id);
+		self::assertNotSame('withdrawn', $enrolments['lp-tom']['lifecycle'] ?? null);
+		self::assertArrayNotHasKey('withdrawReason', $enrolments['lp-tom']);
+		self::assertArrayNotHasKey('lp-bram', $enrolments);
+
+		$this->failingLearner = '';
+		$retry = $service->substituteParticipant(organisationRef: self::COMPANY, body: ['bookingRef' => $id, 'learnerRef' => 'lp-tom', 'substituteRef' => 'lp-bram']);
+		self::assertSame(200, $retry->status, (string)json_encode($retry->body));
+	}//end testAFailedSubstitutionLeavesTheParticipantEnrolled()
 
 	/**
 	 * Wednesday 12.30 is too late for a Thursday course day; nothing changes.
