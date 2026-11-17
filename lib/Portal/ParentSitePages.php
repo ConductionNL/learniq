@@ -113,6 +113,8 @@ class ParentSitePages {
 			self::tasksBlock(),
 			// "Geef toestemming voor het schoolreisje" (permission-slips T4).
 			ParentPermissionSlips::tasksBlock(),
+			// A leave request the school has not decided yet, with its answer date.
+			(new ParentLeaveRequests())->overviewBlock(),
 			self::childrenBlock(),
 			['type' => 'news', 'label' => 'New from school', 'limit' => 3],
 			// "Deze maand": this month only (portaliq calendar `range`).
