@@ -298,7 +298,7 @@ class PortalContributionProviderTest extends TestCase {
 		$actions = $manifest['actions'];
 
 		$this->assertSame(
-			['createSubmission', 'submitHourWeek', 'writeHourDay', 'fillInSelfAssessment', 'createExcuseRequest', 'listTests', 'startTest', 'saveTestAnswer', 'submitTest', 'readTestResult', 'handIn', 'listCatalogue', 'signUpForCourse', 'withdrawSignUp', 'listWorkGroups', 'joinWorkGroup', 'leaveWorkGroup', 'checkIn'],
+			['createSubmission', 'submitHourWeek', 'writeHourDay', 'fillInSelfAssessment', 'createExcuseRequest', 'reportRecovered', 'listTests', 'startTest', 'saveTestAnswer', 'submitTest', 'readTestResult', 'handIn', 'listCatalogue', 'signUpForCourse', 'withdrawSignUp', 'listWorkGroups', 'joinWorkGroup', 'leaveWorkGroup', 'checkIn'],
 			array_column($actions, 'id')
 		);
 		$byId = array_column($actions, null, 'id');
@@ -328,7 +328,7 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame('learnerRef', $excuse['scopeField']);
 		$this->assertSame('low', $excuse['minTrust']);
 		$this->assertSame(
-			['dateFrom', 'dateTo', 'reason', 'reasonKind', 'attachmentRef'],
+			['dateFrom', 'dateTo', 'fromLessonHour', 'toLessonHour', 'reason', 'reasonKind', 'attachmentRef'],
 			$excuse['fields']
 		);
 		// A student create never lets the client set grade/status/staff fields.
@@ -577,7 +577,7 @@ class PortalContributionProviderTest extends TestCase {
 			$byId['parentAttendance']['fields']
 		);
 		$this->assertSame(
-			['learnerRef', 'dateFrom', 'dateTo', 'reason', 'reasonKind', 'attachmentRef', 'lifecycle', 'decidedAt', 'decidedBy'],
+			['learnerRef', 'dateFrom', 'dateTo', 'reason', 'reasonKind', 'attachmentRef', 'lifecycle', 'decidedAt', 'decidedBy', 'seenBy', 'seenAt', 'fromLessonHour', 'toLessonHour'],
 			$byId['parentExcuseRequests']['fields']
 		);
 		// The newest absence first, on a field the collection projects (the
@@ -768,10 +768,12 @@ class PortalContributionProviderTest extends TestCase {
 	public function testParentShipsCreateExcuseRequestValidatedAgainstOwnChildren(): void {
 		$manifest = $this->provider->getContribution(self::PARENT_SUBJECT);
 
-		// The absence report, then the three conference actions (direct-conference-booking),
+		// The absence report, ending an open illness, then the three conference
+		// actions (direct-conference-booking, absence-reports-seen-and-ended),
 		// then the permission answer (permission-slips), then the leave request
 		// (leave-requests-decided-by-the-school).
-		$this->assertCount(6, $manifest['actions']);
+		$this->assertCount(7, $manifest['actions']);
+		$this->assertSame('reportRecovered', $manifest['actions'][1]['id']);
 		$action = $manifest['actions'][0];
 
 		$this->assertSame('createExcuseRequest', $action['id']);
