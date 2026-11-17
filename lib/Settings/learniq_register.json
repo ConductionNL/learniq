@@ -23073,10 +23073,8 @@
                         ]
                     },
                     "phaseDueAt": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
+                        "type": "string",
+                        "nullable": true,
                         "format": "date",
                         "title": "Phase due",
                         "description": "The date the current phase is due by: the period start for searching and agreement, the assessment visit for assessment, the period end for rounding-off. Written by the server."
@@ -23087,10 +23085,8 @@
                         "description": "The late line in words for the board card, such as '2 weken te laat' or 'te laat sinds 1 oktober'; empty when the phase is not late. Written by the server on every save."
                     },
                     "phaseOverride": {
-                        "type": [
-                            "object",
-                            "null"
-                        ],
+                        "type": "object",
+                        "nullable": true,
                         "title": "Manual phase move",
                         "description": "A card moved by hand on the board: send {phase}. The server adds who moved it, when, and the facts it holds for; it lasts until one of those facts changes.",
                         "properties": {
