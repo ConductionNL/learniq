@@ -226,6 +226,9 @@ $routes = [
         // student's hours. Same assertion receiver pattern: the assertion is
         // the only place her sign-in level can be read.
         ['name' => 'portalHourWeek#approve',     'url' => '/api/portal/hour-weeks/approve', 'verb' => 'POST'],
+        // bpv-coach-today-and-placement-board: the trainer accepts or answers a
+        // visit date the school coach proposed. Same assertion receiver pattern.
+        ['name' => 'portalBpvVisit#answer',      'url' => '/api/portal/bpv-visits/answer', 'verb' => 'POST'],
         // A student writes one day of her week of hours (bpv-hours-per-day).
         ['name' => 'portalHourDay#write',        'url' => '/api/portal/hour-weeks/day',     'verb' => 'POST'],
         // A guardian's answer to a permission request (permission-slips).

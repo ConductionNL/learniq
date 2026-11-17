@@ -284,9 +284,11 @@ class AssessmentScoringHandler implements LifecycleGuardInterface, AssessmentSco
 
 		return $this->scoreResponse(
 			interactionType: $interactionType,
-			learnerResponse: ($response['response'] ?? null),
-			correctResponse: $correctResponse,
-			maxScore: (float)($pointsByItemId[$itemId] ?? $item['maxScore'] ?? 0)
+			args: [
+				'learnerResponse' => ($response['response'] ?? null),
+				'correctResponse' => $correctResponse,
+				'maxScore' => (float)($pointsByItemId[$itemId] ?? $item['maxScore'] ?? 0),
+			]
 		);
 	}//end autoScoreFor()
 
@@ -299,20 +301,17 @@ class AssessmentScoringHandler implements LifecycleGuardInterface, AssessmentSco
 	 * Unknown interactions return 0.
 	 *
 	 * @param string $interactionType QTI 2.1 interaction type.
-	 * @param mixed $learnerResponse Learner's response value.
-	 * @param mixed $correctResponse Item's declared correct response.
-	 * @param float $maxScore Maximum points for this item (from itemRefs override or item).
+	 * @param array{learnerResponse: mixed, correctResponse: mixed, maxScore: float} $args The learnerResponse, correctResponse, maxScore.
 	 *
 	 * @return float Score in range [0, maxScore].
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-8
 	 */
-	private function scoreResponse(
-		string $interactionType,
-		mixed $learnerResponse,
-		mixed $correctResponse,
-		float $maxScore,
-	): float {
+	private function scoreResponse(string $interactionType, array $args): float {
+		$learnerResponse = $args['learnerResponse'];
+		$correctResponse = $args['correctResponse'];
+		$maxScore = $args['maxScore'];
+
 		$learnerResponse = $this->responseValue(response: $learnerResponse);
 		if ($learnerResponse === null || $correctResponse === null) {
 			return 0.0;
