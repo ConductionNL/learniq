@@ -140,6 +140,24 @@ class PortalEmployerController extends Controller {
 	}//end supplyBirthDate()
 
 	/**
+	 * Send a colleague in place of a participant of the company's booking, before the deadline.
+	 *
+	 * @return JSONResponse 200 with the booking, or 401 / 403 / 404 / 409 (with the deadline in words) / 422 / 502.
+	 *
+	 * @spec openspec/changes/employer-substitutes-a-colleague/specs/portal-contribution/spec.md#requirement-an-employer-sends-a-colleague-in-place-of-a-participant-before-the-deadline
+	 */
+	#[PublicPage]
+	#[NoCSRFRequired]
+	#[AnonRateLimit(limit: 600, period: 60)]
+	#[BruteForceProtection(action: self::THROTTLE_ACTION)]
+	public function substitute(): JSONResponse {
+		return $this->answer(
+			fields: ['bookingRef', 'learnerRef', 'substituteRef'],
+			work: fn (string $company, array $body): PortalOutcome => $this->bookings->substituteParticipant(organisationRef: $company, body: $body)
+		);
+	}//end substitute()
+
+	/**
 	 * Verify the assertion and the audience, then run the write.
 	 *
 	 * @param array<int, string>                                    $fields The fields the form may send.

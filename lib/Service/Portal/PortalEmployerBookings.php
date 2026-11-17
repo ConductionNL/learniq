@@ -46,6 +46,7 @@ use OCA\Learniq\Support\TextValue;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
+use OCP\AppFramework\Utility\ITimeFactory;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
@@ -64,11 +65,19 @@ class PortalEmployerBookings implements PortalEmployerBookingsInterface {
 	public const MAX_PLACES = 12;
 
 	/**
+	 * The withdrawal reason of a participant whose employer sent a colleague instead.
+	 *
+	 * @var string
+	 */
+	public const SUBSTITUTED = 'vervangen door collega';
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService             $objectService Writes the rows.
 	 * @param EmployerBookingProjection $projection    Reads rows and re-derives a booking.
 	 * @param LoggerInterface           $logger        PSR logger.
+	 * @param ITimeFactory|null          $time          The clock the substitution deadline is read against; the system clock when absent.
 	 *
 	 * @return void
 	 */
@@ -76,6 +85,7 @@ class PortalEmployerBookings implements PortalEmployerBookingsInterface {
 		private readonly ObjectService $objectService,
 		private readonly EmployerBookingProjection $projection,
 		private readonly LoggerInterface $logger,
+		private readonly ?ITimeFactory $time = null,
 	) {
 	}//end __construct()
 
@@ -229,6 +239,144 @@ class PortalEmployerBookings implements PortalEmployerBookingsInterface {
 			}
 		);
 	}//end supplyBirthDate()
+
+	/**
+	 * Send one of the company's people in place of a participant, before the deadline.
+	 *
+	 * The booking keeps its place: the replaced participant's enrolment is
+	 * withdrawn with the reason in words, and the substitute's created. After
+	 * the deadline the request is refused with the deadline in words.
+	 *
+	 * @param string               $organisationRef The company, from the claim.
+	 * @param array<string, mixed> $body            `bookingRef`, `learnerRef` (replaced), `substituteRef` (sent instead).
+	 *
+	 * @return PortalOutcome 200 with the booking, or 404 / 409 / 422 / 502.
+	 *
+	 * @spec openspec/changes/employer-substitutes-a-colleague/specs/portal-contribution/spec.md#requirement-an-employer-sends-a-colleague-in-place-of-a-participant-before-the-deadline
+	 */
+	public function substituteParticipant(string $organisationRef, array $body): PortalOutcome {
+		$bookingId = $this->text(value: ($body['bookingRef'] ?? null));
+		$learnerRef = $this->text(value: ($body['learnerRef'] ?? null));
+		$substituteRef = $this->text(value: ($body['substituteRef'] ?? null));
+		if ($bookingId === '' || $learnerRef === '' || $substituteRef === '' || $learnerRef === $substituteRef) {
+			return new PortalOutcome(status: 422, body: ['error' => 'incomplete'], reason: 'incomplete');
+		}
+
+		return $this->guarded(
+			work: function () use ($organisationRef, $bookingId, $learnerRef, $substituteRef): PortalOutcome {
+				$booking = $this->projection->one(schema: 'course-booking', id: $bookingId);
+				$substitute = $this->projection->one(schema: 'learner-profile', id: $substituteRef);
+				if ($booking === null || ($booking['organisationRef'] ?? null) !== $organisationRef
+					|| $substitute === null || ($substitute['organisationRef'] ?? null) !== $organisationRef
+				) {
+					return new PortalOutcome(status: 404, body: ['error' => 'not_found'], reason: 'not-yours');
+				}
+
+				$replaced = $this->substitutionRefusal(booking: $booking, refs: ['learner' => $learnerRef, 'substitute' => $substituteRef]);
+				if ($replaced instanceof PortalOutcome) {
+					return $replaced;
+				}
+
+				$this->swap(replaced: $replaced, substitute: $substitute);
+				$booking = ($this->projection->project(bookingId: $bookingId) ?? $booking);
+
+				return new PortalOutcome(status: 200, body: $this->bookingBody(booking: $booking));
+			}
+		);
+	}//end substituteParticipant()
+
+	/**
+	 * Why a substitution cannot go ahead, or the enrolment it replaces.
+	 *
+	 * @param array<string, mixed>  $booking The booking.
+	 * @param array<string, string> $refs    `learner`, the participant to replace, and `substitute`, the colleague sent instead.
+	 *
+	 * @return PortalOutcome|array<string, mixed> The refusal, or the replaced enrolment.
+	 */
+	private function substitutionRefusal(array $booking, array $refs): PortalOutcome|array {
+		if (in_array(($booking['lifecycle'] ?? 'received'), ['received', 'confirmed'], true) === false) {
+			return new PortalOutcome(status: 409, body: ['error' => 'booking_closed'], reason: 'booking-closed');
+		}
+
+		$replaced = null;
+		foreach ($this->projection->many(schema: 'enrolment', filters: ['bookingRef' => (string)($booking['id'] ?? '')]) as $enrolment) {
+			if (($enrolment['lifecycle'] ?? '') === 'withdrawn') {
+				continue;
+			}
+
+			if (($enrolment['learnerRef'] ?? null) === $refs['substitute']) {
+				return new PortalOutcome(status: 409, body: ['error' => 'already_on_booking'], reason: 'already-on-booking');
+			}
+
+			if (($enrolment['learnerRef'] ?? null) === $refs['learner']) {
+				$replaced = $enrolment;
+			}
+		}
+
+		if ($replaced === null) {
+			return new PortalOutcome(status: 404, body: ['error' => 'not_on_booking'], reason: 'not-on-booking');
+		}
+
+		$cohort = ($this->projection->one(schema: 'cohort', id: (string)($booking['cohortId'] ?? '')) ?? []);
+		$late = SubstitutionDeadline::refusal(
+			deadline: SubstitutionDeadline::moment(cohort: $cohort, firstDay: ($booking['firstDay'] ?? null)),
+			now: $this->now()
+		);
+		if ($late !== null) {
+			return new PortalOutcome(status: 409, body: ['error' => 'too_late', 'message' => $late], reason: 'too-late');
+		}
+
+		return $replaced;
+	}//end substitutionRefusal()
+
+	/**
+	 * Withdraw the replaced participant's enrolment and enrol the substitute on the same booking.
+	 *
+	 * The substitute is enrolled first: a withdrawn enrolment cannot be put
+	 * back, so when the substitute's enrolment cannot be written the replaced
+	 * participant stays enrolled and the request can be sent again.
+	 *
+	 * @param array<string, mixed> $replaced   The replaced participant's enrolment.
+	 * @param array<string, mixed> $substitute The substitute's learner profile.
+	 *
+	 * @return void
+	 */
+	private function swap(array $replaced, array $substitute): void {
+		$enrolment = $replaced;
+		unset($enrolment['@self'], $enrolment['id'], $enrolment['uuid'], $enrolment['withdrawReason']);
+		$this->save(
+			schema: 'enrolment',
+			row: array_merge(
+				$enrolment,
+				[
+					'learnerId' => (string)($substitute['ncUserId'] ?? ''),
+					'learnerRef' => (string)($substitute['id'] ?? ''),
+					'lifecycle' => ($replaced['lifecycle'] ?? 'pending'),
+					'requestedAt' => $this->now()->format(DATE_ATOM),
+				]
+			)
+		);
+
+		$withdrawn = $replaced;
+		unset($withdrawn['@self']);
+		$withdrawn['lifecycle'] = 'withdrawn';
+		$withdrawn['withdrawReason'] = self::SUBSTITUTED;
+		$this->save(schema: 'enrolment', row: $withdrawn);
+	}//end swap()
+
+	/**
+	 * The moment of the request.
+	 *
+	 * @return DateTimeImmutable
+	 */
+	private function now(): DateTimeImmutable {
+		$zone = new DateTimeZone(EmployerBookingFacts::ZONE);
+		if ($this->time === null) {
+			return new DateTimeImmutable('now', $zone);
+		}
+
+		return (new DateTimeImmutable('@'.$this->time->getTime()))->setTimezone($zone);
+	}//end now()
 
 	/**
 	 * Why a person cannot take a place on this booking, or null when they can.
