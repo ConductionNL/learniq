@@ -22913,17 +22913,21 @@
                         "description": "A card moved by hand on the board: send {phase}. The server adds who moved it, when, and the facts it holds for; it lasts until one of those facts changes.",
                         "properties": {
                             "phase": {
-                                "type": "string"
+                                "type": "string",
+                                "title": "Phase"
                             },
                             "movedBy": {
-                                "type": "string"
+                                "type": "string",
+                                "title": "Moved by"
                             },
                             "movedAt": {
                                 "type": "string",
-                                "format": "date-time"
+                                "format": "date-time",
+                                "title": "Moved at"
                             },
                             "factsKey": {
-                                "type": "string"
+                                "type": "string",
+                                "title": "Facts at the move"
                             }
                         }
                     },

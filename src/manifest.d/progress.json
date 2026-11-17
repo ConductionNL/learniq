@@ -2774,27 +2774,6 @@
 									}
 								},
 								{
-									"id": "BpvPlacementBoardMenu",
-									"label": "Placements by phase",
-									"route": "BpvPlacementBoard",
-									"order": 15,
-									"icon": "BriefcaseOutline",
-									"description": "Each student's placement per phase, late ones first in words",
-									"visibleIf": {
-										"workspace.segment": {
-											"in": [
-												"mbo",
-												"corporate"
-											]
-										},
-										"workspace.chosenSegment": {
-											"notIn": [
-												"corporate"
-											]
-										}
-									}
-								},
-								{
 									"id": "PraktijkovereenkomstenMenu",
 									"label": "Praktijkovereenkomsten",
 									"route": "Praktijkovereenkomsten",

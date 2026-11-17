@@ -636,9 +636,9 @@ test('the full profile is exactly the plain manifest build', () => {
 	// MyGrades became the learner lens of GradeEntries; 349 with
 	// AttendanceNearingLimit (attendance-warns-before-the-threshold); 350 with
 	// CourseDays (training-provider-course-days); 352 with the permission-slips
-	// list and detail; 354 with the BPV placement board and company visits
-	// (bpv-coach-today-and-placement-board).
-	assert.equal(plain.pages.length, 354)
+	// list and detail; 353 with company visits (bpv-coach-today-and-placement-board;
+	// its placement board is a view mode of BpvPlacements, not a page).
+	assert.equal(plain.pages.length, 353)
 })
 
 test('menu-layout.json holds no profile key, so the full profile cannot gain an overlay', () => {

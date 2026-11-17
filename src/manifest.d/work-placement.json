@@ -42,34 +42,6 @@
 					}
 				},
 				{
-					"id": "BpvPlacementBoardMenu",
-					"label": "Placements by phase",
-					"icon": "BriefcaseOutline",
-					"route": "BpvPlacementBoard",
-					"order": 712,
-					"visibleIf": {
-						"user.primaryRole": {
-							"in": [
-								"instructor",
-								"coordinator",
-								"administration-manager",
-								"admin"
-							]
-						},
-						"workspace.segment": {
-							"in": [
-								"mbo",
-								"corporate"
-							]
-						},
-						"workspace.chosenSegment": {
-							"notIn": [
-								"corporate"
-							]
-						}
-					}
-				},
-				{
 					"id": "BpvHourWeeksMenu",
 					"label": "BPV hours",
 					"icon": "ClockOutline",
@@ -309,6 +281,39 @@
 						"label": "Status"
 					}
 				],
+				"viewModes": [
+					"table",
+					"board"
+				],
+				"viewMode": "table",
+				"board": {
+					"statusField": "phase",
+					"cardFields": [
+						"learnerId",
+						"trainingCompanyName",
+						"lateLabel"
+					],
+					"cardCells": {
+						"learnerId": {
+							"widget": "learnerName"
+						}
+					},
+					"card": {
+						"title": "learnerId",
+						"sub": [
+							"trainingCompanyName",
+							"lateLabel"
+						],
+						"due": "phaseDueAt"
+					},
+					"dueRule": {
+						"field": "phaseDueAt",
+						"soonDays": 7
+					},
+					"moveHandler": "movePlacementPhase",
+					"hint": "A card moves by itself when its step is done. You can drag it too.",
+					"wrap": true
+				},
 				"countText": "{shown} of {total} placements",
 				"searchPlaceholder": "Search a student, training company or KvK number",
 				"quickFilters": [
@@ -341,78 +346,8 @@
 					}
 				],
 				"bulkNoun": "placements",
-				"allowSavedViews": true
-			}
-		},
-		{
-			"id": "BpvPlacementBoard",
-			"route": "/bpv/board",
-			"type": "index",
-			"title": "BPV placements by phase",
-			"config": {
-				"showTitle": true,
-				"register": "learniq",
-				"schema": "bpv-placement",
-				"_note": "bpv-coach-today-and-placement-board T4 (esdoornveen/LqBord): the placements per phase. A card moves by itself when its step is done, because the server derives `phase` from the placement's facts; a drag is a manual move (`movePlacementPhase` sends phaseOverride, logged with who and when, held until the next fact change). The card reads the student, the company and the late line in words (`lateLabel`), and its due date is marked by `phaseDueAt`.",
-				"viewModes": [
-					"board",
-					"table"
-				],
-				"viewMode": "board",
-				"columns": [
-					{
-						"key": "learnerId",
-						"label": "Student",
-						"widget": "learnerName"
-					},
-					{
-						"key": "trainingCompanyName",
-						"label": "Training company"
-					},
-					{
-						"key": "phase",
-						"label": "Phase"
-					},
-					{
-						"key": "lateLabel",
-						"label": "Late"
-					},
-					{
-						"key": "phaseDueAt",
-						"label": "Phase due",
-						"formatter": "date"
-					}
-				],
-				"boardView": {
-					"statusField": "phase",
-					"cardFields": [
-						"learnerId",
-						"trainingCompanyName",
-						"lateLabel"
-					],
-					"cardCells": {
-						"learnerId": {
-							"widget": "learnerName"
-						}
-					},
-					"card": {
-						"title": "learnerId",
-						"sub": [
-							"trainingCompanyName",
-							"lateLabel"
-						],
-						"due": "phaseDueAt"
-					},
-					"dueRule": {
-						"field": "phaseDueAt",
-						"soonDays": 7
-					},
-					"moveHandler": "movePlacementPhase",
-					"hint": "A card moves by itself when its step is done. You can drag it too.",
-					"wrap": true
-				},
-				"countText": "{shown} of {total} placements",
-				"searchPlaceholder": "Search a student or training company"
+				"allowSavedViews": true,
+				"_note": "bpv-coach-today-and-placement-board T4 (esdoornveen/LqBord): the board view mode (`?_view=board`, menu \"Placements by phase\") shows the placements per phase. A card moves by itself when its step is done, because the server derives `phase` from the placement's facts; a drag is a manual move (`movePlacementPhase` sends phaseOverride, logged with who and when, held until the next fact change). The card reads the student, the company and the late line in words (`lateLabel`), and its due date is marked by `phaseDueAt`."
 			}
 		},
 		{

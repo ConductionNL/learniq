@@ -149,7 +149,6 @@ function hiddenIn(state) {
 
 const BPV_CARDS = [
 	'BpvPlacementsMenu',
-	'BpvPlacementBoardMenu',
 	'PraktijkovereenkomstenMenu',
 	'WerkprocesAssessmentsMenu',
 	'BpvVisitReportsMenu',

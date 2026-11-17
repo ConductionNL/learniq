@@ -166,6 +166,7 @@ import Target from 'vue-material-design-icons/Target.vue'
 import TargetVariant from 'vue-material-design-icons/TargetVariant.vue'
 import TextBoxOutline from 'vue-material-design-icons/TextBoxOutline.vue'
 import Timeline from 'vue-material-design-icons/Timeline.vue'
+import TrayArrowDown from 'vue-material-design-icons/TrayArrowDown.vue'
 import TrendingUp from 'vue-material-design-icons/TrendingUp.vue'
 import Trophy from 'vue-material-design-icons/Trophy.vue'
 import TrophyOutline from 'vue-material-design-icons/TrophyOutline.vue'
@@ -329,6 +330,7 @@ export default {
 	TargetVariant,
 	TextBoxOutline,
 	Timeline,
+	TrayArrowDown,
 	TrendingUp,
 	Trophy,
 	TrophyOutline,
