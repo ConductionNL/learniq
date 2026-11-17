@@ -80,6 +80,7 @@ class LearnerUserIdStamp implements IEventListener {
 	public const FIELDS = [
 		'external-training-record' => ['learnerId', 'learnerUserId'],
 		'exemption-case' => ['learnerId', 'learnerUserId'],
+		'exam-objection' => ['learnerId', 'learnerUserId'],
 		'fraud-case' => ['accusedLearnerId', 'accusedLearnerUserId'],
 	];
 

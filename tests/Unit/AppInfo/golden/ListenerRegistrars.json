@@ -76,6 +76,22 @@
             "registerEventListener",
             [
                 "OCA\\OpenRegister\\Event\\ObjectTransitionedEvent",
+                "OCA\\Learniq\\Listener\\ExamObjectionDecisionHandler",
+                "int"
+            ]
+        ],
+        [
+            "registerEventListener",
+            [
+                "OCA\\OpenRegister\\Event\\ObjectCreatingEvent",
+                "OCA\\Learniq\\Listener\\ExamObjectionDeadlineStamp",
+                "int"
+            ]
+        ],
+        [
+            "registerEventListener",
+            [
+                "OCA\\OpenRegister\\Event\\ObjectTransitionedEvent",
                 "OCA\\Learniq\\Listener\\ItemAnalysisRecomputeHandler",
                 "int"
             ]

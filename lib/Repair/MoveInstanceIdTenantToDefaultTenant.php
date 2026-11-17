@@ -69,6 +69,7 @@ class MoveInstanceIdTenantToDefaultTenant implements IRepairStep {
 	 */
 	public const SCHEMAS = [
 		'check-in-window',
+		'exam-objection',
 		'exemption-case',
 		'external-training-record',
 		'final-grade',
