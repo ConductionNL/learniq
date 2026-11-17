@@ -130,7 +130,7 @@ class PortalVisitAnswer implements PortalVisitAnswerInterface {
 	/**
 	 * Why the request is refused before any read, or null.
 	 *
-	 * @param array{trainerRef: string, visitId: string, outcome: string, response: string} $answer The trainer, the visit, `accept` or `answer`, and her note.
+	 * @param array{trainerRef: string, visitId: string, outcome: string, response: string} $answer The portal answer.
 	 *
 	 * @return PortalOutcome|null
 	 */
@@ -202,7 +202,7 @@ class PortalVisitAnswer implements PortalVisitAnswerInterface {
 	 * stays so the coach reads what she answered to.
 	 *
 	 * @param array<string, mixed>                                                         $visit  The stored visit.
-	 * @param array{trainerRef: string, visitId: string, outcome: string, response: string} $answer The trainer, the visit, `accept` or `answer`, and her note.
+	 * @param array{trainerRef: string, visitId: string, outcome: string, response: string} $answer The portal answer.
 	 *
 	 * @return array<string, mixed>
 	 */
