@@ -48,6 +48,9 @@ use OCA\Learniq\Listener\HourWeekSubmissionStamp;
 use OCA\Learniq\Listener\LearningRecordCreatedTransition;
 use OCA\Learniq\Listener\LearningRecordOwnerStamp;
 use OCA\Learniq\Listener\WerkprocesAssessmentLearnerStamp;
+use OCA\Learniq\Listener\BpvPlacementPhaseStamp;
+use OCA\Learniq\Listener\BpvVisitPhaseRollup;
+use OCA\Learniq\Listener\BpvVisitProposalStamp;
 use OCA\Learniq\Listener\HourWeekTotalRollup;
 use OCA\Learniq\Listener\LearnerGroupLabelCascade;
 use OCA\Learniq\Listener\CourseDayStatusCascade;
@@ -415,6 +418,36 @@ class IntegrityListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectUpdatedEvent::class,
 			listener: HourWeekTotalRollup::class
+		);
+		// A placement's phase follows its facts, so the board card moves by
+		// itself: stamped on every save of the placement, and the placement is
+		// saved again when one of its visits changes
+		// (bpv-coach-today-and-placement-board T1).
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: BpvPlacementPhaseStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: BpvPlacementPhaseStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectCreatedEvent::class,
+			listener: BpvVisitPhaseRollup::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatedEvent::class,
+			listener: BpvVisitPhaseRollup::class
+		);
+		// "Datum voorstellen": a moment the coach proposes puts the visit in
+		// proposed, waiting for the praktijkopleider (T3).
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: BpvVisitProposalStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: BpvVisitProposalStamp::class
 		);
 	}//end registerReadableCopies()
 

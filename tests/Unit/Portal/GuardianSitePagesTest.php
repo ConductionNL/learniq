@@ -390,7 +390,7 @@ class GuardianSitePagesTest extends TestCase {
 		self::assertTrue($overview['home']);
 		self::assertSame('My space', $overview['group']);
 		self::assertSame(
-			['greeting', 'tasks', 'collection', 'collection', 'collection', 'cta', 'cta', 'cta', 'inbox'],
+			['greeting', 'tasks', 'collection', 'collection', 'collection', 'tasks', 'cta', 'cta', 'cta', 'cta', 'inbox'],
 			array_column($overview['blocks'], 'type')
 		);
 		self::assertSame(['field' => 'assessedAt', 'direction' => 'desc'], $overview['blocks'][4]['sort']);
@@ -409,8 +409,20 @@ class GuardianSitePagesTest extends TestCase {
 		self::assertSame('My BPV placements', $overview['blocks'][3]['label']);
 		self::assertArrayNotHasKey('label', $overview['blocks'][4]);
 
+		// bpv-coach-today-and-placement-board T3: the visit dates waiting for
+		// her answer, soonest first, with the form to answer them on their page.
+		$visits = $overview['blocks'][5];
+		self::assertSame('poBpvVisits', $visits['collection']);
+		self::assertSame('proposedAt', $visits['dueField']);
+		self::assertSame(['type' => 'action', 'action' => 'answerBpvVisit'], $pages['poBpvVisits']['blocks'][0]);
+		$visitCollection = array_column($manifest['collections'], null, 'id')['poBpvVisits'];
+		self::assertSame(['lifecycle' => 'proposed'], $visitCollection['filter']);
+		self::assertSame('bpv-placement', $visitCollection['via']['schema']);
+		self::assertSame('practicalTrainerId', $visitCollection['via']['scopeField']);
+		self::assertNotContains('schoolCoachId', $visitCollection['fields']);
+
 		self::assertSame(
-			['poOverview', 'poBpvPlacements', 'poSharedPortfolios', 'poWerkprocesAssessments', 'poHourWeeks', 'poLearners'],
+			['poOverview', 'poBpvPlacements', 'poSharedPortfolios', 'poWerkprocesAssessments', 'poHourWeeks', 'poLearners', 'poBpvVisits'],
 			array_keys($pages)
 		);
 

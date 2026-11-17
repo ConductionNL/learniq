@@ -77,6 +77,7 @@ register('data:text/javascript,' + encodeURIComponent(hooks))
 
 const appIcons = (await import('../../src/icons.js')).default
 const registry = (await import('../../src/registry.js')).default
+const handlers = (await import('../../src/handlers.js')).default
 const menuLayoutFull = (await import('../../src/menu-layout.json')).default
 const menuLayoutSimple = (await import('../../src/menu-layout.simple.json')).default
 
@@ -160,7 +161,8 @@ test('the app mounts on #learniq-app with pinia, the router and t/n, rendering A
 	assert.deepEqual(rendered.h, { name: 'App.vue' })
 	assert.equal(rendered.props.callerTenant, 'school-7')
 	assert.deepEqual(rendered.props.pageTypes, { index: 'IndexType', detail: 'DetailType' })
-	assert.deepEqual(rendered.props.registry, { ...registry })
+	assert.deepEqual(rendered.props.registry, { ...registry, ...handlers })
+	assert.equal(rendered.props.registry.movePlacementPhase.kind, 'handler')
 	assert.notEqual(rendered.props.registry, registry)
 	assert.deepEqual(rendered.props.manifest.pages.map((p) => p.id), ['Dashboard', 'CourseDetail'])
 })
