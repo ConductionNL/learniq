@@ -203,6 +203,7 @@ class SessionMoveNoticeHandler implements IEventListener {
 	 * @param string              $move    What moved.
 	 *
 	 * @return void
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/timetabling/spec.md#requirement-a-lesson-moved-to-another-room-or-time-notifies-the-affected-learners-and-parents
 	 */
 	private function writeNotice(array $session, string $move): void {
 		$people = $this->notices->affectedPeople(session: $session);
@@ -229,6 +230,7 @@ class SessionMoveNoticeHandler implements IEventListener {
 	 * @param array<string,mixed> $session The Session.
 	 *
 	 * @return string
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/timetabling/spec.md#requirement-a-lesson-moved-to-another-room-or-time-notifies-the-affected-learners-and-parents
 	 */
 	private function roomName(array $session): string {
 		$roomId = $session['roomId'] ?? null;
@@ -261,6 +263,7 @@ class SessionMoveNoticeHandler implements IEventListener {
 	 * @param mixed $value The ISO 8601 time.
 	 *
 	 * @return string
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/timetabling/spec.md#requirement-a-lesson-moved-to-another-room-or-time-notifies-the-affected-learners-and-parents
 	 */
 	private function displayTime($value): string {
 		$time = $this->instant(value: $value);
@@ -278,6 +281,7 @@ class SessionMoveNoticeHandler implements IEventListener {
 	 * @param mixed $right The other.
 	 *
 	 * @return bool
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/timetabling/spec.md#requirement-a-lesson-moved-to-another-room-or-time-notifies-the-affected-learners-and-parents
 	 */
 	private function sameInstant($left, $right): bool {
 		$a = $this->instant(value: $left);
@@ -295,6 +299,7 @@ class SessionMoveNoticeHandler implements IEventListener {
 	 * @param mixed $value The time.
 	 *
 	 * @return DateTimeImmutable|null
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/timetabling/spec.md#requirement-a-lesson-moved-to-another-room-or-time-notifies-the-affected-learners-and-parents
 	 */
 	private function instant($value): ?DateTimeImmutable {
 		if (is_string($value) === false || trim($value) === '') {

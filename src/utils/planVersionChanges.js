@@ -17,6 +17,7 @@ const LISTS = [
  *
  * @param {unknown} value Any JSON value.
  * @return {unknown} The same value with sorted keys.
+ * @spec openspec/changes/capability-rows-say-what-they-do/specs/learning-plan/spec.md#scenario-a-coordinator-sees-what-changed-between-two-versions
  */
 function canonical(value) {
 	if (Array.isArray(value)) {
@@ -41,6 +42,7 @@ function canonical(value) {
  * @param {string} list `goals` or `supportMeasures`.
  * @param {string} key `goalId` or `measureId`.
  * @return {Map<string, object>} The items by id, in their order.
+ * @spec openspec/changes/capability-rows-say-what-they-do/specs/learning-plan/spec.md#scenario-a-coordinator-sees-what-changed-between-two-versions
  */
 function byId(plan, list, key) {
 	const items = Array.isArray(plan?.[list]) ? plan[list] : []

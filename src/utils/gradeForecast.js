@@ -17,6 +17,7 @@ export const DEFAULT_PASS_MARK = 5.5
  *
  * @param {number|string|null|undefined} value The value, a number or a numeric string (comma decimals allowed).
  * @return {number|null}
+ * @spec openspec/changes/capability-rows-say-what-they-do/specs/grading/spec.md#requirement-a-learner-sees-what-one-more-mark-would-do-to-their-average
  */
 export function toNumber(value) {
 	if (value === null || value === undefined || value === '') {
@@ -33,6 +34,7 @@ export function toNumber(value) {
  * @param {object} entry A GradeEntry.
  * @param {object|null} plan The CurriculumPlan, or null.
  * @return {number}
+ * @spec openspec/changes/capability-rows-say-what-they-do/specs/grading/spec.md#requirement-a-learner-sees-what-one-more-mark-would-do-to-their-average
  */
 export function entryWeight(entry, plan) {
 	const own = toNumber(entry?.weight)
@@ -50,6 +52,7 @@ export function entryWeight(entry, plan) {
  *
  * @param {object|null} plan The CurriculumPlan, or null.
  * @return {number}
+ * @spec openspec/changes/capability-rows-say-what-they-do/specs/grading/spec.md#requirement-a-learner-sees-what-one-more-mark-would-do-to-their-average
  */
 export function passMark(plan) {
 	const rule = (plan?.passRules ?? []).find((r) => r && (r.componentId === null || r.componentId === undefined || r.componentId === ''))
@@ -62,6 +65,7 @@ export function passMark(plan) {
  *
  * @param {Array<{value: number, weight: number}>} marks The marks with their weights.
  * @return {number|null}
+ * @spec openspec/changes/capability-rows-say-what-they-do/specs/grading/spec.md#requirement-a-learner-sees-what-one-more-mark-would-do-to-their-average
  */
 function weightedAverage(marks) {
 	let sum = 0
@@ -83,6 +87,7 @@ function weightedAverage(marks) {
  * @param {number|string} input.mark The possible next mark.
  * @param {number|string} input.weight Its weight.
  * @return {{current: number|null, average: number, passMark: number, passes: boolean}|null} Null while the mark or weight is not a usable number.
+ * @spec openspec/changes/capability-rows-say-what-they-do/specs/grading/spec.md#requirement-a-learner-sees-what-one-more-mark-would-do-to-their-average
  */
 export function forecastAverage({ entries, plan, mark, weight }) {
 	const nextMark = toNumber(mark)

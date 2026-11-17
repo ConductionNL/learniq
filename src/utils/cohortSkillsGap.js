@@ -14,6 +14,7 @@
  * @param {object|undefined} framework The CompetencyFramework.
  * @param {string|null|undefined} levelId The level.
  * @return {number|null}
+ * @spec openspec/changes/capability-rows-say-what-they-do/specs/competency/spec.md#requirement-a-group-view-shows-which-skills-are-thin-across-a-cohort
  */
 function levelOrder(framework, levelId) {
 	if (!levelId) {
@@ -31,6 +32,7 @@ function levelOrder(framework, levelId) {
  * @param {object|undefined} framework The CompetencyFramework.
  * @param {string|null|undefined} levelId The attained level.
  * @return {boolean}
+ * @spec openspec/changes/capability-rows-say-what-they-do/specs/competency/spec.md#requirement-a-group-view-shows-which-skills-are-thin-across-a-cohort
  */
 export function reachesTarget(framework, levelId) {
 	if (!levelId) {
@@ -56,6 +58,7 @@ export function reachesTarget(framework, levelId) {
  * @param {object[]} input.attainments The learners' CompetencyAttainment rows.
  * @param {object[]} input.frameworks The CompetencyFrameworks the competencies belong to.
  * @return {Array<{id: string, code: string, title: string, below: number, total: number}>}
+ * @spec openspec/changes/capability-rows-say-what-they-do/specs/competency/spec.md#requirement-a-group-view-shows-which-skills-are-thin-across-a-cohort
  */
 export function cohortSkillsGap({ learnerIds, competencies, attainments, frameworks }) {
 	const learners = [...new Set((learnerIds ?? []).filter(Boolean))]
