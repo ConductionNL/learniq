@@ -13,4 +13,4 @@
 
 ## 3. Matrix
 
-- [ ] 3.1 When the tasks are done, archive this change and repoint the three rows in `openspec/parity/capabilities.json` from `openspec/changes/platform-properties/specs/platform-properties` to `openspec/specs/platform-properties`.
+- [x] 3.1 When the tasks are done, archive this change and repoint the three rows in `openspec/parity/capabilities.json` from `openspec/changes/platform-properties/specs/platform-properties` to `openspec/specs/platform-properties`.
