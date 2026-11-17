@@ -10,6 +10,7 @@
 - [x] 2.1 `tests/Unit/Controller/ActionMatrixControllerTest.php`: a saved matrix takes effect on the next `requireAction()` call, without a restart. Verify: `composer test:unit -- --filter ActionMatrixControllerTest`.
   - `testASavedMatrixTakesEffectOnTheNextGuardedCall`: the real `CallerActionCheck` refuses a coordinator, the controller saves a matrix granting `coordinators`, and the very next check lets them through, through the same service.
 - [ ] 2.2 Playwright `tests/e2e/spec-coverage/action-authorization.spec.ts`: an admin ticks a group for one action, saves, reloads and sees the tick kept.
+  - Written: ticks `team-leads` on `regulation.assign` (or the first action with a group it does not allow yet), saves, reloads, sees the tick and the rest of the row kept, reads it back from the server, and puts the earlier matrix back. Tick it after a run against a live instance.
 
 ## 3. Matrix
 
