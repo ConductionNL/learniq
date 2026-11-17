@@ -24,6 +24,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Service\Attendance;
 
 use OCA\Learniq\Service\Attendance\AttendanceSummaryCalculator;
+use OCA\Learniq\Service\Calendar\SchoolYear as SchoolCalendarYear;
+use OCP\IAppConfig;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -130,15 +132,44 @@ class AttendanceSummaryCalculatorTest extends TestCase {
 	}//end testADayWithMixedAbsencesCountsOnceWithoutPermission()
 
 	/**
+	 * A school that starts its year on 1 September counts late August in the year before.
+	 *
+	 * @return void
+	 */
+	public function testTheSchoolYearTurnsOnTheSchoolsOwnStart(): void {
+		$config = $this->createMock(IAppConfig::class);
+		$config->method('getValueString')->willReturnCallback(
+			static fn (string $app, string $key, string $default): string => ($key === SchoolCalendarYear::KEY ? '09-01' : $default)
+		);
+		$calculator = new AttendanceSummaryCalculator(schoolYear: new SchoolCalendarYear($config));
+
+		self::assertSame('2025-2026', $calculator->schoolYearOf(date: '2026-08-20'));
+		self::assertSame('2026-2027', $calculator->schoolYearOf(date: '2026-09-01'));
+
+		$sessions = AttendanceSummaryCalculator::sessionDays(
+			rows: [
+				self::session('late-august', '2026-08-20T08:30:00+02:00', '2026-08-20T12:00:00+02:00'),
+				self::session('september', '2026-09-02T08:30:00+02:00', '2026-09-02T12:00:00+02:00'),
+			]
+		);
+		$years = $calculator->summarise(
+			records: [self::record('late-august', 'absent-unexcused'), self::record('september', 'absent-excused')],
+			sessions: $sessions
+		);
+		self::assertSame(1, $years['2025-2026']['absentUnauthorisedDays']);
+		self::assertSame(1, $years['2026-2027']['absentAuthorisedDays']);
+	}//end testTheSchoolYearTurnsOnTheSchoolsOwnStart()
+
+	/**
 	 * The school year turns on 1 August, in the offset stored on the lesson.
 	 *
 	 * @return void
 	 */
 	public function testTheSchoolYearTurnsOnTheFirstOfAugust(): void {
-		self::assertSame('2025-2026', AttendanceSummaryCalculator::schoolYearOf(date: '2026-07-31'));
-		self::assertSame('2026-2027', AttendanceSummaryCalculator::schoolYearOf(date: '2026-08-01'));
-		self::assertSame('2025-2026', AttendanceSummaryCalculator::schoolYearOf(date: '2026-01-05'));
-		self::assertNull(AttendanceSummaryCalculator::schoolYearOf(date: 'yesterday'));
+		self::assertSame('2025-2026', (new AttendanceSummaryCalculator())->schoolYearOf(date: '2026-07-31'));
+		self::assertSame('2026-2027', (new AttendanceSummaryCalculator())->schoolYearOf(date: '2026-08-01'));
+		self::assertSame('2025-2026', (new AttendanceSummaryCalculator())->schoolYearOf(date: '2026-01-05'));
+		self::assertNull((new AttendanceSummaryCalculator())->schoolYearOf(date: 'yesterday'));
 
 		$sessions = AttendanceSummaryCalculator::sessionDays(
 			rows: [

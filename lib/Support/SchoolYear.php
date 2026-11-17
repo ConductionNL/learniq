@@ -34,26 +34,36 @@ namespace OCA\Learniq\Support;
 final class SchoolYear {
 
 	/**
-	 * The month a school year starts in.
+	 * The first day of a school year when the school sets none, `MM-DD`.
 	 */
-	private const FIRST_MONTH = 8;
+	public const DEFAULT_START = '08-01';
 
 	/**
 	 * The school year of a date (`Y-m-d`), or null when it is not one.
 	 *
-	 * @param string $date The date.
+	 * The year starts on `$start` (`MM-DD`, the school's `school_year_start`,
+	 * read by `Service\Calendar\SchoolYear`); a start that is not a day of the
+	 * year reads as 1 August.
+	 *
+	 * @param string $date  The date.
+	 * @param string $start The first day of the school year, `MM-DD`.
 	 *
 	 * @return string|null
 	 *
 	 * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#scenario-july-and-august-fall-in-different-school-years
+	 * @spec openspec/changes/school-year-setting/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
 	 */
-	public static function of(string $date): ?string {
-		if (preg_match('/^(\d{4})-(\d{2})-\d{2}$/', $date, $parts) !== 1) {
+	public static function of(string $date, string $start=self::DEFAULT_START): ?string {
+		if (preg_match('/^(\d{4})-(\d{2}-\d{2})$/', $date, $parts) !== 1) {
 			return null;
 		}
 
+		if (preg_match('/^(\d{2})-(\d{2})$/', $start, $day) !== 1 || checkdate((int)$day[1], (int)$day[2], 2001) === false) {
+			$start = self::DEFAULT_START;
+		}
+
 		$year = (int)$parts[1];
-		if ((int)$parts[2] < self::FIRST_MONTH) {
+		if ($parts[2] < $start) {
 			$year--;
 		}
 
