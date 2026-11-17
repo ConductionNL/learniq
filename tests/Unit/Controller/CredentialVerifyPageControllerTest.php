@@ -25,6 +25,7 @@ use OCA\Learniq\Controller\CredentialVerifyController;
 use OCA\Learniq\Controller\CredentialVerifyPageController;
 use OCA\Learniq\Kernel\Contracts\JwsProofVerifierInterface;
 use OCA\Learniq\Kernel\Contracts\SchoolPhoneInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Http\RedirectResponse;
@@ -165,7 +166,12 @@ class CredentialVerifyPageControllerTest extends TestCase {
 		$objects = $this->createMock(ObjectService::class);
 		$objects->expects($this->once())
 			->method('find')
-			->with('cred-1', $this->anything(), $this->anything(), 'learniq', 'credential')
+			->with(
+				'cred-1',
+				$this->callback(
+					static fn (ObjectFindOptions $options): bool => ($options->register === 'learniq' && $options->schema === 'credential')
+				)
+			)
 			->willReturn(null);
 
 		$response = $this->verifyController(accept: 'application/json', objects: $objects)->verify(id: 'cred-1');
