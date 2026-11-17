@@ -36,6 +36,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 
 /**
  * PortalMessageContacts when its reads fail.
@@ -53,7 +54,11 @@ class PortalMessageContactsReadFailuresTest extends TestCase {
 	private function store(array $rows): ObjectService {
 		$store = $this->createMock(ObjectService::class);
 		$store->method('find')->willReturnCallback(
-			static function (string|int $id, ?array $_extend = [], bool $files = false, mixed $register = null, mixed $schema = null) use ($rows): ?ObjectEntity {
+			static function (string|int $id, ?ObjectFindOptions $options = null) use ($rows): ?ObjectEntity {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				$row = ($rows[(string)$schema][(string)$id] ?? null);
 				return $row === null ? null : OrEntityFactory::make($row, (string)$schema, 'learniq', (string)$id);
 			}

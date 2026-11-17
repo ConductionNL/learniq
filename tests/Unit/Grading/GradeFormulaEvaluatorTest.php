@@ -40,6 +40,7 @@ use OCA\Learniq\Grading\GradePassEvaluator;
 use OCA\Learniq\Service\BsaProgressEvaluator;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\TestCase;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 
 /**
  * Tests for GradeFormulaEvaluator::evaluate() — exemption-aware roll-up.
@@ -79,7 +80,11 @@ class GradeFormulaEvaluatorTest extends TestCase {
 		$scaleEntity = $scale === null ? null : $this->makeObjectEntity(data: $scale, schema: 'grade-scale');
 
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($planEntity, $scaleEntity) {
+			function (int|string $id, ?ObjectFindOptions $options = null) use ($planEntity, $scaleEntity) {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				if ($schema === 'curriculum-plan') {
 					return $planEntity;
 				}

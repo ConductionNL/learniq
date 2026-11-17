@@ -29,6 +29,7 @@ use OCA\Learniq\Service\AuditPeriodReader;
 use OCA\Learniq\Service\CallerTenantResolver;
 use OCA\Learniq\Service\CsvCellSanitizer;
 use OCA\Learniq\Service\ExternalTrainingCsvBuilder;
+use OCA\Learniq\Service\FrozenAttestationLines;
 use OCA\Learniq\Service\VerwerkingsregisterCsvBuilder;
 use OCA\OpenRegister\Service\AuditHashService;
 use OCP\IUser;
@@ -133,7 +134,22 @@ class AuditPackBuilderGoldenTest extends TestCase {
 			}
 		);
 
-		$builder = new AuditPackBuilder($reader, $hash, $tenants, new CsvCellSanitizer(), $registerCsv, $trainingCsv, $attribution);
+		$attestations = $this->createMock(FrozenAttestationLines::class);
+		$attestations->method('lines')->willReturnCallback(
+			static function (string $regulationSlug, string $tenantId) use (&$calls): array {
+				$calls[] = ['attestationLines' => [$regulationSlug, $tenantId]];
+				if ($regulationSlug !== 'NIS2') {
+					return [];
+				}
+
+				return [
+					'Attestation at-1 | learner l-1 | state signed | signedAt 2026-10-03T10:00:00+00:00 | frozen since signing',
+					'Attestation at-2 | learner l-2 | state revoked | signedAt 2026-10-04T10:00:00+00:00 | frozen since signing',
+				];
+			}
+		);
+
+		$builder = new AuditPackBuilder($reader, $hash, $tenants, new CsvCellSanitizer(), $registerCsv, $trainingCsv, $attribution, $attestations);
 		$zip     = $builder->build($this->createMock(IUser::class), $period[0], $period[1], $period[2]);
 
 		return ['calls' => $calls, 'files' => self::files($zip)];

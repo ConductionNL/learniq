@@ -208,10 +208,20 @@ $routes = [
         // an-invited-trainer-may-assess: the trainer's assessment goes through
         // learniq, because only a forward carries the sign-in level.
         ['name' => 'portalWerkproces#submit',    'url' => '/api/portal/werkproces-assessments', 'verb' => 'POST'],
+        // The external assessor's practical exam form (practical-exam-assessment): a step or the submit, and the draft to resume.
+        ['name' => 'portalPracticalExam#submit', 'url' => '/api/portal/practical-exam-assessments', 'verb' => 'POST'],
+        ['name' => 'portalPracticalExam#draft',  'url' => '/api/portal/practical-exam-assessments/draft', 'verb' => 'GET'],
+        // The second half of the exam: each assessor signs the submitted assessment, and reads his sitting's documents.
+        ['name' => 'portalPracticalExam#sign',    'url' => '/api/portal/practical-exam-assessments/{id}/signatures', 'verb' => 'POST'],
+        ['name' => 'portalPracticalExam#sitting', 'url' => '/api/portal/practical-exam-sittings/{id}', 'verb' => 'GET'],
+        // The exam board's practical exam results: only those both assessors signed.
+        ['name' => 'practicalExamResults#index',  'url' => '/api/practical-exam-results', 'verb' => 'GET'],
         // internship-hours: the trainer approves or corrects one week of her
         // student's hours. Same assertion receiver pattern: the assertion is
         // the only place her sign-in level can be read.
         ['name' => 'portalHourWeek#approve',     'url' => '/api/portal/hour-weeks/approve', 'verb' => 'POST'],
+        // A guardian's answer to a permission request (permission-slips).
+        ['name' => 'portalPermission#answer',    'url' => '/api/portal/permission-answers', 'verb' => 'POST'],
         // employer-portal-audience: an employer books places, names a participant for a
         // place and supplies a missing birth date. Same assertion receiver pattern;
         // the company is the organisationRef claim portaliq stamps.
@@ -335,6 +345,16 @@ $routes = [
         // (rules in RollCallService). Controller: RollCallController (slug: rollCall).
         ['name' => 'rollCall#show', 'url' => '/api/attendance/roll-call', 'verb' => 'GET'],
         ['name' => 'rollCall#save', 'url' => '/api/attendance/roll-call', 'verb' => 'POST'],
+        // Course days (training-provider-course-days): the planner moves a day on
+        // the board, decides go or no-go and moves the participants of a cancelled
+        // day to another day of the course. Guarded by course-day.plan.
+        // Controller: CourseDayController (slug: courseDay).
+        ['name' => 'courseDay#move', 'url' => '/api/course-days/{id}/status', 'verb' => 'POST'],
+        ['name' => 'courseDay#decide', 'url' => '/api/course-days/{id}/decision', 'verb' => 'POST'],
+        ['name' => 'courseDay#alternatives', 'url' => '/api/course-days/{id}/alternatives', 'verb' => 'GET'],
+        ['name' => 'courseDay#moveParticipants', 'url' => '/api/course-days/{id}/move-participants', 'verb' => 'POST'],
+        ['name' => 'courseDay#today', 'url' => '/api/course-days/today', 'verb' => 'GET'],
+        ['name' => 'courseDay#sessionParts', 'url' => '/api/course-days/sessions/{sessionId}/parts', 'verb' => 'GET'],
         // Work groups (enrolment-self-join-work-group): the signed-in learner
         // sees the work groups of their classes and joins, moves or leaves
         // while sign-up is open (rules in WorkGroupMembershipService).
@@ -347,6 +367,10 @@ $routes = [
         ['name' => 'portalWorkGroup#mine', 'url' => '/api/portal/work-groups', 'verb' => 'POST'],
         ['name' => 'portalWorkGroup#join', 'url' => '/api/portal/work-groups/join', 'verb' => 'POST'],
         ['name' => 'portalWorkGroup#leave', 'url' => '/api/portal/work-groups/leave', 'verb' => 'POST'],
+        // The staff page of one pupil (learner-list-and-page-follow-the-boards): header,
+        // today's state, the "Wat nu?" next step and the people around the pupil.
+        // Controller: PupilPageController (slug: pupilPage); access as the group's register.
+        ['name' => 'pupilPage#show', 'url' => '/api/pupils/{learnerId}/page', 'verb' => 'GET'],
         // Course catalogue (enrolment-catalogue-self-signup): the signed-in
         // learner lists what they may sign up for, signs up for a course or a
         // programme, and withdraws an own sign-up; every write is for the
@@ -383,6 +407,10 @@ $routes = [
         // Bulk reissue of a course's certificates (credentials-bulk-reissue):
         // preview and queue a run; hr, compliance officers or admin, checked
         // in the method. Controller: CredentialReissueController (slug: credentialReissue).
+        // Certificates taken over from the previous system (credentials-migrate-with-validity):
+        // dry run and commit, authorized by the `credential.migrate` action.
+        // Controller: CredentialMigrationController (slug: credentialMigration).
+        ['name' => 'credentialMigration#migrate', 'url' => '/api/credentials/migrate', 'verb' => 'POST'],
         ['name' => 'credentialReissue#preview', 'url' => '/api/courses/{courseId}/credentials/reissue', 'verb' => 'GET'],
         ['name' => 'credentialReissue#start', 'url' => '/api/courses/{courseId}/credentials/reissue', 'verb' => 'POST'],
 

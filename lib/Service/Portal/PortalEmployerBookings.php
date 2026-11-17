@@ -43,6 +43,8 @@ use DateTimeImmutable;
 use DateTimeZone;
 use OCA\Learniq\Kernel\Contracts\PortalEmployerBookingsInterface;
 use OCA\Learniq\Support\TextValue;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use Psr\Log\LoggerInterface;
@@ -515,7 +517,12 @@ class PortalEmployerBookings implements PortalEmployerBookingsInterface {
 	 * @throws \Throwable When OpenRegister cannot be written.
 	 */
 	private function save(string $schema, array $row): array {
-		$saved = $this->objectService->saveObject(object: $row, register: self::REGISTER, schema: $schema, _rbac: false, _multitenancy: false);
+		$saved = $this->objectService->saveObject(
+			object: $row,
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: $schema)),
+			_rbac: false,
+			_multitenancy: false
+		);
 
 		return (array)$saved->jsonSerialize();
 	}//end save()

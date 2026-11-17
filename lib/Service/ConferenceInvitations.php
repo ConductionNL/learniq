@@ -42,6 +42,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Kernel\Contracts\ConferenceInvitationsInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -111,9 +113,10 @@ class ConferenceInvitations implements ConferenceInvitationsInterface {
 		foreach ($writes as $write) {
 			$this->objectService->saveObject(
 				object: $write['object'],
-				register: self::REGISTER,
-				schema: self::SCHEMA,
-				uuid: $write['uuid'],
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::REGISTER, schema: self::SCHEMA),
+					uuid: $write['uuid']
+				),
 				_rbac: false,
 				_multitenancy: false
 			);

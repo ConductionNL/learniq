@@ -25,6 +25,7 @@ use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\Learniq\Timetabling\SessionSeries;
 use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\TestCase;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 
 /**
  * @covers \OCA\Learniq\Timetabling\SessionSeries
@@ -59,7 +60,11 @@ class SessionSeriesFallbacksTest extends TestCase {
 		$objects->expects(self::once())
 			->method('find')
 			->willReturnCallback(
-				static function (int|string $id, ?array $_extend = [], bool $files = false, mixed $register = null, mixed $schema = null) use (&$asked) {
+				static function (int|string $id, ?ObjectFindOptions $options = null) use (&$asked) {
+					$_extend = $options?->extend ?? [];
+					$files = $options?->files ?? false;
+					$register = $options?->register;
+					$schema = $options?->schema;
 					$asked = [$id, $register, $schema];
 					return OrEntityFactory::make(['title' => 'Wiskunde'], 'session');
 				}

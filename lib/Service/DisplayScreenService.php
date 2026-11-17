@@ -37,6 +37,9 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
 use OCA\Learniq\Kernel\Contracts\DisplayScreenServiceInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Security\ISecureRandom;
 use Throwable;
@@ -83,7 +86,10 @@ class DisplayScreenService implements DisplayScreenServiceInterface {
 		$screen['tokenHash'] = hash('sha256', $secret);
 		$screen['tokenCreatedAt'] = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
 		$screen['status'] = 'active';
-		$this->objectService->saveObject(object: $screen, register: self::REGISTER, schema: self::SCHEMA);
+		$this->objectService->saveObject(
+			object: $screen,
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: self::SCHEMA))
+		);
 
 		return $screenId.'.'.$secret;
 	}//end issueToken()
@@ -105,7 +111,10 @@ class DisplayScreenService implements DisplayScreenServiceInterface {
 
 		$screen['tokenHash'] = null;
 		$screen['status'] = 'revoked';
-		$this->objectService->saveObject(object: $screen, register: self::REGISTER, schema: self::SCHEMA);
+		$this->objectService->saveObject(
+			object: $screen,
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: self::SCHEMA))
+		);
 
 		return true;
 	}//end revoke()
@@ -129,11 +138,9 @@ class DisplayScreenService implements DisplayScreenServiceInterface {
 		try {
 			$row = $this->objectService->find(
 				id: $parts[0],
-				register: self::REGISTER,
-				schema: self::SCHEMA,
+				options: new ObjectFindOptions(register: self::REGISTER, schema: self::SCHEMA, render: false),
 				_rbac: false,
-				_multitenancy: false,
-				_render: false
+				_multitenancy: false
 			);
 		} catch (Throwable $exception) {
 			unset($exception);
@@ -179,7 +186,10 @@ class DisplayScreenService implements DisplayScreenServiceInterface {
 	 */
 	private function loadAsCaller(string $screenId): ?array {
 		try {
-			$row = $this->objectService->find(id: $screenId, register: self::REGISTER, schema: self::SCHEMA, _render: false);
+			$row = $this->objectService->find(
+				id: $screenId,
+				options: new ObjectFindOptions(register: self::REGISTER, schema: self::SCHEMA, render: false)
+			);
 		} catch (Throwable $exception) {
 			unset($exception);
 			return null;
