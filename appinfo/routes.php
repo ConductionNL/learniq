@@ -45,6 +45,8 @@ $routes = [
         // Public credential verification — no auth, per ADR-031 external-system contract.
         // Controller: CredentialVerifyController (slug: credentialVerify).
         ['name' => 'credentialVerify#verify', 'url' => '/api/credentials/{id}/verify', 'verb' => 'GET'],
+        // The readable page a browser is sent to from that link (certificate-verification-and-key-rotation).
+        ['name' => 'credentialVerifyPage#show', 'url' => '/verify/{id}', 'verb' => 'GET', 'requirements' => ['id' => '[^/]+']],
         // Europass file check (credentials-europass-edci-export): public like the
         // GET, answers validity only, never the stored payload.
         ['name' => 'credentialVerify#verifyEuropass', 'url' => '/api/credentials/{id}/verify', 'verb' => 'POST'],
@@ -373,6 +375,9 @@ $routes = [
         // today's state, the "Wat nu?" next step and the people around the pupil.
         // Controller: PupilPageController (slug: pupilPage); access as the group's register.
         ['name' => 'pupilPage#show', 'url' => '/api/pupils/{learnerId}/page', 'verb' => 'GET'],
+        ['name' => 'pupilConversation#show', 'url' => '/api/pupils/{learnerId}/conversation', 'verb' => 'GET'],
+        ['name' => 'pupilConversation#reply', 'url' => '/api/pupils/{learnerId}/conversation', 'verb' => 'POST'],
+        ['name' => 'pupilList#index', 'url' => '/api/pupil-list', 'verb' => 'GET'],
         // Course catalogue (enrolment-catalogue-self-signup): the signed-in
         // learner lists what they may sign up for, signs up for a course or a
         // programme, and withdraws an own sign-up; every write is for the
