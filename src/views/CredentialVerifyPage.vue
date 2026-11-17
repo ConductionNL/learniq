@@ -99,6 +99,7 @@ export default {
 		 * The colour family of the verdict.
 		 *
 		 * @return {string}
+		 * @spec openspec/changes/certificate-verification-and-key-rotation/specs/certification/spec.md#requirement-the-verification-link-opens-a-page-that-says-in-words-what-was-checked
 		 */
 		tone() {
 			if (this.verdict.state === 'valid') {
@@ -111,6 +112,7 @@ export default {
 		 * The verdict in a few words.
 		 *
 		 * @return {string}
+		 * @spec openspec/changes/certificate-verification-and-key-rotation/specs/certification/spec.md#requirement-the-verification-link-opens-a-page-that-says-in-words-what-was-checked
 		 */
 		headline() {
 			switch (this.verdict.state) {
@@ -128,6 +130,7 @@ export default {
 		 * The verdict in one sentence.
 		 *
 		 * @return {string}
+		 * @spec openspec/changes/certificate-verification-and-key-rotation/specs/certification/spec.md#requirement-the-verification-link-opens-a-page-that-says-in-words-what-was-checked
 		 */
 		explanation() {
 			const v = this.verdict
@@ -148,6 +151,7 @@ export default {
 		 * The certificate's details the answer carries, in page order.
 		 *
 		 * @return {Array<{label: string, value: string}>}
+		 * @spec openspec/changes/certificate-verification-and-key-rotation/specs/certification/spec.md#requirement-the-verification-link-opens-a-page-that-says-in-words-what-was-checked
 		 */
 		details() {
 			const v = this.verdict
@@ -182,6 +186,7 @@ export default {
 		 * The four checks, each with its outcome and one sentence.
 		 *
 		 * @return {Array<object>}
+		 * @spec openspec/changes/certificate-verification-and-key-rotation/specs/certification/spec.md#requirement-the-verification-link-opens-a-page-that-says-in-words-what-was-checked
 		 */
 		checkRows() {
 			const names = {
@@ -219,6 +224,7 @@ export default {
 	 * Ask the verification route for its JSON answer.
 	 *
 	 * @return {Promise<void>}
+	 * @spec openspec/changes/certificate-verification-and-key-rotation/specs/certification/spec.md#requirement-the-verification-link-opens-a-page-that-says-in-words-what-was-checked
 	 */
 	async created() {
 		const url = generateUrl('/apps/learniq/api/credentials/{id}/verify', { id: this.credentialId })

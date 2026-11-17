@@ -58,6 +58,7 @@ export default {
 		 * Whether the field holds no phone number the server accepts.
 		 *
 		 * @return {boolean}
+		 * @spec openspec/changes/certificate-verification-and-key-rotation/specs/certification/spec.md#requirement-the-verification-link-opens-a-page-that-says-in-words-what-was-checked
 		 */
 		invalid() {
 			return parseSchoolPhone(this.phone) === null
@@ -68,6 +69,7 @@ export default {
 	 * Read the stored number.
 	 *
 	 * @return {Promise<void>}
+	 * @spec openspec/changes/certificate-verification-and-key-rotation/specs/certification/spec.md#requirement-the-verification-link-opens-a-page-that-says-in-words-what-was-checked
 	 */
 	async created() {
 		try {
@@ -85,6 +87,7 @@ export default {
 		 * Store the number.
 		 *
 		 * @return {Promise<void>}
+		 * @spec openspec/changes/certificate-verification-and-key-rotation/specs/certification/spec.md#requirement-the-verification-link-opens-a-page-that-says-in-words-what-was-checked
 		 */
 		async save() {
 			this.saving = true

@@ -17,6 +17,7 @@ export const MAX_PHONE_LENGTH = 32
  *
  * @param {string} raw The field's value.
  * @return {string|null}
+ * @spec openspec/changes/certificate-verification-and-key-rotation/specs/certification/spec.md#requirement-the-verification-link-opens-a-page-that-says-in-words-what-was-checked
  */
 export function parseSchoolPhone(raw) {
 	const text = String(raw ?? '').trim()
@@ -34,6 +35,7 @@ export function parseSchoolPhone(raw) {
  *
  * @param {{http: object, url: string}} endpoint The settings endpoint.
  * @return {Promise<string>}
+ * @spec openspec/changes/certificate-verification-and-key-rotation/specs/certification/spec.md#requirement-the-verification-link-opens-a-page-that-says-in-words-what-was-checked
  */
 export async function loadSchoolPhone(endpoint) {
 	const { data } = await endpoint.http.get(endpoint.url)
@@ -46,6 +48,7 @@ export async function loadSchoolPhone(endpoint) {
  * @param {{http: object, url: string}} endpoint The settings endpoint.
  * @param {string} phone A value parseSchoolPhone() accepted.
  * @return {Promise<string>}
+ * @spec openspec/changes/certificate-verification-and-key-rotation/specs/certification/spec.md#requirement-the-verification-link-opens-a-page-that-says-in-words-what-was-checked
  */
 export async function saveSchoolPhone(endpoint, phone) {
 	const { data } = await endpoint.http.put(endpoint.url, { [SCHOOL_PHONE_SETTING]: phone })
