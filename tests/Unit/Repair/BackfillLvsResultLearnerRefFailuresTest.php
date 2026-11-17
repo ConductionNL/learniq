@@ -31,6 +31,7 @@ use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 /**
  * @covers \OCA\Learniq\Repair\BackfillLvsResultLearnerRef
  * @uses   \OCA\Learniq\Service\LearnerRefResolver
+ * @uses   \OCA\Learniq\Repair\Support\MissingLearnerRef
  * @uses   \OCA\Learniq\Repair\Support\RepairRowWalk
  * @uses   \OCA\Learniq\Repair\Support\RepairTally
  * @uses   \OCA\Learniq\Support\SerialisedRow
