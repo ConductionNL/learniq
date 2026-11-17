@@ -39,6 +39,8 @@ use RuntimeException;
  *
  * @covers \OCA\Learniq\Service\Portal\PortalPracticalExamSigning
  * @uses   \OCA\Learniq\Service\Portal\PortalOutcome
+ * @uses   \OCA\Learniq\Service\Portal\Support\AssessmentRowValues
+ * @uses   \OCA\Learniq\Support\ObjectRow
  * @uses   \OCA\Learniq\Service\Portal\PortalPracticalExamAssessment
  */
 class PortalPracticalExamSigningTest extends TestCase {

@@ -38,6 +38,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service\Portal;
 
 use OCA\Learniq\Kernel\Contracts\PortalPracticalExamAssessmentInterface;
+use OCA\Learniq\Service\Portal\Support\AssessmentRowValues;
 use OCA\Learniq\Support\ObjectRow;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
@@ -52,6 +53,8 @@ use Throwable;
  * @spec openspec/changes/practical-exam-assessment/specs/exam-board/spec.md#requirement-a-practical-exam-assessment-records-who-assessed-and-how-sure-the-school-is
  */
 class PortalPracticalExamAssessment implements PortalPracticalExamAssessmentInterface {
+
+	use AssessmentRowValues;
 
 	private const REGISTER = 'learniq';
 
@@ -457,20 +460,6 @@ class PortalPracticalExamAssessment implements PortalPracticalExamAssessmentInte
 	}//end stamped()
 
 	/**
-	 * The assurance a school demands before it accepts an assessment.
-	 *
-	 * @return string One of the eIDAS levels; `basic` when unset or unknown.
-	 */
-	private function floor(): string {
-		$declared = $this->appConfig->getValueString(self::APP_ID, self::MIN_ASSURANCE_KEY, 'basic');
-		if (isset(self::ASSURANCE_ORDER[$declared]) === false) {
-			return 'basic';
-		}
-
-		return $declared;
-	}//end floor()
-
-	/**
 	 * One learniq row by uuid, or null.
 	 *
 	 * @param string $schema The schema slug.
@@ -509,45 +498,4 @@ class PortalPracticalExamAssessment implements PortalPracticalExamAssessmentInte
 
 		return $this->orNull(value: $this->text(value: ($row['id'] ?? ($row['uuid'] ?? null))));
 	}//end idOf()
-
-	/**
-	 * An OpenRegister result as an array.
-	 *
-	 * @param mixed $object The result.
-	 *
-	 * @return array<string, mixed>
-	 */
-	private function toRow(mixed $object): array {
-		return $this->objectRow->asArray(object: $object);
-	}//end toRow()
-
-	/**
-	 * A string value, or '' for anything else.
-	 *
-	 * @param mixed $value The value.
-	 *
-	 * @return string
-	 */
-	private function text(mixed $value): string {
-		if (is_string($value) === false) {
-			return '';
-		}
-
-		return $value;
-	}//end text()
-
-	/**
-	 * The text, or null when it is empty.
-	 *
-	 * @param string $value The text.
-	 *
-	 * @return string|null
-	 */
-	private function orNull(string $value): ?string {
-		if ($value === '') {
-			return null;
-		}
-
-		return $value;
-	}//end orNull()
 }//end class

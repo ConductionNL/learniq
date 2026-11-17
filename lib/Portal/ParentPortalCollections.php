@@ -121,7 +121,7 @@ class ParentPortalCollections {
 
 	private const PARENT_CONFERENCE_ROUNDS_COLUMNS = [
 		['field' => 'name', 'label' => 'Conference round'],
-		['field' => 'bookingClosesAt', 'label' => 'Book before'],
+		['field' => 'bookingClosesAt', 'label' => 'Book before', 'render' => 'date'],
 		['field' => 'slotDurationMinutes', 'label' => 'Minutes per conversation'],
 	];
 

@@ -28,31 +28,14 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Command;
 
-use OCA\Learniq\Kernel\Contracts\BpvPortalInvitationInterface;
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * Invites one person to their portal and writes the claim it is scoped by.
  *
  * @spec openspec/changes/invite-a-trainer-and-an-assessor/specs/portal-identity/spec.md#requirement-a-school-invites-a-trainer-or-an-assessor-it-already-created
  */
-class PortalInviteAssessorCommand extends Command {
-
-	/**
-	 * Constructor.
-	 *
-	 * @param BpvPortalInvitationInterface $invitations Provisions the account and writes the claim.
-	 *
-	 * @return void
-	 */
-	public function __construct(
-		private readonly BpvPortalInvitationInterface $invitations,
-	) {
-		parent::__construct();
-	}//end __construct()
+class PortalInviteAssessorCommand extends AbstractBpvPortalInviteCommand {
 
 	/**
 	 * Name, description and arguments.
@@ -70,29 +53,20 @@ class PortalInviteAssessorCommand extends Command {
 	}//end configure()
 
 	/**
-	 * Run the invitation.
+	 * The portal role the person is invited as.
 	 *
-	 * @param InputInterface  $input  The input.
-	 * @param OutputInterface $output The output.
-	 *
-	 * @return int
-	 *
-	 * @spec openspec/changes/invite-a-trainer-and-an-assessor/specs/portal-identity/spec.md#requirement-a-school-invites-a-trainer-or-an-assessor-it-already-created
+	 * @return string
 	 */
-	protected function execute(InputInterface $input, OutputInterface $output): int {
-		$result = $this->invitations->invite(
-			role: 'assessor',
-			personRef: (string)$input->getArgument('externalAssessorRef'),
-			organisation: (string)$input->getArgument('organisation'),
-			email: (string)$input->getArgument('email')
-		);
+	protected function role(): string {
+		return 'assessor';
+	}//end role()
 
-		if ($result['status'] !== 'invited') {
-			$output->writeln('<error>Not invited: ' . ($result['reason'] ?? 'unknown') . '</error>');
-			return self::FAILURE;
-		}
-
-		$output->writeln('Invited. Portal account: ' . ($result['subjectRef'] ?? ''));
-		return self::SUCCESS;
-	}//end execute()
+	/**
+	 * The argument that carries the person's uuid.
+	 *
+	 * @return string
+	 */
+	protected function personArgument(): string {
+		return 'externalAssessorRef';
+	}//end personArgument()
 }//end class

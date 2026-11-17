@@ -72,6 +72,7 @@ class StudentPortalPages {
 		'room-unavailable' => 'Other room',
 		'teacher-absence'  => 'Other teacher',
 		'timetable-change' => 'Changed',
+		'other'            => 'Changed',
 	];
 
 	private const STUDENT_SESSIONS_FIELDS = [
