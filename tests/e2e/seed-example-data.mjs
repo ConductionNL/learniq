@@ -32,6 +32,7 @@ import { request as httpRequest } from 'node:http'
 import { request as httpsRequest } from 'node:https'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { lifecycleOf, lifecyclePath } from './seed-lifecycle.mjs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const REPO_ROOT = join(__dirname, '..', '..')
@@ -468,22 +469,63 @@ async function objectExists(slug, markerField, markerValue) {
 	return items.length > 0 ? items[0] : null
 }
 
+const id = (o) => o && (o.uuid ?? o.id ?? o['@self']?.uuid)
+
 async function createObject(slug, body) {
 	const r = await api(
 		'POST',
 		`/index.php/apps/openregister/api/objects/${REGISTER_SLUG}/${slug}`,
 		body,
 	)
+	const refusal = r.json?.errors
+	if (r.status === 422 && refusal?.code === 'lifecycle-invalid-initial') {
+		return createThenTransition(slug, body, refusal)
+	}
 	if (!r.ok) {
-		warn(
-			`  ! create ${slug} failed (status ${r.status}): ${(r.text || '').slice(0, 160)}`,
-		)
+		const why = r.json?.errors ? JSON.stringify(r.json.errors) : r.text || ''
+		warn(`  ! create ${slug} failed (status ${r.status}): ${why.slice(0, 400)}`)
 		return null
 	}
 	return r.json
 }
 
-const id = (o) => o && (o.uuid ?? o.id ?? o['@self']?.uuid)
+/**
+ * Create a fixture in its lifecycle's initial state, then walk the declared
+ * transitions to the state the fixture asked for.
+ *
+ * @param {string} slug The schema slug.
+ * @param {object} body The fixture, carrying the wanted state.
+ * @param {object} refusal OpenRegister's `lifecycle-invalid-initial` answer.
+ * @return {Promise<object|null>} The object in the wanted state, or null.
+ */
+async function createThenTransition(slug, body, refusal) {
+	const { field, initial, attempted } = refusal
+	const path = lifecyclePath(lifecycleOf(loadRegister(), slug), initial, attempted)
+	if (path === null) {
+		warn(`  ! create ${slug} failed: no transition path from "${initial}" to "${attempted}"`)
+		return null
+	}
+	let obj = await createObject(slug, { ...body, [field]: initial })
+	for (const action of path) {
+		if (!obj) {
+			return null
+		}
+		const t = await api(
+			'POST',
+			`/index.php/apps/openregister/api/objects/${id(obj)}/transition`,
+			{ action },
+		)
+		if (!t.ok) {
+			warn(
+				`  ! ${slug} ${id(obj)}: transition ${action} refused (status ${t.status}): ${(t.text || '').slice(0, 300)}`,
+			)
+			return null
+		}
+		obj = t.json?.object ?? t.json
+	}
+	return obj
+}
+
 
 /**
  * The tenant_id every seeded object carries.
@@ -817,7 +859,7 @@ async function seedAssignments(ctx) {
 					assignmentId: id(a1),
 					learnerIds: [ln],
 					attachmentRefs: [`demo://sub/${ln}`],
-					submittedAt: '2026-09-30',
+					submittedAt: '2026-09-30T12:00:00Z',
 					tenant_id: TENANT,
 				},
 			)
@@ -1048,11 +1090,13 @@ async function seedAttendance(ctx) {
 			},
 		)
 	}
+	const learner3 = await objectExists('learner-profile', 'ncUserId', 'demo-learner-3')
 	await seed(
 		'excuse-request',
 		{ field: 'learnerId', value: 'demo-learner-3' },
 		{
 			learnerId: 'demo-learner-3',
+			...(id(learner3) ? { learnerRef: id(learner3) } : {}),
 			submittedBy: 'parent-3',
 			dateFrom: '2026-09-08',
 			dateTo: '2026-09-09',
@@ -1147,7 +1191,7 @@ async function seedCompliance(ctx) {
 					type: ['VerifiableCredential', 'OpenBadgeCredential'],
 				},
 				issuedBy: `Conduction ${n}`,
-				source: 'system',
+				source: 'auto',
 				regulationSlug: 'AVG',
 				lifecycle: 'issued',
 				tenant_id: TENANT,
@@ -1458,7 +1502,8 @@ async function seedPeriodGradeEntries(ctx) {
 				curriculumPlanId: id(plan),
 				gradeScaleId: id(scale),
 				value: 8,
-				period: 'P1',
+				// No report period governs P3: publishing into the locked P1 is refused.
+				period: 'P3',
 				componentId: 'c-future',
 				weight: 1,
 				lifecycle: 'published',
