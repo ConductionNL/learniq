@@ -55,6 +55,7 @@ use OCA\Learniq\Kernel\Contracts\ContactHoursServiceInterface;
 use OCA\Learniq\Kernel\Contracts\ContributionBeneficiaryResolverInterface;
 use OCA\Learniq\Kernel\Contracts\ContributionRaiserInterface;
 use OCA\Learniq\Kernel\Contracts\CorrectionApprovalsInterface;
+use OCA\Learniq\Kernel\Contracts\CourseDayStatusServiceInterface;
 use OCA\Learniq\Kernel\Contracts\CourseEvaluationAnswerServiceInterface;
 use OCA\Learniq\Kernel\Contracts\CoursePackageExportServiceInterface;
 use OCA\Learniq\Kernel\Contracts\CoursePackageImportServiceInterface;
@@ -65,6 +66,7 @@ use OCA\Learniq\Kernel\Contracts\CourseStoreInstallerInterface;
 use OCA\Learniq\Kernel\Contracts\CourseStorePublisherInterface;
 use OCA\Learniq\Kernel\Contracts\CourseTemplateServiceInterface;
 use OCA\Learniq\Kernel\Contracts\CredentialLearnerInterface;
+use OCA\Learniq\Kernel\Contracts\CredentialMigrationServiceInterface;
 use OCA\Learniq\Kernel\Contracts\CredentialReissueServiceInterface;
 use OCA\Learniq\Kernel\Contracts\CredentialSigningServiceInterface;
 use OCA\Learniq\Kernel\Contracts\CurriculumCoverageRollupInterface;
@@ -121,20 +123,27 @@ use OCA\Learniq\Kernel\Contracts\OpenMaterialSearchInterface;
 use OCA\Learniq\Kernel\Contracts\PeerReviewAllocationServiceInterface;
 use OCA\Learniq\Kernel\Contracts\PeerReviewWorkProjectionInterface;
 use OCA\Learniq\Kernel\Contracts\PersonalTimetableServiceInterface;
+use OCA\Learniq\Kernel\Contracts\PlannerTodayServiceInterface;
 use OCA\Learniq\Kernel\Contracts\PointEngagementEvaluatorInterface;
 use OCA\Learniq\Kernel\Contracts\PokParentSignatureRuleInterface;
 use OCA\Learniq\Kernel\Contracts\PortalAttemptServiceInterface;
 use OCA\Learniq\Kernel\Contracts\PortalEmployerBookingsInterface;
 use OCA\Learniq\Kernel\Contracts\PortalHourWeekApprovalInterface;
+use OCA\Learniq\Kernel\Contracts\PortalPermissionAnswerInterface;
 use OCA\Learniq\Kernel\Contracts\PortalLearnerResolverInterface;
 use OCA\Learniq\Kernel\Contracts\PortalMessagesInterface;
 use OCA\Learniq\Kernel\Contracts\PortalResultReaderInterface;
 use OCA\Learniq\Kernel\Contracts\PortalSubmissionHandInInterface;
 use OCA\Learniq\Kernel\Contracts\PortalWerkprocesAssessmentInterface;
+use OCA\Learniq\Kernel\Contracts\PortalExamSittingDocumentsInterface;
+use OCA\Learniq\Kernel\Contracts\PortalPracticalExamAssessmentInterface;
+use OCA\Learniq\Kernel\Contracts\PortalPracticalExamSigningInterface;
+use OCA\Learniq\Kernel\Contracts\PracticalExamBoardResultsInterface;
 use OCA\Learniq\Kernel\Contracts\PortalWriteSubjectInterface;
 use OCA\Learniq\Kernel\Contracts\ProgrammeProgressInterface;
 use OCA\Learniq\Kernel\Contracts\ProgrammeRequirementsInterface;
 use OCA\Learniq\Kernel\Contracts\PupilGroupTeachersInterface;
+use OCA\Learniq\Kernel\Contracts\PupilPageServiceInterface;
 use OCA\Learniq\Kernel\Contracts\QtiChoiceOrderResolverInterface;
 use OCA\Learniq\Kernel\Contracts\QtiExportServiceInterface;
 use OCA\Learniq\Kernel\Contracts\QtiImportServiceInterface;
@@ -155,8 +164,10 @@ use OCA\Learniq\Kernel\Contracts\SchoolAdviesRodTimingInterface;
 use OCA\Learniq\Kernel\Contracts\SeedProfileServiceInterface;
 use OCA\Learniq\Kernel\Contracts\SegmentServiceInterface;
 use OCA\Learniq\Kernel\Contracts\SessionChangeBatchServiceInterface;
+use OCA\Learniq\Kernel\Contracts\SessionPartsServiceInterface;
 use OCA\Learniq\Kernel\Contracts\SigningServiceInterface;
 use OCA\Learniq\Kernel\Contracts\SovereigntyPolicyServiceInterface;
+use OCA\Learniq\Kernel\Contracts\SsoAttributeMappingApplierInterface;
 use OCA\Learniq\Kernel\Contracts\StandbyCalendarInterface;
 use OCA\Learniq\Kernel\Contracts\StoreAccessServiceInterface;
 use OCA\Learniq\Kernel\Contracts\SubmissionMarkAllocationServiceInterface;
@@ -180,6 +191,7 @@ use OCA\Learniq\Kernel\Contracts\XapiEnrolmentCompletionInterface;
 use OCA\Learniq\Kernel\Contracts\XapiStatementIngestInterface;
 use OCA\Learniq\Kernel\Contracts\SchoolActivityStaffInterface;
 use OCA\Learniq\Kernel\Contracts\SchoolPhoneInterface;
+use OCA\Learniq\Service\Pupil\PupilPageService;
 use OCA\Learniq\Service\SchoolActivity\SchoolActivityStaff;
 use OCA\Learniq\Service\Accessibility\ConformanceEvidence;
 use OCA\Learniq\Service\Attendance\AttendanceSummaryService;
@@ -192,11 +204,15 @@ use OCA\Learniq\Service\CheckIn\CheckInCodeService;
 use OCA\Learniq\Service\CheckIn\CheckInMessages;
 use OCA\Learniq\Service\CheckIn\CheckInService;
 use OCA\Learniq\Service\Course\CourseTemplateService;
+use OCA\Learniq\Service\CourseDay\CourseDayStatusService;
+use OCA\Learniq\Service\CourseDay\PlannerTodayService;
+use OCA\Learniq\Service\CourseDay\SessionPartsService;
 use OCA\Learniq\Service\CourseStore\CourseStoreDescriptor;
 use OCA\Learniq\Service\CourseStore\CourseStoreInstaller;
 use OCA\Learniq\Service\CourseStore\CourseStorePublisher;
 use OCA\Learniq\Service\CourseStore\StoreAccessService;
 use OCA\Learniq\Service\Enrolment\BulkEnrolService;
+use OCA\Learniq\Service\Exam\PracticalExamBoardResults;
 use OCA\Learniq\Service\Grading\CorrectionApprovals;
 use OCA\Learniq\Service\Grading\ReportPeriodLocks;
 use OCA\Learniq\Service\LessonOnboarding\LessonOnboardingImporter;
@@ -209,11 +225,15 @@ use OCA\Learniq\Service\Portal\EmployerBookingSteps;
 use OCA\Learniq\Service\Portal\PortalAttemptService;
 use OCA\Learniq\Service\Portal\PortalEmployerBookings;
 use OCA\Learniq\Service\Portal\PortalHourWeekApproval;
+use OCA\Learniq\Service\Portal\PortalPermissionAnswer;
 use OCA\Learniq\Service\Portal\PortalLearnerResolver;
 use OCA\Learniq\Service\Portal\PortalMessages;
 use OCA\Learniq\Service\Portal\PortalResultReader;
 use OCA\Learniq\Service\Portal\PortalSubmissionHandIn;
 use OCA\Learniq\Service\Portal\PortalWerkprocesAssessment;
+use OCA\Learniq\Service\Portal\PortalExamSittingDocuments;
+use OCA\Learniq\Service\Portal\PortalPracticalExamAssessment;
+use OCA\Learniq\Service\Portal\PortalPracticalExamSigning;
 use OCA\Learniq\Service\Portal\PortalWriteSubject;
 use OCA\Learniq\Service\Programme\ProgrammeProgress;
 use OCA\Learniq\Service\Programme\ProgrammeRequirements;
@@ -283,6 +303,7 @@ final class ContractBindings {
 		ContributionBeneficiaryResolverInterface::class => ContributionBeneficiaryResolver::class,
 		ContributionRaiserInterface::class => ContributionRaiser::class,
 		CorrectionApprovalsInterface::class => CorrectionApprovals::class,
+		CourseDayStatusServiceInterface::class => CourseDayStatusService::class,
 		CourseEvaluationAnswerServiceInterface::class => CourseEvaluationAnswerService::class,
 		CoursePackageExportServiceInterface::class => CoursePackageExportService::class,
 		CoursePackageImportServiceInterface::class => CoursePackageImportService::class,
@@ -293,6 +314,7 @@ final class ContractBindings {
 		CourseStorePublisherInterface::class => CourseStorePublisher::class,
 		CourseTemplateServiceInterface::class => CourseTemplateService::class,
 		CredentialLearnerInterface::class => CredentialLearner::class,
+		CredentialMigrationServiceInterface::class => CredentialMigrationService::class,
 		CredentialReissueServiceInterface::class => CredentialReissueService::class,
 		CredentialSigningServiceInterface::class => CredentialSigningService::class,
 		CurriculumCoverageRollupInterface::class => CurriculumCoverageRollup::class,
@@ -303,6 +325,7 @@ final class ContractBindings {
 		ElectiveBoardInterface::class => ElectiveBoard::class,
 		ElectiveServiceInterface::class => ElectiveService::class,
 		ElectiveSlotServiceInterface::class => ElectiveSlotService::class,
+		PupilPageServiceInterface::class => PupilPageService::class,
 		SchoolActivityStaffInterface::class => SchoolActivityStaff::class,
 		SchoolPhoneInterface::class => SchoolPhone::class,
 		EmployerBookingProjectionInterface::class => EmployerBookingProjection::class,
@@ -351,16 +374,22 @@ final class ContractBindings {
 		PeerReviewAllocationServiceInterface::class => PeerReviewAllocationService::class,
 		PeerReviewWorkProjectionInterface::class => PeerReviewWorkProjection::class,
 		PersonalTimetableServiceInterface::class => PersonalTimetableService::class,
+		PlannerTodayServiceInterface::class => PlannerTodayService::class,
 		PointEngagementEvaluatorInterface::class => PointEngagementEvaluator::class,
 		PokParentSignatureRuleInterface::class => PokParentSignatureRule::class,
 		PortalAttemptServiceInterface::class => PortalAttemptService::class,
 		PortalEmployerBookingsInterface::class => PortalEmployerBookings::class,
 		PortalHourWeekApprovalInterface::class => PortalHourWeekApproval::class,
+		PortalPermissionAnswerInterface::class => PortalPermissionAnswer::class,
 		PortalLearnerResolverInterface::class => PortalLearnerResolver::class,
 		PortalMessagesInterface::class => PortalMessages::class,
 		PortalResultReaderInterface::class => PortalResultReader::class,
 		PortalSubmissionHandInInterface::class => PortalSubmissionHandIn::class,
 		PortalWerkprocesAssessmentInterface::class => PortalWerkprocesAssessment::class,
+		PortalPracticalExamAssessmentInterface::class => PortalPracticalExamAssessment::class,
+		PortalPracticalExamSigningInterface::class => PortalPracticalExamSigning::class,
+		PortalExamSittingDocumentsInterface::class => PortalExamSittingDocuments::class,
+		PracticalExamBoardResultsInterface::class => PracticalExamBoardResults::class,
 		PortalWriteSubjectInterface::class => PortalWriteSubject::class,
 		ProgrammeProgressInterface::class => ProgrammeProgress::class,
 		ProgrammeRequirementsInterface::class => ProgrammeRequirements::class,
@@ -385,8 +414,10 @@ final class ContractBindings {
 		SeedProfileServiceInterface::class => SeedProfileService::class,
 		SegmentServiceInterface::class => SegmentService::class,
 		SessionChangeBatchServiceInterface::class => SessionChangeBatchService::class,
+		SessionPartsServiceInterface::class => SessionPartsService::class,
 		SigningServiceInterface::class => SigningService::class,
 		SovereigntyPolicyServiceInterface::class => SovereigntyPolicyService::class,
+		SsoAttributeMappingApplierInterface::class => SsoAttributeMappingApplier::class,
 		StandbyCalendarInterface::class => StandbyCalendar::class,
 		StoreAccessServiceInterface::class => StoreAccessService::class,
 		SubmissionMarkAllocationServiceInterface::class => SubmissionMarkAllocationService::class,

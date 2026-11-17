@@ -55,6 +55,7 @@ use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Tests for CoursePackageImportService.
@@ -87,7 +88,10 @@ class CoursePackageImportServiceTest extends TestCase {
 		// non-nullable ObjectEntity — the uuid the importer reads back via
 		// `extractUuid()` lives on the entity, not in the payload array.
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array $object, ?array $extend = [], $register = null, $schema = null) {
+			function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
 				$schemaSlug = (string)$schema;
 
 				$this->savedByschema[$schemaSlug] ??= [];

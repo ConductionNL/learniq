@@ -41,6 +41,8 @@ use DateTimeImmutable;
 use OCA\Learniq\Kernel\Contracts\LearnerRefResolverInterface;
 use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
@@ -126,9 +128,8 @@ class ExemptionGrantHandler implements IEventListener {
 		}
 
 		$saved = $this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::GRADE_ENTRY_SCHEMA,
-			object: $this->gradeEntryFor(case: $case, caseId: $caseId, userId: $userId)
+			object: $this->gradeEntryFor(case: $case, caseId: $caseId, userId: $userId),
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::GRADE_ENTRY_SCHEMA))
 		);
 
 		$savedData = $saved->jsonSerialize();
@@ -224,9 +225,8 @@ class ExemptionGrantHandler implements IEventListener {
 
 		// Back-link the case to the GradeEntry it produced.
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::EXEMPTION_CASE_SCHEMA,
-			object: array_merge($case, ['resultingGradeEntryId' => $gradeEntryId])
+			object: array_merge($case, ['resultingGradeEntryId' => $gradeEntryId]),
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::EXEMPTION_CASE_SCHEMA))
 		);
 
 		$this->logger->info(

@@ -42,6 +42,8 @@ namespace OCA\Learniq\Listener;
 use OCA\Learniq\Kernel\Contracts\CredentialLearnerInterface;
 use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -139,22 +141,40 @@ class CredentialRenewalListener implements IEventListener {
 			return;
 		}
 
+		$this->saveRenewalEnrolment(credential: $credential, userId: $userId);
+
+	}//end createRenewalEnrolment()
+
+	/**
+	 * Save the renewal Enrolment for a learner with a Nextcloud user and link
+	 * it back onto the Credential.
+	 *
+	 * @param array<string,mixed> $credential The Credential data after the `expire` transition.
+	 * @param string              $userId     The learner's Nextcloud user id.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/certification/spec.md#scenario-auto-enrol-on-credential-expiry
+	 */
+	private function saveRenewalEnrolment(array $credential, string $userId): void {
+		$credentialId = (string)($credential['id'] ?? ($credential['uuid'] ?? ''));
+		$learnerId = (string)($credential['learnerId'] ?? '');
+
 		$enrolment = [
 			'learnerId' => $userId,
-			'courseId' => $courseId,
+			'courseId' => (string)($credential['courseId'] ?? ''),
 			'source' => self::ENROLMENT_SOURCE,
 			'mandatory' => true,
 			'regulationSlug' => $credential['regulationSlug'] ?? null,
-			'tenant_id' => $tenantId,
+			'tenant_id' => (string)($credential['tenant_id'] ?? ''),
 		];
 		if ($this->learners->isUuid(value: $learnerId) === true) {
 			$enrolment['learnerRef'] = $learnerId;
 		}
 
 		$saved = $this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::ENROLMENT_SCHEMA,
-			object: $enrolment
+			object: $enrolment,
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::ENROLMENT_SCHEMA))
 		);
 
 		$savedData = $saved->jsonSerialize();
@@ -169,9 +189,8 @@ class CredentialRenewalListener implements IEventListener {
 		}
 
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::CREDENTIAL_SCHEMA,
-			object: array_merge($credential, ['renewalEnrolmentId' => $enrolmentId])
+			object: array_merge($credential, ['renewalEnrolmentId' => $enrolmentId]),
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::CREDENTIAL_SCHEMA))
 		);
 
 		$this->logger->info(
@@ -179,5 +198,5 @@ class CredentialRenewalListener implements IEventListener {
 			['id' => $credentialId, 'enrolmentId' => $enrolmentId]
 		);
 
-	}//end createRenewalEnrolment()
+	}//end saveRenewalEnrolment()
 }//end class

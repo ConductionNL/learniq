@@ -44,6 +44,8 @@ use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\Learniq\Kernel\Contracts\RolloverExecutionServiceInterface;
 use OCA\Learniq\Kernel\Contracts\RolloverServiceInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -106,6 +108,20 @@ class RolloverExecutionHandler implements IEventListener {
 		}
 
 		$plan = (array)$event->getObject()->jsonSerialize();
+		$this->executePlan(plan: $plan);
+	}//end handle()
+
+	/**
+	 * Execute the plan when it still matches its preview and record the outcome:
+	 * completed with its progress, or failed with the progress so far.
+	 *
+	 * @param array<string,mixed> $plan The RolloverPlan entering executing.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/archive/2026-06-15-school-year-rollover/tasks.md
+	 */
+	private function executePlan(array $plan): void {
 		$planId = (string)($plan['id'] ?? ($plan['uuid'] ?? ''));
 
 		// Guard: a plan may only execute from a matching preview (the dry-run gate).
@@ -121,7 +137,10 @@ class RolloverExecutionHandler implements IEventListener {
 			$plan['perMappingProgress'] = $progress;
 			$plan['lifecycle'] = 'completed';
 			$plan['executedAt'] = date('c');
-			$this->objectService->saveObject(register: self::LEARNIQ_REGISTER, schema: self::SCHEMA, object: $plan);
+			$this->objectService->saveObject(
+				object: $plan,
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::SCHEMA))
+			);
 
 			$this->logger->info('[RolloverExecutionHandler] Rollover plan {p} completed.', ['p' => $planId]);
 		} catch (Throwable $e) {
@@ -133,7 +152,7 @@ class RolloverExecutionHandler implements IEventListener {
 			$this->logger->error('[RolloverExecutionHandler] Rollover plan {p} failed: {m}.', ['p' => $planId, 'm' => $e->getMessage()]);
 			$this->failPlan(plan: $plan, reason: $e->getMessage());
 		}
-	}//end handle()
+	}//end executePlan()
 
 	/**
 	 * Transition a plan to `failed`, recording the reason.
@@ -146,6 +165,9 @@ class RolloverExecutionHandler implements IEventListener {
 	private function failPlan(array $plan, string $reason): void {
 		$plan['lifecycle'] = 'failed';
 		$plan['failureReason'] = $reason;
-		$this->objectService->saveObject(register: self::LEARNIQ_REGISTER, schema: self::SCHEMA, object: $plan);
+		$this->objectService->saveObject(
+			object: $plan,
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::SCHEMA))
+		);
 	}//end failPlan()
 }//end class
