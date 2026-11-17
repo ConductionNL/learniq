@@ -109,7 +109,7 @@ class PupilListService {
 		$rows = [];
 		if ($learnerIds !== []) {
 			$moment = ['today' => $today, 'schoolYear' => $schoolYear, 'now' => $now, 'zone' => $zone];
-			$rows = $this->rows(cohort: $cohort, learnerIds: $learnerIds, moment: $moment);
+			$rows = $this->rows(group: ['cohort' => $cohort, 'learnerIds' => $learnerIds], moment: $moment);
 		}
 
 		$inView = array_values(array_filter($rows, static fn (array $row): bool => PupilList::inView(row: $row, view: $view)));
@@ -130,13 +130,14 @@ class PupilListService {
 	 * The moment holds `today` (`Y-m-d`), `schoolYear`, `now` (a
 	 * DateTimeImmutable) and `zone` (the school's DateTimeZone).
 	 *
-	 * @param array<string, mixed> $cohort     The group.
-	 * @param list<string>         $learnerIds Its pupils.
-	 * @param array<string, mixed> $moment     Today, this school year, now and the school's zone.
+	 * @param array{cohort: array<string, mixed>, learnerIds: list<string>} $group  The group and its pupils.
+	 * @param array<string, mixed>                                          $moment Today, this school year, now and the school's zone.
 	 *
 	 * @return list<array<string, mixed>>
 	 */
-	private function rows(array $cohort, array $learnerIds, array $moment): array {
+	private function rows(array $group, array $moment): array {
+		$cohort = $group['cohort'];
+		$learnerIds = $group['learnerIds'];
 		$states = $this->todayStates->forCohort(cohort: $cohort, date: $moment['today'], zone: $moment['zone']);
 		$profiles = $this->reader->ofPupils(schema: 'learner-profile', learnerIds: $learnerIds, field: 'ncUserId');
 		$summaries = $this->reader->ofPupils(schema: 'attendance-summary', learnerIds: $learnerIds);
@@ -151,8 +152,8 @@ class PupilListService {
 		$result = [];
 		foreach ($learnerIds as $learnerId) {
 			$result[] = PupilList::row(
-				learnerId: $learnerId,
 				pupil: [
+					'learnerId' => $learnerId,
 					'profile' => ($profiles[$learnerId][0] ?? null),
 					'todayState' => ($states[$learnerId] ?? TodayState::NOT_REGISTERED),
 					'summary' => self::summaryOf(summaries: ($summaries[$learnerId] ?? []), schoolYear: $moment['schoolYear']),

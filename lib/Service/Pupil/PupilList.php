@@ -131,16 +131,16 @@ final class PupilList {
 	 * conference-slot, learning-plan, support-request, attendance-flag,
 	 * grade-entry and bpv-placement rows, keyed by schema).
 	 *
-	 * @param string               $learnerId The pupil's Nextcloud user id.
-	 * @param array<string, mixed> $pupil     The pupil's profile, today's state, summary and records.
-	 * @param DateTimeImmutable    $now       Now, in the school's zone.
+	 * @param array<string, mixed> $pupil The pupil's Nextcloud user id (`learnerId`), profile, today's state, summary and records.
+	 * @param DateTimeImmutable    $now   Now, in the school's zone.
 	 *
 	 * @return array<string, mixed>
 	 *
 	 * @spec openspec/changes/learner-list-and-page-follow-the-boards/tasks.md#T1
 	 * @spec openspec/changes/learner-list-and-page-follow-the-boards/tasks.md#T2
 	 */
-	public static function row(string $learnerId, array $pupil, DateTimeImmutable $now): array {
+	public static function row(array $pupil, DateTimeImmutable $now): array {
+		$learnerId = (string)($pupil['learnerId'] ?? '');
 		$profile = self::arrayOrNull(value: ($pupil['profile'] ?? null));
 		$summary = self::arrayOrNull(value: ($pupil['summary'] ?? null));
 		$records = (array)($pupil['records'] ?? []);

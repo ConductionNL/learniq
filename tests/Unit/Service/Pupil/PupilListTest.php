@@ -37,8 +37,7 @@ class PupilListTest extends TestCase {
 	 */
 	private static function rowOf(string $learnerId, ?array $profile, string $todayState, ?array $summary, array $records): array {
 		return PupilList::row(
-			learnerId: $learnerId,
-			pupil: ['profile' => $profile, 'todayState' => $todayState, 'summary' => $summary, 'records' => $records],
+			pupil: ['learnerId' => $learnerId, 'profile' => $profile, 'todayState' => $todayState, 'summary' => $summary, 'records' => $records],
 			now: self::now()
 		);
 	}//end rowOf()
