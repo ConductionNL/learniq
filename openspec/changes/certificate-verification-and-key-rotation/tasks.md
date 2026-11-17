@@ -39,7 +39,10 @@ setting `schoolPhone` (section Certificates). It shows a title and a name only
 when the answer carries `title` / `holderName` for a valid or expired
 certificate, which is what 1.2 adds. Left unchecked: its Playwright check
 (`tests/e2e/spec-coverage/certification-verify.spec.ts`) runs against a live
-seeded instance.
+seeded instance. Round 2: that spec is written (a certificate signed through
+an enrolment completion, opened signed out with an empty storage state: the
+verdict, the four checks with their sentences, the phone number; an unknown id
+shows the not-found page without title or name); not run here, no live instance.
 
 ## 4. Matrix
 
