@@ -8,7 +8,7 @@
  *
  * Records a teacher's first look at an absence report: the first time a
  * teacher named in the report's `teacherIds` opens the register that lists
- * it, the report gets `seenBy` and `seenAt`. Later openings, by the same or
+ * it, or the report itself, the report gets `seenBy` and `seenAt`. Later openings, by the same or
  * another teacher, change nothing, and seeing never changes the lifecycle.
  * A parent reads the stamp as "Gezien door juf Esra om 8.12 uur".
  *
@@ -31,6 +31,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service\Attendance;
 
 use DateTimeImmutable;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
@@ -82,6 +83,44 @@ class ReportSeenStamp {
 
 		return $reports;
 	}//end seen()
+
+	/**
+	 * Stamp one report a teacher opens on its own page, read with her own
+	 * rights, and answer with the report as it now stands; null when she
+	 * cannot read it or it does not exist.
+	 *
+	 * @param string $reportId The report's id.
+	 * @param string $userId   The teacher opening it.
+	 *
+	 * @return array<string, mixed>|null
+	 *
+	 * @spec openspec/changes/absence-reports-seen-and-ended/specs/attendance/spec.md#requirement-a-teachers-first-look-at-an-absence-report-is-recorded
+	 */
+	public function seenOne(string $reportId, string $userId): ?array {
+		if ($reportId === '' || $userId === '') {
+			return null;
+		}
+
+		$found = $this->objectService->find(
+			id: $reportId,
+			options: new ObjectFindOptions(register: self::REGISTER, schema: self::SCHEMA)
+		);
+		$report = $found?->jsonSerialize();
+		if (is_array($report) === false) {
+			return null;
+		}
+
+		$report['id'] = $this->idOf(report: $report);
+		if ($report['id'] === '') {
+			$report['id'] = $reportId;
+		}
+
+		if ($this->firstLook(report: $report, userId: $userId) === false) {
+			return $report;
+		}
+
+		return $this->stamp(report: $report, userId: $userId);
+	}//end seenOne()
 
 	/**
 	 * Whether this is the first look at a report still waiting for a

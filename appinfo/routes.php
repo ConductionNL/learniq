@@ -352,6 +352,9 @@ $routes = [
         // (rules in RollCallService). Controller: RollCallController (slug: rollCall).
         ['name' => 'rollCall#show', 'url' => '/api/attendance/roll-call', 'verb' => 'GET'],
         ['name' => 'rollCall#save', 'url' => '/api/attendance/roll-call', 'verb' => 'POST'],
+        // A group teacher opening one absence report on its own page stamps her
+        // first look (absence-reports-seen-and-ended T2). Controller: ExcuseRequestSeenController.
+        ['name' => 'excuseRequestSeen#seen', 'url' => '/api/attendance/excuse-requests/{id}/seen', 'verb' => 'POST'],
         // Course days (training-provider-course-days): the planner moves a day on
         // the board, decides go or no-go and moves the participants of a cancelled
         // day to another day of the course. Guarded by course-day.plan.

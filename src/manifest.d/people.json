@@ -1703,6 +1703,16 @@
 				"register": "learniq",
 				"schema": "excuse-request",
 				"_note": "An Excuse Request is an absence justification (date range, reason kind, attachment, submitter auth level, decision) — a request/case archetype. Body leads with the request data including reason and decision (8-wide), a Related panel resolving learner and submitter, and the supporting attachment as a wide Files leaf (the evidence). Attendance records covered by this excuse render as a related-index. No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"bodyWidgets": [
+					{
+						"id": "excuse-request-seen",
+						"component": "ExcuseRequestSeen",
+						"placement": "after-data",
+						"props": {
+							"requestId": "@objectId"
+						}
+					}
+				],
 				"lifecycleActions": {
 					"field": "lifecycle"
 				},
