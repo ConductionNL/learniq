@@ -30,6 +30,7 @@ use OCP\Migration\IOutput;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use RuntimeException;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * @covers \OCA\Learniq\Repair\MoveTeacherNotesOutOfLessons
@@ -97,7 +98,11 @@ class MoveTeacherNotesOutOfLessonsTest extends TestCase {
 			}
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array $object, ?array $extend=[], $register=null, $schema=null, ?string $uuid=null) use ($noteFails, $lessonFails) {
+			function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) use ($noteFails, $lessonFails) {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
+				$uuid = $options->uuid;
 				if ($schema === 'lesson-teacher-note' && $noteFails === true) {
 					throw new RuntimeException('validation failed');
 				}

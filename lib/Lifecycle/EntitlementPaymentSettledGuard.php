@@ -53,6 +53,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Lifecycle;
 
 use OCA\Learniq\Kernel\Contracts\ContributionBeneficiaryResolverInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
@@ -138,8 +139,7 @@ class EntitlementPaymentSettledGuard implements LifecycleGuardInterface {
 		try {
 			$found = $this->objectService->find(
 				id: $ref,
-				register: self::SHILLINQ_REGISTER,
-				schema: self::PAYMENT_REQUEST_SCHEMA,
+				options: new ObjectFindOptions(register: self::SHILLINQ_REGISTER, schema: self::PAYMENT_REQUEST_SCHEMA),
 				_rbac: false,
 				_multitenancy: false
 			);

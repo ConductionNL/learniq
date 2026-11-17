@@ -49,6 +49,8 @@ namespace OCA\Learniq\Lifecycle;
 use OCA\Learniq\Kernel\Contracts\IntegriqExchangeClientInterface;
 use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -173,11 +175,7 @@ class AttendanceFlagCreationHandler implements IEventListener {
 			return;
 		}
 
-		$duplicate = $this->flagAlreadyExists(
-			learnerId: $detail['learnerId'],
-			thresholdId: $detail['thresholdId'],
-			windowStart: $detail['windowStart']
-		);
+		$duplicate = $this->flagAlreadyExists(detail: $detail);
 		if ($duplicate === true) {
 			return;
 		}
@@ -264,9 +262,8 @@ class AttendanceFlagCreationHandler implements IEventListener {
 		// self check-in or a coordinator's register, and AttendanceFlag create/update is instructors
 		// and compliance officers only.
 		$saved = $this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::ATTENDANCE_FLAG_SCHEMA,
 			object: $flag,
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::ATTENDANCE_FLAG_SCHEMA)),
 			_rbac: false
 		);
 
@@ -300,10 +297,11 @@ class AttendanceFlagCreationHandler implements IEventListener {
 
 		// System context (attendance-flag): as above: the flag update runs in the same crossing.
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::ATTENDANCE_FLAG_SCHEMA,
 			object: array_merge($flag, ['dataExchangeJobId' => $jobId]),
-			uuid: $flagId,
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::ATTENDANCE_FLAG_SCHEMA),
+				uuid: $flagId
+			),
 			_rbac: false
 		);
 
@@ -313,15 +311,17 @@ class AttendanceFlagCreationHandler implements IEventListener {
 	 * Idempotency check: whether an AttendanceFlag already exists for the same
 	 * learner + threshold + measurement window.
 	 *
-	 * @param mixed $learnerId NC user ID of the flagged learner.
-	 * @param mixed $thresholdId UUID of the AttendanceThreshold that was crossed.
-	 * @param mixed $windowStart Start date of the measurement window (Y-m-d).
+	 * @param array<string,mixed> $detail The crossing: `learnerId` (NC user ID of the flagged learner), `thresholdId`
+	 *                                    (UUID of the AttendanceThreshold that was crossed) and `windowStart` (Y-m-d).
 	 *
 	 * @return bool True when a flag for this crossing already exists.
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-10
 	 */
-	private function flagAlreadyExists(mixed $learnerId, mixed $thresholdId, mixed $windowStart): bool {
+	private function flagAlreadyExists(array $detail): bool {
+		$learnerId = $detail['learnerId'];
+		$thresholdId = $detail['thresholdId'];
+		$windowStart = $detail['windowStart'];
 		$existing = $this->objectService->findAll(
 			[
 				'filters' => [

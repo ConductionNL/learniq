@@ -26,7 +26,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Lifecycle\Action;
 
 use OCA\OpenRegister\Lifecycle\LifecycleActionContext;
-use OCA\OpenRegister\Lifecycle\LifecycleActionInterface;
+use OCA\OpenRegister\Lifecycle\ContextLifecycleActionInterface;
 use OCA\OpenRegister\Service\TenantKeyService;
 use RuntimeException;
 
@@ -46,7 +46,7 @@ use RuntimeException;
  *
  * @spec openspec/specs/compliance-audit/spec.md#requirement-maintain-an-append-only-signed-evidence-log
  */
-class TenantSignatureAction implements LifecycleActionInterface {
+class TenantSignatureAction implements ContextLifecycleActionInterface {
 
 	/**
 	 * Fields left out of the signed payload. `revocationReason` is written by

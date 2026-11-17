@@ -33,6 +33,7 @@ use DateTimeImmutable;
 use DateTimeZone;
 use OCA\Learniq\Kernel\Contracts\ElectiveSlotServiceInterface;
 use OCA\Learniq\Kernel\Contracts\TimetableSourceResolverInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use RuntimeException;
 use Throwable;
@@ -156,7 +157,7 @@ class ElectiveSlotService implements ElectiveSlotServiceInterface {
 		}
 
 		try {
-			return $this->objectService->find(id: $courseId, register: 'learniq', schema: 'course') !== null;
+			return $this->objectService->find(id: $courseId, options: new ObjectFindOptions(register: 'learniq', schema: 'course')) !== null;
 		} catch (Throwable) {
 			return false;
 		}

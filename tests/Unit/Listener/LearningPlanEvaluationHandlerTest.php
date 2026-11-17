@@ -31,6 +31,7 @@ use OCP\EventDispatcher\Event;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use OCA\Learniq\Tests\Support\LegacyObjectArgs;
 
 /**
  * @covers \OCA\Learniq\Listener\LearningPlanEvaluationHandler
@@ -145,8 +146,8 @@ class LearningPlanEvaluationHandlerTest extends TestCase {
 			]
 		);
 		$this->objectService->method('findAll')->willReturn([$plan]);
-		$this->objectService->expects(self::once())->method('saveObject')->with(
-			[
+		$this->objectService->expects(self::once())->method('saveObject')->with(...LegacyObjectArgs::with(method: 'saveObject', expected: [
+				'object' => [
 				'id' => 'p-1',
 				'goals' => [
 					['goalId' => 'g-1', 'status' => 'met'],
@@ -155,10 +156,10 @@ class LearningPlanEvaluationHandlerTest extends TestCase {
 				],
 				'nextReviewAt' => '2027-01-15',
 			],
-			self::anything(),
-			'learniq',
-			'learning-plan'
-		);
+				'extend' => self::anything(),
+				'register' => 'learniq',
+				'schema' => 'learning-plan',
+			]));
 		$this->logger->expects(self::once())->method('info')->with(self::stringContains('Updated LearningPlan'), ['id' => 'p-1']);
 
 		$this->handler->handle(
@@ -183,12 +184,12 @@ class LearningPlanEvaluationHandlerTest extends TestCase {
 	 */
 	public function testANextReviewAloneIsSaved(): void {
 		$this->objectService->method('findAll')->willReturn([['id' => 'p-2']]);
-		$this->objectService->expects(self::once())->method('saveObject')->with(
-			['id' => 'p-2', 'nextReviewAt' => '2027-02-01', 'goals' => []],
-			self::anything(),
-			'learniq',
-			'learning-plan'
-		);
+		$this->objectService->expects(self::once())->method('saveObject')->with(...LegacyObjectArgs::with(method: 'saveObject', expected: [
+				'object' => ['id' => 'p-2', 'nextReviewAt' => '2027-02-01', 'goals' => []],
+				'extend' => self::anything(),
+				'register' => 'learniq',
+				'schema' => 'learning-plan',
+			]));
 
 		$this->handler->handle($this->event(['learningPlanId' => 'p-2', 'nextReviewAt' => '2027-02-01']));
 	}//end testANextReviewAloneIsSaved()

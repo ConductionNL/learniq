@@ -82,6 +82,21 @@ class AttendanceSummaryRecomputeJob extends ForwardedJob {
 			}
 		}
 
+		$this->recountLearners(learners: $learners);
+	}//end runDeferred()
+
+	/**
+	 * Recount the attendance summaries of each learner for the school years of
+	 * their marked sessions; a failed recount is logged and the rest go on.
+	 *
+	 * @param array<string,array<string,mixed>> $learners Per learner id: the sessions marked (sessionIds), the tenant (tenantId)
+	 *                                                   and the learner ref (learnerRef).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-the-summary-follows-every-attendance-write
+	 */
+	private function recountLearners(array $learners): void {
 		foreach ($learners as $learnerId => $learner) {
 			try {
 				$this->summaries->recompute(
@@ -97,5 +112,5 @@ class AttendanceSummaryRecomputeJob extends ForwardedJob {
 				);
 			}
 		}
-	}//end runDeferred()
+	}//end recountLearners()
 }//end class

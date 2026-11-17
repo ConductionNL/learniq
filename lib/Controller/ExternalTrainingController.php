@@ -42,6 +42,8 @@ use OCA\Learniq\Kernel\Contracts\CredentialSigningServiceInterface;
 use OCA\Learniq\Kernel\Contracts\ExternalTrainingImportInterface;
 use OCA\Learniq\Kernel\Contracts\ExternalTrainingServiceInterface;
 use OCA\Learniq\Service\ActionAuthService;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -269,10 +271,11 @@ class ExternalTrainingController extends Controller {
 		unset($signed['id']);
 
 		$saved = $this->objectService->saveObject(
-			register: 'learniq',
-			schema: 'credential',
 			object: $signed,
-			uuid: $signedId
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: 'learniq', schema: 'credential'),
+				uuid: $signedId
+			)
 		);
 
 		$savedArr = $saved->jsonSerialize();
@@ -282,9 +285,8 @@ class ExternalTrainingController extends Controller {
 		if ($credentialId !== '') {
 			$record['credentialId'] = $credentialId;
 			$this->objectService->saveObject(
-				register: 'learniq',
-				schema: 'external-training-record',
-				object: $record
+				object: $record,
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: 'learniq', schema: 'external-training-record'))
 			);
 		}
 

@@ -38,6 +38,8 @@ use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Tests the learner merge: records move, mergedInto stays, bad merges are refused.
@@ -136,7 +138,11 @@ class LearnerMergeHandlerTest extends TestCase {
 			}
 		);
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null): ?ObjectEntity {
+			function (int|string $id, ?ObjectFindOptions $options = null): ?ObjectEntity {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				foreach ($this->store[(string)$schema] ?? [] as $row) {
 					if ($row['id'] === $id) {
 						return OrEntityFactory::make($row, (string)$schema);
@@ -147,7 +153,10 @@ class LearnerMergeHandlerTest extends TestCase {
 			}
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
+			function (array|ObjectEntity $object, ObjectSaveOptions $options = new ObjectSaveOptions()): ObjectEntity {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
 				$data = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
 				$this->saved[] = ['schema' => (string)$schema, 'object' => $data];
 				return OrEntityFactory::make($data, (string)$schema);

@@ -35,6 +35,7 @@ use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * ExamplePortalContent::moveDates().
@@ -82,7 +83,11 @@ class ExamplePortalContentMoveDatesTest extends TestCase {
 			static fn (array $config): array => ($stored[$config['filters']['schema']] ?? [])
 		);
 		$store->method('saveObject')->willReturnCallback(
-			static function (array $object, ?array $extend = [], mixed $register = null, mixed $schema = null, ?string $uuid = null, bool $_rbac = true, bool $_multitenancy = true) use (&$saves): ObjectEntity {
+			static function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions(), bool $_rbac = true, bool $_multitenancy = true) use (&$saves): ObjectEntity {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
+				$uuid = $options->uuid;
 				$saves[] = [$schema, $uuid, $object, $register, $_rbac, $_multitenancy];
 				return OrEntityFactory::make(['id' => $uuid], (string)$schema, 'portaliq', $uuid);
 			}
