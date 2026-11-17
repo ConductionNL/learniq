@@ -38,6 +38,13 @@ namespace OCA\Learniq\Kernel\Contracts;
 interface AttendanceSummaryServiceInterface {
 
 	/**
+	 * The schema the summaries are stored in.
+	 *
+	 * @var string
+	 */
+	public const SUMMARY_SCHEMA = 'attendance-summary';
+
+	/**
 	 * Recount every school year of a learner and save what changed.
 	 *
 	 * The years written are those with counted records, those already stored

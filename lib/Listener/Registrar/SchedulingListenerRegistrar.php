@@ -36,6 +36,7 @@ use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\Learniq\Listener\AdmissionsWaitlistPromoter;
 use OCA\Learniq\Listener\ApplicationConversionHandler;
+use OCA\Learniq\Listener\ApplicationSubmittedAtStamp;
 use OCA\Learniq\Listener\AssessmentAttemptGateListener;
 use OCA\Learniq\Listener\EnrolmentPrerequisiteListener;
 use OCA\Learniq\Listener\SessionChangeNoticeHandler;
@@ -104,6 +105,11 @@ class SchedulingListenerRegistrar {
 		// directly, mirroring ConferenceScheduleGenerator's
 		// route-to-one-of-two-states shape rather than a `requires` guard.
 		[ObjectTransitionedEvent::class, SubjectChoiceValidator::class],
+		// ADR-031 legitimate exception (capability-rows-say-what-they-do):
+		// Application `submit` -> server-side submittedAt stamp; the guard on
+		// the transition (ApplicationRoundOpenGuard) has already refused a
+		// round that is not open.
+		[ObjectTransitionedEvent::class, ApplicationSubmittedAtStamp::class],
 		// ADR-031 legitimate exception (admissions-and-subject-choice):
 		// SubjectChoice `approved -> locked` -> Enrolment (source:
 		// subject-choice) creation bridge, one per selected elective course

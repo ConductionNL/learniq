@@ -39,6 +39,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
@@ -100,7 +102,42 @@ class CompetencyAttainmentWriter {
 
 		$existing = $this->findExistingAttainment(learnerId: $learnerId, competencyId: $competencyId, tenantId: $tenantId);
 
-		$data = $existing ?? $this->blankAttainment(
+		$data = $this->attainmentData(
+			row: [
+				'learnerId' => $learnerId,
+				'competencyId' => $competencyId,
+				'tenantId' => $tenantId,
+				'frameworkId' => $frameworkId,
+				'existing' => $existing,
+			],
+			evidence: $evidence
+		);
+
+		$this->objectService->saveObject(
+			object: $data,
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::ATTAINMENT_SCHEMA))
+		);
+
+		$this->logUpsert(existing: $existing, learnerId: $learnerId, competencyId: $competencyId);
+
+	}//end upsertAttainment()
+
+	/**
+	 * The attainment row as it is saved: the existing row or a blank one, with
+	 * the evidence appended, the resolved level, and the identity fields.
+	 *
+	 * @param array<string, mixed> $row      The `learnerId`, `competencyId`, `tenantId`, the competency's
+	 *                                       `frameworkId` and the `existing` row (or null).
+	 * @param AttainmentEvidence   $evidence The ids to append, and the percentage or the resolved level.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function attainmentData(array $row, AttainmentEvidence $evidence): array {
+		$learnerId = $row['learnerId'];
+		$competencyId = $row['competencyId'];
+		$tenantId = $row['tenantId'];
+		$frameworkId = $row['frameworkId'];
+		$data = $row['existing'] ?? $this->blankAttainment(
 			learnerId: $learnerId,
 			competencyId: $competencyId,
 			frameworkId: (string)$frameworkId,
@@ -127,15 +164,8 @@ class CompetencyAttainmentWriter {
 
 		$data['lastRecomputedAt'] = (new DateTimeImmutable())->format(\DATE_ATOM);
 
-		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::ATTAINMENT_SCHEMA,
-			object: $data
-		);
-
-		$this->logUpsert(existing: $existing, learnerId: $learnerId, competencyId: $competencyId);
-
-	}//end upsertAttainment()
+		return $data;
+	}//end attainmentData()
 
 	/**
 	 * The empty CompetencyAttainment row a first piece of evidence starts from.

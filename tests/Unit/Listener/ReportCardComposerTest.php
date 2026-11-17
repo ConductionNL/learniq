@@ -43,6 +43,8 @@ use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
 use OCP\AppFramework\Utility\ITimeFactory;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Tests for ReportCardComposer::handle().
@@ -93,7 +95,11 @@ class ReportCardComposerTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($cohorts, $plans, $templates): ?ObjectEntity {
+			function (int|string $id, ?ObjectFindOptions $options = null) use ($cohorts, $plans, $templates): ?ObjectEntity {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				if ($schema === 'cohort' && isset($cohorts[$id]) === true) {
 					return OrEntityFactory::make($cohorts[$id], 'cohort');
 				}
@@ -144,7 +150,10 @@ class ReportCardComposerTest extends TestCase {
 		);
 
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
+			function (array|ObjectEntity $object, ObjectSaveOptions $options = new ObjectSaveOptions()): ObjectEntity {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
 				$data = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
 				$this->savedObjects[] = [
 					'register' => (string)$register,
@@ -443,7 +452,11 @@ class ReportCardComposerTest extends TestCase {
 		// directly whose find() also resolves the governing ReportPeriod.
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null): ?ObjectEntity {
+			function (int|string $id, ?ObjectFindOptions $options = null): ?ObjectEntity {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				if ($schema === 'curriculum-plan') {
 					return OrEntityFactory::make(
 						['id' => 'plan-bio', 'components' => [['componentId' => 'c1', 'period' => '1', 'weight' => 1, 'kind' => 'assessment']]],
@@ -481,7 +494,10 @@ class ReportCardComposerTest extends TestCase {
 			}
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
+			function (array|ObjectEntity $object, ObjectSaveOptions $options = new ObjectSaveOptions()): ObjectEntity {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
 				$data = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
 				$this->savedObjects[] = [
 					'register' => (string)$register,
@@ -575,7 +591,10 @@ class ReportCardComposerTest extends TestCase {
 		$objectService->method('find')->willReturnCallback([$this, 'resolveTemplateAwareFixture']);
 		$objectService->method('findAll')->willReturnCallback([$this, 'resolveTemplateAwareFindAllFixture']);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
+			function (array|ObjectEntity $object, ObjectSaveOptions $options = new ObjectSaveOptions()): ObjectEntity {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
 				$data = $object;
 				if ($object instanceof ObjectEntity) {
 					$data = $object->jsonSerialize();
@@ -616,7 +635,11 @@ class ReportCardComposerTest extends TestCase {
 	 *
 	 * @return ObjectEntity|null
 	 */
-	public function resolveTemplateAwareFixture(int|string $id, ?array $_extend, bool $files, $register, $schema): ?ObjectEntity {
+	public function resolveTemplateAwareFixture(int|string $id, ?\OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions $options = null): ?ObjectEntity {
+		$_extend = $options?->extend;
+		$files = $options?->files ?? false;
+		$register = $options?->register;
+		$schema = $options?->schema;
 		if ($schema === 'curriculum-plan') {
 			return OrEntityFactory::make(
 				['id' => 'plan-bio', 'components' => [['componentId' => 'c1', 'period' => '1', 'weight' => 1, 'kind' => 'assessment']]],

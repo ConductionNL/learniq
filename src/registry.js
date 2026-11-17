@@ -18,12 +18,14 @@ import AssignmentPeerReviewAllocation from './components/sections/AssignmentPeer
 import CredentialWalletOffer from './components/sections/CredentialWalletOffer.vue'
 // exam-sitting-overview-section: body section on ExamSittingDetail.
 import ExamSittingOverview from './components/sections/ExamSittingOverview.vue'
+import PermissionRequestOutcome from './components/sections/PermissionRequestOutcome.vue'
 // lqb-c board dialogs: purpose-built create and decision dialogs (G5, G11).
 import AccessibilityBarrierDialog from './dialogs/AccessibilityBarrierDialog.vue'
 import CohortCreateDialog from './dialogs/CohortCreateDialog.vue'
 import ConcernReportDialog from './dialogs/ConcernReportDialog.vue'
 import ConferenceReportDialog from './dialogs/ConferenceReportDialog.vue'
 import ConfidentialNoteCreateDialog from './dialogs/ConfidentialNoteCreateDialog.vue'
+import CredentialMigrationDialog from './dialogs/CredentialMigrationDialog.vue'
 import CredentialRevokeDialog from './dialogs/CredentialRevokeDialog.vue'
 import DeclineSignUpDialog from './dialogs/DeclineSignUpDialog.vue'
 import DossierNoteCreateDialog from './dialogs/DossierNoteCreateDialog.vue'
@@ -268,6 +270,11 @@ export default {
 		component: ConfidentialNoteCreateDialog,
 		propsSchema: { type: 'object', properties: {} },
 	},
+	CredentialMigrationDialog: {
+		kind: 'modal',
+		component: CredentialMigrationDialog,
+		propsSchema: { type: 'object', properties: {} },
+	},
 	CredentialRevokeDialog: {
 		kind: 'modal',
 		component: CredentialRevokeDialog,
@@ -398,6 +405,11 @@ export default {
 		kind: 'section',
 		component: AssignmentHandInStatus,
 		_note: 'Hand-in status on AssignmentDetail: the cohort roster minus the learners who handed in, split into started and not started, overdue after dueAt. Staff only; self-fetches assignment, cohort(s), submissions and learner names.',
+	},
+	PermissionRequestOutcome: {
+		kind: 'section',
+		component: PermissionRequestOutcome,
+		_note: 'Answers on PermissionRequestDetail: the learners the request asks, split into not answered, answered yes and answered no, by name, with whether silence counts as no. Staff only; self-fetches the request, its permission responses and learner names.',
 	},
 	ExamSittingOverview: {
 		kind: 'section',

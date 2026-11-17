@@ -31,6 +31,7 @@ use OCA\Learniq\Service\CoursePackage\LearniqJsonCourseImporter;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\TestCase;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * @covers \OCA\Learniq\Service\CoursePackage\CourseMetadataFilter
@@ -105,7 +106,10 @@ class CourseMetadataFilterTest extends TestCase {
 		$saved         = [];
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('saveObject')->willReturnCallback(
-			static function (array $object, ?array $extend=[], $register=null, $schema=null) use (&$saved) {
+			static function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) use (&$saved) {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
 				$saved[] = ['schema' => (string)$schema, 'object' => $object];
 				return OrEntityFactory::make($object, (string)$schema, 'learniq', (string)$schema . '-' . count($saved));
 			}

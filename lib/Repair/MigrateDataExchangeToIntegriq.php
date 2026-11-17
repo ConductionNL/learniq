@@ -31,6 +31,8 @@ namespace OCA\Learniq\Repair;
 
 use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Kernel\Contracts\IntegriqExchangeClientInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Files\AppData\IAppDataFactory;
@@ -154,7 +156,7 @@ class MigrateDataExchangeToIntegriq implements IRepairStep {
 			return;
 		}
 
-		$moved = $this->migrateJobs(jobs: $rows['data-exchange-job'], rejections: $rows['exchange-rejection'], profiles: $rows['data-mapping-profile']);
+		$moved = $this->migrateJobs(rows: $rows);
 		$mappings = $this->migrateMappings(profiles: $rows['data-mapping-profile']);
 		$this->markMigrated();
 
@@ -208,20 +210,19 @@ class MigrateDataExchangeToIntegriq implements IRepairStep {
 	/**
 	 * Hand every job to integriq with its history and rejections.
 	 *
-	 * @param array<int, array<string, mixed>> $jobs       The job rows.
-	 * @param array<int, array<string, mixed>> $rejections The rejection rows.
-	 * @param array<int, array<string, mixed>> $profiles   The mapping profile rows.
+	 * @param array<string, array<int, array<string, mixed>>> $rows The retired rows by schema: the job, rejection and mapping profile rows.
 	 *
 	 * @return int How many jobs integriq took.
 	 */
-	private function migrateJobs(array $jobs, array $rejections, array $profiles): int {
+	private function migrateJobs(array $rows): int {
+		$rejections = $rows['exchange-rejection'];
 		$slugByProfile = [];
-		foreach ($profiles as $profile) {
+		foreach ($rows['data-mapping-profile'] as $profile) {
 			$slugByProfile[(string)($profile['id'] ?? '')] = $this->translator->slugOf(profile: $profile);
 		}
 
 		$moved = 0;
-		foreach ($jobs as $job) {
+		foreach ($rows['data-exchange-job'] as $job) {
 			$legacyId = (string)($job['id'] ?? ($job['uuid'] ?? ''));
 			try {
 				$newId = $this->integriq->requestJob(
@@ -344,7 +345,10 @@ class MigrateDataExchangeToIntegriq implements IRepairStep {
 					}
 
 					$row['dataExchangeJobId'] = $newId;
-					$this->objectService->saveObject(object: $row, register: self::LEARNIQ_REGISTER, schema: $schema, uuid: $uuid);
+					$this->objectService->saveObject(
+						object: $row,
+						options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: $schema), uuid: $uuid)
+					);
 				}
 			} catch (Throwable $exception) {
 				$this->logger->warning(
@@ -371,15 +375,14 @@ class MigrateDataExchangeToIntegriq implements IRepairStep {
 
 		try {
 			$this->objectService->saveObject(
-				register: self::LEARNIQ_REGISTER,
-				schema: 'dossier-review',
 				object: [
 					'exchangeJobId' => $newId,
 					'target' => $target,
 					'learnerUserId' => $learner,
 					'status' => 'pending',
 					'tenant_id' => (string)($job['tenant_id'] ?? ''),
-				]
+				],
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: 'dossier-review'))
 			);
 		} catch (Throwable $exception) {
 			$this->logger->warning('[MigrateDataExchangeToIntegriq] no review opened for job ' . $newId . ': ' . $exception->getMessage());

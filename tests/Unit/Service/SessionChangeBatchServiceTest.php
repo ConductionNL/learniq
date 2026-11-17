@@ -35,6 +35,7 @@ use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Guard per lesson as the caller, refusals recorded, one union of people.
@@ -122,7 +123,11 @@ class SessionChangeBatchServiceTest extends TestCase {
 			fn () => OrEntityFactory::makeMany(array_values($this->sessions), 'session')
 		);
 		$objects->method('saveObject')->willReturnCallback(
-			function ($object, $extend=[], $register=null, $schema=null, $uuid=null) {
+			function ($object, ObjectSaveOptions $options = new ObjectSaveOptions()) {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
+				$uuid = $options->uuid;
 				$this->saves[] = [(string)$schema, $object, $uuid];
 				return OrEntityFactory::make($object, (string)$schema, 'learniq', $uuid);
 			}
@@ -248,7 +253,11 @@ class SessionChangeBatchServiceTest extends TestCase {
 		$objects = $this->createMock(ObjectService::class);
 		$objects->method('find')->willReturnCallback(fn ($id) => OrEntityFactory::make($this->sessions[$id], 'session'));
 		$objects->method('saveObject')->willReturnCallback(
-			function ($object, $extend=[], $register=null, $schema=null, $uuid=null) {
+			function ($object, ObjectSaveOptions $options = new ObjectSaveOptions()) {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
+				$uuid = $options->uuid;
 				$this->saves[] = [(string)$schema, $object, $uuid];
 				return OrEntityFactory::make($object, (string)$schema);
 			}

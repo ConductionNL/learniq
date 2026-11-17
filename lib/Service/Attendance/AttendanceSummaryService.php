@@ -40,9 +40,13 @@ namespace OCA\Learniq\Service\Attendance;
 use DateTimeImmutable;
 use DateTimeInterface;
 use OCA\Learniq\Kernel\Contracts\AttendanceSummaryServiceInterface;
+use OCA\Learniq\Service\LearnerManagerLookup;
 use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Service\PupilGroupTeachers;
 use OCA\Learniq\Support\ObjectRow;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\SaveActor;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use Psr\Log\LoggerInterface;
@@ -58,7 +62,13 @@ class AttendanceSummaryService implements AttendanceSummaryServiceInterface {
 	private const REGISTER = 'learniq';
 	private const RECORD_SCHEMA = 'attendance-record';
 	private const SESSION_SCHEMA = 'session';
-	public const SUMMARY_SCHEMA = 'attendance-summary';
+
+	/**
+	 * The schema of the attendance thresholds a pupil's window is read against.
+	 *
+	 * @var string
+	 */
+	private const THRESHOLD_SCHEMA = 'attendance-threshold';
 
 	/**
 	 * Upper bound on one learner's counted records (absences and late
@@ -84,6 +94,27 @@ class AttendanceSummaryService implements AttendanceSummaryServiceInterface {
 	private array $sessionCache = [];
 
 	/**
+	 * The threshold per tenant, read once per request.
+	 *
+	 * @var array<string, array<string, mixed>|null>
+	 */
+	private array $thresholdCache = [];
+
+	/**
+	 * Counts the lesuren without permission in the threshold's window.
+	 *
+	 * @var UnauthorisedHoursWindow
+	 */
+	private readonly UnauthorisedHoursWindow $window;
+
+	/**
+	 * Resolves the pupil's mentor, who may read their rows.
+	 *
+	 * @var LearnerManagerLookup
+	 */
+	private readonly LearnerManagerLookup $mentors;
+
+	/**
 	 * Turns one OpenRegister result into a plain array.
 	 *
 	 * @var ObjectRow
@@ -99,6 +130,8 @@ class AttendanceSummaryService implements AttendanceSummaryServiceInterface {
 	 * @param LearnerRefResolver          $profiles      The learner's profile uuid.
 	 * @param ITimeFactory                $time          Clock for updatedAt.
 	 * @param LoggerInterface             $logger        PSR logger.
+	 * @param UnauthorisedHoursWindow|null $window Counts the lesuren without permission in the threshold's window.
+	 * @param LearnerManagerLookup|null    $mentors Resolves the pupil's mentor.
 	 *
 	 * @return void
 	 */
@@ -109,8 +142,12 @@ class AttendanceSummaryService implements AttendanceSummaryServiceInterface {
 		private readonly LearnerRefResolver $profiles,
 		private readonly ITimeFactory $time,
 		private readonly LoggerInterface $logger,
+		?UnauthorisedHoursWindow $window = null,
+		?LearnerManagerLookup $mentors = null,
 	) {
 		$this->objectRow = new ObjectRow();
+		$this->window = ($window ?? new UnauthorisedHoursWindow());
+		$this->mentors = ($mentors ?? new LearnerManagerLookup(objectService: $objectService));
 	}//end __construct()
 
 	/**
@@ -134,6 +171,30 @@ class AttendanceSummaryService implements AttendanceSummaryServiceInterface {
 			return 0;
 		}
 
+		$state = $this->loadState(learnerId: $learnerId, schoolYears: $schoolYears);
+		$facts = array_merge(
+			$state,
+			$this->learnerFacts(state: $state, given: ['learnerId' => $learnerId, 'tenantId' => $tenantId, 'learnerRef' => $learnerRef])
+		);
+
+		$saved = 0;
+		foreach ($state['years'] as $year) {
+			$saved += (int)$this->writeYear(year: $year, facts: $facts);
+		}
+
+		return $saved;
+	}//end recompute()
+
+	/**
+	 * A learner's counted records, their session days, the counts per school
+	 * year, the stored rows and the school years to write.
+	 *
+	 * @param string            $learnerId   Nextcloud user id of the learner.
+	 * @param array<int,string> $schoolYears School years to write even without counted records.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function loadState(string $learnerId, array $schoolYears): array {
 		$records = $this->countedRecords(learnerId: $learnerId);
 		$sessions = $this->sessionDays(ids: array_map(static fn (array $r): string => (string)($r['sessionId'] ?? ''), $records));
 		$counts = $this->calculator->summarise(records: $records, sessions: $sessions);
@@ -143,36 +204,204 @@ class AttendanceSummaryService implements AttendanceSummaryServiceInterface {
 		$years = array_unique(array_merge(array_keys($counts), array_keys($existing), $asked));
 		sort($years);
 
-		$tenantId = ($this->firstText(rows: $records, field: 'tenant_id') ?? $tenantId);
-		$learnerRef = ($this->firstText(rows: $records, field: 'learnerRef') ?? $learnerRef);
+		return ['records' => $records, 'sessions' => $sessions, 'counts' => $counts, 'existing' => $existing, 'years' => $years];
+	}//end loadState()
+
+	/**
+	 * What every row of the learner shares: the tenant and profile uuid (from
+	 * the records, else as given), the teachers, the mentor and the rolling
+	 * window fields of the school year that holds today.
+	 *
+	 * @param array<string, mixed> $state The loaded `records` and `sessions`.
+	 * @param array<string, mixed> $given The `learnerId`, and the `tenantId` and `learnerRef` the caller passed.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function learnerFacts(array $state, array $given): array {
+		$records = $state['records'];
+		$learnerId = $given['learnerId'];
+		$tenantId = ($this->firstText(rows: $records, field: 'tenant_id') ?? $given['tenantId']);
+		$learnerRef = ($this->firstText(rows: $records, field: 'learnerRef') ?? $given['learnerRef']);
 		$teachers = $this->teachersOf(learnerId: $learnerId);
+		$mentor = $this->mentorOf(learnerId: $learnerId);
+		$today = $this->today();
+		// The rolling count belongs to the school year that holds today.
+		$windowFields = [
+			$this->calculator->schoolYearOf(date: $today) => $this->window->fields(
+				records: $records,
+				sessions: $state['sessions'],
+				threshold: $this->thresholdFor(tenantId: $tenantId),
+				today: $today
+			),
+		];
 
-		$saved = 0;
-		foreach ($years as $year) {
-			$row = ($existing[$year] ?? null);
-			$data = array_merge(
-				[
-					'learnerId' => $learnerId,
-					'learnerRef' => ($learnerRef ?? $this->text(value: ($row['learnerRef'] ?? null)) ?? $this->resolveRef(learnerId: $learnerId)),
-					'schoolYear' => $year,
+		return [
+			'learnerId' => $learnerId,
+			'tenantId' => $tenantId,
+			'learnerRef' => $learnerRef,
+			'teachers' => $teachers,
+			'mentor' => $mentor,
+			'windowFields' => $windowFields,
+		];
+	}//end learnerFacts()
+
+	/**
+	 * Write one school year's row when it is new or changed.
+	 *
+	 * @param mixed                $year  The school year.
+	 * @param array<string, mixed> $facts The loaded state and the learner's shared fields.
+	 *
+	 * @return bool Whether the row was saved.
+	 */
+	private function writeYear(mixed $year, array $facts): bool {
+		$learnerId = $facts['learnerId'];
+		$learnerRef = $facts['learnerRef'];
+		$teachers = $facts['teachers'];
+		$row = ($facts['existing'][$year] ?? null);
+		$rowMentor = $this->rowMentor(mentor: $facts['mentor'], row: $row);
+
+		$data = array_merge(
+			[
+				'learnerId' => $learnerId,
+				'learnerRef' => ($learnerRef ?? $this->text(value: ($row['learnerRef'] ?? null)) ?? $this->resolveRef(learnerId: $learnerId)),
+				'schoolYear' => $year,
+			],
+			($facts['counts'][$year] ?? $this->calculator->emptyCounts()),
+			[
+				'teacherIds' => ($teachers ?? $this->storedTeachers(row: $row)),
+				'mentorId' => $rowMentor,
+				'tenant_id' => ($this->text(value: ($row['tenant_id'] ?? null)) ?? $facts['tenantId']),
+			],
+			($facts['windowFields'][$year] ?? [])
+		);
+
+		if ($this->needsSave(row: $row, data: $data) === false) {
+			return false;
+		}
+
+		$this->save(row: $row, data: $data);
+
+		return true;
+	}//end writeYear()
+
+	/**
+	 * Whether a summary row must be written: it names a tenant and is new or changed.
+	 *
+	 * @param array<string, mixed>|null $row  The stored row, null for a new one.
+	 * @param array<string, mixed>      $data The row as it is now.
+	 *
+	 * @return bool
+	 */
+	private function needsSave(?array $row, array $data): bool {
+		if ($data['tenant_id'] === '') {
+			return false;
+		}
+
+		return $row === null || $this->calculator->unchanged(row: $row, data: $data) === false;
+	}//end needsSave()
+
+	/**
+	 * Today, in the server's time zone, as the last day of the rolling window.
+	 *
+	 * @return string Y-m-d.
+	 */
+	private function today(): string {
+		return (new DateTimeImmutable('@' . $this->time->getTime()))
+			->setTimezone(new \DateTimeZone(date_default_timezone_get()))
+			->format('Y-m-d');
+	}//end today()
+
+	/**
+	 * The attendance threshold a pupil's window is read against: the tenant's
+	 * active per-learner unexcused-lesuren threshold over rolling weeks that is
+	 * not tied to one cohort, the lowest limit first.
+	 *
+	 * @param string $tenantId The pupil's tenant.
+	 *
+	 * @return array<string, mixed>|null The threshold, or null when none applies.
+	 *
+	 * @spec openspec/changes/attendance-warns-before-the-threshold/specs/attendance/spec.md
+	 */
+	private function thresholdFor(string $tenantId): ?array {
+		if ($tenantId === '') {
+			return null;
+		}
+
+		if (array_key_exists($tenantId, $this->thresholdCache) === true) {
+			return $this->thresholdCache[$tenantId];
+		}
+
+		$rows = $this->objectService->findAll(
+			config: [
+				'filters' => [
+					'register' => self::REGISTER,
+					'schema' => self::THRESHOLD_SCHEMA,
+					'tenant_id' => $tenantId,
+					'metric' => 'unexcused-lesuren',
 				],
-				($counts[$year] ?? $this->calculator->emptyCounts()),
-				[
-					'teacherIds' => ($teachers ?? $this->storedTeachers(row: $row)),
-					'tenant_id' => ($this->text(value: ($row['tenant_id'] ?? null)) ?? $tenantId),
-				]
-			);
+				'limit' => 50,
+			],
+			_rbac: false,
+			_multitenancy: false
+		);
 
-			if ($data['tenant_id'] === '' || ($row !== null && $this->calculator->unchanged(row: $row, data: $data) === true)) {
-				continue;
+		return $this->lowestCandidate(rows: $rows, tenantId: $tenantId);
+	}//end thresholdFor()
+
+	/**
+	 * The lowest threshold among the rows that apply to the tenant, cached for it.
+	 *
+	 * @param array<int,mixed> $rows     The threshold rows found.
+	 * @param string           $tenantId The tenant.
+	 *
+	 * @return array<string, mixed>|null The threshold, or null when none applies.
+	 *
+	 * @spec openspec/changes/attendance-warns-before-the-threshold/specs/attendance/spec.md
+	 */
+	private function lowestCandidate(array $rows, string $tenantId): ?array {
+		$chosen = null;
+		foreach ($rows as $row) {
+			$threshold = $this->toRow(object: $row);
+			if ($this->isCandidate(threshold: $threshold, tenantId: $tenantId) === true) {
+				$chosen = $this->lowerOf(threshold: $threshold, chosen: $chosen);
 			}
+		}
 
-			$this->save(row: $row, data: $data);
-			$saved++;
-		}//end foreach
+		$this->thresholdCache[$tenantId] = $chosen;
 
-		return $saved;
-	}//end recompute()
+		return $chosen;
+	}//end lowestCandidate()
+
+	/**
+	 * Whether a threshold can be the pupil's: the tenant's own, not tied to a
+	 * cohort, and one that gives a window count.
+	 *
+	 * @param array<string, mixed> $threshold The threshold.
+	 * @param string               $tenantId  The pupil's tenant.
+	 *
+	 * @return bool
+	 */
+	private function isCandidate(array $threshold, string $tenantId): bool {
+		return ($threshold['tenant_id'] ?? null) === $tenantId
+			&& (string)($threshold['cohortId'] ?? '') === ''
+			&& $this->window->applies(threshold: $threshold) === true;
+	}//end isCandidate()
+
+	/**
+	 * The threshold with the lower limit: the new one, unless the one chosen so far is lower or equal.
+	 *
+	 * @param array<string, mixed>      $threshold The threshold read now.
+	 * @param array<string, mixed>|null $chosen    The threshold chosen so far.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function lowerOf(array $threshold, ?array $chosen): array {
+		if ($chosen === null || (float)$threshold['limit'] < (float)$chosen['limit']) {
+			return $threshold;
+		}
+
+		return $chosen;
+	}//end lowerOf()
 
 	/**
 	 * The school years the given lessons fall in.
@@ -324,12 +553,13 @@ class AttendanceSummaryService implements AttendanceSummaryServiceInterface {
 
 		$this->objectService->saveObject(
 			object: $object,
-			register: self::REGISTER,
-			schema: self::SUMMARY_SCHEMA,
-			uuid: $uuid,
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::REGISTER, schema: self::SUMMARY_SCHEMA),
+				uuid: $uuid,
+				actor: new SaveActor(unowned: true)
+			),
 			_rbac: false,
-			_multitenancy: false,
-			_unowned: true
+			_multitenancy: false
 		);
 	}//end save()
 
@@ -375,6 +605,45 @@ class AttendanceSummaryService implements AttendanceSummaryServiceInterface {
 			return null;
 		}
 	}//end teachersOf()
+
+	/**
+	 * The mentor a summary row stores: the one just read, else, when the
+	 * lookup failed, the one the row already holds; a new row gets nobody.
+	 *
+	 * @param string|null|false         $mentor The mentor read now, false when the lookup failed.
+	 * @param array<string, mixed>|null $row    The stored row, null for a new one.
+	 *
+	 * @return string|null
+	 */
+	private function rowMentor(string|null|false $mentor, ?array $row): ?string {
+		if ($mentor === false) {
+			return $this->text(value: ($row['mentorId'] ?? null));
+		}
+
+		return $mentor;
+	}//end rowMentor()
+
+	/**
+	 * The pupil's mentor: their id, null when none is set, false when the
+	 * profile cannot be read.
+	 *
+	 * @param string $learnerId Nextcloud user id.
+	 *
+	 * @return string|null|false
+	 *
+	 * @spec openspec/changes/attendance-warns-before-the-threshold/specs/attendance/spec.md
+	 */
+	private function mentorOf(string $learnerId): string|null|false {
+		try {
+			return $this->mentors->forLearner(learnerId: $learnerId);
+		} catch (Throwable $exception) {
+			$this->logger->warning(
+				'[AttendanceSummaryService] Could not read the mentor of {learner}, keeping the stored one: {msg}',
+				['learner' => $learnerId, 'msg' => $exception->getMessage()]
+			);
+			return false;
+		}
+	}//end mentorOf()
 
 	/**
 	 * The teachers stored on a row; none for a new row, which never widens who reads it.
