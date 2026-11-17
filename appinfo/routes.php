@@ -45,6 +45,8 @@ $routes = [
         // Public credential verification — no auth, per ADR-031 external-system contract.
         // Controller: CredentialVerifyController (slug: credentialVerify).
         ['name' => 'credentialVerify#verify', 'url' => '/api/credentials/{id}/verify', 'verb' => 'GET'],
+        // The readable page a browser is sent to from that link (certificate-verification-and-key-rotation).
+        ['name' => 'credentialVerifyPage#show', 'url' => '/verify/{id}', 'verb' => 'GET', 'requirements' => ['id' => '[^/]+']],
         // Europass file check (credentials-europass-edci-export): public like the
         // GET, answers validity only, never the stored payload.
         ['name' => 'credentialVerify#verifyEuropass', 'url' => '/api/credentials/{id}/verify', 'verb' => 'POST'],

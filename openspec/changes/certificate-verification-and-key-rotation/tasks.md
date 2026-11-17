@@ -2,7 +2,7 @@
 
 ## 1. The readable page on the link
 
-- [ ] 1.1 A `#[PublicPage]` page route for `verificationUrl` that renders the LqVerifieren layout with Nextcloud's public template and calls `GET /api/credentials/{id}/verify`. A request that asks for JSON keeps getting JSON. Verify: `tests/Unit/Controller/CredentialVerifyPageControllerTest.php` for both answers; `npm run check:l10n`.
+- [x] 1.1 A `#[PublicPage]` page route for `verificationUrl` that renders the LqVerifieren layout with Nextcloud's public template and calls `GET /api/credentials/{id}/verify`. A request that asks for JSON keeps getting JSON. Verify: `tests/Unit/Controller/CredentialVerifyPageControllerTest.php` for both answers; `npm run check:l10n`.
 - [ ] 1.2 Add the certificate title and the holder's display name to the answer for a valid or expired certificate, never for an unknown id. A revoked certificate or a failed signature answers without them too. Verify: PHPUnit on `CredentialVerifyController::verify()`: valid and expired carry title and name; revoked, signature invalid and unknown carry neither.
 - [ ] 1.3 The page lists the four checks (signature, not revoked, not expired, not changed) with a sentence each, and the school's phone number from its settings. An unknown id shows a not-found page with no title and no name. Verify: Playwright `tests/e2e/spec-coverage/certification-verify.spec.ts` against a seeded certificate, signed out.
 
@@ -23,7 +23,23 @@ their earlier tags beside the new one.
 
 Build note (1.x): 1.2 waits on the open question in the proposal (the owner
 confirms that the public answer may carry the title and the holder's name).
-1.1 and 1.3 (the public page and its Playwright check) are not built yet.
+
+Build note (1.1): a browser that opens `verificationUrl` (Accept names
+text/html, not JSON) is redirected by `CredentialVerifyController::verify()`
+to the public page `/verify/{id}` (`CredentialVerifyPageController::show()`,
+Nextcloud's public layout, bundle `learniq-verify`). The redirect and the page
+read nothing; the page script asks the route for JSON, so the lookup, rate
+limit and guess throttle stay in one place. Programs that ask for JSON, send a
+wildcard or no Accept keep getting the JSON answer.
+
+Build note (1.3): the page content is built: the verdict in words, the four
+checks with one sentence each (a check after the one that failed reads "not
+checked"), the details, and the school's phone number from the new admin
+setting `schoolPhone` (section Certificates). It shows a title and a name only
+when the answer carries `title` / `holderName` for a valid or expired
+certificate, which is what 1.2 adds. Left unchecked: its Playwright check
+(`tests/e2e/spec-coverage/certification-verify.spec.ts`) runs against a live
+seeded instance.
 
 ## 4. Matrix
 
