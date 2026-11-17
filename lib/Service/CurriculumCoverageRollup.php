@@ -136,13 +136,27 @@ class CurriculumCoverageRollup implements CurriculumCoverageRollupInterface {
 			$result['saved']++;
 		}
 
+		return $this->deleteStale(existing: $existing, result: $result);
+	}//end recompute()
+
+	/**
+	 * Delete the stored rows no computed bucket matched, and count them.
+	 *
+	 * @param array<string,array<string,mixed>> $existing The stored rows no computed bucket matched.
+	 * @param array<string,int>                 $result   The counts so far.
+	 *
+	 * @return array{saved: int, deleted: int, unchanged: int}
+	 *
+	 * @spec openspec/specs/competency/spec.md#requirement-coverage-is-recomputed-on-save-for-the-touched-frameworks-only-never-by-a-timedjob
+	 */
+	private function deleteStale(array $existing, array $result): array {
 		foreach ($existing as $stale) {
 			$this->delete(id: $this->idOf(row: $stale));
 			$result['deleted']++;
 		}
 
 		return $result;
-	}//end recompute()
+	}//end deleteStale()
 
 	/**
 	 * The distinct framework ids of a set of goals; unknown goals are skipped.

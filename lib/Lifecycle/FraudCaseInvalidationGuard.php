@@ -128,6 +128,24 @@ class FraudCaseInvalidationGuard implements LifecycleGuardInterface {
 			return false;
 		}
 
+		return $this->caseAllowsInvalidate(entry: $entry, fraudCase: $fraudCase);
+	}//end allows()
+
+	/**
+	 * Whether the linked FraudCase lets the GradeEntry be invalidated: only once
+	 * it is decided fraud-proven.
+	 *
+	 * @param array<string,mixed> $entry     The GradeEntry, with a fraudCaseId.
+	 * @param array<string,mixed> $fraudCase The linked FraudCase.
+	 *
+	 * @return bool True if the transition is allowed; false blocks it (HTTP 422).
+	 *
+	 * @spec openspec/specs/grading/spec.md#requirement-gradeentry-invalidate-is-a-guarded-terminal-transition
+	 */
+	private function caseAllowsInvalidate(array $entry, array $fraudCase): bool {
+		$entryId = $entry['id'] ?? ($entry['uuid'] ?? '');
+		$fraudCaseId = $entry['fraudCaseId'];
+
 		$lifecycle = $fraudCase['lifecycle'] ?? '';
 		$verdict = $fraudCase['verdict'] ?? '';
 
@@ -141,7 +159,7 @@ class FraudCaseInvalidationGuard implements LifecycleGuardInterface {
 		}
 
 		return true;
-	}//end allows()
+	}//end caseAllowsInvalidate()
 
 	/**
 	 * Fetch the linked FraudCase by id.

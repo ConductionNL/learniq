@@ -171,6 +171,30 @@ class AttendanceSummaryService implements AttendanceSummaryServiceInterface {
 			return 0;
 		}
 
+		$state = $this->loadState(learnerId: $learnerId, schoolYears: $schoolYears);
+		$facts = array_merge(
+			$state,
+			$this->learnerFacts(state: $state, given: ['learnerId' => $learnerId, 'tenantId' => $tenantId, 'learnerRef' => $learnerRef])
+		);
+
+		$saved = 0;
+		foreach ($state['years'] as $year) {
+			$saved += (int)$this->writeYear(year: $year, facts: $facts);
+		}
+
+		return $saved;
+	}//end recompute()
+
+	/**
+	 * A learner's counted records, their session days, the counts per school
+	 * year, the stored rows and the school years to write.
+	 *
+	 * @param string            $learnerId   Nextcloud user id of the learner.
+	 * @param array<int,string> $schoolYears School years to write even without counted records.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function loadState(string $learnerId, array $schoolYears): array {
 		$records = $this->countedRecords(learnerId: $learnerId);
 		$sessions = $this->sessionDays(ids: array_map(static fn (array $r): string => (string)($r['sessionId'] ?? ''), $records));
 		$counts = $this->calculator->summarise(records: $records, sessions: $sessions);
@@ -180,8 +204,24 @@ class AttendanceSummaryService implements AttendanceSummaryServiceInterface {
 		$years = array_unique(array_merge(array_keys($counts), array_keys($existing), $asked));
 		sort($years);
 
-		$tenantId = ($this->firstText(rows: $records, field: 'tenant_id') ?? $tenantId);
-		$learnerRef = ($this->firstText(rows: $records, field: 'learnerRef') ?? $learnerRef);
+		return ['records' => $records, 'sessions' => $sessions, 'counts' => $counts, 'existing' => $existing, 'years' => $years];
+	}//end loadState()
+
+	/**
+	 * What every row of the learner shares: the tenant and profile uuid (from
+	 * the records, else as given), the teachers, the mentor and the rolling
+	 * window fields of the school year that holds today.
+	 *
+	 * @param array<string, mixed> $state The loaded `records` and `sessions`.
+	 * @param array<string, mixed> $given The `learnerId`, and the `tenantId` and `learnerRef` the caller passed.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function learnerFacts(array $state, array $given): array {
+		$records = $state['records'];
+		$learnerId = $given['learnerId'];
+		$tenantId = ($this->firstText(rows: $records, field: 'tenant_id') ?? $given['tenantId']);
+		$learnerRef = ($this->firstText(rows: $records, field: 'learnerRef') ?? $given['learnerRef']);
 		$teachers = $this->teachersOf(learnerId: $learnerId);
 		$mentor = $this->mentorOf(learnerId: $learnerId);
 		$today = $this->today();
@@ -189,42 +229,60 @@ class AttendanceSummaryService implements AttendanceSummaryServiceInterface {
 		$windowFields = [
 			$this->calculator->schoolYearOf(date: $today) => $this->window->fields(
 				records: $records,
-				sessions: $sessions,
+				sessions: $state['sessions'],
 				threshold: $this->thresholdFor(tenantId: $tenantId),
 				today: $today
 			),
 		];
 
-		$saved = 0;
-		foreach ($years as $year) {
-			$row = ($existing[$year] ?? null);
-			$rowMentor = $this->rowMentor(mentor: $mentor, row: $row);
+		return [
+			'learnerId' => $learnerId,
+			'tenantId' => $tenantId,
+			'learnerRef' => $learnerRef,
+			'teachers' => $teachers,
+			'mentor' => $mentor,
+			'windowFields' => $windowFields,
+		];
+	}//end learnerFacts()
 
-			$data = array_merge(
-				[
-					'learnerId' => $learnerId,
-					'learnerRef' => ($learnerRef ?? $this->text(value: ($row['learnerRef'] ?? null)) ?? $this->resolveRef(learnerId: $learnerId)),
-					'schoolYear' => $year,
-				],
-				($counts[$year] ?? $this->calculator->emptyCounts()),
-				[
-					'teacherIds' => ($teachers ?? $this->storedTeachers(row: $row)),
-					'mentorId' => $rowMentor,
-					'tenant_id' => ($this->text(value: ($row['tenant_id'] ?? null)) ?? $tenantId),
-				],
-				($windowFields[$year] ?? [])
-			);
+	/**
+	 * Write one school year's row when it is new or changed.
+	 *
+	 * @param mixed                $year  The school year.
+	 * @param array<string, mixed> $facts The loaded state and the learner's shared fields.
+	 *
+	 * @return bool Whether the row was saved.
+	 */
+	private function writeYear(mixed $year, array $facts): bool {
+		$learnerId = $facts['learnerId'];
+		$learnerRef = $facts['learnerRef'];
+		$teachers = $facts['teachers'];
+		$row = ($facts['existing'][$year] ?? null);
+		$rowMentor = $this->rowMentor(mentor: $facts['mentor'], row: $row);
 
-			if ($this->needsSave(row: $row, data: $data) === false) {
-				continue;
-			}
+		$data = array_merge(
+			[
+				'learnerId' => $learnerId,
+				'learnerRef' => ($learnerRef ?? $this->text(value: ($row['learnerRef'] ?? null)) ?? $this->resolveRef(learnerId: $learnerId)),
+				'schoolYear' => $year,
+			],
+			($facts['counts'][$year] ?? $this->calculator->emptyCounts()),
+			[
+				'teacherIds' => ($teachers ?? $this->storedTeachers(row: $row)),
+				'mentorId' => $rowMentor,
+				'tenant_id' => ($this->text(value: ($row['tenant_id'] ?? null)) ?? $facts['tenantId']),
+			],
+			($facts['windowFields'][$year] ?? [])
+		);
 
-			$this->save(row: $row, data: $data);
-			$saved++;
-		}//end foreach
+		if ($this->needsSave(row: $row, data: $data) === false) {
+			return false;
+		}
 
-		return $saved;
-	}//end recompute()
+		$this->save(row: $row, data: $data);
+
+		return true;
+	}//end writeYear()
 
 	/**
 	 * Whether a summary row must be written: it names a tenant and is new or changed.
@@ -287,6 +345,20 @@ class AttendanceSummaryService implements AttendanceSummaryServiceInterface {
 			_multitenancy: false
 		);
 
+		return $this->lowestCandidate(rows: $rows, tenantId: $tenantId);
+	}//end thresholdFor()
+
+	/**
+	 * The lowest threshold among the rows that apply to the tenant, cached for it.
+	 *
+	 * @param array<int,mixed> $rows     The threshold rows found.
+	 * @param string           $tenantId The tenant.
+	 *
+	 * @return array<string, mixed>|null The threshold, or null when none applies.
+	 *
+	 * @spec openspec/changes/attendance-warns-before-the-threshold/specs/attendance/spec.md
+	 */
+	private function lowestCandidate(array $rows, string $tenantId): ?array {
 		$chosen = null;
 		foreach ($rows as $row) {
 			$threshold = $this->toRow(object: $row);
@@ -298,7 +370,7 @@ class AttendanceSummaryService implements AttendanceSummaryServiceInterface {
 		$this->thresholdCache[$tenantId] = $chosen;
 
 		return $chosen;
-	}//end thresholdFor()
+	}//end lowestCandidate()
 
 	/**
 	 * Whether a threshold can be the pupil's: the tenant's own, not tied to a

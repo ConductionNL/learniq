@@ -229,6 +229,24 @@ class CourseEvaluationAnswerService implements CourseEvaluationAnswerServiceInte
 		);
 		$responseId = (string)($response->getUuid() ?? '');
 
+		return $this->submitResponse(responseId: $responseId, invitationId: $invitationId);
+	}//end answer()
+
+	/**
+	 * Submit the saved draft response as the system; a refused submit removes
+	 * the draft again and is reported as a 403.
+	 *
+	 * @param string $responseId   The saved draft response.
+	 * @param string $invitationId The invitation being answered, for the log.
+	 *
+	 * @return array{status: int, error?: string, missing?: array<int, string>}
+	 *
+	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
+	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-cannot-answer-twice
+	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-an-uninvited-user-is-refused
+	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-anonymous-answers-cannot-be-linked
+	 */
+	private function submitResponse(string $responseId, string $invitationId): array {
 		try {
 			$this->transitionEngine->transitionAsSystem(objectId: $responseId, action: 'submit', app: self::APP);
 		} catch (Throwable $exception) {
@@ -252,7 +270,7 @@ class CourseEvaluationAnswerService implements CourseEvaluationAnswerServiceInte
 		}
 
 		return ['status' => 201];
-	}//end answer()
+	}//end submitResponse()
 
 	/**
 	 * A campaign's figures for staff: invitations, responses and the mean
@@ -279,6 +297,21 @@ class CourseEvaluationAnswerService implements CourseEvaluationAnswerServiceInte
 			]
 		);
 
+		return $this->resultCounts(invitations: $invitations, responses: $responses);
+	}//end results()
+
+	/**
+	 * The invitation and response counts and the mean overall score, hidden below
+	 * the minimum number of responses.
+	 *
+	 * @param array<int,mixed> $invitations The campaign's invitations.
+	 * @param array<int,mixed> $responses   Its submitted responses.
+	 *
+	 * @return array{invitationCount: int, responseCount: int, meanOverallScore: float|null, meanHidden: bool}
+	 *
+	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-small-groups-are-protected
+	 */
+	private function resultCounts(array $invitations, array $responses): array {
 		$scores = [];
 		foreach ($responses as $row) {
 			$score = (self::toArray(value: $row)['overallScore'] ?? null);
@@ -299,7 +332,7 @@ class CourseEvaluationAnswerService implements CourseEvaluationAnswerServiceInte
 			'meanOverallScore' => $mean,
 			'meanHidden' => $count < self::MIN_RESPONSES_FOR_MEAN,
 		];
-	}//end results()
+	}//end resultCounts()
 
 	/**
 	 * Why an answer is refused before anything is written, or null: not the

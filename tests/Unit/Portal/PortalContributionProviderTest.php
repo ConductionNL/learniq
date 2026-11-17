@@ -201,7 +201,7 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame([], $manifest['notifications']);
 
 		$collections = $manifest['collections'];
-		$this->assertCount(16, $collections);
+		$this->assertCount(17, $collections);
 		$this->assertSame(
 			[
 				'studentGrades',
@@ -220,6 +220,8 @@ class PortalContributionProviderTest extends TestCase {
 				'studentSchoolCoaches',
 				'studentExcuseRequests',
 				'studentInbox',
+				// bpv-hours-per-day: the weeks her trainer sent back, as messages.
+				'studentReturnedHours',
 				'studentTests',
 				'studentHomework',
 				// site-pupil-portal-design: the absence strip of her overview.
@@ -296,7 +298,7 @@ class PortalContributionProviderTest extends TestCase {
 		$actions = $manifest['actions'];
 
 		$this->assertSame(
-			['createSubmission', 'submitHourWeek', 'fillInSelfAssessment', 'createExcuseRequest', 'listTests', 'startTest', 'saveTestAnswer', 'submitTest', 'readTestResult', 'handIn', 'listCatalogue', 'signUpForCourse', 'withdrawSignUp', 'listWorkGroups', 'joinWorkGroup', 'leaveWorkGroup', 'checkIn'],
+			['createSubmission', 'submitHourWeek', 'writeHourDay', 'fillInSelfAssessment', 'createExcuseRequest', 'listTests', 'startTest', 'saveTestAnswer', 'submitTest', 'readTestResult', 'handIn', 'listCatalogue', 'signUpForCourse', 'withdrawSignUp', 'listWorkGroups', 'joinWorkGroup', 'leaveWorkGroup', 'checkIn'],
 			array_column($actions, 'id')
 		);
 		$byId = array_column($actions, null, 'id');
@@ -563,7 +565,7 @@ class PortalContributionProviderTest extends TestCase {
 		$declared = array_keys($register['components']['schemas']['GradeEntry']['properties']);
 		$this->assertSame([], array_values(array_diff($gradeFields, $declared)));
 		$this->assertSame(
-			['learnerRef', 'sessionId', 'cohortId', 'status', 'minutesAttended', 'markedAt'],
+			['learnerRef', 'sessionId', 'cohortId', 'status', 'lateMinutes', 'markedAt'],
 			$byId['parentAttendance']['fields']
 		);
 		$this->assertSame(
@@ -867,11 +869,28 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame('Learniq', $manifest['label']);
 		$this->assertSame([], $manifest['notifications']);
 		// Read-only — zero create-actions.
-		$this->assertSame([], $manifest['actions']);
+		// Read-only apart from the assessment he is assigned to, through learniq's own endpoint.
+		$this->assertSame(['assessPracticalExam'], array_column($manifest['actions'], 'id'));
+		$this->assertSame('endpoint-forward', $manifest['actions'][0]['type']);
+		$this->assertSame('/apps/learniq/api/portal/practical-exam-assessments', $manifest['actions'][0]['endpoint']);
+		$this->assertSame('externalAssessorId', $manifest['actions'][0]['subjectField']);
+		$this->assertNotContains('assessorName', $manifest['actions'][0]['fields']);
+		$this->assertNotContains('assuranceLevel', $manifest['actions'][0]['fields']);
 
 		$collections = $manifest['collections'];
 		// The shares, then the entries those shares open: selected, or a whole portfolio (site-external-assessor-portal-design T3).
-		$this->assertSame(['eaSharedPortfolios', 'eaSharedPortfolioEntries', 'eaWholePortfolioEntries'], array_column($collections, 'id'));
+		$this->assertSame(['eaSharedPortfolios', 'eaSharedPortfolioEntries', 'eaWholePortfolioEntries', 'eaExams'], array_column($collections, 'id'));
+
+		// His exams come from his own assignments, and only live ones (practical-exam-assessment).
+		$exams = array_column($collections, null, 'id')['eaExams'];
+		$this->assertSame('exam-assessor-assignment', $exams['schema']);
+		$this->assertSame('externalAssessorId', $exams['scopeField']);
+		$this->assertSame('externalAssessorId', $exams['scopeClaim']);
+		$this->assertSame(['lifecycle' => 'assigned'], $exams['filter']);
+		$this->assertSame(['sittingStartsAt', 'learnerName', 'examTitle', 'role'], array_column($exams['columns'], 'field'));
+		foreach (array_column($exams['columns'], 'field') as $field) {
+			$this->assertContains($field, $exams['fields'], $field);
+		}
 		$collection = $collections[0];
 
 		$this->assertSame('eaSharedPortfolios', $collection['id']);
@@ -950,7 +969,8 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame('practicalTrainerId', $approval['subjectField']);
 		$this->assertSame('practicalTrainerId', $approval['scopeClaim']);
 		$this->assertSame('low', $approval['minTrust']);
-		$this->assertSame(['hourWeekId', 'hoursApproved', 'note'], $approval['fields']);
+		// bpv-hours-per-day: a return names the day and asks the question.
+		$this->assertSame(['hourWeekId', 'outcome', 'hoursApproved', 'note', 'returnedDate', 'question'], $approval['fields']);
 		foreach (['approvedBy', 'approvedByName', 'approvedAt', 'assuranceLevel', 'lifecycle', 'hoursSubmitted', 'learnerRef'] as $server) {
 			$this->assertNotContains($server, $approval['fields'], $server);
 		}

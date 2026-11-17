@@ -1,13 +1,20 @@
 # Tasks: practical-exam-assessment
 
-- [ ] **T1**: Ruben decides the signature route (widen `Signature.subjectKind`, recommended; or a second shape; or one signature record for everything)
-- [ ] **T2**: register: `ExamAssessorAssignment` (`examSittingId`, `externalAssessorId`, `learnerRef`, `role`, `lifecycle`, `tenant_id`)
+- [x] **T1**: Ruben decides the signature route (widen `Signature.subjectKind`, recommended; or a second shape; or one signature record for everything)
+  - Decided 2026-11-14 for this build: option 1, the recommended one. `Signature.subjectKind` gains `practical-exam-assessment`; it is additive, keeps one signature shape a report can read, and costs one register version.
+- [x] **T2**: register: `ExamAssessorAssignment` (`examSittingId`, `externalAssessorId`, `learnerRef`, `role`, `lifecycle`, `tenant_id`)
   - `npm run check:register`; a payload test against the shipped fragment
-- [ ] **T3**: register: `PracticalExamAssessment` (`examSittingId`, `learnerRef`, `assessmentModelId`, `criteria`, `outcome`, `assessorId`, `assessorName`, `assuranceLevel`, `lifecycle`, `tenant_id`), mirroring what `WerkprocesAssessment` records about its assessor
-- [ ] **T4**: register: the signature route from T1, with `assuranceLevel` on every signature
+- [x] **T3**: register: `PracticalExamAssessment` (`examSittingId`, `learnerRef`, `assessmentModelId`, `criteria`, `outcome`, `assessorId`, `assessorName`, `assuranceLevel`, `lifecycle`, `tenant_id`), mirroring what `WerkprocesAssessment` records about its assessor
+- [x] **T4**: register: the signature route from T1, with `assuranceLevel` on every signature
+  - Built: `Signature` 0.3.0 accepts `subjectKind: practical-exam-assessment` and `signerRole: assessor`; `assuranceLevel` stays required on every signature; register 0.50.0. `PracticalExamRegisterTest::testBothAssessorsSignTheAssessmentWithTheirAssuranceLevel`.
 - [ ] **T5**: assessor portal: `eaExamsToday` (his assignments for today, joined to their sitting), `eaExams` (all of them), and the assessment form as an `endpoint-forward`, so the assertion names who assessed
+  - In progress: `eaExams` is built (his live assignments, earliest first on his overview, reading time, candidate and exam from readable copies on `ExamAssessorAssignment` 0.2.0), and the form is an `endpoint-forward` to `POST /api/portal/practical-exam-assessments`, which accepts only a candidate at a sitting he holds a live assignment for and stamps `assessorId`, `assessorName` and `assuranceLevel`. Left: `eaExamsToday`, which needs a date-relative collection filter portaliq does not offer yet.
 - [ ] **T6**: the form saves a draft on every step, and a reconnect resumes it
-- [ ] **T7**: the result reaches the exam board only when both assessors have signed
-- [ ] **T8**: the sitting's documents (assessment model, regulations) are readable by an assigned assessor and by nobody else
+  - Server side built: a save with `lifecycle: draft` keeps the step on the assessor's own record, the next save carries that record on, `GET /api/portal/practical-exam-assessments/draft` hands it back, and a submitted assessment is final (409). Left: the portal form posting each step as a draft and prefilling from the draft endpoint, which needs portaliq's multi-step form to call an endpoint per step.
+- [x] **T7**: the result reaches the exam board only when both assessors have signed
+  - Built: `POST /api/portal/practical-exam-assessments/{id}/signatures` lets an assessor with a live assignment sign a submitted assessment once (`Signature` with `subjectKind: practical-exam-assessment`, `signerRole: assessor`, the session's `assuranceLevel` and the assignment as `evidenceRef`, all stamped by the server). `GET /api/practical-exam-results?examSittingId=` (`PracticalExamBoardResults`) lists, with the caller's own rights, only the assessments signed by both the first and the second assessor of that candidate's live assignments, each with both signatures and their assurance levels. `PortalPracticalExamSigningTest`, `PracticalExamBoardResultsTest`.
+- [x] **T8**: the sitting's documents (assessment model, regulations) are readable by an assigned assessor and by nobody else
+  - Built: `ExamSitting` 0.2.0 names its documents (`documentIds`, Materials; register 0.53.0). `GET /api/portal/practical-exam-sittings/{id}` hands an assessor the sitting and its documents only while he holds a live assignment there; any other sitting, existing or not, is refused alike and its documents are never read. Staff read them as before through the register. `PortalExamSittingDocumentsTest`.
 - [ ] **T9**: e2e in `assessor-flows.spec.ts`: his day lists only his own candidates, he fills a form, a second assessor signs, and a sitting he is not assigned to resolves nothing
-- [ ] **T10**: example set: the mbo profile seeds a sitting with two assessors and three candidates
+- [x] **T10**: example set: the mbo profile seeds a sitting with two assessors and three candidates
+  - Built: `scripts/example-sets/mbo.py` adds the proeve (exam, period, sitting on 16 November) with Ruud Jansen as first and Sanne Bakker as second assessor for the first three placement students, six `ExamAssessorAssignment` rows with their readable copies; appended last, so no earlier uuid moves. `VocationalCollegeExampleSetTest::testTheSetSeedsASittingWithTwoAssessorsAndThreeCandidates`.

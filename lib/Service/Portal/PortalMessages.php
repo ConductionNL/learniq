@@ -55,6 +55,14 @@ class PortalMessages implements PortalMessagesInterface {
 		'already-handed-in' => 'This work is already handed in.',
 		'late-not-accepted' => 'The deadline has passed and this assignment does not accept late work.',
 		'hand-in-refused' => 'This work cannot be handed in right now. Ask your teacher.',
+		// A day of BPV hours (bpv-hours-per-day); the last four are HourDayLines' refusals.
+		'hour-day-incomplete' => 'Choose your placement and the day, as YYYY-MM-DD.',
+		'hour-day-not-your-placement' => 'You can only write hours for your own placement.',
+		'hour-week-with-trainer' => 'This week is with your workplace trainer or already approved, so its days cannot change.',
+		'hour-day-outside-week' => 'This day is not part of the week.',
+		'hour-day-times-invalid' => 'Fill in when you started and when you stopped, as HH:MM. You stop after you start.',
+		'hour-day-break-too-long' => 'Your break is as long as the time you worked, or longer.',
+		'hour-day-invalid' => 'This day could not be read. Fill it in again.',
 	];
 
 	/**

@@ -139,6 +139,10 @@ SCHEMAS = [
     # leerplicht limit. Appended for the same reason; its parent,
     # learner-profile, sits above it.
     "attendance-summary",
+    # practical-exam-assessment: the proeve's two assessors and the candidates
+    # each of them assesses. Appended for the same reason; its parents,
+    # external-assessor, learner-profile and exam-sitting, sit above it.
+    "exam-assessor-assignment",
 ]
 IDENTITY = SetIdentity(SET, SET_NUMBER, SCHEMAS)
 
@@ -615,7 +619,7 @@ STEPS = (
     "add_accommodations", "add_exemption_cases", "pick_result_cases", "add_unit_results", "add_pvb_entries",
     "add_fraud_case", "add_dismissed_fraud_case", "add_final_grades", "add_trajectories", "add_progress_flags",
     "add_warnings", "add_bsa_decisions", "settle_diplomas", "add_support_requests", "add_dossier_notes",
-    "add_hour_plans", "add_assessor_shares", "add_hour_weeks", "add_story_and_stamps",
+    "add_hour_plans", "add_assessor_shares", "add_hour_weeks", "add_story_and_stamps", "add_practical_exam",
 )
 
 
@@ -1683,6 +1687,7 @@ class SchoolYear:
             "email": "ruud.jansen@examinering-zuiddrecht.example",
             "organisationName": "Examinering Zuiddrecht", "active": True,
         })
+        self.assessor = assessor
         # Two students who are actually on a placement, so the portfolios belong to
         # people the rest of the set knows.
         for index, s in enumerate([p["student"] for p in self.placements][:2], start=1):
@@ -1739,6 +1744,40 @@ class SchoolYear:
         add_story(self)
         stamp_hour_totals(self.b)
         stamp_group_labels(self.b)
+
+    # --- practical-exam-assessment: a proeve with two assessors -------------
+    # Added last, so no earlier uuid moves, and with no random draws. Ruud Jansen
+    # assesses first and Sanne Bakker second, each for the same three candidates,
+    # the first three students on a placement, in one sitting.
+    def add_practical_exam(self) -> None:
+        second = self.b.add("external-assessor", {
+            "givenName": "Sanne", "familyName": "Bakker",
+            "email": "sanne.bakker@examinering-zuiddrecht.example",
+            "organisationName": "Examinering Zuiddrecht", "active": True,
+        })
+        candidates = [p["student"] for p in self.placements][:3]
+        period = self.b.add("exam-period", {
+            "name": "Proeven van bekwaamheid november 2026", "startsOn": "2026-11-16", "endsOn": "2026-11-20",
+            "cohortIds": sorted({self.cohorts[s["class"]]["uuid"] for s in candidates}), "lifecycle": "published",
+        })
+        exam = self.b.add("exam", {
+            "title": "Proeve van bekwaamheid installeren", "description": "Praktijkexamen: de kandidaat installeert en meet na, twee beoordelaars kijken mee.",
+            "scoringScheme": "passMark", "passMark": 5.5, "timeLimitMinutes": 180, "maxAttempts": 1, "lifecycle": "published",
+        })
+        starts = stamp(dt.date(2026, 11, 16), 9, 0)
+        sitting = self.b.add("exam-sitting", {
+            "examPeriodId": period["uuid"], "assessmentId": exam["uuid"], "cohortIds": period["cohortIds"],
+            "startsAt": starts, "endsAt": stamp(dt.date(2026, 11, 16), 12, 0),
+            "roomIds": [self.rooms[candidates[0]["class"]]["uuid"]], "headcount": len(candidates), "invigilatorsNeeded": 0,
+            "lifecycle": "planned",
+        })
+        for s in candidates:
+            for role, assessor in (("first", self.assessor), ("second", second)):
+                self.b.add("exam-assessor-assignment", {
+                    "examSittingId": sitting["uuid"], "externalAssessorId": assessor["uuid"], "learnerRef": s["profile"]["uuid"],
+                    "role": role, "lifecycle": "assigned", "learnerName": f"{s['given']} {s['surname']}",
+                    "sittingStartsAt": starts, "examTitle": exam["title"],
+                })
 
 
 def programme_unit_codes(key: str) -> list[str]:
@@ -2053,6 +2092,20 @@ STORY_UNITS = [
     ("MT-2.6", "Engels", 5, ["mbo-docent-14"], [], None),
     ("MT-2.7", "Rekenen", 5, ["mbo-docent-11"], [], None),
 ]
+
+
+def story_days(monday: dt.date, count: int, questions: dict) -> list[dict]:
+    """`count` day lines from `monday`, each 08.00 to 16.30 with 30 minutes break (8 hours) on the
+    placement's first work processes; `questions` puts the trainer's question on a day by its index."""
+    lines = []
+    for i in range(count):
+        line = {"date": (monday + dt.timedelta(days=i)).isoformat(), "startTime": "08:00", "endTime": "16:30",
+                "breakMinutes": 30, "hours": 8, "werkprocesCodes": [STORY_PROGRESS[2][0]],
+                "description": "Aan de transportbandopstelling gewerkt."}
+        if i in questions:
+            line["returnedQuestion"] = questions[i]
+        lines.append(line)
+    return lines
 
 
 def stamp_hour_totals(b: Builder) -> None:
@@ -2401,19 +2454,25 @@ class StoryAutumn:
             self.b.add("werkproces-progress", row)
 
     # Weeks of BPV hours. Milan: weeks 36 to 39 approved (4 x 24 = 96). Week
-    # 40 is two records, because a week record has no per-day lines (D-7):
-    # Monday and Wednesday (16 hours) still wait for Petra, and the Tuesday
-    # (8 hours) she sent back with her question. Approving none of a record is
-    # `rejected`; her note names the day. Aylin: weeks 35 to 39 approved
-    # (5 x 32 = 160) and week 40 waiting.
+    # 40 holds its days (bpv-hours-per-day): Monday 28, Tuesday 29 and
+    # Wednesday 30 September, each 08.00 to 16.30 with 30 minutes break (24
+    # hours). Petra sent the week back about the Tuesday with her question, so
+    # nothing of it is approved yet (D-7: she approves the week, a return names
+    # the day). Week 41 is a draft he keeps for later with Monday 5 October.
+    # Aylin: weeks 35 to 39 approved (5 x 32 = 160) and week 40 waiting.
     def add_hour_weeks(self) -> None:
         self.add_approved_weeks(MILAN, (dt.date(2026, 8, 31), 4, 24, 2, (9, 20)))
-        self.week(MILAN, (dt.date(2026, 9, 28), 16, 2, None))
-        self.week(MILAN, (dt.date(2026, 9, 28), 8, 1, {
-            "approved": 0, "at": stamp(dt.date(2026, 10, 2), 16, 42), "lifecycle": "rejected",
-            "note": ("Dinsdag 29 september: je schreef 8 uur. Volgens mij ging je om 14.00 uur naar de tandarts. "
-                     "Wil je de uren aanpassen? Dan keur ik de hele week goed."),
+        question = ("Je schreef 8 uur op dinsdag 29 september. Volgens mij ging je om 14.00 uur naar de tandarts. "
+                    "Wil je de uren aanpassen? Dan keur ik de hele week goed.")
+        returned = self.week(MILAN, (dt.date(2026, 9, 28), 24, 2, {
+            "approved": 0, "at": stamp(dt.date(2026, 10, 2), 16, 42), "lifecycle": "rejected", "note": question,
         }))
+        returned["days"] = story_days(dt.date(2026, 9, 28), 3, {1: question})
+        returned["returnSubject"] = "Vraag over je uren van dinsdag 29 september"
+        draft = self.week(MILAN, (dt.date(2026, 10, 5), 8, 0, None))
+        draft["days"] = story_days(dt.date(2026, 10, 5), 1, {})
+        draft["lifecycle"] = "draft"
+        del draft["submittedAt"]
         self.add_approved_weeks(AYLIN, (dt.date(2026, 8, 24), 5, 32, 3, (9, 30)))
         self.week(AYLIN, (dt.date(2026, 9, 28), 32, 3, None))
 
