@@ -38,6 +38,9 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Kernel\Contracts\LearnerMergeServiceInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
@@ -63,6 +66,18 @@ class LearnerMergeService implements LearnerMergeServiceInterface {
 	 * `accusedLearnerUserId` is not listed: LearnerUserIdStamp derives it again
 	 * from the moved uuid when the record is saved.
 	 */
+	/**
+	 * Records that stay with the account they were signed under: the lifecycle
+	 * states in which a schema's record is evidence that no writer may change
+	 * (AttestationFreezeListener). Re-pointing a signed attestation would
+	 * rewrite who attested, so the merge leaves it and logs it.
+	 *
+	 * @var array<string, array<int, string>>
+	 */
+	private const SIGNED_EVIDENCE = [
+		'attestation' => ['signed', 'revoked'],
+	];
+
 	private const LEARNER_OWNED = [
 		'credential' => ['learnerId', 'learnerUserId'],
 		'lesson-completion' => ['learnerId', 'learnerRef'],
@@ -267,6 +282,14 @@ class LearnerMergeService implements LearnerMergeServiceInterface {
 			foreach (array_keys($rewrites) as $old) {
 				foreach ($this->findRows(schema: $schema, filters: [$field => $old]) as $row) {
 					$rowId = $this->profileId(profile: $row);
+					if (self::isSignedEvidence(schema: $schema, row: $row) === true) {
+						$this->logger->info(
+							'[LearnerMergeService] Left signed {schema} {id} with the account it was signed under.',
+							['schema' => $schema, 'id' => $rowId]
+						);
+						continue;
+					}
+
 					$pending[$rowId] = ($pending[$rowId] ?? $row);
 				}
 			}
@@ -283,15 +306,30 @@ class LearnerMergeService implements LearnerMergeServiceInterface {
 			unset($row['@self']);
 			$this->objectService->saveObject(
 				object: $row,
-				register: self::LEARNIQ_REGISTER,
-				schema: $schema,
-				uuid: $rowId
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: $schema),
+					uuid: $rowId
+				)
 			);
 			$this->logger->info('[LearnerMergeService] Moved {schema} {id} to the surviving learner.', ['schema' => $schema, 'id' => $rowId]);
 		}
 
 		return count($pending);
 	}//end moveSchema()
+
+	/**
+	 * Whether a record is signed evidence the merge must leave where it is.
+	 *
+	 * @param string              $schema Schema slug.
+	 * @param array<string,mixed> $row    The record.
+	 *
+	 * @return bool True when the record is not moved.
+	 *
+	 * @spec openspec/changes/compliance-attestation-locked-after-signing/specs/compliance-audit/spec.md#requirement-a-signed-attestation-cannot-be-edited
+	 */
+	private static function isSignedEvidence(string $schema, array $row): bool {
+		return in_array((string)($row['lifecycle'] ?? ''), (self::SIGNED_EVIDENCE[$schema] ?? []), true);
+	}//end isSignedEvidence()
 
 	/**
 	 * Courses in which both accounts hold an open enrolment.
@@ -364,7 +402,10 @@ class LearnerMergeService implements LearnerMergeServiceInterface {
 		}
 
 		try {
-			$entity = $this->objectService->find(id: $id, register: self::LEARNIQ_REGISTER, schema: self::PROFILE_SCHEMA);
+			$entity = $this->objectService->find(
+				id: $id,
+				options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::PROFILE_SCHEMA)
+			);
 		} catch (\Throwable $e) {
 			$this->logger->warning('[LearnerMergeService] Profile {id} could not be loaded: {m}', ['id' => $id, 'm' => $e->getMessage()]);
 			return null;

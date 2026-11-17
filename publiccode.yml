@@ -24,6 +24,7 @@ description:
       administration. Designed for Dutch educational institutions and government training
       programmes, it integrates with existing Nextcloud collaboration tools and adheres
       to Dutch government interoperability standards.
+      Conduction maintains this component within the Nextcloud ISV programme.
     features:
       - Course and curriculum management
       - Student enrolment and progress tracking
@@ -39,6 +40,7 @@ description:
       en onderwijsadministratie. Ontworpen voor Nederlandse onderwijsinstellingen en
       overheidsopleidingen, integreert het met bestaande Nextcloud-samenwerkingstools
       en voldoet aan Nederlandse overheidsstandaarden voor interoperabiliteit.
+      Conduction onderhoudt dit component binnen het Nextcloud ISV-programma.
     features:
       - Cursus- en curriculummanagement
       - Inschrijving en voortgangsbewaking van studenten
@@ -51,7 +53,12 @@ legal:
   repoOwner: "Conduction B.V."
 
 maintenance:
-  type: community
+  type: contract
+  contractors:
+    - name: Conduction B.V.
+      until: "2028-12-31"
+      email: info@conduction.nl
+      website: https://conduction.nl
   contacts:
     - name: Conduction B.V.
       email: info@conduction.nl
@@ -62,3 +69,7 @@ localisation:
   availableLanguages:
     - nl
     - en
+
+# Common Ground layer (nl.vng profile), as a standard supports entry.
+supports:
+  - id: https://commonground.nl/cms/view/54476261/5-lagen-model#process

@@ -511,9 +511,9 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame(['conference.answered'], array_column($manifest['notifications'], 'ruleKey'), 'one rule: the teacher answered a booking');
 
 		$collections = $manifest['collections'];
-		$this->assertCount(21, $collections);
+		$this->assertCount(22, $collections);
 		$this->assertSame(
-			['parentChildren', 'parentGrades', 'parentAttendance', 'parentReportCardGrades', 'parentExcuseRequests', 'parentReportCards', 'parentConferenceRounds', 'parentConferenceInvitations', 'parentConferenceFreeSlots', 'parentConferenceSignups', 'parentConferenceSlots', 'parentGroupMemberships', 'parentReportSubjectGrades', 'parentInbox', 'parentGradeInbox', 'parentAttendanceSummary', 'parentHomework', 'parentSubmissions', 'parentSchoolEvents', 'parentSchoolCalendar', 'parentSchools'],
+			['parentChildren', 'parentGrades', 'parentAttendance', 'parentReportCardGrades', 'parentExcuseRequests', 'parentReportCards', 'parentConferenceRounds', 'parentConferenceInvitations', 'parentConferenceFreeSlots', 'parentConferenceSignups', 'parentConferenceSlots', 'parentGroupMemberships', 'parentReportSubjectGrades', 'parentInbox', 'parentGradeInbox', 'parentAttendanceSummary', 'parentHomework', 'parentSubmissions', 'parentSchoolEvents', 'parentSchoolCalendar', 'parentSchools', 'parentPermissionRequests'],
 			array_column($collections, 'id')
 		);
 
@@ -527,7 +527,7 @@ class PortalContributionProviderTest extends TestCase {
 		// testParentBooksAConferenceForTheirOwnChildOnly; parentConferenceFreeSlots
 		// matches a free time on the pupils who may book it
 		// (ParentConferenceDirectBookingTest).
-		$reverseJoinedCollections = array_filter($collections, static fn ($c) => in_array($c['id'], ['parentChildren', 'parentConferenceRounds', 'parentConferenceFreeSlots', 'parentSchools', ...self::RECORD_PAGE_COLLECTIONS], true) === false);
+		$reverseJoinedCollections = array_filter($collections, static fn ($c) => in_array($c['id'], ['parentChildren', 'parentConferenceRounds', 'parentConferenceFreeSlots', 'parentSchools', 'parentPermissionRequests', ...self::RECORD_PAGE_COLLECTIONS], true) === false);
 		foreach ($reverseJoinedCollections as $collection) {
 			$this->assertSame('learniq', $collection['register']);
 			// Parent scope key is the guardian claim; the outer record scope
@@ -724,6 +724,7 @@ class PortalContributionProviderTest extends TestCase {
 			$expected = [
 				'parentConferenceRounds' => 'invitedLearnerRefs',
 				'parentHomework' => 'learnerRefs',
+				'parentPermissionRequests' => 'learnerRefs',
 				'parentSchoolEvents' => 'schoolId',
 				'parentSchoolCalendar' => 'schoolId',
 			][$collection['id']] ?? 'learnerRef';
@@ -757,8 +758,9 @@ class PortalContributionProviderTest extends TestCase {
 	public function testParentShipsCreateExcuseRequestValidatedAgainstOwnChildren(): void {
 		$manifest = $this->provider->getContribution(self::PARENT_SUBJECT);
 
-		// The absence report, then the three conference actions (direct-conference-booking).
-		$this->assertCount(4, $manifest['actions']);
+		// The absence report, then the three conference actions (direct-conference-booking),
+		// then the permission answer (permission-slips).
+		$this->assertCount(5, $manifest['actions']);
 		$action = $manifest['actions'][0];
 
 		$this->assertSame('createExcuseRequest', $action['id']);
@@ -798,9 +800,10 @@ class PortalContributionProviderTest extends TestCase {
 		$collections = $manifest['collections'];
 		// Her placements, the portfolios shared with her, the assessments she
 		// wrote (site-workplace-trainer-portal-design) and the weeks of hours
-		// waiting for her (internship-hours).
+		// waiting for her (internship-hours), and her students by name
+		// (site-workplace-trainer-portal-design T1).
 		$this->assertSame(
-			['poBpvPlacements', 'poSharedPortfolios', 'poWerkprocesAssessments', 'poHourWeeks'],
+			['poBpvPlacements', 'poSharedPortfolios', 'poWerkprocesAssessments', 'poHourWeeks', 'poLearners'],
 			array_column($collections, 'id')
 		);
 		$collection = $collections[0];
@@ -864,10 +867,28 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame('Learniq', $manifest['label']);
 		$this->assertSame([], $manifest['notifications']);
 		// Read-only — zero create-actions.
-		$this->assertSame([], $manifest['actions']);
+		// Read-only apart from the assessment he is assigned to, through learniq's own endpoint.
+		$this->assertSame(['assessPracticalExam'], array_column($manifest['actions'], 'id'));
+		$this->assertSame('endpoint-forward', $manifest['actions'][0]['type']);
+		$this->assertSame('/apps/learniq/api/portal/practical-exam-assessments', $manifest['actions'][0]['endpoint']);
+		$this->assertSame('externalAssessorId', $manifest['actions'][0]['subjectField']);
+		$this->assertNotContains('assessorName', $manifest['actions'][0]['fields']);
+		$this->assertNotContains('assuranceLevel', $manifest['actions'][0]['fields']);
 
 		$collections = $manifest['collections'];
-		$this->assertCount(1, $collections);
+		// The shares, then the entries those shares open: selected, or a whole portfolio (site-external-assessor-portal-design T3).
+		$this->assertSame(['eaSharedPortfolios', 'eaSharedPortfolioEntries', 'eaWholePortfolioEntries', 'eaExams'], array_column($collections, 'id'));
+
+		// His exams come from his own assignments, and only live ones (practical-exam-assessment).
+		$exams = array_column($collections, null, 'id')['eaExams'];
+		$this->assertSame('exam-assessor-assignment', $exams['schema']);
+		$this->assertSame('externalAssessorId', $exams['scopeField']);
+		$this->assertSame('externalAssessorId', $exams['scopeClaim']);
+		$this->assertSame(['lifecycle' => 'assigned'], $exams['filter']);
+		$this->assertSame(['sittingStartsAt', 'learnerName', 'examTitle', 'role'], array_column($exams['columns'], 'field'));
+		foreach (array_column($exams['columns'], 'field') as $field) {
+			$this->assertContains($field, $exams['fields'], $field);
+		}
 		$collection = $collections[0];
 
 		$this->assertSame('eaSharedPortfolios', $collection['id']);

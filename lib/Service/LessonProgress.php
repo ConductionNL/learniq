@@ -29,6 +29,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Kernel\Contracts\LessonProgressInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
@@ -371,9 +373,8 @@ class LessonProgress implements LessonProgressInterface {
 		$data = array_merge($existingData ?? [], $completion);
 
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::LESSON_COMPLETION_SCHEMA,
-			object: $data
+			object: $data,
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::LESSON_COMPLETION_SCHEMA))
 		);
 
 	}//end upsertLessonCompletion()

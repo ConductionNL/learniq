@@ -72,6 +72,10 @@ class PortalHourWeekController extends Controller {
 		'hourWeekId',
 		'hoursApproved',
 		'note',
+		// A return names the day and asks a question (bpv-hours-per-day).
+		'outcome',
+		'returnedDate',
+		'question',
 	];
 
 	/**

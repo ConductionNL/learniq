@@ -38,7 +38,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Lifecycle\Action;
 
 use OCA\OpenRegister\Lifecycle\LifecycleActionContext;
-use OCA\OpenRegister\Lifecycle\LifecycleActionInterface;
+use OCA\OpenRegister\Lifecycle\ContextLifecycleActionInterface;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 
 /**
@@ -46,7 +46,7 @@ use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
  *
  * @spec openspec/specs/learning-plan/spec.md#requirement-append-on-version-with-immutable-prior-versions
  */
-class SupersedePriorLearningPlanAction implements LifecycleActionInterface {
+class SupersedePriorLearningPlanAction implements ContextLifecycleActionInterface {
 
 	/**
 	 * Constructor.

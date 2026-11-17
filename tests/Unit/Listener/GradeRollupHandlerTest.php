@@ -42,6 +42,8 @@ use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
 use OCP\AppFramework\Utility\ITimeFactory;
 use PHPUnit\Framework\TestCase;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Tests for GradeRollupHandler::handle() on GradeEntry → published.
@@ -89,7 +91,11 @@ class GradeRollupHandlerTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($curriculumPlan): ?ObjectEntity {
+			function (int|string $id, ?ObjectFindOptions $options = null) use ($curriculumPlan): ?ObjectEntity {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				if ($schema === 'curriculum-plan' && $curriculumPlan !== null) {
 					return OrEntityFactory::make($curriculumPlan, 'curriculum-plan');
 				}
@@ -122,7 +128,10 @@ class GradeRollupHandlerTest extends TestCase {
 		);
 
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
+			function (array|ObjectEntity $object, ObjectSaveOptions $options = new ObjectSaveOptions()): ObjectEntity {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
 				$data = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
 				$this->savedObjects[] = [
 					'register' => (string)$register,

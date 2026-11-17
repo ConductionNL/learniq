@@ -37,6 +37,7 @@ use OCP\IGroupManager;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Tests for RolloverService.
@@ -198,7 +199,10 @@ class RolloverServiceTest extends TestCase {
 		// No existing to-year cohort, no enrolments.
 		$objectService->method('findAll')->willReturn([]);
 		$objectService->method('saveObject')->willReturnCallback(
-			static function (array $object, ?array $extend = [], $register = null, $schema = null) use (&$saved) {
+			static function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) use (&$saved) {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
 				$saved[] = ['schema' => (string)$schema, 'object' => $object];
 				return OrEntityFactory::make($object, (string)$schema, (string)$register);
 			}
@@ -240,7 +244,10 @@ class RolloverServiceTest extends TestCase {
 		);
 		$objectService->method('findAll')->willReturn([]);
 		$objectService->method('saveObject')->willReturnCallback(
-			static function (array $object, ?array $extend = [], $register = null, $schema = null) use (&$saved) {
+			static function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) use (&$saved) {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
 				$saved[] = $object;
 				return OrEntityFactory::make($object, (string)$schema, (string)$register);
 			}
@@ -324,7 +331,10 @@ class RolloverServiceTest extends TestCase {
 		);
 		$objectService->method('findAll')->willReturn([]);
 		$objectService->method('saveObject')->willReturnCallback(
-			static function (array $object, ?array $extend = [], $register = null, $schema = null) use (&$saved) {
+			static function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) use (&$saved) {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
 				$saved[] = $object;
 				return OrEntityFactory::make($object, (string)$schema, (string)$register);
 			}
@@ -364,7 +374,10 @@ class RolloverServiceTest extends TestCase {
 		);
 		$objectService->method('findAll')->willReturn([]);
 		$objectService->method('saveObject')->willReturnCallback(
-			static function (array $object, ?array $extend = [], $register = null, $schema = null) {
+			static function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
 				if (($object['id'] ?? '') === 'c3') {
 					throw new RuntimeException('database gone');
 				}

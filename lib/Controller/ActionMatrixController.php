@@ -72,6 +72,7 @@ class ActionMatrixController extends Controller {
 	 * @return JSONResponse The matrix, action keys, and group IDs.
 	 *
 	 * @spec openspec/architecture/adr-023-action-authorization.md
+	 * @spec openspec/specs/action-authorization/spec.md#requirement-an-administrator-changes-the-matrix-without-a-developer
 	 */
 	#[AuthorizedAdminSetting(AdminSettings::class)]
 	public function getMatrix(): JSONResponse {
@@ -113,6 +114,7 @@ class ActionMatrixController extends Controller {
 	 * @return JSONResponse The normalized matrix after the write.
 	 *
 	 * @spec openspec/architecture/adr-023-action-authorization.md
+	 * @spec openspec/specs/action-authorization/spec.md#requirement-an-administrator-changes-the-matrix-without-a-developer
 	 * @spec openspec/changes/archive/2026-09-29-controller-test-coverage-security-critical/tasks.md#task-1
 	 */
 	#[AuthorizedAdminSetting(AdminSettings::class)]

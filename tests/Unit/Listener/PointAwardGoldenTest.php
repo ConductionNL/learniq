@@ -36,6 +36,7 @@ use OCP\AppFramework\Utility\ITimeFactory;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 use Throwable;
+use OCA\Learniq\Tests\Support\LegacyObjectArgs;
 
 /**
  * Pins every ObjectService and evaluator call PointAwardTriggerHandler::handle()
@@ -168,6 +169,7 @@ class PointAwardGoldenTest extends TestCase {
 		);
 		$service->method('saveObject')->willReturnCallback(
 			static function (...$args) use (&$calls) {
+				$args = LegacyObjectArgs::positional(method: 'saveObject', args: $args);
 				$named   = self::named('saveObject', $args);
 				$calls[] = ['saveObject' => $named];
 				return OrEntityFactory::make($named['object'], (string)$named['schema']);
@@ -210,7 +212,7 @@ class PointAwardGoldenTest extends TestCase {
 	 * @return array<string, mixed>
 	 */
 	private static function named(string $method, array $args): array {
-		$params = (new ReflectionMethod(ObjectService::class, $method))->getParameters();
+		$params = LegacyObjectArgs::parameters(ObjectService::class, $method);
 		$named  = [];
 		foreach ($args as $i => $value) {
 			if ($params[$i]->isDefaultValueAvailable() === true && $params[$i]->getDefaultValue() === $value) {

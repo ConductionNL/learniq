@@ -39,7 +39,7 @@
     "extends @nextcloud/browserslist-config"
   ],
   "dependencies": {
-    "@babel/core": "^7.29.0",
+    "@babel/core": "^7.29.13",
     "@babel/preset-env": "^7.29.5",
     "@conduction/nextcloud-vue": "^2.180.0",
     "@nextcloud/auth": "^2.5.0",
@@ -52,7 +52,6 @@
     "@nextcloud/router": "^3.1.0",
     "@nextcloud/vue": "^9.13.0",
     "@vueuse/core": "^14.0.0",
-    "axe-core": "^4.10.0",
     "babel-loader": "^10.1.1",
     "dexie": "^4.4.6",
     "dompurify": "^3.4.16",
@@ -68,7 +67,10 @@
   },
   "overrides": {
     "libxmljs2": "^0.37.0",
-    "dompurify": "$dompurify"
+    "dompurify": "$dompurify",
+    "webdav": {
+      "minimatch": "^11.0.1"
+    }
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.12.1",
@@ -80,13 +82,14 @@
     "@nextcloud/webpack-vue-config": "^7.0.0",
     "@playwright/test": "^1.63.0",
     "@typescript-eslint/parser": "^8.70.0",
+    "axe-core": "^4.10.0",
     "c8": "^12.0.0",
     "css-loader": "~7.1.5",
     "eslint": "^10.11.0",
     "eslint-config-prettier": "^10.1.8",
     "postcss-html": "^1.8.1",
     "prettier": "^3.9.6",
-    "sass": "^1.104.1",
+    "sass": "^1.105.0",
     "sass-loader": "^17.0.1",
     "style-loader": "~4.0.0",
     "stylelint": "^17.15.0",
@@ -99,7 +102,7 @@
     "vue-loader": "^17.4.2",
     "webpack": "^5.110.3",
     "webpack-cli": "^6.0.1",
-    "webpack-dev-server": "^6.0.0"
+    "webpack-dev-server": "^6.1.0"
   },
   "prettier": "@nextcloud/prettier-config"
 }

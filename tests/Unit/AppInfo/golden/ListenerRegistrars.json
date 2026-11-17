@@ -179,6 +179,14 @@
         [
             "registerEventListener",
             [
+                "OCP\\User\\Events\\UserLoggedInEvent",
+                "OCA\\Learniq\\Listener\\SsoProfileFillListener",
+                "int"
+            ]
+        ],
+        [
+            "registerEventListener",
+            [
                 "OCA\\OpenRegister\\Event\\ObjectCreatingEvent",
                 "OCA\\Learniq\\Listener\\EnrolmentPrerequisiteListener",
                 "int"
@@ -221,6 +229,14 @@
             [
                 "OCA\\OpenRegister\\Event\\ObjectTransitionedEvent",
                 "OCA\\Learniq\\Listener\\SubjectChoiceValidator",
+                "int"
+            ]
+        ],
+        [
+            "registerEventListener",
+            [
+                "OCA\\OpenRegister\\Event\\ObjectTransitionedEvent",
+                "OCA\\Learniq\\Listener\\ApplicationSubmittedAtStamp",
                 "int"
             ]
         ],
@@ -295,6 +311,17 @@
             ],
             [
                 "lesson-completion"
+            ]
+        ],
+        [
+            "learniq",
+            "OCA\\OpenRegister\\Event\\ObjectUpdatedEvent",
+            "OCA\\Learniq\\Listener\\SubjectChoiceValidator",
+            [
+                "learniq"
+            ],
+            [
+                "subject-choice"
             ]
         ],
         [

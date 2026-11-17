@@ -223,6 +223,8 @@ class RegulationCoverageService implements RegulationCoverageServiceInterface {
 	 * @param array<string,mixed> $regulation The regulation.
 	 *
 	 * @return array<string,mixed>
+	 *
+	 * @spec openspec/specs/compliance-rule-coverage/spec.md#requirement-each-rule-has-its-own-red-and-amber-limits
 	 */
 	private function finishRegulationRow(array $row, array $regulation): array {
 		$row['coveragePercent'] = null;
