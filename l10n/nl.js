@@ -6121,7 +6121,11 @@ OC.L10N.register(
         "Enter a phone number: digits, spaces, + ( ) - and dots.": "Vul een telefoonnummer in: cijfers, spaties, + ( ) - en punten.",
         "The phone number could not be loaded. Reload the page to try again.": "Het telefoonnummer kon niet worden geladen. Laad de pagina opnieuw om het nog eens te proberen.",
         "Phone number saved": "Telefoonnummer opgeslagen",
-        "The phone number could not be saved. Try again.": "Het telefoonnummer kon niet worden opgeslagen. Probeer het opnieuw."
+        "The phone number could not be saved. Try again.": "Het telefoonnummer kon niet worden opgeslagen. Probeer het opnieuw.",
+        "The phase the card was moved to by hand.": "De fase waarnaar de kaart met de hand is verschoven.",
+        "Nextcloud user ID of who moved the card; stamped by the server.": "Nextcloud-gebruikers-ID van wie de kaart verschoof; ingevuld door de server.",
+        "When the card was moved; stamped by the server.": "Wanneer de kaart is verschoven; ingevuld door de server.",
+        "The facts the manual move holds for; the move lapses when one of them changes. Stamped by the server.": "De feiten waarvoor de handmatige verschuiving geldt; de verschuiving vervalt zodra een ervan verandert. Ingevuld door de server."
     },
     "nplurals=2; plural=(n != 1);"
 )

@@ -22915,20 +22915,24 @@
                         "properties": {
                             "phase": {
                                 "type": "string",
-                                "title": "Phase"
+                                "title": "Phase",
+                                "description": "The phase the card was moved to by hand."
                             },
                             "movedBy": {
                                 "type": "string",
-                                "title": "Moved by"
+                                "title": "Moved by",
+                                "description": "Nextcloud user ID of who moved the card; stamped by the server."
                             },
                             "movedAt": {
                                 "type": "string",
                                 "format": "date-time",
-                                "title": "Moved at"
+                                "title": "Moved at",
+                                "description": "When the card was moved; stamped by the server."
                             },
                             "factsKey": {
                                 "type": "string",
-                                "title": "Facts at the move"
+                                "title": "Facts at the move",
+                                "description": "The facts the manual move holds for; the move lapses when one of them changes. Stamped by the server."
                             }
                         }
                     },

@@ -5631,7 +5631,11 @@ OC.L10N.register(
         "Enter a phone number: digits, spaces, + ( ) - and dots.": "Enter a phone number: digits, spaces, + ( ) - and dots.",
         "The phone number could not be loaded. Reload the page to try again.": "The phone number could not be loaded. Reload the page to try again.",
         "Phone number saved": "Phone number saved",
-        "The phone number could not be saved. Try again.": "The phone number could not be saved. Try again."
+        "The phone number could not be saved. Try again.": "The phone number could not be saved. Try again.",
+        "The phase the card was moved to by hand.": "The phase the card was moved to by hand.",
+        "Nextcloud user ID of who moved the card; stamped by the server.": "Nextcloud user ID of who moved the card; stamped by the server.",
+        "When the card was moved; stamped by the server.": "When the card was moved; stamped by the server.",
+        "The facts the manual move holds for; the move lapses when one of them changes. Stamped by the server.": "The facts the manual move holds for; the move lapses when one of them changes. Stamped by the server."
     },
     "nplurals=2; plural=(n != 1);"
 )
