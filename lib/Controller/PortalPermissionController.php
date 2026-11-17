@@ -50,6 +50,8 @@ use Throwable;
  */
 class PortalPermissionController extends Controller {
 
+	use PortalFormFields;
+
 	/**
 	 * The brute-force bucket for rejected assertions, shared with the other
 	 * portal receivers.
@@ -137,37 +139,4 @@ class PortalPermissionController extends Controller {
 
 		return $response;
 	}//end unauthorized()
-
-	/**
-	 * The whitelisted fields the form sent.
-	 *
-	 * @return array<string, mixed>
-	 */
-	private function body(): array {
-		$body = [];
-		foreach (self::FIELDS as $field) {
-			$value = $this->request->getParam($field);
-			if ($value !== null) {
-				$body[$field] = $value;
-			}
-		}
-
-		return $body;
-	}//end body()
-
-	/**
-	 * A request parameter as a trimmed string, '' when absent or not a string.
-	 *
-	 * @param string $name The parameter.
-	 *
-	 * @return string
-	 */
-	private function stringParam(string $name): string {
-		$value = $this->request->getParam($name);
-		if (is_string($value) === false) {
-			return '';
-		}
-
-		return trim($value);
-	}//end stringParam()
 }//end class

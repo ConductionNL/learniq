@@ -201,7 +201,7 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame([], $manifest['notifications']);
 
 		$collections = $manifest['collections'];
-		$this->assertCount(16, $collections);
+		$this->assertCount(17, $collections);
 		$this->assertSame(
 			[
 				'studentGrades',
@@ -220,6 +220,8 @@ class PortalContributionProviderTest extends TestCase {
 				'studentSchoolCoaches',
 				'studentExcuseRequests',
 				'studentInbox',
+				// bpv-hours-per-day: the weeks her trainer sent back, as messages.
+				'studentReturnedHours',
 				'studentTests',
 				'studentHomework',
 				// site-pupil-portal-design: the absence strip of her overview.
@@ -296,7 +298,7 @@ class PortalContributionProviderTest extends TestCase {
 		$actions = $manifest['actions'];
 
 		$this->assertSame(
-			['createSubmission', 'submitHourWeek', 'fillInSelfAssessment', 'createExcuseRequest', 'listTests', 'startTest', 'saveTestAnswer', 'submitTest', 'readTestResult', 'handIn', 'listCatalogue', 'signUpForCourse', 'withdrawSignUp', 'listWorkGroups', 'joinWorkGroup', 'leaveWorkGroup', 'checkIn'],
+			['createSubmission', 'submitHourWeek', 'writeHourDay', 'fillInSelfAssessment', 'createExcuseRequest', 'listTests', 'startTest', 'saveTestAnswer', 'submitTest', 'readTestResult', 'handIn', 'listCatalogue', 'signUpForCourse', 'withdrawSignUp', 'listWorkGroups', 'joinWorkGroup', 'leaveWorkGroup', 'checkIn'],
 			array_column($actions, 'id')
 		);
 		$byId = array_column($actions, null, 'id');
@@ -563,7 +565,7 @@ class PortalContributionProviderTest extends TestCase {
 		$declared = array_keys($register['components']['schemas']['GradeEntry']['properties']);
 		$this->assertSame([], array_values(array_diff($gradeFields, $declared)));
 		$this->assertSame(
-			['learnerRef', 'sessionId', 'cohortId', 'status', 'minutesAttended', 'markedAt'],
+			['learnerRef', 'sessionId', 'cohortId', 'status', 'lateMinutes', 'markedAt'],
 			$byId['parentAttendance']['fields']
 		);
 		$this->assertSame(
@@ -973,7 +975,8 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame('practicalTrainerId', $approval['subjectField']);
 		$this->assertSame('practicalTrainerId', $approval['scopeClaim']);
 		$this->assertSame('low', $approval['minTrust']);
-		$this->assertSame(['hourWeekId', 'hoursApproved', 'note'], $approval['fields']);
+		// bpv-hours-per-day: a return names the day and asks the question.
+		$this->assertSame(['hourWeekId', 'outcome', 'hoursApproved', 'note', 'returnedDate', 'question'], $approval['fields']);
 		foreach (['approvedBy', 'approvedByName', 'approvedAt', 'assuranceLevel', 'lifecycle', 'hoursSubmitted', 'learnerRef'] as $server) {
 			$this->assertNotContains($server, $approval['fields'], $server);
 		}
