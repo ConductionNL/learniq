@@ -102,7 +102,15 @@ class CourseShareExportService implements CourseShareExportServiceInterface {
 		$sharedAt = gmdate('c');
 		$package  = $this->builder->build(payload: $this->exporter->toScholiqPayload(tree: $tree), sharedAt: $sharedAt);
 
-		$this->recordConsent(course: (array)$tree['course'], courseId: $courseId, userId: $userId, sharedAt: $sharedAt, purpose: $purpose);
+		$this->recordConsent(
+			course: (array)$tree['course'],
+			args: [
+				'courseId' => $courseId,
+				'userId' => $userId,
+				'sharedAt' => $sharedAt,
+				'purpose' => $purpose,
+			]
+		);
 
 		return $package;
 
@@ -142,16 +150,18 @@ class CourseShareExportService implements CourseShareExportServiceInterface {
 	 * Write the CourseShareConsent; fail when it cannot be written.
 	 *
 	 * @param array<string, mixed> $course   The course object.
-	 * @param string               $courseId UUID of the course.
-	 * @param string               $userId   Nextcloud user id of whoever confirmed.
-	 * @param string               $sharedAt ISO 8601 moment of sharing.
-	 * @param string               $purpose  `download` or `store`.
+	 * @param array{courseId: string, userId: string, sharedAt: string, purpose: string} $args The courseId, userId, sharedAt, purpose.
 	 *
 	 * @return void
 	 *
 	 * @throws RuntimeException When the record is not saved.
 	 */
-	private function recordConsent(array $course, string $courseId, string $userId, string $sharedAt, string $purpose): void {
+	private function recordConsent(array $course, array $args): void {
+		$courseId = $args['courseId'];
+		$userId = $args['userId'];
+		$sharedAt = $args['sharedAt'];
+		$purpose = $args['purpose'];
+
 		$record = [
 			'courseId'      => $courseId,
 			'courseName'    => (string)($course['name'] ?? ''),
