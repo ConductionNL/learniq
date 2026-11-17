@@ -128,6 +128,7 @@ use OCA\Learniq\Kernel\Contracts\PointEngagementEvaluatorInterface;
 use OCA\Learniq\Kernel\Contracts\PokParentSignatureRuleInterface;
 use OCA\Learniq\Kernel\Contracts\PortalAttemptServiceInterface;
 use OCA\Learniq\Kernel\Contracts\PortalEmployerBookingsInterface;
+use OCA\Learniq\Kernel\Contracts\PortalHourDayWriteInterface;
 use OCA\Learniq\Kernel\Contracts\PortalHourWeekApprovalInterface;
 use OCA\Learniq\Kernel\Contracts\PortalVisitAnswerInterface;
 use OCA\Learniq\Kernel\Contracts\PortalPermissionAnswerInterface;
@@ -224,6 +225,7 @@ use OCA\Learniq\Service\Portal\EmployerBookingProjection;
 use OCA\Learniq\Service\Portal\EmployerBookingSteps;
 use OCA\Learniq\Service\Portal\PortalAttemptService;
 use OCA\Learniq\Service\Portal\PortalEmployerBookings;
+use OCA\Learniq\Service\Portal\PortalHourDayWrite;
 use OCA\Learniq\Service\Portal\PortalHourWeekApproval;
 use OCA\Learniq\Service\Portal\PortalVisitAnswer;
 use OCA\Learniq\Service\Portal\PortalPermissionAnswer;
@@ -378,6 +380,7 @@ final class ContractBindings {
 		PokParentSignatureRuleInterface::class => PokParentSignatureRule::class,
 		PortalAttemptServiceInterface::class => PortalAttemptService::class,
 		PortalEmployerBookingsInterface::class => PortalEmployerBookings::class,
+		PortalHourDayWriteInterface::class => PortalHourDayWrite::class,
 		PortalHourWeekApprovalInterface::class => PortalHourWeekApproval::class,
 		PortalVisitAnswerInterface::class => PortalVisitAnswer::class,
 		PortalPermissionAnswerInterface::class => PortalPermissionAnswer::class,

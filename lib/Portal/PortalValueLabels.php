@@ -134,6 +134,9 @@ class PortalValueLabels {
 	 * @spec openspec/changes/student-portal-reads-like-the-boards/specs/portal-contribution/spec.md#requirement-the-student-pages-use-the-words-of-the-boards
 	 */
 	public const HOUR_WEEK_STATUS = [
+		// Written day by day and kept for later ("Bewaren voor later",
+		// bpv-hours-per-day): her trainer does not see it yet.
+		'draft'     => 'Kept for later',
 		'submitted' => 'Waiting for approval',
 		'approved'  => 'Approved',
 		'corrected' => 'Approved with a correction',
