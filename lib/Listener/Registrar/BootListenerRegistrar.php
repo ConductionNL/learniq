@@ -52,6 +52,7 @@ use OCA\Learniq\Listener\LearnerEngagementRollupHandler;
 use OCA\Learniq\Listener\LessonProgressHandler;
 use OCA\Learniq\Listener\SessionConflictListener;
 use OCA\Learniq\Listener\ShillinqContributionSettledListener;
+use OCA\Learniq\Listener\SubjectChoiceValidator;
 use OCP\EventDispatcher\IEventDispatcher;
 
 /**
@@ -99,6 +100,11 @@ class BootListenerRegistrar {
 		// Updates too (learniq#945): a re-completion within the same enrolment
 		// or a changed score updates the existing row, and progress must follow.
 		[ObjectUpdatedEvent::class, EnrolmentProgressRollupHandler::class, ['learniq'], ['lesson-completion']],
+		// ADR-031 legitimate exception (capability-rows-say-what-they-do): a
+		// minor's own SubjectChoice stays `submitted` until a linked guardian
+		// consents; the update that records that consent is when the choice
+		// is checked against the plan's elective rules.
+		[ObjectUpdatedEvent::class, SubjectChoiceValidator::class, ['learniq'], ['subject-choice']],
 	];
 
 	/**

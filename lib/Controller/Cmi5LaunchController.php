@@ -36,6 +36,7 @@ namespace OCA\Learniq\Controller;
 use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Kernel\Contracts\Cmi5LaunchSessionsInterface;
 use OCA\Learniq\Kernel\Contracts\Cmi5LaunchTokenServiceInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -181,7 +182,7 @@ class Cmi5LaunchController extends Controller {
 	 */
 	private function findLesson(string $lessonId): ?array {
 		try {
-			$lesson = $this->objectService->find(id: $lessonId, register: 'learniq', schema: 'lesson');
+			$lesson = $this->objectService->find(id: $lessonId, options: new ObjectFindOptions(register: 'learniq', schema: 'lesson'));
 		} catch (Throwable $e) {
 			return null;
 		}

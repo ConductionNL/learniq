@@ -53,6 +53,7 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use Exception;
 use OCA\Learniq\Kernel\Contracts\LessonReleaseEvaluatorInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -132,7 +133,6 @@ class LessonReleaseEvaluator implements LessonReleaseEvaluatorInterface {
 	 * @spec openspec/specs/course-management/spec.md#scenario-a-lesson-is-locked-until-n-days-after-the-learners-own-enrolment-date
 	 */
 	public function evaluate(array $item, string $itemSchema, string $learnerId, array $enrolment): array {
-		$tenantId = (string)($item['tenant_id'] ?? '');
 		$now = new DateTimeImmutable();
 
 		if ($itemSchema === self::ASSESSMENT_SCHEMA) {
@@ -155,22 +155,13 @@ class LessonReleaseEvaluator implements LessonReleaseEvaluatorInterface {
 			];
 		}
 
-		$releaseConditions = $item['releaseConditions'] ?? [];
-		if (is_array($releaseConditions) === true) {
-			foreach ($releaseConditions as $condition) {
-				if (is_array($condition) === false) {
-					continue;
-				}
-
-				$result = $this->evaluateCondition(condition: $condition, learnerId: $learnerId, tenantId: $tenantId);
-				if ($result['blocked'] === true) {
-					return [
-						'available' => false,
-						'reason' => $result['reason'],
-						'availableAt' => null,
-					];
-				}
-			}
+		$blocking = $this->blockingCondition(item: $item, learnerId: $learnerId);
+		if ($blocking !== null) {
+			return [
+				'available' => false,
+				'reason' => $blocking['reason'],
+				'availableAt' => null,
+			];
 		}
 
 		return [
@@ -180,6 +171,35 @@ class LessonReleaseEvaluator implements LessonReleaseEvaluatorInterface {
 		];
 
 	}//end evaluate()
+
+	/**
+	 * The first of the item's release conditions that blocks the learner, or null when none does.
+	 *
+	 * @param array<string, mixed> $item      The Lesson or Assessment row.
+	 * @param string               $learnerId NC user ID of the requesting learner.
+	 *
+	 * @return array<string, mixed>|null The blocking condition's result.
+	 */
+	private function blockingCondition(array $item, string $learnerId): ?array {
+		$tenantId = (string)($item['tenant_id'] ?? '');
+		$releaseConditions = $item['releaseConditions'] ?? [];
+		if (is_array($releaseConditions) === false) {
+			return null;
+		}
+
+		foreach ($releaseConditions as $condition) {
+			if (is_array($condition) === false) {
+				continue;
+			}
+
+			$result = $this->evaluateCondition(condition: $condition, learnerId: $learnerId, tenantId: $tenantId);
+			if ($result['blocked'] === true) {
+				return $result;
+			}
+		}
+
+		return null;
+	}//end blockingCondition()
 
 	/**
 	 * Check the item's absolute availability window, evaluated live from
@@ -456,7 +476,7 @@ class LessonReleaseEvaluator implements LessonReleaseEvaluatorInterface {
 	 * @return string|null
 	 */
 	private function resolveName(string $id, string $schema): ?string {
-		$object = $this->objectService->find(id: $id, register: self::LEARNIQ_REGISTER, schema: $schema);
+		$object = $this->objectService->find(id: $id, options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: $schema));
 		if ($object === null) {
 			return null;
 		}

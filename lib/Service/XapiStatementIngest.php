@@ -37,6 +37,9 @@ use DateTimeInterface;
 use InvalidArgumentException;
 use OCA\Learniq\Exception\XapiRequestException;
 use OCA\Learniq\Kernel\Contracts\XapiStatementIngestInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
@@ -136,9 +139,10 @@ class XapiStatementIngest implements XapiStatementIngestInterface {
 		foreach ($toStore as $row) {
 			$this->objectService->saveObject(
 				object: $row,
-				register: self::REGISTER,
-				schema: self::SCHEMA,
-				uuid: $row['id'],
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::REGISTER, schema: self::SCHEMA),
+					uuid: $row['id']
+				),
 				_rbac: false
 			);
 		}
@@ -275,7 +279,12 @@ class XapiStatementIngest implements XapiStatementIngestInterface {
 	 */
 	private function storedStatement(string $id): ?array {
 		try {
-			$entity = $this->objectService->find(id: $id, register: self::REGISTER, schema: self::SCHEMA, _rbac: false, _multitenancy: false);
+			$entity = $this->objectService->find(
+				id: $id,
+				options: new ObjectFindOptions(register: self::REGISTER, schema: self::SCHEMA),
+				_rbac: false,
+				_multitenancy: false
+			);
 		} catch (DoesNotExistException $e) {
 			return null;
 		}

@@ -111,6 +111,8 @@ class ParentSitePages {
 			// The greeting's one button opens the absence form (lane L2: `label` plus one target).
 			['type' => 'greeting', 'label' => 'Report absent', 'action' => 'createExcuseRequest'],
 			self::tasksBlock(),
+			// "Geef toestemming voor het schoolreisje" (permission-slips T4).
+			ParentPermissionSlips::tasksBlock(),
 			// A leave request the school has not decided yet, with its answer date.
 			(new ParentLeaveRequests())->overviewBlock(),
 			self::childrenBlock(),

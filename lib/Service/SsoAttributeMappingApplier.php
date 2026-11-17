@@ -37,6 +37,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\SsoAttributeMappingApplierInterface;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -45,7 +46,7 @@ use OCA\OpenRegister\Service\ObjectService;
  *
  * @spec openspec/changes/archive/2026-09-28-entree-surfconext-sso-contract/tasks.md#task-2
  */
-class SsoAttributeMappingApplier {
+class SsoAttributeMappingApplier implements SsoAttributeMappingApplierInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const SSO_ATTRIBUTE_MAPPING_SCHEMA = 'sso-attribute-mapping';

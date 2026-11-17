@@ -369,6 +369,7 @@ const KNOWN_UNLINKED = {
 		'BookConferenceSlotsMenu',
 		'CheckInMenu',
 		'ConferenceScheduleBoardMenu',
+		'CourseDaysMenu',
 		'DossierNotesMenu',
 		'ExamAccommodationsMenu',
 		'FirstAidIncidentsMenu',
@@ -379,6 +380,7 @@ const KNOWN_UNLINKED = {
 		'MyElectivesMenu',
 		'MyEvaluationsMenu',
 		'MyWorkGroupsMenu',
+		'PermissionRequestsMenu',
 		'ProctoringReviewMenu',
 		'RegulationExemptionsMenu',
 		'SchoolAdviezenMenu',
@@ -406,6 +408,7 @@ const KNOWN_UNLINKED = {
 		...TEACHING,
 		'AdmissionsReviewBoardMenu',
 		'ConferenceScheduleBoardMenu',
+		'CourseDaysMenu',
 		'DossierReviewsMenu',
 		'ExamAccommodationsMenu',
 		'ExchangeJobsMenu',
@@ -413,6 +416,7 @@ const KNOWN_UNLINKED = {
 		'GradeCorrectionsMenu',
 		'GroupPlans',
 		'ImportExportToolsMenu',
+		'PermissionRequestsMenu',
 		'SchoolAdviezenMenu',
 		'SchoolEventsMenu',
 		'StandbyPlanningMenu',
@@ -429,6 +433,7 @@ const KNOWN_UNLINKED = {
 		'DashboardStudent',
 		'DashboardTeacher',
 		'GradeCorrectionsMenu',
+		'PermissionRequestsMenu',
 		'SchoolEventsMenu',
 	],
 	coordinator: [
@@ -436,10 +441,12 @@ const KNOWN_UNLINKED = {
 		...PLANNING,
 		'AdmissionsReviewBoardMenu',
 		'CatalogueMenu',
+		'CourseDaysMenu',
 		'ExamAccommodationsMenu',
 		'GroupPeople',
 		'HourPlanActivitiesMenu',
 		'MyLearningRecordMenu',
+		'PermissionRequestsMenu',
 		'SchoolAdviezenMenu',
 		'SchoolEventsMenu',
 		'StandbyPlanningMenu',
@@ -455,6 +462,7 @@ const KNOWN_UNLINKED = {
 		'GroupPeople',
 		'HourPlanActivitiesMenu',
 		'MyLearningRecordMenu',
+		'PermissionRequestsMenu',
 		'ProctoringReviewMenu',
 		'SubjectChoicesMenu',
 		'TeacherAvailabilitiesMenu',
@@ -612,21 +620,26 @@ test('the full profile is exactly the plain manifest build', () => {
 	const count = (section) =>
 		entries.filter((item) => sectionOf(item) === section).length
 	// 111 since proctoring-flag-review-page added the Proctoring review entry
-	// under Learning and its twin under Compliance; 112 with Leave to decide
-	// under People (leave-requests-decided-by-the-school).
-	assert.equal(entries.length, 112)
-	assert.equal(plain.menu.length, 26)
+	// under Learning and its twin under Compliance; 112 with Course days
+	// (training-provider-course-days); 113 since permission-slips added the
+	// Permission slips entry at the top level, beside the School calendar;
+	// 114 with Leave to decide under People (leave-requests-decided-by-the-school).
+	assert.equal(entries.length, 114)
+	assert.equal(plain.menu.length, 27)
+	// 105 in main: Course days, Permission slips and Leave to decide each added one.
 	assert.deepEqual(
 		[count('main'), count('footer'), count('settings')],
-		[103, 2, 7],
+		[105, 2, 7],
 	)
 	// 347 since the four unreached pages (BulkEnrol, CohortTimetable,
 	// MarkAttendanceView, SubmitExcuseModal) became actions; 348 with
 	// SignUpRequests (Aanmeldverzoeken); 349 with MyGrades (LqLlCijfers); 348 once
 	// MyGrades became the learner lens of GradeEntries; 349 with
-	// AttendanceNearingLimit (attendance-warns-before-the-threshold); 351 with
-	// LeaveRequests and LeaveRequestDetail (leave-requests-decided-by-the-school).
-	assert.equal(plain.pages.length, 351)
+	// AttendanceNearingLimit (attendance-warns-before-the-threshold); 350 with
+	// CourseDays (training-provider-course-days); 352 with the permission-slips
+	// list and detail; 354 with LeaveRequests and LeaveRequestDetail
+	// (leave-requests-decided-by-the-school).
+	assert.equal(plain.pages.length, 354)
 })
 
 test('menu-layout.json holds no profile key, so the full profile cannot gain an overlay', () => {

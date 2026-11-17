@@ -38,6 +38,7 @@ use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCP\App\IAppManager;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 
 /**
  * Tests for the FeeItemVoluntaryEntitlementGuard (Entitlement pending -> active / grant).
@@ -61,7 +62,11 @@ class FeeItemVoluntaryEntitlementGuardTest extends TestCase {
 		// and returns ?ObjectEntity. willReturnCallback() hands the closure the
 		// mock's arguments POSITIONALLY, so the closure must mirror that order.
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($feeItem, $paymentRequest) {
+			function (int|string $id, ?ObjectFindOptions $options = null) use ($feeItem, $paymentRequest) {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				if ($schema === 'fee-item' && $feeItem !== null) {
 					return OrEntityFactory::make($feeItem, 'fee-item');
 				}

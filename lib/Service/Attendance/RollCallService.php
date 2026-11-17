@@ -37,6 +37,8 @@ namespace OCA\Learniq\Service\Attendance;
 
 use DateTimeImmutable;
 use OCA\Learniq\Kernel\Contracts\RollCallServiceInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IL10N;
@@ -160,7 +162,7 @@ class RollCallService implements RollCallServiceInterface {
 		$session = ($session ?? $this->lessons->create(cohort: $cohort, date: $date, zone: $zone));
 		$context = ['user' => $user->getUID(), 'cohort' => $cohort, 'session' => $session, 'profiles' => $profiles, 'date' => $date];
 		foreach ($marks as $mark) {
-			$this->writeMark(mark: $mark, record: ($records[(string)$mark['learnerId']] ?? null), context: $context);
+			$this->writeMark(mark: $mark, context: $context + ['record' => ($records[(string)$mark['learnerId']] ?? null)]);
 		}
 
 		return $this->open(user: $user, cohortId: $cohortId, date: $date, sessionId: $this->idOf(row: $session));
@@ -169,22 +171,55 @@ class RollCallService implements RollCallServiceInterface {
 	/**
 	 * Write one mark as an AttendanceRecord, unless the saved record already holds it.
 	 *
-	 * @param array<string, mixed>      $mark    A valid mark.
-	 * @param array<string, mixed>|null $record  The pupil's saved record.
-	 * @param array<string, mixed>      $context user, cohort, session, profiles and date.
+	 * @param array<string, mixed> $mark    A valid mark.
+	 * @param array<string, mixed> $context user, cohort, session, profiles, date and the pupil's saved `record` (or null).
 	 *
 	 * @return void
 	 */
-	private function writeMark(array $mark, ?array $record, array $context): void {
+	private function writeMark(array $mark, array $context): void {
+		$record = $context['record'];
 		$learnerId = (string)$mark['learnerId'];
 		$normal = $this->marks->normalise(mark: $mark);
 		if ($record !== null && $this->marks->unchanged(record: $record, mark: $normal) === true) {
 			return;
 		}
 
+		$body = $this->recordBody(normal: $normal, context: $context + ['learnerId' => $learnerId]);
+
+		if ($record === null) {
+			$this->objectService->saveObject(
+				object: $body,
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: 'attendance-record')),
+				_rbac: false
+			);
+			return;
+		}
+
+		$object = array_merge($record, $body);
+		unset($object['@self'], $object['id'], $object['uuid']);
+		$uuid = $this->idOf(row: $record);
+		$this->objectService->saveObject(
+			object: $object,
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: 'attendance-record'), uuid: $uuid),
+			_rbac: false
+		);
+	}//end writeMark()
+
+	/**
+	 * The AttendanceRecord fields a normalised mark is written with.
+	 *
+	 * @param array<string, mixed> $normal  The normalised mark.
+	 * @param array<string, mixed> $context user, cohort, session, profiles, date, the saved `record` (or null)
+	 *                                      and the pupil's `learnerId`.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function recordBody(array $normal, array $context): array {
+		$learnerId = $context['learnerId'];
+		$record = $context['record'];
 		$profile = ($context['profiles'][$learnerId] ?? null);
 		$minutes = $this->lessons->lengthOf(session: $context['session']);
-		$body = array_merge(
+		return array_merge(
 			$normal,
 			[
 				'sessionId' => $this->idOf(row: $context['session']),
@@ -199,17 +234,7 @@ class RollCallService implements RollCallServiceInterface {
 				'tenant_id' => (string)($context['session']['tenant_id'] ?? ($context['cohort']['tenant_id'] ?? '')),
 			]
 		);
-
-		if ($record === null) {
-			$this->objectService->saveObject(object: $body, register: self::REGISTER, schema: 'attendance-record', _rbac: false);
-			return;
-		}
-
-		$object = array_merge($record, $body);
-		unset($object['@self'], $object['id'], $object['uuid']);
-		$uuid = $this->idOf(row: $record);
-		$this->objectService->saveObject(object: $object, register: self::REGISTER, schema: 'attendance-record', uuid: $uuid, _rbac: false);
-	}//end writeMark()
+	}//end recordBody()
 
 	/**
 	 * The absence report an excused record points at: the approved report

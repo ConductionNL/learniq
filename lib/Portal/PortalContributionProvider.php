@@ -726,12 +726,14 @@ class PortalContributionProvider {
 			[$extras->reportSubjectGradesCollection(childJoin: $childJoin)],
 			$record->collections(childJoin: $childJoin),
 			[(new ParentDocumentsPage())->schoolsCollection(childJoin: $childJoin)],
+			(new ParentPermissionSlips())->collections(childJoin: $childJoin),
 			// Leave asked in advance (leave-requests-decided-by-the-school).
 			$leave->collections(childJoin: $childJoin)
 		);
 		$actions = array_merge(
 			$this->parentActions(childJoin: $childJoin),
 			$extras->conferenceActions(),
+			(new ParentPermissionSlips())->actions(),
 			[$leave->action(childJoin: $childJoin)]
 		);
 

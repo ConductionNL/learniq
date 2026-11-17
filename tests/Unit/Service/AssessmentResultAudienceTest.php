@@ -30,6 +30,7 @@ use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use RuntimeException;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 
 /**
  * Tests for AssessmentResultAudience::stamp().
@@ -60,7 +61,11 @@ class AssessmentResultAudienceTest extends TestCase {
 	private function makeStamper(bool $throws = false): AssessmentResultAudience {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null, bool $_rbac = true) use ($throws) {
+			function (int|string $id, ?ObjectFindOptions $options = null, bool $_rbac = true) use ($throws) {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				$this->rbacFlags[] = $_rbac;
 				if ($throws === true) {
 					throw new RuntimeException('down');

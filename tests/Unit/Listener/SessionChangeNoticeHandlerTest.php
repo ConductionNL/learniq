@@ -31,6 +31,7 @@ use OCA\Learniq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Tests for SessionChangeNoticeHandler::handle().
@@ -96,7 +97,10 @@ class SessionChangeNoticeHandlerTest extends TestCase {
 		);
 
 		$this->objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
+			function (array|ObjectEntity $object, ObjectSaveOptions $options = new ObjectSaveOptions()): ObjectEntity {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
 				$data = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
 				$this->saved[] = $data;
 				return OrEntityFactory::make($data, (string)$schema, (string)$register);

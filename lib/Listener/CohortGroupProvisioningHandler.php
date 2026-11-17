@@ -51,6 +51,8 @@ namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -198,9 +200,8 @@ class CohortGroupProvisioningHandler implements IEventListener {
 
 		$cohort['ncGroupId'] = $groupId;
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::COHORT_SCHEMA,
-			object: $cohort
+			object: $cohort,
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::COHORT_SCHEMA))
 		);
 
 		$this->logger->info(
@@ -336,6 +337,19 @@ class CohortGroupProvisioningHandler implements IEventListener {
 			return null;
 		}
 
+		return $this->groupById(groupId: $groupId, cohortId: $cohortId);
+	}//end resolveProvisionedGroup()
+
+	/**
+	 * The Nextcloud group with this id, or null when it cannot be resolved or no
+	 * longer exists (both logged).
+	 *
+	 * @param string $groupId  The cohort's Nextcloud group id.
+	 * @param string $cohortId The cohort, for the log.
+	 *
+	 * @return object|null The `IGroup`, or null.
+	 */
+	private function groupById(string $groupId, string $cohortId): ?object {
 		try {
 			$group = $this->groupManager->get($groupId);
 		} catch (Throwable $e) {
@@ -354,8 +368,7 @@ class CohortGroupProvisioningHandler implements IEventListener {
 		}
 
 		return $group;
-
-	}//end resolveProvisionedGroup()
+	}//end groupById()
 
 	/**
 	 * Add or remove a resolved user from a resolved group, and log the result.

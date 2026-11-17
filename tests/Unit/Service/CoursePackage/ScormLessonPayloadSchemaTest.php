@@ -41,6 +41,7 @@ use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use ZipArchive;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * The importer runs over the real object writer; only OpenRegister's
@@ -53,6 +54,7 @@ use ZipArchive;
  */
 #[CoversClass(ScormCourseImporter::class)]
 #[UsesClass(CoursePackageObjectWriter::class)]
+#[UsesClass(\OCA\Learniq\Service\CoursePackage\CourseMetadataFilter::class)]
 #[UsesClass(ScormManifestParser::class)]
 #[UsesClass(ScormPackageUnpacker::class)]
 #[UsesClass(FolderFileWriter::class)]
@@ -118,7 +120,10 @@ class ScormLessonPayloadSchemaTest extends TestCase {
 	private function importer(): ScormCourseImporter {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array $object, ?array $extend = [], mixed $register = null, mixed $schema = null): ObjectEntity {
+			function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()): ObjectEntity {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
 				$this->saved[] = [(string)$schema, $object];
 				$entity = new ObjectEntity();
 				$entity->setUuid(sprintf('22222222-2222-4222-8222-%012d', count($this->saved)));

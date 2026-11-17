@@ -135,6 +135,14 @@ SCHEMAS = [
     # (hours and his estimate, board Detail). Appended for the same reason;
     # its parent, bpv-placement, sits above it.
     "werkproces-progress",
+    # attendance-warns-before-the-threshold: Sem Visser's count against the
+    # leerplicht limit. Appended for the same reason; its parent,
+    # learner-profile, sits above it.
+    "attendance-summary",
+    # practical-exam-assessment: the proeve's two assessors and the candidates
+    # each of them assesses. Appended for the same reason; its parents,
+    # external-assessor, learner-profile and exam-sitting, sit above it.
+    "exam-assessor-assignment",
 ]
 IDENTITY = SetIdentity(SET, SET_NUMBER, SCHEMAS)
 
@@ -494,6 +502,8 @@ LEERPLICHT_THRESHOLD = {
     "name": "Leerplicht en kwalificatieplicht: 16 uur ongeoorloofd verzuim in 4 weken", "kind": "leerplicht-16uur",
     "scope": "per-learner", "window": {"type": "rolling-weeks", "weeks": 4, "termId": None}, "metric": "unexcused-lesuren",
     "limit": 16, "lessonHourMinutes": 60,
+    # attendance-warns-before-the-threshold: staff see a student from 12 hours, before a report is due.
+    "warnAtHours": 12,
     "onCross": {"notify": True, "notifyRoles": ["mentor", "coordinator"], "createFlag": True, "dataExchangeTarget": None},
     "active": True, "lifecycle": "active",
 }
@@ -609,7 +619,7 @@ STEPS = (
     "add_accommodations", "add_exemption_cases", "pick_result_cases", "add_unit_results", "add_pvb_entries",
     "add_fraud_case", "add_dismissed_fraud_case", "add_final_grades", "add_trajectories", "add_progress_flags",
     "add_warnings", "add_bsa_decisions", "settle_diplomas", "add_support_requests", "add_dossier_notes",
-    "add_hour_plans", "add_assessor_shares", "add_hour_weeks", "add_story_and_stamps",
+    "add_hour_plans", "add_assessor_shares", "add_hour_weeks", "add_story_and_stamps", "add_practical_exam",
 )
 
 
@@ -1677,6 +1687,7 @@ class SchoolYear:
             "email": "ruud.jansen@examinering-zuiddrecht.example",
             "organisationName": "Examinering Zuiddrecht", "active": True,
         })
+        self.assessor = assessor
         # Two students who are actually on a placement, so the portfolios belong to
         # people the rest of the set knows.
         for index, s in enumerate([p["student"] for p in self.placements][:2], start=1):
@@ -1733,6 +1744,40 @@ class SchoolYear:
         add_story(self)
         stamp_hour_totals(self.b)
         stamp_group_labels(self.b)
+
+    # --- practical-exam-assessment: a proeve with two assessors -------------
+    # Added last, so no earlier uuid moves, and with no random draws. Ruud Jansen
+    # assesses first and Sanne Bakker second, each for the same three candidates,
+    # the first three students on a placement, in one sitting.
+    def add_practical_exam(self) -> None:
+        second = self.b.add("external-assessor", {
+            "givenName": "Sanne", "familyName": "Bakker",
+            "email": "sanne.bakker@examinering-zuiddrecht.example",
+            "organisationName": "Examinering Zuiddrecht", "active": True,
+        })
+        candidates = [p["student"] for p in self.placements][:3]
+        period = self.b.add("exam-period", {
+            "name": "Proeven van bekwaamheid november 2026", "startsOn": "2026-11-16", "endsOn": "2026-11-20",
+            "cohortIds": sorted({self.cohorts[s["class"]]["uuid"] for s in candidates}), "lifecycle": "published",
+        })
+        exam = self.b.add("exam", {
+            "title": "Proeve van bekwaamheid installeren", "description": "Praktijkexamen: de kandidaat installeert en meet na, twee beoordelaars kijken mee.",
+            "scoringScheme": "passMark", "passMark": 5.5, "timeLimitMinutes": 180, "maxAttempts": 1, "lifecycle": "published",
+        })
+        starts = stamp(dt.date(2026, 11, 16), 9, 0)
+        sitting = self.b.add("exam-sitting", {
+            "examPeriodId": period["uuid"], "assessmentId": exam["uuid"], "cohortIds": period["cohortIds"],
+            "startsAt": starts, "endsAt": stamp(dt.date(2026, 11, 16), 12, 0),
+            "roomIds": [self.rooms[candidates[0]["class"]]["uuid"]], "headcount": len(candidates), "invigilatorsNeeded": 0,
+            "lifecycle": "planned",
+        })
+        for s in candidates:
+            for role, assessor in (("first", self.assessor), ("second", second)):
+                self.b.add("exam-assessor-assignment", {
+                    "examSittingId": sitting["uuid"], "externalAssessorId": assessor["uuid"], "learnerRef": s["profile"]["uuid"],
+                    "role": role, "lifecycle": "assigned", "learnerName": f"{s['given']} {s['surname']}",
+                    "sittingStartsAt": starts, "examTitle": exam["title"],
+                })
 
 
 def programme_unit_codes(key: str) -> list[str]:
@@ -2125,6 +2170,22 @@ STORY_LESSONS = [
     (dt.date(2026, 10, 9), (10, 0), (11, 0), "MT-2.6", "B1.08", "cancelled"),
     (dt.date(2026, 10, 9), (11, 15), (12, 15), "MT-2.7", "B1.08", None),
 ]
+# attendance-warns-before-the-threshold (board esdoornveen/LqVandaag): Sem Visser, 17, in MT4-2A, missed 14
+# lesuren without permission in the four weeks up to Monday 5 October 2026. The class's past lessons follow the
+# timetable above (Thursday and Friday); per day, the units he was not there for.
+SEM = "mbo-student-253"
+SEM_PERSON = ("Sem", "Visser", "2009-02-11",
+              {"street": "Esdoornlaan", "houseNumber": "38", "postalCode": "0511 KP", "city": "Zuiddrecht", "country": "NL"},
+              [{"name": "Monique Visser", "relationship": "ouder", "phone": "06-00007734", "priority": 1}])
+SEM_PAST_DAYS = [dt.date(2026, 9, 10), dt.date(2026, 9, 11), dt.date(2026, 9, 17), dt.date(2026, 9, 18),
+                 dt.date(2026, 9, 24), dt.date(2026, 9, 25), dt.date(2026, 10, 1), dt.date(2026, 10, 2)]
+SEM_MISSED = {
+    dt.date(2026, 9, 17): ("MT-2.1", "MT-2.2", "MT-2.3", "MT-2.4"),
+    dt.date(2026, 9, 18): ("MT-2.5", "MT-2.6"),
+    dt.date(2026, 9, 25): ("MT-2.5",),
+    dt.date(2026, 10, 1): ("MT-2.1", "MT-2.2", "MT-2.3", "MT-2.4"),
+}
+LEERPLICHT_WARN_AT = 12
 STORY_UNIT_NAMES = {c[0]: c[1] for c in STORY_UNITS}
 
 
@@ -2147,7 +2208,7 @@ class StoryAutumn:
         for step in (self.add_staff_and_rooms, self.add_framework, self.add_competencies, self.add_programme,
                      self.add_unit_courses, self.add_plans, self.add_class, self.add_students, self.add_teachers,
                      self.add_placements, self.add_visits, self.add_progress, self.add_hour_weeks, self.add_lessons,
-                     self.add_conference, self.add_exam):
+                     self.add_conference, self.add_exam, self.add_nearing_student):
             step()
         return {"milan": self.profiles[MILAN], "aylin": self.profiles[AYLIN], "petra": self.petra, "cohort": self.cohort,
                 "milan_placement": self.placements[MILAN], "aylin_placement": self.placements[AYLIN]}
@@ -2478,6 +2539,44 @@ class StoryAutumn:
             "examPeriodId": period["uuid"], "assessmentId": exam["uuid"], "cohortIds": [self.cohort["uuid"]],
             "startsAt": stamp(dt.date(2026, 11, 3), 9, 0), "endsAt": stamp(dt.date(2026, 11, 3), 10, 30),
             "roomIds": [self.rooms["B1.08"]["uuid"]], "headcount": 2, "invigilatorsNeeded": 1, "lifecycle": "planned",
+        })
+
+    # attendance-warns-before-the-threshold: Sem Visser and the class's past lessons he missed. Added last, so no
+    # earlier uuid moves; the summary carries what UnauthorisedHoursWindow computes from his records.
+    def add_nearing_student(self) -> None:
+        self.add_student(253, (SEM, SEM_PERSON))
+        self.cohort["learnerIds"].append(SEM)
+        hours, days = 0.0, set()
+        for day in SEM_PAST_DAYS:
+            for when, start, end, unit, room, _state in STORY_LESSONS:
+                if when.weekday() != day.weekday():
+                    continue
+                lesson = self.b.add("session", {
+                    "cohortId": self.cohort["uuid"], "courseId": self.courses[unit]["uuid"],
+                    "title": f"MT4-2A, {STORY_UNIT_NAMES[unit]}, {dutch_date(day)}", "startsAt": stamp(day, *start),
+                    "endsAt": stamp(day, *end), "location": self.rooms[room]["name"], "roomId": self.rooms[room]["uuid"],
+                    "lifecycle": "completed",
+                })
+                if unit not in SEM_MISSED.get(day, ()):
+                    continue
+                teacher = next(c[3][0] for c in STORY_UNITS if c[0] == unit)
+                self.b.add("attendance-record", {
+                    "sessionId": lesson["uuid"], "learnerId": SEM, "learnerRef": self.profiles[SEM]["uuid"],
+                    "cohortId": self.cohort["uuid"], "status": "absent-unexcused", "minutesAttended": 0, "markedBy": teacher,
+                    "markedAt": stamp(day, start[0], start[1] + 10), "reason": "Niet aanwezig, niet afgemeld", "excuseRequestId": None,
+                })
+                hours += ((end[0] - start[0]) * 60 + end[1] - start[1]) / 60
+                days.add(day)
+        limit = LEERPLICHT_THRESHOLD["limit"]
+        shown = str(int(hours)) if hours == int(hours) else str(round(hours, 1)).replace(".", ",")
+        self.b.add("attendance-summary", {
+            "learnerId": SEM, "learnerRef": self.profiles[SEM]["uuid"], "schoolYear": STORY_YEAR,
+            "absentDays": len(days), "absentAuthorisedDays": 0, "absentUnauthorisedDays": len(days), "lateCount": 0,
+            "lateMinutes": 0, "updatedAt": stamp(dt.date(2026, 10, 5), 6, 0),
+            "unauthorisedHoursWindow": round(hours, 1), "thresholdHours": limit, "windowLabel": f"{shown} van {limit} uur",
+            "thresholdNearing": LEERPLICHT_WARN_AT <= hours < limit,
+            "teacherIds": sorted(set(self.cohort["teacherIds"]) | {a["teacherId"] for a in self.cohort["teacherAssignments"]}),
+            "mentorId": STORY_SLB,
         })
 
 

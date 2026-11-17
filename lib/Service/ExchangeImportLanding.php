@@ -41,6 +41,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Kernel\Contracts\ExchangeImportLandingInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use Throwable;
@@ -443,8 +445,7 @@ class ExchangeImportLanding implements ExchangeImportLandingInterface {
 	private function save(string $schema, array $row): void {
 		$this->objectService->saveObject(
 			object: $row,
-			register: self::REGISTER,
-			schema: $schema,
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: $schema)),
 			_rbac: false,
 			_multitenancy: false
 		);

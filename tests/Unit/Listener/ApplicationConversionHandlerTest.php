@@ -33,6 +33,8 @@ use OCP\EventDispatcher\Event;
 use OCA\Learniq\Tests\Support\RegisterSchemaPayloads;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Tests for ApplicationConversionHandler::handle() on Application -> placed.
@@ -84,7 +86,11 @@ class ApplicationConversionHandlerTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($programme) {
+			function (int|string $id, ?ObjectFindOptions $options = null) use ($programme) {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				if ($schema === 'programme' && $programme !== null) {
 					return OrEntityFactory::make($programme, 'programme');
 				}
@@ -95,7 +101,11 @@ class ApplicationConversionHandlerTest extends TestCase {
 
 		$counter = ['learner-profile' => 0, 'enrolment' => 0];
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null, $uuid = null, bool $_rbac = true) use (&$counter): ObjectEntity {
+			function (array|ObjectEntity $object, ObjectSaveOptions $options = new ObjectSaveOptions(), bool $_rbac = true) use (&$counter): ObjectEntity {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
+				$uuid = $options->uuid;
 				$this->rbacWrites[] = ['schema' => (string)$schema, 'rbac' => $_rbac];
 				$this->savedObjects[] = [
 					'register' => (string)$register,
