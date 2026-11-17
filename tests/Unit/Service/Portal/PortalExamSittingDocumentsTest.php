@@ -34,6 +34,7 @@ use Psr\Log\NullLogger;
  *
  * @covers \OCA\Learniq\Service\Portal\PortalExamSittingDocuments
  * @uses   \OCA\Learniq\Service\Portal\PortalOutcome
+ * @uses   \OCA\Learniq\Support\ObjectRow
  */
 class PortalExamSittingDocumentsTest extends TestCase {
 

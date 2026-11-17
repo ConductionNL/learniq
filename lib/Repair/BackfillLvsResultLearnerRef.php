@@ -22,6 +22,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Repair;
 
 use OCA\Learniq\Kernel\Contracts\LearnerRefResolverInterface;
+use OCA\Learniq\Repair\Support\MissingLearnerRef;
 use OCA\Learniq\Repair\Support\RepairRowWalk;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
@@ -181,17 +182,12 @@ class BackfillLvsResultLearnerRef implements IRepairStep {
 	 * @return array{0: string, 1: string, 2: string}|null
 	 */
 	private function candidate(array $row): ?array {
-		$existing = ($row['learnerRef'] ?? null);
-		if (is_string($existing) === true && $existing !== '') {
+		$candidate = (new MissingLearnerRef())->inRow(row: $row);
+		if ($candidate === null) {
 			return null;
 		}
 
-		$learnerId = ($row['learnerId'] ?? null);
-		$uuid = ($row['id'] ?? ($row['uuid'] ?? null));
-		if (is_string($learnerId) === false || $learnerId === '' || is_string($uuid) === false || $uuid === '') {
-			return null;
-		}
-
+		[$learnerId, $uuid] = $candidate;
 		$tenantId = ($row['tenant_id'] ?? '');
 		if (is_string($tenantId) === false) {
 			$tenantId = '';
