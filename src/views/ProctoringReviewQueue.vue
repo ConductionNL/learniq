@@ -49,7 +49,7 @@
 			class="proctoring-review-queue__loading"
 			aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
-			<span>{{ t('learniq', 'Loading sessions…') }}</span>
+			<span>{{ t('learniq', 'Loading sessions...') }}</span>
 		</div>
 
 		<!-- Error -->
