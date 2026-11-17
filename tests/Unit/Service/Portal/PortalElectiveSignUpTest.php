@@ -32,6 +32,7 @@ use OCA\Learniq\Service\Portal\PortalElectiveSignUp;
 use OCA\Learniq\Service\Portal\PortalLearner;
 use OCA\Learniq\Service\Portal\PortalOutcome;
 use OCA\OpenRegister\Db\ObjectEntity;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCP\IL10N;
@@ -127,7 +128,10 @@ class PortalElectiveSignUpTest extends TestCase {
 			}
 		);
 		$objects->method('saveObject')->willReturnCallback(
-			function (array $object, array $extend=[], mixed $register=null, mixed $schema=null, ?string $uuid=null, bool $_rbac=true) use (&$current) {
+			function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions(), bool $_rbac = true) use (&$current) {
+				$register = $options->target->register;
+				$schema = $options->target->schema;
+				$uuid = $options->uuid;
 				if ($this->throws !== null) {
 					throw $this->throws;
 				}

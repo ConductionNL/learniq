@@ -51,6 +51,9 @@ use DateTimeImmutable;
 use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\Learniq\Support\SerialisedRow;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
@@ -180,9 +183,11 @@ class PeerFeedbackAggregator implements IEventListener {
 		);
 
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::PEER_FEEDBACK_SUMMARY_SCHEMA,
-			object: $data
+			object: $data,
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(
+					register: self::LEARNIQ_REGISTER,
+					schema: self::PEER_FEEDBACK_SUMMARY_SCHEMA
+				))
 		);
 
 	}//end recomputeSummary()
@@ -294,8 +299,7 @@ class PeerFeedbackAggregator implements IEventListener {
 	private function fetchObject(string $id, string $schema): ?array {
 		$obj = $this->objectService->find(
 			id: $id,
-			register: self::LEARNIQ_REGISTER,
-			schema: $schema
+			options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: $schema)
 		);
 
 		if ($obj === null) {

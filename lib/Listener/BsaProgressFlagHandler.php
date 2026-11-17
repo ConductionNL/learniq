@@ -50,6 +50,9 @@ use DateTimeImmutable;
 use OCA\Learniq\Kernel\Contracts\BsaProgressEvaluatorInterface;
 use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
@@ -164,8 +167,7 @@ class BsaProgressFlagHandler implements IEventListener {
 	private function resolveProgrammeIds(string $courseId): array {
 		$course = $this->objectService->find(
 			id: $courseId,
-			register: self::LEARNIQ_REGISTER,
-			schema: self::COURSE_SCHEMA
+			options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::COURSE_SCHEMA)
 		);
 
 		if ($course === null) {
@@ -265,8 +267,6 @@ class BsaProgressFlagHandler implements IEventListener {
 		}
 
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::BSA_PROGRESS_FLAG_SCHEMA,
 			object: [
 				'learnerId' => $learnerId,
 				'programmeId' => $programmeId,
@@ -277,7 +277,8 @@ class BsaProgressFlagHandler implements IEventListener {
 				'flaggedAt' => $now->format(\DATE_ATOM),
 				'lifecycle' => 'open',
 				'tenant_id' => $tenantId,
-			]
+			],
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::BSA_PROGRESS_FLAG_SCHEMA))
 		);
 
 	}//end checkTrajectory()

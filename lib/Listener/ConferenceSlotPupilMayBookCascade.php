@@ -36,6 +36,8 @@ namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectUpdatedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -142,9 +144,10 @@ class ConferenceSlotPupilMayBookCascade implements IEventListener {
 
 			$this->objects->saveObject(
 				object: array_merge($slot, ['pupilMayBook' => $allowed]),
-				register: self::REGISTER,
-				schema: self::SLOT_SCHEMA,
-				uuid: (string)($slot['id'] ?? ''),
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::REGISTER, schema: self::SLOT_SCHEMA),
+					uuid: (string)($slot['id'] ?? '')
+				),
 				_rbac: false
 			);
 		}

@@ -45,6 +45,8 @@ use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -169,9 +171,10 @@ class ElectiveOfferCopiesStamp implements IEventListener {
 
 			$this->objects->saveObject(
 				object: array_merge($offer, $copies),
-				register: ElectiveServiceInterface::REGISTER,
-				schema: ElectiveService::OFFER_SCHEMA,
-				uuid: $offerId,
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: ElectiveServiceInterface::REGISTER, schema: ElectiveService::OFFER_SCHEMA),
+					uuid: $offerId
+				),
 				_rbac: false
 			);
 		} catch (Throwable $exception) {

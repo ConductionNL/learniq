@@ -42,6 +42,8 @@ use OCA\Learniq\Kernel\Contracts\SessionChangeGuardInterface;
 use OCA\Learniq\Kernel\Contracts\SessionChangeInputInterface;
 use OCA\Learniq\Kernel\Contracts\SessionChangeNoticeHandlerInterface;
 use OCA\Learniq\Kernel\Contracts\SessionSeriesInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
@@ -103,9 +105,10 @@ class SessionChangeBatchService implements SessionChangeBatchServiceInterface {
 
 		$saved = $this->objectService->saveObject(
 			object: $batch,
-			register: self::REGISTER,
-			schema: self::BATCH_SCHEMA,
-			uuid: $batchId
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::REGISTER, schema: self::BATCH_SCHEMA),
+				uuid: $batchId
+			)
 		);
 
 		$this->logger->info(
@@ -252,7 +255,10 @@ class SessionChangeBatchService implements SessionChangeBatchServiceInterface {
 	 */
 	private function commit(array $lesson): array {
 		try {
-			$this->objectService->saveObject(object: $lesson['changed'], register: self::REGISTER, schema: self::SESSION_SCHEMA);
+			$this->objectService->saveObject(
+				object: $lesson['changed'],
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: self::SESSION_SCHEMA))
+			);
 			if ($lesson['kind'] !== 'room') {
 				$this->transitionEngine->transition(objectId: $lesson['sessionId'], action: $lesson['action']);
 			}
@@ -300,7 +306,10 @@ class SessionChangeBatchService implements SessionChangeBatchServiceInterface {
 	 */
 	private function restore(array $original): void {
 		try {
-			$this->objectService->saveObject(object: $original, register: self::REGISTER, schema: self::SESSION_SCHEMA);
+			$this->objectService->saveObject(
+				object: $original,
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: self::SESSION_SCHEMA))
+			);
 		} catch (Throwable $exception) {
 			$this->logger->warning(
 				'[SessionChangeBatchService] Could not restore lesson {id}: {msg}',
