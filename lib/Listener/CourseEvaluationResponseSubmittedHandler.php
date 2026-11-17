@@ -46,6 +46,8 @@ namespace OCA\Learniq\Listener;
 use DateTimeImmutable;
 use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -112,8 +114,6 @@ class CourseEvaluationResponseSubmittedHandler implements IEventListener {
 		// caller's own rights, filtered on the session uid, so this write
 		// only ever touches the caller's invitation.
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::EVALUATION_INVITATION_SCHEMA,
 			object: array_merge(
 				$invitation,
 				[
@@ -121,6 +121,10 @@ class CourseEvaluationResponseSubmittedHandler implements IEventListener {
 					'respondedAt' => (new DateTimeImmutable())->format(\DATE_ATOM),
 				]
 			),
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(
+					register: self::LEARNIQ_REGISTER,
+					schema: self::EVALUATION_INVITATION_SCHEMA
+				)),
 			_rbac: false
 		);
 
@@ -236,6 +240,20 @@ class CourseEvaluationResponseSubmittedHandler implements IEventListener {
 			]
 		);
 
+		return $this->callersInvitation(invitations: $invitations, callerUid: $callerUid);
+	}//end findInvitation()
+
+	/**
+	 * The first invitation found, when it names the caller as its learner.
+	 *
+	 * @param array<int,mixed> $invitations The invitations the query found.
+	 * @param string           $callerUid   The submitting user.
+	 *
+	 * @return array<string,mixed>|null The invitation, or null when there is none.
+	 *
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-a-successful-submission-flips-the-invitation-without-linking-to-the-response
+	 */
+	private function callersInvitation(array $invitations, string $callerUid): ?array {
 		if (empty($invitations) === true) {
 			return null;
 		}
@@ -252,5 +270,5 @@ class CourseEvaluationResponseSubmittedHandler implements IEventListener {
 		}
 
 		return (array)$invitation;
-	}//end findInvitation()
+	}//end callersInvitation()
 }//end class

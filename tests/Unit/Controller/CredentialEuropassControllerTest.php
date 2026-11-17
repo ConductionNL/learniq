@@ -37,6 +37,8 @@ use OCP\IRequest;
 use OCP\IUser;
 use OCP\IUserSession;
 use PHPUnit\Framework\TestCase;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Who may download, and the one-time backfill.
@@ -79,7 +81,11 @@ class CredentialEuropassControllerTest extends TestCase {
 		];
 		$objects = $this->createMock(ObjectService::class);
 		$objects->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null): ObjectEntity {
+			function (int|string $id, ?ObjectFindOptions $options = null): ObjectEntity {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				if ($schema === 'course' && $id === 'c-1') {
 					return OrEntityFactory::make(['id' => 'c-1', 'code' => 'MDB 2026'], 'course');
 				}
@@ -96,7 +102,11 @@ class CredentialEuropassControllerTest extends TestCase {
 			}
 		);
 		$objects->method('saveObject')->willReturnCallback(
-			function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null): ObjectEntity {
+			function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()): ObjectEntity {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
+				$uuid = $options->uuid;
 				$this->saves[] = ['uuid' => $uuid, 'object' => $object];
 				return OrEntityFactory::make($object, (string)$schema);
 			}

@@ -68,7 +68,7 @@ Vrij en open source onder de EUPL-1.2-licentie.
 
 **Ondersteuning:** support@conduction.nl
     ]]></description>
-    <version>0.3.9-beta.20261105100000</version>
+    <version>0.3.9-beta.20261116080000</version>
     <!-- @spec openspec/specs/platform-properties/spec.md#REQ-PLAT-001, #REQ-PLAT-002 -->
     <licence>EUPL-1.2</licence>
     <author mail="info@conduction.nl" homepage="https://www.conduction.nl/">Conduction</author>
@@ -127,6 +127,15 @@ Vrij en open source onder de EUPL-1.2-licentie.
              (default 3600, floor 600). A draft lives for one request; one a
              crash leaves behind is readable by every signed-in user. -->
         <job>OCA\Learniq\BackgroundJob\CourseEvaluationDraftCleanupJob</job>
+        <!-- Every hour: a company booking still marked as coming whose first
+             day has passed is re-derived, so it (and its participants' course
+             day) stops being coming the day after its last course day
+             (past-course-days-drop-off). -->
+        <job>OCA\Learniq\BackgroundJob\PastCourseDaysJob</job>
+        <!-- attendance-warns-before-the-threshold: once a day, recounts the
+             pupils whose rolling unauthorised-hours window still holds hours,
+             so an absence that slid out of the window lowers the count. -->
+        <job>OCA\Learniq\BackgroundJob\AttendanceWindowSweepJob</job>
     </background-jobs>
 
     <repair-steps>

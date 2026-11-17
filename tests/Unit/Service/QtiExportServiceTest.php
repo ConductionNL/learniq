@@ -29,6 +29,7 @@ use OCA\Learniq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use ZipArchive;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 
 /**
  * Tests for QtiExportService.
@@ -49,7 +50,11 @@ class QtiExportServiceTest extends TestCase {
 
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($fullyParsedBody, $degradedBody) {
+			function (int|string $id, ?ObjectFindOptions $options = null) use ($fullyParsedBody, $degradedBody) {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				if ($schema === 'item-bank') {
 					return OrEntityFactory::make(
 						['id' => 'bank-1', 'name' => 'Physics 101', 'itemIds' => ['item-1', 'item-2']],
@@ -101,7 +106,11 @@ class QtiExportServiceTest extends TestCase {
 	private function exportEntries(array $bodies): array {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($bodies) {
+			function (int|string $id, ?ObjectFindOptions $options = null) use ($bodies) {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				if ($schema === 'item-bank') {
 					return OrEntityFactory::make(['id' => 'bank-1', 'name' => 'Statistiek', 'itemIds' => array_keys($bodies)], 'item-bank');
 				}

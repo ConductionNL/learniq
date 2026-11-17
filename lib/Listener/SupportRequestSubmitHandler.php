@@ -45,6 +45,8 @@ use OCA\Learniq\Kernel\Contracts\IntegriqExchangeClientInterface;
 use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\Learniq\Kernel\Contracts\SupportRequestSubmitHandlerInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -160,18 +162,17 @@ class SupportRequestSubmitHandler implements IEventListener, SupportRequestSubmi
 		}
 
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::SUPPORT_REQUEST_SCHEMA,
 			object: array_merge($supportRequest, ['dataExchangeJobId' => $jobId]),
-			uuid: $supportRequestId
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::SUPPORT_REQUEST_SCHEMA),
+				uuid: $supportRequestId
+			)
 		);
 
 		// System context (dossier-review): hr, compliance officers and team leads may submit a
 		// support request, and DossierReview create is administration managers, coordinators and
 		// instructors only.
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::DOSSIER_REVIEW_SCHEMA,
 			object: [
 				'exchangeJobId' => $jobId,
 				'target' => self::SWV_TARGET,
@@ -179,6 +180,7 @@ class SupportRequestSubmitHandler implements IEventListener, SupportRequestSubmi
 				'status' => 'pending',
 				'tenant_id' => $tenantId,
 			],
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::DOSSIER_REVIEW_SCHEMA)),
 			_rbac: false
 		);
 

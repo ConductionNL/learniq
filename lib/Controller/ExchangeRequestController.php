@@ -32,6 +32,8 @@ use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Kernel\Contracts\IntegriqExchangeClientInterface;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\CallerActions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -215,9 +217,11 @@ class ExchangeRequestController extends Controller {
 	private function openDossierReview(string $jobId, array $request): void {
 		if ($request['learnerId'] !== '' && in_array($request['target'], self::REVIEWED_TARGETS, true) === true) {
 			$this->objectService->saveObject(
-				register: self::LEARNIQ_REGISTER,
-				schema: self::DOSSIER_REVIEW_SCHEMA,
-				object: ['exchangeJobId' => $jobId, 'target' => $request['target'], 'learnerUserId' => $request['learnerId'], 'status' => 'pending']
+				object: ['exchangeJobId' => $jobId, 'target' => $request['target'], 'learnerUserId' => $request['learnerId'], 'status' => 'pending'],
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(
+						register: self::LEARNIQ_REGISTER,
+						schema: self::DOSSIER_REVIEW_SCHEMA
+					))
 			);
 		}
 	}//end openDossierReview()

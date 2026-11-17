@@ -31,6 +31,7 @@ namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
 use OCA\Learniq\Kernel\Contracts\AssessmentAccessFactsInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Throwable;
 
@@ -78,10 +79,12 @@ class AssessmentAccessFacts implements AssessmentAccessFactsInterface {
 		try {
 			$object = $this->objectService->find(
 				id: $assessmentId,
-				register: self::LEARNIQ_REGISTER,
-				schema: self::ASSESSMENT_SCHEMA,
-				_rbac: false,
-				_render: false
+				options: new ObjectFindOptions(
+					register: self::LEARNIQ_REGISTER,
+					schema: self::ASSESSMENT_SCHEMA,
+					render: false
+				),
+				_rbac: false
 			);
 			if ($object !== null) {
 				$raw = $object->jsonSerialize();

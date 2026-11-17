@@ -39,6 +39,7 @@ class PortalRowActionConditionsTest extends TestCase {
 	 * The condition each row action declares.
 	 */
 	private const CONDITIONS = [
+		'answerPermissionRequest' => ['field' => 'lifecycle', 'in' => ['open']],
 		'cancelConferenceTime' => ['field' => 'lifecycle', 'in' => ['booked', 'acknowledged']],
 		'handIn' => ['field' => 'lifecycle', 'in' => ['draft']],
 	];

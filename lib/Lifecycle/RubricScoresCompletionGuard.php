@@ -45,6 +45,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
@@ -368,8 +369,7 @@ class RubricScoresCompletionGuard implements LifecycleGuardInterface {
 	private function fetchObject(string $id, string $schema): ?array {
 		$obj = $this->objectService->find(
 			id: $id,
-			register: self::LEARNIQ_REGISTER,
-			schema: $schema
+			options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: $schema)
 		);
 
 		if ($obj === null) {

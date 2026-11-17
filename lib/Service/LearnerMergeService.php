@@ -38,6 +38,9 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Kernel\Contracts\LearnerMergeServiceInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
@@ -230,7 +233,7 @@ class LearnerMergeService implements LearnerMergeServiceInterface {
 
 		$moved = 0;
 		foreach (self::LEARNER_OWNED as $schema => $fields) {
-			$moved += $this->moveSchema(schema: $schema, fields: $fields, rewrites: $rewrites);
+			$moved += $this->moveSchema(schema: $schema, move: ['fields' => $fields, 'rewrites' => $rewrites]);
 		}
 
 		$this->logger->info(
@@ -267,13 +270,14 @@ class LearnerMergeService implements LearnerMergeServiceInterface {
 	/**
 	 * Re-point one schema's records.
 	 *
-	 * @param string               $schema   Schema slug.
-	 * @param array<int,string>    $fields   Reference fields on the schema.
-	 * @param array<string,string> $rewrites Old value to new value.
+	 * @param string                     $schema Schema slug.
+	 * @param array<string,array<mixed>> $move   The reference `fields` on the schema and the `rewrites` (old value to new value).
 	 *
 	 * @return int How many records were saved.
 	 */
-	private function moveSchema(string $schema, array $fields, array $rewrites): int {
+	private function moveSchema(string $schema, array $move): int {
+		$fields = $move['fields'];
+		$rewrites = $move['rewrites'];
 		$pending = [];
 		foreach ($fields as $field) {
 			foreach (array_keys($rewrites) as $old) {
@@ -303,9 +307,10 @@ class LearnerMergeService implements LearnerMergeServiceInterface {
 			unset($row['@self']);
 			$this->objectService->saveObject(
 				object: $row,
-				register: self::LEARNIQ_REGISTER,
-				schema: $schema,
-				uuid: $rowId
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: $schema),
+					uuid: $rowId
+				)
 			);
 			$this->logger->info('[LearnerMergeService] Moved {schema} {id} to the surviving learner.', ['schema' => $schema, 'id' => $rowId]);
 		}
@@ -398,7 +403,10 @@ class LearnerMergeService implements LearnerMergeServiceInterface {
 		}
 
 		try {
-			$entity = $this->objectService->find(id: $id, register: self::LEARNIQ_REGISTER, schema: self::PROFILE_SCHEMA);
+			$entity = $this->objectService->find(
+				id: $id,
+				options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::PROFILE_SCHEMA)
+			);
 		} catch (\Throwable $e) {
 			$this->logger->warning('[LearnerMergeService] Profile {id} could not be loaded: {m}', ['id' => $id, 'm' => $e->getMessage()]);
 			return null;

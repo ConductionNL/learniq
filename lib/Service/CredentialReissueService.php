@@ -207,6 +207,12 @@ class CredentialReissueService implements CredentialReissueServiceInterface {
 			return 'skipped';
 		}
 
+		// A certificate taken over from the previous system is not learniq's
+		// to sign (credentials-migrate-with-validity D2): left, not failed.
+		if (CredentialSigningService::isMigrated(credential: $credential) === true) {
+			return 'skipped';
+		}
+
 		try {
 			$data = $this->rebuilt(credential: $credential, run: $run);
 			if ($data === null) {

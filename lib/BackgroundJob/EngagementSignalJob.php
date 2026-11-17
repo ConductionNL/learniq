@@ -22,6 +22,9 @@ namespace OCA\Learniq\BackgroundJob;
 
 use DateTimeImmutable;
 use OCA\Learniq\Kernel\Contracts\EngagementScoreEvaluatorInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\Deferral\DeferredListenerContext;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -166,9 +169,8 @@ class EngagementSignalJob extends ForwardedJob {
 		);
 
 		$saved = $this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::ENGAGEMENT_SCORE_SCHEMA,
-			object: $data
+			object: $data,
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::ENGAGEMENT_SCORE_SCHEMA))
 		);
 
 		return $saved->jsonSerialize();
@@ -246,6 +248,33 @@ class EngagementSignalJob extends ForwardedJob {
 	}//end checkThresholds()
 
 	/**
+	 * Whether a threshold applies to the learner (no cohort, or the learner's
+	 * cohort) and the just-recomputed score crosses its limit.
+	 *
+	 * @param array<string, mixed> $threshold EngagementRiskThreshold data.
+	 * @param array<string, mixed> $scope     As checkThreshold() takes it.
+	 *
+	 * @return bool
+	 *
+	 * @spec openspec/specs/student-analytics/spec.md#scenario-a-resolved-flag-does-not-block-re-flagging-on-a-later-relapse
+	 */
+	private function thresholdCrossed(array $threshold, array $scope): bool {
+		$cohortId = $threshold['cohortId'] ?? null;
+		if ($cohortId !== null && $this->learnerInCohort(learnerId: $scope['learnerId'], cohortId: $cohortId) === false) {
+			// Threshold is scoped to a Cohort the learner does not belong to.
+			return false;
+		}
+
+		$metric = $threshold['metric'] ?? '';
+		$limit = $threshold['limit'] ?? null;
+		if ($limit === null) {
+			return false;
+		}
+
+		return $this->isCrossed(metric: $metric, limit: (float)$limit, engagementScore: $scope['engagementScore']);
+	}//end thresholdCrossed()
+
+	/**
 	 * Evaluate a single EngagementRiskThreshold for a learner and create a
 	 * flag if the metric is crossed and no open/in-handling flag already
 	 * exists for this learner+threshold.
@@ -260,23 +289,11 @@ class EngagementSignalJob extends ForwardedJob {
 	 */
 	private function checkThreshold(array $threshold, array $scope): void {
 		['learnerId' => $learnerId, 'courseId' => $courseId, 'tenantId' => $tenantId, 'engagementScore' => $engagementScore] = $scope;
-		$cohortId = $threshold['cohortId'] ?? null;
-		if ($cohortId !== null && $this->learnerInCohort(learnerId: $learnerId, cohortId: $cohortId) === false) {
-			// Threshold is scoped to a Cohort the learner does not belong to.
+		if ($this->thresholdCrossed(threshold: $threshold, scope: $scope) === false) {
 			return;
 		}
 
 		$metric = $threshold['metric'] ?? '';
-		$limit = $threshold['limit'] ?? null;
-		if ($limit === null) {
-			return;
-		}
-
-		$crossed = $this->isCrossed(metric: $metric, limit: (float)$limit, engagementScore: $engagementScore);
-		if ($crossed === false) {
-			return;
-		}
-
 		$thresholdId = $threshold['id'] ?? ($threshold['uuid'] ?? '');
 		if ($thresholdId === '') {
 			return;
@@ -294,8 +311,6 @@ class EngagementSignalJob extends ForwardedJob {
 		$engagementScoreId = $engagementScore['id'] ?? ($engagementScore['uuid'] ?? null);
 
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::ENGAGEMENT_RISK_FLAG_SCHEMA,
 			object: [
 				'learnerId' => $learnerId,
 				'courseId' => $courseId,
@@ -305,7 +320,11 @@ class EngagementSignalJob extends ForwardedJob {
 				'flaggedAt' => $now->format(\DATE_ATOM),
 				'lifecycle' => 'open',
 				'tenant_id' => $tenantId,
-			]
+			],
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(
+					register: self::LEARNIQ_REGISTER,
+					schema: self::ENGAGEMENT_RISK_FLAG_SCHEMA
+				))
 		);
 
 	}//end checkThreshold()
@@ -419,8 +438,7 @@ class EngagementSignalJob extends ForwardedJob {
 	private function learnerInCohort(string $learnerId, string $cohortId): bool {
 		$cohort = $this->objectService->find(
 			id: $cohortId,
-			register: self::LEARNIQ_REGISTER,
-			schema: self::COHORT_SCHEMA
+			options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::COHORT_SCHEMA)
 		);
 
 		if ($cohort === null) {

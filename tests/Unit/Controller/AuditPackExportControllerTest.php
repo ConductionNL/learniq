@@ -41,6 +41,7 @@ use OCA\Learniq\Service\AuditPeriodReader;
 use OCA\Learniq\Service\CallerTenantResolver;
 use OCA\Learniq\Service\CsvCellSanitizer;
 use OCA\Learniq\Service\ExternalTrainingCsvBuilder;
+use OCA\Learniq\Service\FrozenAttestationLines;
 use OCA\Learniq\Service\VerwerkingsregisterCsvBuilder;
 use OCA\OpenRegister\Db\AuditTrailMapper;
 use OCA\OpenRegister\Service\AuditHashService;
@@ -651,6 +652,7 @@ class AuditPackExportControllerTest extends TestCase {
 				$this->registerCsv(sanitizer: $sanitizer),
 				new ExternalTrainingCsvBuilder($objectService, $sanitizer),
 				new AuditEntryAttribution($objectService),
+				new FrozenAttestationLines($objectService),
 			),
 		);
 	}//end controller()

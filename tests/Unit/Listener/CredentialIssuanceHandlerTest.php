@@ -55,6 +55,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use ReflectionNamedType;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Tests for the Enrolment.completed to signed Credential bridge.
@@ -466,6 +467,36 @@ class CredentialIssuanceHandlerTest extends TestCase {
 	}//end testACycleEndingInAShorterMonthKeepsToItsLastDay()
 
 	/**
+	 * A migrated certificate moving through its own lifecycle (here: it
+	 * expires) is not an enrolment completion: nothing is signed or saved
+	 * (credentials-migrate-with-validity task 2.3).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/credentials-migrate-with-validity/specs/certification/spec.md#requirement-a-migrated-certificate-keeps-its-dates-and-is-not-signed-as-learniqs-own
+	 */
+	public function testAMigratedCertificatesTransitionIssuesNothing(): void {
+		$migrated = OrEntityFactory::make(
+			[
+				'id' => 'cred-migrated-1',
+				'courseId' => 'course-bhv',
+				'learnerId' => self::LEARNER_UID,
+				'tenant_id' => self::TENANT,
+				'source' => 'migrated',
+				'legacyNumber' => 'VCA-2023-0112',
+				'lifecycle' => 'expired',
+			],
+			'credential',
+			'learniq'
+		);
+		$event = new ObjectTransitionedEvent(object: $migrated, move: new TransitionMove(action: 'expire', from: 'issued', to: 'expired'), scope: new RegisterSchemaRef(register: 'learniq', schema: 'credential'), actor: new TransitionActor(userId: 'system'));
+
+		$this->buildHandler(tenantHasKey: true)->handle($event);
+
+		self::assertSame([], $this->saved);
+	}//end testAMigratedCertificatesTransitionIssuesNothing()
+
+	/**
 	 * The real event OpenRegister dispatches when an enrolment completes.
 	 *
 	 * @return ObjectTransitionedEvent
@@ -586,7 +617,11 @@ class CredentialIssuanceHandlerTest extends TestCase {
 			}
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], mixed $register = null, mixed $schema = null, ?string $uuid = null, bool $_rbac = true): ObjectEntity {
+			function (array|ObjectEntity $object, ObjectSaveOptions $options = new ObjectSaveOptions(), bool $_rbac = true): ObjectEntity {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
+				$uuid = $options->uuid;
 				$data = $object;
 				if ($object instanceof ObjectEntity) {
 					$data = (array)$object->getObject();

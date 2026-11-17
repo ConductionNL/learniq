@@ -29,6 +29,7 @@ use OCA\Learniq\Service\AssessmentAccessPolicy;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\TestCase;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 
 /**
  * Tests for AssessmentAccessFacts::assessmentAccess().
@@ -45,7 +46,12 @@ class AssessmentAccessFactsTest extends TestCase {
 	public function testAssessmentAccessReadsTheWriteOnlyCodeRawAndNeverReturnsIt(): void {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('find')->willReturnCallback(
-			static function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null, bool $_rbac = true, bool $_multitenancy = true, bool $_render = true) {
+			static function (int|string $id, ?ObjectFindOptions $options = null, bool $_rbac = true, bool $_multitenancy = true) {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
+				$_render = $options?->render ?? true;
 				$row = ['id' => 'exam-1', 'accessCode' => 'room-12'];
 				if ($_render === true) {
 					unset($row['accessCode']);
