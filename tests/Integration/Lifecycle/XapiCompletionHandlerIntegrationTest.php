@@ -38,6 +38,10 @@ use OCA\Learniq\Lifecycle\XapiCompletionHandler;
 use OCP\EventDispatcher\Event;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectDeletion;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Integration test for XapiCompletionHandler.
@@ -148,7 +152,7 @@ class XapiCompletionHandlerIntegrationTest extends TestCase {
 		if ($this->objectService !== null && empty($this->createdUuids) === false) {
 			foreach (array_reverse($this->createdUuids) as ['register' => $register, 'schema' => $schema, 'uuid' => $uuid]) {
 				try {
-					$this->objectService->deleteObject($uuid);
+					$this->objectService->deleteObject(new ObjectDeletion(uuid: $uuid));
 				} catch (\Throwable) {
 					// Best-effort cleanup; ignore failures.
 				}
@@ -170,9 +174,8 @@ class XapiCompletionHandlerIntegrationTest extends TestCase {
 	private function createObject(string $schema, array $data): array {
 		try {
 			$obj = $this->objectService->saveObject(
-				register: 'learniq',
-				schema: $schema,
 				object: $data,
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: 'learniq', schema: $schema))
 			);
 		} catch (\OCP\AppFramework\Db\DoesNotExistException $e) {
 			// The Learniq OpenRegister register/schemas aren't provisioned in
@@ -229,8 +232,7 @@ class XapiCompletionHandlerIntegrationTest extends TestCase {
 		try {
 			$entity = $this->objectService->find(
 				id: $uuid,
-				register: 'learniq',
-				schema: $schema,
+				options: new ObjectFindOptions(register: 'learniq', schema: $schema)
 			);
 		} catch (\OCP\AppFramework\Db\DoesNotExistException) {
 			return [];

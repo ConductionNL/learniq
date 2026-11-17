@@ -39,6 +39,9 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
 use OCA\Learniq\Kernel\Contracts\LearningRecordImportIntakeServiceInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Files\IRootFolder;
@@ -177,11 +180,43 @@ class LearningRecordImportIntakeService implements LearningRecordImportIntakeSer
 		string $sourceRef,
 		string $tenantId,
 	): ?array {
+		$created = $this->createUploaded(
+			upload: [
+				'applicationId' => $applicationId,
+				'sourceFilename' => $sourceFilename,
+				'sourceFormat' => $sourceFormat,
+				'uploadedBy' => $uploadedBy,
+				'sourceRef' => $sourceRef,
+				'tenantId' => $tenantId,
+			]
+		);
+
+		$createdId = $this->extractId(saved: $created);
+		if ($createdId === null) {
+			return null;
+		}
+
+		return $this->parsedImport(createdId: $createdId);
+	}//end createImport()
+
+	/**
+	 * Save the import record in its `uploaded` state.
+	 *
+	 * @param array<string,string> $upload The `applicationId`, `sourceFilename`, `sourceFormat`, `uploadedBy`,
+	 *                                     `sourceRef` and `tenantId` to stamp on the created object.
+	 *
+	 * @return mixed The saved object.
+	 */
+	private function createUploaded(array $upload): mixed {
+		$applicationId = $upload['applicationId'];
+		$sourceFilename = $upload['sourceFilename'];
+		$sourceFormat = $upload['sourceFormat'];
+		$uploadedBy = $upload['uploadedBy'];
+		$sourceRef = $upload['sourceRef'];
+		$tenantId = $upload['tenantId'];
 		$uploadedAt = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
 
 		$created = $this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::SCHEMA,
 			object: [
 				'applicationId' => $applicationId,
 				'sourceFilename' => $sourceFilename,
@@ -191,14 +226,22 @@ class LearningRecordImportIntakeService implements LearningRecordImportIntakeSer
 				'sourceRef' => $sourceRef,
 				'lifecycle' => 'uploaded',
 				'tenant_id' => $tenantId,
-			]
+			],
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::SCHEMA))
 		);
 
-		$createdId = $this->extractId(saved: $created);
-		if ($createdId === null) {
-			return null;
-		}
+		return $created;
+	}//end createUploaded()
 
+	/**
+	 * Run the parse transition on a created import and read it back; a failed
+	 * transition is logged and the record returned as it stands.
+	 *
+	 * @param string $createdId The created import's id.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private function parsedImport(string $createdId): array {
 		try {
 			$this->transitionEngine->transition($createdId, 'parse');
 		} catch (\Throwable $e) {
@@ -208,10 +251,10 @@ class LearningRecordImportIntakeService implements LearningRecordImportIntakeSer
 			);
 		}
 
-		$final = $this->objectService->find(id: $createdId, register: self::LEARNIQ_REGISTER, schema: self::SCHEMA);
+		$final = $this->objectService->find(id: $createdId, options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::SCHEMA));
 
 		return $this->toArray(row: $final);
-	}//end createImport()
+	}//end parsedImport()
 
 	/**
 	 * Extract a created object's UUID from an `ObjectService::saveObject()` return value.

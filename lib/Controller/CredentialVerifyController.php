@@ -36,6 +36,7 @@ namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Kernel\Contracts\JwsProofVerifierInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -160,8 +161,7 @@ class CredentialVerifyController extends Controller {
 		try {
 			$credentialObj = $this->objectService->find(
 				id: $id,
-				register: 'learniq',
-				schema: 'credential'
+				options: new ObjectFindOptions(register: 'learniq', schema: 'credential')
 			);
 		} catch (DoesNotExistException | MultipleObjectsReturnedException $notFound) {
 			// Same meaning as `null` below, so the same answer: a guess, and
@@ -216,6 +216,10 @@ class CredentialVerifyController extends Controller {
 			);
 		}
 
+		if (($data['source'] ?? null) === 'migrated') {
+			return $this->migratedVerdict(data: $data, lifecycle: $lifecycle, isExpired: $isExpired);
+		}
+
 		// C1: validate the JWS proof before declaring the credential valid.
 		$tenantId = $data['tenant_id'] ?? '';
 		$jwsValid = $this->validateJwsProof(data: $data, tenantId: $tenantId);
@@ -240,6 +244,39 @@ class CredentialVerifyController extends Controller {
 			]
 		);
 	}//end verdictFor()
+
+	/**
+	 * The answer for a certificate taken over from the previous system.
+	 *
+	 * Learniq did not issue it and holds no signature for it, so there is no
+	 * signature to check: the answer says so, with the old number, the old
+	 * issuer and when it was taken over (credentials-migrate-with-validity
+	 * D2). Who took it over is not shown on this public route.
+	 *
+	 * @param array<string, mixed> $data      The credential data.
+	 * @param mixed                $lifecycle The credential's lifecycle state.
+	 * @param mixed                $isExpired The calculated expiry flag.
+	 *
+	 * @return JSONResponse
+	 *
+	 * @spec openspec/changes/credentials-migrate-with-validity/specs/certification/spec.md#requirement-a-migrated-certificate-keeps-its-dates-and-is-not-signed-as-learniqs-own
+	 */
+	private function migratedVerdict(array $data, mixed $lifecycle, mixed $isExpired): JSONResponse {
+		return new JSONResponse(
+			[
+				'valid' => ($lifecycle === 'issued') && ($isExpired !== true),
+				'issuedAt' => $data['issuedAt'] ?? null,
+				'expiresAt' => $data['expiresAt'] ?? null,
+				'issuerName' => $data['legacyIssuer'] ?? null,
+				'migrated' => true,
+				'issuedByLearniq' => false,
+				'signatureChecked' => false,
+				'legacyNumber' => $data['legacyNumber'] ?? null,
+				'legacyIssuer' => $data['legacyIssuer'] ?? null,
+				'migratedAt' => $data['migratedAt'] ?? null,
+			]
+		);
+	}//end migratedVerdict()
 
 	/**
 	 * Check a Europass file for a credential (credentials-europass-edci-export).
@@ -267,7 +304,7 @@ class CredentialVerifyController extends Controller {
 		}
 
 		try {
-			$credentialObj = $this->objectService->find(id: $id, register: 'learniq', schema: 'credential');
+			$credentialObj = $this->objectService->find(id: $id, options: new ObjectFindOptions(register: 'learniq', schema: 'credential'));
 		} catch (DoesNotExistException | MultipleObjectsReturnedException) {
 			$credentialObj = null;
 		}

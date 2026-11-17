@@ -29,7 +29,7 @@ use DateTimeInterface;
 use DateTimeZone;
 use OCA\Learniq\Kernel\Contracts\AppealTermInterface;
 use OCA\OpenRegister\Lifecycle\LifecycleActionContext;
-use OCA\OpenRegister\Lifecycle\LifecycleActionInterface;
+use OCA\OpenRegister\Lifecycle\ContextLifecycleActionInterface;
 
 /**
  * Writes `decidedAt` (server UTC time) and `appealDeadline` (decidedAt plus the
@@ -45,7 +45,7 @@ use OCA\OpenRegister\Lifecycle\LifecycleActionInterface;
  *
  * @spec openspec/specs/exam-board/spec.md#requirement-a-decided-fraudcase-stamps-the-appeal-deadline-from-the-schools-appeal-term
  */
-class FraudCaseAppealDeadlineAction implements LifecycleActionInterface {
+class FraudCaseAppealDeadlineAction implements ContextLifecycleActionInterface {
 
 	/**
 	 * Constructor.

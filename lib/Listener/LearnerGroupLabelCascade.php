@@ -31,6 +31,7 @@ namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\BackgroundJob\LearnerGroupLabelRestampJob;
 use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Listener\Support\SavedObjectChange;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatedEvent;
 use OCA\OpenRegister\Service\Deferral\ListenerDeferralService;
@@ -46,6 +47,8 @@ use Throwable;
  * @spec openspec/specs/portal-contribution/spec.md#requirement-the-guardian-menu-lists-each-child-with-its-group-and-teacher
  */
 class LearnerGroupLabelCascade implements IEventListener {
+
+	use SavedObjectChange;
 
 	private const ENROLMENT_SCHEMA = 'enrolment';
 
@@ -94,7 +97,7 @@ class LearnerGroupLabelCascade implements IEventListener {
 
 		$new = ($entity->getObject() ?? []);
 		$ref = ($new['learnerRef'] ?? null);
-		if (is_string($ref) === false || $ref === '' || ($old !== [] && self::unchanged(old: $old, new: $new) === true)) {
+		if (is_string($ref) === false || $ref === '' || ($old !== [] && self::unchanged(fields: self::WATCHED, old: $old, new: $new) === true)) {
 			return;
 		}
 
@@ -104,37 +107,4 @@ class LearnerGroupLabelCascade implements IEventListener {
 			dedupeKey: 'learner-group-label:' . $ref
 		);
 	}//end handle()
-
-	/**
-	 * The saved object and, for an update, the data before the save.
-	 *
-	 * @param ObjectCreatedEvent|ObjectUpdatedEvent $event The event.
-	 *
-	 * @return array{0: \OCA\OpenRegister\Db\ObjectEntity, 1: array<string, mixed>}
-	 */
-	private static function sides(ObjectCreatedEvent|ObjectUpdatedEvent $event): array {
-		if ($event instanceof ObjectUpdatedEvent === true) {
-			return [$event->getNewObject(), ($event->getOldObject()?->getObject() ?? [])];
-		}
-
-		return [$event->getObject(), []];
-	}//end sides()
-
-	/**
-	 * Whether none of the watched fields moved.
-	 *
-	 * @param array<string, mixed> $old The enrolment before the save.
-	 * @param array<string, mixed> $new The enrolment after the save.
-	 *
-	 * @return bool
-	 */
-	private static function unchanged(array $old, array $new): bool {
-		foreach (self::WATCHED as $field) {
-			if (($old[$field] ?? null) !== ($new[$field] ?? null)) {
-				return false;
-			}
-		}
-
-		return true;
-	}//end unchanged()
 }//end class

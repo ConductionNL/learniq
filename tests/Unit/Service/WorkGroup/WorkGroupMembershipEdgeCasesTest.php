@@ -35,6 +35,7 @@ use OCP\IUser;
 use OCP\IUserManager;
 use OCP\Lock\ILockingProvider;
 use PHPUnit\Framework\TestCase;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 
 /**
  * The open/closed rule, the overview and the repeated join, over the real reader.
@@ -88,7 +89,11 @@ class WorkGroupMembershipEdgeCasesTest extends TestCase {
 			))
 		);
 		$objects->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null): ObjectEntity {
+			function (int|string $id, ?ObjectFindOptions $options = null): ObjectEntity {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				foreach (($this->rows[(string)$schema] ?? []) as $row) {
 					if ($row['id'] === $id) {
 						return OrEntityFactory::make($row, (string)$schema);

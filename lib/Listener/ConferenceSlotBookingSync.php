@@ -55,6 +55,9 @@ use OCA\Learniq\Service\ConferenceBookingMode;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectUpdatedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -321,9 +324,10 @@ class ConferenceSlotBookingSync implements IEventListener {
 		unset($signup['@self'], $signup['id']);
 		$this->objectService->saveObject(
 			object: $signup,
-			register: self::REGISTER,
-			schema: self::SIGNUP_SCHEMA,
-			uuid: $signupId,
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::REGISTER, schema: self::SIGNUP_SCHEMA),
+				uuid: $signupId
+			),
 			_rbac: false,
 			_multitenancy: false
 		);
@@ -341,8 +345,7 @@ class ConferenceSlotBookingSync implements IEventListener {
 		$free['lifecycle'] = 'free';
 		$this->objectService->saveObject(
 			object: $free,
-			register: self::REGISTER,
-			schema: self::SLOT_SCHEMA,
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: self::SLOT_SCHEMA)),
 			_rbac: false,
 			_multitenancy: false
 		);
@@ -430,7 +433,12 @@ class ConferenceSlotBookingSync implements IEventListener {
 			return null;
 		}
 
-		$object = $this->objectService->find(id: $id, register: self::REGISTER, schema: $schema, _rbac: false, _multitenancy: false);
+		$object = $this->objectService->find(
+			id: $id,
+			options: new ObjectFindOptions(register: self::REGISTER, schema: $schema),
+			_rbac: false,
+			_multitenancy: false
+		);
 		if ($object === null) {
 			return null;
 		}

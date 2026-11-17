@@ -43,6 +43,8 @@ use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\Learniq\Kernel\Contracts\ReportSubjectGradeRowsInterface;
 use OCA\Learniq\Support\EntityRow;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
@@ -157,30 +159,17 @@ class ReportCardPublishHandler implements IEventListener {
 		$tenantId = (string)($reportCard['tenant_id'] ?? '');
 		$visibleFrom = $this->timeFactory->getDateTime()->format(\DATE_ATOM);
 
-		$notifiedCount = 0;
-
-		foreach ($profile['parentIds'] as $parentId) {
-			if (empty($parentId) === true) {
-				continue;
-			}
-
-			$this->objectService->saveObject(
-				register: self::LEARNIQ_REGISTER,
-				schema: self::REPORT_CARD_PARENT_NOTIFICATION_SCHEMA,
-				object: [
-					'event' => 'reportCardPublished',
-					'recipient' => $parentId,
-					'sourceId' => $reportCardId,
-					'learnerId' => $learnerId,
-					'learnerRef' => $learnerRef,
-					'idempotencyKey' => $reportCardId . '-parent-' . $parentId,
-					'visibleFrom' => $visibleFrom,
-					'subject' => $subject,
-					'tenant_id' => $tenantId,
-				]
-			);
-			$notifiedCount++;
-		}//end foreach
+		$notifiedCount = $this->notifyParents(
+			parentIds: $profile['parentIds'],
+			notice: [
+				'sourceId' => $reportCardId,
+				'learnerId' => $learnerId,
+				'learnerRef' => $learnerRef,
+				'visibleFrom' => $visibleFrom,
+				'subject' => $subject,
+				'tenant_id' => $tenantId,
+			]
+		);
 
 		$this->logger->info(
 			'[ReportCardPublishHandler] ReportCard {id} published — {count} parent notification(s) created.',
@@ -188,6 +177,49 @@ class ReportCardPublishHandler implements IEventListener {
 		);
 
 	}//end fanOutParentNotifications()
+
+	/**
+	 * Create one `ReportCardParentNotification` per non-empty parent id.
+	 *
+	 * @param iterable<mixed>      $parentIds The learner's parent ids.
+	 * @param array<string, mixed> $notice    The fields every parent's notification shares:
+	 *                                        sourceId, learnerId, learnerRef, visibleFrom, subject, tenant_id.
+	 *
+	 * @return integer The number of notifications created.
+	 *
+	 * @spec openspec/specs/report-card/spec.md#scenario-publishing-notifies-the-learner-directly-and-fans-out-to-each-parent
+	 */
+	private function notifyParents(iterable $parentIds, array $notice): int {
+		$notifiedCount = 0;
+
+		foreach ($parentIds as $parentId) {
+			if (empty($parentId) === true) {
+				continue;
+			}
+
+			$this->objectService->saveObject(
+				object: [
+					'event' => 'reportCardPublished',
+					'recipient' => $parentId,
+					'sourceId' => $notice['sourceId'],
+					'learnerId' => $notice['learnerId'],
+					'learnerRef' => $notice['learnerRef'],
+					'idempotencyKey' => $notice['sourceId'] . '-parent-' . $parentId,
+					'visibleFrom' => $notice['visibleFrom'],
+					'subject' => $notice['subject'],
+					'tenant_id' => $notice['tenant_id'],
+				],
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(
+						register: self::LEARNIQ_REGISTER,
+						schema: self::REPORT_CARD_PARENT_NOTIFICATION_SCHEMA
+					))
+			);
+			$notifiedCount++;
+		}//end foreach
+
+		return $notifiedCount;
+
+	}//end notifyParents()
 
 	/**
 	 * The learner's LearnerProfile when it lists at least one parent, else null.

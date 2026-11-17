@@ -38,6 +38,8 @@ use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\Learniq\Kernel\Contracts\ReportCardPdfAttacherInterface;
 use OCA\Learniq\Kernel\Contracts\ReportCardPdfDelegationServiceInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -109,9 +111,10 @@ class ReportCardPdfTransitionListener implements IEventListener {
 
 		$saved = $this->objectService->saveObject(
 			object: $this->pdfService->render(reportCard: $entity->getObject()),
-			register: self::LEARNIQ_REGISTER,
-			schema: self::REPORT_CARD_SCHEMA,
-			uuid: $entity->getUuid()
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::REPORT_CARD_SCHEMA),
+				uuid: $entity->getUuid()
+			)
 		);
 
 		// A successful render puts the PDF on the card, where the guardian's download reads it (D2).

@@ -237,6 +237,11 @@
 				"id": "teacher-cohorts",
 				"title": "My cohorts",
 				"type": "custom"
+			},
+			{
+				"id": "teacher-course-day-parts",
+				"title": "Attendance per part of the day",
+				"type": "custom"
 			}
 		],
 		"layout": [
@@ -289,6 +294,14 @@
 				"gridY": 6,
 				"gridWidth": 6,
 				"gridHeight": 4
+			},
+			{
+				"id": 7,
+				"widgetId": "teacher-course-day-parts",
+				"gridX": 0,
+				"gridY": 10,
+				"gridWidth": 12,
+				"gridHeight": 3
 			}
 		]
 	},
@@ -364,6 +377,11 @@
 				"id": "teacher-cohorts",
 				"title": "My cohorts",
 				"type": "custom"
+			},
+			{
+				"id": "teacher-course-day-parts",
+				"title": "Attendance per part of the day",
+				"type": "custom"
 			}
 		],
 		"layout": [
@@ -416,6 +434,14 @@
 				"gridY": 6,
 				"gridWidth": 6,
 				"gridHeight": 4
+			},
+			{
+				"id": 7,
+				"widgetId": "teacher-course-day-parts",
+				"gridX": 0,
+				"gridY": 10,
+				"gridWidth": 12,
+				"gridHeight": 3
 			}
 		]
 	},
@@ -463,6 +489,11 @@
 				"id": "teacher-cohorts",
 				"title": "My cohorts",
 				"type": "custom"
+			},
+			{
+				"id": "teacher-course-day-parts",
+				"title": "Attendance per part of the day",
+				"type": "custom"
 			}
 		],
 		"layout": [
@@ -515,6 +546,14 @@
 				"gridY": 6,
 				"gridWidth": 6,
 				"gridHeight": 4
+			},
+			{
+				"id": 7,
+				"widgetId": "teacher-course-day-parts",
+				"gridX": 0,
+				"gridY": 10,
+				"gridWidth": 12,
+				"gridHeight": 3
 			}
 		]
 	},
@@ -907,6 +946,52 @@
 			"id": "rule-coverage",
 			"title": "Coverage per rule",
 			"type": "custom"
+		},
+		{
+			"id": "out-of-scope",
+			"title": "No longer in scope",
+			"type": "object-table",
+			"content": {
+				"source": {
+					"register": "learniq",
+					"schema": "enrolment",
+					"filter": {
+						"outOfScopeSince": {
+							"isnull": false
+						}
+					},
+					"order": {
+						"outOfScopeSince": "desc"
+					},
+					"limit": 20
+				},
+				"columns": [
+					{
+						"key": "learnerName",
+						"label": "Learner"
+					},
+					{
+						"key": "courseName",
+						"label": "Course"
+					},
+					{
+						"key": "regulationSlug",
+						"label": "Regulation"
+					},
+					{
+						"key": "dueDate",
+						"label": "Deadline",
+						"format": "date"
+					},
+					{
+						"key": "outOfScopeSince",
+						"label": "Out of scope since",
+						"format": "date"
+					}
+				],
+				"rowRoute": "EnrolmentDetail",
+				"emptyText": "No mandatory enrolment has fallen out of scope."
+			}
 		}
 	],
 	"complianceLayout": [
@@ -951,6 +1036,15 @@
 			"widgetId": "rule-coverage",
 			"gridX": 0,
 			"gridY": 10,
+			"gridWidth": 12,
+			"gridHeight": 6,
+			"showTitle": true
+		},
+		{
+			"id": 6,
+			"widgetId": "out-of-scope",
+			"gridX": 0,
+			"gridY": 16,
 			"gridWidth": 12,
 			"gridHeight": 6,
 			"showTitle": true
