@@ -237,6 +237,112 @@ class RollCallReader {
 	}//end reportsOn()
 
 	/**
+	 * The allowed leave requests that cover a day, keyed by pupil, in the
+	 * shape of an approved absence report: allowed leave reads in the register
+	 * as an absence with permission, the way an approved report does.
+	 *
+	 * @param array<int, string> $learnerIds The pupils.
+	 * @param string             $date       The day, `Y-m-d`.
+	 *
+	 * @return array<string, array<string, mixed>>
+	 *
+	 * @spec openspec/changes/leave-requests-decided-by-the-school/tasks.md
+	 */
+	public function allowedLeaveOn(array $learnerIds, string $date): array {
+		if ($learnerIds === []) {
+			return [];
+		}
+
+		$byProfile = [];
+		foreach ($this->profilesOf(learnerIds: $learnerIds) as $learnerId => $profile) {
+			$profileId = $this->idOf(row: $profile);
+			if ($profileId !== '') {
+				$byProfile[$profileId] = (string)$learnerId;
+			}
+		}
+
+		if ($byProfile === []) {
+			return [];
+		}
+
+		$leave = [];
+		$filters = ['learnerRef' => array_keys($byProfile), 'lifecycle' => 'allowed'];
+		foreach ($this->rows(schema: 'leave-request', filters: $filters, limit: self::MAX_ROWS) as $row) {
+			$learnerId = ($byProfile[(string)($row['learnerRef'] ?? '')] ?? null);
+			if ($learnerId === null || ($row['lifecycle'] ?? null) !== 'allowed' || self::spans(row: $row, date: $date) === false) {
+				continue;
+			}
+
+			$leave[$learnerId] ??= self::leaveAsReport(row: $row, learnerId: $learnerId);
+		}
+
+		return $leave;
+	}//end allowedLeaveOn()
+
+	/**
+	 * The reports of a day with allowed leave added; an approved report of a pupil stays.
+	 *
+	 * @param array<string, array<string, mixed>> $reports The absence reports, keyed by pupil.
+	 * @param array<string, array<string, mixed>> $leave   The allowed leave, keyed by pupil.
+	 *
+	 * @return array<string, array<string, mixed>>
+	 *
+	 * @spec openspec/changes/leave-requests-decided-by-the-school/tasks.md
+	 */
+	public static function withLeave(array $reports, array $leave): array {
+		foreach ($leave as $learnerId => $report) {
+			if (($reports[$learnerId]['lifecycle'] ?? '') !== 'approved') {
+				$reports[$learnerId] = $report;
+			}
+		}
+
+		return $reports;
+	}//end withLeave()
+
+	/**
+	 * An allowed leave request as an approved absence report.
+	 *
+	 * @param array<string, mixed> $row       The leave request.
+	 * @param string               $learnerId The pupil.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private static function leaveAsReport(array $row, string $learnerId): array {
+		$reasonKind = match ($row['kind'] ?? null) {
+			'wedding', 'family-circumstance' => 'family-circumstance',
+			'funeral' => 'bereavement',
+			'religious-observance' => 'religious-observance',
+			default => 'other',
+		};
+
+		return [
+			'id' => (string)($row['id'] ?? ''),
+			'learnerId' => $learnerId,
+			'lifecycle' => 'approved',
+			'reasonKind' => $reasonKind,
+			'reason' => (string)($row['reason'] ?? ''),
+			'dateFrom' => substr((string)($row['dateFrom'] ?? ''), 0, 10),
+			'dateTo' => substr((string)($row['dateTo'] ?? ''), 0, 10),
+			'leaveRequestId' => (string)($row['id'] ?? ''),
+		];
+	}//end leaveAsReport()
+
+	/**
+	 * Whether a row's date range holds a day.
+	 *
+	 * @param array<string, mixed> $row  The row with `dateFrom` and `dateTo`.
+	 * @param string               $date The day, `Y-m-d`.
+	 *
+	 * @return bool
+	 */
+	private static function spans(array $row, string $date): bool {
+		$from = substr((string)($row['dateFrom'] ?? ''), 0, 10);
+		$to = substr((string)($row['dateTo'] ?? ''), 0, 10);
+
+		return $from !== '' && $to !== '' && $date >= $from && $date <= $to;
+	}//end spans()
+
+	/**
 	 * The pupils' absence reports that are approved or still open.
 	 *
 	 * @param array<int, string> $learnerIds The pupils.
