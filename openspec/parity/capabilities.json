@@ -1388,17 +1388,18 @@
       "area": "compliance",
       "name": "Stop anyone editing a signed attestation afterwards.",
       "built": {
-        "state": "building",
-        "evidence": "lib/Settings/learniq_register.json Attestation is no longer appendOnly (learniq#977): appendOnly refused the sign transition itself, so nothing was ever signed. lib/Lifecycle/AttestationSigningGuard.php HMAC signature plus signingKeyId makes an edit after signing detectable; nothing refuses it yet, since hr and compliance-officers keep update for revoke",
+        "state": "built",
+        "evidence": "lib/Listener/AttestationFreezeListener.php refuses a change to any evidence field of a signed or revoked Attestation, administrators included; lib/Lifecycle/AttestationRevocationGuard.php requires the reason; lib/Lifecycle/Action/StampTransitionTimeAction.php stamps signedAt; tests/e2e/attestation-freeze.spec.ts passed live 2026-11-17",
         "owner": "ConductionNL/openregister",
         "change": "compliance-attestation-locked-after-signing",
-        "requirement": "openspec/changes/compliance-attestation-locked-after-signing/specs/compliance-audit :: A signed attestation cannot be edited"
+        "spec": "openspec/specs/compliance-audit",
+        "requirement": "openspec/specs/compliance-audit :: A signed attestation cannot be edited"
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
       "feature": "compliance-audit",
       "featureConfidence": "high",
-      "learniq": "partial",
+      "learniq": "yes",
       "moodle": "partial",
       "moodle-workplace": "unknown",
       "ilias": "no",

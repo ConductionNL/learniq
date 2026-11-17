@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/compliance-attestation-locked-after-signing/specs/compliance-audit/spec.md#requirement-revoking-a-signed-attestation-records-a-reason-and-changes-nothing-else
+ * @spec openspec/specs/compliance-audit/spec.md#requirement-revoking-a-signed-attestation-records-a-reason-and-changes-nothing-else
  */
 
 declare(strict_types=1);
@@ -35,7 +35,7 @@ use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 /**
  * Requires a non-empty revocationReason on `revoke`.
  *
- * @spec openspec/changes/compliance-attestation-locked-after-signing/specs/compliance-audit/spec.md#requirement-revoking-a-signed-attestation-records-a-reason-and-changes-nothing-else
+ * @spec openspec/specs/compliance-audit/spec.md#requirement-revoking-a-signed-attestation-records-a-reason-and-changes-nothing-else
  */
 class AttestationRevocationGuard implements LifecycleGuardInterface {
 
@@ -55,7 +55,7 @@ class AttestationRevocationGuard implements LifecycleGuardInterface {
 	 *
 	 * @return GuardResult Allow, or deny asking for the reason.
 	 *
-	 * @spec openspec/changes/compliance-attestation-locked-after-signing/specs/compliance-audit/spec.md#requirement-revoking-a-signed-attestation-records-a-reason-and-changes-nothing-else
+	 * @spec openspec/specs/compliance-audit/spec.md#requirement-revoking-a-signed-attestation-records-a-reason-and-changes-nothing-else
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */

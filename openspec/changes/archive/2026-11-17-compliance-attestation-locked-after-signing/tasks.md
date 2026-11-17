@@ -34,5 +34,9 @@
 
 ## 4. Close out
 
-- [ ] 4.1 Playwright: sign an attestation, try an edit as admin (refused), revoke with a reason.
-- [ ] 4.2 Set row `comp-attestation-immutable` to built with the listener as evidence, and archive this change.
+- [x] 4.1 Playwright: sign an attestation, try an edit as admin (refused), revoke with a reason.
+      `tests/e2e/attestation-freeze.spec.ts`, live 17 Nov on a fresh Nextcloud 34.0.6 with OpenRegister 29890847e:
+      a drafted attestation is corrected, signing stamps `signedAt` and a signature, a score change by the
+      compliance officer and a learnerId change by an admin are both refused with the evidence unchanged,
+      revoke without a reason is refused and with one moves to `revoked` keeping the signature. 2 passed.
+- [x] 4.2 Set row `comp-attestation-immutable` to built with the listener as evidence, and archive this change.
