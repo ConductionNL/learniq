@@ -929,6 +929,8 @@ class SchoolYear:
         add_detail_records(self.b, self.pupils, self.subject_courses)
         # attendance-warns-before-the-threshold: added after every other object, so no uuid moves.
         add_nearing_pupils(self.b, self.pupils, self.cohorts)
+        # learner-list-and-page-follow-the-boards: groep 7's Monday on the list board, after every other object.
+        add_group7_today(self.b, self.pupils, self.cohorts)
         stamp_group_labels(self.b)
 
     def assemble(self) -> dict:
@@ -1380,6 +1382,49 @@ def nearing_pupil(b: Builder, pupils: list[dict], group: dict, person: tuple) ->
         "inschrijvingDate": "2019-11-04", "volgnummer": int(nc[-3:]), "locationId": group["locationId"], "leerjaar": 7,
     })
     return nc, profile["uuid"]
+
+
+# learner-list-and-page-follow-the-boards (board wilgenboom/LqLijst): groep 7 on Monday 5 October 2026. Per pupil:
+# given name, family name, birth date, guardian's given name, the report the guardian made this morning (reason,
+# reasonKind, when) and the teacher's roll-call mark (absenceReasonKind, minutes in class today).
+GROUP7_TODAY = [
+    ("Lina", "Kievitlaan", "2016-01-19", "Samira", ("Tandarts tot 11.30 uur", "medical-appointment", (7, 48)), ("appointment", 165)),
+    ("Hamza", "Elzenhof", "2015-10-07", "Youssef", ("Hamza is ziek", "illness", (7, 55)), ("illness", 0)),
+]
+
+
+def add_group7_today(b: Builder, pupils: list[dict], cohorts: dict) -> None:
+    """Lina at the dentist until 11.30 and Hamza reported ill, so the list of groep 7 reads two absent today.
+
+    Both are new pupils with a guardian who reported them this morning; Daan approved both reports
+    and marked them at the 08.30 roll call. Each gets the summary of 2026-2027 the attendance
+    recount writes from that mark (an excused absence at roll call counts as a day). Added after every other object and
+    with no random numbers, so no existing uuid or value moves.
+    """
+    group = cohorts["Groep 7"]
+    lesson = next(s for s in b.buckets["session"] if s["cohortId"] == group["uuid"] and s["startsAt"][:10] == STORY_TODAY.isoformat())
+    teacher = TEACHERS["Groep 7"][0][0]
+    for given, family, birth, guardian_name, (reason, kind, at), (mark_kind, minutes) in GROUP7_TODAY:
+        nc, ref = nearing_pupil(b, pupils, group, (given, family, birth, guardian_name))
+        profile = next(o for o in b.buckets["learner-profile"] if o["uuid"] == ref)
+        guardian = next(o for o in b.buckets["learner-profile"] if o["uuid"] == profile["guardianRefs"][0])
+        report = b.add("excuse-request", {
+            "learnerId": nc, "learnerRef": ref, "submittedBy": guardian["ncUserId"], "submittedByRef": guardian["uuid"],
+            "dateFrom": STORY_TODAY.isoformat(), "dateTo": STORY_TODAY.isoformat(), "reason": reason, "reasonKind": kind,
+            "submittedAuthLevel": "basic", "decidedBy": teacher, "decidedAt": stamp(STORY_TODAY, 8, 10),
+            "decisionNote": None, "lifecycle": "approved",
+        })
+        b.add("attendance-record", {
+            "sessionId": lesson["uuid"], "learnerId": nc, "learnerRef": ref, "cohortId": group["uuid"],
+            "status": "absent-excused", "minutesAttended": minutes, "markedBy": teacher, "markedAt": stamp(STORY_TODAY, 8, 30),
+            "reason": "Afgemeld door ouder", "excuseRequestId": report["uuid"], "lateMinutes": None, "absenceReasonKind": mark_kind,
+        })
+        b.add("attendance-summary", {
+            "learnerId": nc, "learnerRef": ref, "schoolYear": STORY_YEAR,
+            "absentDays": 1, "absentAuthorisedDays": 1, "absentUnauthorisedDays": 0,
+            "lateCount": 0, "lateMinutes": 0, "updatedAt": stamp(STORY_TODAY, 8, 30), **window_fields(0.0),
+            "teacherIds": sorted(set(group["teacherIds"]) | {a["teacherId"] for a in group["teacherAssignments"]}),
+        })
 
 
 def stamp_group_labels(b: Builder) -> None:
