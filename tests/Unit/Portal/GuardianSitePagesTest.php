@@ -627,12 +627,16 @@ class GuardianSitePagesTest extends TestCase {
 		$overview = $pages['eaOverview'];
 
 		self::assertTrue($overview['home']);
-		self::assertSame(['collection', 'inbox'], array_column($overview['blocks'], 'type'));
-		self::assertSame(['field' => 'expiresAt', 'direction' => 'desc'], $overview['blocks'][0]['sort']);
-		self::assertSame(expected: 'Shared with you', actual: $overview['blocks'][0]['label']);
-		self::assertSame(['eaOverview', 'eaSharedPortfolios', 'eaSharedPortfolioEntries', 'eaWholePortfolioEntries', 'eaShare'], array_keys($pages));
-		// The menu is Overzicht and Gedeeld met mij; the entries and a share's own page stay out of it.
+		// His exams first, earliest first (practical-exam-assessment), then the shares.
+		self::assertSame(['collection', 'collection', 'inbox'], array_column($overview['blocks'], 'type'));
+		self::assertSame(['eaExams', 'eaSharedPortfolios'], array_column(array_slice($overview['blocks'], 0, 2), 'collection'));
+		self::assertSame(['field' => 'sittingStartsAt', 'direction' => 'asc'], $overview['blocks'][0]['sort']);
+		self::assertSame(['field' => 'expiresAt', 'direction' => 'desc'], $overview['blocks'][1]['sort']);
+		self::assertSame(expected: 'Shared with you', actual: $overview['blocks'][1]['label']);
+		self::assertSame(['eaOverview', 'eaSharedPortfolios', 'eaSharedPortfolioEntries', 'eaWholePortfolioEntries', 'eaExams', 'eaShare'], array_keys($pages));
+		// The menu is Overzicht, Gedeeld met mij and his exams; the entries and a share's own page stay out of it.
 		self::assertArrayNotHasKey('menu', $pages['eaSharedPortfolios']);
+		self::assertArrayNotHasKey('menu', $pages['eaExams']);
 		self::assertFalse($pages['eaSharedPortfolioEntries']['menu']);
 		self::assertFalse($pages['eaWholePortfolioEntries']['menu']);
 		self::assertFalse($pages['eaShare']['menu']);
@@ -644,9 +648,10 @@ class GuardianSitePagesTest extends TestCase {
 
 		// The sort field is projected, or portaliq drops the sort.
 		self::assertSame(['Candidate', 'Portfolio', 'Access until'], array_column($shares['columns'], 'label'));
-		// Only an active grant resolves, and the audience stays read-only.
+		// Only an active grant resolves, and the audience stays read-only apart
+		// from the assessment he is assigned to (practical-exam-assessment).
 		self::assertSame(['lifecycle' => 'active'], $shares['filter']);
-		self::assertSame([], $manifest['actions']);
+		self::assertSame(['assessPracticalExam'], array_column($manifest['actions'], 'id'));
 	}//end testTheAssessorOverviewNamesCandidates()
 
 	/**

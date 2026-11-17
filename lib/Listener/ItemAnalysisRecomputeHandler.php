@@ -156,6 +156,20 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 		}
 
 		$result = $event->getObject()->jsonSerialize();
+		$this->recomputeFor(result: $result);
+	}//end handle()
+
+	/**
+	 * Recompute the item statistics and the reliability of the result's
+	 * assessment; a result without an assessment owes none.
+	 *
+	 * @param array<string,mixed> $result The AssessmentResult just graded.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/assessment/spec.md#requirement-per-item-statistics-are-computed-from-graded-results-gated-by-a-minimum-sample-size
+	 */
+	private function recomputeFor(array $result): void {
 		$assessmentId = $result['assessmentId'] ?? null;
 
 		if ($assessmentId === null) {
@@ -174,8 +188,7 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 
 		$reliability = $this->itemAnalysisService->computeReliability(assessmentId: $assessmentId);
 		$this->upsertAssessmentReliability(assessmentId: $assessmentId, tenantId: $tenantId, reliability: $reliability);
-
-	}//end handle()
+	}//end recomputeFor()
 
 	/**
 	 * Collect every distinct itemId referenced across a set of

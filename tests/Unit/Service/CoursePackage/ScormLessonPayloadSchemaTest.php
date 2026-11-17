@@ -54,6 +54,7 @@ use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
  */
 #[CoversClass(ScormCourseImporter::class)]
 #[UsesClass(CoursePackageObjectWriter::class)]
+#[UsesClass(\OCA\Learniq\Service\CoursePackage\CourseMetadataFilter::class)]
 #[UsesClass(ScormManifestParser::class)]
 #[UsesClass(ScormPackageUnpacker::class)]
 #[UsesClass(FolderFileWriter::class)]

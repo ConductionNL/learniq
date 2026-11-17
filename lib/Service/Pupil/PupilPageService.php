@@ -29,6 +29,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service\Pupil;
 
 use DateTimeImmutable;
+use OCA\Learniq\Kernel\Contracts\PupilPageServiceInterface;
 use OCA\Learniq\Service\Attendance\RollCallAccess;
 use OCA\Learniq\Service\Attendance\RollCallException;
 use OCA\Learniq\Service\Attendance\TodayState;
@@ -43,7 +44,7 @@ use OCP\IUserManager;
  *
  * @spec openspec/changes/learner-list-and-page-follow-the-boards/specs/pupil-dossier/spec.md#requirement-the-pupils-page-opens-with-a-header-one-next-step-and-the-people-around-the-pupil
  */
-class PupilPageService {
+class PupilPageService implements PupilPageServiceInterface {
 
 	public const NOT_FOUND = 404;
 

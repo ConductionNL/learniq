@@ -108,6 +108,21 @@ class CorrectionAppliedHandler implements IEventListener {
 		$entry     = $event->getObject()->jsonSerialize();
 		$publisher = (string)($event->getUserId() ?? '');
 		$request   = $this->approvals->approvedFor(entry: $entry, publisher: $publisher);
+		$this->markApprovedApplied(request: $request, entry: $entry);
+	}//end handle()
+
+	/**
+	 * Mark the approved correction request applied, when there is one; a failure
+	 * is logged for the admin, the grade stays published.
+	 *
+	 * @param ?array              $request The approved correction request for the entry, or null without one.
+	 * @param array<string,mixed> $entry   The published grade entry.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#scenario-a-second-person-approves-a-correction
+	 */
+	private function markApprovedApplied(?array $request, array $entry): void {
 		if ($request === null) {
 			return;
 		}
@@ -123,7 +138,7 @@ class CorrectionAppliedHandler implements IEventListener {
 				['request' => $request['id'] ?? '', 'entry' => $entry['id'] ?? '', 'error' => $e->getMessage()]
 			);
 		}
-	}//end handle()
+	}//end markApprovedApplied()
 
 	/**
 	 * Move the request to applied through its `apply` transition.

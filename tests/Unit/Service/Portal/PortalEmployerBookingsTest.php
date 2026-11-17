@@ -28,6 +28,7 @@ use OCA\Learniq\Service\Portal\EmployerBookingProjection;
 use OCA\Learniq\Service\Portal\PortalEmployerBookings;
 use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
 use OCA\OpenRegister\Service\ObjectService;
+use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IUserManager;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
@@ -84,7 +85,10 @@ class PortalEmployerBookingsTest extends TestCase {
 			fn (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()): object => $this->store->save((string)($options->target->schema), $object, ($options->uuid), false)
 		);
 
-		$projection = new EmployerBookingProjection(objectService: $objectService, users: $this->createMock(IUserManager::class));
+		// A fixed day before the edition, so the booking stays coming whatever the date the suite runs on.
+		$time = $this->createMock(ITimeFactory::class);
+		$time->method('now')->willReturn(new \DateTimeImmutable('2026-10-09 09:00', new \DateTimeZone('Europe/Amsterdam')));
+		$projection = new EmployerBookingProjection(objectService: $objectService, users: $this->createMock(IUserManager::class), time: $time);
 
 		return new PortalEmployerBookings(objectService: $objectService, projection: $projection, logger: new NullLogger());
 	}//end bookings()
