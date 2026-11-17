@@ -104,6 +104,7 @@ class HourPlanRegisterTest extends TestCase {
 		$cohort = $this->schemas['Cohort'];
 
 		// 0.6.0: the class roster sync fields (enrolment-sync-classes-from-student-administration);
+		// 0.5.1: the optional substituteUntil (employer-substitutes-a-colleague);
 		// 0.5.0: the manual status move and the course day log, 0.4.0: minimum, decision and
 		// course day status (training-provider-course-days); 0.3.0 the optional capacity
 		// (board-data-the-schemas-lacked); programmeYear came with 0.2.0.
