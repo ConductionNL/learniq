@@ -38,6 +38,7 @@ use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectDeletedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\Deferral\DeferredListenerContext;
 use OCA\OpenRegister\Service\Deferral\ListenerDeferralService;
 use OCA\OpenRegister\Service\ObjectService;
@@ -112,7 +113,7 @@ class NonCommercialWithholdingTest extends TestCase {
 			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $this->store->findAll($config, $_rbac, $_multitenancy)
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			fn (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null) => $this->store->save((string)$schema, $object, $uuid)
+			fn (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) => $this->store->save((string)$options->target->schema, $object, $options->uuid)
 		);
 
 		return new NonCommercialWithholding(
@@ -255,12 +256,12 @@ class NonCommercialWithholdingTest extends TestCase {
 			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $this->store->findAll($config, $_rbac, $_multitenancy)
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null) {
-				if ($uuid === 'material-broken') {
+			function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) {
+				if ($options->uuid === 'material-broken') {
 					throw new RuntimeException('locked');
 				}
 
-				return $this->store->save((string)$schema, $object, $uuid);
+				return $this->store->save((string)$options->target->schema, $object, $options->uuid);
 			}
 		);
 		$withholding = new NonCommercialWithholding(

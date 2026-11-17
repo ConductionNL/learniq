@@ -29,6 +29,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service\OpenMaterial;
 
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -152,9 +154,10 @@ class NonCommercialWithholding {
 		try {
 			$this->objectService->saveObject(
 				object: $object,
-				register: AppIdentity::APP_ID,
-				schema: self::MATERIAL_SCHEMA,
-				uuid: $uuid,
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: AppIdentity::APP_ID, schema: self::MATERIAL_SCHEMA),
+					uuid: $uuid
+				),
 				_rbac: false,
 				_multitenancy: false
 			);
