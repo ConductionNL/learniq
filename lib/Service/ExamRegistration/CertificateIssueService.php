@@ -27,8 +27,6 @@ namespace OCA\Learniq\Service\ExamRegistration;
 
 use DateTimeImmutable;
 use OCA\Learniq\Kernel\Contracts\CertificateIssueServiceInterface;
-use OCA\Learniq\Kernel\Contracts\CredentialSigningServiceInterface;
-use OCA\Learniq\Kernel\Contracts\EuropassIssuerInterface;
 use OCA\Learniq\Service\CourseDay\CourseDayException;
 use OCA\Learniq\Service\CourseDay\CourseDayRows;
 use OCA\Learniq\Service\CourseDay\CourseDayStatus;
@@ -76,8 +74,7 @@ class CertificateIssueService implements CertificateIssueServiceInterface {
 	 *
 	 * @param ObjectService                     $objectService The OpenRegister object service.
 	 * @param ITimeFactory                      $time          The clock.
-	 * @param CredentialSigningServiceInterface $signing       Signs each certificate before it is saved.
-	 * @param EuropassIssuerInterface           $europass      Adds the signed Europass form.
+	 * @param CertificateSigners                $signers       Signs each certificate and adds its Europass form.
 	 * @param LoggerInterface                   $logger        Records a certificate that could not be signed.
 	 *
 	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-the-certificates-of-a-finished-course-day-are-issued-in-one-action
@@ -85,8 +82,7 @@ class CertificateIssueService implements CertificateIssueServiceInterface {
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly ITimeFactory $time,
-		private readonly CredentialSigningServiceInterface $signing,
-		private readonly EuropassIssuerInterface $europass,
+		private readonly CertificateSigners $signers,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
@@ -330,7 +326,7 @@ class CertificateIssueService implements CertificateIssueServiceInterface {
 			'tenant_id' => $tenantId,
 		];
 
-		$signed = $this->signing->sign(credential: $credential);
+		$signed = $this->signers->signing->sign(credential: $credential);
 		if ($signed === null) {
 			$this->logger->error(
 				'[CertificateIssueService] No certificate issued for enrolment {enrolment}: it could not be signed.',
@@ -339,7 +335,7 @@ class CertificateIssueService implements CertificateIssueServiceInterface {
 			return null;
 		}
 
-		$signed = $this->europass->withEuropass(credential: $signed);
+		$signed = $this->signers->europass->withEuropass(credential: $signed);
 		$id     = (string)($signed['id'] ?? '');
 		$uuid   = null;
 		if ($id !== '') {

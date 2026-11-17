@@ -24,6 +24,7 @@ use OCA\Learniq\Kernel\Contracts\CredentialSigningServiceInterface;
 use OCA\Learniq\Kernel\Contracts\EuropassIssuerInterface;
 use OCA\Learniq\Service\CourseDay\CourseDayException;
 use OCA\Learniq\Service\ExamRegistration\CertificateIssueService;
+use OCA\Learniq\Service\ExamRegistration\CertificateSigners;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
@@ -130,7 +131,7 @@ class CertificateIssueServiceTest extends TestCase {
 		$time = $this->createMock(ITimeFactory::class);
 		$time->method('getDateTime')->willReturnCallback(static fn (): DateTime => new DateTime('2026-10-12T10:00:00+02:00'));
 
-		return new CertificateIssueService(objectService: $objects, time: $time, signing: $signing, europass: $europass, logger: $this->createMock(LoggerInterface::class));
+		return new CertificateIssueService(objectService: $objects, time: $time, signers: new CertificateSigners(signing: $signing, europass: $europass), logger: $this->createMock(LoggerInterface::class));
 	}//end service()
 
 	/**

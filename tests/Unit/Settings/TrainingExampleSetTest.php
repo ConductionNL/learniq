@@ -924,9 +924,7 @@ class TrainingExampleSetTest extends TestCase {
 				enrolment: array_merge($enrolment, ['id' => $enrolment['uuid']]),
 				profile: array_merge($profiles[$line['learnerRef']], ['id' => $line['learnerRef']]),
 				organisation: array_merge($companies[$line['organisationRef']], ['id' => $line['organisationRef']]),
-				required: ExamRegistrationLines::required(required: $list['requiredFields']),
-				previous: $line,
-				now: '2026-10-05T07:45:00+02:00'
+				state: ['required' => ExamRegistrationLines::required(required: $list['requiredFields']), 'previous' => $line, 'now' => '2026-10-05T07:45:00+02:00']
 			);
 			self::assertSame($expected, $line, $line['learnerName']);
 		}

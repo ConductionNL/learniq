@@ -117,14 +117,6 @@ export default {
 
 	computed: {
 		/**
-		 * @return {string} The reader's language.
-		 * @spec exclude Presentation-only locale lookup.
-		 */
-		locale() {
-			return getLanguage() || 'en'
-		},
-
-		/**
 		 * The registration list that asks for attention first.
 		 *
 		 * @return {object|null} The card.
@@ -132,6 +124,14 @@ export default {
 		 */
 		card() {
 			return registrationCard(this.today)
+		},
+
+		/**
+		 * @return {string} The reader's language.
+		 * @spec exclude Presentation-only locale lookup.
+		 */
+		locale() {
+			return getLanguage() || 'en'
 		},
 
 		/**

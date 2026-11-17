@@ -26,6 +26,7 @@ use OCA\Learniq\Kernel\Contracts\ExamRegistrationServiceInterface;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\CallerActions;
 use OCA\Learniq\Service\CourseDay\CourseDayException;
+use OCA\Learniq\Service\ExamRegistration\ExamRegistrationServices;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\DataDownloadResponse;
 use OCP\AppFramework\OCS\OCSForbiddenException;
@@ -75,9 +76,7 @@ class ExamRegistrationControllerTest extends TestCase {
 		return new ExamRegistrationController(
 			request: $request,
 			caller: new CallerActions(userSession: $session, actionAuth: $auth),
-			lists: $this->lists,
-			certificates: $this->certificates,
-			today: $this->today,
+			services: new ExamRegistrationServices(lists: $this->lists, certificates: $this->certificates, today: $this->today),
 			logger: $this->createMock(LoggerInterface::class)
 		);
 	}//end controller()
@@ -85,7 +84,7 @@ class ExamRegistrationControllerTest extends TestCase {
 	public function testTheAdministrationOpensAListWithTheBodysFields(): void {
 		$controller = $this->controller(params: ['requiredFields' => ['birthDate', 'fullName']]);
 		$this->lists->expects($this->once())->method('open')
-			->with('c-8', 'Examenbureau', '2026-10-07T12:00:00+02:00', null, ['birthDate', 'fullName'])
+			->with('c-8', ['bodyName' => 'Examenbureau', 'closesAt' => '2026-10-07T12:00:00+02:00', 'examDate' => null, 'requiredFields' => ['birthDate', 'fullName']])
 			->willReturn(['id' => 'l-8', 'lifecycle' => 'open']);
 
 		$response = $controller->open(cohortId: 'c-8', bodyName: 'Examenbureau', closesAt: '2026-10-07T12:00:00+02:00');

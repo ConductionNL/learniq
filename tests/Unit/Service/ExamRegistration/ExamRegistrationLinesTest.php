@@ -47,9 +47,7 @@ class ExamRegistrationLinesTest extends TestCase {
 			enrolment: ['id' => 'e-youssef', 'openTask' => self::TASK],
 			profile: self::YOUSSEF,
 			organisation: self::JANSEN,
-			required: ExamRegistrationLines::DEFAULT_REQUIRED,
-			previous: null,
-			now: '2026-10-05T07:30:00+02:00'
+			state: ['required' => ExamRegistrationLines::DEFAULT_REQUIRED, 'previous' => null, 'now' => '2026-10-05T07:30:00+02:00']
 		);
 
 		self::assertSame(['birthDate'], $line['missing']);
@@ -66,9 +64,7 @@ class ExamRegistrationLinesTest extends TestCase {
 			enrolment: ['id' => 'e-youssef', 'openTask' => self::TASK],
 			profile: self::YOUSSEF,
 			organisation: self::JANSEN,
-			required: ExamRegistrationLines::DEFAULT_REQUIRED,
-			previous: array_merge($line, ['result' => 'pass']),
-			now: '2026-10-06T10:00:00+02:00'
+			state: ['required' => ExamRegistrationLines::DEFAULT_REQUIRED, 'previous' => array_merge($line, ['result' => 'pass']), 'now' => '2026-10-06T10:00:00+02:00']
 		);
 		self::assertSame('2026-10-05T07:30:00+02:00', $again['employerNotifiedAt']);
 		self::assertSame('pass', $again['result']);
@@ -79,9 +75,7 @@ class ExamRegistrationLinesTest extends TestCase {
 			enrolment: ['id' => 'e-1', 'openTask' => self::TASK],
 			profile: array_merge(self::YOUSSEF, ['birthDate' => '1998-03-04']),
 			organisation: self::JANSEN,
-			required: ExamRegistrationLines::DEFAULT_REQUIRED,
-			previous: ['employerNotifiedAt' => '2026-10-05T07:30:00+02:00'],
-			now: '2026-10-06T10:00:00+02:00'
+			state: ['required' => ExamRegistrationLines::DEFAULT_REQUIRED, 'previous' => ['employerNotifiedAt' => '2026-10-05T07:30:00+02:00'], 'now' => '2026-10-06T10:00:00+02:00']
 		);
 		self::assertTrue($complete['complete']);
 		self::assertSame([], $complete['missing']);
@@ -92,9 +86,7 @@ class ExamRegistrationLinesTest extends TestCase {
 			enrolment: ['id' => 'e-2', 'learnerName' => 'Kim'],
 			profile: ['givenName' => 'Kim'],
 			organisation: [],
-			required: ['fullName', 'birthDate'],
-			previous: null,
-			now: '2026-10-06T10:00:00+02:00'
+			state: ['required' => ['fullName', 'birthDate'], 'previous' => null, 'now' => '2026-10-06T10:00:00+02:00']
 		);
 		self::assertSame(['fullName', 'birthDate'], $alone['missing'], 'a name needs both parts');
 		self::assertSame('Kim', $alone['learnerName']);

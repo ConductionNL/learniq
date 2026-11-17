@@ -74,11 +74,11 @@ class ExamRegistrationService implements ExamRegistrationServiceInterface {
 	/**
 	 * Open a registration list for a course day's exam with a body.
 	 *
-	 * @param string       $cohortId       The course day.
-	 * @param string       $bodyName       The examining body.
-	 * @param string       $closesAt       The moment the list closes (ISO 8601).
-	 * @param string|null  $examDate       The exam date (Y-m-d), when known.
-	 * @param list<string> $requiredFields The fields the body requires, in its column order; [] for the default.
+	 * @param string               $cohortId The course day.
+	 * @param array<string, mixed> $exam     The exam: `bodyName` (the examining body), `closesAt` (the
+	 *                                       moment the list closes, ISO 8601), `examDate` (Y-m-d, or null
+	 *                                       when not known) and `requiredFields` (the fields the body
+	 *                                       requires, in its column order; [] for the default).
 	 *
 	 * @return array<string, mixed> The list as {@see self::view()} reads it.
 	 *
@@ -87,7 +87,12 @@ class ExamRegistrationService implements ExamRegistrationServiceInterface {
 	 *
 	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
 	 */
-	public function open(string $cohortId, string $bodyName, string $closesAt, ?string $examDate, array $requiredFields): array {
+	public function open(string $cohortId, array $exam): array {
+		$bodyName       = (string)($exam['bodyName'] ?? '');
+		$closesAt       = (string)($exam['closesAt'] ?? '');
+		$examDate       = ($exam['examDate'] ?? null);
+		$requiredFields = array_values(array_map('strval', (array)($exam['requiredFields'] ?? [])));
+
 		$cohort = $this->one(schema: 'cohort', id: $cohortId);
 		if ($cohort === null || (string)($cohort['courseId'] ?? '') === '') {
 			throw new CourseDayException(message: 'This is not a course day.', status: 404);
@@ -416,9 +421,7 @@ class ExamRegistrationService implements ExamRegistrationServiceInterface {
 				enrolment: $enrolment,
 				profile: $profile,
 				organisation: $organisation,
-				required: $required,
-				previous: ($previous[self::idOf(row: $enrolment)] ?? null),
-				now: $this->now()
+				state: ['required' => $required, 'previous' => ($previous[self::idOf(row: $enrolment)] ?? null), 'now' => $this->now()]
 			);
 		}
 

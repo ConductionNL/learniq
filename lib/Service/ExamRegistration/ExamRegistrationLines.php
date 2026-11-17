@@ -145,15 +145,22 @@ final class ExamRegistrationLines {
 	 * @param array<string, mixed>      $enrolment    The enrolment.
 	 * @param array<string, mixed>      $profile      The learner profile ([] when unknown).
 	 * @param array<string, mixed>      $organisation The employer ([] when none).
-	 * @param list<string>              $required     The required fields.
-	 * @param array<string, mixed>|null $previous     The line the list held for this enrolment.
-	 * @param string                    $now          Now (ISO 8601), the moment a new task is given.
+	 * @param array<string, mixed>      $state        `required` (the required fields), `previous` (the
+	 *                                                line the list held for this enrolment, or null) and
+	 *                                                `now` (ISO 8601, the moment a new task is given).
 	 *
 	 * @return array<string, mixed>
 	 *
 	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
 	 */
-	public static function line(array $enrolment, array $profile, array $organisation, array $required, ?array $previous, string $now): array {
+	public static function line(array $enrolment, array $profile, array $organisation, array $state): array {
+		$required = array_values(array_map('strval', (array)($state['required'] ?? [])));
+		$previous = null;
+		if (is_array($state['previous'] ?? null) === true) {
+			$previous = $state['previous'];
+		}
+
+		$now = (string)($state['now'] ?? '');
 		$missing = [];
 		foreach ($required as $field) {
 			if (self::value(profile: $profile, field: $field) === '') {
@@ -457,11 +464,11 @@ final class ExamRegistrationLines {
 	 * @return string|null
 	 */
 	private static function textOrNull(mixed $value): ?string {
-		if (is_scalar($value) === false) {
-			return null;
+		$text = '';
+		if (is_scalar($value) === true) {
+			$text = trim((string)$value);
 		}
 
-		$text = trim((string)$value);
 		if ($text === '') {
 			return null;
 		}

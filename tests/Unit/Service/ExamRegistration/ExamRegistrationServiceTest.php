@@ -135,7 +135,7 @@ class ExamRegistrationServiceTest extends TestCase {
 	}//end service()
 
 	private function opened(): array {
-		return $this->service()->open(cohortId: 'c-8', bodyName: 'Examenbureau Koudetechniek', closesAt: '2026-10-07T12:00:00+02:00', examDate: null, requiredFields: []);
+		return $this->service()->open(cohortId: 'c-8', exam: ['bodyName' => 'Examenbureau Koudetechniek', 'closesAt' => '2026-10-07T12:00:00+02:00', 'examDate' => null, 'requiredFields' => []]);
 	}//end opened()
 
 	public function testYoussefsMissingBirthDateIsNamedAndHisEmployerWasToldThisMorning(): void {
@@ -163,7 +163,7 @@ class ExamRegistrationServiceTest extends TestCase {
 
 	public function testOnlyACourseDayWithABodyAndAMomentGetsAList(): void {
 		try {
-			$this->service()->open(cohortId: 'g-1', bodyName: 'X', closesAt: '2026-10-07T12:00:00+02:00', examDate: null, requiredFields: []);
+			$this->service()->open(cohortId: 'g-1', exam: ['bodyName' => 'X', 'closesAt' => '2026-10-07T12:00:00+02:00', 'examDate' => null, 'requiredFields' => []]);
 			self::fail('a group without a course is no course day');
 		} catch (CourseDayException $exception) {
 			self::assertSame(404, $exception->getStatus());
@@ -171,7 +171,7 @@ class ExamRegistrationServiceTest extends TestCase {
 
 		$this->expectException(CourseDayException::class);
 		$this->expectExceptionMessage('Name the examining body and the moment the list closes.');
-		$this->service()->open(cohortId: 'c-8', bodyName: ' ', closesAt: '2026-10-07T12:00:00+02:00', examDate: null, requiredFields: []);
+		$this->service()->open(cohortId: 'c-8', exam: ['bodyName' => ' ', 'closesAt' => '2026-10-07T12:00:00+02:00', 'examDate' => null, 'requiredFields' => []]);
 	}//end testOnlyACourseDayWithABodyAndAMomentGetsAList()
 
 	public function testAnOpenListFollowsTheProfileOnceTheEmployerFillsItIn(): void {

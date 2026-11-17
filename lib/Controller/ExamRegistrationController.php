@@ -29,11 +29,9 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\Kernel\AppIdentity;
-use OCA\Learniq\Kernel\Contracts\AdministrationTodayServiceInterface;
-use OCA\Learniq\Kernel\Contracts\CertificateIssueServiceInterface;
-use OCA\Learniq\Kernel\Contracts\ExamRegistrationServiceInterface;
 use OCA\Learniq\Service\CallerActions;
 use OCA\Learniq\Service\CourseDay\CourseDayException;
+use OCA\Learniq\Service\ExamRegistration\ExamRegistrationServices;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -63,9 +61,8 @@ class ExamRegistrationController extends Controller {
 	 *
 	 * @param IRequest                            $request      The request.
 	 * @param CallerActions                       $caller       The signed-in user and the action matrix.
-	 * @param ExamRegistrationServiceInterface    $lists        The registration lists.
-	 * @param CertificateIssueServiceInterface    $certificates Issues a course day's certificates.
-	 * @param AdministrationTodayServiceInterface $today        The administration's Today.
+	 * @param ExamRegistrationServices            $services     The registration lists, the certificate issue and
+	 *                                                          the administration's Today.
 	 * @param LoggerInterface                     $logger       PSR logger.
 	 *
 	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
@@ -73,9 +70,7 @@ class ExamRegistrationController extends Controller {
 	public function __construct(
 		IRequest $request,
 		private readonly CallerActions $caller,
-		private readonly ExamRegistrationServiceInterface $lists,
-		private readonly CertificateIssueServiceInterface $certificates,
-		private readonly AdministrationTodayServiceInterface $today,
+		private readonly ExamRegistrationServices $services,
 		private readonly LoggerInterface $logger,
 	) {
 		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
@@ -102,12 +97,9 @@ class ExamRegistrationController extends Controller {
 		}
 
 		return $this->answer(
-			call: fn (IUser $user): array => $this->lists->open(
+			call: fn (IUser $user): array => $this->services->lists->open(
 				cohortId: $cohortId,
-				bodyName: $bodyName,
-				closesAt: $closesAt,
-				examDate: $exam,
-				requiredFields: $fields
+				exam: ['bodyName' => $bodyName, 'closesAt' => $closesAt, 'examDate' => $exam, 'requiredFields' => $fields]
 			),
 			status: Http::STATUS_CREATED
 		);
@@ -124,7 +116,7 @@ class ExamRegistrationController extends Controller {
 	 */
 	#[NoAdminRequired]
 	public function show(string $id): JSONResponse {
-		return $this->answer(call: fn (IUser $user): array => $this->lists->show(id: $id));
+		return $this->answer(call: fn (IUser $user): array => $this->services->lists->show(id: $id));
 	}//end show()
 
 	/**
@@ -138,7 +130,7 @@ class ExamRegistrationController extends Controller {
 	 */
 	#[NoAdminRequired]
 	public function close(string $id): JSONResponse {
-		return $this->answer(call: fn (IUser $user): array => $this->lists->close(id: $id, userId: $user->getUID()));
+		return $this->answer(call: fn (IUser $user): array => $this->services->lists->close(id: $id, userId: $user->getUID()));
 	}//end close()
 
 	/**
@@ -155,7 +147,7 @@ class ExamRegistrationController extends Controller {
 		$export = null;
 		$answer = $this->answer(
 			call: function (IUser $user) use ($id, &$export): array {
-				$export = $this->lists->export(id: $id);
+				$export = $this->services->lists->export(id: $id);
 				return [];
 			}
 		);
@@ -177,7 +169,7 @@ class ExamRegistrationController extends Controller {
 	 */
 	#[NoAdminRequired]
 	public function markSent(string $id): JSONResponse {
-		return $this->answer(call: fn (IUser $user): array => $this->lists->markSent(id: $id, userId: $user->getUID()));
+		return $this->answer(call: fn (IUser $user): array => $this->services->lists->markSent(id: $id, userId: $user->getUID()));
 	}//end markSent()
 
 	/**
@@ -194,7 +186,7 @@ class ExamRegistrationController extends Controller {
 	#[NoAdminRequired]
 	public function result(string $id, string $enrolmentId='', string $result=''): JSONResponse {
 		return $this->answer(
-			call: fn (IUser $user): array => $this->lists->recordResult(id: $id, enrolmentId: $enrolmentId, result: $result, userId: $user->getUID())
+			call: fn (IUser $user): array => $this->services->lists->recordResult(id: $id, enrolmentId: $enrolmentId, result: $result, userId: $user->getUID())
 		);
 	}//end result()
 
@@ -209,7 +201,7 @@ class ExamRegistrationController extends Controller {
 	 */
 	#[NoAdminRequired]
 	public function issueCertificates(string $id): JSONResponse {
-		return $this->answer(call: fn (IUser $user): array => $this->certificates->issue(cohortId: $id, userId: $user->getUID()));
+		return $this->answer(call: fn (IUser $user): array => $this->services->certificates->issue(cohortId: $id, userId: $user->getUID()));
 	}//end issueCertificates()
 
 	/**
@@ -223,7 +215,7 @@ class ExamRegistrationController extends Controller {
 	 */
 	#[NoAdminRequired]
 	public function expiring(string $before=''): JSONResponse {
-		return $this->answer(call: fn (IUser $user): array => ['before' => $before, 'rows' => $this->today->expiring(before: $before)]);
+		return $this->answer(call: fn (IUser $user): array => ['before' => $before, 'rows' => $this->services->today->expiring(before: $before)]);
 	}//end expiring()
 
 	/**
@@ -235,7 +227,7 @@ class ExamRegistrationController extends Controller {
 	 */
 	#[NoAdminRequired]
 	public function today(): JSONResponse {
-		return $this->answer(call: fn (IUser $user): array => $this->today->today());
+		return $this->answer(call: fn (IUser $user): array => $this->services->today->today());
 	}//end today()
 
 	/**
