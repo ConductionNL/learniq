@@ -4187,22 +4187,23 @@
       "area": "assessment",
       "name": "Review what a proctoring session flagged, in one queue.",
       "built": {
-        "state": "specified",
-        "evidence": "src/views/TakeAssessmentView.vue:1305-1338 native test mode writes flags into ProctoringSession.flags[]; src/views/ProctoringReviewQueue.vue records allow or annul and is registered (src/registry.js:322) but no manifest page routes to it since 4e49128f; lib/Settings/learniq_register.json ProctoringSession lets the learner update their own active session, flags included, with no guard on reviewDecision",
+        "state": "built",
+        "evidence": "src/views/ProctoringReviewQueue.vue (page ProctoringReviewQueue, menu ProctoringReviewMenu); lib/Listener/ProctoringFlagReviewGuard.php with lib/Proctoring/FlagReview.php; tests/e2e/proctoring-review.spec.ts passed live 2026-11-17",
         "owner": "ConductionNL/learniq",
-        "readOn": "2026-10-08",
+        "readOn": "2026-11-17",
         "change": "proctoring-flag-review-page",
-        "note": "reopened by decision 100 (8 Oct). Before: Decided no on 2026-09-29: No competitor rated yes, no demand, outside the core area. Reversible: the schema and queue page exist and no provider fills them. Before: lib/Settings/learniq_register.json components.schemas.ProctoringSession and src/manifest.d/learning.json ProctoringReviewQueue exist, but no provider fills them",
+        "spec": "openspec/specs/assessment",
+        "reachedOn": "/assessments/proctoring/review",
         "requirement": [
-          "openspec/changes/proctoring-flag-review-page/specs/assessment :: Staff reach the proctoring flag review page",
-          "openspec/changes/proctoring-flag-review-page/specs/assessment :: Only staff decide a flag, and the server records who did"
+          "openspec/specs/assessment :: Staff reach the proctoring flag review page",
+          "openspec/specs/assessment :: Only staff decide a flag, and the server records who did"
         ]
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
       "feature": "online-proctoring-and-plagiarism",
       "featureConfidence": "medium",
-      "learniq": "partial",
+      "learniq": "yes",
       "moodle": "no",
       "moodle-workplace": "unknown",
       "ilias": "no",
@@ -4854,9 +4855,8 @@
         "change": "grading",
         "requirement": [
           "openspec/specs/grading :: A teacher previews and batch-publishes a cohort's concept grades",
-          "openspec/changes/learner-grade-read-follows-visible-from/specs/grading :: A learner reads their own grade only once it is released"
-        ],
-        "plan": "openspec/changes/learner-grade-read-follows-visible-from"
+          "openspec/specs/grading :: A learner reads their own grade only once it is released"
+        ]
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -7759,9 +7759,9 @@
         "state": "built",
         "evidence": "lib/actions.seed.json, lib/Service/ActionAuthService.php, lib/Controller/ActionMatrixController.php",
         "owner": "ConductionNL/learniq",
-        "spec": "openspec/changes/action-matrix-set-by-admins/specs/action-authorization",
+        "spec": "openspec/specs/action-authorization",
         "requirement": [
-          "openspec/changes/action-matrix-set-by-admins/specs/action-authorization :: Every guarded action is decided by the action matrix",
+          "openspec/specs/action-authorization :: Every guarded action is decided by the action matrix",
           "openspec/specs/compliance-audit :: Action-authorization matrix admin API MUST be covered by a controller-level test"
         ]
       },
@@ -7797,8 +7797,8 @@
         "state": "built",
         "evidence": "route /api/admin/action-matrix PUT, reached from Admin settings, Learniq, Action authorization",
         "owner": "ConductionNL/learniq",
-        "spec": "openspec/changes/action-matrix-set-by-admins/specs/action-authorization",
-        "requirement": "openspec/changes/action-matrix-set-by-admins/specs/action-authorization :: An administrator changes the matrix without a developer"
+        "spec": "openspec/specs/action-authorization",
+        "requirement": "openspec/specs/action-authorization :: An administrator changes the matrix without a developer"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
