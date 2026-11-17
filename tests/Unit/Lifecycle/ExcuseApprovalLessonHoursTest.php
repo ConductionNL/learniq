@@ -29,6 +29,7 @@ use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -108,10 +109,10 @@ class ExcuseApprovalLessonHoursTest extends TestCase {
 			}
 		);
 		$store->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
+			function (array|ObjectEntity $object, ObjectSaveOptions $options = new ObjectSaveOptions()): ObjectEntity {
 				$this->flipped[] = (string)$object['id'];
 				self::assertSame(['absent-excused', 'er-noor'], [$object['status'], $object['excuseRequestId']]);
-				return OrEntityFactory::make((array)$object, (string)$schema);
+				return OrEntityFactory::make((array)$object, (string)$options->target->schema);
 			}
 		);
 		$schemas = $this->createMock(ListenerSchemaResolver::class);

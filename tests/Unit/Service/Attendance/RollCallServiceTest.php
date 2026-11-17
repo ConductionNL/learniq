@@ -42,6 +42,7 @@ use OCP\IL10N;
 use OCP\IUser;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * The day's register of one group.
@@ -130,7 +131,11 @@ class RollCallServiceTest extends TestCase {
 			}
 		);
 		$objects->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend=[], $register=null, $schema=null, ?string $uuid=null, bool $_rbac=true): ObjectEntity {
+			function (array|ObjectEntity $object, ObjectSaveOptions $options = new ObjectSaveOptions(), bool $_rbac = true): ObjectEntity {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
+				$uuid = $options->uuid;
 				$data = (array)$object;
 				$data['id'] = ($uuid ?? ('new-' . count($this->saved)));
 				$this->saved[] = ['schema' => $schema, 'uuid' => $uuid, 'object' => $object, 'rbac' => $_rbac];

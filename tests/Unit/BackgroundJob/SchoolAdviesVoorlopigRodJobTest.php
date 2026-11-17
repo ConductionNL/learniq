@@ -37,6 +37,7 @@ use OCP\IUserSession;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 use RuntimeException;
+use OCA\Learniq\Tests\Support\LegacyObjectArgs;
 
 // The unit bootstrap does not load every support helper.
 require_once __DIR__ . '/../../Support/CapturingLogger.php';
@@ -126,13 +127,13 @@ class SchoolAdviesVoorlopigRodJobTest extends TestCase {
 			'system',
 			'ROD voorlopig schooladvies'
 		)->willReturn('job-42');
-		$objects->expects(self::once())->method('saveObject')->with(
-			self::callback(static fn (array $object): bool => $object['voorlopigExchangeJobId'] === 'job-42' && $object['voorlopigAdviesLevel'] === 'havo'),
-			self::anything(),
-			'learniq',
-			'school-advies',
-			'sa-1'
-		);
+		$objects->expects(self::once())->method('saveObject')->with(...LegacyObjectArgs::with(method: 'saveObject', expected: [
+				'object' => self::callback(static fn (array $object): bool => $object['voorlopigExchangeJobId'] === 'job-42' && $object['voorlopigAdviesLevel'] === 'havo'),
+				'extend' => self::anything(),
+				'register' => 'learniq',
+				'schema' => 'school-advies',
+				'uuid' => 'sa-1',
+			]));
 		$logger = new CapturingLogger();
 
 		$this->runDeferred(job: $this->job(['sa-1' => self::advies()], $objects, $integriq, $logger), entries: [['schoolAdviesId' => 'sa-1']]);
@@ -182,7 +183,13 @@ class SchoolAdviesVoorlopigRodJobTest extends TestCase {
 				return 'job-2';
 			}
 		);
-		$objects->expects(self::once())->method('saveObject')->with(self::anything(), self::anything(), 'learniq', 'school-advies', 'sa-2');
+		$objects->expects(self::once())->method('saveObject')->with(...LegacyObjectArgs::with(method: 'saveObject', expected: [
+				'object' => self::anything(),
+				'extend' => self::anything(),
+				'register' => 'learniq',
+				'schema' => 'school-advies',
+				'uuid' => 'sa-2',
+			]));
 		$logger = new CapturingLogger();
 
 		$this->runDeferred(

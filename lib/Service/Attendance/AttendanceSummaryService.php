@@ -44,6 +44,9 @@ use OCA\Learniq\Service\LearnerManagerLookup;
 use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Service\PupilGroupTeachers;
 use OCA\Learniq\Support\ObjectRow;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\SaveActor;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use Psr\Log\LoggerInterface;
@@ -284,6 +287,20 @@ class AttendanceSummaryService implements AttendanceSummaryServiceInterface {
 			_multitenancy: false
 		);
 
+		return $this->lowestCandidate(rows: $rows, tenantId: $tenantId);
+	}//end thresholdFor()
+
+	/**
+	 * The lowest threshold among the rows that apply to the tenant, cached for it.
+	 *
+	 * @param array<int,mixed> $rows     The threshold rows found.
+	 * @param string           $tenantId The tenant.
+	 *
+	 * @return array<string, mixed>|null The threshold, or null when none applies.
+	 *
+	 * @spec openspec/changes/attendance-warns-before-the-threshold/specs/attendance/spec.md
+	 */
+	private function lowestCandidate(array $rows, string $tenantId): ?array {
 		$chosen = null;
 		foreach ($rows as $row) {
 			$threshold = $this->toRow(object: $row);
@@ -295,7 +312,7 @@ class AttendanceSummaryService implements AttendanceSummaryServiceInterface {
 		$this->thresholdCache[$tenantId] = $chosen;
 
 		return $chosen;
-	}//end thresholdFor()
+	}//end lowestCandidate()
 
 	/**
 	 * Whether a threshold can be the pupil's: the tenant's own, not tied to a
@@ -478,12 +495,13 @@ class AttendanceSummaryService implements AttendanceSummaryServiceInterface {
 
 		$this->objectService->saveObject(
 			object: $object,
-			register: self::REGISTER,
-			schema: self::SUMMARY_SCHEMA,
-			uuid: $uuid,
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::REGISTER, schema: self::SUMMARY_SCHEMA),
+				uuid: $uuid,
+				actor: new SaveActor(unowned: true)
+			),
 			_rbac: false,
-			_multitenancy: false,
-			_unowned: true
+			_multitenancy: false
 		);
 	}//end save()
 

@@ -24,6 +24,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Service\Attendance;
 
 use OCA\Learniq\Service\Attendance\ReportSeenStamp;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use PHPUnit\Framework\TestCase;
@@ -44,10 +45,11 @@ class ReportSeenStampTest extends TestCase {
 		$objects = $this->createMock(ObjectService::class);
 		$objects->expects(self::once())->method('saveObject')->with(
 			['learnerId' => 'sami', 'lifecycle' => 'submitted', 'teacherIds' => ['esra'], 'seenBy' => 'esra', 'seenAt' => '2026-10-05T06:12:00+00:00'],
-			[],
-			'learniq',
-			'excuse-request',
-			'x-sami',
+			self::callback(
+				callback: static fn (ObjectSaveOptions $options): bool => $options->target->register === 'learniq'
+					&& $options->target->schema === 'excuse-request'
+					&& $options->uuid === 'x-sami'
+			),
 			false
 		);
 		$time = $this->createMock(ITimeFactory::class);

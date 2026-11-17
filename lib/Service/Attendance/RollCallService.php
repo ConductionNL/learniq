@@ -37,6 +37,8 @@ namespace OCA\Learniq\Service\Attendance;
 
 use DateTimeImmutable;
 use OCA\Learniq\Kernel\Contracts\RollCallServiceInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IL10N;
@@ -203,14 +205,22 @@ class RollCallService implements RollCallServiceInterface {
 		);
 
 		if ($record === null) {
-			$this->objectService->saveObject(object: $body, register: self::REGISTER, schema: 'attendance-record', _rbac: false);
+			$this->objectService->saveObject(
+				object: $body,
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: 'attendance-record')),
+				_rbac: false
+			);
 			return;
 		}
 
 		$object = array_merge($record, $body);
 		unset($object['@self'], $object['id'], $object['uuid']);
 		$uuid = $this->idOf(row: $record);
-		$this->objectService->saveObject(object: $object, register: self::REGISTER, schema: 'attendance-record', uuid: $uuid, _rbac: false);
+		$this->objectService->saveObject(
+			object: $object,
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: 'attendance-record'), uuid: $uuid),
+			_rbac: false
+		);
 	}//end writeMark()
 
 	/**

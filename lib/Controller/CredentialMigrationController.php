@@ -29,8 +29,8 @@ namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Kernel\Contracts\CallerTenantResolverInterface;
+use OCA\Learniq\Kernel\Contracts\CredentialMigrationServiceInterface;
 use OCA\Learniq\Service\ActionAuthService;
-use OCA\Learniq\Service\CredentialMigrationService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -57,14 +57,14 @@ class CredentialMigrationController extends Controller {
 	 * @param IUserSession                  $userSession  The signed-in user.
 	 * @param ActionAuthService             $actionAuth   ADR-023 action authorization.
 	 * @param CallerTenantResolverInterface $callerTenant Resolves the caller's organisation.
-	 * @param CredentialMigrationService    $migration    Checks and writes the rows.
+	 * @param CredentialMigrationServiceInterface $migration    Checks and writes the rows.
 	 */
 	public function __construct(
 		IRequest $request,
 		private readonly IUserSession $userSession,
 		private readonly ActionAuthService $actionAuth,
 		private readonly CallerTenantResolverInterface $callerTenant,
-		private readonly CredentialMigrationService $migration,
+		private readonly CredentialMigrationServiceInterface $migration,
 	) {
 		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()

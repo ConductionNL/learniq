@@ -37,6 +37,7 @@ namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
 use OCA\Learniq\Kernel\Contracts\ElectiveServiceInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Throwable;
 
@@ -320,7 +321,12 @@ class ElectiveService implements ElectiveServiceInterface {
 	 */
 	private function one(string $id, string $schema): ?array {
 		try {
-			$row = $this->objectService->find(id: $id, register: self::REGISTER, schema: $schema, _rbac: false, _multitenancy: false);
+			$row = $this->objectService->find(
+				id: $id,
+				options: new ObjectFindOptions(register: self::REGISTER, schema: $schema),
+				_rbac: false,
+				_multitenancy: false
+			);
 		} catch (Throwable $exception) {
 			unset($exception);
 			return null;

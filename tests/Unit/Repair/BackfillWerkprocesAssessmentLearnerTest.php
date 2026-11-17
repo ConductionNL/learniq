@@ -32,6 +32,7 @@ use OCA\OpenRegister\Service\ObjectService;
 use OCP\Migration\IOutput;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use OCA\Learniq\Tests\Support\LegacyObjectArgs;
 
 /**
  * Tests for BackfillWerkprocesAssessmentLearner::run().
@@ -105,9 +106,10 @@ class BackfillWerkprocesAssessmentLearnerTest extends TestCase {
 		);
 		// Read arguments by the real parameter names: the stub and
 		// OpenRegister's own ObjectService order them differently.
-		$names = array_map(static fn (\ReflectionParameter $parameter): string => $parameter->getName(), (new \ReflectionMethod(ObjectService::class, 'saveObject'))->getParameters());
+		$names = array_map(static fn (\ReflectionParameter $parameter): string => $parameter->getName(), LegacyObjectArgs::parameters(ObjectService::class, 'saveObject'));
 		$objectService->method('saveObject')->willReturnCallback(
 			function (mixed ...$args) use ($names): ObjectEntity {
+				$args = LegacyObjectArgs::positional(method: 'saveObject', args: $args);
 				$named = array_combine(array_slice($names, 0, count($args)), $args);
 				$this->saveRbac[] = (bool)($named['_rbac'] ?? true);
 				if ($this->refuseSaves === true) {

@@ -29,6 +29,8 @@ use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Tests\Support\GoldenFile;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\TestCase;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectDeletion;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 // The unit bootstrap does not load the golden-file helper; the full one does.
 require_once __DIR__ . '/../../Support/GoldenFile.php';
@@ -90,11 +92,17 @@ class ReportSubjectGradeRowsTest extends TestCase {
 		$saved   = [];
 		$objects = $this->createMock(ObjectService::class);
 		$objects->method('findAll')->willReturnCallback(fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $store->findAll($config, $_rbac, $_multitenancy));
-		$objects->method('deleteObject')->willReturnCallback(static function (string $uuid, $register = null, $schema = null) use (&$deleted): bool {
+		$objects->method('deleteObject')->willReturnCallback(static function (ObjectDeletion $deletion) use (&$deleted): bool {
+			$uuid = $deletion->uuid;
+			$register = $deletion->target->register;
+			$schema = $deletion->target->schema;
 			$deleted[] = [$schema, $uuid];
 			return true;
 		});
-		$objects->method('saveObject')->willReturnCallback(function (array $object, ?array $extend = [], $register = null, $schema = null) use (&$saved, $store) {
+		$objects->method('saveObject')->willReturnCallback(function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) use (&$saved, $store) {
+			$extend = $options->extend ?? [];
+			$register = $options->target->register;
+			$schema = $options->target->schema;
 			$saved[] = [$schema, $object];
 			return $store->save((string)$schema, $object, null);
 		});

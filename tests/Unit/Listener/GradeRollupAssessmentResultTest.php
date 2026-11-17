@@ -33,6 +33,7 @@ use OCP\AppFramework\Utility\ITimeFactory;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * @covers \OCA\Learniq\Listener\GradeRollupHandler
@@ -85,7 +86,10 @@ class GradeRollupAssessmentResultTest extends TestCase {
 	 */
 	private function recordSaves(array $savedEntry): void {
 		$this->objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null) use ($savedEntry): ObjectEntity {
+			function (array|ObjectEntity $object, ObjectSaveOptions $options = new ObjectSaveOptions()) use ($savedEntry): ObjectEntity {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
 				self::assertSame('learniq', $register);
 				$this->saved[] = [(string)$schema, $object];
 				$entity = $this->createMock(ObjectEntity::class);

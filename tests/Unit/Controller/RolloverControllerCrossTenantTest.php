@@ -41,6 +41,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use ReflectionNamedType;
+use OCA\Learniq\Tests\Support\LegacyObjectArgs;
 
 /**
  * Tests that a rollover planner only reaches their own tenant's plans and cohorts.
@@ -74,12 +75,12 @@ class RolloverControllerCrossTenantTest extends TestCase {
 	 */
 	public function testPreviewOfTheCallersOwnPlanStillWorks(): void {
 		$objectService = $this->planStore(planTenant: self::CALLER_TENANT);
-		$objectService->expects(self::once())->method('saveObject')->with(
-			self::anything(),
-			self::anything(),
-			'learniq',
-			'rollover-plan'
-		);
+		$objectService->expects(self::once())->method('saveObject')->with(...LegacyObjectArgs::with(method: 'saveObject', expected: [
+				'object' => self::anything(),
+				'extend' => self::anything(),
+				'register' => 'learniq',
+				'schema' => 'rollover-plan',
+			]));
 
 		$rolloverService = $this->createMock(RolloverService::class);
 		$rolloverService->expects(self::once())->method('preview')->willReturn(['blocked' => false]);

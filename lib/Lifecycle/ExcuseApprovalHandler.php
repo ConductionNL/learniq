@@ -42,6 +42,8 @@ use DateTimeImmutable;
 use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\Learniq\Service\Attendance\LessonHours;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -212,13 +214,7 @@ class ExcuseApprovalHandler implements IEventListener {
 		$learnerId = $request['learnerId'];
 
 		$this->sessionsByCohort = [];
-		$flippedCount = $this->flipRecordsInWindow(
-			records: $this->unexcusedRecordsOf(learnerId: $learnerId),
-			fromDay: $window['fromDay'],
-			toDay: $window['toDay'],
-			requestId: (string)$requestId,
-			hours: $this->lessonHours->rangeOf(request: $request)
-		);
+		$flippedCount = $this->flipRecordsInWindow(request: $request, window: $window);
 
 		$this->logger->info(
 			'[ExcuseApprovalHandler] ExcuseRequest {id} approved — flipped {n} AttendanceRecord(s) to absent-excused for learner {learner}.',
@@ -300,18 +296,26 @@ class ExcuseApprovalHandler implements IEventListener {
 	 *
 	 * A record with no parseable `markedAt` is left alone rather than guessed at.
 	 *
-	 * @param array<int,mixed> $records Candidate AttendanceRecords.
-	 * @param int $fromDay Inclusive window start as `Ymd`.
-	 * @param int $toDay Inclusive window end as `Ymd`.
-	 * @param string $requestId ExcuseRequest id stamped onto each flipped record.
-	 * @param array{0:int,1:int}|null $hours The report's lesson hours, null for whole days (absence-reports-seen-and-ended T3).
+	 * The candidates are the learner's absent-unexcused AttendanceRecords; the
+	 * request's id is stamped onto each flipped record.
+	 *
+	 * A report for part of a day (its lesson hours) flips only the lessons in
+	 * those hours (absence-reports-seen-and-ended T3).
+	 *
+	 * @param array<string,mixed>              $request The approved ExcuseRequest.
+	 * @param array{fromDay: int, toDay: int} $window  Inclusive window start and end as `Ymd`.
 	 *
 	 * @return int How many records were flipped.
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-10
 	 * @spec openspec/changes/absence-reports-seen-and-ended/tasks.md#T3
 	 */
-	private function flipRecordsInWindow(array $records, int $fromDay, int $toDay, string $requestId, ?array $hours=null): int {
+	private function flipRecordsInWindow(array $request, array $window): int {
+		$records = $this->unexcusedRecordsOf(learnerId: $request['learnerId']);
+		$fromDay = $window['fromDay'];
+		$toDay = $window['toDay'];
+		$requestId = (string)$this->requestIdOf(request: $request);
+		$hours = $this->lessonHours->rangeOf(request: $request);
 		$flippedCount = 0;
 
 		foreach ($records as $raw) {
@@ -342,15 +346,17 @@ class ExcuseApprovalHandler implements IEventListener {
 			}
 
 			$this->objectService->saveObject(
-				register: self::LEARNIQ_REGISTER,
-				schema: self::ATTENDANCE_RECORD_SCHEMA,
 				object: array_merge(
 					$record,
 					[
 						'status' => 'absent-excused',
 						'excuseRequestId' => $requestId,
 					]
-				)
+				),
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(
+						register: self::LEARNIQ_REGISTER,
+						schema: self::ATTENDANCE_RECORD_SCHEMA
+					))
 			);
 
 			$flippedCount++;

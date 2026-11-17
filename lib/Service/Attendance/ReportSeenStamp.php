@@ -31,6 +31,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service\Attendance;
 
 use DateTimeImmutable;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 
@@ -121,9 +123,10 @@ class ReportSeenStamp {
 		unset($object['@self'], $object['id'], $object['uuid']);
 		$this->objectService->saveObject(
 			object: $object,
-			register: self::REGISTER,
-			schema: self::SCHEMA,
-			uuid: $this->idOf(report: $report),
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::REGISTER, schema: self::SCHEMA),
+				uuid: $this->idOf(report: $report)
+			),
 			_rbac: false
 		);
 
