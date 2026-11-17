@@ -32,6 +32,7 @@ use PHPUnit\Framework\TestCase;
  * Daan's assessment carries both signatures, Eva's only the first; Piet's signature is no assessor's.
  *
  * @covers \OCA\Learniq\Service\Exam\PracticalExamBoardResults
+ * @uses   \OCA\Learniq\Support\ObjectRow
  */
 class PracticalExamBoardResultsTest extends TestCase {
 
