@@ -9,3 +9,4 @@
 - [ ] **T5**: `employerCertificatesDownload` (ZIP of valid certificates)
 - [ ] **T6**: example sets: the documents of the four boards; portals place the documents block on their Documenten page
 - [ ] **T7**: e2e: the Documenten pages in `tests/e2e/portal-design/{wilgenboom,vaartveld,esdoornveen}.spec.ts`
+  - Written 2026-11-17: a "Documenten" test in each of the three specs (Fatima's reports per child, Fenna's reports and her proof of enrolment asked from the page, Milan's agreement "Wacht op leerbedrijf"). Left unchecked: not run on an instance yet, and the example sets (T6) do not carry the documents yet.

@@ -12,6 +12,7 @@
  * @spec openspec/changes/site-workplace-trainer-portal-design/specs/portal-contribution/spec.md
  * @spec openspec/changes/portal-board-checks-run-on-a-real-instance/specs/example-sets/spec.md#requirement-the-board-checks-run-against-any-instance-that-loaded-the-sets
  * @spec openspec/changes/school-portals-match-their-boards/specs/example-sets/spec.md#requirement-the-portal-declarations-follow-their-boards
+ * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-each-school-audience-offers-its-own-documents-grouped-per-record
  */
 
 import { expect, test } from '@playwright/test'
@@ -184,5 +185,33 @@ test.describe('esdoornveen: Mijn Esdoornveen (Milan de Groot)', () => {
 			info.project.name === 'phone' ? 'MobielDetail' : 'MijnLijst',
 			info,
 		)
+	})
+
+	test('Documenten: his agreement waits on the company', async ({ browser }, info) => {
+		await ensurePortalAccount(
+			MILAN.user,
+			'student',
+			{ learnerRef: MILAN.ref },
+			MILAN.name,
+		)
+		const page = await signInAs(
+			browser,
+			PORTAL,
+			MILAN.user,
+			info.project.use.viewport ?? { width: 1440, height: 1000 },
+		)
+		await page.goto(
+			`${siteUrl(PORTAL)}&route=${encodeURIComponent('/mijn/learniq/studentDocuments')}`,
+		)
+		await expectTexts(page, [
+			'Overeenkomsten',
+			'Bakker Techniek BV',
+			'Wacht op leerbedrijf',
+		])
+		if (info.project.name === 'phone') {
+			await expectNoHorizontalScroll(page)
+		}
+		await expectNoSeriousAxeFinding(page)
+		await boardShot(page, PORTAL, 'Documenten', info)
 	})
 })
