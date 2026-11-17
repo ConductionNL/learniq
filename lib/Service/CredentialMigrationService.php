@@ -31,6 +31,7 @@ namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
 use DateTimeZone;
+use OCA\Learniq\Kernel\Contracts\CredentialMigrationServiceInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
@@ -44,7 +45,7 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/changes/credentials-migrate-with-validity/tasks.md
  */
-class CredentialMigrationService {
+class CredentialMigrationService implements CredentialMigrationServiceInterface {
 
 	/**
 	 * The run that checks and writes the rows.

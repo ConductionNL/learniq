@@ -362,7 +362,7 @@ class PortfolioShareGrantHandler implements IEventListener, LifecycleGuardInterf
 				continue;
 			}
 
-			if ($this->shareAttachment(ownerId: $ownerId, args: ['teacherId' => $teacherId, 'attachmentRef' => $attachmentRef]) === true) {
+			if ($this->shareAttachment(attachmentRef: $attachmentRef, parties: ['ownerId' => $ownerId, 'teacherId' => $teacherId]) === true) {
 				$shared++;
 			}
 		}//end foreach
@@ -404,17 +404,17 @@ class PortfolioShareGrantHandler implements IEventListener, LifecycleGuardInterf
 	 * attachmentRef (already-deleted file, foreign OR attachment id shape) is
 	 * logged and skipped rather than failing the whole grant.
 	 *
-	 * @param string $ownerId NC uid of the file owner (the portfolio's own learner).
-	 * @param array{teacherId: string, attachmentRef: string} $args The teacherId, attachmentRef.
+	 * @param array{ownerId: string, teacherId: string} $parties       NC uids of the file owner (the portfolio's own
+	 *                                                                learner) and of the recipient.
+	 * @param string                                     $attachmentRef nc:files path (relative to the owner's home) or OR attachment id.
 	 *
 	 * @return bool True when a share was created (or already existed for this recipient).
 	 *
 	 * @spec openspec/specs/eportfolio/spec.md#scenario-granting-a-teacher-share-creates-a-native-nc-files-share
 	 */
-	private function shareAttachment(string $ownerId, array $args): bool {
-		$teacherId = $args['teacherId'];
-		$attachmentRef = $args['attachmentRef'];
-
+	private function shareAttachment(array $parties, string $attachmentRef): bool {
+		$ownerId = $parties['ownerId'];
+		$teacherId = $parties['teacherId'];
 		try {
 			$userFolder = $this->rootFolder->getUserFolder($ownerId);
 			$node = $userFolder->get($attachmentRef);

@@ -225,7 +225,8 @@ test.describe('wilgenboom: Mijn Wilgenboom (Fatima Hulstkamp)', () => {
 		await expectTexts(parent, [
 			'Afwezig melden',
 			'Wat u nog moet doen',
-			'Oudergesprekken groep 4, oktober 2026',
+			// One task per child per open round, named by the child (guardian-tasks-per-child-and-self-assessment).
+			'Kies een tijd voor het oudergesprek van Sami',
 			'Mijn kinderen',
 			'Vera',
 			'Sami',
@@ -233,6 +234,10 @@ test.describe('wilgenboom: Mijn Wilgenboom (Fatima Hulstkamp)', () => {
 			'Woensdag naar de kinderboerderij: dit moet mee',
 			'Deze maand',
 		])
+		// Vera already has a time, so her round asks nothing.
+		await expect(
+			parent.getByText('Kies een tijd voor het oudergesprek van Vera'),
+		).toHaveCount(0)
 		if (info.project.name === 'phone') {
 			await expectNoHorizontalScroll(parent)
 		}
@@ -248,6 +253,11 @@ test.describe('wilgenboom: Mijn Wilgenboom (Fatima Hulstkamp)', () => {
 	// Playwright needs the fixtures argument destructured; these tests read the shared signed-in page.
 	// eslint-disable-next-line no-empty-pattern
 	test('MijnLijst: the absence reports', async ({}, info) => {
+		// The board's MijnLijst is the Afwezigheid page, not the overview.
+		await parent.goto(
+			`${siteUrl(PORTAL)}&route=${encodeURIComponent('/mijn/learniq/parentAbsence')}`,
+		)
+		await waitForAccountPage(parent)
 		await expectTexts(parent, ['Sami heeft buikgriep', 'Vera heeft koorts'])
 		await boardShot(parent, PORTAL, 'MijnLijst', info)
 	})

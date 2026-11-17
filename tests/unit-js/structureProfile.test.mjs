@@ -369,6 +369,7 @@ const KNOWN_UNLINKED = {
 		'BookConferenceSlotsMenu',
 		'CheckInMenu',
 		'ConferenceScheduleBoardMenu',
+		'CourseDaysMenu',
 		'DossierNotesMenu',
 		'ExamAccommodationsMenu',
 		'FirstAidIncidentsMenu',
@@ -407,6 +408,7 @@ const KNOWN_UNLINKED = {
 		...TEACHING,
 		'AdmissionsReviewBoardMenu',
 		'ConferenceScheduleBoardMenu',
+		'CourseDaysMenu',
 		'DossierReviewsMenu',
 		'ExamAccommodationsMenu',
 		'ExchangeJobsMenu',
@@ -439,6 +441,7 @@ const KNOWN_UNLINKED = {
 		...PLANNING,
 		'AdmissionsReviewBoardMenu',
 		'CatalogueMenu',
+		'CourseDaysMenu',
 		'ExamAccommodationsMenu',
 		'GroupPeople',
 		'HourPlanActivitiesMenu',
@@ -616,21 +619,25 @@ test('the full profile is exactly the plain manifest build', () => {
 	const entries = flat(plain.menu)
 	const count = (section) =>
 		entries.filter((item) => sectionOf(item) === section).length
-	// 112 since permission-slips added the Permission slips entry at the top
-	// level, beside the School calendar.
-	assert.equal(entries.length, 112)
+	// 111 since proctoring-flag-review-page added the Proctoring review entry
+	// under Learning and its twin under Compliance; 112 with Course days
+	// (training-provider-course-days); 113 since permission-slips added the
+	// Permission slips entry at the top level, beside the School calendar.
+	assert.equal(entries.length, 113)
 	assert.equal(plain.menu.length, 27)
+	// 104 in main: Course days and Permission slips each added one.
 	assert.deepEqual(
 		[count('main'), count('footer'), count('settings')],
-		[103, 2, 7],
+		[104, 2, 7],
 	)
 	// 347 since the four unreached pages (BulkEnrol, CohortTimetable,
 	// MarkAttendanceView, SubmitExcuseModal) became actions; 348 with
 	// SignUpRequests (Aanmeldverzoeken); 349 with MyGrades (LqLlCijfers); 348 once
-	// MyGrades became the learner lens of GradeEntries.
-	// 349 with AttendanceNearingLimit (attendance-warns-before-the-threshold);
-	// 351 with the permission-slips list and detail.
-	assert.equal(plain.pages.length, 351)
+	// MyGrades became the learner lens of GradeEntries; 349 with
+	// AttendanceNearingLimit (attendance-warns-before-the-threshold); 350 with
+	// CourseDays (training-provider-course-days); 352 with the permission-slips
+	// list and detail.
+	assert.equal(plain.pages.length, 352)
 })
 
 test('menu-layout.json holds no profile key, so the full profile cannot gain an overlay', () => {

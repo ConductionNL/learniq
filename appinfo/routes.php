@@ -208,6 +208,14 @@ $routes = [
         // an-invited-trainer-may-assess: the trainer's assessment goes through
         // learniq, because only a forward carries the sign-in level.
         ['name' => 'portalWerkproces#submit',    'url' => '/api/portal/werkproces-assessments', 'verb' => 'POST'],
+        // The external assessor's practical exam form (practical-exam-assessment): a step or the submit, and the draft to resume.
+        ['name' => 'portalPracticalExam#submit', 'url' => '/api/portal/practical-exam-assessments', 'verb' => 'POST'],
+        ['name' => 'portalPracticalExam#draft',  'url' => '/api/portal/practical-exam-assessments/draft', 'verb' => 'GET'],
+        // The second half of the exam: each assessor signs the submitted assessment, and reads his sitting's documents.
+        ['name' => 'portalPracticalExam#sign',    'url' => '/api/portal/practical-exam-assessments/{id}/signatures', 'verb' => 'POST'],
+        ['name' => 'portalPracticalExam#sitting', 'url' => '/api/portal/practical-exam-sittings/{id}', 'verb' => 'GET'],
+        // The exam board's practical exam results: only those both assessors signed.
+        ['name' => 'practicalExamResults#index',  'url' => '/api/practical-exam-results', 'verb' => 'GET'],
         // internship-hours: the trainer approves or corrects one week of her
         // student's hours. Same assertion receiver pattern: the assertion is
         // the only place her sign-in level can be read.
@@ -335,6 +343,16 @@ $routes = [
         // (rules in RollCallService). Controller: RollCallController (slug: rollCall).
         ['name' => 'rollCall#show', 'url' => '/api/attendance/roll-call', 'verb' => 'GET'],
         ['name' => 'rollCall#save', 'url' => '/api/attendance/roll-call', 'verb' => 'POST'],
+        // Course days (training-provider-course-days): the planner moves a day on
+        // the board, decides go or no-go and moves the participants of a cancelled
+        // day to another day of the course. Guarded by course-day.plan.
+        // Controller: CourseDayController (slug: courseDay).
+        ['name' => 'courseDay#move', 'url' => '/api/course-days/{id}/status', 'verb' => 'POST'],
+        ['name' => 'courseDay#decide', 'url' => '/api/course-days/{id}/decision', 'verb' => 'POST'],
+        ['name' => 'courseDay#alternatives', 'url' => '/api/course-days/{id}/alternatives', 'verb' => 'GET'],
+        ['name' => 'courseDay#moveParticipants', 'url' => '/api/course-days/{id}/move-participants', 'verb' => 'POST'],
+        ['name' => 'courseDay#today', 'url' => '/api/course-days/today', 'verb' => 'GET'],
+        ['name' => 'courseDay#sessionParts', 'url' => '/api/course-days/sessions/{sessionId}/parts', 'verb' => 'GET'],
         // Work groups (enrolment-self-join-work-group): the signed-in learner
         // sees the work groups of their classes and joins, moves or leaves
         // while sign-up is open (rules in WorkGroupMembershipService).

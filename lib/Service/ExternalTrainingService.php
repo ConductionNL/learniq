@@ -200,6 +200,20 @@ class ExternalTrainingService implements ExternalTrainingServiceInterface {
 			}
 		}
 
+		return $this->recordBatch(learnerIds: $learnerIds, shared: $shared);
+	}//end bulkRecord()
+
+	/**
+	 * Record the training for each learner under one new batch id.
+	 *
+	 * @param array<int,string>   $learnerIds The learners, without blanks or doubles.
+	 * @param array<string,mixed> $shared     The training fields every record shares.
+	 *
+	 * @return string The generated batchId (empty when nothing was created).
+	 *
+	 * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
+	 */
+	private function recordBatch(array $learnerIds, array $shared): string {
 		$batchId = $this->generateBatchId();
 
 		foreach ($learnerIds as $learnerId) {
@@ -235,7 +249,7 @@ class ExternalTrainingService implements ExternalTrainingServiceInterface {
 		}//end foreach
 
 		return $batchId;
-	}//end bulkRecord()
+	}//end recordBatch()
 
 	/**
 	 * Build the manual Credential payload to issue on verification.

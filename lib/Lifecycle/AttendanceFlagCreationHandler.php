@@ -175,11 +175,7 @@ class AttendanceFlagCreationHandler implements IEventListener {
 			return;
 		}
 
-		$duplicate = $this->flagAlreadyExists(
-			learnerId: $detail['learnerId'],
-			thresholdId: $detail['thresholdId'],
-			windowStart: $detail['windowStart']
-		);
+		$duplicate = $this->flagAlreadyExists(detail: $detail);
 		if ($duplicate === true) {
 			return;
 		}
@@ -315,15 +311,17 @@ class AttendanceFlagCreationHandler implements IEventListener {
 	 * Idempotency check: whether an AttendanceFlag already exists for the same
 	 * learner + threshold + measurement window.
 	 *
-	 * @param mixed $learnerId NC user ID of the flagged learner.
-	 * @param mixed $thresholdId UUID of the AttendanceThreshold that was crossed.
-	 * @param mixed $windowStart Start date of the measurement window (Y-m-d).
+	 * @param array<string,mixed> $detail The crossing: `learnerId` (NC user ID of the flagged learner), `thresholdId`
+	 *                                    (UUID of the AttendanceThreshold that was crossed) and `windowStart` (Y-m-d).
 	 *
 	 * @return bool True when a flag for this crossing already exists.
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-10
 	 */
-	private function flagAlreadyExists(mixed $learnerId, mixed $thresholdId, mixed $windowStart): bool {
+	private function flagAlreadyExists(array $detail): bool {
+		$learnerId = $detail['learnerId'];
+		$thresholdId = $detail['thresholdId'];
+		$windowStart = $detail['windowStart'];
 		$existing = $this->objectService->findAll(
 			[
 				'filters' => [

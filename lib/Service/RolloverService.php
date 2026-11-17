@@ -219,13 +219,7 @@ class RolloverService implements RolloverServiceInterface {
 			$report['counts'][$learnerAction] = (($report['counts'][$learnerAction] ?? 0) + 1);
 		}
 
-		$report['enrolmentsToCarry'] += $this->countCarryableEnrolments(
-			learnerIds: $job['members'],
-			args: [
-				'overrides' => $job['overrides'],
-				'carryNonMandatory' => (bool)($mapping['carryNonMandatory'] ?? false),
-			]
-		);
+		$report['enrolmentsToCarry'] += $this->countCarryableEnrolments(job: $job);
 
 		return $report;
 	}//end tallyPromotion()
@@ -343,17 +337,16 @@ class RolloverService implements RolloverServiceInterface {
 	/**
 	 * Count carryable enrolments for a member set (preview only — no writes).
 	 *
-	 * @param array<int,string> $learnerIds Members.
-	 * @param array{overrides: array<string,array>, carryNonMandatory: bool} $args The overrides, carryNonMandatory.
+	 * @param array<string,mixed> $job The mapping's `members`, indexed `overrides` and `mapping`
+	 *                                 (its carryNonMandatory says whether non-mandatory counts).
 	 *
 	 * @return int Count of enrolments that would be carried over.
 	 */
-	private function countCarryableEnrolments(array $learnerIds, array $args): int {
-		$overrides = $args['overrides'];
-		$carryNonMandatory = $args['carryNonMandatory'];
-
+	private function countCarryableEnrolments(array $job): int {
+		$overrides = $job['overrides'];
+		$carryNonMandatory = (bool)($job['mapping']['carryNonMandatory'] ?? false);
 		$count = 0;
-		foreach ($learnerIds as $learnerId) {
+		foreach ($job['members'] as $learnerId) {
 			$learnerAction = ($overrides[$learnerId]['action'] ?? 'promote');
 			if ($learnerAction !== 'promote' && $learnerAction !== 'retain') {
 				continue;

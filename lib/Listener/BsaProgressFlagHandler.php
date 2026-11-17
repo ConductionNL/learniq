@@ -213,7 +213,7 @@ class BsaProgressFlagHandler implements IEventListener {
 				$trajectory = $trajectory->jsonSerialize();
 			}
 
-			$this->checkTrajectory(trajectory: $trajectory, args: ['learnerId' => $learnerId, 'tenantId' => $tenantId]);
+			$this->checkTrajectory(trajectory: $trajectory, learner: ['learnerId' => $learnerId, 'tenantId' => $tenantId]);
 		}
 
 	}//end checkProgramme()
@@ -221,17 +221,16 @@ class BsaProgressFlagHandler implements IEventListener {
 	/**
 	 * Evaluate a single BsaTrajectory for a learner and create a flag if at risk.
 	 *
-	 * @param array<string,mixed> $trajectory BsaTrajectory data.
-	 * @param array{learnerId: string, tenantId: string} $args The learnerId, tenantId.
+	 * @param array<string,mixed>                       $trajectory BsaTrajectory data.
+	 * @param array{learnerId: string, tenantId: string} $learner    NC user ID of the learner and the tenant ID.
 	 *
 	 * @return void
 	 *
 	 * @spec openspec/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
 	 */
-	private function checkTrajectory(array $trajectory, array $args): void {
-		$learnerId = $args['learnerId'];
-		$tenantId = $args['tenantId'];
-
+	private function checkTrajectory(array $trajectory, array $learner): void {
+		$learnerId = $learner['learnerId'];
+		$tenantId = $learner['tenantId'];
 		$interimNormEcts = $trajectory['interimNormEcts'] ?? null;
 		if ($interimNormEcts === null) {
 			// No interim pace threshold configured — nothing to check ahead
