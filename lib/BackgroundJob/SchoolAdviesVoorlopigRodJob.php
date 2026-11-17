@@ -32,6 +32,9 @@ namespace OCA\Learniq\BackgroundJob;
 use OCA\Learniq\Kernel\Contracts\ExchangeDisclosureInterface;
 use OCA\Learniq\Kernel\Contracts\IntegriqExchangeClientInterface;
 use OCA\Learniq\Kernel\Contracts\SchoolAdviesRodTimingInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\Deferral\DeferredListenerContext;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
@@ -102,7 +105,10 @@ class SchoolAdviesVoorlopigRodJob extends ForwardedJob {
 	 * @return void
 	 */
 	private function send(string $id): void {
-		$entity = $this->objectService->find(id: $id, register: self::LEARNIQ_REGISTER, schema: self::SCHOOL_ADVIES_SCHEMA);
+		$entity = $this->objectService->find(
+			id: $id,
+			options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::SCHOOL_ADVIES_SCHEMA)
+		);
 		if ($entity === null) {
 			return;
 		}
@@ -128,10 +134,11 @@ class SchoolAdviesVoorlopigRodJob extends ForwardedJob {
 		);
 
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::SCHOOL_ADVIES_SCHEMA,
 			object: array_merge($advies, ['voorlopigExchangeJobId' => $jobId]),
-			uuid: $id
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::SCHOOL_ADVIES_SCHEMA),
+				uuid: $id
+			)
 		);
 	}//end send()
 }//end class

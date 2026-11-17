@@ -36,6 +36,9 @@ use OCP\IUserSession;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use RuntimeException;
+use OCA\Learniq\Tests\Support\LegacyObjectArgs;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectDeletion;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Tests for RequestSubmitController over a real DraftSubmitter.
@@ -87,6 +90,7 @@ class RequestSubmitControllerTest extends TestCase {
 		$objects = $this->createMock(ObjectService::class);
 		$objects->method('find')->willReturnCallback(
 			static function (int|string $id, mixed ...$rest) {
+				$rest = array_slice(LegacyObjectArgs::positional(method: 'find', args: [$id, ...$rest]), 1);
 				$rows = [
 					self::PLAN => OrEntityFactory::make(['id' => self::PLAN, 'tenant_id' => self::TENANT], 'curriculum-plan'),
 					self::ROUND => OrEntityFactory::make(['id' => self::ROUND, 'tenant_id' => self::TENANT], 'conference-round'),
@@ -100,14 +104,18 @@ class RequestSubmitControllerTest extends TestCase {
 		);
 		$objects->method('findAll')->willReturn([OrEntityFactory::make(['id' => self::PROFILE, 'ncUserId' => 'lrn-1', 'tenant_id' => self::TENANT], 'learner-profile')]);
 		$objects->method('saveObject')->willReturnCallback(
-			function (array $object, ?array $extend = [], mixed $register = null, mixed $schema = null) {
+			function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
 				$this->saved[(string)$schema] = $object;
 
 				return OrEntityFactory::make(array_merge($object, ['id' => self::DRAFT]), (string)$schema);
 			}
 		);
 		$objects->method('deleteObject')->willReturnCallback(
-			function (string $uuid): bool {
+			function (ObjectDeletion $deletion): bool {
+				$uuid = $deletion->uuid;
 				$this->deleted[] = $uuid;
 
 				return true;

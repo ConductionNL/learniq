@@ -47,6 +47,7 @@ use DateTimeImmutable;
 use Exception;
 use OCA\Learniq\Kernel\Contracts\PokParentSignatureRuleInterface;
 use OCA\Learniq\Support\FindOrNull;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 
@@ -181,7 +182,12 @@ class PokParentSignatureRule implements PokParentSignatureRuleInterface {
 			return null;
 		}
 
-		$find = fn () => $this->objectService->find(id: $id, register: self::LEARNIQ_REGISTER, schema: $schema, _rbac: false, _multitenancy: false);
+		$find = fn () => $this->objectService->find(
+			id: $id,
+			options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: $schema),
+			_rbac: false,
+			_multitenancy: false
+		);
 		return $this->findOrNull(find: $find)?->jsonSerialize();
 	}//end row()
 

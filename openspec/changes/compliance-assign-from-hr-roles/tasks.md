@@ -16,7 +16,7 @@
 
 ## 4. Screen
 
-- [ ] 4.1 Compliance page: "Niet meer in scope" list; profile page: HR fields read only with the source named. Verify: `npm run check:manifest`, `npm run check:l10n`.
+- [x] 4.1 Compliance page: "Niet meer in scope" list; profile page: HR fields read only with the source named. Verify: `npm run check:manifest`, `npm run check:l10n`.
 
 ## 5. Cross app
 

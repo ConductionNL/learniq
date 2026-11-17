@@ -39,6 +39,7 @@ use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Service\LessonReleaseEvaluator;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\TestCase;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 
 /**
  * Tests for LessonReleaseEvaluator::evaluate().
@@ -90,7 +91,11 @@ class LessonReleaseEvaluatorTest extends TestCase {
 		// register/schema pair sits at positions 4 and 5 — and the return value
 		// must be an ObjectEntity, never the raw fixture row.
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) {
+			function (int|string $id, ?ObjectFindOptions $options = null) {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				foreach (($this->db[(string)$schema] ?? []) as $rec) {
 					if (($rec['id'] ?? null) === $id) {
 						return OrEntityFactory::make($rec, (string)$schema);

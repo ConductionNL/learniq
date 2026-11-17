@@ -51,6 +51,9 @@ use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\Learniq\Service\ConferenceBookingMode;
 use OCA\Learniq\Service\ConferenceSlotSlicer;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -187,8 +190,7 @@ class ConferenceFreeSlotGenerator implements IEventListener {
 			foreach ($free as $candidate) {
 				$this->objectService->saveObject(
 					object: $this->freeSlot(slot: ['teacherId' => $teacherId, 'candidate' => $candidate, 'eligible' => $eligible[$teacherId]], round: $round),
-					register: self::REGISTER,
-					schema: self::SLOT_SCHEMA,
+					options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: self::SLOT_SCHEMA)),
 					_rbac: false,
 					_multitenancy: false
 				);
@@ -479,7 +481,12 @@ class ConferenceFreeSlotGenerator implements IEventListener {
 			return null;
 		}
 
-		$object = $this->objectService->find(id: $id, register: self::REGISTER, schema: $schema, _rbac: false, _multitenancy: false);
+		$object = $this->objectService->find(
+			id: $id,
+			options: new ObjectFindOptions(register: self::REGISTER, schema: $schema),
+			_rbac: false,
+			_multitenancy: false
+		);
 		if ($object === null) {
 			return null;
 		}

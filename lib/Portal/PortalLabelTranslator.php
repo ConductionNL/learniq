@@ -115,6 +115,12 @@ class PortalLabelTranslator {
 	private const NESTED_CONTEXTS = ['sources', 'values', 'phrases', 'confirmation', 'steps'];
 
 	/**
+	 * Maps from a field to the words a reader sees, whose every value is
+	 * visible: a template block's words for an empty field (portaliq REQ-SMO-027).
+	 */
+	private const WORDS_BY_FIELD_KEYS = ['whenEmpty'];
+
+	/**
 	 * The two forms of a counted word.
 	 *
 	 * @var array<int, string>
@@ -223,8 +229,9 @@ class PortalLabelTranslator {
 	 * @return string
 	 */
 	private function contextOf(int|string $key, string $context): string {
-		if (in_array($key, self::NESTED_CONTEXTS, true) === true) {
-			return (string)$key;
+		$byKey = $this->contextByKey(key: $key);
+		if ($byKey !== null) {
+			return $byKey;
 		}
 
 		$byParent = $this->contextByParent(key: $key, context: $context);
@@ -238,6 +245,26 @@ class PortalLabelTranslator {
 
 		return '';
 		}//end contextOf()
+
+	/**
+	 * The context a key names by itself: a nested context, or the visible
+	 * words of a map from a field.
+	 *
+	 * @param int|string $key The key of the nested array.
+	 *
+	 * @return string|null The context, or null when the key alone does not decide it.
+	 */
+	private function contextByKey(int|string $key): ?string {
+		if (in_array($key, self::NESTED_CONTEXTS, true) === true) {
+			return (string)$key;
+		}
+
+		if (in_array($key, self::WORDS_BY_FIELD_KEYS, true) === true) {
+			return 'values';
+		}
+
+		return null;
+	}//end contextByKey()
 
 	/**
 	 * The context its parent gives a nested array: a summary's phrases are
