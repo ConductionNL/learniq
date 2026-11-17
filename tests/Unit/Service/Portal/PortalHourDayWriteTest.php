@@ -30,6 +30,7 @@ namespace OCA\Learniq\Tests\Unit\Service\Portal;
 use OCA\Learniq\Service\HourDayLines;
 use OCA\Learniq\Service\Portal\PortalHourDayWrite;
 use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\TestCase;
 
@@ -107,7 +108,7 @@ class PortalHourDayWriteTest extends TestCase {
 			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $this->store->findAll($config, $_rbac, $_multitenancy)
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			fn (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null): object => $this->store->save((string)$schema, $object, $uuid, false)
+			fn (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()): object => $this->store->save((string)$options->target->schema, $object, $options->uuid, false)
 		);
 
 		return new PortalHourDayWrite(objectService: $objectService);

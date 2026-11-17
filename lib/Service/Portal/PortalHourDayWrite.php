@@ -38,6 +38,8 @@ use DateTimeImmutable;
 use OCA\Learniq\Kernel\Contracts\PortalHourDayWriteInterface;
 use OCA\Learniq\Service\HourDayLines;
 use OCA\Learniq\Support\SerialisedRow;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -325,7 +327,12 @@ class PortalHourDayWrite implements PortalHourDayWriteInterface {
 	 */
 	private function saved(array $week): PortalOutcome {
 		$saved = (new SerialisedRow())->asArray(
-			object: $this->objectService->saveObject(object: $week, register: self::REGISTER, schema: self::WEEK_SCHEMA, _rbac: false, _multitenancy: false)
+			object: $this->objectService->saveObject(
+				object: $week,
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: self::WEEK_SCHEMA)),
+				_rbac: false,
+				_multitenancy: false
+			)
 		);
 
 		return new PortalOutcome(
