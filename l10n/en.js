@@ -5682,7 +5682,12 @@ OC.L10N.register(
         "Waiting for the training company": "Waiting for the training company",
         "Waiting for your parent": "Waiting for your parent",
         "Your reports, choices, agreements and certificates. You can download and keep them all.": "Your reports, choices, agreements and certificates. You can download and keep them all.",
-        "There are no documents yet.": "There are no documents yet."
+        "There are no documents yet.": "There are no documents yet.",
+        "Ask for a proof of enrolment": "Ask for a proof of enrolment",
+        "Your proof of enrolment is ready. You find it under your documents.": "Your proof of enrolment is ready. You find it under your documents.",
+        "Proof of enrolment, school year %s": "Proof of enrolment, school year %s",
+        "You have no active enrolment this school year, so there is nothing to prove yet. Ask your school.": "You have no active enrolment this school year, so there is nothing to prove yet. Ask your school.",
+        "The proof of enrolment could not be made just now. Try again later.": "The proof of enrolment could not be made just now. Try again later."
     },
     "nplurals=2; plural=(n != 1);"
 )

@@ -154,6 +154,26 @@ class LearnerDocumentsTest extends TestCase {
 	}//end testOnlyHerOwnSettledDocumentsAreOfferedPerGroup()
 
 	/**
+	 * Her proof of enrolment, kept on the enrolment, is listed with her
+	 * statements under its own title (school-documents-on-the-portal T4).
+	 *
+	 * @return void
+	 */
+	public function testTheProofKeptOnTheEnrolmentIsAStatement(): void {
+		$reader = $this->reader(
+			['enrolment' => [['id' => 'enr-1', 'learnerRef' => 'noor']]],
+			['enr-1' => [$this->file(id: 9, name: 'Bewijs van inschrijving, schooljaar 2026-2027.pdf')]]
+		);
+
+		$entries = $reader->forEnrolment('enr-1');
+
+		self::assertCount(1, $entries);
+		self::assertSame('Bewijs van inschrijving, schooljaar 2026-2027', $entries[0]['title']);
+		self::assertSame('nl:Choices and statements', $entries[0]['group']);
+		self::assertSame(['register' => 'learniq', 'schema' => 'enrolment', 'id' => 'enr-1', 'fileId' => '9'], $entries[0]['file']);
+	}//end testTheProofKeptOnTheEnrolmentIsAStatement()
+
+	/**
 	 * Milan's agreement, signed by him and the school, reads "Wacht op
 	 * leerbedrijf" with the company in its meta; a draft agreement and an
 	 * agreement of another placement stay inside.

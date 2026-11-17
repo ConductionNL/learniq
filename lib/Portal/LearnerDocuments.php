@@ -99,6 +99,8 @@ class LearnerDocuments {
 		return array_merge(
 			$this->grouped(rows: $this->reports(learnerRef: $learnerRef), schema: 'report-card', group: $l10n->t('Reports')),
 			$this->grouped(rows: $this->choices(learnerRef: $learnerRef), schema: 'subject-choice', group: $l10n->t('Choices and statements')),
+			// Files kept on the enrolment itself, such as her proof of enrolment (T4).
+			$this->grouped(rows: [$enrolment], schema: 'enrolment', group: $l10n->t('Choices and statements')),
 			$this->agreements(learnerRef: $learnerRef, l10n: $l10n),
 			$this->grouped(rows: $this->certificates(enrolmentId: $enrolmentId), schema: 'credential', group: $l10n->t('Certificates'))
 		);

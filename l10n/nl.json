@@ -6261,7 +6261,12 @@
         "Waiting for the training company": "Wacht op leerbedrijf",
         "Waiting for your parent": "Wacht op je ouder",
         "Your reports, choices, agreements and certificates. You can download and keep them all.": "Je rapporten, keuzes, overeenkomsten en certificaten. Je kunt ze allemaal downloaden en bewaren.",
-        "There are no documents yet.": "Er zijn nog geen documenten."
+        "There are no documents yet.": "Er zijn nog geen documenten.",
+        "Ask for a proof of enrolment": "Vraag een bewijs van inschrijving aan",
+        "Your proof of enrolment is ready. You find it under your documents.": "Je bewijs van inschrijving staat klaar. Je vindt het bij je documenten.",
+        "Proof of enrolment, school year %s": "Bewijs van inschrijving, schooljaar %s",
+        "You have no active enrolment this school year, so there is nothing to prove yet. Ask your school.": "Je hebt dit schooljaar geen actieve inschrijving, dus er is nog niets om te bewijzen. Vraag het je school.",
+        "The proof of enrolment could not be made just now. Try again later.": "Het bewijs van inschrijving kon nu niet gemaakt worden. Probeer het later nog eens."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

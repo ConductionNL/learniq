@@ -41,6 +41,7 @@ use OCA\Learniq\Kernel\Contracts\CatalogueSignUpServiceInterface;
 use OCA\Learniq\Kernel\Contracts\CheckInCodeServiceInterface;
 use OCA\Learniq\Kernel\Contracts\CheckInMessagesInterface;
 use OCA\Learniq\Kernel\Contracts\CheckInServiceInterface;
+use OCA\Learniq\Kernel\Contracts\ProofOfEnrolmentInterface;
 use OCA\Learniq\Kernel\Contracts\Cmi5LaunchSessionsInterface;
 use OCA\Learniq\Kernel\Contracts\Cmi5LaunchTokenServiceInterface;
 use OCA\Learniq\Kernel\Contracts\CohortNameRestampInterface;
@@ -205,6 +206,7 @@ use OCA\Learniq\Service\Catalogue\CatalogueSignUpService;
 use OCA\Learniq\Service\CheckIn\CheckInCodeService;
 use OCA\Learniq\Service\CheckIn\CheckInMessages;
 use OCA\Learniq\Service\CheckIn\CheckInService;
+use OCA\Learniq\Service\Portal\ProofOfEnrolment;
 use OCA\Learniq\Service\Course\CourseTemplateService;
 use OCA\Learniq\Service\CourseDay\CourseDayStatusService;
 use OCA\Learniq\Service\CourseDay\PlannerTodayService;
@@ -293,6 +295,7 @@ final class ContractBindings {
 		CheckInCodeServiceInterface::class => CheckInCodeService::class,
 		CheckInMessagesInterface::class => CheckInMessages::class,
 		CheckInServiceInterface::class => CheckInService::class,
+		ProofOfEnrolmentInterface::class => ProofOfEnrolment::class,
 		Cmi5LaunchSessionsInterface::class => Cmi5LaunchSessions::class,
 		Cmi5LaunchTokenServiceInterface::class => Cmi5LaunchTokenService::class,
 		CohortNameRestampInterface::class => CohortNameRestamp::class,

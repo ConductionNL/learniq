@@ -22,10 +22,12 @@ declare(strict_types=1);
 namespace OCA\OpenRegister\Service;
 
 use OCA\OpenRegister\Db\ObjectEntity;
+use OCA\OpenRegister\Service\File\FileUpload;
+use OCP\Files\File;
 
 /**
- * Mirrors the one method learniq calls, with the signature of openregister
- * development d611a366 (lib/Service/FileService.php getFiles()).
+ * Mirrors the methods learniq calls, with the signatures of openregister
+ * main (lib/Service/FileService.php getFiles() and saveFile()).
  */
 abstract class FileService {
 
@@ -38,4 +40,25 @@ abstract class FileService {
 	 * @return array<int, \OCP\Files\Node>
 	 */
 	abstract public function getFiles(ObjectEntity|string $object, ?bool $sharedFilesOnly = false): array;
+
+	/**
+	 * Save a file to an object's folder, replacing one of the same name.
+	 *
+	 * @param ObjectEntity           $objectEntity The object.
+	 * @param FileUpload|string|null $upload       The file, or its name.
+	 * @param mixed                  $content      The content, beside a name.
+	 * @param bool                   $share        Whether to share a new file.
+	 * @param array                  $tags         Tags for the file.
+	 * @param string|null            $fileName     The file name.
+	 *
+	 * @return File
+	 */
+	abstract public function saveFile(
+		ObjectEntity $objectEntity,
+		FileUpload|string|null $upload = null,
+		mixed $content = null,
+		bool $share = false,
+		array $tags = [],
+		?string $fileName = null,
+	): File;
 }//end class
