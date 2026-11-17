@@ -33,6 +33,7 @@ import { request as httpsRequest } from 'node:https'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { lifecycleOf, lifecyclePath } from './seed-lifecycle.mjs'
+import { SEED_TENANT } from './seed-tenant.mjs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const REPO_ROOT = join(__dirname, '..', '..')
@@ -530,31 +531,10 @@ async function createThenTransition(slug, body, refusal) {
 /**
  * The tenant_id every seeded object carries.
  *
- * @return {Promise<string>} OpenRegister's active organisation, or a fixed demo UUID
+ * @return {Promise<string>} learniq's default tenant (seed-tenant.mjs)
  */
 async function resolveTenant() {
-	// tenant_id must be a UUID. Use OR's active organisation if we can discover it;
-	// otherwise a fixed demo UUID (OR may still reject it on multitenancy grounds —
-	// then those creates 400 and we just log + continue).
-	let TENANT = '00000000-0000-0000-0000-00000000d3a0'
-	try {
-		const meR = await api(
-			'GET',
-			'/index.php/apps/openregister/api/registers?limit=1',
-		)
-		const items =
-			meR.json?.results
-			?? meR.json?.data
-			?? (Array.isArray(meR.json) ? meR.json : [])
-		const org = items[0]?.organisation
-		if (typeof org === 'string' && /^[0-9a-f-]{36}$/i.test(org)) {
-			TENANT = org
-			log(`using active org as tenant_id: ${TENANT}`)
-		}
-	} catch {
-		/* keep the fixed demo UUID */
-	}
-	return TENANT
+	return SEED_TENANT
 }
 
 /**
