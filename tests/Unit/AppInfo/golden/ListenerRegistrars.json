@@ -92,6 +92,14 @@
             "registerEventListener",
             [
                 "OCA\\OpenRegister\\Event\\ObjectTransitionedEvent",
+                "OCA\\Learniq\\Listener\\ExamSittingEstablishHandler",
+                "int"
+            ]
+        ],
+        [
+            "registerEventListener",
+            [
+                "OCA\\OpenRegister\\Event\\ObjectTransitionedEvent",
                 "OCA\\Learniq\\Listener\\ItemAnalysisRecomputeHandler",
                 "int"
             ]

@@ -38,6 +38,7 @@ use OCA\Learniq\Lifecycle\AttendanceFlagCreationHandler;
 use OCA\Learniq\Lifecycle\ExcuseApprovalHandler;
 use OCA\Learniq\Listener\CredentialIssuanceHandler;
 use OCA\Learniq\Listener\ExamObjectionDeadlineStamp;
+use OCA\Learniq\Listener\ExamSittingEstablishHandler;
 use OCA\Learniq\Listener\ExamObjectionDecisionHandler;
 use OCA\Learniq\Listener\ExemptionGrantHandler;
 use OCA\Learniq\Listener\GradeRollupHandler;
@@ -115,6 +116,11 @@ class GradingListenerRegistrar {
 		// A new ExamObjection gets its decision deadline from the exam
 		// regulation's term in working days (server-written, never the creator's).
 		[ObjectCreatingEvent::class, ExamObjectionDeadlineStamp::class],
+		// ADR-031 legitimate exception (exam-committee-today-and-keuzedelen):
+		// ExamSitting `established` -> every result of the sitting that is not
+		// yet established gets the sitting's establishedAt and establishedBy, so
+		// the committee establishes them all at once.
+		[ObjectTransitionedEvent::class, ExamSittingEstablishHandler::class],
 		// ADR-031 legitimate exception (assessment-item-pools-and-analysis):
 		// AssessmentResult.graded -> ItemStatistics/AssessmentReliability
 		// recompute + ItemRevisionFlag creation bridge. Listens for the SAME
