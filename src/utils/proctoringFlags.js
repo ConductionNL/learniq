@@ -6,6 +6,8 @@
 // Kept apart from ProctoringReviewQueue.vue so they can be tested without a
 // browser.
 
+import { objectId } from './customPages.js'
+
 /**
  * The flags of a session still waiting for a decision.
  *
@@ -70,4 +72,16 @@ export function withDecision(flags, flagId, decision) {
 export function nameOrId(names, userId) {
 	const name = userId ? (names || {})[userId] : ''
 	return name && name.trim() !== '' ? name : userId || ''
+}
+
+/**
+ * The objects-API path of one session, by the id OpenRegister returned it
+ * under (a list row carries `id`, not `uuid`).
+ *
+ * @param {object} session A ProctoringSession.
+ * @return {string} The path, for generateUrl().
+ * @spec openspec/specs/assessment/spec.md#requirement-staff-reach-the-proctoring-flag-review-page
+ */
+export function sessionPath(session) {
+	return `/apps/openregister/api/objects/learniq/proctoring-session/${objectId(session)}`
 }
