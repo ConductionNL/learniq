@@ -54,6 +54,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use OCA\Learniq\Tests\Support\RegisterSchemaPayloads;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 
 /**
  * Content and consistency of lib/Settings/profiles/mbo.json.
@@ -581,7 +582,11 @@ class VocationalCollegeExampleSetTest extends TestCase {
 
 		$store = $this->createMock(ObjectService::class);
 		$store->method('find')->willReturnCallback(
-			static function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($rows) {
+			static function (int|string $id, ?ObjectFindOptions $options = null) use ($rows) {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				if (isset($rows[(string)$schema][(string)$id]) === false) {
 					throw new DoesNotExistException('not in the set');
 				}
@@ -679,7 +684,7 @@ class VocationalCollegeExampleSetTest extends TestCase {
 		);
 		self::assertEqualsCanonicalizing(PlacementPhase::PHASES, array_values(array_unique($shown)));
 
-		$daan = array_values(array_filter(self::of('bpv-placement'), static fn (array $p): bool => $p['learnerId'] === 'mbo-student-253'))[0];
+		$daan = array_values(array_filter(self::of('bpv-placement'), static fn (array $p): bool => $p['learnerId'] === 'mbo-student-254'))[0];
 		self::assertArrayNotHasKey('trainingCompanyName', $daan);
 		self::assertSame('5 weken te laat', $daan['lateLabel']);
 		self::assertNull(self::schemaError(slug: 'bpv-placement', payload: array_diff_key($daan, ['@self' => true, 'uuid' => true, 'slug' => true])));
@@ -723,7 +728,8 @@ class VocationalCollegeExampleSetTest extends TestCase {
 	 */
 	public function testTheSetSeedsAnAssessorWithPortfoliosToRead(): void {
 		$assessors = self::of('external-assessor');
-		self::assertCount(1, $assessors);
+		// Ruud Jansen reads the portfolios; Sanne Bakker is the proeve's second assessor (practical-exam-assessment).
+		self::assertCount(2, $assessors);
 		$assessor = $assessors[0];
 		self::assertTrue($assessor['active']);
 		self::assertNotEmpty($assessor['email']);
@@ -761,7 +767,7 @@ class VocationalCollegeExampleSetTest extends TestCase {
 			return $row;
 		};
 
-		foreach (['external-assessor', 'portfolio', 'portfolio-entry', 'portfolio-share', 'bpv-hour-week'] as $schema) {
+		foreach (['external-assessor', 'portfolio', 'portfolio-entry', 'portfolio-share', 'bpv-hour-week', 'exam-assessor-assignment'] as $schema) {
 			foreach (self::of($schema) as $row) {
 				self::assertNull(self::schemaError(slug: $schema, payload: $strip($row)), $schema . ' ' . ($row['slug'] ?? '?'));
 			}
@@ -771,6 +777,47 @@ class VocationalCollegeExampleSetTest extends TestCase {
 		unset($share['portfolioId']);
 		self::assertNotNull(self::schemaError(slug: 'portfolio-share', payload: $share), 'control: a share names its portfolio');
 	}//end testTheNewRowsPassTheRealSchemas()
+
+	/**
+	 * The set seeds a proeve with two assessors and three candidates: every
+	 * candidate has a live first and a live second assessor, the two are
+	 * different people, and the readable copies say what a live save stamps.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/practical-exam-assessment/specs/exam-board/spec.md#requirement-an-assessor-is-linked-to-an-exam-sitting-by-a-record
+	 */
+	public function testTheSetSeedsASittingWithTwoAssessorsAndThreeCandidates(): void {
+		$assignments = self::of('exam-assessor-assignment');
+		self::assertCount(6, $assignments);
+
+		$sittingIds = array_values(array_unique(array_column($assignments, 'examSittingId')));
+		self::assertCount(1, $sittingIds, 'one sitting');
+		$sitting = self::by(self::of('exam-sitting'), 'uuid')[$sittingIds[0]];
+		$exam = self::by(self::of('exam'), 'uuid')[$sitting['assessmentId']];
+		$learners = self::by(self::of('learner-profile'), 'uuid');
+		$assessors = self::by(self::of('external-assessor'), 'uuid');
+
+		$roles = [];
+		foreach ($assignments as $assignment) {
+			self::assertSame('assigned', $assignment['lifecycle'], $assignment['slug']);
+			self::assertArrayHasKey($assignment['externalAssessorId'], $assessors, $assignment['slug']);
+			$learner = $learners[$assignment['learnerRef']];
+			self::assertSame($learner['givenName'] . ' ' . $learner['familyName'], $assignment['learnerName'], $assignment['slug']);
+			self::assertSame($sitting['startsAt'], $assignment['sittingStartsAt'], $assignment['slug']);
+			self::assertSame($exam['title'], $assignment['examTitle'], $assignment['slug']);
+			$roles[$assignment['learnerRef']][$assignment['role']] = $assignment['externalAssessorId'];
+		}
+
+		self::assertCount(3, $roles, 'three candidates');
+		self::assertSame(3, $sitting['headcount']);
+		foreach ($roles as $learnerRef => $pair) {
+			self::assertSame(['first', 'second'], array_keys($pair), $learnerRef);
+			self::assertNotSame($pair['first'], $pair['second'], $learnerRef . ' has two different assessors');
+		}
+
+		self::assertCount(2, array_unique(array_merge(...array_map('array_values', array_values($roles)))), 'two assessors in all');
+	}//end testTheSetSeedsASittingWithTwoAssessorsAndThreeCandidates()
 
 	/**
 	 * The set seeds weeks of realised BPV hours: for every work placement unit
@@ -937,10 +984,11 @@ class VocationalCollegeExampleSetTest extends TestCase {
 		$milan = $people['Milan de Groot'];
 		$aylin = $people['Aylin Demir'];
 		self::assertSame('mbo-student-251', $milan['ncUserId']);
-		// Milan and Aylin, then the five students of the placement board
-		// (bpv-coach-today-and-placement-board T6).
+		// Milan and Aylin, Sem Visser (mbo-student-253) for
+		// attendance-warns-before-the-threshold, then the five students of the
+		// placement board (bpv-coach-today-and-placement-board T6).
 		self::assertSame(
-			['mbo-student-251', 'mbo-student-252', 'mbo-student-253', 'mbo-student-254', 'mbo-student-255', 'mbo-student-256', 'mbo-student-257'],
+			['mbo-student-251', 'mbo-student-252', 'mbo-student-253', 'mbo-student-254', 'mbo-student-255', 'mbo-student-256', 'mbo-student-257', 'mbo-student-258'],
 			$cohort['learnerIds']
 		);
 		$enrolment = self::by(self::of('enrolment'), 'learnerId')[$milan['ncUserId']];

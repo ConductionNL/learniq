@@ -30,6 +30,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\CoursePackage;
 
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectDeletion;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -190,9 +193,8 @@ class CoursePackageObjectWriter {
 	 */
 	public function create(string $schema, array $object): ?string {
 		$saved = $this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: $schema,
-			object: $object
+			object: $object,
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: $schema))
 		);
 
 		return $this->extractUuid(saved: $saved);
@@ -209,7 +211,9 @@ class CoursePackageObjectWriter {
 	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#data-model
 	 */
 	public function delete(string $schema, string $uuid): void {
-		$this->objectService->deleteObject(uuid: $uuid, register: self::LEARNIQ_REGISTER, schema: $schema);
+		$this->objectService->deleteObject(
+			new ObjectDeletion(uuid: $uuid, target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: $schema))
+		);
 	}//end delete()
 
 	/**

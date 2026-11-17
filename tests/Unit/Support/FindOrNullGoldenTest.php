@@ -60,6 +60,7 @@ use ReflectionMethod;
 use ReflectionNamedType;
 use RuntimeException;
 use Throwable;
+use OCA\Learniq\Tests\Support\LegacyObjectArgs;
 
 /**
  * Pins what every single-object OpenRegister read in learniq answers when
@@ -209,9 +210,10 @@ class FindOrNullGoldenTest extends TestCase {
 	private function outcome(string $class, string $method, array $args, callable $answer): array {
 		$calls   = [];
 		$service = $this->createMock(ObjectService::class);
-		$params  = (new ReflectionMethod(ObjectService::class, 'find'))->getParameters();
+		$params  = LegacyObjectArgs::parameters(ObjectService::class, 'find');
 		$service->method('find')->willReturnCallback(
 			static function (...$values) use ($params, $answer, &$calls): mixed {
+				$values = LegacyObjectArgs::positional(method: 'find', args: $values);
 				$named = [];
 				foreach ($values as $i => $value) {
 					if ($params[$i]->isDefaultValueAvailable() === true && $params[$i]->getDefaultValue() === $value) {

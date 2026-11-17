@@ -47,6 +47,8 @@ use DOMDocument;
 use DOMElement;
 use DOMNodeList;
 use OCA\Learniq\Kernel\Contracts\QtiImportServiceInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
@@ -376,7 +378,10 @@ class QtiImportService implements QtiImportServiceInterface {
 	 * @return string|null The uuid, or null when the saved entity has none.
 	 */
 	private function saveItem(array $itemData): ?string {
-		$uuid = $this->objectService->saveObject(register: 'learniq', schema: 'item', object: $itemData)->getUuid();
+		$uuid = $this->objectService->saveObject(
+			object: $itemData,
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: 'learniq', schema: 'item'))
+		)->getUuid();
 		if (is_string($uuid) === true) {
 			return $uuid;
 		}

@@ -124,6 +124,21 @@ class HourWeekSubmissionStamp implements IEventListener {
 
 		$payload = array_merge(($this->entityOf(event: $event)->getObject() ?? []), $event->getModifiedData());
 
+		$this->stampWithPlacement(event: $event, payload: $payload);
+	}//end handle()
+
+	/**
+	 * Read the week's placement and stamp the week from it; refuse the save when
+	 * the placement cannot be read or does not exist.
+	 *
+	 * @param ObjectCreatingEvent|ObjectUpdatingEvent $event   The week of hours being saved.
+	 * @param array<string,mixed>                     $payload The week as it will be saved.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
+	 */
+	private function stampWithPlacement(ObjectCreatingEvent|ObjectUpdatingEvent $event, array $payload): void {
 		try {
 			$placement = $this->placement(id: $this->text(value: ($payload['bpvPlacementId'] ?? null)));
 		} catch (Throwable $exception) {
@@ -141,7 +156,7 @@ class HourWeekSubmissionStamp implements IEventListener {
 		}
 
 		$this->apply(event: $event, payload: $payload, placement: $placement);
-	}//end handle()
+	}//end stampWithPlacement()
 
 	/**
 	 * Stamp the owner fields and the hours on the write, or refuse it when the

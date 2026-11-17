@@ -41,6 +41,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Kernel\Contracts\CompetencyAttainmentRollupInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
@@ -153,9 +155,8 @@ class CompetencyAttainmentRollup implements CompetencyAttainmentRollupInterface 
 		}
 
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::WERKPROCES_SCHEMA,
-			object: array_merge($data, ['competencyId' => $competencyId])
+			object: array_merge($data, ['competencyId' => $competencyId]),
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::WERKPROCES_SCHEMA))
 		);
 
 		$this->logger->info(

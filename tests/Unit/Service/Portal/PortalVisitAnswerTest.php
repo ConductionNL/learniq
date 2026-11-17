@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Service\Portal;
 
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\Learniq\Service\Portal\PortalOutcome;
 use OCA\Learniq\Service\Portal\PortalVisitAnswer;
 use OCA\Learniq\Support\SerialisedRow;
@@ -98,7 +99,9 @@ final class PortalVisitAnswerTest extends TestCase {
 			fn (array $config=[], bool $_rbac=true, bool $_multitenancy=true): array => $this->store->findAll($config, $_rbac, $_multitenancy)
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array $object, ?array $extend=[], $register=null, $schema=null, ?string $uuid=null, bool $_rbac=true) use ($saveThrows): object {
+			function (array $object, ObjectSaveOptions $options=new ObjectSaveOptions(), bool $_rbac=true) use ($saveThrows): object {
+				$schema = $options->target->schema;
+				$uuid   = $options->uuid;
 				if ($saveThrows === true) {
 					throw new RuntimeException('SQLSTATE 23505 secret table name');
 				}

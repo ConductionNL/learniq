@@ -39,6 +39,8 @@ namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Kernel\Contracts\RegulationAssignmentServiceInterface;
 use OCA\Learniq\Support\SerialisedRow;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
@@ -133,7 +135,10 @@ class RegulationAssignmentService implements RegulationAssignmentServiceInterfac
 					$enrolment['dueDate'] = $dueDate;
 				}
 
-				$this->objectService->saveObject(object: $enrolment, register: self::LEARNIQ_REGISTER, schema: 'enrolment');
+				$this->objectService->saveObject(
+					object: $enrolment,
+					options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: 'enrolment'))
+				);
 				$enrolled[$userId] = true;
 				$result['created']++;
 			}//end foreach
@@ -227,8 +232,7 @@ class RegulationAssignmentService implements RegulationAssignmentServiceInterfac
 					'managerId' => $profile['managerId'] ?? null,
 					'tenant_id' => (string)($regulation['tenant_id'] ?? ($course['tenant_id'] ?? '')),
 				],
-				register: self::LEARNIQ_REGISTER,
-				schema: 'enrolment'
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: 'enrolment'))
 			);
 			$created[] = (string)($this->asRow(object: $saved)['id'] ?? '');
 		}//end foreach
@@ -259,7 +263,10 @@ class RegulationAssignmentService implements RegulationAssignmentServiceInterfac
 
 			$object = array_merge($enrolment, ['outOfScopeSince' => $today]);
 			unset($object['@self'], $object['id'], $object['uuid']);
-			$this->objectService->saveObject(object: $object, register: self::LEARNIQ_REGISTER, schema: 'enrolment', uuid: $id);
+			$this->objectService->saveObject(
+				object: $object,
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: 'enrolment'), uuid: $id)
+			);
 			$marked[] = $id;
 		}
 

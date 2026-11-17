@@ -29,6 +29,9 @@ namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Exception\DraftSubmitException;
 use OCA\Learniq\Kernel\Contracts\DraftSubmitterInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectDeletion;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
@@ -75,7 +78,10 @@ class DraftSubmitter implements DraftSubmitterInterface {
 	 */
 	public function createAndSubmit(string $schema, array $data): array {
 		try {
-			$draft = $this->objectService->saveObject(object: $data, register: self::REGISTER, schema: $schema);
+			$draft = $this->objectService->saveObject(
+				object: $data,
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: $schema))
+			);
 		} catch (Throwable $exception) {
 			$this->logger->info('[DraftSubmitter] A {schema} draft was refused: {msg}', ['schema' => $schema, 'msg' => $exception->getMessage()]);
 			throw new DraftSubmitException(reason: DraftSubmitException::INVALID, previous: $exception);
@@ -104,7 +110,10 @@ class DraftSubmitter implements DraftSubmitterInterface {
 	 */
 	private function removeDraft(string $schema, string $id): void {
 		try {
-			$this->objectService->deleteObject(uuid: $id, register: self::REGISTER, schema: $schema, _rbac: false);
+			$this->objectService->deleteObject(
+				new ObjectDeletion(uuid: $id, target: new ObjectFindTarget(register: self::REGISTER, schema: $schema)),
+				_rbac: false
+			);
 		} catch (Throwable $exception) {
 			$this->logger->warning(
 				'[DraftSubmitter] Could not remove refused {schema} draft {id}: {msg}',

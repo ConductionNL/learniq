@@ -30,6 +30,8 @@ namespace OCA\Learniq\Service\Portal;
 
 use OCA\Learniq\Kernel\Contracts\PortalVisitAnswerInterface;
 use OCA\Learniq\Support\SerialisedRow;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -100,9 +102,7 @@ class PortalVisitAnswer implements PortalVisitAnswerInterface {
 
 			$saved = $this->objectService->saveObject(
 				object: self::answered(visit: $checked, trainerRef: $trainerRef, outcome: $outcome, response: $response),
-				register: self::REGISTER,
-				schema: self::VISIT_SCHEMA,
-				uuid: $visitId,
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: self::VISIT_SCHEMA), uuid: $visitId),
 				_rbac: false,
 				_multitenancy: false
 			);

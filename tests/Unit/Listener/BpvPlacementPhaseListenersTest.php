@@ -25,6 +25,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\Learniq\Bpv\PlacementPhase;
 use OCA\Learniq\Listener\BpvPlacementPhaseStamp;
 use OCA\Learniq\Listener\BpvVisitPhaseRollup;
@@ -118,7 +119,9 @@ final class BpvPlacementPhaseListenersTest extends TestCase {
 				return true;
 			}));
 		});
-		$objects->method('saveObject')->willReturnCallback(function (array $object, ?array $extend=[], $register=null, $schema=null, ?string $uuid=null): \OCA\OpenRegister\Db\ObjectEntity {
+		$objects->method('saveObject')->willReturnCallback(function (array $object, ObjectSaveOptions $options=new ObjectSaveOptions()): \OCA\OpenRegister\Db\ObjectEntity {
+			$schema = $options->target->schema;
+			$uuid   = $options->uuid;
 			$this->saved[] = ['schema' => (string) $schema, 'object' => $object, 'uuid' => $uuid];
 			return OrEntityFactory::make($object, (string) $schema, 'learniq', $uuid);
 		});

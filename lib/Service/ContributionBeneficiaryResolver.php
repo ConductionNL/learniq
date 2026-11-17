@@ -35,6 +35,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Kernel\Contracts\ContributionBeneficiaryResolverInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -116,8 +117,7 @@ class ContributionBeneficiaryResolver implements ContributionBeneficiaryResolver
 
 		$profile = $this->objectService->find(
 			id: $id,
-			register: self::REGISTER,
-			schema: self::PROFILE_SCHEMA,
+			options: new ObjectFindOptions(register: self::REGISTER, schema: self::PROFILE_SCHEMA),
 			_rbac: false,
 			_multitenancy: false
 		);

@@ -32,6 +32,8 @@ use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\Learniq\Support\SerialisedRow;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -154,9 +156,7 @@ class BpvVisitPhaseRollup implements IEventListener {
 
 			$this->objectService->saveObject(
 				object: array_diff_key($row, self::STAMPED),
-				register: self::REGISTER,
-				schema: self::PLACEMENT_SCHEMA,
-				uuid: $placementId,
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: self::PLACEMENT_SCHEMA), uuid: $placementId),
 				_rbac: false,
 				_multitenancy: false
 			);

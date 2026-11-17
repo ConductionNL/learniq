@@ -34,6 +34,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use ReflectionMethod;
 use RuntimeException;
+use OCA\Learniq\Tests\Support\LegacyObjectArgs;
 
 /**
  * Pins the ICS events, the planninq lesson to session mapping, the projected
@@ -150,6 +151,7 @@ class TimetableProjectionGoldenTest extends TestCase {
 		$objects = $this->createMock(ObjectService::class);
 		$objects->method('find')->willReturnCallback(
 			static function (...$args) use ($rows) {
+				$args = LegacyObjectArgs::positional(method: 'find', args: $args);
 				$id = (string)$args[0];
 				if ($id === 'boom') {
 					throw new RuntimeException('down');

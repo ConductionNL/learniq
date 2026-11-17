@@ -101,6 +101,20 @@ class SubmissionLearnerRefsStamp implements IEventListener {
 			return;
 		}
 
+		$this->stampLearnerRefs(event: $event);
+	}//end handle()
+
+	/**
+	 * Stamp the learner refs of a submission's learners on the save; any other
+	 * schema, or one that cannot be told, is left alone.
+	 *
+	 * @param ObjectCreatingEvent|ObjectUpdatingEvent $event The save, not stopped.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/assignments/spec.md#requirement-every-submission-carries-server-stamped-learnerrefs
+	 */
+	private function stampLearnerRefs(ObjectCreatingEvent|ObjectUpdatingEvent $event): void {
 		$entity = $this->entityOf(event: $event);
 
 		try {
@@ -129,7 +143,7 @@ class SubmissionLearnerRefsStamp implements IEventListener {
 				['learnerRefs' => $this->derive(learnerIds: $learnerIds, stored: $stored)]
 			)
 		);
-	}//end handle()
+	}//end stampLearnerRefs()
 
 	/**
 	 * The object being written: the new state on an update.

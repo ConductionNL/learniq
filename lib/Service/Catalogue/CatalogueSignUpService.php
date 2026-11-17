@@ -56,6 +56,9 @@ use OCA\Learniq\Service\Portal\PortalLearner;
 use OCA\Learniq\Service\Portal\PortalOutcome;
 use OCA\Learniq\Service\Programme\ProgrammeRequirements;
 use OCA\Learniq\Support\FindOrNull;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Http;
 use Throwable;
@@ -247,7 +250,11 @@ class CatalogueSignUpService implements CatalogueSignUpServiceInterface {
 		$row['lifecycle'] = 'withdrawn';
 		$this->objects->runAs(
 			user: $learner->user,
-			operation: fn () => $this->objects->saveObject(object: $row, register: self::REGISTER, schema: self::ENROLMENT, uuid: $enrolmentId, _rbac: false)
+			operation: fn () => $this->objects->saveObject(
+				object: $row,
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: self::ENROLMENT), uuid: $enrolmentId),
+				_rbac: false
+			)
 		);
 
 		return new PortalOutcome(status: Http::STATUS_OK, body: ['enrolmentId' => $enrolmentId, 'lifecycle' => 'withdrawn']);
@@ -331,7 +338,11 @@ class CatalogueSignUpService implements CatalogueSignUpServiceInterface {
 		try {
 			$saved = $this->objects->runAs(
 				user: $learner->user,
-				operation: fn () => $this->objects->saveObject(object: $enrolment, register: self::REGISTER, schema: self::ENROLMENT, _rbac: false)
+				operation: fn () => $this->objects->saveObject(
+					object: $enrolment,
+					options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: self::ENROLMENT)),
+					_rbac: false
+				)
 			);
 		} catch (Throwable $exception) {
 			$message = $this->vetoMessage(exception: $exception);
@@ -420,7 +431,12 @@ class CatalogueSignUpService implements CatalogueSignUpServiceInterface {
 			return null;
 		}
 
-		$find = fn () => $this->objects->find(id: $id, register: self::REGISTER, schema: $schema, _rbac: false, _multitenancy: false, _render: false);
+		$find = fn () => $this->objects->find(
+			id: $id,
+			options: new ObjectFindOptions(register: self::REGISTER, schema: $schema, render: false),
+			_rbac: false,
+			_multitenancy: false
+		);
 		return $this->findRowWithIdOrNull(find: $find, id: $id);
 	}//end read()
 }//end class

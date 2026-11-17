@@ -50,6 +50,7 @@ use OCA\Learniq\Listener\BpvVisitPhaseRollup;
 use OCA\Learniq\Listener\BpvVisitProposalStamp;
 use OCA\Learniq\Listener\HourWeekTotalRollup;
 use OCA\Learniq\Listener\LearnerGroupLabelCascade;
+use OCA\Learniq\Listener\CourseDayStatusCascade;
 use OCA\Learniq\Listener\EmployerBookingCascade;
 use OCA\Learniq\Listener\ReadableCopyStamp;
 use OCA\Learniq\Listener\SubmissionLearnerRefsStamp;
@@ -358,6 +359,7 @@ class IntegrityListenerRegistrar {
 			event: ObjectUpdatedEvent::class,
 			listener: EmployerBookingCascade::class
 		);
+		$this->registerCourseDayStatus(context: $context);
 		// Who entered a week of hours, when, for which student and for which
 		// school, all from the placement the week names: the pupil's form may
 		// send none of it (internship-hours).
@@ -422,4 +424,23 @@ class IntegrityListenerRegistrar {
 			listener: BpvVisitProposalStamp::class
 		);
 	}//end registerReadableCopies()
+
+	/**
+	 * A course day's status follows its bookings, enrolments, sessions,
+	 * minimum and decision, deferred (training-provider-course-days).
+	 *
+	 * @param IRegistrationContext $context The registration context.
+	 *
+	 * @return void
+	 */
+	private function registerCourseDayStatus(IRegistrationContext $context): void {
+		$context->registerEventListener(
+			event: ObjectCreatedEvent::class,
+			listener: CourseDayStatusCascade::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatedEvent::class,
+			listener: CourseDayStatusCascade::class
+		);
+	}//end registerCourseDayStatus()
 }//end class

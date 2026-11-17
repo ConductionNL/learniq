@@ -36,6 +36,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 use Throwable;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * What a failed rollover run writes onto its plan.
@@ -56,7 +57,10 @@ class RolloverExecutionHandlerTest extends TestCase {
 		$saved   = [];
 		$objects = $this->createMock(ObjectService::class);
 		$objects->method('saveObject')->willReturnCallback(
-			static function (array $object, ?array $extend = [], $register = null, $schema = null) use (&$saved) {
+			static function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) use (&$saved) {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
 				$saved[] = $object;
 				return OrEntityFactory::make($object, (string)$schema, (string)$register);
 			}

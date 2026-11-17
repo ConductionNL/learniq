@@ -97,6 +97,21 @@ class ExchangeGateListener implements IEventListener {
 			return;
 		}
 
+		$this->answerDecision(event: $event, decision: $decision);
+	}//end handle()
+
+	/**
+	 * Answer the gate event with the decision: allow with its records, or refuse
+	 * with its code (gate-error when it carries none) and reason.
+	 *
+	 * @param Event               $event    The gate event to answer.
+	 * @param array<string,mixed> $decision The gate's decision.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-the-gate-enforces-partner-approval-teldatum-confirmation-and-flag-handling
+	 */
+	private function answerDecision(Event $event, array $decision): void {
 		if (($decision['decision'] ?? '') === ExchangeGateServiceInterface::DECISION_ALLOW) {
 			$this->answer(event: $event, method: 'allow', arguments: [(array)($decision['records'] ?? [])]);
 			return;
@@ -110,7 +125,7 @@ class ExchangeGateListener implements IEventListener {
 		}
 
 		$this->answer(event: $event, method: 'refuse', arguments: [$code, (string)($decision['reason'] ?? 'Learniq could not decide on this exchange.')]);
-	}//end handle()
+	}//end answerDecision()
 
 	/**
 	 * Answer the event through its contract method.

@@ -40,6 +40,7 @@ use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
 use OCP\IL10N;
 use PHPUnit\Framework\TestCase;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 
 /**
  * The gate over an in-memory store; the records come from the real builder.
@@ -106,7 +107,11 @@ class ExchangeGateServiceTest extends TestCase {
 			}
 		);
 		$objects->method('find')->willReturnCallback(
-			function ($id, ?array $_extend = [], bool $files = false, $register = null, $schema = null, ...$rest): ?ObjectEntity {
+			function ($id, ?ObjectFindOptions $options = null, bool $_rbac = true, bool $_multitenancy = true, ...$rest): ?ObjectEntity {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				foreach (($this->rows[$register . '/' . $schema] ?? []) as $row) {
 					if (($row['id'] ?? '') === $id) {
 						return OrEntityFactory::make($row, (string)$schema);

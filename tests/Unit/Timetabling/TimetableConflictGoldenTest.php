@@ -33,6 +33,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\AbstractLogger;
 use ReflectionMethod;
 use Stringable;
+use OCA\Learniq\Tests\Support\LegacyObjectArgs;
 
 /**
  * Pins every ObjectService call and log line TimetableConflictDetector makes,
@@ -209,6 +210,7 @@ class TimetableConflictGoldenTest extends TestCase {
 		);
 		$service->method('saveObject')->willReturnCallback(
 			static function (...$args) use (&$calls) {
+				$args = LegacyObjectArgs::positional(method: 'saveObject', args: $args);
 				$named = self::named('saveObject', $args);
 				$stamp = (string)($named['object']['detectedAt'] ?? '');
 				if (preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+00:00$/', $stamp) === 1) {
@@ -260,7 +262,7 @@ class TimetableConflictGoldenTest extends TestCase {
 	 * @return array<string,mixed>
 	 */
 	private static function named(string $method, array $args): array {
-		$params = (new ReflectionMethod(ObjectService::class, $method))->getParameters();
+		$params = LegacyObjectArgs::parameters(ObjectService::class, $method);
 		$named  = [];
 		foreach ($args as $i => $value) {
 			if ($params[$i]->isDefaultValueAvailable() === true && $params[$i]->getDefaultValue() === $value) {
