@@ -187,6 +187,25 @@ class PortalHourDayWriteTest extends TestCase {
 	}//end testAReturnedWeekTakesTheChangedDayAndGoesBack()
 
 	/**
+	 * Re-saving a day keeps the photo its stored line holds: the form never
+	 * sends one, and a photo typed into the form is not taken.
+	 *
+	 * @return void
+	 */
+	public function testReSavingADayKeepsItsPhoto(): void {
+		$service = $this->days(weekState: 'draft');
+		$this->store->rows['bpv-hour-week'][0]['days'][0]['photoRef'] = 'file-123';
+
+		$outcome = $service->write(learnerRef: self::LEARNER, body: self::MONDAY + ['send' => 'keep', 'photoRef' => 'file-999']);
+
+		self::assertSame(200, $outcome->status);
+		$week = $this->store->rows['bpv-hour-week'][0];
+		self::assertSame('16:30', $week['days'][0]['endTime']);
+		self::assertSame('file-123', $week['days'][0]['photoRef']);
+		self::assertArrayNotHasKey('photoRef', $week['days'][1]);
+	}//end testReSavingADayKeepsItsPhoto()
+
+	/**
 	 * Keeping a draft for later adds a day and leaves the week a draft.
 	 *
 	 * @return void

@@ -71,6 +71,11 @@ class PortalHourDayWrite implements PortalHourDayWriteInterface {
 	private const MAX_CODES = 20;
 
 	/**
+	 * The fields of a stored day line the form never sends, kept when the day is re-saved.
+	 */
+	private const KEPT_FIELDS = ['photoRef'];
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService Reads the placement and the week; writes the week.
@@ -177,8 +182,10 @@ class PortalHourDayWrite implements PortalHourDayWriteInterface {
 	 * @spec openspec/changes/bpv-hours-per-day/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-holds-its-days
 	 */
 	private static function withDay(array $week, array $line, bool $send): array|PortalOutcome {
+		$days   = (array)($week['days'] ?? []);
+		$line   = self::keptFields(days: $days, line: $line);
 		$others = array_filter(
-			(array)($week['days'] ?? []),
+			$days,
 			static fn (mixed $day): bool => is_array($day) === true && ($day['date'] ?? null) !== $line['date']
 		);
 		$lines = (new HourDayLines())->normalise(days: [...array_values($others), $line], isoWeek: (string)$week['isoWeek']);
@@ -195,6 +202,36 @@ class PortalHourDayWrite implements PortalHourDayWriteInterface {
 
 		return $week;
 	}//end withDay()
+
+	/**
+	 * The day line with what the stored line of the same date holds and the
+	 * form never sends: its photo, which arrives through portaliq's own
+	 * upload. Re-saving a day changes its hours and description, it does not
+	 * drop the photo. The trainer's question is answered by the change and
+	 * goes with the old line.
+	 *
+	 * @param array<int|string, mixed> $days The stored day lines.
+	 * @param array<string, mixed>     $line The day line as sent.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/bpv-hours-per-day/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-holds-its-days
+	 */
+	private static function keptFields(array $days, array $line): array {
+		foreach ($days as $day) {
+			if (is_array($day) === false || ($day['date'] ?? null) !== $line['date']) {
+				continue;
+			}
+
+			foreach (self::KEPT_FIELDS as $field) {
+				if (array_key_exists($field, $day) === true && array_key_exists($field, $line) === false) {
+					$line[$field] = $day[$field];
+				}
+			}
+		}
+
+		return $line;
+	}//end keptFields()
 
 	/**
 	 * The day line from the form: only the fields a student writes. The hours
