@@ -149,7 +149,7 @@ class ExchangeGateService implements ExchangeGateServiceInterface {
 			return $this->refuse(code: 'records-unavailable', reason: $exception->getMessage());
 		}
 
-		$incomplete = $this->completenessRefusal(target: $target, mappingSlug: $mappingSlug, records: $records);
+		$incomplete = $this->completenessRefusal(target: $target, args: ['mappingSlug' => $mappingSlug, 'records' => $records]);
 		if ($incomplete !== null) {
 			return $this->refuse(code: $incomplete['code'], reason: $incomplete['reason']);
 		}
@@ -271,12 +271,14 @@ class ExchangeGateService implements ExchangeGateServiceInterface {
 	 * the pupil's personal number.
 	 *
 	 * @param string                           $target      The exchange target.
-	 * @param string|null                      $mappingSlug The job's integriq mapping.
-	 * @param array<int, array<string, mixed>> $records     The composed records.
+	 * @param array{mappingSlug: string|null, records: array<int, array<string, mixed>>} $args The mappingSlug, and the composed records.
 	 *
 	 * @return array{code: string, reason: string}|null The refusal, or null.
 	 */
-	private function completenessRefusal(string $target, ?string $mappingSlug, array $records): ?array {
+	private function completenessRefusal(string $target, array $args): ?array {
+		$mappingSlug = $args['mappingSlug'];
+		$records = $args['records'];
+
 		$required = $this->disclosure->requiredFor(target: $target, mappingSlug: $mappingSlug);
 		if ($required === []) {
 			return null;
