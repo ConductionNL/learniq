@@ -46,7 +46,7 @@ class AttendanceWindowExampleSetTest extends TestCase {
 	private const TODAY = '2026-10-05';
 
 	/**
-	 * Finn and Ryan in the primary school set are nearing the limit; Vera and Sami are at zero.
+	 * Finn and Ryan in the primary school set are nearing the limit; Vera, Sami, Lina and Hamza (excused) are at zero.
 	 *
 	 * @return void
 	 *
@@ -61,6 +61,8 @@ class AttendanceWindowExampleSetTest extends TestCase {
 				'po-leerling-199' => ['0 van 16 uur', false],
 				'po-leerling-167' => ['5,8 van 16 uur', true],
 				'po-leerling-200' => ['11,5 van 16 uur', true],
+				'po-leerling-201' => ['0 van 16 uur', false],
+				'po-leerling-202' => ['0 van 16 uur', false],
 			],
 			actual: $rows
 		);
