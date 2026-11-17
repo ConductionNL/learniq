@@ -360,8 +360,10 @@ class LtiAgsScorePollJob extends TimedJob {
 			'ltiAgsResultId' => $resultId,
 			'value' => $this->normaliseScore(
 				scoreGiven: $score['scoreGiven'],
-				scoreMaximum: $score['scoreMaximum'],
-				gradeScaleId: $scaleId
+				args: [
+					'scoreMaximum' => $score['scoreMaximum'],
+					'gradeScaleId' => $scaleId,
+				]
 			),
 			'gradeScaleId' => $scaleId,
 			'grader' => 'lti-ags',
@@ -571,12 +573,14 @@ class LtiAgsScorePollJob extends TimedJob {
 	 * never a blocked import.
 	 *
 	 * @param float $scoreGiven The raw AGS scoreGiven value.
-	 * @param float|null $scoreMaximum The raw AGS scoreMaximum value, if present.
-	 * @param string $gradeScaleId UUID of the target GradeScale.
+	 * @param array{scoreMaximum: float|null, gradeScaleId: string} $args The scoreMaximum, gradeScaleId.
 	 *
 	 * @return float The normalised value to store on the GradeEntry.
 	 */
-	private function normaliseScore(float $scoreGiven, ?float $scoreMaximum, string $gradeScaleId): float {
+	private function normaliseScore(float $scoreGiven, array $args): float {
+		$scoreMaximum = $args['scoreMaximum'];
+		$gradeScaleId = $args['gradeScaleId'];
+
 		if ($scoreMaximum === null || $scoreMaximum <= 0.0 || $gradeScaleId === '') {
 			return $scoreGiven;
 		}
