@@ -49,6 +49,8 @@ use OCP\IRequest;
  */
 class PortalPracticalExamController extends Controller {
 
+	use PortalFormFields;
+
 	/**
 	 * The only audience this endpoint serves.
 	 */
@@ -198,37 +200,4 @@ class PortalPracticalExamController extends Controller {
 
 		return new JSONResponse(data: $outcome->body, statusCode: $outcome->status);
 	}//end forAssessor()
-
-	/**
-	 * The whitelisted fields the form sent.
-	 *
-	 * @return array<string, mixed>
-	 */
-	private function body(): array {
-		$body = [];
-		foreach (self::FIELDS as $field) {
-			$value = $this->request->getParam($field);
-			if ($value !== null) {
-				$body[$field] = $value;
-			}
-		}
-
-		return $body;
-	}//end body()
-
-	/**
-	 * A trimmed string parameter, or '' when it is absent or not a string.
-	 *
-	 * @param string $name The parameter.
-	 *
-	 * @return string
-	 */
-	private function stringParam(string $name): string {
-		$value = $this->request->getParam($name);
-		if (is_string($value) === false) {
-			return '';
-		}
-
-		return trim($value);
-	}//end stringParam()
 }//end class
