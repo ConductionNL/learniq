@@ -2655,7 +2655,161 @@
 				"massActionNameField": "fullName",
 				"bulkNoun": "learners",
 				"bulkBandAlways": true,
-				"allowSavedViews": true
+				"allowSavedViews": true,
+				"headerActions": [
+					{
+						"id": "open-group-pupils",
+						"label": "Pupils of my group",
+						"icon": "AccountMultipleOutline",
+						"handler": "navigate",
+						"route": "GroupPupils"
+					}
+				]
+			}
+		},
+		{
+			"id": "GroupPupils",
+			"route": "/pupils",
+			"type": "index",
+			"title": "Pupils of my group",
+			"config": {
+				"_note": "learner-list-and-page-follow-the-boards T1/T2 (boards LqLijst): the staff list of the pupils of one group, read from GET /api/pupil-list (PupilListController), which answers only a teacher of the group or school-wide staff, a row per pupil with today's state (TodayState) and what the school kind acts on, and the total of the asked saved view, so each quick filter counts its pupils. The columns here are the primary school's (Vandaag, Afwezig dit jaar, Te laat, Oudergesprek, Zorg); the simple structure profile replaces them for vo and mbo (workspace.segment). A row opens the pupil's page (its id is the learner profile's). No Add, import or delete: pupils are added on the Learners list. spec: openspec/changes/learner-list-and-page-follow-the-boards/specs/pupil-dossier/spec.md#requirement-the-pupil-list-shows-what-the-school-kind-acts-on-and-its-saved-views-count",
+				"showTitle": true,
+				"entitySource": "endpoint",
+				"sourceConfig": {
+					"url": "/apps/learniq/api/pupil-list",
+					"rowsPath": "results",
+					"totalPath": "total",
+					"refusedText": "Only the teachers of a group and school-wide staff see its pupils."
+				},
+				"rowRoute": "LearnerProfileDetail",
+				"columns": [
+					{
+						"key": "name",
+						"label": "Pupil",
+						"widget": "avatar",
+						"widgetProps": {
+							"nameField": "name"
+						}
+					},
+					{
+						"key": "todayState",
+						"label": "Today",
+						"enum": [
+							"in-class",
+							"reported-ill",
+							"appointment",
+							"reported-absent",
+							"late",
+							"absent",
+							"not-registered"
+						],
+						"enumLabels": {
+							"in-class": "In class",
+							"reported-ill": "Reported ill",
+							"appointment": "Appointment",
+							"reported-absent": "Reported absent",
+							"late": "Late",
+							"absent": "Absent",
+							"not-registered": "Not registered yet"
+						}
+					},
+					{
+						"key": "absentDays",
+						"label": "Absent this year",
+						"widget": "number",
+						"widgetProps": {
+							"unit": {
+								"one": "{count} day",
+								"other": "{count} days"
+							}
+						}
+					},
+					{
+						"key": "lateCount",
+						"label": "Late",
+						"widget": "number",
+						"widgetProps": {
+							"unit": {
+								"one": "{count} time",
+								"other": "{count} times"
+							}
+						}
+					},
+					{
+						"key": "conferenceAt",
+						"label": "Parent conference",
+						"formatter": "datetime"
+					},
+					{
+						"key": "conferenceState",
+						"label": "Conference time",
+						"enum": [
+							"none",
+							"proposed",
+							"booked",
+							"confirmed",
+							"acknowledged"
+						],
+						"enumLabels": {
+							"none": "No time yet",
+							"proposed": "Waiting for the parents",
+							"booked": "Waiting on you",
+							"confirmed": "Confirmed",
+							"acknowledged": "Confirmed"
+						}
+					},
+					{
+						"key": "care",
+						"label": "Care",
+						"enum": [
+							"plan",
+							"support-request"
+						],
+						"enumLabels": {
+							"plan": "Plan running",
+							"support-request": "Support requested"
+						}
+					}
+				],
+				"quickFilters": [
+					{
+						"label": "All pupils",
+						"filter": {},
+						"showCount": true,
+						"default": true
+					},
+					{
+						"label": "Absent today",
+						"filter": {
+							"view": "absent-today"
+						},
+						"showCount": true
+					},
+					{
+						"label": "No conference time yet",
+						"filter": {
+							"view": "no-conference-time"
+						},
+						"showCount": true
+					},
+					{
+						"label": "With care",
+						"filter": {
+							"view": "with-care"
+						},
+						"showCount": true
+					},
+					{
+						"label": "With a signal",
+						"filter": {
+							"view": "with-signal"
+						},
+						"showCount": true
+					}
+				],
+				"countText": "{shown} of {total} pupils",
+				"emptyText": "No pupils in this group"
 			}
 		},
 		{
@@ -2666,7 +2820,7 @@
 			"config": {
 				"register": "learniq",
 				"schema": "learner-profile",
-				"_note": "Board LqLeerling (G2): the overview stacks recent grades, the latest attendance, the learner as a card and what else is in the dossier (counts); the other lists are tabs; the contact card beside it. The 'What now?' card and the people beside it read the pupil page endpoint (learner-list-and-page-follow-the-boards T3/T4); the header shows no learner number, because personalNumber is the BSN-type number. The conversation with the guardians waits on portaliq (T5). Actions holds Merge into another account (learner-merge-page-action): on an active learner it asks for the surviving account from a picker of the other active learners, confirms, and runs the merge transition; LearnerMergeGuard refuses a pair with an open enrolment in the same course and the dialog shows its reason. The HR system card (compliance-assign-from-hr-roles) shows department, job title, roles, manager and the HR source read only, only on a profile with hrSource; HrFieldOwnershipGuard refuses a manual change to them.",
+				"_note": "Board LqLeerling (G2): the overview stacks recent grades, the latest attendance, the learner as a card and what else is in the dossier (counts); the other lists are tabs; the contact card beside it. The 'What now?' card and the people beside it read the pupil page endpoint (learner-list-and-page-follow-the-boards T3/T4); the header shows no learner number, because personalNumber is the BSN-type number. The conversation with the guardians is a body section at the end (PupilGuardianConversation, T5): the reader's messages with the pupil's guardians through portaliq's staff messaging, with a reply box for a participant. Actions holds Merge into another account (learner-merge-page-action): on an active learner it asks for the surviving account from a picker of the other active learners, confirms, and runs the merge transition; LearnerMergeGuard refuses a pair with an open enrolment in the same course and the dialog shows its reason. The HR system card (compliance-assign-from-hr-roles) shows department, job title, roles, manager and the HR source read only, only on a profile with hrSource; HrFieldOwnershipGuard refuses a manual change to them.",
 				"lifecycleActions": {
 					"field": "lifecycle",
 					"transitions": [
@@ -3658,6 +3812,16 @@
 						"gridWidth": 12,
 						"gridHeight": 18,
 						"showTitle": false
+					}
+				],
+				"bodyWidgets": [
+					{
+						"id": "lprof-guardian-conversation",
+						"component": "PupilGuardianConversation",
+						"title": "Conversation with the parents",
+						"props": {
+							"learnerId": "@object.ncUserId"
+						}
 					}
 				]
 			}
