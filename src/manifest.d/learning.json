@@ -3300,6 +3300,24 @@
 							]
 						}
 					}
+				],
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "participant-day",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 6,
+						"gridHeight": 6
+					},
+					{
+						"id": "2",
+						"widgetId": "participant-certificate",
+						"gridX": 6,
+						"gridY": 0,
+						"gridWidth": 6,
+						"gridHeight": 6
+					}
 				]
 			}
 		},
