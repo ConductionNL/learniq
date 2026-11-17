@@ -152,6 +152,7 @@ const BPV_CARDS = [
 	'PraktijkovereenkomstenMenu',
 	'WerkprocesAssessmentsMenu',
 	'BpvVisitReportsMenu',
+	'BpvVisitsMenu',
 	'PraktijkopleidersMenu',
 ].map((id) => `card:ProgressLanding:${id}`)
 const BSA_CARDS = [

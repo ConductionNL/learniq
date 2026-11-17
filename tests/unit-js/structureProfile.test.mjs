@@ -638,8 +638,10 @@ test('the full profile is exactly the plain manifest build', () => {
 	// AttendanceNearingLimit (attendance-warns-before-the-threshold); 350 with
 	// CourseDays (training-provider-course-days); 352 with the permission-slips
 	// list and detail; 353 with GroupPupils (learner-list-and-page-follow-the-boards, LqLijst);
-	// 355 with LeaveRequests and LeaveRequestDetail (leave-requests-decided-by-the-school).
-	assert.equal(plain.pages.length, 355)
+	// 355 with LeaveRequests and LeaveRequestDetail (leave-requests-decided-by-the-school);
+	// 356 with company visits (bpv-coach-today-and-placement-board; its placement
+	// board is a view mode of BpvPlacements, not a page).
+	assert.equal(plain.pages.length, 356)
 })
 
 test('menu-layout.json holds no profile key, so the full profile cannot gain an overlay', () => {
