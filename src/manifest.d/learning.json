@@ -537,7 +537,7 @@
 					"label": "Participants",
 					"icon": "AccountMultiple",
 					"route": "CourseParticipants",
-					"order": 58,
+					"order": 56,
 					"visibleIf": {
 						"user.primaryRole": {
 							"in": [
