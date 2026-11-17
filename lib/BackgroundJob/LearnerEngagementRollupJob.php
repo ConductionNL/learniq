@@ -91,7 +91,7 @@ class LearnerEngagementRollupJob extends ForwardedJob {
 			$sourceKind = (string)($entry['sourceKind'] ?? '');
 
 			try {
-				$this->rollUp(learnerId: $learnerId, tenantId: $tenantId, sourceKind: $sourceKind);
+				$this->rollUp(sourceKind: $sourceKind, learner: ['learnerId' => $learnerId, 'tenantId' => $tenantId]);
 			} catch (\Throwable $e) {
 				$this->logger->warning(
 					message: '[LearnerEngagementRollupJob] Roll-up failed for entry',
@@ -110,15 +110,16 @@ class LearnerEngagementRollupJob extends ForwardedJob {
 	/**
 	 * Recompute one learner's engagement row, then check milestones.
 	 *
-	 * @param string $learnerId  The learner.
-	 * @param string $tenantId   The tenant.
-	 * @param string $sourceKind The award kind that triggered this.
+	 * @param array{learnerId: string, tenantId: string} $learner    The learner and the tenant.
+	 * @param string                                     $sourceKind The award kind that triggered this.
 	 *
 	 * @return void
 	 *
 	 * @spec openspec/specs/engagement/spec.md#scenario-a-learner-sees-their-own-points-and-level-regardless-of-leaderboard-opt-out
 	 */
-	private function rollUp(string $learnerId, string $tenantId, string $sourceKind): void {
+	private function rollUp(array $learner, string $sourceKind): void {
+		$learnerId = $learner['learnerId'];
+		$tenantId = $learner['tenantId'];
 		$existing = $this->findExistingEngagement(learnerId: $learnerId, tenantId: $tenantId);
 		$previousStreak = (int)($existing['currentStreakDays'] ?? 0);
 
