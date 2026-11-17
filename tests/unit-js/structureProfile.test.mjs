@@ -622,13 +622,14 @@ test('the full profile is exactly the plain manifest build', () => {
 	// 111 since proctoring-flag-review-page added the Proctoring review entry
 	// under Learning and its twin under Compliance; 112 with Course days
 	// (training-provider-course-days); 113 since permission-slips added the
-	// Permission slips entry at the top level, beside the School calendar.
-	assert.equal(entries.length, 113)
+	// Permission slips entry at the top level, beside the School calendar;
+	// 114 with Leave to decide under People (leave-requests-decided-by-the-school).
+	assert.equal(entries.length, 114)
 	assert.equal(plain.menu.length, 27)
-	// 104 in main: Course days and Permission slips each added one.
+	// 105 in main: Course days, Permission slips and Leave to decide each added one.
 	assert.deepEqual(
 		[count('main'), count('footer'), count('settings')],
-		[104, 2, 7],
+		[105, 2, 7],
 	)
 	// 347 since the four unreached pages (BulkEnrol, CohortTimetable,
 	// MarkAttendanceView, SubmitExcuseModal) became actions; 348 with
@@ -636,8 +637,9 @@ test('the full profile is exactly the plain manifest build', () => {
 	// MyGrades became the learner lens of GradeEntries; 349 with
 	// AttendanceNearingLimit (attendance-warns-before-the-threshold); 350 with
 	// CourseDays (training-provider-course-days); 352 with the permission-slips
-	// list and detail; 353 with GroupPupils (learner-list-and-page-follow-the-boards, LqLijst).
-	assert.equal(plain.pages.length, 353)
+	// list and detail; 353 with GroupPupils (learner-list-and-page-follow-the-boards, LqLijst);
+	// 355 with LeaveRequests and LeaveRequestDetail (leave-requests-decided-by-the-school).
+	assert.equal(plain.pages.length, 355)
 })
 
 test('menu-layout.json holds no profile key, so the full profile cannot gain an overlay', () => {
