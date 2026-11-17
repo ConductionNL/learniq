@@ -7,7 +7,8 @@
 		"description": "GroupPeople. Also carries the former people-dashboard.json content (GroupPeople.route + the PeopleDashboard page).",
 		"menuNotes": {
 			"RollCallMenu": "attendance-roll-call: the day's register of one group. A group teacher lands on their own group and today; coordinators and administration-managers pick any group. The server (RollCallService) decides who may open which group, so the gate here only decides who sees the entry.",
-			"AbsenceReportsMenu": "The absence reports guardians and the school file (ExcuseRequest). The list reads only what the register lets the user read: a group teacher sees the reports of their own groups (teacherIds), coordinators and directors the whole school. hr is left out because ExcuseRequest does not grant it. Compliance officers can read the reports too, but GroupPeople does not reach them, so AbsenceReportsComplianceMenu gives them the same page under Compliance. School-only, like the AttendanceFlags report card."
+			"AbsenceReportsMenu": "The absence reports guardians and the school file (ExcuseRequest). The list reads only what the register lets the user read: a group teacher sees the reports of their own groups (teacherIds), coordinators and directors the whole school. hr is left out because ExcuseRequest does not grant it. Compliance officers can read the reports too, but GroupPeople does not reach them, so AbsenceReportsComplianceMenu gives them the same page under Compliance. School-only, like the AttendanceFlags report card.",
+			"LeaveRequestsMenu": "leave-requests-decided-by-the-school: the leave requests that wait for a decision, oldest first. Only the directeur or teamleider (administration-manager) decides, so only they and admin see the entry; LeaveDecisionGuard refuses a decision by anyone else. School-only, like AbsenceReportsMenu."
 		}
 	},
 	"menu": [
@@ -119,6 +120,26 @@
 							"in": [
 								"instructor",
 								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						},
+						"workspace.chosenSegment": {
+							"notIn": [
+								"corporate"
+							]
+						}
+					}
+				},
+				{
+					"id": "LeaveRequestsMenu",
+					"label": "Leave to decide",
+					"icon": "CalendarQuestion",
+					"route": "LeaveRequests",
+					"order": 32,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
 								"administration-manager",
 								"admin"
 							]
@@ -1831,6 +1852,272 @@
 						}
 					]
 				}
+			}
+		},
+		{
+			"id": "LeaveRequests",
+			"route": "/attendance/leave",
+			"type": "index",
+			"title": "Leave to decide",
+			"config": {
+				"showTitle": true,
+				"register": "learniq",
+				"schema": "leave-request",
+				"_note": "leave-requests-decided-by-the-school (T4): the requests that wait for a decision, oldest first (sorted on the deadline, which follows the day of asking), with the date the school must answer by. A request opens on LeaveRequestDetail, where Allow, Refuse and Forward are the lifecycle's transitions.",
+				"filter": {
+					"lifecycle": "submitted"
+				},
+				"defaultSort": {
+					"field": "decideBy",
+					"direction": "asc"
+				},
+				"rowRoute": "LeaveRequestDetail",
+				"columns": [
+					{
+						"key": "learnerRef",
+						"label": "Pupil",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "learner-profile",
+							"labelTemplate": "{fullName}, {groupLabel}"
+						}
+					},
+					{
+						"key": "dateFrom",
+						"label": "From",
+						"formatter": "date"
+					},
+					{
+						"key": "dateTo",
+						"label": "Until",
+						"formatter": "date"
+					},
+					{
+						"key": "kind",
+						"label": "Kind of leave"
+					},
+					{
+						"key": "schoolDays",
+						"label": "School days"
+					},
+					{
+						"key": "decideBy",
+						"label": "Decide by",
+						"formatter": "date"
+					}
+				],
+				"showAdd": false,
+				"showFormDialog": false,
+				"showCopyAction": false,
+				"showDeleteAction": false,
+				"showMassImport": false,
+				"showMassCopy": false,
+				"showMassDelete": false
+			}
+		},
+		{
+			"id": "LeaveRequestDetail",
+			"route": "/attendance/leave/:id",
+			"type": "detail",
+			"title": "Leave request",
+			"config": {
+				"register": "learniq",
+				"schema": "leave-request",
+				"_note": "leave-requests-decided-by-the-school (T4): the request as the guardian asked it and the decision. Allow, Refuse (a note is required) and Forward are the lifecycle's transitions; LeaveDecisionGuard allows the school's own decision up to ten school days and only the forward above ten, and says so in words.",
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
+				"statusPill": {
+					"field": "lifecycle",
+					"labels": {
+						"submitted": "Submitted",
+						"allowed": "Allowed",
+						"refused": "Refused",
+						"forwarded": "Forwarded to the attendance officer",
+						"withdrawn": "Request withdrawn"
+					},
+					"colorMap": {
+						"allowed": "success",
+						"refused": "error",
+						"submitted": "warning"
+					}
+				},
+				"breadcrumb": {
+					"label": "Leave to decide",
+					"route": "LeaveRequests"
+				},
+				"headerMeta": "decide by {decideBy}",
+				"widgets": [
+					{
+						"id": "lr-request",
+						"type": "facts",
+						"title": "Request",
+						"content": {
+							"fields": [
+								{
+									"path": "learnerRef",
+									"label": "Pupil",
+									"resolve": {
+										"register": "learniq",
+										"schema": "learner-profile",
+										"labelField": "fullName"
+									}
+								},
+								{
+									"path": "dateFrom",
+									"label": "From",
+									"format": "longdate"
+								},
+								{
+									"path": "dateTo",
+									"label": "Until",
+									"format": "longdate"
+								},
+								{
+									"path": "kind",
+									"label": "Kind of leave",
+									"map": {
+										"wedding": "Wedding",
+										"funeral": "Funeral",
+										"religious-observance": "Religious observance",
+										"family-circumstance": "Family circumstance",
+										"holiday-outside-school-holidays": "Holiday outside the school holidays",
+										"other": "Other"
+									}
+								},
+								{
+									"path": "reason",
+									"label": "Reason"
+								},
+								{
+									"path": "schoolDays",
+									"label": "School days"
+								},
+								{
+									"path": "decideBy",
+									"label": "Decide by",
+									"format": "longdate"
+								}
+							],
+							"columns": 2,
+							"notice": {
+								"text": "Up to ten school days the school decides. Above ten, forward the request to the attendance officer. A refusal needs a reason: the parents read it."
+							}
+						}
+					},
+					{
+						"id": "lr-decision",
+						"type": "facts",
+						"title": "Decision",
+						"content": {
+							"fields": [
+								{
+									"path": "decidedBy",
+									"label": "Decided by",
+									"emptyValue": "Not decided yet"
+								},
+								{
+									"path": "decidedAt",
+									"label": "Decided at",
+									"format": "longdate"
+								},
+								{
+									"path": "decisionNote",
+									"label": "Explanation"
+								}
+							],
+							"columns": 1
+						}
+					},
+					{
+						"id": "lr-files",
+						"type": "integration",
+						"integrationId": "files",
+						"title": "Attachment",
+						"icon": "FolderOutline"
+					},
+					{
+						"id": "board-history",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 50,
+							"layout": "stacked"
+						}
+					},
+					{
+						"id": "board-tabs",
+						"type": "tabs",
+						"title": "Panels",
+						"content": {
+							"ariaLabel": "Details",
+							"tabs": [
+								{
+									"label": "Request",
+									"widgetIds": [
+										"lr-request"
+									]
+								},
+								{
+									"label": "Attachment",
+									"widgetId": "lr-files"
+								},
+								{
+									"widgetId": "board-history",
+									"label": "Record history"
+								}
+							]
+						}
+					}
+				],
+				"sideColumn": [
+					"lr-decision",
+					{
+						"id": "board-history-card",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 5,
+							"layout": "stacked"
+						}
+					}
+				],
+				"board": {
+					"tabs": [
+						{
+							"label": "Request",
+							"widgetIds": [
+								"lr-request"
+							]
+						},
+						{
+							"label": "Attachment",
+							"widgetId": "lr-files"
+						}
+					]
+				},
+				"follow": false,
+				"showWidgetActions": false,
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "board-tabs",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 18,
+						"showTitle": false
+					}
+				]
 			}
 		},
 		{

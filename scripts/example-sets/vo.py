@@ -138,6 +138,8 @@ SCHEMAS = [
     "peer-review",
     "item-bank",
     "item",
+    # Appended last (leave-requests-decided-by-the-school): every earlier schema keeps its uuid namespace.
+    "leave-request",
 ]
 
 # The same fictional region as the primary school set, so both sets agree.
@@ -1619,6 +1621,7 @@ class SchoolYear:
         add_board_pupils(self.b, self.courses)
         add_lesson_and_store_boards(self.b, self.courses)
         add_guardian_and_item_bank_boards(self.b)
+        add_leave_requests(self.b, LEAVE_REQUESTS)
 
     def assemble(self) -> dict:
         """The profile file's content, without the private working fields."""
@@ -2527,6 +2530,35 @@ NE_ITEMS = [
 ]
 # The rest of the bank's 48 items: a topic per block of eleven, numbered.
 NE_ITEM_TOPICS = ["Woordenschat", "Spelling", "Tekstverbanden", "Leesstrategie"]
+
+
+
+# Leave requests that wait for the directeur or teamleider (leave-requests-decided-by-the-school): (class,
+# skip ncUserIds, kind, first day, last day, reason, school days, decide by). The school days and the deadline are
+# what LeaveRequestSchoolDaysStamp writes on a live save; the families are the set's own, standing in for the
+# board's El Idrissi and Jansen.
+LEAVE_REQUESTS = [
+    ("4H1", set(), "religious-observance", "2026-11-19", "2026-11-19", "Religieuze feestdag in de familie.", 1, "2026-10-12"),
+    ("5V1", set(), "family-circumstance", "2026-11-26", "2026-11-27", "Begrafenis van een oudoom in Groningen; we reizen een dag eerder.", 2, "2026-10-13"),
+]
+
+
+def add_leave_requests(b: Builder, rows: list[tuple]) -> None:
+    """An open leave request per row, asked by the pupil's first guardian, for the first pupil of the class on
+    its list that the row does not skip. Runs last and draws no random number, so no earlier uuid moves.
+
+    @spec openspec/changes/leave-requests-decided-by-the-school/tasks.md
+    """
+    profiles = {p["ncUserId"]: p for p in b.buckets["learner-profile"]}
+    for class_name, skip, kind, first, last, reason, school_days, decide_by in rows:
+        cohort = next(c for c in b.buckets["cohort"] if c["name"] == class_name)
+        pupil = next(profiles[nc] for nc in sorted(cohort["learnerIds"]) if nc not in skip and profiles[nc].get("guardianRefs"))
+        b.add("leave-request", {
+            "learnerRef": pupil["uuid"], "requestedByRef": pupil["guardianRefs"][0],
+            "dateFrom": first, "dateTo": last, "kind": kind, "reason": reason,
+            "schoolDays": school_days, "decideBy": decide_by, "lifecycle": "submitted",
+            "teacherIds": list(cohort.get("teacherIds") or []),
+        })
 
 
 def add_guardian_and_item_bank_boards(b: Builder) -> None:
