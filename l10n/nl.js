@@ -6164,7 +6164,12 @@ OC.L10N.register(
         "The phase the card was moved to by hand.": "De fase waarnaar de kaart met de hand is verschoven.",
         "Nextcloud user ID of who moved the card; stamped by the server.": "Nextcloud-gebruikers-ID van wie de kaart verschoof; ingevuld door de server.",
         "When the card was moved; stamped by the server.": "Wanneer de kaart is verschoven; ingevuld door de server.",
-        "The facts the manual move holds for; the move lapses when one of them changes. Stamped by the server.": "De feiten waarvoor de handmatige verschuiving geldt; de verschuiving vervalt zodra een ervan verandert. Ingevuld door de server."
+        "The facts the manual move holds for; the move lapses when one of them changes. Stamped by the server.": "De feiten waarvoor de handmatige verschuiving geldt; de verschuiving vervalt zodra een ervan verandert. Ingevuld door de server.",
+        "A colleague in their place": "Collega in zijn plaats",
+        "Colleague who goes instead": "Collega die in de plaats gaat",
+        "The place stays on the booking. Until the working day before the course at 12.00.": "De plek blijft op de boeking. Dit kan tot de werkdag voor de cursus om 12.00 uur.",
+        "Send this colleague": "Deze collega sturen",
+        "Your colleague takes the place. The participant you replaced gets a message.": "Uw collega neemt de plek in. De deelnemer die u vervangt krijgt een bericht."
     },
     "nplurals=2; plural=(n != 1);"
 )
