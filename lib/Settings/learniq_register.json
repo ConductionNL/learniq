@@ -19959,6 +19959,13 @@
                         "title": "To lesson hour",
                         "description": "Last lesson hour of a report for part of a single day, inclusive. Empty for whole days."
                     },
+                    "untilTime": {
+                        "type": "string",
+                        "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$",
+                        "nullable": true,
+                        "title": "Until",
+                        "description": "Time of day, HH:MM, until which a report for part of a single day keeps the pupil away (an appointment until 11:30). Empty when the report names no time."
+                    },
                     "reason": {
                         "type": "string",
                         "description": "Free-text reason for the absence.",
