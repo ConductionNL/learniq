@@ -2727,6 +2727,8 @@ OC.L10N.register(
         "Shows": "Shows",
         "Which lessons the screen shows.": "Which lessons the screen shows.",
         "Today": "Today",
+        "Away until": "Away until",
+        "Time of day, HH:MM, until which a report for part of a single day keeps the pupil away (an appointment until 11:30). Empty when the report names no time.": "Time of day, HH:MM, until which a report for part of a single day keeps the pupil away (an appointment until 11:30). Empty when the report names no time.",
         "Today and tomorrow": "Today and tomorrow",
         "Changes only": "Changes only",
         "Show teacher codes": "Show teacher codes",
