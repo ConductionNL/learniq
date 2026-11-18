@@ -5678,7 +5678,12 @@ OC.L10N.register(
         "The phase the card was moved to by hand.": "The phase the card was moved to by hand.",
         "Nextcloud user ID of who moved the card; stamped by the server.": "Nextcloud user ID of who moved the card; stamped by the server.",
         "When the card was moved; stamped by the server.": "When the card was moved; stamped by the server.",
-        "The facts the manual move holds for; the move lapses when one of them changes. Stamped by the server.": "The facts the manual move holds for; the move lapses when one of them changes. Stamped by the server."
+        "The facts the manual move holds for; the move lapses when one of them changes. Stamped by the server.": "The facts the manual move holds for; the move lapses when one of them changes. Stamped by the server.",
+        "A colleague in their place": "A colleague in their place",
+        "Colleague who goes instead": "Colleague who goes instead",
+        "The place stays on the booking. Until the working day before the course at 12.00.": "The place stays on the booking. Until the working day before the course at 12.00.",
+        "Send this colleague": "Send this colleague",
+        "Your colleague takes the place. The participant you replaced gets a message.": "Your colleague takes the place. The participant you replaced gets a message."
     },
     "nplurals=2; plural=(n != 1);"
 )
