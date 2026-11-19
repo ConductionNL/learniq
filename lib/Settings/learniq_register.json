@@ -7560,7 +7560,7 @@
             "Cohort": {
                 "slug": "cohort",
                 "icon": "AccountGroupOutline",
-                "version": "0.5.0",
+                "version": "0.5.1",
                 "title": "Cohort",
                 "description": "A group of learners doing a Course or Programme together in a given period. Members are LearnerProfile UUIDs; backed by a Nextcloud group for permissioning. Lifecycle: planned → active → completed | archived.",
                 "type": "object",
@@ -7766,6 +7766,14 @@
                         "minimum": 0,
                         "description": "How many participants fit in this course date. The portal shows how many places are left.",
                         "title": "Places"
+                    },
+                    "substituteUntil": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true,
+                        "default": null,
+                        "title": "Substitute until",
+                        "description": "Until when an employer may send a colleague in a participant's place. Empty: the working day before the first course day at 12.00."
                     },
                     "minParticipants": {
                         "type": "integer",
@@ -20005,7 +20013,7 @@
             "ExcuseRequest": {
                 "slug": "excuse-request",
                 "icon": "FileDocumentEditOutline",
-                "version": "0.4.3",
+                "version": "0.5.0",
                 "title": "Excuse request",
                 "description": "Absence excuse submitted by a learner, parent, or 18+ learner-self for a date range. On approval, matching AttendanceRecords are flipped to absent-excused by ExcuseApprovalHandler.",
                 "type": "object",
@@ -20016,7 +20024,6 @@
                 },
                 "required": [
                     "dateFrom",
-                    "dateTo",
                     "reason",
                     "reasonKind",
                     "learnerRef"
@@ -20056,8 +20063,32 @@
                     "dateTo": {
                         "type": "string",
                         "format": "date",
-                        "description": "Last date of the absence period (inclusive, ISO 8601 date).",
-                        "title": "Absence To Date"
+                        "description": "Last date of the absence period (inclusive, ISO 8601 date). An illness may leave it empty until the pupil is reported better; it then covers each following school day.",
+                        "title": "Absence To Date",
+                        "nullable": true
+                    },
+                    "fromLessonHour": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 12,
+                        "nullable": true,
+                        "title": "From lesson hour",
+                        "description": "First lesson hour of a report for part of a single day (1 is the first lesson). Empty for whole days."
+                    },
+                    "toLessonHour": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 12,
+                        "nullable": true,
+                        "title": "To lesson hour",
+                        "description": "Last lesson hour of a report for part of a single day, inclusive. Empty for whole days."
+                    },
+                    "untilTime": {
+                        "type": "string",
+                        "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$",
+                        "nullable": true,
+                        "title": "Until",
+                        "description": "Time of day, HH:MM, until which a report for part of a single day keeps the pupil away (an appointment until 11:30). Empty when the report names no time."
                     },
                     "reason": {
                         "type": "string",
@@ -20121,6 +20152,19 @@
                         "nullable": true,
                         "description": "Optional note from the coordinator explaining the decision.",
                         "title": "Decision Note"
+                    },
+                    "seenBy": {
+                        "type": "string",
+                        "nullable": true,
+                        "title": "Seen by",
+                        "description": "Nextcloud user ID of the group teacher who first opened the report, or the register that lists it. Stamped once by the server; later openings change nothing."
+                    },
+                    "seenAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true,
+                        "title": "Seen at",
+                        "description": "ISO 8601 timestamp of that first look. Seeing does not change the lifecycle."
                     },
                     "lifecycle": {
                         "type": "string",
@@ -20262,6 +20306,28 @@
                         "compliance-officers"
                     ]
                 },
+                "allOf": [
+                    {
+                        "_comment": "absence-reports-seen-and-ended: an illness may leave dateTo empty until the pupil is reported better (reportRecovered sets it); every other reason names its last day. Mirrors PortfolioEntry's if/then conditional-requiredness-by-discriminator shape.",
+                        "if": {
+                            "not": {
+                                "properties": {
+                                    "reasonKind": {
+                                        "const": "illness"
+                                    }
+                                },
+                                "required": [
+                                    "reasonKind"
+                                ]
+                            }
+                        },
+                        "then": {
+                            "required": [
+                                "dateTo"
+                            ]
+                        }
+                    }
+                ],
                 "x-openregister-processing": {
                     "code": "scholiq-attendance-leerplicht",
                     "naam": "Attendance and leerplicht reporting",
@@ -23156,10 +23222,8 @@
                         ]
                     },
                     "phaseDueAt": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
+                        "type": "string",
+                        "nullable": true,
                         "format": "date",
                         "title": "Phase due",
                         "description": "The date the current phase is due by: the period start for searching and agreement, the assessment visit for assessment, the period end for rounding-off. Written by the server."
@@ -23170,10 +23234,8 @@
                         "description": "The late line in words for the board card, such as '2 weken te laat' or 'te laat sinds 1 oktober'; empty when the phase is not late. Written by the server on every save."
                     },
                     "phaseOverride": {
-                        "type": [
-                            "object",
-                            "null"
-                        ],
+                        "type": "object",
+                        "nullable": true,
                         "title": "Manual phase move",
                         "description": "A card moved by hand on the board: send {phase}. The server adds who moved it, when, and the facts it holds for; it lasts until one of those facts changes.",
                         "properties": {

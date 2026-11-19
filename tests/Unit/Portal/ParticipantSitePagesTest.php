@@ -24,6 +24,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Portal;
 
 use OCA\Learniq\Portal\PortalContributionProvider;
+use OCA\Learniq\Service\Portal\PortalEmployerBookings;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -146,13 +147,47 @@ class ParticipantSitePagesTest extends TestCase {
 	}//end testTheNextCourseDayShowsOnce()
 
 	/**
+	 * When his employer sends a colleague instead, his portal tells him: one rule
+	 * on his course days, addressed by his own claim, worded only for the
+	 * substitution reason, and every placeholder it fills is a field he may read.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/employer-substitutes-a-colleague/specs/portal-contribution/spec.md#requirement-an-employer-sends-a-colleague-in-place-of-a-participant-before-the-deadline
+	 */
+	public function testHeIsToldWhenAColleagueGoesInHisPlace(): void {
+		$manifest = self::manifest();
+		$rules    = array_column($manifest['notifications'], null, 'ruleKey');
+		self::assertArrayHasKey(key: 'enrolment.substituted', array: $rules);
+		$rule = $rules['enrolment.substituted'];
+
+		self::assertSame(expected: ['field' => 'withdrawReason', 'operator' => 'changed'], actual: $rule['on']);
+		self::assertSame(expected: ['field' => 'learnerRef', 'claim' => 'learnerRef'], actual: $rule['recipients']);
+		self::assertSame(expected: [PortalEmployerBookings::SUBSTITUTED], actual: array_keys($rule['messages']));
+		self::assertSame(expected: 'vervangen door collega', actual: PortalEmployerBookings::SUBSTITUTED);
+
+		$collection = array_column($manifest['collections'], null, 'id')[$rule['collection']];
+		self::assertSame(expected: 'enrolment', actual: $collection['schema']);
+		self::assertContains(needle: $rule['titleField'], haystack: $collection['fields']);
+		$message = $rule['messages'][PortalEmployerBookings::SUBSTITUTED];
+		self::assertSame(expected: 'Een collega gaat in uw plaats', actual: $message['subject']['nl']);
+		foreach (['nl', 'en'] as $language) {
+			preg_match_all('/\{(\w+)/', $message['body'][$language], $placeholders);
+			self::assertNotEmpty(actual: $placeholders[1]);
+			foreach ($placeholders[1] as $field) {
+				self::assertContains(needle: $field, haystack: $collection['fields'], message: $language.': '.$field);
+			}
+		}
+	}//end testHeIsToldWhenAColleagueGoesInHisPlace()
+
+	/**
 	 * Tom's next course day, F-gassen: herhaling en examen, carries the three
 	 * lines of its bring list, and his course day collections show them under
 	 * "What to bring" ("Meenemen").
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-says-what-to-bring
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-course-says-what-to-bring
 	 */
 	public function testTomReadsWhatToBringOnHisNextCourseDay(): void {
 		$set = json_decode((string)file_get_contents(__DIR__ . '/../../../lib/Settings/profiles/training.json'), true);

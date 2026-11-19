@@ -2,17 +2,34 @@ publiccodeYmlVersion: "0.4"
 
 name: Scholiq
 url: "https://github.com/ConductionNL/learniq"
-softwareVersion: "0.1.2"
-releaseDate: "2026-05-26"
+landingURL: "https://scholiq.conduction.nl"
+roadmap: "https://github.com/ConductionNL/learniq/blob/development/openspec/ROADMAP.md"
+softwareVersion: "0.3.11"
+releaseDate: "2026-10-08"
+logo: img/app-store.svg
 developmentStatus: beta
 softwareType: "standalone/other"
 
 platforms:
-  - nextcloud
+  - web
 
 categories:
   - learning-management-system
   - knowledge-management
+
+dependsOn:
+  open:
+    - name: Nextcloud
+      versionMin: "32"
+      versionMax: "35"
+    - name: OpenRegister
+      versionMin: "0.2.14"
+
+intendedAudience:
+  countries:
+    - nl
+  scope:
+    - education
 
 description:
   en:
@@ -25,11 +42,22 @@ description:
       programmes, it integrates with existing Nextcloud collaboration tools and adheres
       to Dutch government interoperability standards.
       Conduction maintains this component within the Nextcloud ISV programme.
+      Install it from the Nextcloud App Store at https://apps.nextcloud.com/apps/learniq.
     features:
-      - Course and curriculum management
-      - Student enrolment and progress tracking
-      - Educational administration
-      - Integration with Nextcloud collaboration tools
+      - Course and lesson management with lifecycle-gated publishing
+      - Bulk enrolment in mandatory training by group or role
+      - Due-date reminders and progress tracking per enrolment
+      - Signed attestations per learner
+      - Open Badges 3.0 credentials with public verification
+      - Certificate expiry alerts and renewal enrolment
+      - Coverage per regulation (NIS2, AVG, BIO) with an audit-pack export
+      - School-year rollover with a side-effect-free preview
+      - IMS QTI and Common Cartridge item-bank import
+      - cmi5 lessons with results kept in its own learning record store
+    screenshots:
+      - docs/static/screenshots/tutorials/admin/01-school-structure-01.png
+      - docs/static/screenshots/tutorials/admin/02-compliance-audit-01.png
+      - docs/static/screenshots/tutorials/user/04-assignments-02.png
 
   nl:
     shortDescription: >
@@ -41,11 +69,22 @@ description:
       overheidsopleidingen, integreert het met bestaande Nextcloud-samenwerkingstools
       en voldoet aan Nederlandse overheidsstandaarden voor interoperabiliteit.
       Conduction onderhoudt dit component binnen het Nextcloud ISV-programma.
+      Installeer het via de Nextcloud App Store op https://apps.nextcloud.com/apps/learniq.
     features:
-      - Cursus- en curriculummanagement
-      - Inschrijving en voortgangsbewaking van studenten
-      - Onderwijsadministratie
-      - Integratie met Nextcloud-samenwerkingstools
+      - Beheer van cursussen en lessen met publicatie in fasen
+      - Massaal inschrijven voor verplichte trainingen per groep of rol
+      - Herinneringen voor deadlines en voortgang per inschrijving
+      - Ondertekende verklaringen per deelnemer
+      - Open Badges 3.0-certificaten met openbare verificatie
+      - Signalering van verlopende certificaten en inschrijving voor verlenging
+      - Dekking per regelgeving (NIS2, AVG, BIO) met export van een auditpakket
+      - Overgang naar een nieuw schooljaar met een voorbeeld zonder gevolgen
+      - Import van itembanken in IMS QTI en Common Cartridge
+      - cmi5-lessen met resultaten in een eigen learning record store
+    screenshots:
+      - docs/static/screenshots/tutorials/admin/01-school-structure-01.png
+      - docs/static/screenshots/tutorials/admin/02-compliance-audit-01.png
+      - docs/static/screenshots/tutorials/user/04-assignments-02.png
 
 legal:
   license: EUPL-1.2
@@ -67,8 +106,31 @@ maintenance:
 localisation:
   localisationReady: true
   availableLanguages:
-    - nl
+    - bg
+    - da
+    - de
+    - el
     - en
+    - es
+    - et
+    - fi
+    - fr
+    - ga
+    - hr
+    - hu
+    - is
+    - it
+    - lt
+    - lv
+    - mt
+    - nb
+    - nl
+    - pl
+    - pt
+    - ro
+    - ru
+    - sq
+    - tr
 
 # Common Ground layer (nl.vng profile), as a standard supports entry.
 supports:

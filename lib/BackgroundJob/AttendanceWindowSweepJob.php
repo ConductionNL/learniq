@@ -15,7 +15,7 @@
  * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
  * SPDX-License-Identifier: EUPL-1.2
  *
- * @spec openspec/changes/attendance-warns-before-the-threshold/specs/attendance/spec.md
+ * @spec openspec/specs/attendance/spec.md
  */
 
 declare(strict_types=1);
@@ -46,7 +46,7 @@ use Throwable;
  *
  * @psalm-api
  *
- * @spec openspec/changes/attendance-warns-before-the-threshold/specs/attendance/spec.md
+ * @spec openspec/specs/attendance/spec.md
  */
 class AttendanceWindowSweepJob extends TimedJob {
 
@@ -103,7 +103,7 @@ class AttendanceWindowSweepJob extends TimedJob {
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is TimedJob's.
 	 *
-	 * @spec openspec/changes/attendance-warns-before-the-threshold/specs/attendance/spec.md
+	 * @spec openspec/specs/attendance/spec.md
 	 */
 	protected function run(mixed $argument): void {
 		$year = SchoolYear::of(date: $this->today());

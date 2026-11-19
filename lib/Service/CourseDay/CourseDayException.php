@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
+ * @spec openspec/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
  */
 
 declare(strict_types=1);
@@ -28,7 +28,7 @@ use RuntimeException;
 /**
  * A refused course day action.
  *
- * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
+ * @spec openspec/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
  */
 final class CourseDayException extends RuntimeException {
 
@@ -38,7 +38,7 @@ final class CourseDayException extends RuntimeException {
 	 * @param string $message The message for the caller.
 	 * @param int    $status  The HTTP status.
 	 *
-	 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
 	 */
 	public function __construct(string $message, private readonly int $status) {
 		parent::__construct(message: $message);
@@ -49,7 +49,7 @@ final class CourseDayException extends RuntimeException {
 	 *
 	 * @return int
 	 *
-	 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
 	 */
 	public function getStatus(): int {
 		return $this->status;
