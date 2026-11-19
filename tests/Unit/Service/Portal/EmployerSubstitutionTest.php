@@ -223,6 +223,37 @@ class EmployerSubstitutionTest extends TestCase {
 	}//end testOnlyHerOwnPeopleAndOnlyAParticipantOfTheBooking()
 
 	/**
+	 * The row action on her participants sends only the enrolment id: the
+	 * booking and the replaced participant are read from it, and only from
+	 * an enrolment of her own company that still has its place.
+	 *
+	 * @return void
+	 */
+	public function testTheRowActionNamesTheParticipantByHerEnrolment(): void {
+		$service = $this->bookings(now: '2026-10-19T10:00:00+02:00');
+		$id = $this->tomAndYoussef(service: $service);
+		$tom = (string)$this->enrolments(bookingId: $id)['lp-tom']['id'];
+
+		self::assertSame(404, $service->substituteParticipant(organisationRef: self::OTHER, body: ['enrolmentId' => $tom, 'substituteRef' => 'lp-stranger'])->status);
+		self::assertSame(404, $service->substituteParticipant(organisationRef: self::COMPANY, body: ['enrolmentId' => 'no-such-enrolment', 'substituteRef' => 'lp-bram'])->status);
+		self::assertSame(422, $service->substituteParticipant(organisationRef: self::COMPANY, body: ['enrolmentId' => $tom])->status);
+		self::assertSame(422, $service->substituteParticipant(organisationRef: self::COMPANY, body: ['enrolmentId' => $tom, 'substituteRef' => 'lp-tom'])->status);
+		self::assertArrayNotHasKey('lp-bram', $this->enrolments(bookingId: $id));
+
+		$outcome = $service->substituteParticipant(organisationRef: self::COMPANY, body: ['enrolmentId' => $tom, 'substituteRef' => 'lp-bram']);
+
+		self::assertSame(200, $outcome->status, (string)json_encode($outcome->body));
+		$enrolments = $this->enrolments(bookingId: $id);
+		self::assertSame('withdrawn', $enrolments['lp-tom']['lifecycle']);
+		self::assertSame('vervangen door collega', $enrolments['lp-tom']['withdrawReason']);
+		self::assertSame($id, $enrolments['lp-bram']['bookingRef']);
+
+		// Tom's place is gone, so his enrolment names nobody to replace any more.
+		self::assertSame(404, $service->substituteParticipant(organisationRef: self::COMPANY, body: ['enrolmentId' => $tom, 'substituteRef' => 'lp-sanne'])->status);
+		self::assertArrayNotHasKey('lp-sanne', $this->enrolments(bookingId: $id));
+	}//end testTheRowActionNamesTheParticipantByHerEnrolment()
+
+	/**
 	 * The deadline: the working day before at 12.00, over a weekend, or the course date's own.
 	 *
 	 * @return void

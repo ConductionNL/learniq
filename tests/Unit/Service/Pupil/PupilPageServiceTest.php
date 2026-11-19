@@ -99,6 +99,7 @@ class PupilPageServiceTest extends TestCase {
 		$this->todayStates->expects($this->once())->method('forCohort')
 			->with($groep7, '2026-10-28', new DateTimeZone('Europe/Amsterdam'))
 			->willReturn(['vera' => TodayState::IN_CLASS, 'lina' => TodayState::APPOINTMENT]);
+		$this->todayStates->expects($this->once())->method('untilForCohort')->with($groep7, '2026-10-28')->willReturn(['lina' => '11:30']);
 		$this->reader->method('ofPupil')->willReturnCallback(
 			static fn (string $schema, string $learnerId): array => match ($schema) {
 				'conference-slot' => [
@@ -117,6 +118,7 @@ class PupilPageServiceTest extends TestCase {
 		$this->assertSame('vera', $page['learnerId']);
 		$this->assertSame('groep-7', $page['cohortId']);
 		$this->assertSame(TodayState::IN_CLASS, $page['todayState']);
+		$this->assertNull($page['todayUntil']);
 		$this->assertSame('Vera Hulstkamp', $page['header']['name']);
 		$this->assertSame(['kind' => PupilPage::PILL_TODAY, 'value' => TodayState::IN_CLASS], $page['header']['statePill']);
 		$this->assertSame('Groep 7', $page['header']['group']);

@@ -3252,6 +3252,8 @@ OC.L10N.register(
         "Shows": "Toont",
         "Which lessons the screen shows.": "Welke lessen het scherm toont.",
         "Today": "Vandaag",
+        "Away until": "Afwezig tot",
+        "Time of day, HH:MM, until which a report for part of a single day keeps the pupil away (an appointment until 11:30). Empty when the report names no time.": "Tijdstip, UU:MM, tot wanneer een melding voor een deel van één dag de leerling afwezig houdt (een afspraak tot 11:30). Leeg als de melding geen tijd noemt.",
         "Today and tomorrow": "Vandaag en morgen",
         "Changes only": "Alleen wijzigingen",
         "Show teacher codes": "Docentcodes tonen",
@@ -6170,7 +6172,12 @@ OC.L10N.register(
         "{hours} SBU": "{hours} SBU",
         "You chose this keuzedeel": "Je hebt dit keuzedeel gekozen",
         "Choose": "Kiezen",
-        "Choose a keuzedeel": "Een keuzedeel kiezen"
+        "Choose a keuzedeel": "Een keuzedeel kiezen",
+        "A colleague in their place": "Collega in zijn plaats",
+        "Colleague who goes instead": "Collega die in de plaats gaat",
+        "The place stays on the booking. Until the working day before the course at 12.00.": "De plek blijft op de boeking. Dit kan tot de werkdag voor de cursus om 12.00 uur.",
+        "Send this colleague": "Deze collega sturen",
+        "Your colleague takes the place. The participant you replaced gets a message.": "Uw collega neemt de plek in. De deelnemer die u vervangt krijgt een bericht."
     },
     "nplurals=2; plural=(n != 1);"
 )

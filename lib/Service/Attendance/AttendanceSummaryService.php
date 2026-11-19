@@ -320,7 +320,7 @@ class AttendanceSummaryService implements AttendanceSummaryServiceInterface {
 	 *
 	 * @return array<string, mixed>|null The threshold, or null when none applies.
 	 *
-	 * @spec openspec/changes/attendance-warns-before-the-threshold/specs/attendance/spec.md
+	 * @spec openspec/specs/attendance/spec.md
 	 */
 	private function thresholdFor(string $tenantId): ?array {
 		if ($tenantId === '') {
@@ -356,7 +356,7 @@ class AttendanceSummaryService implements AttendanceSummaryServiceInterface {
 	 *
 	 * @return array<string, mixed>|null The threshold, or null when none applies.
 	 *
-	 * @spec openspec/changes/attendance-warns-before-the-threshold/specs/attendance/spec.md
+	 * @spec openspec/specs/attendance/spec.md
 	 */
 	private function lowestCandidate(array $rows, string $tenantId): ?array {
 		$chosen = null;
@@ -631,7 +631,7 @@ class AttendanceSummaryService implements AttendanceSummaryServiceInterface {
 	 *
 	 * @return string|null|false
 	 *
-	 * @spec openspec/changes/attendance-warns-before-the-threshold/specs/attendance/spec.md
+	 * @spec openspec/specs/attendance/spec.md
 	 */
 	private function mentorOf(string $learnerId): string|null|false {
 		try {

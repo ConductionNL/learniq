@@ -18,7 +18,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
+ * @spec openspec/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
  */
 
 declare(strict_types=1);
@@ -30,7 +30,7 @@ use DateTimeImmutable;
 /**
  * Pure rules for the planner's Today.
  *
- * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
+ * @spec openspec/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
  */
 final class PlannerToday {
 
@@ -52,7 +52,7 @@ final class PlannerToday {
 	 *
 	 * @return int|null Null when either date cannot be read.
 	 *
-	 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#scenario-four-of-six
+	 * @spec openspec/specs/course-management/spec.md#scenario-four-of-six
 	 */
 	public static function workingDaysUntil(string $today, string $date): ?int {
 		$from = self::date(value: $today);
@@ -95,7 +95,7 @@ final class PlannerToday {
 	 *
 	 * @return string|null Y-m-d, or null when today cannot be read.
 	 *
-	 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
 	 */
 	public static function occupancyUntil(string $today): ?string {
 		$day = self::date(value: $today);
@@ -119,7 +119,7 @@ final class PlannerToday {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#scenario-four-of-six
+	 * @spec openspec/specs/course-management/spec.md#scenario-four-of-six
 	 */
 	public static function needsDecision(array $day, string $today): bool {
 		if ($day['decision'] !== null || $day['minimum'] === null || $day['minimum'] <= 0) {
