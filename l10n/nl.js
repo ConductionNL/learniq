@@ -3252,6 +3252,8 @@ OC.L10N.register(
         "Shows": "Toont",
         "Which lessons the screen shows.": "Welke lessen het scherm toont.",
         "Today": "Vandaag",
+        "Away until": "Afwezig tot",
+        "Time of day, HH:MM, until which a report for part of a single day keeps the pupil away (an appointment until 11:30). Empty when the report names no time.": "Tijdstip, UU:MM, tot wanneer een melding voor een deel van één dag de leerling afwezig houdt (een afspraak tot 11:30). Leeg als de melding geen tijd noemt.",
         "Today and tomorrow": "Vandaag en morgen",
         "Changes only": "Alleen wijzigingen",
         "Show teacher codes": "Docentcodes tonen",
@@ -6177,7 +6179,12 @@ OC.L10N.register(
         "Your proof of enrolment is ready. You find it under your documents.": "Je bewijs van inschrijving staat klaar. Je vindt het bij je documenten.",
         "Proof of enrolment, school year %s": "Bewijs van inschrijving, schooljaar %s",
         "You have no active enrolment this school year, so there is nothing to prove yet. Ask your school.": "Je hebt dit schooljaar geen actieve inschrijving, dus er is nog niets om te bewijzen. Vraag het je school.",
-        "The proof of enrolment could not be made just now. Try again later.": "Het bewijs van inschrijving kon nu niet gemaakt worden. Probeer het later nog eens."
+        "The proof of enrolment could not be made just now. Try again later.": "Het bewijs van inschrijving kon nu niet gemaakt worden. Probeer het later nog eens.",
+        "A colleague in their place": "Collega in zijn plaats",
+        "Colleague who goes instead": "Collega die in de plaats gaat",
+        "The place stays on the booking. Until the working day before the course at 12.00.": "De plek blijft op de boeking. Dit kan tot de werkdag voor de cursus om 12.00 uur.",
+        "Send this colleague": "Deze collega sturen",
+        "Your colleague takes the place. The participant you replaced gets a message.": "Uw collega neemt de plek in. De deelnemer die u vervangt krijgt een bericht."
     },
     "nplurals=2; plural=(n != 1);"
 )

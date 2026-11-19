@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/compliance-attestation-locked-after-signing/specs/compliance-audit/spec.md#requirement-the-audit-pack-states-the-freeze
+ * @spec openspec/specs/compliance-audit/spec.md#requirement-the-audit-pack-states-the-freeze
  */
 
 declare(strict_types=1);
@@ -66,7 +66,7 @@ class FrozenAttestationLinesTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/compliance-attestation-locked-after-signing/specs/compliance-audit/spec.md#scenario-an-auditor-opens-the-pack
+	 * @spec openspec/specs/compliance-audit/spec.md#scenario-an-auditor-opens-the-pack
 	 */
 	public function testEachSignedAttestationShowsItsSignedAtAndTheFreeze(): void {
 		$lines = $this->linesFor(

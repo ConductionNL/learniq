@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/attendance-warns-before-the-threshold/specs/attendance/spec.md
+ * @spec openspec/specs/attendance/spec.md
  */
 
 declare(strict_types=1);

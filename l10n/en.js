@@ -2727,6 +2727,8 @@ OC.L10N.register(
         "Shows": "Shows",
         "Which lessons the screen shows.": "Which lessons the screen shows.",
         "Today": "Today",
+        "Away until": "Away until",
+        "Time of day, HH:MM, until which a report for part of a single day keeps the pupil away (an appointment until 11:30). Empty when the report names no time.": "Time of day, HH:MM, until which a report for part of a single day keeps the pupil away (an appointment until 11:30). Empty when the report names no time.",
         "Today and tomorrow": "Today and tomorrow",
         "Changes only": "Changes only",
         "Show teacher codes": "Show teacher codes",
@@ -5687,7 +5689,12 @@ OC.L10N.register(
         "Your proof of enrolment is ready. You find it under your documents.": "Your proof of enrolment is ready. You find it under your documents.",
         "Proof of enrolment, school year %s": "Proof of enrolment, school year %s",
         "You have no active enrolment this school year, so there is nothing to prove yet. Ask your school.": "You have no active enrolment this school year, so there is nothing to prove yet. Ask your school.",
-        "The proof of enrolment could not be made just now. Try again later.": "The proof of enrolment could not be made just now. Try again later."
+        "The proof of enrolment could not be made just now. Try again later.": "The proof of enrolment could not be made just now. Try again later.",
+        "A colleague in their place": "A colleague in their place",
+        "Colleague who goes instead": "Colleague who goes instead",
+        "The place stays on the booking. Until the working day before the course at 12.00.": "The place stays on the booking. Until the working day before the course at 12.00.",
+        "Send this colleague": "Send this colleague",
+        "Your colleague takes the place. The participant you replaced gets a message.": "Your colleague takes the place. The participant you replaced gets a message."
     },
     "nplurals=2; plural=(n != 1);"
 )

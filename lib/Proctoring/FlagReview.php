@@ -32,7 +32,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/proctoring-flag-review-page/specs/assessment/spec.md#requirement-only-staff-decide-a-flag-and-the-server-records-who-did
+ * @spec openspec/specs/assessment/spec.md#requirement-only-staff-decide-a-flag-and-the-server-records-who-did
  */
 
 declare(strict_types=1);
@@ -45,7 +45,7 @@ use OCA\Learniq\Kernel\Contracts\FlagReviewInterface;
 /**
  * Compares incoming flags with stored ones and stamps who decided.
  *
- * @spec openspec/changes/proctoring-flag-review-page/specs/assessment/spec.md#requirement-only-staff-decide-a-flag-and-the-server-records-who-did
+ * @spec openspec/specs/assessment/spec.md#requirement-only-staff-decide-a-flag-and-the-server-records-who-did
  */
 class FlagReview implements FlagReviewInterface {
 
@@ -69,7 +69,7 @@ class FlagReview implements FlagReviewInterface {
 	 *
 	 * @return array<int, array<string, mixed>>|string
 	 *
-	 * @spec openspec/changes/proctoring-flag-review-page/specs/assessment/spec.md#requirement-only-staff-decide-a-flag-and-the-server-records-who-did
+	 * @spec openspec/specs/assessment/spec.md#requirement-only-staff-decide-a-flag-and-the-server-records-who-did
 	 */
 	public function review(array $stored, array $incoming, string $uid, bool $staff, DateTimeImmutable $now): array|string {
 		$removal = $this->removalRefusal(stored: $stored, incoming: $incoming);

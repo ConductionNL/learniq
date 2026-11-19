@@ -9,8 +9,9 @@
 
 - [x] 2.1 `tests/Unit/Controller/ActionMatrixControllerTest.php`: a saved matrix takes effect on the next `requireAction()` call, without a restart. Verify: `composer test:unit -- --filter ActionMatrixControllerTest`.
   - `testASavedMatrixTakesEffectOnTheNextGuardedCall`: the real `CallerActionCheck` refuses a coordinator, the controller saves a matrix granting `coordinators`, and the very next check lets them through, through the same service.
-- [ ] 2.2 Playwright `tests/e2e/spec-coverage/action-authorization.spec.ts`: an admin ticks a group for one action, saves, reloads and sees the tick kept.
+- [x] 2.2 Playwright `tests/e2e/spec-coverage/action-authorization.spec.ts`: an admin ticks a group for one action, saves, reloads and sees the tick kept.
+  - Live pass 17 Nov on a fresh Nextcloud 34.0.6 with OpenRegister 29890847e: `team-leads` ticked for `regulation.assign` in Admin settings, saved, kept after a reload and in the stored matrix; a save without a seeded action answers 400 and leaves the matrix as it was. 2 passed.
 
 ## 3. Matrix
 
-- [ ] 3.1 When the tasks are done, archive this change and repoint both rows to `openspec/specs/action-authorization`.
+- [x] 3.1 When the tasks are done, archive this change and repoint both rows to `openspec/specs/action-authorization`.
