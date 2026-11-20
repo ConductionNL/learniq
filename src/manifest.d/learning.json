@@ -537,7 +537,7 @@
 					"label": "Exam registrations",
 					"icon": "Calendar",
 					"route": "ExamRegistrations",
-					"order": 56,
+					"order": 73,
 					"visibleIf": {
 						"user.primaryRole": {
 							"in": [
