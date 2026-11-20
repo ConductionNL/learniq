@@ -216,6 +216,11 @@ test.describe('warmtepompacademie: Mijn academie (Linda Jansen, employer)', () =
 			dated('Herhaling op 8 oktober'),
 			'BRL 6000-21, bovengronds deel',
 		])
+		// The first to expire first: F-gassen before Sanne's BRL 6000-21.
+		const overview = await page.locator('main').innerText()
+		expect(overview.indexOf('F-gassen categorie 1')).toBeLessThan(
+			overview.indexOf('BRL 6000-21'),
+		)
 		if (info.project.name === 'phone') {
 			await expectNoHorizontalScroll(page)
 		}
@@ -254,6 +259,47 @@ test.describe('warmtepompacademie: Mijn academie (Linda Jansen, employer)', () =
 		])
 		await expectNoSeriousAxeFinding(page)
 		await boardShot(page, PORTAL, 'Detail', info)
+	})
+
+	test('Certificaten: her people\'s certificates, the first to expire first', async ({
+		browser,
+	}, info) => {
+		await ensurePortalAccount(LINDA.user, 'employer', LINDA.claims, LINDA.name)
+		const page = await signInAs(
+			browser,
+			PORTAL,
+			LINDA.user,
+			info.project.use.viewport ?? { width: 1440, height: 1000 },
+		)
+		await page.goto(
+			`${siteUrl(PORTAL)}&route=${encodeURIComponent('/mijn/learniq/employerCertificates')}`,
+		)
+		await expectTexts(page, [
+			'Certificaten in uw bedrijf',
+			'Medewerker',
+			'Controleren of downloaden',
+			'F-gassen categorie 1',
+			'Tom Verbeek',
+			/Verloopt over \d+ weken/,
+			'BRL 6000-21, bovengronds deel',
+			'Sanne Kok',
+		])
+		// The F-gassen certificates expire first, so they come before BRL 6000-21.
+		const text = await page.locator('main').innerText()
+		expect(text.indexOf('F-gassen categorie 1')).toBeGreaterThanOrEqual(0)
+		expect(text.indexOf('F-gassen categorie 1')).toBeLessThan(
+			text.indexOf('BRL 6000-21'),
+		)
+		// The table never carries the signature or the signed payload.
+		expect(text).not.toMatch(/signature|signedPayload/i)
+		// Each row links to the certificate's own check page.
+		await expect(
+			page.getByRole('link', { name: /Controleren|download/i }).first(),
+		).toBeVisible()
+		if (info.project.name === 'phone') {
+			await expectNoHorizontalScroll(page)
+		}
+		await expectNoSeriousAxeFinding(page)
 	})
 })
 

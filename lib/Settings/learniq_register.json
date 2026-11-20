@@ -9603,6 +9603,19 @@
                             "closed": "default"
                         }
                     },
+                    "public": {
+                        "type": "boolean",
+                        "default": false,
+                        "title": "Public on the website",
+                        "description": "Show this test week's schedule on the school website: day, time, subject, room and classes, never names."
+                    },
+                    "bringList": {
+                        "type": "string",
+                        "maxLength": 1000,
+                        "nullable": true,
+                        "title": "What to bring",
+                        "description": "What pupils bring to every test of this week, shown with the public schedule."
+                    },
                     "tenant_id": {
                         "type": "string",
                         "format": "uuid",
