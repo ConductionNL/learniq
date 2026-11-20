@@ -253,7 +253,7 @@ class ConferenceFreeSlotGenerator implements IEventListener {
 		['teacherId' => $teacherId, 'candidate' => $candidate, 'eligible' => $eligible] = $slot;
 		$teacherName = $this->teacherName(teacherId: $teacherId);
 
-		return [
+		$slot = [
 			'conferenceRoundId' => (string)$round['id'],
 			'teacherId' => $teacherId,
 			'teacherName' => $teacherName,
@@ -265,6 +265,9 @@ class ConferenceFreeSlotGenerator implements IEventListener {
 			'tenant_id' => (string)($round['tenant_id'] ?? ''),
 			'lifecycle' => 'free',
 		];
+		// The pupil books this time herself: her portal lists only such
+		// times (pupil-books-support-lessons-and-mentor-talks).
+		return $slot + array_filter(['pupilMayBook' => ($round['pupilMayBook'] ?? false) === true]);
 	}//end freeSlot()
 
 	/**

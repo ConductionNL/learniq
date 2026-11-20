@@ -704,6 +704,11 @@ class StudentPortalPages {
 			$pages[] = $this->collectionPage(collection: $collection, actions: $actions);
 		}
 
+		// The page her mentor-talk task opens.
+		if (in_array('studentConferenceInvitations', array_column($collections, 'id'), true) === true) {
+			$pages[] = (new StudentSelfBooking())->pickATimePage();
+		}
+
 		// Her self-assessment, where her work processes are read.
 		if (in_array('studentWorkProcesses', array_column($collections, 'id'), true) === true) {
 			$pages[] = (new StudentSelfAssessment())->page();
@@ -776,6 +781,8 @@ class StudentPortalPages {
 				$this->timetableBlock(label: 'Your timetable today', range: 'day'),
 				['type' => 'cta', 'page' => 'studentSessions', 'label' => 'Whole week'],
 				self::STUDENT_HOMEWORK_TASKS_BLOCK,
+				// Her talk invitation links to the booking page (pupil-books-support-lessons-and-mentor-talks, D-5).
+				(new StudentSelfBooking())->invitationTasksBlock(),
 				self::STUDENT_LATEST_GRADES_BLOCK,
 				$this->absenceFigures(),
 				['type' => 'cta', 'action' => 'createSubmission', 'label' => 'Hand in work'],

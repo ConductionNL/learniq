@@ -27,8 +27,11 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener\Registrar;
 
+use OCA\Learniq\Listener\ElectiveOfferCopiesStamp;
 use OCA\Learniq\Listener\ElectiveSignUpRules;
+use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
+use OCA\OpenRegister\Event\ObjectUpdatedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 
@@ -53,6 +56,14 @@ class ElectiveListenerRegistrar {
 		// isPropagationStopped() between subscriptions.
 		$context->registerEventListener(event: ObjectCreatingEvent::class, listener: ElectiveSignUpRules::class);
 		$context->registerEventListener(event: ObjectUpdatingEvent::class, listener: ElectiveSignUpRules::class);
+
+		// The offer's next lesson and places left, for the pupil's portal
+		// (pupil-books-support-lessons-and-mentor-talks): written into every
+		// offer write, and refreshed after every sign-up write.
+		$context->registerEventListener(event: ObjectCreatingEvent::class, listener: ElectiveOfferCopiesStamp::class);
+		$context->registerEventListener(event: ObjectUpdatingEvent::class, listener: ElectiveOfferCopiesStamp::class);
+		$context->registerEventListener(event: ObjectCreatedEvent::class, listener: ElectiveOfferCopiesStamp::class);
+		$context->registerEventListener(event: ObjectUpdatedEvent::class, listener: ElectiveOfferCopiesStamp::class);
 
 		// The exam schedule checks (timetabling-exam-schedule): pre-write, like the
 		// sign-up rules above, in a registrar of their own.

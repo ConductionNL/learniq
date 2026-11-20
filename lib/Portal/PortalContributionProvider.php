@@ -512,10 +512,13 @@ class PortalContributionProvider {
 	private function studentContribution(): array {
 		$site = new StudentPortalPages();
 		$own  = new StudentPortalCollections();
+		$booking = new StudentSelfBooking();
 		$collections = array_merge(
 			$own->studentResultCollections(),
 			$own->studentActivityCollections(site: $site),
-			[$own->studentTestsCollection(), $site->homeworkCollection(), $site->attendanceSummaryCollection(), $site->sessionsCollection()]
+			[$own->studentTestsCollection(), $site->homeworkCollection(), $site->attendanceSummaryCollection(), $site->sessionsCollection()],
+			$booking->electiveCollections(),
+			$booking->conferenceCollections()
 		);
 		$actions = array_merge(
 			$this->studentActions(site: $site),
@@ -523,7 +526,8 @@ class PortalContributionProvider {
 			[$this->handInAction()],
 			(new CatalogueFlowActions())->actions(),
 			(new WorkGroupFlowActions())->actions(),
-			(new StudentFlowActions())->actions()
+			(new StudentFlowActions())->actions(),
+			[$booking->signUpForElectiveAction(), $booking->bookConferenceSlotAction()]
 		);
 
 		return [
