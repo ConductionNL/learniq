@@ -47,6 +47,9 @@ use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Kernel\Contracts\CourseStoreDescriptorInterface;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\OpenRegister\AppHost\Service\StoreDescriptor;
+use OCA\OpenRegister\AppHost\Service\StoreListing;
+use OCA\OpenRegister\AppHost\Service\StoreSharing;
+use ReflectionClass;
 
 /**
  * Builds the StoreDescriptor for shared course packages.
@@ -124,21 +127,59 @@ class CourseStoreDescriptor implements CourseStoreDescriptorInterface {
 	 * @spec openspec/specs/course-management/spec.md#requirement-a-course-store-publish-travels-through-the-store-planes-write-path
 	 */
 	public function descriptor(): StoreDescriptor {
-		$arguments = [
+		$listing = [
 			'appId'           => AppIdentity::APP_ID,
 			'schema'          => self::SCHEMA,
 			'defaultRegister' => self::DEFAULT_REGISTER,
 			'cardFields'      => self::CARD_FIELDS,
 		];
 
+		$sharing = [];
 		if ($this->supportsPublish() === true) {
-			$arguments['publishFields'] = self::PUBLISH_FIELDS;
-			$arguments['publishGroups'] = array_values($this->actionAuth->getAllowedGroups(action: self::ACTION_PUBLISH));
+			$sharing = [
+				'publishFields' => self::PUBLISH_FIELDS,
+				'publishGroups' => array_values($this->actionAuth->getAllowedGroups(action: self::ACTION_PUBLISH)),
+			];
 		}
 
-		return new StoreDescriptor(...$arguments);
+		if (self::takesParts() === false) {
+			return self::build(arguments: array_merge($listing, $sharing));
+		}
+
+		$parts = ['listing' => new StoreListing(...$listing)];
+		if ($sharing !== []) {
+			$parts['sharing'] = new StoreSharing(...$sharing);
+		}
+
+		return self::build(arguments: $parts);
 
 	}//end descriptor()
+
+	/**
+	 * Whether the installed OpenRegister builds a StoreDescriptor from a
+	 * StoreListing and a StoreSharing part rather than from flat named
+	 * arguments. Both shapes are accepted, so learniq runs on either
+	 * OpenRegister; the promoted `listing` property marks the two-part one.
+	 *
+	 * @return bool
+	 *
+	 * @spec openspec/specs/course-management/spec.md#requirement-the-store-page-lists-shared-courses-through-the-store-plane
+	 */
+	private static function takesParts(): bool {
+		return property_exists(StoreDescriptor::class, 'listing') === true;
+	}//end takesParts()
+
+	/**
+	 * Construct the descriptor from named arguments of whichever shape the
+	 * installed OpenRegister takes.
+	 *
+	 * @param array<string, mixed> $arguments Constructor argument name => value.
+	 *
+	 * @return StoreDescriptor
+	 */
+	private static function build(array $arguments): StoreDescriptor {
+		return (new ReflectionClass(StoreDescriptor::class))->newInstanceArgs($arguments);
+	}//end build()
 
 	/**
 	 * Whether the installed OpenRegister's StoreDescriptor carries the publish

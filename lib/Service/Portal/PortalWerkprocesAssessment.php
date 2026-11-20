@@ -40,6 +40,7 @@ namespace OCA\Learniq\Service\Portal;
 
 use DateTimeImmutable;
 use OCA\Learniq\Kernel\Contracts\PortalWerkprocesAssessmentInterface;
+use OCA\Learniq\Service\Portal\Support\AssessmentRowValues;
 use OCA\Learniq\Support\ObjectRow;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
@@ -54,6 +55,8 @@ use Throwable;
  * @spec openspec/changes/an-invited-trainer-may-assess/specs/bpv/spec.md#requirement-an-invited-trainer-may-submit-a-werkproces-assessment
  */
 class PortalWerkprocesAssessment implements PortalWerkprocesAssessmentInterface {
+
+	use AssessmentRowValues;
 
 	private const REGISTER = 'learniq';
 
@@ -257,20 +260,6 @@ class PortalWerkprocesAssessment implements PortalWerkprocesAssessmentInterface 
 	}//end stamped()
 
 	/**
-	 * The assurance a school demands before it accepts an assessment.
-	 *
-	 * @return string One of the eIDAS levels; `basic` when unset or unknown.
-	 */
-	private function floor(): string {
-		$declared = $this->appConfig->getValueString(self::APP_ID, self::MIN_ASSURANCE_KEY, 'basic');
-		if (isset(self::ASSURANCE_ORDER[$declared]) === false) {
-			return 'basic';
-		}
-
-		return $declared;
-	}//end floor()
-
-	/**
 	 * Whether this placement is one of the trainer's own.
 	 *
 	 * @param string $trainerRef  The trainer's uuid.
@@ -316,45 +305,4 @@ class PortalWerkprocesAssessment implements PortalWerkprocesAssessmentInterface 
 
 		return null;
 	}//end row()
-
-	/**
-	 * An OpenRegister result as an array.
-	 *
-	 * @param mixed $object An array or a serialisable entity.
-	 *
-	 * @return array<string, mixed>
-	 */
-	private function toRow(mixed $object): array {
-		return $this->objectRow->asArray(object: $object);
-	}//end toRow()
-
-	/**
-	 * A string value, or '' for anything else.
-	 *
-	 * @param mixed $value The value.
-	 *
-	 * @return string
-	 */
-	private function text(mixed $value): string {
-		if (is_string($value) === false) {
-			return '';
-		}
-
-		return $value;
-	}//end text()
-
-	/**
-	 * The text, or null when it is empty.
-	 *
-	 * @param string $value The text.
-	 *
-	 * @return string|null
-	 */
-	private function orNull(string $value): ?string {
-		if ($value === '') {
-			return null;
-		}
-
-		return $value;
-	}//end orNull()
 }//end class

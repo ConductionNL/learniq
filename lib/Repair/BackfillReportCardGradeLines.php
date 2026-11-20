@@ -272,6 +272,19 @@ class BackfillReportCardGradeLines implements IRepairStep {
 			return null;
 		}
 
+		return $this->writeDerived(row: $row, uuid: $uuid);
+	}//end stampRow()
+
+	/**
+	 * Write the derived period name and grade lines onto the report card unless it
+	 * already carries them.
+	 *
+	 * @param array<string,mixed> $row  The report card as read.
+	 * @param string              $uuid Its uuid.
+	 *
+	 * @return string|null Counter to bump, or null when the row needed nothing.
+	 */
+	private function writeDerived(array $row, string $uuid): ?string {
 		try {
 			$derived = $this->gradeLines->derive(reportCard: $row);
 			if (($row['periodName'] ?? null) === $derived['periodName']
@@ -306,5 +319,5 @@ class BackfillReportCardGradeLines implements IRepairStep {
 		}//end try
 
 		return 'stamped';
-	}//end stampRow()
+	}//end writeDerived()
 }//end class

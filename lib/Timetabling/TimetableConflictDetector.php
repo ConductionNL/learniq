@@ -185,6 +185,19 @@ class TimetableConflictDetector implements TimetableConflictDetectorInterface {
 			}
 		}
 
+		$this->recordConflicts(window: $window, scan: $scan);
+	}//end scanSessions()
+
+	/**
+	 * Add the capacity conflicts of each session to the scan, then save every
+	 * conflict the scan collected.
+	 *
+	 * @param array<string,array<string,mixed>> $window The sessions of the window, by id.
+	 * @param ConflictScan                      $scan   The scan with the pair conflicts found so far.
+	 *
+	 * @return void
+	 */
+	private function recordConflicts(array $window, ConflictScan $scan): void {
 		foreach ($window as $session) {
 			$this->evaluateCapacity(scan: $scan, session: $session);
 		}
@@ -205,8 +218,7 @@ class TimetableConflictDetector implements TimetableConflictDetectorInterface {
 				['n' => count($scan->toCreate), 'w' => count($window)]
 			);
 		}
-
-	}//end scanSessions()
+	}//end recordConflicts()
 
 	/**
 	 * Evaluate the pairwise overlap kinds for one Session pair, queueing any

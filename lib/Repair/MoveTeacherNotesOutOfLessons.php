@@ -146,7 +146,7 @@ class MoveTeacherNotesOutOfLessons implements IRepairStep {
 		}
 
 		$split   = $this->splitter->split(blocks: $blocks);
-		$created = $this->createMissingNotes(lessonId: $uuid, tenantId: (string)($lesson['tenant_id'] ?? ''), notes: $split['notes']);
+		$created = $this->createMissingNotes(lessonId: $uuid, args: ['tenantId' => (string)($lesson['tenant_id'] ?? ''), 'notes' => $split['notes']]);
 		if ($created === null) {
 			$counts['left']++;
 			return;
@@ -179,12 +179,14 @@ class MoveTeacherNotesOutOfLessons implements IRepairStep {
 	 * Create the notes the store does not have yet, by `blockId`.
 	 *
 	 * @param string                                                                            $lessonId The lesson.
-	 * @param string                                                                            $tenantId The lesson's tenant.
-	 * @param list<array{blockId: string, afterBlockId: string, position: int, text: string}> $notes    The split notes.
+	 * @param array{tenantId: string, notes: list<array{blockId: string, afterBlockId: string, position: int, text: string}>} $args The tenantId, notes.
 	 *
 	 * @return int|null How many were created, or null when one failed (the lesson must keep its notes).
 	 */
-	private function createMissingNotes(string $lessonId, string $tenantId, array $notes): ?int {
+	private function createMissingNotes(string $lessonId, array $args): ?int {
+		$tenantId = $args['tenantId'];
+		$notes = $args['notes'];
+
 		try {
 			$existing = [];
 			foreach ($this->rows(schema: self::NOTE_SCHEMA, filters: ['lessonId' => $lessonId], offset: 0) as $note) {

@@ -103,15 +103,19 @@ class PortalFileEntries {
 		$fileId = (string)$file->getId();
 		$saved  = (int)$file->getMTime();
 
-		return [
-			'id' => $fileId,
-			'title' => $this->titleOf(file: $file, title: $paper['title']),
-			'date' => date('c', $saved),
-			'mimeType' => $file->getMimetype(),
-			'size' => (int)$file->getSize(),
-			'isNew' => $saved >= (time() - self::NEW_FOR_SECONDS),
-			'file' => ['register' => self::REGISTER, 'schema' => $paper['schema'], 'id' => $paper['id'], 'fileId' => $fileId],
-		];
+		// The shared row shape (school-documents-on-the-portal T1): group,
+		// meta in words and status join the fields the entry already had.
+		return (new DocumentRow())->complete(
+			entry: [
+				'id' => $fileId,
+				'title' => $this->titleOf(file: $file, title: $paper['title']),
+				'date' => date('c', $saved),
+				'mimeType' => $file->getMimetype(),
+				'size' => (int)$file->getSize(),
+				'isNew' => $saved >= (time() - self::NEW_FOR_SECONDS),
+				'file' => ['register' => self::REGISTER, 'schema' => $paper['schema'], 'id' => $paper['id'], 'fileId' => $fileId],
+			]
+		);
 	}//end entry()
 
 	/**

@@ -848,4 +848,53 @@ class TrainingExampleSetTest extends TestCase {
 		$daan = self::person(given: 'Daan', family: 'Visser')['ncUserId'];
 		self::assertArrayNotHasKey($daan, $held, 'Daan has no certificate yet');
 	}//end testTheCertificatesInTheCompany()
+
+	/**
+	 * training-provider-course-days: Hybride warmtepomp on 22 October has 4 of
+	 * minimum 6 and is decided by Thursday 8 October, 26 November has 9 places
+	 * free, the 5 October practical day is held in a morning and an afternoon,
+	 * and Tom's F-gassen day lists what to bring.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/course-management/spec.md#scenario-four-of-six
+	 */
+	public function testTheCourseDaysOfThePlanner(): void {
+		$courses = [];
+		foreach (self::of('course') as $course) {
+			$courses[$course['name']] = $course;
+		}
+
+		$days = [];
+		foreach (self::of('cohort') as $cohort) {
+			if (($cohort['minParticipants'] ?? null) !== null) {
+				$days[$cohort['name']] = $cohort;
+			}
+		}
+
+		$booked = [];
+		foreach (self::of('course-booking') as $booking) {
+			if ($booking['lifecycle'] !== 'cancelled') {
+				$booked[$booking['cohortId']] = (($booked[$booking['cohortId']] ?? 0) + $booking['participantCount']);
+			}
+		}
+
+		$hybride = $days['Hybride warmtepomp, 22 oktober 2026'];
+		self::assertSame($courses['Hybride warmtepomp']['uuid'], $hybride['courseId']);
+		self::assertSame([6, 12, '2026-10-08'], [$hybride['minParticipants'], $hybride['capacity'], $hybride['goDecisionBy']]);
+		self::assertSame(4, $booked[$hybride['uuid']]);
+		$next = $days['Hybride warmtepomp, 26 november 2026'];
+		self::assertSame(9, ($next['capacity'] - $booked[$next['uuid']]), 'nine places free on 26 November');
+
+		$practical = $days['Storingen zoeken aan warmtepompen, 5 oktober 2026'];
+		$sessions  = array_values(array_filter(self::of('session'), static fn (array $row): bool => $row['cohortId'] === $practical['uuid']));
+		self::assertCount(1, $sessions);
+		self::assertSame(['morning', 'afternoon'], array_column($sessions[0]['parts'], 'key'));
+		self::assertSame(9, $booked[$practical['uuid']]);
+
+		self::assertSame(
+			['Een geldig legitimatiebewijs', 'Uw huidige F-gassencertificaat', 'Werkschoenen en werkkleding'],
+			$courses['F-gassen: herhaling en examen']['bringList']
+		);
+	}//end testTheCourseDaysOfThePlanner()
 }//end class
