@@ -4,7 +4,7 @@ name: Scholiq
 url: "https://github.com/ConductionNL/learniq"
 landingURL: "https://scholiq.conduction.nl"
 roadmap: "https://github.com/ConductionNL/learniq/blob/development/openspec/ROADMAP.md"
-softwareVersion: "0.3.12-beta.20261008125904"
+softwareVersion: "0.3.11"
 releaseDate: "2026-10-08"
 logo: img/app-store.svg
 developmentStatus: beta

@@ -105,7 +105,7 @@ Vrij en open source onder de EUPL-1.2-licentie.
         version floor is recorded as the `openregister` constraint in
         lib/Settings/learniq_register.json, as noted above.
         -->
-        <php min-version="8.3" max-version="8.4"/>
+        <php min-version="8.3"/>
         <nextcloud min-version="32" max-version="35"/>
     </dependencies>
 

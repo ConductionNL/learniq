@@ -16,7 +16,7 @@
  *
  * @param {{parts?: Array<{key: string, begun: boolean, registered: boolean, there: number, of: number, late?: Array<object>}>, due?: string|null}|null} summary The endpoint's answer.
  * @return {{due: string, earlier: {key: string, there: number, of: number, late: number}|null}|null} The notice, or null.
- * @spec openspec/changes/training-provider-course-days/specs/attendance/spec.md#requirement-a-trainer-registers-attendance-per-part-of-the-day
+ * @spec openspec/specs/attendance/spec.md#requirement-a-trainer-registers-attendance-per-part-of-the-day
  */
 export function partDueNotice(summary) {
 	const parts = Array.isArray(summary?.parts) ? summary.parts : []
@@ -46,7 +46,7 @@ export function partDueNotice(summary) {
  * @param {Array<object>} sessions Session rows.
  * @param {Date} now The current time.
  * @return {Array<object>} The sessions of today with parts, in their order.
- * @spec openspec/changes/training-provider-course-days/specs/attendance/spec.md#requirement-a-trainer-registers-attendance-per-part-of-the-day
+ * @spec openspec/specs/attendance/spec.md#requirement-a-trainer-registers-attendance-per-part-of-the-day
  */
 export function sessionsWithPartsToday(sessions, now) {
 	const day = (value) => {

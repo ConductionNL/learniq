@@ -369,7 +369,7 @@ class AttendanceSummaryServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/attendance-warns-before-the-threshold/specs/attendance/spec.md
+	 * @spec openspec/specs/attendance/spec.md
 	 */
 	public function testTheCurrentYearCarriesTheWindowCount(): void {
 		$this->sessions = [];
@@ -406,7 +406,7 @@ class AttendanceSummaryServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/attendance-warns-before-the-threshold/specs/attendance/spec.md
+	 * @spec openspec/specs/attendance/spec.md
 	 */
 	public function testTheMentorIsStampedFromTheProfile(): void {
 		$this->records = [self::record('s-mon', 'absent-unexcused')];
@@ -425,7 +425,7 @@ class AttendanceSummaryServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/attendance-warns-before-the-threshold/specs/attendance/spec.md
+	 * @spec openspec/specs/attendance/spec.md
 	 */
 	public function testAFailedMentorLookupKeepsTheStoredMentor(): void {
 		$this->profileRows = null;

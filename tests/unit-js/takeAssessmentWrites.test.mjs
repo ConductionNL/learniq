@@ -146,7 +146,7 @@ test('a refused attempt carries the gate reason; another failure only the status
 })
 
 test('the native proctoring session is created and then activated', async () => {
-	answers = [response(201, { object: { uuid: 'p-1' } }), response(200)]
+	answers = [response(201, { object: { id: 'p-1' } }), response(200)]
 	const ctx = view({ resultId: 'r-1', assessment: { tenant_id: 't-1' } })
 	await ctx.createProctoringSession()
 	assert.deepEqual(sent(), [
@@ -157,23 +157,23 @@ test('the native proctoring session is created and then activated', async () => 
 		}],
 		['/index.php/apps/openregister/api/objects/p-1/transition', { method: 'POST', headers: JSON_HEADERS, body: { action: 'activate' } }],
 	])
-	assert.deepEqual(ctx.proctoringSession, { uuid: 'p-1' })
+	assert.deepEqual(ctx.proctoringSession, { id: 'p-1' })
 })
 
 test('a failed session create or activation rejects with its status', async () => {
 	answers = [response(500)]
 	await assert.rejects(view({ resultId: 'r-1' }).createProctoringSession(), { message: 'ProctoringSession create failed: 500' })
-	answers = [response(201, { uuid: 'p-2' }), response(409)]
+	answers = [response(201, { id: 'p-2' }), response(409)]
 	const ctx = view({ resultId: 'r-1' })
 	await assert.rejects(ctx.createProctoringSession(), { message: 'ProctoringSession activate transition failed: 409' })
-	assert.deepEqual(ctx.proctoringSession, { uuid: 'p-2' })
+	assert.deepEqual(ctx.proctoringSession, { id: 'p-2' })
 })
 
 test('a flag is appended once per kind per five seconds and kept on success', async () => {
 	await view().appendFlag('tab-hidden', 'low')
 	assert.equal(calls.length, 0)
 
-	const ctx = view({ proctoringSession: { uuid: 'p-1', flags: [{ flagId: 'old' }] }, generateId: () => 'f-1' })
+	const ctx = view({ proctoringSession: { id: 'p-1', flags: [{ flagId: 'old' }] }, generateId: () => 'f-1' })
 	await ctx.appendFlag('tab-hidden', 'low')
 	const flag = { flagId: 'f-1', kind: 'tab-hidden', occurredAt: new Date(NOW).toISOString(), severity: 'low', reviewDecision: 'pending' }
 	assert.deepEqual(sent(), [['/index.php/apps/openregister/api/objects/learniq/proctoring-session/p-1', {
@@ -203,7 +203,7 @@ test('teardown releases the lock, leaves fullscreen and ends the session', async
 		exitFullscreen: async () => { order.push('exit'); throw new Error('denied') },
 	}
 	const ctx = view({
-		proctoringSession: { uuid: 'p-1' },
+		proctoringSession: { id: 'p-1' },
 		detachNativeHardening: () => order.push('detach'),
 		releaseTabLock: () => order.push('release'),
 	})
@@ -229,7 +229,7 @@ test('autosave patches the answers only while an attempt is open', async () => {
 		await view(state).autosave()
 	}
 	assert.equal(calls.length, 0)
-	const ctx = view({ resultId: 'r-1', items: [{ uuid: 'i1', interactionType: 'choice' }], responses: { i1: 'B' } })
+	const ctx = view({ resultId: 'r-1', items: [{ id: 'i1', interactionType: 'choice' }], responses: { i1: 'B' } })
 	await ctx.autosave()
 	assert.equal(sent()[0][0], '/index.php/apps/openregister/api/objects/learniq/assessment-result/r-1')
 	assert.equal(sent()[0][1].method, 'PATCH')
