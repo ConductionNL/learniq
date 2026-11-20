@@ -25,6 +25,7 @@ namespace OCA\Learniq\BackgroundJob;
 use DateTimeImmutable;
 use DateTimeZone;
 use OCA\Learniq\Kernel\Contracts\AttendanceSummaryServiceInterface;
+use OCA\Learniq\Service\Calendar\SchoolYear as SchoolCalendarYear;
 use OCA\Learniq\Support\ObjectRow;
 use OCA\Learniq\Support\SchoolYear;
 use OCA\OpenRegister\Service\ObjectService;
@@ -81,12 +82,14 @@ class AttendanceWindowSweepJob extends TimedJob {
 	 * @param ObjectService                     $objectService OpenRegister object access.
 	 * @param AttendanceSummaryServiceInterface $summaries     The recount.
 	 * @param LoggerInterface                   $logger        Logger.
+	 * @param SchoolCalendarYear                $schoolYear    The school's school year, which says the day it starts.
 	 */
 	public function __construct(
 		ITimeFactory $time,
 		private readonly ObjectService $objectService,
 		private readonly AttendanceSummaryServiceInterface $summaries,
 		private readonly LoggerInterface $logger,
+		private readonly SchoolCalendarYear $schoolYear=new SchoolCalendarYear(),
 	) {
 		parent::__construct(time: $time);
 		$this->setInterval(seconds: self::INTERVAL_SECONDS);
@@ -106,7 +109,7 @@ class AttendanceWindowSweepJob extends TimedJob {
 	 * @spec openspec/specs/attendance/spec.md
 	 */
 	protected function run(mixed $argument): void {
-		$year = SchoolYear::of(date: $this->today());
+		$year = SchoolYear::of(date: $this->today(), start: $this->schoolYear->start());
 		if ($year === null) {
 			return;
 		}
