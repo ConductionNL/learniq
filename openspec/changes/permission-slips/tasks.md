@@ -37,4 +37,8 @@
   16 October, nobody answered yet, so the e2e can answer for Vera) and the
   September sports day (closed, every pupil but the last four answered by a
   guardian, every fifth of them no); pinned in `PrimarySchoolExampleSetTest`.
-- Left: T7 (Playwright e2e, needs a live instance).
+- Left: T7 (Playwright e2e, needs a live instance). Round 2: flow `i.` in
+  `po-parent-flows.spec.ts` is written (the teacher asks for Vera and a
+  classmate, the guardian's answer for another child is refused, hers is
+  stored with her ref and assurance, the teacher's page reads 1 of 2 answered
+  and Vera under Answered yes); not run here, no live instance.
