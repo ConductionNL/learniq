@@ -11648,6 +11648,29 @@
                     "assignmentId",
                     "tenant_id"
                 ],
+                "x-openregister-processing": {
+                    "code": "learniq-assessment-and-results",
+                    "naam": "Assessment and results",
+                    "doelbinding": "Assess learners and record their results: submissions and marks, grades, report cards, competencies, study-progress advice and the school advice.",
+                    "rechtsgrond": "public-task",
+                    "grondslagSource": "Regulation.slug",
+                    "dataCategories": [
+                        "learnerIds"
+                    ],
+                    "backend": "learniq.assessment",
+                    "retentionReference": "not declared (PeerFeedbackSummary carries no x-openregister-archival annotation; align with the school's selectielijst)",
+                    "lifecycle": "draft",
+                    "logReads": true,
+                    "attribution": {
+                        "default": "learniq-assessment-and-results"
+                    },
+                    "subjectIdFields": {
+                        "learnerIds": "learnerIds"
+                    },
+                    "ownerUserId": "admin",
+                    "reviewIntervalMonths": 12,
+                    "nextReviewAt": "2027-11-13"
+                },
                 "properties": {
                     "submissionId": {
                         "type": "string",
