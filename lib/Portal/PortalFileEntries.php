@@ -105,7 +105,7 @@ class PortalFileEntries {
 
 		// The shared row shape (school-documents-on-the-portal T1): group,
 		// meta in words and status join the fields the entry already had.
-		return DocumentRow::complete(
+		return (new DocumentRow())->complete(
 			entry: [
 				'id' => $fileId,
 				'title' => $this->titleOf(file: $file, title: $paper['title']),

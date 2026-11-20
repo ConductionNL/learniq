@@ -230,7 +230,7 @@ class LearnerDocuments {
 				$status  = $this->signingState(agreement: $agreement, signatures: $signatures, l10n: $l10n);
 				$context = [trim((string)($placement['trainingCompanyName'] ?? ''))];
 				foreach ($this->files->forRecord(schema: 'praktijkovereenkomst', row: $agreement) as $entry) {
-					$entries[] = DocumentRow::complete(entry: $entry, group: $l10n->t('Contracts'), status: $status, context: $context);
+					$entries[] = (new DocumentRow())->complete(entry: $entry, group: $l10n->t('Contracts'), status: $status, context: $context);
 				}
 			}
 		}//end foreach
@@ -251,7 +251,7 @@ class LearnerDocuments {
 		$entries = [];
 		foreach ($rows as $row) {
 			foreach ($this->files->forRecord(schema: $schema, row: $row) as $entry) {
-				$entries[] = DocumentRow::complete(entry: $entry, group: $group, status: (string)($entry['status'] ?? ''));
+				$entries[] = (new DocumentRow())->complete(entry: $entry, group: $group, status: (string)($entry['status'] ?? ''));
 			}
 		}
 

@@ -33,18 +33,9 @@ namespace OCA\Learniq\Service\Portal;
 
 use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Kernel\Contracts\ProofOfEnrolmentInterface;
-use OCA\Learniq\Support\FleetAppId;
-use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
-use OCA\OpenRegister\Service\File\FileUpload;
-use OCA\OpenRegister\Service\FileService;
 use OCA\OpenRegister\Service\ObjectService;
-use OCP\App\IAppManager;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Utility\ITimeFactory;
-use OCP\Http\Client\IClientService;
-use OCP\IAppConfig;
-use OCP\IL10N;
-use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\L10N\IFactory;
 use Psr\Log\LoggerInterface;
@@ -60,21 +51,6 @@ class ProofOfEnrolment implements ProofOfEnrolmentInterface {
 	private const REGISTER = 'learniq';
 
 	private const ENROLMENT_SCHEMA = 'enrolment';
-
-	/**
-	 * filinq's render endpoint, after the app segment (the report card's).
-	 */
-	private const RENDER_PATH = 'api/v1/documents/render';
-
-	/**
-	 * The template filinq renders the proof with.
-	 */
-	public const TEMPLATE_SLUG = 'proof-of-enrolment';
-
-	/**
-	 * The app-config key of the render credential, shared with the report card.
-	 */
-	private const TOKEN_KEY = 'docudesk_api_token';
 
 	/**
 	 * The month a school year starts in: August.
@@ -100,23 +76,15 @@ class ProofOfEnrolment implements ProofOfEnrolmentInterface {
 	/**
 	 * Constructor.
 	 *
-	 * @param ObjectService   $objectService OpenRegister reads (system context: the portal proved the learner).
-	 * @param FileService     $fileService   Keeps the PDF on the enrolment.
-	 * @param IClientService  $clientService The HTTP client for the render call.
-	 * @param IURLGenerator   $urlGenerator  Builds the render endpoint's address.
-	 * @param IAppManager     $appManager    Resolves filinq's app id.
-	 * @param IAppConfig      $appConfig     Holds the render credential.
-	 * @param IFactory        $l10nFactory   The learner's words.
-	 * @param ITimeFactory    $time          Today, for the school year.
-	 * @param LoggerInterface $logger        Logs a read or render that failed.
+	 * @param ObjectService       $objectService OpenRegister object access, for the enrolments.
+	 * @param ProofOfEnrolmentPdf $pdf           Renders the proof and keeps it on the enrolment.
+	 * @param IFactory            $l10nFactory   The learner's language.
+	 * @param ITimeFactory        $time          Today, for the school year and the issue date.
+	 * @param LoggerInterface     $logger        PSR logger.
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly FileService $fileService,
-		private readonly IClientService $clientService,
-		private readonly IURLGenerator $urlGenerator,
-		private readonly IAppManager $appManager,
-		private readonly IAppConfig $appConfig,
+		private readonly ProofOfEnrolmentPdf $pdf,
 		private readonly IFactory $l10nFactory,
 		private readonly ITimeFactory $time,
 		private readonly LoggerInterface $logger,
@@ -139,10 +107,12 @@ class ProofOfEnrolment implements ProofOfEnrolmentInterface {
 		}
 
 		$schoolYear = $this->schoolYear();
-		$l10n       = $this->l10n(user: $learner->user);
-		$title      = $l10n->t('Proof of enrolment, school year %s', [$schoolYear]);
+		$language   = $this->l10nFactory->getUserLanguage($learner->user);
+		$title      = $this->l10nFactory->get(AppIdentity::APP_ID, $language)->t('Proof of enrolment, school year %s', [$schoolYear]);
 
-		$pdf = $this->render(
+		$made = $this->pdf->make(
+			enrolmentId: (string)$enrolment['id'],
+			fileName: $title.'.pdf',
 			data: [
 				'title' => $title,
 				'learnerName' => $learner->user->getDisplayName(),
@@ -154,7 +124,7 @@ class ProofOfEnrolment implements ProofOfEnrolmentInterface {
 				'issuedOn' => date('Y-m-d', $this->time->getTime()),
 			]
 		);
-		if ($pdf === null || $this->keep(enrolmentId: (string)$enrolment['id'], fileName: $title.'.pdf', pdf: $pdf) === false) {
+		if ($made === false) {
 			return new PortalOutcome(status: Http::STATUS_BAD_GATEWAY, body: ['error' => 'render_failed'], reason: 'render-failed');
 		}
 
@@ -172,7 +142,7 @@ class ProofOfEnrolment implements ProofOfEnrolmentInterface {
 	 * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-a-pupil-asks-for-a-proof-of-enrolment
 	 */
 	public function message(string $reason, ?IUser $user): string {
-		return $this->l10n(user: $user)->t(self::TEXTS[$reason] ?? self::TEXTS['render-failed']);
+		return $this->translate(user: $user, text: (self::TEXTS[$reason] ?? self::TEXTS['render-failed']));
 	}//end message()
 
 	/**
@@ -238,115 +208,16 @@ class ProofOfEnrolment implements ProofOfEnrolmentInterface {
 	}//end activeEnrolment()
 
 	/**
-	 * The rendered PDF, or null when the render failed or answered no PDF.
+	 * A text in the user's language.
 	 *
-	 * The render endpoint answers with the PDF itself, or with JSON carrying it base64 encoded under `content`.
+	 * @param IUser|null $user The user, or null for the default language.
+	 * @param string     $text The English source text, one of TEXTS.
 	 *
-	 * @param array<string, mixed> $data What the template shows.
-	 *
-	 * @return string|null
+	 * @return string
 	 */
-	private function render(array $data): ?string {
-		$token = $this->appConfig->getValueString(app: AppIdentity::APP_ID, key: self::TOKEN_KEY, default: '');
-		if ($token === '') {
-			$this->logger->warning('Learniq: no render credential configured (learniq.docudesk_api_token); no proof of enrolment can be made.');
-			return null;
-		}
-
-		$url = $this->urlGenerator->getAbsoluteURL('/index.php'.FleetAppId::path($this->appManager, 'filinq', self::RENDER_PATH));
-		try {
-			$response = $this->clientService->newClient()->post(
-				$url,
-				[
-					'json' => ['templateSlug' => self::TEMPLATE_SLUG, 'output' => 'pdf', 'data' => $data],
-					'timeout' => 60,
-					'headers' => ['Authorization' => 'Bearer '.$token, 'Accept' => 'application/pdf, application/json'],
-				]
-			);
-			$body = (string)$response->getBody();
-		} catch (Throwable $e) {
-			$this->logger->warning('Learniq: a proof of enrolment could not be rendered', ['reason' => $e->getMessage()]);
-			return null;
-		}
-
-		return self::pdfFrom(body: $body);
-	}//end render()
-
-	/**
-	 * The PDF in a render answer: the body itself, or JSON's base64 `content`.
-	 *
-	 * @param string $body The answer's body.
-	 *
-	 * @return string|null The PDF bytes, or null when the answer holds none.
-	 *
-	 * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-a-pupil-asks-for-a-proof-of-enrolment
-	 */
-	public static function pdfFrom(string $body): ?string {
-		if (str_starts_with($body, '%PDF-') === true) {
-			return $body;
-		}
-
-		$json = json_decode($body, true);
-		if (is_array($json) === false || is_string($json['content'] ?? null) === false) {
-			return null;
-		}
-
-		$content = $json['content'];
-		if ($content === '') {
-			return null;
-		}
-
-		$pdf = base64_decode($content, true);
-		if ($pdf === false || str_starts_with($pdf, '%PDF-') === false) {
-			return null;
-		}
-
-		return $pdf;
-	}//end pdfFrom()
-
-	/**
-	 * Keep the PDF on the enrolment, replacing an earlier one of the same school year.
-	 *
-	 * @param string $enrolmentId The enrolment's id.
-	 * @param string $fileName    The file's name: the proof's title.
-	 * @param string $pdf         The PDF bytes.
-	 *
-	 * @return bool Whether it was kept.
-	 */
-	private function keep(string $enrolmentId, string $fileName, string $pdf): bool {
-		try {
-			$enrolment = $this->objectService->find(
-				id: $enrolmentId,
-				options: new ObjectFindOptions(register: self::REGISTER, schema: self::ENROLMENT_SCHEMA),
-				_rbac: false,
-				_multitenancy: false
-			);
-			if ($enrolment === null) {
-				return false;
-			}
-
-			$this->fileService->saveFile(
-				objectEntity: $enrolment,
-				upload: new FileUpload(fileName: $fileName, content: $pdf, share: false, tags: [self::TEMPLATE_SLUG])
-			);
-		} catch (Throwable $e) {
-			$this->logger->warning('Learniq: a proof of enrolment could not be kept', ['reason' => $e->getMessage()]);
-			return false;
-		}
-
-		return true;
-	}//end keep()
-
-	/**
-	 * The learner's words.
-	 *
-	 * @param IUser|null $user The learner; null for the default language.
-	 *
-	 * @return IL10N
-	 */
-	private function l10n(?IUser $user): IL10N {
-		return $this->l10nFactory->get(AppIdentity::APP_ID, $this->l10nFactory->getUserLanguage($user));
-	}//end l10n()
+	private function translate(?IUser $user, string $text): string {
+		return $this->l10nFactory->get(AppIdentity::APP_ID, $this->l10nFactory->getUserLanguage($user))->t($text);
+	}//end translate()
 
 	/**
 	 * A stored row as an array.

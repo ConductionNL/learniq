@@ -70,14 +70,14 @@ final class DocumentRow {
 	 *
 	 * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-each-school-audience-offers-its-own-documents-grouped-per-record
 	 */
-	public static function complete(array $entry, string $group='', string $status='', array $context=[]): array {
+	public function complete(array $entry, string $group='', string $status='', array $context=[]): array {
 		$words = array_values(array_filter(array_map('trim', $context), static fn (string $word): bool => $word !== ''));
-		$kind  = self::kind(mimeType: (string)($entry['mimeType'] ?? ''));
+		$kind  = $this->kind(mimeType: (string)($entry['mimeType'] ?? ''));
 		if ($kind !== '') {
 			$words[] = $kind;
 		}
 
-		$size = self::size(bytes: (int)($entry['size'] ?? 0));
+		$size = $this->size(bytes: (int)($entry['size'] ?? 0));
 		if ($size !== '') {
 			$words[] = $size;
 		}
@@ -103,7 +103,7 @@ final class DocumentRow {
 	 *
 	 * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-each-school-audience-offers-its-own-documents-grouped-per-record
 	 */
-	public static function kind(string $mimeType): string {
+	public function kind(string $mimeType): string {
 		$type = strtolower(trim(explode(';', $mimeType)[0]));
 		if (isset(self::KINDS[$type]) === true) {
 			return self::KINDS[$type];
@@ -125,7 +125,7 @@ final class DocumentRow {
 	 *
 	 * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-each-school-audience-offers-its-own-documents-grouped-per-record
 	 */
-	public static function size(int $bytes): string {
+	public function size(int $bytes): string {
 		if ($bytes <= 0) {
 			return '';
 		}

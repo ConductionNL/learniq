@@ -29,6 +29,7 @@ namespace OCA\Learniq\Tests\Unit\Service\Portal;
 use OCA\Learniq\Service\Portal\PortalLearner;
 use OCA\Learniq\Service\Portal\PortalOutcome;
 use OCA\Learniq\Service\Portal\ProofOfEnrolment;
+use OCA\Learniq\Service\Portal\ProofOfEnrolmentPdf;
 use OCA\Learniq\Support\FleetAppId;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\File\FileUpload;
@@ -136,7 +137,23 @@ class ProofOfEnrolmentTest extends TestCase {
 		$time = $this->createMock(ITimeFactory::class);
 		$time->method('getTime')->willReturn($now);
 
-		return new ProofOfEnrolment($store, $files, $clients, $urls, $apps, $config, $factory, $time, $this->createMock(LoggerInterface::class));
+		$logger = $this->createMock(LoggerInterface::class);
+
+		return new ProofOfEnrolment(
+			objectService: $store,
+			pdf: new ProofOfEnrolmentPdf(
+				objectService: $store,
+				fileService: $files,
+				clientService: $clients,
+				urlGenerator: $urls,
+				appManager: $apps,
+				appConfig: $config,
+				logger: $logger
+			),
+			l10nFactory: $factory,
+			time: $time,
+			logger: $logger
+		);
 	}//end service()
 
 	/**
@@ -236,10 +253,10 @@ class ProofOfEnrolmentTest extends TestCase {
 	 * @return void
 	 */
 	public function testThePdfInARenderAnswer(): void {
-		self::assertSame('%PDF-1.4 x', ProofOfEnrolment::pdfFrom('%PDF-1.4 x'));
-		self::assertSame('%PDF-1.4 y', ProofOfEnrolment::pdfFrom(json_encode(['content' => base64_encode('%PDF-1.4 y')])));
-		self::assertNull(ProofOfEnrolment::pdfFrom(json_encode(['content' => base64_encode('<html>')])));
-		self::assertNull(ProofOfEnrolment::pdfFrom(json_encode(['content' => '***'])));
-		self::assertNull(ProofOfEnrolment::pdfFrom('{"documentRef":"d"}'));
+		self::assertSame('%PDF-1.4 x', ProofOfEnrolmentPdf::pdfFrom('%PDF-1.4 x'));
+		self::assertSame('%PDF-1.4 y', ProofOfEnrolmentPdf::pdfFrom(json_encode(['content' => base64_encode('%PDF-1.4 y')])));
+		self::assertNull(ProofOfEnrolmentPdf::pdfFrom(json_encode(['content' => base64_encode('<html>')])));
+		self::assertNull(ProofOfEnrolmentPdf::pdfFrom(json_encode(['content' => '***'])));
+		self::assertNull(ProofOfEnrolmentPdf::pdfFrom('{"documentRef":"d"}'));
 	}//end testThePdfInARenderAnswer()
 }//end class
