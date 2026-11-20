@@ -78,6 +78,8 @@ class MarkRubricCompletionGuard implements LifecycleGuardInterface {
 	 *
 	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/assignments/spec.md#scenario-a-teacher-forgets-one-criterion
 	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/assignments/spec.md#scenario-every-criterion-is-scored
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
 	public function check(array $object, string $action, string $userId): GuardResult {
 		$criteria = $this->rubricCriteria(object: $object);
@@ -148,15 +150,7 @@ class MarkRubricCompletionGuard implements LifecycleGuardInterface {
 	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/assignments/spec.md#scenario-a-teacher-forgets-one-criterion
 	 */
 	private function unscoredLabels(array $criteria, $rubricScores): array {
-		$scored = [];
-		if (is_array($rubricScores) === true) {
-			foreach ($rubricScores as $score) {
-				if (is_array($score) === true && isset($score['criterionId']) === true) {
-					$scored[] = (string)$score['criterionId'];
-				}
-			}
-		}
-
+		$scored   = $this->scoredIds(rubricScores: $rubricScores);
 		$unscored = [];
 		foreach ($criteria as $criterion) {
 			if (is_array($criterion) === false || isset($criterion['criterionId']) === false) {
@@ -178,6 +172,24 @@ class MarkRubricCompletionGuard implements LifecycleGuardInterface {
 
 		return $unscored;
 	}//end unscoredLabels()
+
+	/**
+	 * The criterion ids rubricScores holds a score for.
+	 *
+	 * @param mixed $rubricScores The Submission's rubricScores.
+	 *
+	 * @return list<string>
+	 */
+	private function scoredIds($rubricScores): array {
+		$scored = [];
+		foreach ((array)$rubricScores as $score) {
+			if (is_array($score) === true && isset($score['criterionId']) === true) {
+				$scored[] = (string)$score['criterionId'];
+			}
+		}
+
+		return $scored;
+	}//end scoredIds()
 
 	/**
 	 * Whether a value is a usable id: a non-empty string.

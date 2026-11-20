@@ -42,9 +42,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
-use DateTimeInterface;
 use DateTimeZone;
-use Exception;
 use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\Learniq\Kernel\Contracts\SessionChangeNoticeHandlerInterface;
 use OCA\OpenRegister\Event\ObjectUpdatedEvent;
@@ -211,7 +209,7 @@ class SessionMoveNoticeHandler implements IEventListener {
 		$session['affectedLearnerIds'] = $people['learnerIds'];
 		$session['affectedParentIds'] = $people['parentIds'];
 		$session['moveNotice'] = $this->noticeText(session: $session, move: $move);
-		$session['movedAt'] = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
+		$session['movedAt'] = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DATE_ATOM);
 
 		$this->objectService->saveObject(
 			object: $session,
@@ -308,7 +306,7 @@ class SessionMoveNoticeHandler implements IEventListener {
 
 		try {
 			return new DateTimeImmutable($value);
-		} catch (Exception) {
+		} catch (Throwable) {
 			return null;
 		}
 	}//end instant()
