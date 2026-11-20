@@ -318,7 +318,15 @@ class GuardianSitePagesTest extends TestCase {
 		self::assertSame(
 			// "BPV en uren" from the esdoornveen board (student-portal-reads-like-the-boards).
 			// Her documents per enrolment (school-documents-on-the-portal T3).
-			['studentSessions' => 'Timetable', 'studentGrades' => 'Grades', 'studentHourWeeks' => 'BPV and hours', 'studentExcuseRequests' => 'Report an absence', 'studentTests' => 'Tests', 'studentHomework' => 'Hand in', 'studentDocuments' => 'Documents'],
+			[
+				'studentSessions' => 'Timetable',
+				'studentGrades' => 'Grades',
+				'studentHourWeeks' => 'BPV and hours',
+				'studentExcuseRequests' => 'Report an absence',
+				'studentTests' => 'Tests',
+				'studentHomework' => 'Hand in',
+				'studentDocuments' => 'Documents'
+			],
 			$inMenu
 		);
 

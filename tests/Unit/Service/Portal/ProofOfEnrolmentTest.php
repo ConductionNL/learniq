@@ -85,26 +85,31 @@ class ProofOfEnrolmentTest extends TestCase {
 	 *
 	 * @return ProofOfEnrolment
 	 */
-	private function service(array $enrolments, string|RuntimeException $render='%PDF-1.7 proof', int $now=1794268800, string $token='secret'): ProofOfEnrolment {
-		$store = $this->createMock(ObjectService::class);
+	private function service(
+		array $enrolments,
+		string|RuntimeException $render='%PDF-1.7 proof',
+		int $now=1794268800,
+		string $token='secret'
+	): ProofOfEnrolment {
+		$store = $this->createMock(originalClassName: ObjectService::class);
 		$store->method('findAll')->willReturn($enrolments);
 		$store->method('find')->willReturnCallback(
 			function (string|int $id): ?ObjectEntity {
-				$entity = $this->createMock(ObjectEntity::class);
+				$entity = $this->createMock(originalClassName: ObjectEntity::class);
 				$entity->method('getUuid')->willReturn((string)$id);
 				return $entity;
 			}
 		);
 
-		$files = $this->createMock(FileService::class);
+		$files = $this->createMock(originalClassName: FileService::class);
 		$files->method('saveFile')->willReturnCallback(
 			function (ObjectEntity $objectEntity, FileUpload $upload): File {
 				$this->kept[] = ['object' => $objectEntity->getUuid(), 'upload' => $upload];
-				return $this->createMock(File::class);
+				return $this->createMock(originalClassName: File::class);
 			}
 		);
 
-		$client = $this->createMock(IClient::class);
+		$client = $this->createMock(originalClassName: IClient::class);
 		$client->method('post')->willReturnCallback(
 			function (string $url, array $options) use ($render): IResponse {
 				$this->sent = ['url' => $url] + $options;
@@ -112,32 +117,32 @@ class ProofOfEnrolmentTest extends TestCase {
 					throw $render;
 				}
 
-				$response = $this->createMock(IResponse::class);
+				$response = $this->createMock(originalClassName: IResponse::class);
 				$response->method('getBody')->willReturn($render);
 				return $response;
 			}
 		);
-		$clients = $this->createMock(IClientService::class);
+		$clients = $this->createMock(originalClassName: IClientService::class);
 		$clients->method('newClient')->willReturn($client);
 
-		$urls = $this->createMock(IURLGenerator::class);
+		$urls = $this->createMock(originalClassName: IURLGenerator::class);
 		$urls->method('getAbsoluteURL')->willReturnCallback(static fn (string $path): string => 'https://school.example'.$path);
-		$apps = $this->createMock(IAppManager::class);
+		$apps = $this->createMock(originalClassName: IAppManager::class);
 		$apps->method('isInstalled')->willReturn(true);
 		$apps->method('getInstalledApps')->willReturn(['filinq']);
-		$config = $this->createMock(IAppConfig::class);
+		$config = $this->createMock(originalClassName: IAppConfig::class);
 		$config->method('getValueString')->willReturn($token);
 
-		$l10n = $this->createMock(IL10N::class);
+		$l10n = $this->createMock(originalClassName: IL10N::class);
 		$l10n->method('t')->willReturnCallback(static fn (string $text, array $params=[]): string => 'nl:'.vsprintf($text, $params));
-		$factory = $this->createMock(IFactory::class);
+		$factory = $this->createMock(originalClassName: IFactory::class);
 		$factory->method('get')->willReturn($l10n);
 		$factory->method('getUserLanguage')->willReturn('nl');
 
-		$time = $this->createMock(ITimeFactory::class);
+		$time = $this->createMock(originalClassName: ITimeFactory::class);
 		$time->method('getTime')->willReturn($now);
 
-		$logger = $this->createMock(LoggerInterface::class);
+		$logger = $this->createMock(originalClassName: LoggerInterface::class);
 
 		return new ProofOfEnrolment(
 			objectService: $store,
@@ -162,7 +167,7 @@ class ProofOfEnrolmentTest extends TestCase {
 	 * @return PortalLearner
 	 */
 	private function noor(): PortalLearner {
-		$user = $this->createMock(IUser::class);
+		$user = $this->createMock(originalClassName: IUser::class);
 		$user->method('getDisplayName')->willReturn('Noor de Vries');
 		return new PortalLearner(profileRef: 'noor', ncUserId: 'noor', tenantId: 't-1', user: $user);
 	}//end noor()
@@ -176,27 +181,27 @@ class ProofOfEnrolmentTest extends TestCase {
 	 */
 	public function testHerActiveEnrolmentIsRenderedAndKept(): void {
 		$outcome = $this->service(
-			[
+			enrolments: [
 				['id' => 'enr-old', 'learnerRef' => 'noor', 'lifecycle' => 'completed', 'inschrijvingDate' => '2027-01-01'],
 				['id' => 'enr-other', 'learnerRef' => 'milan', 'lifecycle' => 'active', 'inschrijvingDate' => '2027-02-01'],
 				['id' => 'enr-1', 'learnerRef' => 'noor', 'lifecycle' => 'active', 'inschrijvingDate' => '2026-08-20', 'cohortName' => '4 havo'],
 			]
 		)->request($this->noor());
 
-		self::assertSame(201, $outcome->status);
-		self::assertNull($outcome->reason);
-		self::assertSame('nl:Proof of enrolment, school year 2026-2027', $outcome->body['title']);
-		self::assertCount(1, $this->kept);
-		self::assertSame('enr-1', $this->kept[0]['object']);
-		self::assertSame('nl:Proof of enrolment, school year 2026-2027.pdf', $this->kept[0]['upload']->fileName);
-		self::assertSame('%PDF-1.7 proof', $this->kept[0]['upload']->content);
-		self::assertFalse($this->kept[0]['upload']->share);
-		self::assertSame('https://school.example/index.php/apps/filinq/api/v1/documents/render', $this->sent['url']);
-		self::assertSame('proof-of-enrolment', $this->sent['json']['templateSlug']);
-		self::assertSame('Noor de Vries', $this->sent['json']['data']['learnerName']);
-		self::assertSame('4 havo', $this->sent['json']['data']['cohortName']);
-		self::assertSame('2026-2027', $this->sent['json']['data']['schoolYear']);
-		self::assertSame('Bearer secret', $this->sent['headers']['Authorization']);
+		self::assertSame(expected: 201, actual: $outcome->status);
+		self::assertNull(actual: $outcome->reason);
+		self::assertSame(expected: 'nl:Proof of enrolment, school year 2026-2027', actual: $outcome->body['title']);
+		self::assertCount(expectedCount: 1, haystack: $this->kept);
+		self::assertSame(expected: 'enr-1', actual: $this->kept[0]['object']);
+		self::assertSame(expected: 'nl:Proof of enrolment, school year 2026-2027.pdf', actual: $this->kept[0]['upload']->fileName);
+		self::assertSame(expected: '%PDF-1.7 proof', actual: $this->kept[0]['upload']->content);
+		self::assertFalse(condition: $this->kept[0]['upload']->share);
+		self::assertSame(expected: 'https://school.example/index.php/apps/filinq/api/v1/documents/render', actual: $this->sent['url']);
+		self::assertSame(expected: 'proof-of-enrolment', actual: $this->sent['json']['templateSlug']);
+		self::assertSame(expected: 'Noor de Vries', actual: $this->sent['json']['data']['learnerName']);
+		self::assertSame(expected: '4 havo', actual: $this->sent['json']['data']['cohortName']);
+		self::assertSame(expected: '2026-2027', actual: $this->sent['json']['data']['schoolYear']);
+		self::assertSame(expected: 'Bearer secret', actual: $this->sent['headers']['Authorization']);
 	}//end testHerActiveEnrolmentIsRenderedAndKept()
 
 	/**
@@ -205,14 +210,17 @@ class ProofOfEnrolmentTest extends TestCase {
 	 * @return void
 	 */
 	public function testWithoutAnActiveEnrolmentSheIsRefused(): void {
-		$service = $this->service([['id' => 'enr-old', 'learnerRef' => 'noor', 'lifecycle' => 'withdrawn']]);
+		$service = $this->service(enrolments: [['id' => 'enr-old', 'learnerRef' => 'noor', 'lifecycle' => 'withdrawn']]);
 		$outcome = $service->request($this->noor());
 
-		self::assertSame(409, $outcome->status);
-		self::assertSame('no-active-enrolment', $outcome->reason);
-		self::assertNull($this->sent);
-		self::assertSame([], $this->kept);
-		self::assertStringStartsWith('nl:You have no active enrolment this school year', $service->message('no-active-enrolment', null));
+		self::assertSame(expected: 409, actual: $outcome->status);
+		self::assertSame(expected: 'no-active-enrolment', actual: $outcome->reason);
+		self::assertNull(actual: $this->sent);
+		self::assertSame(expected: [], actual: $this->kept);
+		self::assertStringStartsWith(
+			prefix: 'nl:You have no active enrolment this school year',
+			string: $service->message('no-active-enrolment', null)
+		);
 	}//end testWithoutAnActiveEnrolmentSheIsRefused()
 
 	/**
@@ -225,15 +233,15 @@ class ProofOfEnrolmentTest extends TestCase {
 		$enrolment = [['id' => 'enr-1', 'learnerRef' => 'noor', 'lifecycle' => 'active']];
 		foreach ([new RuntimeException('down'), '{"documentRef":"doc-1"}', 'not a pdf'] as $render) {
 			$outcome = $this->service(enrolments: $enrolment, render: $render)->request($this->noor());
-			self::assertSame(502, $outcome->status);
-			self::assertSame('render-failed', $outcome->reason);
+			self::assertSame(expected: 502, actual: $outcome->status);
+			self::assertSame(expected: 'render-failed', actual: $outcome->reason);
 		}
 
 		$this->sent = null;
 		$outcome    = $this->service(enrolments: $enrolment, token: '')->request($this->noor());
-		self::assertSame(502, $outcome->status);
-		self::assertNull($this->sent, 'Without a credential nothing is sent');
-		self::assertSame([], $this->kept);
+		self::assertSame(expected: 502, actual: $outcome->status);
+		self::assertNull(actual: $this->sent, message: 'Without a credential nothing is sent');
+		self::assertSame(expected: [], actual: $this->kept);
 	}//end testAFailedRenderKeepsNothing()
 
 	/**
@@ -242,9 +250,9 @@ class ProofOfEnrolmentTest extends TestCase {
 	 * @return void
 	 */
 	public function testTheSchoolYearStartsInAugust(): void {
-		self::assertSame('2025-2026', $this->service(enrolments: [], now: strtotime('2026-07-31 12:00 UTC'))->schoolYear());
-		self::assertSame('2026-2027', $this->service(enrolments: [], now: strtotime('2026-08-01 12:00 UTC'))->schoolYear());
-		self::assertSame('2026-2027', $this->service(enrolments: [], now: strtotime('2027-01-15 12:00 UTC'))->schoolYear());
+		self::assertSame(expected: '2025-2026', actual: $this->service(enrolments: [], now: strtotime('2026-07-31 12:00 UTC'))->schoolYear());
+		self::assertSame(expected: '2026-2027', actual: $this->service(enrolments: [], now: strtotime('2026-08-01 12:00 UTC'))->schoolYear());
+		self::assertSame(expected: '2026-2027', actual: $this->service(enrolments: [], now: strtotime('2027-01-15 12:00 UTC'))->schoolYear());
 	}//end testTheSchoolYearStartsInAugust()
 
 	/**
@@ -253,10 +261,10 @@ class ProofOfEnrolmentTest extends TestCase {
 	 * @return void
 	 */
 	public function testThePdfInARenderAnswer(): void {
-		self::assertSame('%PDF-1.4 x', ProofOfEnrolmentPdf::pdfFrom('%PDF-1.4 x'));
-		self::assertSame('%PDF-1.4 y', ProofOfEnrolmentPdf::pdfFrom(json_encode(['content' => base64_encode('%PDF-1.4 y')])));
-		self::assertNull(ProofOfEnrolmentPdf::pdfFrom(json_encode(['content' => base64_encode('<html>')])));
-		self::assertNull(ProofOfEnrolmentPdf::pdfFrom(json_encode(['content' => '***'])));
-		self::assertNull(ProofOfEnrolmentPdf::pdfFrom('{"documentRef":"d"}'));
+		self::assertSame(expected: '%PDF-1.4 x', actual: ProofOfEnrolmentPdf::pdfFrom('%PDF-1.4 x'));
+		self::assertSame(expected: '%PDF-1.4 y', actual: ProofOfEnrolmentPdf::pdfFrom(json_encode(['content' => base64_encode('%PDF-1.4 y')])));
+		self::assertNull(actual: ProofOfEnrolmentPdf::pdfFrom(json_encode(['content' => base64_encode('<html>')])));
+		self::assertNull(actual: ProofOfEnrolmentPdf::pdfFrom(json_encode(['content' => '***'])));
+		self::assertNull(actual: ProofOfEnrolmentPdf::pdfFrom('{"documentRef":"d"}'));
 	}//end testThePdfInARenderAnswer()
 }//end class

@@ -178,7 +178,12 @@ class ProofOfEnrolment implements ProofOfEnrolmentInterface {
 		try {
 			$found = $this->objectService->findAll(
 				config: [
-					'filters' => ['register' => self::REGISTER, 'schema' => self::ENROLMENT_SCHEMA, 'learnerRef' => $learnerRef, 'lifecycle' => 'active'],
+					'filters' => [
+						'register' => self::REGISTER,
+						'schema' => self::ENROLMENT_SCHEMA,
+						'learnerRef' => $learnerRef,
+						'lifecycle' => 'active'
+					],
 					'limit' => self::LIMIT,
 				],
 				_rbac: false,

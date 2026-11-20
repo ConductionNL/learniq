@@ -94,7 +94,10 @@ class PortalProofOfEnrolmentController extends Controller {
 	#[BruteForceProtection(action: self::THROTTLE_ACTION)]
 	public function request(): JSONResponse {
 		$failure = new PortalForwardFailure(logger: $this->logger, message: '[PortalProofOfEnrolmentController] A proof of enrolment failed: {msg}');
-		$forward = new PortalLearnerForward(gate: new PortalForwardGate(verifier: $this->verifier, request: $this->request), learners: $this->learners);
+		$forward = new PortalLearnerForward(
+			gate: new PortalForwardGate(verifier: $this->verifier, request: $this->request),
+			learners: $this->learners
+		);
 
 		return $forward->respond(
 			step: new PortalLearnerStep(

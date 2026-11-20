@@ -298,7 +298,28 @@ class PortalContributionProviderTest extends TestCase {
 		$actions = $manifest['actions'];
 
 		$this->assertSame(
-			['createSubmission', 'submitHourWeek', 'writeHourDay', 'fillInSelfAssessment', 'createExcuseRequest', 'reportRecovered', 'listTests', 'startTest', 'saveTestAnswer', 'submitTest', 'readTestResult', 'handIn', 'listCatalogue', 'signUpForCourse', 'withdrawSignUp', 'listWorkGroups', 'joinWorkGroup', 'leaveWorkGroup', 'checkIn', 'requestProofOfEnrolment'],
+			[
+				'createSubmission',
+				'submitHourWeek',
+				'writeHourDay',
+				'fillInSelfAssessment',
+				'createExcuseRequest',
+				'reportRecovered',
+				'listTests',
+				'startTest',
+				'saveTestAnswer',
+				'submitTest',
+				'readTestResult',
+				'handIn',
+				'listCatalogue',
+				'signUpForCourse',
+				'withdrawSignUp',
+				'listWorkGroups',
+				'joinWorkGroup',
+				'leaveWorkGroup',
+				'checkIn',
+				'requestProofOfEnrolment'
+			],
 			array_column($actions, 'id')
 		);
 		$byId = array_column($actions, null, 'id');
@@ -306,10 +327,10 @@ class PortalContributionProviderTest extends TestCase {
 		// school-documents-on-the-portal T4: she fills in nothing; who she is
 		// comes from the claim, never from the form.
 		$proof = $byId['requestProofOfEnrolment'];
-		$this->assertSame('endpoint-forward', $proof['type']);
-		$this->assertSame('/apps/learniq/api/portal/proof-of-enrolment', $proof['endpoint']);
-		$this->assertSame([], $proof['fields']);
-		$this->assertSame('learnerRef', $proof['scopeClaim']);
+		$this->assertSame(expected: 'endpoint-forward', actual: $proof['type']);
+		$this->assertSame(expected: '/apps/learniq/api/portal/proof-of-enrolment', actual: $proof['endpoint']);
+		$this->assertSame(expected: [], actual: $proof['fields']);
+		$this->assertSame(expected: 'learnerRef', actual: $proof['scopeClaim']);
 
 		$submission = $byId['createSubmission'];
 		$this->assertSame('create', $submission['type']);

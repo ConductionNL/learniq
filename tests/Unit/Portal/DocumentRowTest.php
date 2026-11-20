@@ -49,8 +49,18 @@ class DocumentRowTest extends TestCase {
 		);
 
 		self::assertSame(
-			['id' => '71', 'title' => 'Rapport 2', 'mimeType' => 'application/pdf', 'size' => 86016, 'isNew' => true, 'file' => $file, 'group' => 'Groep 7', 'meta' => 'Groep 6, PDF, 84 KB', 'status' => ''],
-			$row
+			expected: [
+				'id' => '71',
+				'title' => 'Rapport 2',
+				'mimeType' => 'application/pdf',
+				'size' => 86016,
+				'isNew' => true,
+				'file' => $file,
+				'group' => 'Groep 7',
+				'meta' => 'Groep 6, PDF, 84 KB',
+				'status' => ''
+			],
+			actual: $row
 		);
 	}//end testAReportReadsAsGroupTitleAndMetaInWords()
 
@@ -64,13 +74,13 @@ class DocumentRowTest extends TestCase {
 	public function testAStatusIsCarriedAndMissingFieldsReadAsNothing(): void {
 		$row = (new DocumentRow())->complete(entry: ['title' => 'Praktijkovereenkomst'], status: ' Wacht op leerbedrijf ', context: ['2026-2027']);
 
-		self::assertSame('Wacht op leerbedrijf', $row['status']);
-		self::assertSame('2026-2027', $row['meta']);
-		self::assertFalse($row['isNew']);
-		self::assertSame('', $row['group']);
+		self::assertSame(expected: 'Wacht op leerbedrijf', actual: $row['status']);
+		self::assertSame(expected: '2026-2027', actual: $row['meta']);
+		self::assertFalse(condition: $row['isNew']);
+		self::assertSame(expected: '', actual: $row['group']);
 
 		$bare = (new DocumentRow())->complete(entry: ['isNew' => 'yes']);
-		self::assertSame(['isNew' => false, 'title' => '', 'group' => '', 'meta' => '', 'status' => ''], $bare);
+		self::assertSame(expected: ['isNew' => false, 'title' => '', 'group' => '', 'meta' => '', 'status' => ''], actual: $bare);
 	}//end testAStatusIsCarriedAndMissingFieldsReadAsNothing()
 
 	/**
@@ -79,13 +89,16 @@ class DocumentRowTest extends TestCase {
 	 * @return void
 	 */
 	public function testKindsInWords(): void {
-		self::assertSame('PDF', (new DocumentRow())->kind(mimeType: 'Application/PDF; charset=binary'));
-		self::assertSame('ZIP', (new DocumentRow())->kind(mimeType: 'application/zip'));
-		self::assertSame('Word', (new DocumentRow())->kind(mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'));
-		self::assertSame('Excel', (new DocumentRow())->kind(mimeType: 'application/vnd.ms-excel'));
-		self::assertSame('Image', (new DocumentRow())->kind(mimeType: 'image/png'));
-		self::assertSame('', (new DocumentRow())->kind(mimeType: 'application/octet-stream'));
-		self::assertSame('', (new DocumentRow())->kind(mimeType: ''));
+		self::assertSame(expected: 'PDF', actual: (new DocumentRow())->kind(mimeType: 'Application/PDF; charset=binary'));
+		self::assertSame(expected: 'ZIP', actual: (new DocumentRow())->kind(mimeType: 'application/zip'));
+		self::assertSame(
+			expected: 'Word',
+			actual: (new DocumentRow())->kind(mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+		);
+		self::assertSame(expected: 'Excel', actual: (new DocumentRow())->kind(mimeType: 'application/vnd.ms-excel'));
+		self::assertSame(expected: 'Image', actual: (new DocumentRow())->kind(mimeType: 'image/png'));
+		self::assertSame(expected: '', actual: (new DocumentRow())->kind(mimeType: 'application/octet-stream'));
+		self::assertSame(expected: '', actual: (new DocumentRow())->kind(mimeType: ''));
 	}//end testKindsInWords()
 
 	/**
@@ -94,13 +107,13 @@ class DocumentRowTest extends TestCase {
 	 * @return void
 	 */
 	public function testSizesInWords(): void {
-		self::assertSame('', (new DocumentRow())->size(bytes: 0));
-		self::assertSame('', (new DocumentRow())->size(bytes: -5));
-		self::assertSame('1023 bytes', (new DocumentRow())->size(bytes: 1023));
-		self::assertSame('1 KB', (new DocumentRow())->size(bytes: 1024));
-		self::assertSame('1 KB', (new DocumentRow())->size(bytes: 1100));
-		self::assertSame('1024 KB', (new DocumentRow())->size(bytes: 1048575));
-		self::assertSame('1.0 MB', (new DocumentRow())->size(bytes: 1048576));
-		self::assertSame('2.5 MB', (new DocumentRow())->size(bytes: 2621440));
+		self::assertSame(expected: '', actual: (new DocumentRow())->size(bytes: 0));
+		self::assertSame(expected: '', actual: (new DocumentRow())->size(bytes: -5));
+		self::assertSame(expected: '1023 bytes', actual: (new DocumentRow())->size(bytes: 1023));
+		self::assertSame(expected: '1 KB', actual: (new DocumentRow())->size(bytes: 1024));
+		self::assertSame(expected: '1 KB', actual: (new DocumentRow())->size(bytes: 1100));
+		self::assertSame(expected: '1024 KB', actual: (new DocumentRow())->size(bytes: 1048575));
+		self::assertSame(expected: '1.0 MB', actual: (new DocumentRow())->size(bytes: 1048576));
+		self::assertSame(expected: '2.5 MB', actual: (new DocumentRow())->size(bytes: 2621440));
 	}//end testSizesInWords()
 }//end class
