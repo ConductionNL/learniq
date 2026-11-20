@@ -28,7 +28,6 @@ use OCA\Learniq\Service\CompetencyAlignmentNormaliser;
 use OCA\Learniq\Service\CourseSharePackageBuilder;
 use OCA\Learniq\Service\CourseSharingGate;
 use OCA\Learniq\Service\CourseStore\CourseStoreRegistryObject;
-use OCA\Learniq\Service\Portal\PortalEmployerBookings;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use ReflectionMethod;
@@ -49,7 +48,6 @@ class TrimmedTextGoldenTest extends TestCase {
 			'CourseSharePackageBuilder' => [CourseSharePackageBuilder::class, 'text'],
 			'CourseSharingGate' => [CourseSharingGate::class, 'text'],
 			'CourseStoreRegistryObject' => [CourseStoreRegistryObject::class, 'text'],
-			'PortalEmployerBookings' => [PortalEmployerBookings::class, 'text'],
 			'AssessmentAccessPolicy' => [AssessmentAccessPolicy::class, 'normaliseCode'],
 			'CompetencyAlignmentNormaliser' => [CompetencyAlignmentNormaliser::class, 'stringOrEmpty'],
 		];

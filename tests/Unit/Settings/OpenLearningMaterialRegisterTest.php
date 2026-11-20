@@ -67,14 +67,40 @@ class OpenLearningMaterialRegisterTest extends TestCase {
 	}//end testALinkedMaterialNeedsNoFile()
 
 	public function testTheSchemaChangeBumpsSchemaAndRegister(): void {
-		$this->assertSame(expected: '0.2.0', actual: $this->material()['version']);
-		// The register version moves on with every later schema change; this
-		// change needed it at 0.48.0 at least.
+		// Material 0.2.1 gained withheldReason; both versions only move on.
 		$this->assertTrue(
-			condition: version_compare($this->register(file: 'learniq_register.json')['info']['version'], '0.48.0', '>='),
+			condition: version_compare($this->material()['version'], '0.2.1', '>='),
+			message: 'the Material version went back below 0.2.1'
+		);
+		// The register version moves on with every later schema change; this
+		// change needed it at 0.50.0 at least.
+		$this->assertTrue(
+			condition: version_compare($this->register(file: 'learniq_register.json')['info']['version'], '0.50.0', '>='),
 			message: 'the register version went back below the one this change bumped it to'
 		);
 	}//end testTheSchemaChangeBumpsSchemaAndRegister()
+
+	/**
+	 * Learners read a Material only while it is not withheld; staff always.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#scenario-non-commercial-material-is-flagged-in-a-paid-course
+	 */
+	public function testWithheldMaterialIsNotReadableByLearners(): void {
+		$material = $this->material();
+		$this->assertSame(expected: ['', 'non-commercial'], actual: $material['properties']['withheldReason']['enum']);
+		$this->assertNotContains(needle: 'authenticated', haystack: $material['authorization']['read']);
+		$this->assertContains(needle: 'instructors', haystack: $material['authorization']['read']);
+		$this->assertContains(
+			needle: ['group' => 'authenticated', 'match' => ['withheldReason' => ['$exists' => false]]],
+			haystack: $material['authorization']['read']
+		);
+		$this->assertContains(
+			needle: ['group' => 'authenticated', 'match' => ['withheldReason' => ['$eq' => '']]],
+			haystack: $material['authorization']['read']
+		);
+	}//end testWithheldMaterialIsNotReadableByLearners()
 
 	public function testTheDemoDataHoldsALinkedMaterial(): void {
 		$linked = array_values(

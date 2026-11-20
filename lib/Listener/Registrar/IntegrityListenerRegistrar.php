@@ -45,6 +45,7 @@ use OCA\Learniq\Listener\ReportCardGradeLinesStamp;
 use OCA\Learniq\Listener\PortfolioEntryOwnershipListener;
 use OCA\Learniq\Listener\AssignmentLearnerRefsStamp;
 use OCA\Learniq\Listener\CohortNameCascade;
+use OCA\Learniq\Listener\NonCommercialWithholdingCascade;
 use OCA\Learniq\Listener\HourWeekSubmissionStamp;
 use OCA\Learniq\Listener\LearningRecordCreatedTransition;
 use OCA\Learniq\Listener\LearningRecordOwnerStamp;
@@ -63,6 +64,7 @@ use OCA\Learniq\Listener\SubmissionOwnerStamp;
 use OCA\Learniq\Listener\SubmissionResubmissionDateListener;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
+use OCA\OpenRegister\Event\ObjectDeletedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
@@ -374,6 +376,8 @@ class IntegrityListenerRegistrar {
 			event: ObjectUpdatedEvent::class,
 			listener: CohortNameCascade::class
 		);
+		$this->registerWithholdingCascade(context: $context);
+
 		// A pupil's group line in the guardian's menu follows the enrolment (school-portals-use-the-new-blocks).
 		$context->registerEventListener(
 			event: ObjectCreatedEvent::class,
@@ -458,6 +462,23 @@ class IntegrityListenerRegistrar {
 			listener: BpvVisitProposalStamp::class
 		);
 	}//end registerReadableCopies()
+
+	/**
+	 * NC material follows its course: withheld from learners while the course
+	 * is paid or corporate (open-learning-material).
+	 *
+	 * @param IRegistrationContext $context The registration context.
+	 *
+	 * @return void
+	 */
+	private function registerWithholdingCascade(IRegistrationContext $context): void {
+		foreach ([ObjectCreatedEvent::class, ObjectUpdatedEvent::class, ObjectDeletedEvent::class] as $event) {
+			$context->registerEventListener(
+				event: $event,
+				listener: NonCommercialWithholdingCascade::class
+			);
+		}
+	}//end registerWithholdingCascade()
 
 	/**
 	 * A course day's status follows its bookings, enrolments, sessions,
