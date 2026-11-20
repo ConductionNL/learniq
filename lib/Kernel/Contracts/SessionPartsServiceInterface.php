@@ -50,7 +50,7 @@ interface SessionPartsServiceInterface {
 	 * @throws \RuntimeException When the session or its course day is gone (404) or the user may not read it (403).
 	 * @throws \Throwable        When OpenRegister cannot be read.
 	 *
-	 * @spec openspec/changes/training-provider-course-days/specs/attendance/spec.md#requirement-a-trainer-registers-attendance-per-part-of-the-day
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-trainer-registers-attendance-per-part-of-the-day
 	 */
 	public function forSession(string $sessionId, IUser $user): array;
 }//end interface

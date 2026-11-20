@@ -37,7 +37,7 @@ test('never below zero, and no deadline means no timer', () => {
 })
 
 test('saved rows carry the answers and no scores', () => {
-	const rows = responsesPayload([{ uuid: 'i1' }, { uuid: 'i2' }], { i1: 'B' })
+	const rows = responsesPayload([{ id: 'i1' }, { id: 'i2' }], { i1: 'B' })
 	assert.deepEqual(rows, [
 		{
 			itemId: 'i1',

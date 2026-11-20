@@ -857,7 +857,7 @@ class TrainingExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#scenario-four-of-six
+	 * @spec openspec/specs/course-management/spec.md#scenario-four-of-six
 	 */
 	public function testTheCourseDaysOfThePlanner(): void {
 		$courses = [];

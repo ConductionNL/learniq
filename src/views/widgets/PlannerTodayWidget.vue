@@ -10,7 +10,7 @@
  of the course that has places; then the bookings and enrolments to confirm;
  then the occupancy, trainers and rooms of the coming course days.
 
- @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#scenario-four-of-six
+ @spec openspec/specs/course-management/spec.md#scenario-four-of-six
 -->
 <!-- @visual exclude Dashboard card rendered inside LearniqDashboards (planner); the visual surface is LearniqDashboards, which carries the baseline. -->
 <template>
@@ -109,7 +109,7 @@ export default {
 		 * The course days that ask for a decision now.
 		 *
 		 * @return {Array<object>} The cards.
-		 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#scenario-four-of-six
+		 * @spec openspec/specs/course-management/spec.md#scenario-four-of-six
 		 */
 		decisions() {
 			return decisionCards(this.today, this.locale)
@@ -119,7 +119,7 @@ export default {
 		 * The coming course days with their occupancy, trainers and rooms.
 		 *
 		 * @return {Array<object>} The rows.
-		 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
+		 * @spec openspec/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
 		 */
 		occupancy() {
 			return occupancyRows(this.today, this.locale)
@@ -127,7 +127,7 @@ export default {
 
 		/**
 		 * @return {number} The bookings and enrolments to confirm.
-		 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
+		 * @spec openspec/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
 		 */
 		toConfirm() {
 			return toConfirmCount(this.today)
