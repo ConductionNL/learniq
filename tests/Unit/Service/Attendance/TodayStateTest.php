@@ -37,6 +37,26 @@ class TodayStateTest extends TestCase {
 	}//end testEachDayReadsAsOneState()
 
 	/**
+	 * The covering report's time of day reads as until when the pupil is away;
+	 * anything that is no `HH:MM` time reads as none.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/learner-list-and-page-follow-the-boards/tasks.md#T1
+	 */
+	public function testUntilComesFromTheCoveringReport(): void {
+		$this->assertSame('11:30', TodayState::untilOf(report: ['reasonKind' => 'medical-appointment', 'untilTime' => '11:30']));
+		$this->assertSame('09:05', TodayState::untilOf(report: ['untilTime' => '09:05']));
+		$this->assertNull(TodayState::untilOf(report: null));
+		$this->assertNull(TodayState::untilOf(report: ['reasonKind' => 'illness']));
+		$this->assertNull(TodayState::untilOf(report: ['untilTime' => null]));
+		$this->assertNull(TodayState::untilOf(report: ['untilTime' => '11.30']));
+		$this->assertNull(TodayState::untilOf(report: ['untilTime' => '24:00']));
+		$this->assertNull(TodayState::untilOf(report: ['untilTime' => '9:30']));
+		$this->assertNull(TodayState::untilOf(report: ['untilTime' => 1130]));
+	}//end testUntilComesFromTheCoveringReport()
+
+	/**
 	 * The days.
 	 *
 	 * @return array<string, array{0: array<int, array<string, mixed>>, 1: array<string, mixed>|null, 2: string}>

@@ -79,7 +79,7 @@ class PupilPageService implements PupilPageServiceInterface {
 	 * @param string      $learnerId The pupil's Nextcloud user id.
 	 * @param string|null $cohortId  The group the page is opened from; null for the pupil's first group of the caller.
 	 *
-	 * @return array<string, mixed> learnerId, cohortId, todayState, header, nextStep (or null) and people.
+	 * @return array<string, mixed> learnerId, cohortId, todayState, todayUntil, header, nextStep (or null) and people.
 	 *
 	 * @throws RollCallException 403 for a caller who may not open a group of this pupil, 404 for a pupil without a profile.
 	 *
@@ -110,6 +110,7 @@ class PupilPageService implements PupilPageServiceInterface {
 			'learnerId' => $learnerId,
 			'cohortId' => $this->reader->idOf(row: $cohort),
 			'todayState' => $todayState,
+			'todayUntil' => ($this->todayStates->untilForCohort(cohort: $cohort, date: $today)[$learnerId] ?? null),
 			'header' => PupilPage::header(profile: $profile, cohort: $cohort, todayState: $todayState, flags: $flags, placement: $placement),
 			'nextStep' => $this->nextStep->first(slots: $slots, visits: $visits, flags: $flags, now: $now),
 			'people' => $this->named(people: PupilPage::people(cohort: $cohort, plans: $plans, placement: $placement)),

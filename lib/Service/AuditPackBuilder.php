@@ -334,7 +334,7 @@ class AuditPackBuilder implements AuditPackBuilderInterface {
 	 * @return string Plain-text verification report.
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-2
-	 * @spec openspec/changes/compliance-attestation-locked-after-signing/specs/compliance-audit/spec.md#requirement-the-audit-pack-states-the-freeze
+	 * @spec openspec/specs/compliance-audit/spec.md#requirement-the-audit-pack-states-the-freeze
 	 */
 	private function buildVerificationTxt(array $verification, array $attestationLines): string {
 		$valid = ($verification['valid'] ?? false) === true;
