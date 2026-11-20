@@ -376,13 +376,7 @@ class IntegrityListenerRegistrar {
 			event: ObjectUpdatedEvent::class,
 			listener: CohortNameCascade::class
 		);
-		// NC material follows its course: withheld from learners while the course is paid or corporate (open-learning-material).
-		foreach ([ObjectCreatedEvent::class, ObjectUpdatedEvent::class, ObjectDeletedEvent::class] as $event) {
-			$context->registerEventListener(
-				event: $event,
-				listener: NonCommercialWithholdingCascade::class
-			);
-		}
+		$this->registerWithholdingCascade(context: $context);
 
 		// A pupil's group line in the guardian's menu follows the enrolment (school-portals-use-the-new-blocks).
 		$context->registerEventListener(
@@ -468,6 +462,23 @@ class IntegrityListenerRegistrar {
 			listener: BpvVisitProposalStamp::class
 		);
 	}//end registerReadableCopies()
+
+	/**
+	 * NC material follows its course: withheld from learners while the course
+	 * is paid or corporate (open-learning-material).
+	 *
+	 * @param IRegistrationContext $context The registration context.
+	 *
+	 * @return void
+	 */
+	private function registerWithholdingCascade(IRegistrationContext $context): void {
+		foreach ([ObjectCreatedEvent::class, ObjectUpdatedEvent::class, ObjectDeletedEvent::class] as $event) {
+			$context->registerEventListener(
+				event: $event,
+				listener: NonCommercialWithholdingCascade::class
+			);
+		}
+	}//end registerWithholdingCascade()
 
 	/**
 	 * A course day's status follows its bookings, enrolments, sessions,
