@@ -12,6 +12,7 @@
  * @spec openspec/specs/portal-contribution/spec.md#requirement-the-overview-follows-the-designed-board
  * @spec openspec/changes/portal-board-checks-run-on-a-real-instance/specs/example-sets/spec.md#requirement-the-board-checks-run-against-any-instance-that-loaded-the-sets
  * @spec openspec/changes/absence-reports-seen-and-ended/specs/portal-contribution/spec.md#requirement-the-guardian-reads-that-the-school-saw-her-report
+ * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-each-school-audience-offers-its-own-documents-grouped-per-record
  */
 
 import type { Page } from '@playwright/test'
@@ -267,5 +268,21 @@ test.describe('wilgenboom: Mijn Wilgenboom (Fatima Hulstkamp)', () => {
 			/Gezien door .*Esra.* om \d{1,2}[.:]\d{2} uur/i,
 		])
 		await boardShot(parent, PORTAL, 'MijnLijst', info)
+	})
+
+	// Playwright needs the fixtures argument destructured; these tests read the shared signed-in page.
+	// eslint-disable-next-line no-empty-pattern
+	test('Documenten: the reports per child', async ({}, info) => {
+		// school-documents-on-the-portal: her children's published reports, a group per child.
+		await parent.goto(
+			`${siteUrl(PORTAL)}&route=${encodeURIComponent('/mijn/learniq/parentDocuments')}`,
+		)
+		await waitForAccountPage(parent)
+		await expectTexts(parent, ['Groep 7', 'Groep 4', 'PDF'])
+		if (info.project.name === 'phone') {
+			await expectNoHorizontalScroll(parent)
+		}
+		await expectNoSeriousAxeFinding(parent)
+		await boardShot(parent, PORTAL, 'Documenten', info)
 	})
 })

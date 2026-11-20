@@ -350,6 +350,8 @@ $routes = [
         // and #1142): X-Portal-Subject assertion only, learnerRef from portaliq.
         // Controller: PortalCheckInController (slug: portalCheckIn).
         ['name' => 'portalCheckIn#checkIn', 'url' => '/api/portal/check-in', 'verb' => 'POST'],
+        // Controller: PortalProofOfEnrolmentController (school-documents-on-the-portal T4).
+        ['name' => 'portalProofOfEnrolment#request', 'url' => '/api/portal/proof-of-enrolment', 'verb' => 'POST'],
         // Roll-call (attendance-roll-call): the day's register of one group.
         // A group teacher opens their own groups, coordinators and
         // administration-managers every group; the server writes the records

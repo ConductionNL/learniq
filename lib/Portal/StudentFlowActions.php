@@ -47,7 +47,7 @@ class StudentFlowActions {
 	 * @spec openspec/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
 	 */
 	public function actions(): array {
-		return [$this->checkIn()];
+		return [$this->checkIn(), $this->requestProofOfEnrolment()];
 	}//end actions()
 
 	/**
@@ -70,4 +70,30 @@ class StudentFlowActions {
 			'scopeClaim' => 'learnerRef',
 		];
 	}//end checkIn()
+
+	/**
+	 * Ask for a proof of enrolment, for a side job or a travel card
+	 * (school-documents-on-the-portal T4). The learner fills in nothing:
+	 * learniq renders her active enrolment of this school year and the proof
+	 * joins her documents.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-a-pupil-asks-for-a-proof-of-enrolment
+	 */
+	private function requestProofOfEnrolment(): array {
+		return [
+			'id' => 'requestProofOfEnrolment',
+			'type' => 'endpoint-forward',
+			'label' => 'Ask for a proof of enrolment',
+			'endpoint' => '/apps/learniq/api/portal/proof-of-enrolment',
+			'method' => 'POST',
+			'minTrust' => 'low',
+			'fields' => [],
+			'subjectField' => 'learnerRef',
+			'scopeClaim' => 'learnerRef',
+			'submitLabel' => 'Ask for a proof of enrolment',
+			'successMessage' => 'Your proof of enrolment is ready. You find it under your documents.',
+		];
+	}//end requestProofOfEnrolment()
 }//end class

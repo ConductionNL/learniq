@@ -167,6 +167,7 @@ class PortalFieldWords {
 			'admission' => 'The school',
 			'subject-choice' => 'Subject choice',
 			'credential-renewal' => 'A certificate renewal',
+			'roster-sync' => 'The school',
 		],
 		'grade-notification.event' => ['gradePublished' => 'New grade'],
 		'permission-request.lifecycle' => ['open' => 'Open', 'closed' => 'Closed'],
