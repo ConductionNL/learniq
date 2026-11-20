@@ -99,6 +99,20 @@ class CohortNameRestamp implements CohortNameRestampInterface {
 			return;
 		}
 
+		$this->restampAll(enrolments: $enrolments, name: $name);
+	}//end restamp()
+
+	/**
+	 * Restamp the cohort name on each enrolment row.
+	 *
+	 * @param array<int,mixed> $enrolments The cohort's enrolments, as rows or entities.
+	 * @param string           $name       The cohort's new name.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-new-the-child-switcher-shows-the-childs-group
+	 */
+	private function restampAll(array $enrolments, string $name): void {
 		foreach ($enrolments as $enrolment) {
 			$row = $enrolment;
 			if (is_object($enrolment) === true && method_exists($enrolment, 'jsonSerialize') === true) {
@@ -109,7 +123,7 @@ class CohortNameRestamp implements CohortNameRestampInterface {
 				$this->restampOne(row: $row, name: $name);
 			}
 		}
-	}//end restamp()
+	}//end restampAll()
 
 	/**
 	 * Save one enrolment with the new name, unless it already has it.

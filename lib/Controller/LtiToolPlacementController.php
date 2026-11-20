@@ -154,7 +154,14 @@ class LtiToolPlacementController extends Controller {
 			);
 		}
 
-		$event = $this->buildEvent(eventClass: $eventClass, placementId: $placementId, placement: $placement, uid: $user->getUID());
+		$event = $this->buildEvent(
+			eventClass: $eventClass,
+			args: [
+				'placementId' => $placementId,
+				'placement' => $placement,
+				'uid' => $user->getUID(),
+			]
+		);
 		if ($event === null) {
 			return new JSONResponse(data: ['error' => 'No LTI launch handler answered'], statusCode: Http::STATUS_SERVICE_UNAVAILABLE);
 		}
@@ -166,13 +173,15 @@ class LtiToolPlacementController extends Controller {
 	 * Build and dispatch the launch event, or null when it cannot be raised.
 	 *
 	 * @param string               $eventClass  The resolved event class.
-	 * @param string               $placementId The placement UUID.
-	 * @param array<string, mixed> $placement   The placement.
-	 * @param string               $uid         The caller.
+	 * @param array{placementId: string, placement: array<string, mixed>, uid: string} $args The placementId, placement, uid.
 	 *
 	 * @return Event|null The dispatched event, or null.
 	 */
-	private function buildEvent(string $eventClass, string $placementId, array $placement, string $uid): ?Event {
+	private function buildEvent(string $eventClass, array $args): ?Event {
+		$placementId = $args['placementId'];
+		$placement = $args['placement'];
+		$uid = $args['uid'];
+
 		$messageType = 'LtiResourceLinkRequest';
 		if (($placement['launchMode'] ?? 'resource-link') === 'deep-linking') {
 			$messageType = 'LtiDeepLinkingRequest';

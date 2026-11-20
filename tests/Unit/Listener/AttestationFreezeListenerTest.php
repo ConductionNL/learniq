@@ -20,7 +20,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/compliance-attestation-locked-after-signing/specs/compliance-audit/spec.md#requirement-a-signed-attestation-cannot-be-edited
+ * @spec openspec/specs/compliance-audit/spec.md#requirement-a-signed-attestation-cannot-be-edited
  */
 
 declare(strict_types=1);

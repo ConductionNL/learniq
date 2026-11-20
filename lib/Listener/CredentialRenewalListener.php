@@ -141,13 +141,32 @@ class CredentialRenewalListener implements IEventListener {
 			return;
 		}
 
+		$this->saveRenewalEnrolment(credential: $credential, userId: $userId);
+
+	}//end createRenewalEnrolment()
+
+	/**
+	 * Save the renewal Enrolment for a learner with a Nextcloud user and link
+	 * it back onto the Credential.
+	 *
+	 * @param array<string,mixed> $credential The Credential data after the `expire` transition.
+	 * @param string              $userId     The learner's Nextcloud user id.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/certification/spec.md#scenario-auto-enrol-on-credential-expiry
+	 */
+	private function saveRenewalEnrolment(array $credential, string $userId): void {
+		$credentialId = (string)($credential['id'] ?? ($credential['uuid'] ?? ''));
+		$learnerId = (string)($credential['learnerId'] ?? '');
+
 		$enrolment = [
 			'learnerId' => $userId,
-			'courseId' => $courseId,
+			'courseId' => (string)($credential['courseId'] ?? ''),
 			'source' => self::ENROLMENT_SOURCE,
 			'mandatory' => true,
 			'regulationSlug' => $credential['regulationSlug'] ?? null,
-			'tenant_id' => $tenantId,
+			'tenant_id' => (string)($credential['tenant_id'] ?? ''),
 		];
 		if ($this->learners->isUuid(value: $learnerId) === true) {
 			$enrolment['learnerRef'] = $learnerId;
@@ -179,5 +198,5 @@ class CredentialRenewalListener implements IEventListener {
 			['id' => $credentialId, 'enrolmentId' => $enrolmentId]
 		);
 
-	}//end createRenewalEnrolment()
+	}//end saveRenewalEnrolment()
 }//end class

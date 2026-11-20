@@ -38,6 +38,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service\Attendance;
 
 use DateTimeImmutable;
+use OCA\Learniq\Service\Calendar\SchoolYear as SchoolCalendarYear;
 use OCA\Learniq\Support\SchoolYear;
 use Throwable;
 
@@ -47,6 +48,18 @@ use Throwable;
  * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-absence-and-lateness-are-counted-per-learner-per-school-year
  */
 class AttendanceSummaryCalculator {
+
+	/**
+	 * Constructor.
+	 *
+	 * @param SchoolCalendarYear $schoolYear The school's school year, which says the day it starts.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private readonly SchoolCalendarYear $schoolYear=new SchoolCalendarYear(),
+	) {
+	}//end __construct()
 
 	public const ABSENT_AUTHORISED = 'absent-excused';
 	public const ABSENT_UNAUTHORISED = 'absent-unexcused';
@@ -77,8 +90,8 @@ class AttendanceSummaryCalculator {
 	 *
 	 * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#scenario-july-and-august-fall-in-different-school-years
 	 */
-	public static function schoolYearOf(string $date): ?string {
-		return SchoolYear::of(date: $date);
+	public function schoolYearOf(string $date): ?string {
+		return SchoolYear::of(date: $date, start: $this->schoolYear->start());
 	}//end schoolYearOf()
 
 	/**
@@ -187,7 +200,7 @@ class AttendanceSummaryCalculator {
 
 			$session = ($sessions[(string)($record['sessionId'] ?? '')] ?? null);
 			$day = $this->dayOf(record: $record, session: $session);
-			$year = self::schoolYearOf(date: (string)$day);
+			$year = $this->schoolYearOf(date: (string)$day);
 			if ($day === null || $year === null) {
 				continue;
 			}

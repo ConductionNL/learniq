@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/learner-grade-read-follows-visible-from/specs/grading/spec.md#requirement-a-learner-reads-their-own-grade-only-once-it-is-released
+ * @spec openspec/specs/grading/spec.md#requirement-a-learner-reads-their-own-grade-only-once-it-is-released
  */
 
 declare(strict_types=1);

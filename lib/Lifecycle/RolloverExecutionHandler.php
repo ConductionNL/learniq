@@ -108,6 +108,20 @@ class RolloverExecutionHandler implements IEventListener {
 		}
 
 		$plan = (array)$event->getObject()->jsonSerialize();
+		$this->executePlan(plan: $plan);
+	}//end handle()
+
+	/**
+	 * Execute the plan when it still matches its preview and record the outcome:
+	 * completed with its progress, or failed with the progress so far.
+	 *
+	 * @param array<string,mixed> $plan The RolloverPlan entering executing.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/archive/2026-06-15-school-year-rollover/tasks.md
+	 */
+	private function executePlan(array $plan): void {
 		$planId = (string)($plan['id'] ?? ($plan['uuid'] ?? ''));
 
 		// Guard: a plan may only execute from a matching preview (the dry-run gate).
@@ -138,7 +152,7 @@ class RolloverExecutionHandler implements IEventListener {
 			$this->logger->error('[RolloverExecutionHandler] Rollover plan {p} failed: {m}.', ['p' => $planId, 'm' => $e->getMessage()]);
 			$this->failPlan(plan: $plan, reason: $e->getMessage());
 		}
-	}//end handle()
+	}//end executePlan()
 
 	/**
 	 * Transition a plan to `failed`, recording the reason.
