@@ -18,6 +18,7 @@ import {
 	minutesIn,
 	nameOrId,
 	openFlagCount,
+	sessionPath,
 	withDecision,
 } from '../../src/utils/proctoringFlags.js'
 import { buildWorkspaceRuntime } from '../../src/utils/workspaceRuntime.js'
@@ -137,4 +138,13 @@ test('a name falls back to the user id, never to an empty line', () => {
 	assert.equal(nameOrId({ ann: '  ' }, 'ann'), 'ann')
 	assert.equal(nameOrId({}, 'bob'), 'bob')
 	assert.equal(nameOrId({}, null), '')
+})
+
+test('a decision is saved on the session the list returned, by its id', () => {
+	// An OpenRegister list row carries `id` and `@self.id`, and no `uuid`.
+	const row = { id: '7a050f0f-8cc2-47c6-99a0-8d91130d78e8', '@self': { id: '7a050f0f-8cc2-47c6-99a0-8d91130d78e8' } }
+	assert.equal(
+		sessionPath(row),
+		'/apps/openregister/api/objects/learniq/proctoring-session/7a050f0f-8cc2-47c6-99a0-8d91130d78e8',
+	)
 })

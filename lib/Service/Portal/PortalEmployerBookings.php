@@ -248,22 +248,34 @@ class PortalEmployerBookings implements PortalEmployerBookingsInterface {
 	 * the deadline the request is refused with the deadline in words.
 	 *
 	 * @param string               $organisationRef The company, from the claim.
-	 * @param array<string, mixed> $body            `bookingRef`, `learnerRef` (replaced), `substituteRef` (sent instead).
+	 * @param array<string, mixed> $body            `bookingRef` and `learnerRef` (replaced), or the replaced
+	 *                                              participant's `enrolmentId` (the row action on her
+	 *                                              participants list), and `substituteRef` (sent instead).
 	 *
 	 * @return PortalOutcome 200 with the booking, or 404 / 409 / 422 / 502.
 	 *
 	 * @spec openspec/changes/employer-substitutes-a-colleague/specs/portal-contribution/spec.md#requirement-an-employer-sends-a-colleague-in-place-of-a-participant-before-the-deadline
 	 */
 	public function substituteParticipant(string $organisationRef, array $body): PortalOutcome {
-		$bookingId = $this->text(value: ($body['bookingRef'] ?? null));
-		$learnerRef = $this->text(value: ($body['learnerRef'] ?? null));
 		$substituteRef = $this->text(value: ($body['substituteRef'] ?? null));
-		if ($bookingId === '' || $learnerRef === '' || $substituteRef === '' || $learnerRef === $substituteRef) {
+		if ($substituteRef === '' || ($this->text(value: ($body['enrolmentId'] ?? null)) === ''
+			&& ($this->text(value: ($body['bookingRef'] ?? null)) === '' || $this->text(value: ($body['learnerRef'] ?? null)) === ''))
+		) {
 			return new PortalOutcome(status: 422, body: ['error' => 'incomplete'], reason: 'incomplete');
 		}
 
 		return $this->guarded(
-			work: function () use ($organisationRef, $bookingId, $learnerRef, $substituteRef): PortalOutcome {
+			work: function () use ($organisationRef, $body, $substituteRef): PortalOutcome {
+				$refs = $this->substitutionRefs(organisationRef: $organisationRef, body: $body);
+				if ($refs instanceof PortalOutcome) {
+					return $refs;
+				}
+
+				[$bookingId, $learnerRef] = $refs;
+				if ($learnerRef === $substituteRef) {
+					return new PortalOutcome(status: 422, body: ['error' => 'incomplete'], reason: 'incomplete');
+				}
+
 				$booking = $this->projection->one(schema: 'course-booking', id: $bookingId);
 				$substitute = $this->projection->one(schema: 'learner-profile', id: $substituteRef);
 				if ($booking === null || ($booking['organisationRef'] ?? null) !== $organisationRef
@@ -284,6 +296,39 @@ class PortalEmployerBookings implements PortalEmployerBookingsInterface {
 			}
 		);
 	}//end substituteParticipant()
+
+	/**
+	 * The booking and the replaced participant a substitution names: given
+	 * as `bookingRef` and `learnerRef`, or read from her own company's
+	 * enrolment the row action stamps as `enrolmentId`.
+	 *
+	 * @param string               $organisationRef The company, from the claim.
+	 * @param array<string, mixed> $body            The request.
+	 *
+	 * @return PortalOutcome|array{0: string, 1: string} The refusal, or the booking id and the replaced participant.
+	 *
+	 * @spec openspec/changes/employer-substitutes-a-colleague/tasks.md#T4
+	 */
+	private function substitutionRefs(string $organisationRef, array $body): PortalOutcome|array {
+		$bookingId = $this->text(value: ($body['bookingRef'] ?? null));
+		$learnerRef = $this->text(value: ($body['learnerRef'] ?? null));
+		if ($bookingId !== '' && $learnerRef !== '') {
+			return [$bookingId, $learnerRef];
+		}
+
+		$enrolment = $this->projection->one(schema: 'enrolment', id: $this->text(value: ($body['enrolmentId'] ?? null)));
+		if ($enrolment === null || ($enrolment['organisationRef'] ?? null) !== $organisationRef) {
+			return new PortalOutcome(status: 404, body: ['error' => 'not_found'], reason: 'not-yours');
+		}
+
+		$bookingId = (string)($enrolment['bookingRef'] ?? '');
+		$learnerRef = (string)($enrolment['learnerRef'] ?? '');
+		if ($bookingId === '' || $learnerRef === '') {
+			return new PortalOutcome(status: 404, body: ['error' => 'not_on_booking'], reason: 'not-on-booking');
+		}
+
+		return [$bookingId, $learnerRef];
+	}//end substitutionRefs()
 
 	/**
 	 * Why a substitution cannot go ahead, or the enrolment it replaces.

@@ -38,6 +38,8 @@ use OCA\Learniq\Kernel\Contracts\CallerTenantResolverInterface;
 use OCA\Learniq\Kernel\Contracts\CatalogueMessagesInterface;
 use OCA\Learniq\Kernel\Contracts\CatalogueReaderInterface;
 use OCA\Learniq\Kernel\Contracts\CatalogueSignUpServiceInterface;
+use OCA\Learniq\Kernel\Contracts\CertificatePdfDelegationServiceInterface;
+use OCA\Learniq\Kernel\Contracts\CertificatePdfFileInterface;
 use OCA\Learniq\Kernel\Contracts\CheckInCodeServiceInterface;
 use OCA\Learniq\Kernel\Contracts\CheckInMessagesInterface;
 use OCA\Learniq\Kernel\Contracts\CheckInServiceInterface;
@@ -154,6 +156,7 @@ use OCA\Learniq\Kernel\Contracts\RegulationAssignmentServiceInterface;
 use OCA\Learniq\Kernel\Contracts\RegulationAssignPreviewInterface;
 use OCA\Learniq\Kernel\Contracts\RegulationCoverageServiceInterface;
 use OCA\Learniq\Kernel\Contracts\ReportCardGradeLinesInterface;
+use OCA\Learniq\Kernel\Contracts\ReportCardPdfAttacherInterface;
 use OCA\Learniq\Kernel\Contracts\ReportCardPdfDelegationServiceInterface;
 use OCA\Learniq\Kernel\Contracts\ReportCardTemplateSectionResolverInterface;
 use OCA\Learniq\Kernel\Contracts\ReportPeriodLocksInterface;
@@ -290,6 +293,8 @@ final class ContractBindings {
 		CatalogueMessagesInterface::class => CatalogueMessages::class,
 		CatalogueReaderInterface::class => CatalogueReader::class,
 		CatalogueSignUpServiceInterface::class => CatalogueSignUpService::class,
+		CertificatePdfDelegationServiceInterface::class => CertificatePdfDelegationService::class,
+		CertificatePdfFileInterface::class => CertificatePdfFile::class,
 		CheckInCodeServiceInterface::class => CheckInCodeService::class,
 		CheckInMessagesInterface::class => CheckInMessages::class,
 		CheckInServiceInterface::class => CheckInService::class,
@@ -408,6 +413,7 @@ final class ContractBindings {
 		RegulationAssignmentServiceInterface::class => RegulationAssignmentService::class,
 		RegulationCoverageServiceInterface::class => RegulationCoverageService::class,
 		ReportCardGradeLinesInterface::class => ReportCardGradeLines::class,
+		ReportCardPdfAttacherInterface::class => ReportCardPdfAttacher::class,
 		ReportCardPdfDelegationServiceInterface::class => ReportCardPdfDelegationService::class,
 		ReportCardTemplateSectionResolverInterface::class => ReportCardTemplateSectionResolver::class,
 		ReportPeriodLocksInterface::class => ReportPeriodLocks::class,

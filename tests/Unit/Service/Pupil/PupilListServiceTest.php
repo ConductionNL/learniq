@@ -83,6 +83,7 @@ class PupilListServiceTest extends TestCase {
 		$this->todayStates->expects($this->once())->method('forCohort')
 			->with($groep7, '2026-10-26', new DateTimeZone('Europe/Amsterdam'))
 			->willReturn(['lina' => TodayState::APPOINTMENT, 'hamza' => TodayState::REPORTED_ILL]);
+		$this->todayStates->expects($this->once())->method('untilForCohort')->with($groep7, '2026-10-26')->willReturn(['lina' => '11:30']);
 		$asked = [];
 		$this->reader->method('ofPupils')->willReturnCallback(
 			static function (string $schema, array $learnerIds, string $field='learnerId') use (&$asked): array {
@@ -114,6 +115,7 @@ class PupilListServiceTest extends TestCase {
 		$this->assertSame(3, $all['total']);
 		$this->assertSame(['Hamza El Idrissi', 'Lina Aydin', 'Vera Hulstkamp'], array_column($all['results'], 'name'));
 		$this->assertSame([TodayState::REPORTED_ILL, TodayState::APPOINTMENT, TodayState::NOT_REGISTERED], array_column($all['results'], 'todayState'));
+		$this->assertSame([null, '11:30', null], array_column($all['results'], 'todayUntil'));
 		$this->assertSame([0, 0, 1], array_column($all['results'], 'absentDays'));
 		$this->assertSame([0, 0, 2], array_column($all['results'], 'lateCount'));
 		$this->assertSame(['none', 'none', 'acknowledged'], array_column($all['results'], 'conferenceState'));

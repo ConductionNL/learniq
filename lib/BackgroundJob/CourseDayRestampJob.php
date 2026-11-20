@@ -17,7 +17,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
+ * @spec openspec/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
  */
 
 declare(strict_types=1);
@@ -32,7 +32,7 @@ use Throwable;
 /**
  * Re-derives each buffered course day once.
  *
- * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
+ * @spec openspec/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
  */
 class CourseDayRestampJob extends ForwardedJob {
 
@@ -43,7 +43,7 @@ class CourseDayRestampJob extends ForwardedJob {
 	 * @param LoggerInterface                 $log        Logger.
 	 * @param CourseDayStatusServiceInterface $status     Re-derives one course day.
 	 *
-	 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
 	 */
 	public function __construct(
 		ActorForwarding $forwarding,
@@ -60,7 +60,7 @@ class CourseDayRestampJob extends ForwardedJob {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
 	 */
 	protected function runDeferred(DeferredListenerContext $context): void {
 		foreach (self::cohortIds(entries: $context->getEntries()) as $cohortId) {

@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/compliance-attestation-locked-after-signing/specs/compliance-audit/spec.md#requirement-a-signed-attestation-cannot-be-edited
+ * @spec openspec/specs/compliance-audit/spec.md#requirement-a-signed-attestation-cannot-be-edited
  */
 
 declare(strict_types=1);
@@ -60,7 +60,7 @@ class AttestationDetailPageTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/compliance-attestation-locked-after-signing/specs/compliance-audit/spec.md#scenario-a-drafted-attestation-is-corrected
+	 * @spec openspec/specs/compliance-audit/spec.md#scenario-a-drafted-attestation-is-corrected
 	 */
 	public function testTheFieldsAreReadOnlyOnceTheAttestationLeavesDrafted(): void {
 		$config = self::page()['config'];
@@ -78,7 +78,7 @@ class AttestationDetailPageTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/compliance-attestation-locked-after-signing/specs/compliance-audit/spec.md#scenario-revoke-without-a-reason
+	 * @spec openspec/specs/compliance-audit/spec.md#scenario-revoke-without-a-reason
 	 */
 	public function testRevokeAsksForTheReason(): void {
 		self::assertSame(expected: ['field' => 'lifecycle'], actual: self::page()['config']['lifecycleActions']);
