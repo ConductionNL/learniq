@@ -94,9 +94,9 @@ class ReportSeenStampTest extends TestCase {
 	 * @return void
 	 */
 	public function testSeenOneStampsHerFirstLookOnTheReportsOwnPage(): void {
-		$entity = $this->createMock(ObjectEntity::class);
+		$entity = $this->createMock(originalClassName: ObjectEntity::class);
 		$entity->method('jsonSerialize')->willReturn(['id' => 'x-sami', 'learnerId' => 'sami', 'lifecycle' => 'submitted', 'teacherIds' => ['esra']]);
-		$objects = $this->createMock(ObjectService::class);
+		$objects = $this->createMock(originalClassName: ObjectService::class);
 		$objects->expects(self::once())->method('find')->with(
 			'x-sami',
 			self::callback(
@@ -104,18 +104,24 @@ class ReportSeenStampTest extends TestCase {
 			)
 		)->willReturn($entity);
 		$objects->expects(self::once())->method('saveObject')->with(
-			['learnerId' => 'sami', 'lifecycle' => 'submitted', 'teacherIds' => ['esra'], 'seenBy' => 'esra', 'seenAt' => '2026-10-05T06:12:00+00:00'],
+			[
+				'learnerId' => 'sami',
+				'lifecycle' => 'submitted',
+				'teacherIds' => ['esra'],
+				'seenBy' => 'esra',
+				'seenAt' => '2026-10-05T06:12:00+00:00'
+			],
 			self::callback(callback: static fn (ObjectSaveOptions $options): bool => $options->uuid === 'x-sami'),
 			false
 		);
-		$time = $this->createMock(ITimeFactory::class);
+		$time = $this->createMock(originalClassName: ITimeFactory::class);
 		$time->method('getTime')->willReturn(1791180720);
 
 		$report = (new ReportSeenStamp(objectService: $objects, time: $time))->seenOne(reportId: 'x-sami', userId: 'esra');
 
-		self::assertSame('esra', $report['seenBy']);
-		self::assertSame('2026-10-05T06:12:00+00:00', $report['seenAt']);
-		self::assertSame('submitted', $report['lifecycle']);
+		self::assertSame(expected: 'esra', actual: $report['seenBy']);
+		self::assertSame(expected: '2026-10-05T06:12:00+00:00', actual: $report['seenAt']);
+		self::assertSame(expected: 'submitted', actual: $report['lifecycle']);
 	}//end testSeenOneStampsHerFirstLookOnTheReportsOwnPage()
 
 	/**
@@ -125,19 +131,31 @@ class ReportSeenStampTest extends TestCase {
 	 * @return void
 	 */
 	public function testSeenOneWritesNothingButTheFirstLookOfAGroupTeacher(): void {
-		$seen = $this->createMock(ObjectEntity::class);
-		$seen->method('jsonSerialize')->willReturn(['id' => 'x-ella', 'lifecycle' => 'submitted', 'teacherIds' => ['esra', 'bram'], 'seenBy' => 'bram', 'seenAt' => '2026-10-04T10:00:00+00:00']);
-		$objects = $this->createMock(ObjectService::class);
+		$seen = $this->createMock(originalClassName: ObjectEntity::class);
+		$seen->method('jsonSerialize')->willReturn(
+			[
+				'id' => 'x-ella',
+				'lifecycle' => 'submitted',
+				'teacherIds' => ['esra', 'bram'],
+				'seenBy' => 'bram',
+				'seenAt' => '2026-10-04T10:00:00+00:00'
+			]
+		);
+		$objects = $this->createMock(originalClassName: ObjectService::class);
 		$objects->method('find')->willReturnCallback(
 			static fn (int|string $id): ?ObjectEntity => ($id === 'x-ella' ? $seen : null)
 		);
 		$objects->expects(self::never())->method('saveObject');
-		$stamp = new ReportSeenStamp(objectService: $objects, time: $this->createMock(ITimeFactory::class));
+		$stamp = new ReportSeenStamp(objectService: $objects, time: $this->createMock(originalClassName: ITimeFactory::class));
 
-		self::assertSame('bram', $stamp->seenOne(reportId: 'x-ella', userId: 'esra')['seenBy'], 'the first look stays');
-		self::assertSame('bram', $stamp->seenOne(reportId: 'x-ella', userId: 'lisa')['seenBy'], 'a reader outside the group stamps nothing');
-		self::assertNull($stamp->seenOne(reportId: 'x-gone', userId: 'esra'), 'a report she cannot read');
-		self::assertNull($stamp->seenOne(reportId: '', userId: 'esra'));
-		self::assertNull($stamp->seenOne(reportId: 'x-ella', userId: ''));
+		self::assertSame(expected: 'bram', actual: $stamp->seenOne(reportId: 'x-ella', userId: 'esra')['seenBy'], message: 'the first look stays');
+		self::assertSame(
+			expected: 'bram',
+			actual: $stamp->seenOne(reportId: 'x-ella', userId: 'lisa')['seenBy'],
+			message: 'a reader outside the group stamps nothing'
+		);
+		self::assertNull(actual: $stamp->seenOne(reportId: 'x-gone', userId: 'esra'), message: 'a report she cannot read');
+		self::assertNull(actual: $stamp->seenOne(reportId: '', userId: 'esra'));
+		self::assertNull(actual: $stamp->seenOne(reportId: 'x-ella', userId: ''));
 	}//end testSeenOneWritesNothingButTheFirstLookOfAGroupTeacher()
 }//end class

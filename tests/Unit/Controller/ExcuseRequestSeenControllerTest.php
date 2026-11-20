@@ -48,17 +48,17 @@ class ExcuseRequestSeenControllerTest extends TestCase {
 	 * @return ExcuseRequestSeenController
 	 */
 	private function controller(ReportSeenStamp $seen, bool $signedIn=true): ExcuseRequestSeenController {
-		$session = $this->createMock(IUserSession::class);
-		$user = $this->createMock(IUser::class);
+		$session = $this->createMock(originalClassName: IUserSession::class);
+		$user = $this->createMock(originalClassName: IUser::class);
 		$user->method('getUID')->willReturn('esra');
 		$session->method('getUser')->willReturn($signedIn === true ? $user : null);
-		$users = $this->createMock(IUserManager::class);
+		$users = $this->createMock(originalClassName: IUserManager::class);
 		$users->method('getDisplayName')->willReturnCallback(static fn (string $uid): ?string => ($uid === 'esra' ? 'juf Esra' : null));
-		$l10n = $this->createMock(IL10N::class);
+		$l10n = $this->createMock(originalClassName: IL10N::class);
 		$l10n->method('t')->willReturnArgument(0);
 
 		return new ExcuseRequestSeenController(
-			request: $this->createMock(IRequest::class),
+			request: $this->createMock(originalClassName: IRequest::class),
 			userSession: $session,
 			userManager: $users,
 			seen: $seen,
@@ -73,14 +73,19 @@ class ExcuseRequestSeenControllerTest extends TestCase {
 	 * @return void
 	 */
 	public function testTheSessionUsersLookIsStampedAndNamed(): void {
-		$seen = $this->createMock(ReportSeenStamp::class);
+		$seen = $this->createMock(originalClassName: ReportSeenStamp::class);
 		$seen->expects(self::once())->method('seenOne')->with('x-sami', 'esra')
-			->willReturn(['id' => 'x-sami', 'lifecycle' => 'submitted', 'learnerId' => 'sami', 'seenBy' => 'esra', 'seenAt' => '2026-10-05T06:12:00+00:00']);
+			->willReturn(
+				['id' => 'x-sami', 'lifecycle' => 'submitted', 'learnerId' => 'sami', 'seenBy' => 'esra', 'seenAt' => '2026-10-05T06:12:00+00:00']
+			);
 
 		$response = $this->controller(seen: $seen)->seen(id: 'x-sami');
 
-		self::assertSame(200, $response->getStatus());
-		self::assertSame(['seenBy' => 'esra', 'seenByName' => 'juf Esra', 'seenAt' => '2026-10-05T06:12:00+00:00'], $response->getData());
+		self::assertSame(expected: 200, actual: $response->getStatus());
+		self::assertSame(
+			expected: ['seenBy' => 'esra', 'seenByName' => 'juf Esra', 'seenAt' => '2026-10-05T06:12:00+00:00'],
+			actual: $response->getData()
+		);
 	}//end testTheSessionUsersLookIsStampedAndNamed()
 
 	/**
@@ -89,15 +94,15 @@ class ExcuseRequestSeenControllerTest extends TestCase {
 	 * @return void
 	 */
 	public function testAnUnseenReportAndAGoneAccount(): void {
-		$seen = $this->createMock(ReportSeenStamp::class);
+		$seen = $this->createMock(originalClassName: ReportSeenStamp::class);
 		$seen->method('seenOne')->willReturnOnConsecutiveCalls(
 			['id' => 'x-a', 'lifecycle' => 'approved'],
 			['id' => 'x-b', 'lifecycle' => 'submitted', 'seenBy' => 'bram', 'seenAt' => '2026-10-04T10:00:00+00:00']
 		);
 		$controller = $this->controller(seen: $seen);
 
-		self::assertSame(['seenBy' => '', 'seenByName' => '', 'seenAt' => ''], $controller->seen(id: 'x-a')->getData());
-		self::assertSame('bram', $controller->seen(id: 'x-b')->getData()['seenByName']);
+		self::assertSame(expected: ['seenBy' => '', 'seenByName' => '', 'seenAt' => ''], actual: $controller->seen(id: 'x-a')->getData());
+		self::assertSame(expected: 'bram', actual: $controller->seen(id: 'x-b')->getData()['seenByName']);
 	}//end testAnUnseenReportAndAGoneAccount()
 
 	/**
@@ -107,18 +112,18 @@ class ExcuseRequestSeenControllerTest extends TestCase {
 	 * @return void
 	 */
 	public function testRefusals(): void {
-		$never = $this->createMock(ReportSeenStamp::class);
+		$never = $this->createMock(originalClassName: ReportSeenStamp::class);
 		$never->expects(self::never())->method('seenOne');
-		self::assertSame(401, $this->controller(seen: $never, signedIn: false)->seen(id: 'x-sami')->getStatus());
+		self::assertSame(expected: 401, actual: $this->controller(seen: $never, signedIn: false)->seen(id: 'x-sami')->getStatus());
 
-		$none = $this->createMock(ReportSeenStamp::class);
+		$none = $this->createMock(originalClassName: ReportSeenStamp::class);
 		$none->method('seenOne')->willReturn(null);
-		self::assertSame(404, $this->controller(seen: $none)->seen(id: 'x-other')->getStatus());
+		self::assertSame(expected: 404, actual: $this->controller(seen: $none)->seen(id: 'x-other')->getStatus());
 
-		$broken = $this->createMock(ReportSeenStamp::class);
+		$broken = $this->createMock(originalClassName: ReportSeenStamp::class);
 		$broken->method('seenOne')->willThrowException(new RuntimeException('down'));
 		$response = $this->controller(seen: $broken)->seen(id: 'x-sami');
-		self::assertSame(404, $response->getStatus());
-		self::assertArrayNotHasKey('seenBy', $response->getData());
+		self::assertSame(expected: 404, actual: $response->getStatus());
+		self::assertArrayNotHasKey(key: 'seenBy', array: $response->getData());
 	}//end testRefusals()
 }//end class
