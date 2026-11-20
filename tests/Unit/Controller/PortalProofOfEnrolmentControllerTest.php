@@ -74,9 +74,12 @@ class PortalProofOfEnrolmentControllerTest extends TestCase {
 		$user = $this->createMock(originalClassName: IUser::class);
 		$user->method('getUID')->willReturn('pupil-1');
 		$learners = $this->createMock(originalClassName: PortalLearnerResolver::class);
-		$learners->method('resolve')->willReturn(
-			($pupilExists === true) ? new PortalLearner(profileRef: 'lp-1', ncUserId: 'pupil-1', tenantId: '', user: $user) : null
-		);
+		$learner = null;
+		if ($pupilExists === true) {
+			$learner = new PortalLearner(profileRef: 'lp-1', ncUserId: 'pupil-1', tenantId: '', user: $user);
+		}
+
+		$learners->method('resolve')->willReturn($learner);
 
 		$proofs = $this->createMock(originalClassName: ProofOfEnrolment::class);
 		$proofs->method('request')->willReturnCallback(

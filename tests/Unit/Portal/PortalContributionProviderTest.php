@@ -324,7 +324,7 @@ class PortalContributionProviderTest extends TestCase {
 		);
 		$byId = array_column($actions, null, 'id');
 
-		// school-documents-on-the-portal T4: she fills in nothing; who she is
+		// School-documents-on-the-portal T4: she fills in nothing; who she is
 		// comes from the claim, never from the form.
 		$proof = $byId['requestProofOfEnrolment'];
 		$this->assertSame(expected: 'endpoint-forward', actual: $proof['type']);
