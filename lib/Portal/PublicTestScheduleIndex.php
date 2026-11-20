@@ -30,25 +30,12 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Portal;
 
-use DateTimeImmutable;
-use Throwable;
-
 /**
  * Builds the test schedule items of the public index.
  *
  * @spec openspec/changes/portal-public-index/specs/portal-contribution/spec.md#requirement-the-public-index-carries-a-schools-published-test-schedule
  */
 class PublicTestScheduleIndex {
-
-	/**
-	 * Dutch month names, as the rest of the index writes them.
-	 */
-	private const MONTHS = ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december'];
-
-	/**
-	 * Dutch weekday abbreviations, Sunday first (PHP `w`).
-	 */
-	private const WEEKDAYS = ['Zo', 'Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za'];
 
 	/**
 	 * Rows read once per index, by schema and id.
@@ -137,26 +124,7 @@ class PublicTestScheduleIndex {
 	 * @spec openspec/changes/portal-public-index/specs/portal-contribution/spec.md#requirement-the-public-index-carries-a-schools-published-test-schedule
 	 */
 	public static function periodLabel(array $period): string {
-		$name  = trim((string)($period['name'] ?? ''));
-		$first = substr((string)($period['startsOn'] ?? ''), 0, 10);
-		$last  = substr((string)($period['endsOn'] ?? ''), 0, 10);
-		if ($first === '') {
-			return $name;
-		}
-
-		if ($last === '' || $last === $first) {
-			$range = self::dayAndMonth(day: $first);
-		} else if (substr($first, 0, 7) === substr($last, 0, 7)) {
-			$range = ((int)substr($first, 8, 2)) . ' - ' . self::dayAndMonth(day: $last);
-		} else {
-			$range = self::dayAndMonth(day: $first) . ' - ' . self::dayAndMonth(day: $last);
-		}
-
-		if ($name === '') {
-			return $range;
-		}
-
-		return $name . ', ' . $range;
+		return (new ScheduleDateText())->periodLabel(period: $period);
 	}//end periodLabel()
 
 	/**
@@ -171,24 +139,8 @@ class PublicTestScheduleIndex {
 	 * @spec openspec/changes/portal-public-index/specs/portal-contribution/spec.md#requirement-the-public-index-carries-a-schools-published-test-schedule
 	 */
 	public static function line(string $startsAt, string $endsAt, string $subject): string {
-		$day   = substr($startsAt, 0, 10);
-		$parts = [self::weekday(day: $day) . ' ' . ((int)substr($day, 8, 2)) . ' ' . mb_substr((self::MONTHS[((int)substr($day, 5, 2)) - 1] ?? ''), 0, 3)];
-
-		$start = self::clock(moment: $startsAt);
-		$end   = self::clock(moment: $endsAt);
-		if ($start !== '' && $end !== '') {
-			$parts[] = $start . ' - ' . $end;
-		} else if ($start !== '') {
-			$parts[] = $start;
-		}
-
-		if ($subject !== '') {
-			$parts[] = $subject;
-		}
-
-		return implode(', ', $parts);
+		return (new ScheduleDateText())->line(startsAt: $startsAt, endsAt: $endsAt, subject: $subject);
 	}//end line()
-
 	/**
 	 * One test schedule item, or null when the sitting has no day.
 	 *
@@ -217,8 +169,8 @@ class PublicTestScheduleIndex {
 			'kind'      => $this->reads->word(text: 'Exam schedule'),
 			'title'     => $subject,
 			'date'      => substr($startsAt, 0, 10),
-			'startTime' => self::clock(moment: $startsAt),
-			'endTime'   => self::clock(moment: $endsAt),
+			'startTime' => (new ScheduleDateText())->clock(moment: $startsAt),
+			'endTime'   => (new ScheduleDateText())->clock(moment: $endsAt),
 			'line'      => self::line(startsAt: $startsAt, endsAt: $endsAt, subject: $subject),
 			'periodId'  => $this->reads->idOf(row: $period),
 			'period'    => $periodName,
@@ -317,14 +269,8 @@ class PublicTestScheduleIndex {
 
 		$weights = [];
 		foreach ($this->all(schema: 'curriculum-plan', namespace: $namespace) as $plan) {
-			if (in_array($courseId, (array)($plan['requiredCourseIds'] ?? []), true) === false) {
-				continue;
-			}
-
-			foreach ((array)($plan['components'] ?? []) as $entry) {
-				if (is_array($entry) === true && ($entry['componentId'] ?? null) === $component && is_numeric($entry['weight'] ?? null) === true) {
-					$weights[] = $entry['weight'] + 0;
-				}
+			if (in_array($courseId, (array)($plan['requiredCourseIds'] ?? []), true) === true) {
+				$weights = array_merge($weights, self::componentWeights(plan: $plan, component: $component));
 			}
 		}
 
@@ -334,6 +280,25 @@ class PublicTestScheduleIndex {
 
 		return $weights[0];
 	}//end weightOf()
+
+	/**
+	 * The numeric weights one plan gives the component.
+	 *
+	 * @param array<string, mixed> $plan      The curriculum plan.
+	 * @param string               $component The component id.
+	 *
+	 * @return list<float|int>
+	 */
+	private static function componentWeights(array $plan, string $component): array {
+		$weights = [];
+		foreach ((array)($plan['components'] ?? []) as $entry) {
+			if (is_array($entry) === true && ($entry['componentId'] ?? null) === $component && is_numeric($entry['weight'] ?? null) === true) {
+				$weights[] = $entry['weight'] + 0;
+			}
+		}
+
+		return $weights;
+	}//end componentWeights()
 
 	/**
 	 * One row of a schema by id, or [] when there is none.
@@ -371,44 +336,4 @@ class PublicTestScheduleIndex {
 		return $this->byId[$schema];
 	}//end all()
 
-	/**
-	 * "08.30" from a moment as stored, in the school's own time; '' without a time.
-	 *
-	 * @param string $moment ISO-8601.
-	 *
-	 * @return string
-	 */
-	private static function clock(string $moment): string {
-		if (strlen($moment) < 16 || $moment[10] !== 'T') {
-			return '';
-		}
-
-		return str_replace(':', '.', substr($moment, 11, 5));
-	}//end clock()
-
-	/**
-	 * "Di" for a day.
-	 *
-	 * @param string $day `YYYY-MM-DD`.
-	 *
-	 * @return string
-	 */
-	private static function weekday(string $day): string {
-		try {
-			return self::WEEKDAYS[(int)(new DateTimeImmutable($day))->format('w')];
-		} catch (Throwable) {
-			return '';
-		}
-	}//end weekday()
-
-	/**
-	 * "13 november".
-	 *
-	 * @param string $day `YYYY-MM-DD`.
-	 *
-	 * @return string
-	 */
-	private static function dayAndMonth(string $day): string {
-		return ((int)substr($day, 8, 2)) . ' ' . (self::MONTHS[((int)substr($day, 5, 2)) - 1] ?? '');
-	}//end dayAndMonth()
 }//end class

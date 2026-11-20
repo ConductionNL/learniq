@@ -54,7 +54,10 @@ class PortalPublicIndexTest extends TestCase {
 	private function index(?callable $edit=null): PortalPublicIndex {
 		$objects = [];
 		foreach (['po', 'vo', 'mbo', 'training'] as $set) {
-			$seed = json_decode((string)file_get_contents(__DIR__ . '/../../../lib/Settings/profiles/' . $set . '.json'), true)['x-openregister']['seedData']['objects'];
+			$seed = json_decode(
+				(string)file_get_contents(__DIR__ . '/../../../lib/Settings/profiles/' . $set . '.json'),
+				true
+			)['x-openregister']['seedData']['objects'];
 			foreach ($seed as $schema => $rows) {
 				$objects[$schema] = array_merge(($objects[$schema] ?? []), $rows);
 			}
@@ -64,7 +67,7 @@ class PortalPublicIndexTest extends TestCase {
 			$objects = $edit($objects);
 		}
 
-		$store = $this->createMock(ObjectService::class);
+		$store = $this->createMock(originalClassName: ObjectService::class);
 		$store->method('findAll')->willReturnCallback(
 			static function (array $config) use ($objects): array {
 				$filters = $config['filters'];
@@ -87,7 +90,7 @@ class PortalPublicIndexTest extends TestCase {
 			}
 		);
 
-		return new PortalPublicIndex($store, $this->createMock(LoggerInterface::class));
+		return new PortalPublicIndex(objectService: $store, logger: $this->createMock(originalClassName: LoggerInterface::class));
 	}//end index()
 
 	/**
@@ -100,7 +103,10 @@ class PortalPublicIndexTest extends TestCase {
 	 * @return array<string, array<string, mixed>> By title.
 	 */
 	private function items(string $portal, string $type, ?callable $edit=null): array {
-		$items = array_filter($this->index(edit: $edit)->forPortal(portal: $portal, today: new DateTimeImmutable(self::MONDAY)), static fn (array $i): bool => $i['type'] === $type);
+		$items = array_filter(
+			$this->index(edit: $edit)->forPortal(portal: $portal, today: new DateTimeImmutable(self::MONDAY)),
+			static fn (array $i): bool => $i['type'] === $type
+		);
 
 		return array_column(array_values($items), null, 'title');
 	}//end items()
@@ -114,26 +120,30 @@ class PortalPublicIndexTest extends TestCase {
 		$courses = $this->items(portal: 'warmtepompacademie', type: 'course');
 
 		$fgas = $courses['F-gassen: herhaling en examen'];
-		self::assertSame('2026-10-08', $fgas['date']);
+		self::assertSame(expected: '2026-10-08', actual: $fgas['date']);
 		// "Donderdag · 1 dag · certificaat" and a link to the course list (REPORT-2, item 12).
-		self::assertSame(['Donderdag', '1 day', 'certificate'], array_slice($fgas['meta'], 0, 3));
-		self::assertSame('/cursusaanbod', $fgas['href']);
+		self::assertSame(expected: ['Donderdag', '1 day', 'certificate'], actual: array_slice($fgas['meta'], 0, 3));
+		self::assertSame(expected: '/cursusaanbod', actual: $fgas['href']);
 		// Places left from the capacity (board-data-the-schemas-lacked): 4 places, 3 booked.
-		self::assertSame(['One place left', 'warning'], [$fgas['note'], $fgas['noteTone']]);
-		self::assertSame(['Praktijkhal Zuiddrecht'], $fgas['facets']['Venue']);
-		self::assertSame(['Oktober 2026'], $fgas['facets']['Start in']);
+		self::assertSame(expected: ['One place left', 'warning'], actual: [$fgas['note'], $fgas['noteTone']]);
+		self::assertSame(expected: ['Praktijkhal Zuiddrecht'], actual: $fgas['facets']['Venue']);
+		self::assertSame(expected: ['Oktober 2026'], actual: $fgas['facets']['Start in']);
 
 		$lw = $courses['Lucht-water warmtepomp: ontwerp en inbedrijfstelling'];
-		self::assertSame(['2026-11-03', '2026-11-10'], [$lw['date'], $lw['endDate']]);
-		self::assertSame(['Dinsdag and woensdag', '3 days', 'advanced'], array_slice($lw['meta'], 0, 3));
+		self::assertSame(expected: ['2026-11-03', '2026-11-10'], actual: [$lw['date'], $lw['endDate']]);
+		self::assertSame(expected: ['Dinsdag and woensdag', '3 days', 'advanced'], actual: array_slice($lw['meta'], 0, 3));
 
 		$wzi = $courses['Waterzijdig inregelen'];
-		self::assertSame('2026-10-15', $wzi['date'], 'the run of 1 October is over');
-		self::assertSame(['Donderdag', '1 day', 'basic'], array_slice($wzi['meta'], 0, 3));
-		self::assertSame(['6 places free', 'positive'], [$wzi['note'], $wzi['noteTone']], '6 places, none taken');
-		self::assertSame(['3 places left', 'warning'], [$courses['Warmtepompen installeren: basis']['note'], $courses['Warmtepompen installeren: basis']['noteTone']], '4 places, 1 taken');
-		self::assertArrayNotHasKey('BHV basis 2026-2027 (concept)', $courses, 'a draft course stays out');
-		self::assertArrayNotHasKey('BHV basis', $courses, 'a course with no run to come stays out');
+		self::assertSame(expected: '2026-10-15', actual: $wzi['date'], message: 'the run of 1 October is over');
+		self::assertSame(expected: ['Donderdag', '1 day', 'basic'], actual: array_slice($wzi['meta'], 0, 3));
+		self::assertSame(expected: ['6 places free', 'positive'], actual: [$wzi['note'], $wzi['noteTone']], message: '6 places, none taken');
+		self::assertSame(
+			expected: ['3 places left', 'warning'],
+			actual: [$courses['Warmtepompen installeren: basis']['note'], $courses['Warmtepompen installeren: basis']['noteTone']],
+			message: '4 places, 1 taken'
+		);
+		self::assertArrayNotHasKey(key: 'BHV basis 2026-2027 (concept)', array: $courses, message: 'a draft course stays out');
+		self::assertArrayNotHasKey(key: 'BHV basis', array: $courses, message: 'a course with no run to come stays out');
 	}//end testTheAcademyShowsItsCoursesWithTheirNextDates()
 
 	/**
@@ -144,9 +154,9 @@ class PortalPublicIndexTest extends TestCase {
 	public function testTheCollegeShowsItsProgrammesWithLevelAndPath(): void {
 		$programmes = $this->items(portal: 'esdoornveen', type: 'programme');
 
-		self::assertSame(['Logistiek medewerker', 'Verzorgende IG', 'Software developer', 'Mechatronica'], array_keys($programmes));
-		self::assertSame(['Level 4'], $programmes['Mechatronica']['facets']['Level']);
-		self::assertSame(['BOL', 'BBL'], $programmes['Mechatronica']['facets']['Learning path']);
+		self::assertSame(expected: ['Logistiek medewerker', 'Verzorgende IG', 'Software developer', 'Mechatronica'], actual: array_keys($programmes));
+		self::assertSame(expected: ['Level 4'], actual: $programmes['Mechatronica']['facets']['Level']);
+		self::assertSame(expected: ['BOL', 'BBL'], actual: $programmes['Mechatronica']['facets']['Learning path']);
 	}//end testTheCollegeShowsItsProgrammesWithLevelAndPath()
 
 	/**
@@ -157,10 +167,10 @@ class PortalPublicIndexTest extends TestCase {
 	public function testThePrimarySchoolShowsItsSchoolWideDaysToCome(): void {
 		$days = $this->items(portal: 'wilgenboom', type: 'event');
 
-		self::assertArrayHasKey('Schoolfotograaf', $days);
-		self::assertArrayHasKey('Studiedag', $days);
-		self::assertArrayNotHasKey('Naar de kinderboerderij', $days, 'a day for some groups only stays out');
-		self::assertArrayNotHasKey('Opening Kinderboekenweek', $days, 'a day that is over stays out');
+		self::assertArrayHasKey(key: 'Schoolfotograaf', array: $days);
+		self::assertArrayHasKey(key: 'Studiedag', array: $days);
+		self::assertArrayNotHasKey(key: 'Naar de kinderboerderij', array: $days, message: 'a day for some groups only stays out');
+		self::assertArrayNotHasKey(key: 'Opening Kinderboekenweek', array: $days, message: 'a day that is over stays out');
 	}//end testThePrimarySchoolShowsItsSchoolWideDaysToCome()
 
 	/**
@@ -174,19 +184,19 @@ class PortalPublicIndexTest extends TestCase {
 	public function testEverySchoolDayCarriesItsCategory(): void {
 		$days = $this->items(portal: 'wilgenboom', type: 'event');
 
-		self::assertSame('holiday', $days['Herfstvakantie']['category']);
-		self::assertSame('Holiday', $days['Herfstvakantie']['categoryLabel']);
-		self::assertSame('2026-10-25', $days['Herfstvakantie']['endDate']);
-		self::assertSame('day-off', $days['Studiedag']['category']);
-		self::assertSame('Study day or day off', $days['Studiedag']['categoryLabel']);
-		self::assertSame('activity', $days['Schoolfotograaf']['category']);
-		self::assertSame('School activity', $days['Schoolfotograaf']['categoryLabel']);
-		self::assertSame('parent-evening', $days['Ouderavond']['category']);
-		self::assertSame('Parent evening', $days['Ouderavond']['categoryLabel']);
+		self::assertSame(expected: 'holiday', actual: $days['Herfstvakantie']['category']);
+		self::assertSame(expected: 'Holiday', actual: $days['Herfstvakantie']['categoryLabel']);
+		self::assertSame(expected: '2026-10-25', actual: $days['Herfstvakantie']['endDate']);
+		self::assertSame(expected: 'day-off', actual: $days['Studiedag']['category']);
+		self::assertSame(expected: 'Study day or day off', actual: $days['Studiedag']['categoryLabel']);
+		self::assertSame(expected: 'activity', actual: $days['Schoolfotograaf']['category']);
+		self::assertSame(expected: 'School activity', actual: $days['Schoolfotograaf']['categoryLabel']);
+		self::assertSame(expected: 'parent-evening', actual: $days['Ouderavond']['category']);
+		self::assertSame(expected: 'Parent evening', actual: $days['Ouderavond']['categoryLabel']);
 
 		$chosen = array_keys(array_filter($days, static fn (array $day): bool => in_array($day['category'], ['holiday', 'day-off'], true)));
 		sort($chosen);
-		self::assertSame(['Herfstvakantie', 'Kerstvakantie', 'Studiedag'], $chosen);
+		self::assertSame(expected: ['Herfstvakantie', 'Kerstvakantie', 'Studiedag'], actual: $chosen);
 	}//end testEverySchoolDayCarriesItsCategory()
 
 	/**
@@ -212,10 +222,10 @@ class PortalPublicIndexTest extends TestCase {
 
 		$register = json_decode((string)file_get_contents(__DIR__ . '/../../../lib/Settings/learniq_register.json'), true);
 		$kinds    = $register['components']['schemas']['SchoolEvent']['properties']['kind']['enum'];
-		self::assertSame([], array_diff($kinds, array_keys($expected)), 'a kind of day with no category');
+		self::assertSame(expected: [], actual: array_diff($kinds, array_keys($expected)), message: 'a kind of day with no category');
 
 		foreach ($expected as $kind => $category) {
-			self::assertSame($category, PublicEventIndex::categoryOf(kind: $kind), $kind);
+			self::assertSame(expected: $category, actual: PublicEventIndex::categoryOf(kind: $kind), message: $kind);
 		}
 	}//end testEveryKindFallsInOneCategory()
 
@@ -226,19 +236,27 @@ class PortalPublicIndexTest extends TestCase {
 	 * @return void
 	 */
 	public function testEachExamplePortalShowsOnlyItsOwnSet(): void {
-		self::assertSame([], $this->items(portal: 'wilgenboom', type: 'course') + $this->items(portal: 'wilgenboom', type: 'programme'), 'po has no course runs or programmes');
-		self::assertArrayNotHasKey('Mechatronica', $this->items(portal: 'warmtepompacademie', type: 'programme'));
-		self::assertArrayNotHasKey('Schoolfotograaf', $this->items(portal: 'vaartveld', type: 'event'));
+		self::assertSame(
+			expected: [],
+			actual: $this->items(portal: 'wilgenboom', type: 'course') + $this->items(portal: 'wilgenboom', type: 'programme'),
+			message: 'po has no course runs or programmes'
+		);
+		self::assertArrayNotHasKey(key: 'Mechatronica', array: $this->items(portal: 'warmtepompacademie', type: 'programme'));
+		self::assertArrayNotHasKey(key: 'Schoolfotograaf', array: $this->items(portal: 'vaartveld', type: 'event'));
 
 		foreach (PortalPublicIndex::SET_NAMESPACE as $set => $namespace) {
 			$path = __DIR__ . '/../../../lib/Settings/profiles/' . $set . '.json';
 			if (is_file($path) === true) {
 				$school = json_decode((string)file_get_contents($path), true)['x-openregister']['seedData']['objects']['school'][0];
-				self::assertStringStartsWith($namespace, $school['uuid'], $set . ' is generated in its namespace');
+				self::assertStringStartsWith(prefix: $namespace, string: $school['uuid'], message: $set . ' is generated in its namespace');
 			}
 		}
 
-		self::assertNotSame([], $this->index()->forPortal(portal: 'some-other-school', today: new DateTimeImmutable(self::MONDAY)), 'any other portal shows everything public');
+		self::assertNotSame(
+			expected: [],
+			actual: $this->index()->forPortal(portal: 'some-other-school', today: new DateTimeImmutable(self::MONDAY)),
+			message: 'any other portal shows everything public'
+		);
 	}//end testEachExamplePortalShowsOnlyItsOwnSet()
 
 	/**
@@ -247,8 +265,8 @@ class PortalPublicIndexTest extends TestCase {
 	 * @return void
 	 */
 	public function testTheProviderAnswersThroughTheService(): void {
-		self::assertSame([], (new PortalContributionProvider())->getPublicIndex('wilgenboom'));
-		self::assertNotSame([], (new PortalContributionProvider(publicIndex: $this->index()))->getPublicIndex('esdoornveen'));
+		self::assertSame(expected: [], actual: (new PortalContributionProvider())->getPublicIndex('wilgenboom'));
+		self::assertNotSame(expected: [], actual: (new PortalContributionProvider(publicIndex: $this->index()))->getPublicIndex('esdoornveen'));
 	}//end testTheProviderAnswersThroughTheService()
 
 	/**
@@ -263,29 +281,53 @@ class PortalPublicIndexTest extends TestCase {
 	public function testAPublicTestWeekIsInTheIndexWithoutNames(): void {
 		$tests = $this->items(portal: 'vaartveld', type: 'test');
 
-		self::assertSame(['Nederlands', 'Wiskunde A', 'Engels', 'Geschiedenis'], array_keys($tests), 'in order of day and time');
+		self::assertSame(
+			expected: ['Nederlands', 'Wiskunde A', 'Engels', 'Geschiedenis'],
+			actual: array_keys($tests),
+			message: 'in order of day and time'
+		);
 
 		$wa = $tests['Wiskunde A'];
-		self::assertSame('Di 10 nov, 08.30 - 10.10, Wiskunde A', $wa['line']);
-		self::assertSame(['2026-11-10', '08.30', '10.10'], [$wa['date'], $wa['startTime'], $wa['endTime']]);
-		self::assertSame('Lokaal H1.03 (4H1)', $wa['room']);
-		self::assertSame('Toetsweek 1, 9 - 13 november', $wa['period']);
-		self::assertSame([['department' => 'havo', 'year' => 4, 'label' => '4 havo']], $wa['groups']);
-		self::assertSame(['Department and year' => ['4 havo'], 'Test week' => ['Toetsweek 1, 9 - 13 november']], $wa['facets']);
-		self::assertSame('Exam schedule', $wa['kind']);
-		self::assertSame(1, $wa['weight'], 'tw1 of the wiskunde A plan');
-		self::assertStringContainsString('grafische rekenmachine', $wa['bring']);
+		self::assertSame(expected: 'Di 10 nov, 08.30 - 10.10, Wiskunde A', actual: $wa['line']);
+		self::assertSame(expected: ['2026-11-10', '08.30', '10.10'], actual: [$wa['date'], $wa['startTime'], $wa['endTime']]);
+		self::assertSame(expected: 'Lokaal H1.03 (4H1)', actual: $wa['room']);
+		self::assertSame(expected: 'Toetsweek 1, 9 - 13 november', actual: $wa['period']);
+		self::assertSame(expected: [['department' => 'havo', 'year' => 4, 'label' => '4 havo']], actual: $wa['groups']);
+		self::assertSame(expected: ['Department and year' => ['4 havo'], 'Test week' => ['Toetsweek 1, 9 - 13 november']], actual: $wa['facets']);
+		self::assertSame(expected: 'Exam schedule', actual: $wa['kind']);
+		self::assertSame(expected: 1, actual: $wa['weight'], message: 'tw1 of the wiskunde A plan');
+		self::assertStringContainsString(needle: 'grafische rekenmachine', haystack: $wa['bring']);
 
 		// Only these keys leave the index: no learner ids, no invigilators, no headcount.
 		self::assertSame(
-			['bring', 'date', 'endTime', 'facets', 'groups', 'id', 'kind', 'line', 'period', 'periodId', 'room', 'startTime', 'title', 'type', 'weight'],
-			$this->sortedKeys($wa)
+			expected: [
+				'bring',
+				'date',
+				'endTime',
+				'facets',
+				'groups',
+				'id',
+				'kind',
+				'line',
+				'period',
+				'periodId',
+				'room',
+				'startTime',
+				'title',
+				'type',
+				'weight'
+			],
+			actual: $this->sortedKeys(item: $wa)
 		);
 		$encoded = (string)json_encode($tests);
-		self::assertStringNotContainsString('learnerIds', $encoded);
-		self::assertStringNotContainsString('vo-leerling', $encoded);
+		self::assertStringNotContainsString(needle: 'learnerIds', haystack: $encoded);
+		self::assertStringNotContainsString(needle: 'vo-leerling', haystack: $encoded);
 
-		self::assertSame([], $this->items(portal: 'wilgenboom', type: 'test'), 'another set has no test week of vaartveld');
+		self::assertSame(
+			expected: [],
+			actual: $this->items(portal: 'wilgenboom', type: 'test'),
+			message: 'another set has no test week of vaartveld'
+		);
 	}//end testAPublicTestWeekIsInTheIndexWithoutNames()
 
 	/**
@@ -312,8 +354,8 @@ class PortalPublicIndexTest extends TestCase {
 			}
 		);
 
-		self::assertSame('Wo 11 nov, 13.00 - 14.40, Wiskunde A', $moved['Wiskunde A']['line']);
-		self::assertSame(['Nederlands', 'Engels', 'Wiskunde A', 'Geschiedenis'], array_keys($moved));
+		self::assertSame(expected: 'Wo 11 nov, 13.00 - 14.40, Wiskunde A', actual: $moved['Wiskunde A']['line']);
+		self::assertSame(expected: ['Nederlands', 'Engels', 'Wiskunde A', 'Geschiedenis'], actual: array_keys($moved));
 	}//end testARescheduledTestFollows()
 
 	/**
@@ -337,9 +379,13 @@ class PortalPublicIndexTest extends TestCase {
 			};
 		};
 
-		self::assertSame([], $this->items(portal: 'vaartveld', type: 'test', edit: $period(['public' => false])));
-		self::assertSame([], $this->items(portal: 'vaartveld', type: 'test', edit: $period(['lifecycle' => 'planning'])));
-		self::assertSame([], $this->items(portal: 'vaartveld', type: 'test', edit: $period(['endsOn' => '2026-10-02'])), 'a week that is over');
+		self::assertSame(expected: [], actual: $this->items(portal: 'vaartveld', type: 'test', edit: $period(['public' => false])));
+		self::assertSame(expected: [], actual: $this->items(portal: 'vaartveld', type: 'test', edit: $period(['lifecycle' => 'planning'])));
+		self::assertSame(
+			expected: [],
+			actual: $this->items(portal: 'vaartveld', type: 'test', edit: $period(['endsOn' => '2026-10-02'])),
+			message: 'a week that is over'
+		);
 
 		$cancelled = $this->items(
 			portal: 'vaartveld',
@@ -349,8 +395,8 @@ class PortalPublicIndexTest extends TestCase {
 				return $objects;
 			}
 		);
-		self::assertArrayNotHasKey('Nederlands', $cancelled);
-		self::assertCount(3, $cancelled);
+		self::assertArrayNotHasKey(key: 'Nederlands', array: $cancelled);
+		self::assertCount(expectedCount: 3, haystack: $cancelled);
 	}//end testAWeekNotPublicOrInPlanningStaysOut()
 
 	/**
@@ -376,7 +422,10 @@ class PortalPublicIndexTest extends TestCase {
 			actual: PublicTestScheduleIndex::line(startsAt: '2026-11-09T08:30:00+01:00', endsAt: '2026-11-09T10:10:00+01:00', subject: 'Nederlands')
 		);
 		self::assertFalse(
-			condition: PublicTestScheduleIndex::isPublicAndToCome(period: ['endsOn' => '2026-11-13', 'lifecycle' => 'published'], today: self::MONDAY),
+			condition: PublicTestScheduleIndex::isPublicAndToCome(
+				period: ['endsOn' => '2026-11-13', 'lifecycle' => 'published'],
+				today: self::MONDAY
+			),
 			message: 'not marked public'
 		);
 		self::assertTrue(
