@@ -229,6 +229,7 @@ import {
 	serverOffsetMs,
 } from '../utils/attemptClock.js'
 import { attemptCreateError } from '../utils/attemptRefusal.js'
+import { objectId } from '../utils/customPages.js'
 import { transitionUrl } from '../utils/manualScoring.js'
 import { sendJson, sendJsonOrFail } from '../utils/ocsJson.js'
 import { lookupObject } from '../utils/portfolioEvidence.js'
@@ -407,11 +408,11 @@ export default {
 		// with no `end` transition recorded — itself informative to a reviewer.
 		if (
 			!this.submitted
-			&& this.proctoringSession?.uuid
+			&& objectId(this.proctoringSession)
 			&& typeof navigator !== 'undefined'
 			&& typeof navigator.sendBeacon === 'function'
 		) {
-			const url = generateUrl(transitionUrl(this.proctoringSession.uuid))
+			const url = generateUrl(transitionUrl(objectId(this.proctoringSession)))
 			const blob = new Blob([JSON.stringify({ action: 'end' })], {
 				type: 'application/json',
 			})
@@ -1089,7 +1090,7 @@ export default {
 			const json = await resp.json()
 			this.proctoringSession = json.object ?? json ?? {}
 
-			await this.dispatchTransition(this.proctoringSession.uuid, {
+			await this.dispatchTransition(objectId(this.proctoringSession), {
 				action: 'activate',
 				failure: 'ProctoringSession activate transition failed',
 			})
@@ -1252,7 +1253,7 @@ export default {
 		 * @spec openspec/specs/assessment/spec.md
 		 */
 		async appendFlag(kind, severity) {
-			if (!this.proctoringSession?.uuid) return
+			if (!objectId(this.proctoringSession)) return
 			if (!this.takeFlagSlot(kind)) return
 
 			const newFlag = this.newFlag(kind, severity)
@@ -1313,7 +1314,7 @@ export default {
 		 */
 		saveSessionFlags(flags) {
 			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/proctoring-session/${this.proctoringSession.uuid}`,
+				`/apps/openregister/api/objects/learniq/proctoring-session/${objectId(this.proctoringSession)}`,
 			)
 			return sendJsonOrFail(url, {
 				method: 'PATCH',
@@ -1335,7 +1336,7 @@ export default {
 			this.releaseTabLock()
 			await this.leaveFullscreen()
 
-			if (this.proctoringSession?.uuid) {
+			if (objectId(this.proctoringSession)) {
 				await this.endProctoringSession()
 			}
 		},
@@ -1363,7 +1364,7 @@ export default {
 		 */
 		async endProctoringSession() {
 			try {
-				await this.dispatchTransition(this.proctoringSession.uuid, {
+				await this.dispatchTransition(objectId(this.proctoringSession), {
 					action: 'end',
 					failure: 'ProctoringSession end transition failed',
 				})
@@ -1431,7 +1432,7 @@ export default {
 		 * @spec openspec/specs/assessment/spec.md#requirement-per-attempt-item-order-and-answer-option-shuffle-are-independently-configurable
 		 */
 		optionOrderFor(item) {
-			const ref = (this.result?.drawnItemRefs ?? []).find((r) => r.itemId === item.uuid)
+			const ref = (this.result?.drawnItemRefs ?? []).find((r) => r.itemId === objectId(item))
 			return ref?.optionOrder ?? null
 		},
 

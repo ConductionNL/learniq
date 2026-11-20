@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/training-provider-course-days/tasks.md#t7
+ * @spec openspec/changes/archive/2026-11-17-training-provider-course-days/tasks.md#t7
  */
 
 declare(strict_types=1);

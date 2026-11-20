@@ -17,6 +17,8 @@
 
 ## 3. Tests and close out
 
-- [ ] 3.1 Playwright `tests/e2e/proctoring-review.spec.ts`: seed a native test-mode session with two pending flags; as an instructor open the page from the menu, allow one, annul the other, read "Allowed by"; as a learner see no entry. Tag the scenarios with `@e2e`.
-- [ ] 3.2 One live check as a learner: PATCH a decision on your own session and read the refusal.
-- [ ] 3.3 Set row `ass-review-proctoring-flags` to `built`, `learniq: yes`, `reachedOn: "/assessments/proctoring/review"`; archive this change into `openspec/specs/assessment`.
+- [x] 3.1 Playwright `tests/e2e/proctoring-review.spec.ts`: seed a native test-mode session with two pending flags; as an instructor open the page from the menu, allow one, annul the other, read "Allowed by"; as a learner see no entry. Tag the scenarios with `@e2e`.
+  - Live pass 17 Nov (fresh Nextcloud 34.0.6, OpenRegister 29890847e): 3 passed after the fix below. The first run found the queue PATCHing `.../proctoring-session/undefined` (OpenRegister returns `id`, never `uuid`), so no decision could be saved; fixed with `objectId()` in the queue and in the test screen's native session and items.
+- [x] 3.2 One live check as a learner: PATCH a decision on your own session and read the refusal.
+  - In the same spec: the learner's PATCH allowing their own flag is refused and both flags stay `pending`; appending a pending flag is accepted.
+- [x] 3.3 Set row `ass-review-proctoring-flags` to `built`, `learniq: yes`, `reachedOn: "/assessments/proctoring/review"`; archive this change into `openspec/specs/assessment`.

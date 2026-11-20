@@ -23,7 +23,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/attendance-warns-before-the-threshold/specs/attendance/spec.md
+ * @spec openspec/specs/attendance/spec.md
  */
 
 declare(strict_types=1);
@@ -36,7 +36,7 @@ use OCA\OpenRegister\Service\ObjectService;
 /**
  * Resolves the manager (mentor) of a pupil from their profile.
  *
- * @spec openspec/changes/attendance-warns-before-the-threshold/specs/attendance/spec.md
+ * @spec openspec/specs/attendance/spec.md
  */
 class LearnerManagerLookup {
 
@@ -70,7 +70,7 @@ class LearnerManagerLookup {
 	 *
 	 * @throws \Throwable When the profiles cannot be read.
 	 *
-	 * @spec openspec/changes/attendance-warns-before-the-threshold/specs/attendance/spec.md
+	 * @spec openspec/specs/attendance/spec.md
 	 */
 	public function forLearner(string $learnerId): ?string {
 		if ($learnerId === '') {

@@ -48,7 +48,7 @@ interface CourseDayStatusServiceInterface {
 	 *
 	 * @throws \Throwable When OpenRegister cannot be read or written.
 	 *
-	 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
 	 */
 	public function restamp(string $cohortId): ?string;
 
@@ -68,7 +68,7 @@ interface CourseDayStatusServiceInterface {
 	 * @throws \RuntimeException When the status is unknown or the cohort is no course day.
 	 * @throws \Throwable        When OpenRegister cannot be read or written.
 	 *
-	 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
 	 */
 	public function move(string $cohortId, string $status, string $userId): string;
 
@@ -84,7 +84,7 @@ interface CourseDayStatusServiceInterface {
 	 * @throws \RuntimeException When the decision is unknown or the cohort is no course day.
 	 * @throws \Throwable        When OpenRegister cannot be read or written.
 	 *
-	 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
 	 */
 	public function decide(string $cohortId, ?string $decision, string $userId): string;
 
@@ -98,7 +98,7 @@ interface CourseDayStatusServiceInterface {
 	 * @throws \RuntimeException When the cohort is no course day.
 	 * @throws \Throwable        When OpenRegister cannot be read.
 	 *
-	 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
 	 */
 	public function alternatives(string $cohortId): array;
 
@@ -116,7 +116,7 @@ interface CourseDayStatusServiceInterface {
 	 *                            day of the same course, or it lacks the places.
 	 * @throws \Throwable        When OpenRegister cannot be read or written.
 	 *
-	 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
 	 */
 	public function moveParticipants(string $cohortId, string $targetId, string $userId): array;
 }//end interface
