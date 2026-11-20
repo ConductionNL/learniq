@@ -157,6 +157,6 @@ class KeuzedeelControllerTest extends TestCase {
 			}
 		);
 
-		return new KeuzedeelController($this->createMock(IRequest::class), $session, new KeuzedeelStore($objects), $objects, $restamp, new NullLogger());
+		return new KeuzedeelController($this->createMock(IRequest::class), $session, new KeuzedeelStore($objects), $restamp, new NullLogger());
 	}//end controller()
 }//end class

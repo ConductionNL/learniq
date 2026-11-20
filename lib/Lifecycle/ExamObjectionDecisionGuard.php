@@ -67,6 +67,8 @@ class ExamObjectionDecisionGuard implements LifecycleGuardInterface {
 	 * @return GuardResult The verdict, with the reason when refused.
 	 *
 	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#task-T1
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
 	public function check(array $object, string $action, string $userId): GuardResult {
 		$refusal = $this->refusal(object: $object);

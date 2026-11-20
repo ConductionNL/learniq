@@ -79,6 +79,8 @@ class ExamSittingEstablishGuard implements LifecycleGuardInterface {
 	 * @return GuardResult
 	 *
 	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#task-T2
+	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
 	public function check(array $object, string $action, string $userId): GuardResult {
 		$groups = new ActorGroups(userManager: $this->userManager, groupManager: $this->groupManager);

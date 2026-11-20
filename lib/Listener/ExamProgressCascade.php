@@ -65,24 +65,7 @@ class ExamProgressCascade implements IEventListener {
 	 */
 	public function handle(Event $event): void {
 		if ($event instanceof ObjectTransitionedEvent) {
-			if ($this->schemas->eventRegister(event: $event) !== 'learniq') {
-				return;
-			}
-
-			$schema = $this->schemas->eventSchema(event: $event);
-			$object = $event->getObject()->jsonSerialize();
-			if ($schema === 'grade-entry' && $event->getTo() === 'published') {
-				$this->restamp->restamp(learnerUserId: (string) ($object['learnerId'] ?? ''));
-			}
-
-			if ($schema === 'keuzedeel-choice') {
-				$this->restamp->restamp(learnerUserId: (string) ($object['learnerId'] ?? ''));
-			}
-
-			if ($schema === 'exam-sitting') {
-				$this->restampCohorts(sitting: $object);
-			}
-
+			$this->transitioned(event: $event);
 			return;
 		}
 
@@ -100,6 +83,29 @@ class ExamProgressCascade implements IEventListener {
 			$this->restampCohorts(sitting: $entity->jsonSerialize());
 		}
 	}//end handle()
+
+	/**
+	 * A published result, a keuzedeel choice or a sitting moved through its lifecycle.
+	 *
+	 * @param ObjectTransitionedEvent $event The transition.
+	 *
+	 * @return void
+	 */
+	private function transitioned(ObjectTransitionedEvent $event): void {
+		if ($this->schemas->eventRegister(event: $event) !== 'learniq') {
+			return;
+		}
+
+		$schema = $this->schemas->eventSchema(event: $event);
+		$object = $event->getObject()->jsonSerialize();
+		if (($schema === 'grade-entry' && $event->getTo() === 'published') || $schema === 'keuzedeel-choice') {
+			$this->restamp->restamp(learnerUserId: (string) ($object['learnerId'] ?? ''));
+		}
+
+		if ($schema === 'exam-sitting') {
+			$this->restampCohorts(sitting: $object);
+		}
+	}//end transitioned()
 
 	/**
 	 * Restamp every student of the sitting's cohorts.

@@ -91,11 +91,7 @@ class ExamSittingEstablishHandler implements IEventListener {
 	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#task-T2
 	 */
 	public function handle(Event $event): void {
-		if (($event instanceof ObjectTransitionedEvent) === false
-			|| $this->schemas->eventRegister(event: $event) !== self::REGISTER
-			|| $this->schemas->eventSchema(event: $event) !== self::SITTING_SCHEMA
-			|| $event->getTo() !== 'established'
-		) {
+		if ($this->isEstablish(event: $event) === false) {
 			return;
 		}
 
@@ -129,6 +125,22 @@ class ExamSittingEstablishHandler implements IEventListener {
 			['id' => $sittingId, 'count' => $count, 'actor' => $establishedBy]
 		);
 	}//end handle()
+
+	/**
+	 * Whether the event is a learniq ExamSitting moving to established.
+	 *
+	 * @param Event $event The event.
+	 *
+	 * @return bool
+	 *
+	 * @psalm-assert-if-true ObjectTransitionedEvent $event
+	 */
+	private function isEstablish(Event $event): bool {
+		return $event instanceof ObjectTransitionedEvent
+			&& $this->schemas->eventRegister(event: $event) === self::REGISTER
+			&& $this->schemas->eventSchema(event: $event) === self::SITTING_SCHEMA
+			&& $event->getTo() === 'established';
+	}//end isEstablish()
 
 	/**
 	 * The results of the sitting in the sitting's tenant.

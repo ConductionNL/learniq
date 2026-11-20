@@ -16,6 +16,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Keuzedeel;
 
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -118,6 +120,25 @@ class KeuzedeelStore {
 	public function choices(array $filters): array {
 		return $this->rows(schema: 'keuzedeel-choice', filters: $filters);
 	}//end choices()
+
+	/**
+	 * Save a student's choice; a refusal of the store throws.
+	 *
+	 * @param array<string, mixed> $choice The choice.
+	 *
+	 * @return array<string, mixed> The saved choice.
+	 *
+	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#task-T5
+	 */
+	public function saveChoice(array $choice): array {
+		$saved = $this->objectService->saveObject(
+			object: $choice,
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: 'keuzedeel-choice')),
+			_rbac: false
+		);
+
+		return (array) $saved->jsonSerialize();
+	}//end saveChoice()
 
 	/**
 	 * The rows of a schema that match the filters, as arrays.

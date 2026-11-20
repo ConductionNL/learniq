@@ -74,6 +74,18 @@ class KeuzedeelRules {
 			return 'Dit keuzedeel wordt niet meer aangeboden.';
 		}
 
+		return $this->windowRefusal(offer: $offer, now: $now) ?? self::choiceRefusal(offer: $offer, taken: $taken, mine: $mine);
+	}//end refusal()
+
+	/**
+	 * Why the choice window does not allow a choice today, or null.
+	 *
+	 * @param array<string, mixed> $offer The offer.
+	 * @param DateTimeImmutable    $now   The moment.
+	 *
+	 * @return string|null
+	 */
+	private function windowRefusal(array $offer, DateTimeImmutable $now): ?string {
 		$today  = $now->setTimezone(new DateTimeZone(self::ZONE))->format('Y-m-d');
 		$opens  = $this->day(value: $offer['choiceOpensOn'] ?? null);
 		$closes = $this->day(value: $offer['choiceClosesOn'] ?? null);
@@ -85,6 +97,19 @@ class KeuzedeelRules {
 			return 'De keuze voor dit keuzedeel is gesloten.';
 		}
 
+		return null;
+	}//end windowRefusal()
+
+	/**
+	 * Why the student's own choices or the offer's places refuse it, or null.
+	 *
+	 * @param array<string, mixed>       $offer The offer.
+	 * @param list<array<string, mixed>> $taken The offer's choices that hold a place (anyone's).
+	 * @param list<array<string, mixed>> $mine  The student's own choices.
+	 *
+	 * @return string|null
+	 */
+	private static function choiceRefusal(array $offer, array $taken, array $mine): ?string {
 		$offerId = (string) ($offer['id'] ?? ($offer['uuid'] ?? ''));
 		foreach (self::occupying(choices: $mine) as $choice) {
 			if ((string) ($choice['offerId'] ?? '') === $offerId) {
@@ -101,7 +126,7 @@ class KeuzedeelRules {
 		}
 
 		return null;
-	}//end refusal()
+	}//end choiceRefusal()
 
 	/**
 	 * The page line for one period: "Keuzedeel periode 3: Nog niet gekozen, kan tot 16 oktober".
@@ -118,14 +143,31 @@ class KeuzedeelRules {
 	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#task-T5
 	 */
 	public function line(array $offers, array $mine, DateTimeImmutable $now): ?string {
-		$today   = $now->setTimezone(new DateTimeZone(self::ZONE))->format('Y-m-d');
-		$chosen  = [];
+		$chosen = [];
 		foreach (self::occupying(choices: $mine) as $choice) {
 			$chosen[(string) ($choice['period'] ?? '')] = $choice;
 		}
 
-		$openPeriod = null;
-		$openUntil  = null;
+		$open = $this->firstClosing(offers: $offers, chosen: $chosen, now: $now);
+		if ($open !== null) {
+			return 'Keuzedeel periode ' . $open['period'] . ': Nog niet gekozen, kan tot ' . $this->lines->dayMonth($open['until']);
+		}
+
+		return self::chosenLine(chosen: $chosen);
+	}//end line()
+
+	/**
+	 * The open period, not yet chosen, whose choice closes first.
+	 *
+	 * @param list<array<string, mixed>>          $offers The offers open to the student.
+	 * @param array<string, array<string, mixed>> $chosen Her choices by period.
+	 * @param DateTimeImmutable                   $now    The moment.
+	 *
+	 * @return array{period: string, until: DateTimeImmutable}|null
+	 */
+	private function firstClosing(array $offers, array $chosen, DateTimeImmutable $now): ?array {
+		$today = $now->setTimezone(new DateTimeZone(self::ZONE))->format('Y-m-d');
+		$first = null;
 		foreach ($offers as $offer) {
 			$closes = $this->day(value: $offer['choiceClosesOn'] ?? null);
 			$period = (string) ($offer['period'] ?? '');
@@ -135,16 +177,22 @@ class KeuzedeelRules {
 				continue;
 			}
 
-			if ($openUntil === null || $closes < $openUntil) {
-				$openPeriod = $period;
-				$openUntil  = $closes;
+			if ($first === null || $closes < $first['until']) {
+				$first = ['period' => $period, 'until' => $closes];
 			}
 		}
 
-		if ($openPeriod !== null && $openUntil !== null) {
-			return 'Keuzedeel periode ' . $openPeriod . ': Nog niet gekozen, kan tot ' . $this->lines->dayMonth($openUntil);
-		}
+		return $first;
+	}//end firstClosing()
 
+	/**
+	 * "Keuzedeel periode 3: Robotica gekozen" for her latest choice, or null without one.
+	 *
+	 * @param array<string, array<string, mixed>> $chosen Her choices by period.
+	 *
+	 * @return string|null
+	 */
+	private static function chosenLine(array $chosen): ?string {
 		if ($chosen === []) {
 			return null;
 		}
@@ -156,7 +204,7 @@ class KeuzedeelRules {
 		}
 
 		return 'Keuzedeel periode ' . $period . ': ' . $name . ' gekozen';
-	}//end line()
+	}//end chosenLine()
 
 	/**
 	 * Whether the offer is meant for a student of these programmes and groups.

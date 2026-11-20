@@ -17,15 +17,11 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use DateTimeImmutable;
-use DateTimeInterface;
 use DateTimeZone;
 use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Service\Exam\ExamProgressRestamp;
 use OCA\Learniq\Service\Keuzedeel\KeuzedeelRules;
 use OCA\Learniq\Service\Keuzedeel\KeuzedeelStore;
-use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
-use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
-use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -53,7 +49,6 @@ class KeuzedeelController extends Controller {
 	 * @param IRequest            $request       The request.
 	 * @param IUserSession        $userSession   The signed-in student.
 	 * @param KeuzedeelStore      $store         Reads offers and choices.
-	 * @param ObjectService       $objectService Writes the choice.
 	 * @param ExamProgressRestamp $restamp       Rewrites the student's page line.
 	 * @param LoggerInterface     $logger        Logs a failed save.
 	 * @param KeuzedeelRules      $rules         Decides whether she may choose.
@@ -64,7 +59,6 @@ class KeuzedeelController extends Controller {
 		IRequest $request,
 		private readonly IUserSession $userSession,
 		private readonly KeuzedeelStore $store,
-		private readonly ObjectService $objectService,
 		private readonly ExamProgressRestamp $restamp,
 		private readonly LoggerInterface $logger,
 		private readonly KeuzedeelRules $rules = new KeuzedeelRules(),
@@ -154,17 +148,15 @@ class KeuzedeelController extends Controller {
 		}
 
 		try {
-			$saved = $this->objectService->saveObject(
-				object: [
+			$saved = $this->store->saveChoice(
+				choice: [
 					'learnerId' => $learnerId,
 					'offerId'   => $offerId,
 					'period'    => (string) ($offer['period'] ?? ''),
 					'offerName' => trim((string) ($offer['code'] ?? '') . ' ' . (string) ($offer['name'] ?? '')),
-					'chosenAt'  => $now->format(DateTimeInterface::ATOM),
+					'chosenAt'  => $now->format(DATE_ATOM),
 					'tenant_id' => (string) ($offer['tenant_id'] ?? ''),
-				],
-				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: KeuzedeelStore::REGISTER, schema: 'keuzedeel-choice')),
-				_rbac: false
+				]
 			);
 		} catch (Throwable $exception) {
 			$this->logger->warning('[KeuzedeelController] A keuzedeel choice could not be saved: {msg}', ['msg' => $exception->getMessage()]);
@@ -173,7 +165,7 @@ class KeuzedeelController extends Controller {
 
 		$this->restamp->restamp(learnerUserId: $learnerId);
 
-		return new JSONResponse(data: (array) $saved->jsonSerialize(), statusCode: Http::STATUS_CREATED);
+		return new JSONResponse(data: $saved, statusCode: Http::STATUS_CREATED);
 	}//end choose()
 
 	/**

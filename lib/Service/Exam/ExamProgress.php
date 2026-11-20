@@ -121,10 +121,7 @@ class ExamProgress {
 		$passed = [];
 		foreach ($entries as $entry) {
 			$component = $entry['componentId'] ?? null;
-			if (($entry['lifecycle'] ?? null) !== 'published' || is_string($component) === false
-				|| in_array($component, $components, true) === false || is_numeric($entry['value'] ?? null) === false
-				|| ($planId !== '' && isset($entry['curriculumPlanId']) === true && $entry['curriculumPlanId'] !== $planId)
-			) {
+			if (self::counts(entry: $entry, components: $components, planId: $planId) === false) {
 				continue;
 			}
 
@@ -135,6 +132,27 @@ class ExamProgress {
 
 		return array_keys($passed);
 	}//end passedComponents()
+
+	/**
+	 * Whether a grade entry is a published, numeric result on one of the exam
+	 * components of this plan.
+	 *
+	 * @param array<string, mixed> $entry      The grade entry.
+	 * @param list<string>         $components The exam component ids.
+	 * @param string               $planId     The plan's id, or ''.
+	 *
+	 * @return bool
+	 */
+	private static function counts(array $entry, array $components, string $planId): bool {
+		$component = $entry['componentId'] ?? null;
+		if (($entry['lifecycle'] ?? null) !== 'published' || is_string($component) === false
+			|| in_array($component, $components, true) === false || is_numeric($entry['value'] ?? null) === false
+		) {
+			return false;
+		}
+
+		return $planId === '' || isset($entry['curriculumPlanId']) === false || $entry['curriculumPlanId'] === $planId;
+	}//end counts()
 
 	/**
 	 * The pass mark of one component.
@@ -190,13 +208,24 @@ class ExamProgress {
 			return null;
 		}
 
-		$code = trim((string) ($best['examCode'] ?? ''));
-		$on   = $this->lines->dayMonth($bestDay);
-		$line = 'Volgende: examen op ' . $on;
-		if ($code !== '') {
-			$line = 'Volgende: ' . $code . ' op ' . $on;
+		return ['id' => (string) ($best['id'] ?? ($best['uuid'] ?? '')), 'label' => $this->sittingLine(sitting: $best, day: $bestDay)];
+	}//end nextSitting()
+
+	/**
+	 * "Volgende: <code> op <day>", or "Volgende: examen op <day>" without a code.
+	 *
+	 * @param array<string, mixed> $sitting The sitting.
+	 * @param DateTimeImmutable    $day     Its day.
+	 *
+	 * @return string
+	 */
+	private function sittingLine(array $sitting, DateTimeImmutable $day): string {
+		$code   = trim((string) ($sitting['examCode'] ?? ''));
+		$onDay  = $this->lines->dayMonth($day);
+		if ($code === '') {
+			return 'Volgende: examen op ' . $onDay;
 		}
 
-		return ['id' => (string) ($best['id'] ?? ($best['uuid'] ?? '')), 'label' => $line];
-	}//end nextSitting()
+		return 'Volgende: ' . $code . ' op ' . $onDay;
+	}//end sittingLine()
 }//end class

@@ -141,15 +141,7 @@ class ExamProgressRestamp {
 		}
 
 		$entries  = $this->rows(schema: 'grade-entry', filters: ['learnerId' => $learnerUserId]);
-		$sittings = [];
-		if ($cohortIds !== []) {
-			foreach ($this->rows(schema: 'exam-sitting', filters: ['lifecycle' => 'planned']) as $sitting) {
-				if (array_intersect((array) ($sitting['cohortIds'] ?? []), $cohortIds) !== []) {
-					$sitting['examCode'] = $this->examCode(assessmentId: (string) ($sitting['assessmentId'] ?? ''));
-					$sittings[] = $sitting;
-				}
-			}
-		}
+		$sittings = $this->plannedSittings(cohortIds: $cohortIds);
 
 		$keuzedelen = new KeuzedeelStore(objectService: $this->objectService);
 		$line       = (new KeuzedeelRules())->line(
@@ -160,6 +152,29 @@ class ExamProgressRestamp {
 
 		return $this->progress->derive(plan: $plan, entries: $entries, sittings: $sittings, now: $now) + ['keuzedeelLabel' => $line];
 	}//end copies()
+
+	/**
+	 * The planned sittings of the cohorts, each with its exam code.
+	 *
+	 * @param list<string> $cohortIds The student's cohorts.
+	 *
+	 * @return list<array<string, mixed>>
+	 */
+	private function plannedSittings(array $cohortIds): array {
+		if ($cohortIds === []) {
+			return [];
+		}
+
+		$sittings = [];
+		foreach ($this->rows(schema: 'exam-sitting', filters: ['lifecycle' => 'planned']) as $sitting) {
+			if (array_intersect((array) ($sitting['cohortIds'] ?? []), $cohortIds) !== []) {
+				$sitting['examCode'] = $this->examCode(assessmentId: (string) ($sitting['assessmentId'] ?? ''));
+				$sittings[] = $sitting;
+			}
+		}
+
+		return $sittings;
+	}//end plannedSittings()
 
 	/**
 	 * The curriculum plan of a programme.
