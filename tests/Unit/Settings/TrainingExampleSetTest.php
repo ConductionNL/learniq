@@ -35,6 +35,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Settings;
 
 use DateTimeImmutable;
+use OCA\Learniq\Service\ExamRegistration\ExamRegistrationDates;
 use OCA\Learniq\Service\ExamRegistration\ExamRegistrationLines;
 use OCA\Learniq\Service\ExampleSetPreparation;
 use OCA\Learniq\Service\ExampleSetSources;
@@ -920,22 +921,22 @@ class TrainingExampleSetTest extends TestCase {
 		foreach ($list['lines'] as $line) {
 			$enrolment = $enrolments[$line['enrolmentId']];
 			self::assertSame($list['cohortId'], $enrolment['cohortId']);
-			$expected = ExamRegistrationLines::line(
+			$expected = (new ExamRegistrationLines())->line(
 				enrolment: array_merge($enrolment, ['id' => $enrolment['uuid']]),
 				profile: array_merge($profiles[$line['learnerRef']], ['id' => $line['learnerRef']]),
 				organisation: array_merge($companies[$line['organisationRef']], ['id' => $line['organisationRef']]),
-				state: ['required' => ExamRegistrationLines::required(required: $list['requiredFields']), 'previous' => $line, 'now' => '2026-10-05T07:45:00+02:00']
+				state: ['required' => (new ExamRegistrationLines())->required(required: $list['requiredFields']), 'previous' => $line, 'now' => '2026-10-05T07:45:00+02:00']
 			);
 			self::assertSame($expected, $line, $line['learnerName']);
 		}
 
-		self::assertSame('De aanmelding voor het examen van donderdag sluit woensdag om 12.00 uur.', ExamRegistrationLines::closingSentence(examDate: $list['examDate'], closesAt: $list['closesAt']));
-		self::assertSame('2 van de 3 deelnemers zijn compleet.', ExamRegistrationLines::summary(lines: $list['lines']));
+		self::assertSame('De aanmelding voor het examen van donderdag sluit woensdag om 12.00 uur.', (new ExamRegistrationDates())->closingSentence(examDate: $list['examDate'], closesAt: $list['closesAt']));
+		self::assertSame('2 van de 3 deelnemers zijn compleet.', (new ExamRegistrationLines())->summary(lines: $list['lines']));
 		self::assertSame([2, 3], [$list['completeCount'], $list['participantCount']]);
 		$youssef = array_values(array_filter($list['lines'], static fn (array $line): bool => $line['complete'] === false));
 		self::assertCount(1, $youssef);
-		self::assertSame('Van Youssef El Amrani (Jansen Installatietechniek BV) ontbreekt de geboortedatum.', ExamRegistrationLines::missingSentence(line: $youssef[0]));
-		self::assertSame('De werkgever kreeg vanochtend bericht.', ExamRegistrationLines::notice(notifiedAt: $youssef[0]['employerNotifiedAt'], now: '2026-10-05T09:00:00+02:00'));
+		self::assertSame('Van Youssef El Amrani (Jansen Installatietechniek BV) ontbreekt de geboortedatum.', (new ExamRegistrationLines())->missingSentence(line: $youssef[0]));
+		self::assertSame('De werkgever kreeg vanochtend bericht.', (new ExamRegistrationDates())->notice(notifiedAt: $youssef[0]['employerNotifiedAt'], now: '2026-10-05T09:00:00+02:00'));
 		self::assertStringNotContainsString('1988-06-12', json_encode($list), 'the list carries no birth date');
 	}//end testTheExamRegistrationOfTheFGassenDay()
 }//end class

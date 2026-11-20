@@ -62,12 +62,16 @@ class ExamRegistrationService implements ExamRegistrationServiceInterface {
 	 *
 	 * @param ObjectService $objectService The OpenRegister object service.
 	 * @param ITimeFactory  $time          The clock.
+	 * @param ExamRegistrationLines $lines         The list's lines and their wording.
+	 * @param ExamRegistrationDates $dates         The list's day and moment wording.
 	 *
 	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly ITimeFactory $time,
+		private readonly ExamRegistrationLines $lines = new ExamRegistrationLines(),
+		private readonly ExamRegistrationDates $dates = new ExamRegistrationDates(),
 	) {
 	}//end __construct()
 
@@ -98,7 +102,7 @@ class ExamRegistrationService implements ExamRegistrationServiceInterface {
 			throw new CourseDayException(message: 'This is not a course day.', status: 404);
 		}
 
-		if (trim($bodyName) === '' || ExamRegistrationLines::closingSentence(examDate: null, closesAt: $closesAt) === null) {
+		if (trim($bodyName) === '' || $this->dates->closingSentence(examDate: null, closesAt: $closesAt) === null) {
 			throw new CourseDayException(message: 'Name the examining body and the moment the list closes.', status: 400);
 		}
 
@@ -110,7 +114,7 @@ class ExamRegistrationService implements ExamRegistrationServiceInterface {
 			'examDate' => ($examDate ?? ($cohort['dayDate'] ?? null)),
 			'bodyName' => trim($bodyName),
 			'closesAt' => $closesAt,
-			'requiredFields' => ExamRegistrationLines::required(required: $requiredFields),
+			'requiredFields' => $this->lines->required(required: $requiredFields),
 			'lines' => [],
 			'lifecycle' => 'open',
 			'tenant_id' => ($cohort['tenant_id'] ?? null),
@@ -182,7 +186,7 @@ class ExamRegistrationService implements ExamRegistrationServiceInterface {
 		$closed = 0;
 		$now    = $this->now();
 		foreach ($this->many(schema: self::SCHEMA, filters: ['lifecycle' => 'open']) as $list) {
-			if (ExamRegistrationLines::isDue(closesAt: ($list['closesAt'] ?? null), now: $now) === false) {
+			if ($this->dates->isDue(closesAt: ($list['closesAt'] ?? null), now: $now) === false) {
 				continue;
 			}
 
@@ -221,8 +225,8 @@ class ExamRegistrationService implements ExamRegistrationServiceInterface {
 			}
 		}
 
-		$required = ExamRegistrationLines::required(required: ($list['requiredFields'] ?? []));
-		$csv      = ExamRegistrationLines::csv(required: $required, lines: $lines, profiles: $profiles);
+		$required = $this->lines->required(required: ($list['requiredFields'] ?? []));
+		$csv      = $this->lines->csv(required: $required, lines: $lines, profiles: $profiles);
 		$list['exportedAt'] = $this->now();
 		$this->save(list: $list);
 
@@ -285,17 +289,17 @@ class ExamRegistrationService implements ExamRegistrationServiceInterface {
 		$found  = false;
 		$lines  = [];
 		$stored = null;
-		$by     = null;
+		$resultBy     = null;
 		if ($result !== '') {
 			$stored = $result;
-			$by     = $userId;
+			$resultBy     = $userId;
 		}
 
 		foreach ((array)($list['lines'] ?? []) as $line) {
 			if ((string)($line['enrolmentId'] ?? '') === $enrolmentId) {
 				$found            = true;
 				$line['result']   = $stored;
-				$line['resultBy'] = $by;
+				$line['resultBy'] = $resultBy;
 			}
 
 			$lines[] = $line;
@@ -353,7 +357,7 @@ class ExamRegistrationService implements ExamRegistrationServiceInterface {
 	 *
 	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-youssefs-birth-date
 	 */
-	public function view(array $list): array {
+	private function view(array $list): array {
 		$lines      = array_values((array)($list['lines'] ?? []));
 		$incomplete = [];
 		foreach ($lines as $line) {
@@ -367,16 +371,16 @@ class ExamRegistrationService implements ExamRegistrationServiceInterface {
 				'contactName' => ($line['contactName'] ?? null),
 				'employerTask' => ($line['employerTask'] ?? null),
 				'missing' => ($line['missing'] ?? []),
-				'sentence' => ExamRegistrationLines::missingSentence(line: $line),
-				'notice' => ExamRegistrationLines::notice(notifiedAt: ($line['employerNotifiedAt'] ?? null), now: $this->now()),
+				'sentence' => $this->lines->missingSentence(line: $line),
+				'notice' => $this->dates->notice(notifiedAt: ($line['employerNotifiedAt'] ?? null), now: $this->now()),
 			];
 		}
 
 		return array_merge(
 			$list,
 			[
-				'closingLine' => ExamRegistrationLines::closingSentence(examDate: ($list['examDate'] ?? null), closesAt: ($list['closesAt'] ?? null)),
-				'summary' => ExamRegistrationLines::summary(lines: $lines),
+				'closingLine' => $this->dates->closingSentence(examDate: ($list['examDate'] ?? null), closesAt: ($list['closesAt'] ?? null)),
+				'summary' => $this->lines->summary(lines: $lines),
 				'incomplete' => $incomplete,
 			]
 		);
@@ -406,7 +410,7 @@ class ExamRegistrationService implements ExamRegistrationServiceInterface {
 	 * @return array<string, mixed>
 	 */
 	private function withLines(array $list): array {
-		$required = ExamRegistrationLines::required(required: ($list['requiredFields'] ?? []));
+		$required = $this->lines->required(required: ($list['requiredFields'] ?? []));
 		$previous = [];
 		foreach ((array)($list['lines'] ?? []) as $line) {
 			$previous[(string)($line['enrolmentId'] ?? '')] = $line;
@@ -417,7 +421,7 @@ class ExamRegistrationService implements ExamRegistrationServiceInterface {
 			$profile      = ($this->one(schema: 'learner-profile', id: (string)($enrolment['learnerRef'] ?? '')) ?? []);
 			$companyRef   = (string)($enrolment['organisationRef'] ?? ($profile['organisationRef'] ?? ''));
 			$organisation = ($this->one(schema: 'client-organisation', id: $companyRef) ?? []);
-			$lines[]      = ExamRegistrationLines::line(
+			$lines[]      = $this->lines->line(
 				enrolment: $enrolment,
 				profile: $profile,
 				organisation: $organisation,
@@ -430,7 +434,7 @@ class ExamRegistrationService implements ExamRegistrationServiceInterface {
 		$list['requiredFields']   = $required;
 		$list['lines']            = $lines;
 		$list['participantCount'] = count($lines);
-		$list['completeCount']    = ExamRegistrationLines::completeCount(lines: $lines);
+		$list['completeCount']    = $this->lines->completeCount(lines: $lines);
 
 		return $list;
 	}//end withLines()

@@ -97,7 +97,7 @@ class ExamRegistrationController extends Controller {
 		}
 
 		return $this->answer(
-			call: fn (IUser $user): array => $this->services->lists->open(
+			call: fn (): array => $this->services->lists->open(
 				cohortId: $cohortId,
 				exam: ['bodyName' => $bodyName, 'closesAt' => $closesAt, 'examDate' => $exam, 'requiredFields' => $fields]
 			),
@@ -116,7 +116,7 @@ class ExamRegistrationController extends Controller {
 	 */
 	#[NoAdminRequired]
 	public function show(string $id): JSONResponse {
-		return $this->answer(call: fn (IUser $user): array => $this->services->lists->show(id: $id));
+		return $this->answer(call: fn (): array => $this->services->lists->show(id: $id));
 	}//end show()
 
 	/**
@@ -146,7 +146,7 @@ class ExamRegistrationController extends Controller {
 	public function export(string $id): DataDownloadResponse|JSONResponse {
 		$export = null;
 		$answer = $this->answer(
-			call: function (IUser $user) use ($id, &$export): array {
+			call: function () use ($id, &$export): array {
 				$export = $this->services->lists->export(id: $id);
 				return [];
 			}
@@ -215,7 +215,7 @@ class ExamRegistrationController extends Controller {
 	 */
 	#[NoAdminRequired]
 	public function expiring(string $before=''): JSONResponse {
-		return $this->answer(call: fn (IUser $user): array => ['before' => $before, 'rows' => $this->services->today->expiring(before: $before)]);
+		return $this->answer(call: fn (): array => ['before' => $before, 'rows' => $this->services->today->expiring(before: $before)]);
 	}//end expiring()
 
 	/**
@@ -227,7 +227,7 @@ class ExamRegistrationController extends Controller {
 	 */
 	#[NoAdminRequired]
 	public function today(): JSONResponse {
-		return $this->answer(call: fn (IUser $user): array => $this->services->today->today());
+		return $this->answer(call: fn (): array => $this->services->today->today());
 	}//end today()
 
 	/**

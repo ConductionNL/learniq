@@ -30,7 +30,6 @@ use OCA\Learniq\Kernel\Contracts\CertificateIssueServiceInterface;
 use OCA\Learniq\Service\CourseDay\CourseDayException;
 use OCA\Learniq\Service\CourseDay\CourseDayRows;
 use OCA\Learniq\Service\CourseDay\CourseDayStatus;
-use OCA\Learniq\Support\SerialisedRow;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
@@ -59,23 +58,13 @@ class CertificateIssueService implements CertificateIssueServiceInterface {
 	private const DEFAULT_RENEWAL_CYCLE_MONTHS = 12;
 
 	/**
-	 * Why a participant is skipped, in a few words.
-	 *
-	 * @var array<string, string>
-	 */
-	private const REASONS = [
-		'no-result' => 'geen uitslag',
-		'failed' => 'niet geslaagd',
-		'unsigned' => 'kon niet worden ondertekend',
-	];
-
-	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService                     $objectService The OpenRegister object service.
 	 * @param ITimeFactory                      $time          The clock.
 	 * @param CertificateSigners                $signers       Signs each certificate and adds its Europass form.
 	 * @param LoggerInterface                   $logger        Records a certificate that could not be signed.
+	 * @param CertificateIssueOutcome $outcome The per-participant refusals and the summary.
 	 *
 	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-the-certificates-of-a-finished-course-day-are-issued-in-one-action
 	 */
@@ -84,6 +73,7 @@ class CertificateIssueService implements CertificateIssueServiceInterface {
 		private readonly ITimeFactory $time,
 		private readonly CertificateSigners $signers,
 		private readonly LoggerInterface $logger,
+		private readonly CertificateIssueOutcome $outcome = new CertificateIssueOutcome(),
 	) {
 	}//end __construct()
 
@@ -113,7 +103,7 @@ class CertificateIssueService implements CertificateIssueServiceInterface {
 
 		$course  = ($this->one(schema: 'course', id: (string)$cohort['courseId']) ?? []);
 		$lists   = $this->many(schema: ExamRegistrationService::SCHEMA, filters: ['cohortId' => $cohortId]);
-		$results = self::results(lists: $lists);
+		$results = $this->outcome->results(lists: $lists);
 		$now     = $this->now();
 		$issued  = [];
 		$skipped = [];
@@ -121,10 +111,10 @@ class CertificateIssueService implements CertificateIssueServiceInterface {
 		$day     = ['course' => $course, 'cohort' => $cohort, 'userId' => $userId, 'now' => $now];
 		foreach ($this->participants(cohortId: $cohortId) as $enrolment) {
 			$enrolmentId = (string)($enrolment['id'] ?? ($enrolment['uuid'] ?? ''));
-			$name        = self::nameOf(enrolment: $enrolment, line: ($results[$enrolmentId] ?? null));
-			$reason      = self::refusal(enrolment: $enrolment, line: ($results[$enrolmentId] ?? null), resultsKept: $results !== []);
+			$name        = $this->outcome->nameOf(enrolment: $enrolment, line: ($results[$enrolmentId] ?? null));
+			$reason      = $this->outcome->refusal(enrolment: $enrolment, line: ($results[$enrolmentId] ?? null), resultsKept: $results !== []);
 			if ($reason !== null) {
-				$skipped[] = self::skip(enrolmentId: $enrolmentId, name: $name, reason: $reason);
+				$skipped[] = $this->outcome->skip(enrolmentId: $enrolmentId, name: $name, reason: $reason);
 				continue;
 			}
 
@@ -135,7 +125,7 @@ class CertificateIssueService implements CertificateIssueServiceInterface {
 
 			$credentialId = $this->issueOne(enrolment: $enrolment, day: $day);
 			if ($credentialId === null) {
-				$skipped[] = self::skip(enrolmentId: $enrolmentId, name: $name, reason: 'unsigned');
+				$skipped[] = $this->outcome->skip(enrolmentId: $enrolmentId, name: $name, reason: 'unsigned');
 				continue;
 			}
 
@@ -148,132 +138,9 @@ class CertificateIssueService implements CertificateIssueServiceInterface {
 			'issued' => $issued,
 			'skipped' => $skipped,
 			'alreadyIssued' => $already,
-			'summary' => self::summary(issued: count($issued), skipped: $skipped, already: $already),
+			'summary' => $this->outcome->summary(issued: count($issued), skipped: $skipped, already: $already),
 		];
 	}//end issue()
-
-	/**
-	 * "10 certificaten uitgegeven. Niet uitgegeven: Sanne de Wit (geen uitslag)."
-	 *
-	 * @param int                                       $issued  How many were issued.
-	 * @param list<array{learnerName: string|null, reason: string}> $skipped Who was skipped.
-	 * @param int                                       $already How many already held one.
-	 *
-	 * @return string
-	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-thursdays-f-gassen-day
-	 */
-	public static function summary(int $issued, array $skipped, int $already): string {
-		$noun = 'certificaten';
-		if ($issued === 1) {
-			$noun = 'certificaat';
-		}
-
-		$line = $issued . ' ' . $noun . ' uitgegeven.';
-		if ($already > 0) {
-			$line .= ' ' . $already . ' had al een certificaat.';
-		}
-
-		if ($skipped !== []) {
-			$names = array_map(
-				static fn (array $row): string => (($row['learnerName'] ?? null) ?? 'Een deelnemer') . ' (' . self::REASONS[$row['reason']] . ')',
-				$skipped
-			);
-			$line .= ' Niet uitgegeven: ' . implode(', ', $names) . '.';
-		}
-
-		return $line;
-	}//end summary()
-
-	/**
-	 * The result line per enrolment, from the day's lists; a line with a result wins.
-	 *
-	 * @param list<array<string, mixed>> $lists The day's registration lists.
-	 *
-	 * @return array<string, array<string, mixed>>
-	 */
-	private static function results(array $lists): array {
-		$results = [];
-		foreach ($lists as $list) {
-			foreach ((array)($list['lines'] ?? []) as $line) {
-				$id = (string)($line['enrolmentId'] ?? '');
-				if ($id === '' || ($line['result'] ?? null) === null) {
-					continue;
-				}
-
-				$results[$id] = $line;
-			}
-		}
-
-		return $results;
-	}//end results()
-
-	/**
-	 * Why the participant gets no certificate, or null when they passed.
-	 *
-	 * With results kept on a list, only `pass` passes. A day whose lists hold
-	 * no result at all reads the enrolment: completed passes.
-	 *
-	 * @param array<string, mixed>      $enrolment   The enrolment.
-	 * @param array<string, mixed>|null $line        The participant's result line.
-	 * @param bool                      $resultsKept Whether any list of the day holds a result.
-	 *
-	 * @return string|null
-	 */
-	private static function refusal(array $enrolment, ?array $line, bool $resultsKept): ?string {
-		if ($line !== null) {
-			if ($line['result'] === 'pass') {
-				return null;
-			}
-
-			return 'failed';
-		}
-
-		if ($resultsKept === false && ($enrolment['lifecycle'] ?? null) === 'completed') {
-			return null;
-		}
-
-		if (($enrolment['lifecycle'] ?? null) === 'failed') {
-			return 'failed';
-		}
-
-		return 'no-result';
-	}//end refusal()
-
-	/**
-	 * A skipped participant.
-	 *
-	 * @param string      $enrolmentId The enrolment.
-	 * @param string|null $name        The participant's name.
-	 * @param string      $reason      The reason key.
-	 *
-	 * @return array{enrolmentId: string, learnerName: string|null, reason: string, sentence: string}
-	 */
-	private static function skip(string $enrolmentId, ?string $name, string $reason): array {
-		return [
-			'enrolmentId' => $enrolmentId,
-			'learnerName' => $name,
-			'reason' => $reason,
-			'sentence' => (($name ?? 'Een deelnemer') . ': ' . self::REASONS[$reason] . '.'),
-		];
-	}//end skip()
-
-	/**
-	 * The participant's name, from the list or the enrolment's readable copy.
-	 *
-	 * @param array<string, mixed>      $enrolment The enrolment.
-	 * @param array<string, mixed>|null $line      The result line.
-	 *
-	 * @return string|null
-	 */
-	private static function nameOf(array $enrolment, ?array $line): ?string {
-		$name = trim((string)($line['learnerName'] ?? ($enrolment['learnerName'] ?? '')));
-		if ($name === '') {
-			return null;
-		}
-
-		return $name;
-	}//end nameOf()
 
 	/**
 	 * Whether the enrolment already led to a certificate.
@@ -349,9 +216,7 @@ class CertificateIssueService implements CertificateIssueServiceInterface {
 			_rbac: false,
 			_multitenancy: false
 		);
-		$row = (new SerialisedRow())->asArray(object: $saved);
-
-		return (string)($row['id'] ?? ($row['uuid'] ?? $id));
+		return $this->outcome->savedId(saved: $saved, fallback: $id);
 	}//end issueOne()
 
 	/**

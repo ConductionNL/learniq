@@ -26,9 +26,6 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\ExamRegistration;
 
-use DateTimeImmutable;
-use DateTimeZone;
-use Exception;
 use OCA\Learniq\Service\CsvCellSanitizer;
 
 /**
@@ -64,13 +61,6 @@ final class ExamRegistrationLines {
 	public const ZONE = 'Europe/Amsterdam';
 
 	/**
-	 * The Dutch weekdays, Monday first.
-	 *
-	 * @var list<string>
-	 */
-	private const WEEKDAYS = ['maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag'];
-
-	/**
 	 * The fields a list requires: the known ones it names, in its order, else the default.
 	 *
 	 * @param mixed $required The list's `requiredFields`.
@@ -79,7 +69,7 @@ final class ExamRegistrationLines {
 	 *
 	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
 	 */
-	public static function required(mixed $required): array {
+	public function required(mixed $required): array {
 		$fields = [];
 		foreach ((array)$required as $field) {
 			$field = (string)$field;
@@ -105,9 +95,9 @@ final class ExamRegistrationLines {
 	 *
 	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
 	 */
-	public static function value(array $profile, string $field): string {
+	public function value(array $profile, string $field): string {
 		if ($field === 'fullName') {
-			return self::fullName(profile: $profile);
+			return $this->fullName(profile: $profile);
 		}
 
 		return trim((string)($profile[$field] ?? ''));
@@ -122,7 +112,7 @@ final class ExamRegistrationLines {
 	 *
 	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
 	 */
-	public static function fullName(array $profile): string {
+	public function fullName(array $profile): string {
 		$name = trim(trim((string)($profile['givenName'] ?? '')) . ' ' . trim((string)($profile['familyName'] ?? '')));
 		if ($name !== '' && trim((string)($profile['givenName'] ?? '')) !== '' && trim((string)($profile['familyName'] ?? '')) !== '') {
 			return $name;
@@ -153,7 +143,7 @@ final class ExamRegistrationLines {
 	 *
 	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
 	 */
-	public static function line(array $enrolment, array $profile, array $organisation, array $state): array {
+	public function line(array $enrolment, array $profile, array $organisation, array $state): array {
 		$required = array_values(array_map('strval', (array)($state['required'] ?? [])));
 		$previous = null;
 		if (is_array($state['previous'] ?? null) === true) {
@@ -163,17 +153,17 @@ final class ExamRegistrationLines {
 		$now = (string)($state['now'] ?? '');
 		$missing = [];
 		foreach ($required as $field) {
-			if (self::value(profile: $profile, field: $field) === '') {
+			if ($this->value(profile: $profile, field: $field) === '') {
 				$missing[] = $field;
 			}
 		}
 
-		$name = self::fullName(profile: $profile);
+		$name = $this->fullName(profile: $profile);
 		if ($name === '') {
 			$name = trim((string)($profile['fullName'] ?? ($enrolment['learnerName'] ?? '')));
 		}
 
-		$task       = self::textOrNull(value: ($enrolment['openTask'] ?? null));
+		$task       = $this->textOrNull(value: ($enrolment['openTask'] ?? null));
 		$notifiedAt = null;
 		if ($missing !== [] && $task !== null) {
 			$notifiedAt = ($previous['employerNotifiedAt'] ?? $now);
@@ -185,11 +175,11 @@ final class ExamRegistrationLines {
 
 		return [
 			'enrolmentId' => (string)($enrolment['id'] ?? ''),
-			'learnerRef' => self::textOrNull(value: ($profile['id'] ?? ($enrolment['learnerRef'] ?? null))),
-			'learnerName' => self::textOrNull(value: $name),
-			'organisationRef' => self::textOrNull(value: ($organisation['id'] ?? ($enrolment['organisationRef'] ?? null))),
-			'organisationName' => self::textOrNull(value: ($organisation['name'] ?? null)),
-			'contactName' => self::textOrNull(value: ($organisation['contactName'] ?? null)),
+			'learnerRef' => $this->textOrNull(value: ($profile['id'] ?? ($enrolment['learnerRef'] ?? null))),
+			'learnerName' => $this->textOrNull(value: $name),
+			'organisationRef' => $this->textOrNull(value: ($organisation['id'] ?? ($enrolment['organisationRef'] ?? null))),
+			'organisationName' => $this->textOrNull(value: ($organisation['name'] ?? null)),
+			'contactName' => $this->textOrNull(value: ($organisation['contactName'] ?? null)),
 			'missing' => $missing,
 			'complete' => $missing === [],
 			'employerTask' => $task,
@@ -209,9 +199,9 @@ final class ExamRegistrationLines {
 	 *
 	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-youssefs-birth-date
 	 */
-	public static function summary(array $lines): string {
+	public function summary(array $lines): string {
 		$total    = count($lines);
-		$complete = self::completeCount(lines: $lines);
+		$complete = $this->completeCount(lines: $lines);
 		if ($total === 1) {
 			if ($complete === 1) {
 				return 'De deelnemer is compleet.';
@@ -241,7 +231,7 @@ final class ExamRegistrationLines {
 	 *
 	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-youssefs-birth-date
 	 */
-	public static function completeCount(array $lines): int {
+	public function completeCount(array $lines): int {
 		return count(array_filter($lines, static fn (array $line): bool => ($line['complete'] ?? false) === true));
 	}//end completeCount()
 
@@ -254,7 +244,7 @@ final class ExamRegistrationLines {
 	 *
 	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-youssefs-birth-date
 	 */
-	public static function missingSentence(array $line): string {
+	public function missingSentence(array $line): string {
 		$nouns = array_map(static fn (string $field): string => self::FIELDS[$field]['noun'], (array)($line['missing'] ?? []));
 		$who   = trim((string)($line['learnerName'] ?? ''));
 		if ($who === '') {
@@ -275,76 +265,6 @@ final class ExamRegistrationLines {
 	}//end missingSentence()
 
 	/**
-	 * "De werkgever kreeg vanochtend bericht.", or null when the employer was not told.
-	 *
-	 * @param string|null $notifiedAt When the employer was told (ISO 8601).
-	 * @param string      $now        Now (ISO 8601).
-	 *
-	 * @return string|null
-	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-youssefs-birth-date
-	 */
-	public static function notice(?string $notifiedAt, string $now): ?string {
-		$told  = self::moment(value: $notifiedAt);
-		$today = self::moment(value: $now);
-		if ($told === null || $today === null) {
-			return null;
-		}
-
-		$days = (int)$told->setTime(0, 0)->diff($today->setTime(0, 0))->format('%r%a');
-		$when = 'op ' . self::longDate(day: $told);
-		if ($days === 0) {
-			$when = self::partOfDay(moment: $told);
-		} else if ($days === 1) {
-			$when = 'gisteren';
-		}
-
-		return 'De werkgever kreeg ' . $when . ' bericht.';
-	}//end notice()
-
-	/**
-	 * "De aanmelding voor het examen van donderdag sluit woensdag om 12.00 uur."
-	 *
-	 * @param string|null $examDate The exam date (Y-m-d).
-	 * @param string|null $closesAt The moment the list closes (ISO 8601).
-	 *
-	 * @return string|null Null when the list has no closing moment.
-	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-youssefs-birth-date
-	 */
-	public static function closingSentence(?string $examDate, ?string $closesAt): ?string {
-		$closes = self::moment(value: $closesAt);
-		if ($closes === null) {
-			return null;
-		}
-
-		$exam = 'het examen';
-		$day  = self::moment(value: $examDate);
-		if ($day !== null) {
-			$exam .= ' van ' . self::weekday(day: $day);
-		}
-
-		return 'De aanmelding voor ' . $exam . ' sluit ' . self::weekday(day: $closes) . ' om ' . $closes->format('H.i') . ' uur.';
-	}//end closingSentence()
-
-	/**
-	 * Whether the list's closing moment has come.
-	 *
-	 * @param string|null $closesAt The moment (ISO 8601).
-	 * @param string      $now      Now (ISO 8601).
-	 *
-	 * @return bool
-	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
-	 */
-	public static function isDue(?string $closesAt, string $now): bool {
-		$closes = self::moment(value: $closesAt);
-		$moment = self::moment(value: $now);
-
-		return $closes !== null && $moment !== null && $closes <= $moment;
-	}//end isDue()
-
-	/**
 	 * The CSV of a closed list: a header of the body's columns, then one row
 	 * per participant with the values read from the profiles. Cells are
 	 * guarded against spreadsheet formulas.
@@ -357,14 +277,14 @@ final class ExamRegistrationLines {
 	 *
 	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
 	 */
-	public static function csv(array $required, array $lines, array $profiles): string {
+	public function csv(array $required, array $lines, array $profiles): string {
 		$sanitizer = new CsvCellSanitizer();
 		$rows      = [array_map(static fn (string $field): string => self::FIELDS[$field]['column'], $required)];
 		foreach ($lines as $line) {
 			$profile = ($profiles[(string)($line['learnerRef'] ?? '')] ?? []);
 			$row     = [];
 			foreach ($required as $field) {
-				$value = self::value(profile: $profile, field: $field);
+				$value = $this->value(profile: $profile, field: $field);
 				if ($field === 'fullName' && $value === '') {
 					$value = (string)($line['learnerName'] ?? '');
 				}
@@ -375,7 +295,7 @@ final class ExamRegistrationLines {
 			$rows[] = $row;
 		}
 
-		return implode("\r\n", array_map(static fn (array $row): string => implode(';', array_map(self::cell(...), $row)), $rows)) . "\r\n";
+		return implode("\r\n", array_map(fn (array $row): string => implode(';', array_map($this->cell(...), $row)), $rows)) . "\r\n";
 	}//end csv()
 
 	/**
@@ -385,7 +305,7 @@ final class ExamRegistrationLines {
 	 *
 	 * @return string
 	 */
-	private static function cell(string $value): string {
+	private function cell(string $value): string {
 		if (strpbrk($value, ";\"\r\n") === false) {
 			return $value;
 		}
@@ -394,76 +314,13 @@ final class ExamRegistrationLines {
 	}//end cell()
 
 	/**
-	 * "vanochtend", "vanmiddag" or "vanavond".
-	 *
-	 * @param DateTimeImmutable $moment The moment.
-	 *
-	 * @return string
-	 */
-	private static function partOfDay(DateTimeImmutable $moment): string {
-		$hour = (int)$moment->format('G');
-		if ($hour < 12) {
-			return 'vanochtend';
-		}
-
-		if ($hour < 18) {
-			return 'vanmiddag';
-		}
-
-		return 'vanavond';
-	}//end partOfDay()
-
-	/**
-	 * The Dutch weekday.
-	 *
-	 * @param DateTimeImmutable $day The day.
-	 *
-	 * @return string
-	 */
-	private static function weekday(DateTimeImmutable $day): string {
-		return self::WEEKDAYS[((int)$day->format('N') - 1)];
-	}//end weekday()
-
-	/**
-	 * "8 oktober".
-	 *
-	 * @param DateTimeImmutable $day The day.
-	 *
-	 * @return string
-	 */
-	private static function longDate(DateTimeImmutable $day): string {
-		$months = ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december'];
-
-		return $day->format('j') . ' ' . $months[((int)$day->format('n') - 1)];
-	}//end longDate()
-
-	/**
-	 * A moment read in the list's zone, or null.
-	 *
-	 * @param string|null $value An ISO 8601 date or moment.
-	 *
-	 * @return DateTimeImmutable|null
-	 */
-	private static function moment(?string $value): ?DateTimeImmutable {
-		if ($value === null || trim($value) === '') {
-			return null;
-		}
-
-		try {
-			return (new DateTimeImmutable($value, new DateTimeZone(self::ZONE)))->setTimezone(new DateTimeZone(self::ZONE));
-		} catch (Exception) {
-			return null;
-		}
-	}//end moment()
-
-	/**
 	 * A trimmed text, or null when empty.
 	 *
 	 * @param mixed $value The value.
 	 *
 	 * @return string|null
 	 */
-	private static function textOrNull(mixed $value): ?string {
+	private function textOrNull(mixed $value): ?string {
 		$text = '';
 		if (is_scalar($value) === true) {
 			$text = trim((string)$value);
