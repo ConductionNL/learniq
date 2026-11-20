@@ -52,6 +52,29 @@ class SchoolYearTest extends TestCase {
 	}//end testAugustStartsANewSchoolYear()
 
 	/**
+	 * A school that sets its own first day turns its year on that day, not on 1 August.
+	 *
+	 * @return void
+	 */
+	public function testTheYearTurnsOnTheStartGiven(): void {
+		self::assertSame(expected: '2025-2026', actual: SchoolYear::of(date: '2026-08-31', start: '09-01'));
+		self::assertSame(expected: '2026-2027', actual: SchoolYear::of(date: '2026-09-01', start: '09-01'));
+		self::assertSame(expected: '2026-2027', actual: SchoolYear::of(date: '2026-07-15', start: '07-15'));
+		self::assertSame(expected: '2025-2026', actual: SchoolYear::of(date: '2026-07-14', start: '07-15'));
+	}//end testTheYearTurnsOnTheStartGiven()
+
+	/**
+	 * A start that is not a day of the year reads as 1 August.
+	 *
+	 * @return void
+	 */
+	public function testAnUnusableStartReadsAsTheFirstOfAugust(): void {
+		self::assertSame(expected: '2025-2026', actual: SchoolYear::of(date: '2026-07-31', start: '13-01'));
+		self::assertSame(expected: '2026-2027', actual: SchoolYear::of(date: '2026-08-01', start: '02-30'));
+		self::assertSame(expected: '2026-2027', actual: SchoolYear::of(date: '2026-08-01', start: 'september'));
+	}//end testAnUnusableStartReadsAsTheFirstOfAugust()
+
+	/**
 	 * Anything that is not a `Y-m-d` date names no school year.
 	 *
 	 * @return void

@@ -31,7 +31,10 @@ namespace OCA\Learniq\Listener\Registrar;
 use OCA\Learniq\Listener\CompetencyAlignmentListener;
 use OCA\Learniq\Listener\CheckInWindowStamp;
 use OCA\Learniq\Listener\ConferenceSignupPortalStamp;
+use OCA\Learniq\Listener\ExcuseRecoveryGuard;
 use OCA\Learniq\Listener\ExcuseRequestOwnerStamp;
+use OCA\Learniq\Listener\LeaveRequestPortalStamp;
+use OCA\Learniq\Listener\LeaveRequestSchoolDaysStamp;
 use OCA\Learniq\Listener\GradeEntryLearnerRefStamp;
 use OCA\Learniq\Listener\LessonNoteAuthorGuard;
 use OCA\Learniq\Listener\HrFieldOwnershipGuard;
@@ -45,8 +48,12 @@ use OCA\Learniq\Listener\HourWeekSubmissionStamp;
 use OCA\Learniq\Listener\LearningRecordCreatedTransition;
 use OCA\Learniq\Listener\LearningRecordOwnerStamp;
 use OCA\Learniq\Listener\WerkprocesAssessmentLearnerStamp;
+use OCA\Learniq\Listener\BpvPlacementPhaseStamp;
+use OCA\Learniq\Listener\BpvVisitPhaseRollup;
+use OCA\Learniq\Listener\BpvVisitProposalStamp;
 use OCA\Learniq\Listener\HourWeekTotalRollup;
 use OCA\Learniq\Listener\LearnerGroupLabelCascade;
+use OCA\Learniq\Listener\CourseDayStatusCascade;
 use OCA\Learniq\Listener\EmployerBookingCascade;
 use OCA\Learniq\Listener\ReadableCopyStamp;
 use OCA\Learniq\Listener\SubmissionLearnerRefsStamp;
@@ -246,6 +253,32 @@ class IntegrityListenerRegistrar {
 			listener: ExcuseRequestOwnerStamp::class
 		);
 
+		// An open illness ended with reportRecovered (absence-reports-seen-
+		// and-ended T4): the last day may not be before the first day.
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: ExcuseRecoveryGuard::class
+		);
+
+		// LeaveRequest school days (leave-requests-decided-by-the-school T2):
+		// the server counts the school days of the range, which decide who may
+		// decide, and stamps the date the school answers by on a new request.
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: LeaveRequestSchoolDaysStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: LeaveRequestSchoolDaysStamp::class
+		);
+		// A guardian asks leave for her own child only, checked again on the
+		// server after portaliq's cross-reference check; the pupil's group
+		// teachers are stamped so they read it.
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: LeaveRequestPortalStamp::class
+		);
+
 		// ConferenceSignup from the parent portal (portal-parent-conference-
 		// booking): the child must list the guardian and the round must be
 		// open to the child; learnerId, guardianId, tenant and `submitted` are
@@ -355,6 +388,7 @@ class IntegrityListenerRegistrar {
 			event: ObjectUpdatedEvent::class,
 			listener: EmployerBookingCascade::class
 		);
+		$this->registerCourseDayStatus(context: $context);
 		// Who entered a week of hours, when, for which student and for which
 		// school, all from the placement the week names: the pupil's form may
 		// send none of it (internship-hours).
@@ -388,5 +422,54 @@ class IntegrityListenerRegistrar {
 			event: ObjectUpdatedEvent::class,
 			listener: HourWeekTotalRollup::class
 		);
+		// A placement's phase follows its facts, so the board card moves by
+		// itself: stamped on every save of the placement, and the placement is
+		// saved again when one of its visits changes
+		// (bpv-coach-today-and-placement-board T1).
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: BpvPlacementPhaseStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: BpvPlacementPhaseStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectCreatedEvent::class,
+			listener: BpvVisitPhaseRollup::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatedEvent::class,
+			listener: BpvVisitPhaseRollup::class
+		);
+		// "Datum voorstellen": a moment the coach proposes puts the visit in
+		// proposed, waiting for the praktijkopleider (T3).
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: BpvVisitProposalStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: BpvVisitProposalStamp::class
+		);
 	}//end registerReadableCopies()
+
+	/**
+	 * A course day's status follows its bookings, enrolments, sessions,
+	 * minimum and decision, deferred (training-provider-course-days).
+	 *
+	 * @param IRegistrationContext $context The registration context.
+	 *
+	 * @return void
+	 */
+	private function registerCourseDayStatus(IRegistrationContext $context): void {
+		$context->registerEventListener(
+			event: ObjectCreatedEvent::class,
+			listener: CourseDayStatusCascade::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatedEvent::class,
+			listener: CourseDayStatusCascade::class
+		);
+	}//end registerCourseDayStatus()
 }//end class

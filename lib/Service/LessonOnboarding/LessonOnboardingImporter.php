@@ -299,7 +299,7 @@ class LessonOnboardingImporter implements LessonOnboardingImporterInterface {
 	 * @return array{lessonId: string, lessonName: string, courseId: string, blocks: int, materials: int, notes: list<string>}
 	 */
 	private function finishImport(array $run, File $file): array {
-		$notesLost = $this->writeTeacherNotes(notes: $run['notes'], lessonId: $run['lessonId'], tenantId: $run['tenantId']);
+		$notesLost = $this->writeTeacherNotes(run: $run);
 		$run['materials'] = $this->materialCount(run: $run, file: $file);
 		$notes = self::importNotes(notes: $run['lesson']['notes'], notesLost: $notesLost);
 		$notes = $this->markImported(rowId: $run['rowId'], context: self::context(run: $run), notes: $notes);
@@ -380,17 +380,17 @@ class LessonOnboardingImporter implements LessonOnboardingImporterInterface {
 	 * confirming teacher. A note that fails is counted, not fatal: the lesson
 	 * is already there, and the import report says a note is missing.
 	 *
-	 * @param list<array{blockId: string, afterBlockId: string, position: int, text: string}> $notes The split notes.
-	 * @param string $lessonId The created lesson.
-	 * @param string $tenantId The lesson's tenant.
+	 * @param array<string, mixed> $run The import run: its split `notes`, the created `lessonId` and the lesson's `tenantId`.
 	 *
 	 * @return int How many notes could not be saved.
 	 *
 	 * @spec openspec/specs/course-management/spec.md#requirement-imported-slide-notes-land-in-the-staff-store
 	 */
-	private function writeTeacherNotes(array $notes, string $lessonId, string $tenantId): int {
+	private function writeTeacherNotes(array $run): int {
+		$lessonId = $run['lessonId'];
+		$tenantId = $run['tenantId'];
 		$lost = 0;
-		foreach ($notes as $note) {
+		foreach ($run['notes'] as $note) {
 			try {
 				$noteId = $this->objectWriter->create(schema: self::NOTE_SCHEMA, object: [...$note, 'lessonId' => $lessonId, 'tenant_id' => $tenantId]);
 			} catch (Throwable $e) {

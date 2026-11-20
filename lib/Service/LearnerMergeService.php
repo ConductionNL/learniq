@@ -233,7 +233,7 @@ class LearnerMergeService implements LearnerMergeServiceInterface {
 
 		$moved = 0;
 		foreach (self::LEARNER_OWNED as $schema => $fields) {
-			$moved += $this->moveSchema(schema: $schema, fields: $fields, rewrites: $rewrites);
+			$moved += $this->moveSchema(schema: $schema, move: ['fields' => $fields, 'rewrites' => $rewrites]);
 		}
 
 		$this->logger->info(
@@ -270,13 +270,14 @@ class LearnerMergeService implements LearnerMergeServiceInterface {
 	/**
 	 * Re-point one schema's records.
 	 *
-	 * @param string               $schema   Schema slug.
-	 * @param array<int,string>    $fields   Reference fields on the schema.
-	 * @param array<string,string> $rewrites Old value to new value.
+	 * @param string                     $schema Schema slug.
+	 * @param array<string,array<mixed>> $move   The reference `fields` on the schema and the `rewrites` (old value to new value).
 	 *
 	 * @return int How many records were saved.
 	 */
-	private function moveSchema(string $schema, array $fields, array $rewrites): int {
+	private function moveSchema(string $schema, array $move): int {
+		$fields = $move['fields'];
+		$rewrites = $move['rewrites'];
 		$pending = [];
 		foreach ($fields as $field) {
 			foreach (array_keys($rewrites) as $old) {
@@ -325,7 +326,7 @@ class LearnerMergeService implements LearnerMergeServiceInterface {
 	 *
 	 * @return bool True when the record is not moved.
 	 *
-	 * @spec openspec/changes/compliance-attestation-locked-after-signing/specs/compliance-audit/spec.md#requirement-a-signed-attestation-cannot-be-edited
+	 * @spec openspec/specs/compliance-audit/spec.md#requirement-a-signed-attestation-cannot-be-edited
 	 */
 	private static function isSignedEvidence(string $schema, array $row): bool {
 		return in_array((string)($row['lifecycle'] ?? ''), (self::SIGNED_EVIDENCE[$schema] ?? []), true);

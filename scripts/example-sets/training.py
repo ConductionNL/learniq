@@ -632,6 +632,14 @@ STORY_COURSES = {
             "description": "Een dag inregelen: het debiet per radiator of groep berekenen, instellen en meten, zodat het hele huis warm wordt.",
             "lessons": [("Waterzijdig inregelen in de praktijk", 1, None,
                          "Het debiet per radiator of groep berekenen, de installatie inregelen en het resultaat meten.")]},
+    "WP-HY": {"name": "Hybride warmtepomp", "regulation": None, "mandatory": False, "tags": ["warmtepompen", "hybride"],
+              "description": "Een dag over de hybride warmtepomp naast de cv-ketel: plaatsen, aansluiten en de regeling instellen.",
+              "lessons": [("Hybride warmtepomp plaatsen en instellen", 1, None,
+                           "De hybride warmtepomp naast de cv-ketel plaatsen, aansluiten en de regeling zo instellen dat hij de ketel aanvult.")]},
+    "WP-S": {"name": "Storingen zoeken aan warmtepompen", "regulation": None, "mandatory": False, "tags": ["warmtepompen", "storingen", "praktijk"],
+             "description": "Een praktijkdag: storingen herkennen, meten en verhelpen aan echte opstellingen in de praktijkhal.",
+             "lessons": [("Storingen zoeken in de praktijk", 1, None,
+                          "Storingscodes lezen, meten aan de koudekringloop en de storing verhelpen aan een opstelling in de hal.")]},
 }
 
 # The company's register entries (invented: a KvK number starting with 0 is never issued).
@@ -670,6 +678,24 @@ STORY_CAPACITY = {
     ("WP-B", dt.date(2026, 10, 20)): 4,
     ("WP-LW", dt.date(2026, 11, 3)): 12,
 }
+
+
+# training-provider-course-days. What a participant brings to an F-gassen day (board MobielDetail, "Meenemen").
+STORY_BRING_LIST = {
+    "FGAS-H": ["Een geldig legitimatiebewijs", "Uw huidige F-gassencertificaat", "Werkschoenen en werkkleding"],
+}
+# A second client company whose bookings fill the course days of the planner's Today (invented KvK number).
+STORY_OTHER_COMPANY = ("Klimaattechniek De Boer", "09413000")
+# Course days with a minimum and a decision date: (course, day, trainer, capacity, minimum, decide by, places booked, booking state).
+# Hybride warmtepomp on 22 October has 4 of minimum 6 and is decided by Thursday 8 October (board LqVandaag);
+# 26 November has 9 places free. The 5 October practical day is split into a morning and an afternoon (board LqRolB).
+STORY_COURSE_DAYS = [
+    ("WP-HY", dt.date(2026, 10, 22), FATIMA, 12, 6, dt.date(2026, 10, 8), 4, "confirmed"),
+    ("WP-HY", dt.date(2026, 11, 26), FATIMA, 12, 6, dt.date(2026, 11, 12), 3, "received"),
+    ("WP-S", dt.date(2026, 10, 5), HENK, 9, 6, dt.date(2026, 9, 24), 9, "confirmed"),
+]
+# The parts of the 5 October practical day.
+STORY_PARTS = {"morning": "ochtend", "afternoon": "middag"}
 
 
 @dataclass(frozen=True)
@@ -770,6 +796,7 @@ def employer_booking_facts(order: Booking, context: BookingContext) -> dict:
     for e, p in participants:
         name = f"{p.get('givenName', '')} {p.get('familyName', '')}".strip()
         fields = participant_facts(p, name, context.renewed.get(e["uuid"]), needs, first)
+        fields["step"] = participant_step(lifecycle, fields["detailsStatus"])
         missing += fields["detailsStatus"] == "birth-date-missing"
         enrolments[e["uuid"]] = fields
         names.append(name)
@@ -785,7 +812,8 @@ def employer_booking_facts(order: Booking, context: BookingContext) -> dict:
     time_label = first_day_times(sessions, first)
     course_name = (course.get("name") or "").strip() or None
     day = {"firstDay": first.isoformat() if first else None, "dayLabel": label, "timeLabel": time_label, "placeLabel": context.place,
-           "trainerName": context.trainer, "upcoming": lifecycle in ("received", "confirmed")}
+           "trainerName": context.trainer, "upcoming": lifecycle in ("received", "confirmed"),
+           "bringList": [x.strip() for x in course.get("bringList") or [] if isinstance(x, str) and x.strip()]}
     for key in enrolments:
         enrolments[key].update(day)
     return {
@@ -833,13 +861,24 @@ def booking_lifecycle(booking: dict, states: list[str]) -> str:
     return "confirmed" if "active" in states else "received"
 
 
+def participant_step(lifecycle: str, details_status: str) -> str | None:
+    """A port of EmployerBookingFacts::participantStep(): the participant's current step of his booking."""
+    if lifecycle == "completed":
+        return "result"
+    if lifecycle == "confirmed":
+        return "details" if details_status != "complete" else "course-day"
+    return "confirmed" if lifecycle == "received" else None
+
+
 def participant_facts(p: dict, name: str, credential: dict | None, needs: bool, first: dt.date | None) -> dict:
     """One participant's facts: the certificate line, and the open task when an exam needs a missing birth date."""
-    line = None
+    line, valid_until = None, None
     if credential and credential.get("expiresAt"):
         x = parse_moment(credential["expiresAt"])
         line = f"Certificaat geldig tot {x.day} {MAAND[x.month - 1]} {x.year}"
-    fields = {"detailsStatus": "complete", "openTask": None, "openTaskNote": None, "openTaskDueAt": None, "certificateLine": line}
+        valid_until = x.date().isoformat()
+    fields = {"detailsStatus": "complete", "openTask": None, "openTaskNote": None, "openTaskDueAt": None, "certificateLine": line,
+              "certificateValidUntil": valid_until}
     if needs and not p.get("birthDate"):
         given = p.get("givenName", "").strip()
         weekday = f" {NL_WEEKDAYS[first.weekday()]}" if first else ""
@@ -964,6 +1003,7 @@ class JansenStory:
         self.add_trainers()
         self.add_editions()
         self.add_credentials()
+        self.add_course_days()
         self.add_booking_facts()
 
     def add_rooms(self) -> None:
@@ -1102,6 +1142,58 @@ class JansenStory:
                         "status": "present", "minutesAttended": (h2 * 60 + m2) - (h1 * 60 + m1), "markedBy": trainer,
                         "markedAt": stamp(d, h1, m1 + 10), "reason": None, "excuseRequestId": None,
                     })
+
+    def add_course_days(self) -> None:
+        """training-provider-course-days: what to bring to the F-gassen day, and course days with a minimum and a
+        decision date, booked by a second company. A day held in parts has one session with a morning and an afternoon."""
+        for key, lines in STORY_BRING_LIST.items():
+            self.courses[key]["bringList"] = list(lines)
+        name, kvk = STORY_OTHER_COMPANY
+        company = self.b.add("client-organisation", {
+            "name": name, "kvkNumber": kvk, "contactName": "Erik de Boer", "contactEmail": "planning@klimaattechniek-deboer.example",
+            "locationId": self.location["uuid"], "lifecycle": "active",
+        })
+        for number, (key, day, trainer, capacity, minimum, decide_by, places, state) in enumerate(STORY_COURSE_DAYS, start=501):
+            course = self.courses[key]
+            done = day < STORY_TODAY
+            cohort = self.b.add("cohort", {
+                "name": f"{course['name']}, {day.day} {MAAND[day.month - 1]} {day.year}",
+                "period": f"{MAAND[day.month - 1].capitalize()} {day.year}", "academicYear": STORY_YEAR,
+                "teacherIds": [trainer], "learnerIds": [], "lifecycle": "completed" if done else "planned",
+                "locationId": self.location["uuid"], "kind": "teaching", "courseId": course["uuid"],
+                "capacity": capacity, "minParticipants": minimum, "goDecisionBy": decide_by.isoformat(),
+            })
+            self.b.add("subjectteacherassignment", {"cohortId": cohort["uuid"], "courseId": course["uuid"], "teacherId": trainer})
+            lesson = self.lessons[key][0][0] if self.lessons[key] else None
+            when = f"{day.day} {MAAND[day.month - 1]} {day.year}"
+            sessions = []
+            if key == "WP-S":
+                (h1, m1), _ = HALL_SLOTS["ochtend"]
+                _, (h2, m2) = HALL_SLOTS["middag"]
+                sessions.append(self.b.add("session", {
+                    "cohortId": cohort["uuid"], "courseId": course["uuid"], "lessonId": lesson["uuid"] if lesson else None,
+                    "title": f"{course['name']} ({when})", "startsAt": stamp(day, h1, m1), "endsAt": stamp(day, h2, m2),
+                    "location": f"{self.room_of['middag']['name']}, {self.location['name']}", "roomId": self.room_of["middag"]["uuid"],
+                    "lifecycle": "scheduled",
+                    "parts": [{"key": part, "startsAt": stamp(day, *HALL_SLOTS[slot][0]), "endsAt": stamp(day, *HALL_SLOTS[slot][1])}
+                              for part, slot in STORY_PARTS.items()],
+                }))
+            else:
+                for part in ("ochtend", "middag"):
+                    (h1, m1), (h2, m2) = HALL_SLOTS[part]
+                    sessions.append(self.b.add("session", {
+                        "cohortId": cohort["uuid"], "courseId": course["uuid"], "lessonId": lesson["uuid"] if lesson else None,
+                        "title": f"{course['name']}, {part} ({when})", "startsAt": stamp(day, h1, m1), "endsAt": stamp(day, h2, m2),
+                        "location": f"{self.room_of[part]['name']}, {self.location['name']}", "roomId": self.room_of[part]["uuid"],
+                        "lifecycle": "scheduled",
+                    }))
+            booking = self.b.add("course-booking", {
+                "organisationRef": company["uuid"], "bookingNumber": f"I-2026-{number:04d}", "cohortId": cohort["uuid"],
+                "courseId": course["uuid"], "participantCount": places, "requestedAt": stamp(day - dt.timedelta(days=40), 10, 0),
+                "requestedByName": "Erik de Boer", "lifecycle": state,
+            })
+            # No participants are named yet; add_booking_facts still writes what the server derives for the booking.
+            self.bookings.append((booking, course, sessions, []))
 
     def add_credentials(self) -> None:
         """Sanne's proof of participation for Waterzijdig inregelen, ready on Thursday 1 October at 16.52,

@@ -137,8 +137,6 @@ class LearningPlanSignatureGuard implements LifecycleGuardInterface {
 		$planId = $plan['id'] ?? ($plan['uuid'] ?? '');
 		$templateId = $plan['templateId'] ?? null;
 		$version = (int)($plan['version'] ?? 1);
-		$kind = $plan['kind'] ?? '';
-		$learnerId = $plan['learnerId'] ?? '';
 		$tenantId = $plan['tenant_id'] ?? '';
 
 		if ($planId === '') {
@@ -157,6 +155,26 @@ class LearningPlanSignatureGuard implements LifecycleGuardInterface {
 			);
 			return true;
 		}
+
+		return $this->requiredRolesSigned(plan: $plan, requiredRoles: $requiredRoles);
+	}//end allows()
+
+	/**
+	 * Whether every required role signed this plan version with sufficient assurance.
+	 *
+	 * @param array<string,mixed> $plan          The object at its target state, transition inputs merged in.
+	 * @param string[]            $requiredRoles The roles the template requires to sign.
+	 *
+	 * @return bool True when all required roles have signed with sufficient assurance.
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-15
+	 */
+	private function requiredRolesSigned(array $plan, array $requiredRoles): bool {
+		$planId = $plan['id'] ?? ($plan['uuid'] ?? '');
+		$version = (int)($plan['version'] ?? 1);
+		$kind = $plan['kind'] ?? '';
+		$learnerId = $plan['learnerId'] ?? '';
+		$tenantId = $plan['tenant_id'] ?? '';
 
 		// Fetch all Signatures for this plan + version.
 		$signatures = $this->fetchSignatures(planId: $planId, version: $version, tenantId: $tenantId);
@@ -196,9 +214,8 @@ class LearningPlanSignatureGuard implements LifecycleGuardInterface {
 			['n' => count($requiredRoles), 'id' => $planId, 'v' => $version]
 		);
 
-
 		return true;
-	}//end allows()
+	}//end requiredRolesSigned()
 
 	/**
 	 * Fetch the requiredSignerRoles from the LearningPlanTemplate.
@@ -238,6 +255,19 @@ class LearningPlanSignatureGuard implements LifecycleGuardInterface {
 			]
 		);
 
+		return $this->requiredRolesOf(templates: $templates);
+	}//end fetchRequiredRoles()
+
+	/**
+	 * The requiredSignerRoles of the found template, or none without one.
+	 *
+	 * @param array<int,mixed> $templates The templates found, at most one.
+	 *
+	 * @return string[] Empty array when no template or no roles defined.
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-15
+	 */
+	private function requiredRolesOf(array $templates): array {
 		if (empty($templates) === true) {
 			return [];
 		}
@@ -248,7 +278,7 @@ class LearningPlanSignatureGuard implements LifecycleGuardInterface {
 		}
 
 		return $template['requiredSignerRoles'] ?? [];
-	}//end fetchRequiredRoles()
+	}//end requiredRolesOf()
 
 	/**
 	 * Fetch all Signature objects for the given plan and version.
