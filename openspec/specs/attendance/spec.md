@@ -444,6 +444,32 @@ The upgrade MUST write `learnerRef` on every stored absence report and conferenc
 - THEN the report carries the pupil's learner profile, and a second run saves nothing
 - @e2e exclude repair step; covered by tests/Unit/Repair/BackfillRequiredLearnerRefsTest.php
 
+### Requirement: Staff see the unauthorised hours against the limit before a flag exists
+
+For each pupil with an attendance threshold, `attendance-summary` MUST carry the lesuren without permission in the threshold's window ending today, the limit, and a line "{n} van {limit} uur". A pupil whose count is at or above the threshold's `warnAtHours` and under its limit MUST be listed as nearing the limit to the teachers of the pupil's groups, the mentor and the head of the school. Reaching the warning level MUST NOT create an `attendance-flag` or any report.
+
+#### Scenario: Sem at 14 of 16
+- **GIVEN** Sem missed 14 lesuren without permission in the last four weeks, and the threshold warns at 12
+- **WHEN** his teacher opens Today
+- **THEN** Sem is listed with "14 van 16 uur" and no flag exists for him
+- @e2e exclude spec-only proposal; the recount is asserted in its unit tests
+
+#### Scenario: The count drops
+- **GIVEN** Finn is at 12 of 16
+- **WHEN** two of his hours are excused afterwards
+- **THEN** his count reads 10 of 16 and he is no longer listed
+- @e2e exclude as above
+
+### Requirement: A trainer registers attendance per part of the day
+
+A course day's session MAY be split into parts (morning, afternoon); attendance MUST then be registered per participant per part, with an arrival time when late, and the trainer's Today MUST name the part that has begun and is not yet registered.
+
+#### Scenario: The afternoon has begun
+- **GIVEN** the morning of "Storingen zoeken aan warmtepompen" is registered (8 of 9, Mehmet Kaya at 10.15)
+- **WHEN** Henk Dekker opens Today at 13.05
+- **THEN** the card reads "De middag is begonnen. Vul de aanwezigheid in." with "Vanochtend waren er 8 van de 9"
+- @e2e exclude staff screen; spec-only proposal
+
 ## Standards
 
 Schema.org `Event` / `Schedule` for sessions; NL Leerplichtwet art. 21a (the 16-uur rule as an `AttendanceThreshold` profile); Digikoppeling / StUF for the leerplicht report (a `data-exchange` adapter); eIDAS / DigiD assurance for authenticated sick-reporting.

@@ -179,7 +179,7 @@ class EmployerBookingFactsTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-says-what-to-bring
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-course-says-what-to-bring
 	 */
 	public function testTheParticipantsCourseDayCarriesWhatToBring(): void {
 		$facts = (new EmployerBookingFacts())->derive(
@@ -204,7 +204,7 @@ class EmployerBookingFactsTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/training-provider-course-days/tasks.md#t7
+	 * @spec openspec/changes/archive/2026-11-17-training-provider-course-days/tasks.md#t7
 	 */
 	public function testTheParticipantsStepOfHisBooking(): void {
 		$facts = (new EmployerBookingFacts())->derive(
