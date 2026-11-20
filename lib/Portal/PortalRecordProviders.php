@@ -41,10 +41,12 @@ class PortalRecordProviders {
 	 *
 	 * @param PortalMessageContacts|null $contacts  Who a resident may write to (portal-message-contacts).
 	 * @param GuardianDocuments|null     $documents What a guardian may download (guardian-reports-and-documents).
+	 * @param LearnerDocuments|null      $learner   What a learner may download (school-documents-on-the-portal).
 	 */
 	public function __construct(
 		public readonly ?PortalMessageContacts $contacts=null,
 		public readonly ?GuardianDocuments $documents=null,
+		public readonly ?LearnerDocuments $learner=null,
 	) {
 	}//end __construct()
 }//end class

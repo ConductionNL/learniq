@@ -144,6 +144,7 @@ class StudentPortalCollections {
 			'source',
 			'regulationSlug',
 			'cohortId',
+			'cohortName',
 		],
 		// Who she may write to: the teachers of each active group
 		// (portal-message-contacts, portaliq site-messages-per-record).
@@ -152,6 +153,9 @@ class StudentPortalCollections {
 			'composeLabel' => 'A message to your teacher',
 			'composeHint' => 'Your teacher usually answers within two school days.',
 		],
+		// Her own documents per enrolment (school-documents-on-the-portal T3):
+		// reports, statements, agreements with their signing state, certificates.
+		'documents' => ['label' => 'Documents', 'provider' => 'studentDocuments'],
 	];
 
 	private const STUDENT_SUBMISSIONS = [
