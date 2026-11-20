@@ -59,17 +59,22 @@ class ExamProgressTest extends TestCase {
 			['id' => 's-cancelled', 'startsAt' => '2026-10-20T09:00:00+02:00', 'lifecycle' => 'cancelled', 'examCode' => 'X'],
 		];
 
-		$result = (new ExamProgress())->derive($plan, $entries, $sittings, new DateTimeImmutable('2026-10-05T10:00:00', new DateTimeZone('Europe/Amsterdam')));
+		$result = (new ExamProgress())->derive(
+			$plan,
+			$entries,
+			$sittings,
+			new DateTimeImmutable('2026-10-05T10:00:00', new DateTimeZone('Europe/Amsterdam'))
+		);
 
 		self::assertSame(
-			[
+			expected: [
 				'examComponentsPassed' => 3,
 				'examComponentsTotal'  => 11,
 				'examProgressLabel'    => '3 van 11 examenonderdelen behaald',
 				'nextExamSittingId'    => 's-next',
 				'nextExamLabel'        => 'Volgende: NE-3F-CE op 3 november',
 			],
-			$result
+			actual: $result
 		);
 	}//end testMilan()
 
@@ -82,8 +87,14 @@ class ExamProgressTest extends TestCase {
 		$result = (new ExamProgress())->derive([], [], [], new DateTimeImmutable('2026-10-05'));
 
 		self::assertSame(
-			['examComponentsPassed' => null, 'examComponentsTotal' => null, 'examProgressLabel' => null, 'nextExamSittingId' => null, 'nextExamLabel' => null],
-			$result
+			expected: [
+				'examComponentsPassed' => null,
+				'examComponentsTotal' => null,
+				'examProgressLabel' => null,
+				'nextExamSittingId' => null,
+				'nextExamLabel' => null
+			],
+			actual: $result
 		);
 	}//end testNothingToSay()
 
@@ -97,11 +108,19 @@ class ExamProgressTest extends TestCase {
 			'components' => [['componentId' => 'a', 'kind' => 'assessment'], ['componentId' => 'b', 'kind' => 'assessment']],
 			'passRules'  => [['componentId' => null, 'minValue' => 6.0]],
 		];
-		$entries = [['componentId' => 'a', 'value' => 5.8, 'lifecycle' => 'published'], ['componentId' => 'b', 'value' => 6.0, 'lifecycle' => 'published']];
+		$entries = [
+			['componentId' => 'a', 'value' => 5.8, 'lifecycle' => 'published'],
+			['componentId' => 'b', 'value' => 6.0, 'lifecycle' => 'published']
+		];
 
-		$result = (new ExamProgress())->derive($plan, $entries, [['id' => 's', 'startsAt' => '2026-10-16T09:00:00+02:00']], new DateTimeImmutable('2026-10-05'));
+		$result = (new ExamProgress())->derive(
+			$plan,
+			$entries,
+			[['id' => 's', 'startsAt' => '2026-10-16T09:00:00+02:00']],
+			new DateTimeImmutable('2026-10-05')
+		);
 
-		self::assertSame('1 van 2 examenonderdelen behaald', $result['examProgressLabel']);
-		self::assertSame('Volgende: examen op 16 oktober', $result['nextExamLabel']);
+		self::assertSame(expected: '1 van 2 examenonderdelen behaald', actual: $result['examProgressLabel']);
+		self::assertSame(expected: 'Volgende: examen op 16 oktober', actual: $result['nextExamLabel']);
 	}//end testOverallRuleAndASittingWithoutCode()
 }//end class

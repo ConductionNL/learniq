@@ -43,14 +43,14 @@ class ExamObjectionRegisterTest extends TestCase {
 		$register = self::register();
 		$schema   = $register['components']['schemas']['ExamObjection'];
 
-		self::assertContains('exam-objection', $register['components']['registers']['learniq']['schemas']);
-		self::assertSame('exam-objection', $schema['slug']);
-		self::assertSame(['submitted', 'examiner-responded', 'decided', 'withdrawn'], $schema['properties']['lifecycle']['enum']);
+		self::assertContains(needle: 'exam-objection', haystack: $register['components']['registers']['learniq']['schemas']);
+		self::assertSame(expected: 'exam-objection', actual: $schema['slug']);
+		self::assertSame(expected: ['submitted', 'examiner-responded', 'decided', 'withdrawn'], actual: $schema['properties']['lifecycle']['enum']);
 		self::assertSame(
-			'OCA\Learniq\Lifecycle\ExamObjectionDecisionGuard',
-			$schema['x-openregister-lifecycle']['transitions']['decide']['requires']
+			expected: 'OCA\Learniq\Lifecycle\ExamObjectionDecisionGuard',
+			actual: $schema['x-openregister-lifecycle']['transitions']['decide']['requires']
 		);
-		self::assertSame('decided', $schema['x-openregister-lifecycle']['transitions']['decide']['to']);
+		self::assertSame(expected: 'decided', actual: $schema['x-openregister-lifecycle']['transitions']['decide']['to']);
 	}//end testTheObjectionIsAMemberAndItsDecisionIsGuarded()
 
 	/**
@@ -61,7 +61,7 @@ class ExamObjectionRegisterTest extends TestCase {
 	public function testAGradeEntryNamesTheObjectionThatChangedIt(): void {
 		$entry = self::register()['components']['schemas']['GradeEntry']['properties'];
 
-		self::assertSame('ExamObjection', $entry['examObjectionId']['$ref']);
-		self::assertTrue($entry['examObjectionId']['nullable']);
+		self::assertSame(expected: 'ExamObjection', actual: $entry['examObjectionId']['$ref']);
+		self::assertTrue(condition: $entry['examObjectionId']['nullable']);
 	}//end testAGradeEntryNamesTheObjectionThatChangedIt()
 }//end class

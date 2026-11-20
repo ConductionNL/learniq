@@ -47,10 +47,10 @@ class ExamProgressCascadeTest extends TestCase {
 	public function testAPublishedResultRestampsItsStudent(): void {
 		$cascade = $this->cascade();
 
-		$cascade->handle($this->transitioned('grade-entry', 'published', ['learnerId' => 'milan']));
-		$cascade->handle($this->transitioned('grade-entry', 'revised', ['learnerId' => 'other']));
+		$cascade->handle($this->transitioned(schema: 'grade-entry', to: 'published', object: ['learnerId' => 'milan']));
+		$cascade->handle($this->transitioned(schema: 'grade-entry', to: 'revised', object: ['learnerId' => 'other']));
 
-		self::assertSame(['milan'], $this->restamped);
+		self::assertSame(expected: ['milan'], actual: $this->restamped);
 	}//end testAPublishedResultRestampsItsStudent()
 
 	/**
@@ -61,14 +61,14 @@ class ExamProgressCascadeTest extends TestCase {
 	public function testASittingRestampsItsCohorts(): void {
 		$cascade = $this->cascade();
 
-		$cascade->handle($this->transitioned('exam-sitting', 'cancelled', ['cohortIds' => ['mt3a', 'mt3b']]));
-		self::assertSame(['milan', 'sara', 'noor'], $this->restamped);
+		$cascade->handle($this->transitioned(schema: 'exam-sitting', to: 'cancelled', object: ['cohortIds' => ['mt3a', 'mt3b']]));
+		self::assertSame(expected: ['milan', 'sara', 'noor'], actual: $this->restamped);
 
 		$this->restamped = [];
-		$event = $this->createMock(ObjectCreatedEvent::class);
+		$event = $this->createMock(originalClassName: ObjectCreatedEvent::class);
 		$event->method('getObject')->willReturn(OrEntityFactory::make(['id' => 's-9', 'cohortIds' => ['mt3b']], 'exam-sitting'));
 		$cascade->handle($event);
-		self::assertSame(['sara', 'noor'], $this->restamped);
+		self::assertSame(expected: ['sara', 'noor'], actual: $this->restamped);
 	}//end testASittingRestampsItsCohorts()
 
 	/**
@@ -77,12 +77,12 @@ class ExamProgressCascadeTest extends TestCase {
 	 * @return void
 	 */
 	public function testAnotherNewObjectIsIgnored(): void {
-		$event = $this->createMock(ObjectCreatedEvent::class);
+		$event = $this->createMock(originalClassName: ObjectCreatedEvent::class);
 		$event->method('getObject')->willReturn(OrEntityFactory::make(['id' => 'c-1', 'cohortIds' => ['mt3a']], 'cohort'));
 
 		$this->cascade()->handle($event);
 
-		self::assertSame([], $this->restamped);
+		self::assertSame(expected: [], actual: $this->restamped);
 	}//end testAnotherNewObjectIsIgnored()
 
 	/**
@@ -95,9 +95,9 @@ class ExamProgressCascadeTest extends TestCase {
 	 * @return ObjectTransitionedEvent
 	 */
 	private function transitioned(string $schema, string $to, array $object): ObjectTransitionedEvent {
-		$entity = $this->createMock(ObjectEntity::class);
+		$entity = $this->createMock(originalClassName: ObjectEntity::class);
 		$entity->method('jsonSerialize')->willReturn($object);
-		$event = $this->createMock(ObjectTransitionedEvent::class);
+		$event = $this->createMock(originalClassName: ObjectTransitionedEvent::class);
 		$event->method('getObject')->willReturn($entity);
 		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn($schema);
@@ -112,7 +112,7 @@ class ExamProgressCascadeTest extends TestCase {
 	 * @return ExamProgressCascade
 	 */
 	private function cascade(): ExamProgressCascade {
-		$restamp = $this->createMock(ExamProgressRestamp::class);
+		$restamp = $this->createMock(originalClassName: ExamProgressRestamp::class);
 		$restamp->method('restamp')->willReturnCallback(
 			function (string $learnerUserId): bool {
 				$this->restamped[] = $learnerUserId;
@@ -123,14 +123,14 @@ class ExamProgressCascadeTest extends TestCase {
 			['id' => 'mt3a', 'learnerIds' => ['milan', 'sara']],
 			['id' => 'mt3b', 'learnerIds' => ['sara', 'noor']],
 		];
-		$objects = $this->createMock(ObjectService::class);
+		$objects = $this->createMock(originalClassName: ObjectService::class);
 		$objects->method('findAll')->willReturnCallback(
 			static function (array $config = []) use ($cohorts): array {
-				self::assertSame('cohort', $config['filters']['schema']);
+				self::assertSame(expected: 'cohort', actual: $config['filters']['schema']);
 				return array_map(static fn (array $row): ObjectEntity => OrEntityFactory::make($row, 'cohort'), $cohorts);
 			}
 		);
 
-		return new ExamProgressCascade($restamp, $objects, TransitionScope::resolver());
+		return new ExamProgressCascade(restamp: $restamp, objectService: $objects, schemas: TransitionScope::resolver());
 	}//end cascade()
 }//end class

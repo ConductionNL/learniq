@@ -43,8 +43,8 @@ class KeuzedeelRulesTest extends TestCase {
 	 */
 	public function testNotYetChosen(): void {
 		self::assertSame(
-			'Keuzedeel periode 3: Nog niet gekozen, kan tot 16 oktober',
-			(new KeuzedeelRules())->line([self::OFFER], [], new DateTimeImmutable('2026-10-05T10:00:00+02:00'))
+			expected: 'Keuzedeel periode 3: Nog niet gekozen, kan tot 16 oktober',
+			actual: (new KeuzedeelRules())->line([self::OFFER], [], new DateTimeImmutable('2026-10-05T10:00:00+02:00'))
 		);
 	}//end testNotYetChosen()
 
@@ -57,8 +57,11 @@ class KeuzedeelRulesTest extends TestCase {
 		$rules = new KeuzedeelRules();
 		$mine  = [['offerId' => 'kd-1', 'period' => '3', 'offerName' => 'K0125 Verdieping Engels', 'lifecycle' => 'chosen']];
 
-		self::assertSame('Keuzedeel periode 3: K0125 Verdieping Engels gekozen', $rules->line([self::OFFER], $mine, new DateTimeImmutable('2026-10-05')));
-		self::assertNull($rules->line([], [], new DateTimeImmutable('2026-10-05')));
+		self::assertSame(
+			expected: 'Keuzedeel periode 3: K0125 Verdieping Engels gekozen',
+			actual: $rules->line([self::OFFER], $mine, new DateTimeImmutable('2026-10-05'))
+		);
+		self::assertNull(actual: $rules->line([], [], new DateTimeImmutable('2026-10-05')));
 	}//end testChosenAndNothing()
 
 	/**
@@ -69,8 +72,10 @@ class KeuzedeelRulesTest extends TestCase {
 	public function testInsideTheWindowSheMayChoose(): void {
 		$rules = new KeuzedeelRules();
 
-		self::assertNull($rules->refusal(self::OFFER, [['lifecycle' => 'withdrawn']], [], new DateTimeImmutable('2026-10-16T23:30:00+02:00')));
-		self::assertNull($rules->refusal(self::OFFER, [], [], new DateTimeImmutable('2026-09-28T00:10:00+02:00')));
+		self::assertNull(
+			actual: $rules->refusal(self::OFFER, [['lifecycle' => 'withdrawn']], [], new DateTimeImmutable('2026-10-16T23:30:00+02:00'))
+		);
+		self::assertNull(actual: $rules->refusal(self::OFFER, [], [], new DateTimeImmutable('2026-09-28T00:10:00+02:00')));
 	}//end testInsideTheWindowSheMayChoose()
 
 	/**
@@ -82,15 +87,30 @@ class KeuzedeelRulesTest extends TestCase {
 		$rules = new KeuzedeelRules();
 		$day   = new DateTimeImmutable('2026-10-05T10:00:00+02:00');
 
-		self::assertSame('Je kunt dit keuzedeel kiezen vanaf 28 september.', $rules->refusal(self::OFFER, [], [], new DateTimeImmutable('2026-09-27T12:00:00+02:00')));
-		self::assertSame('De keuze voor dit keuzedeel is gesloten.', $rules->refusal(self::OFFER, [], [], new DateTimeImmutable('2026-10-17T00:30:00+02:00')));
-		self::assertSame('Dit keuzedeel is vol.', $rules->refusal(self::OFFER, [['lifecycle' => 'chosen'], ['lifecycle' => 'placed']], [], $day));
-		self::assertSame('Je hebt dit keuzedeel al gekozen.', $rules->refusal(self::OFFER, [], [['offerId' => 'kd-1', 'period' => '3']], $day));
 		self::assertSame(
-			'Je hebt voor periode 3 al een keuzedeel gekozen.',
-			$rules->refusal(self::OFFER, [], [['offerId' => 'kd-2', 'period' => '3', 'lifecycle' => 'approved']], $day)
+			expected: 'Je kunt dit keuzedeel kiezen vanaf 28 september.',
+			actual: $rules->refusal(self::OFFER, [], [], new DateTimeImmutable('2026-09-27T12:00:00+02:00'))
 		);
-		self::assertSame('Dit keuzedeel wordt niet meer aangeboden.', $rules->refusal(['lifecycle' => 'withdrawn'] + self::OFFER, [], [], $day));
+		self::assertSame(
+			expected: 'De keuze voor dit keuzedeel is gesloten.',
+			actual: $rules->refusal(self::OFFER, [], [], new DateTimeImmutable('2026-10-17T00:30:00+02:00'))
+		);
+		self::assertSame(
+			expected: 'Dit keuzedeel is vol.',
+			actual: $rules->refusal(self::OFFER, [['lifecycle' => 'chosen'], ['lifecycle' => 'placed']], [], $day)
+		);
+		self::assertSame(
+			expected: 'Je hebt dit keuzedeel al gekozen.',
+			actual: $rules->refusal(self::OFFER, [], [['offerId' => 'kd-1', 'period' => '3']], $day)
+		);
+		self::assertSame(
+			expected: 'Je hebt voor periode 3 al een keuzedeel gekozen.',
+			actual: $rules->refusal(self::OFFER, [], [['offerId' => 'kd-2', 'period' => '3', 'lifecycle' => 'approved']], $day)
+		);
+		self::assertSame(
+			expected: 'Dit keuzedeel wordt niet meer aangeboden.',
+			actual: $rules->refusal(['lifecycle' => 'withdrawn'] + self::OFFER, [], [], $day)
+		);
 	}//end testRefusalsInWords()
 
 	/**
@@ -101,9 +121,9 @@ class KeuzedeelRulesTest extends TestCase {
 	public function testIsFor(): void {
 		$rules = new KeuzedeelRules();
 
-		self::assertTrue($rules->isFor(self::OFFER, [], []));
-		self::assertTrue($rules->isFor(['programmeId' => 'p-1', 'cohortIds' => ['mt3a']], ['p-1'], ['mt3a']));
-		self::assertFalse($rules->isFor(['programmeId' => 'p-1'], ['p-2'], ['mt3a']));
-		self::assertFalse($rules->isFor(['cohortIds' => ['mt3b']], ['p-1'], ['mt3a']));
+		self::assertTrue(condition: $rules->isFor(self::OFFER, [], []));
+		self::assertTrue(condition: $rules->isFor(['programmeId' => 'p-1', 'cohortIds' => ['mt3a']], ['p-1'], ['mt3a']));
+		self::assertFalse(condition: $rules->isFor(['programmeId' => 'p-1'], ['p-2'], ['mt3a']));
+		self::assertFalse(condition: $rules->isFor(['cohortIds' => ['mt3b']], ['p-1'], ['mt3a']));
 	}//end testIsFor()
 }//end class

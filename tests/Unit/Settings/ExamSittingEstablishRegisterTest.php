@@ -43,14 +43,14 @@ class ExamSittingEstablishRegisterTest extends TestCase {
 		$sitting    = self::register()['components']['schemas']['ExamSitting'];
 		$transition = $sitting['x-openregister-lifecycle']['transitions']['establish'];
 
-		self::assertSame('planned', $transition['from']);
-		self::assertSame('established', $transition['to']);
-		self::assertSame('OCA\Learniq\Lifecycle\ExamSittingEstablishGuard', $transition['requires']);
+		self::assertSame(expected: 'planned', actual: $transition['from']);
+		self::assertSame(expected: 'established', actual: $transition['to']);
+		self::assertSame(expected: 'OCA\Learniq\Lifecycle\ExamSittingEstablishGuard', actual: $transition['requires']);
 		self::assertSame(
-			['actorField' => 'establishedBy', 'timeField' => 'establishedAt'],
-			$transition['actions'][0]['actionParameters']
+			expected: ['actorField' => 'establishedBy', 'timeField' => 'establishedAt'],
+			actual: $transition['actions'][0]['actionParameters']
 		);
-		self::assertContains('established', $sitting['properties']['lifecycle']['enum']);
+		self::assertContains(needle: 'established', haystack: $sitting['properties']['lifecycle']['enum']);
 	}//end testEstablishIsGuardedAndStampsWhoAndWhen()
 
 	/**
@@ -61,9 +61,9 @@ class ExamSittingEstablishRegisterTest extends TestCase {
 	public function testAResultCarriesItsSittingAndEstablishment(): void {
 		$properties = self::register()['components']['schemas']['GradeEntry']['properties'];
 
-		self::assertSame('ExamSitting', $properties['examSittingId']['$ref']);
-		self::assertSame('date-time', $properties['establishedAt']['format']);
-		self::assertTrue($properties['establishedAt']['nullable']);
-		self::assertArrayHasKey('establishedBy', $properties);
+		self::assertSame(expected: 'ExamSitting', actual: $properties['examSittingId']['$ref']);
+		self::assertSame(expected: 'date-time', actual: $properties['establishedAt']['format']);
+		self::assertTrue(condition: $properties['establishedAt']['nullable']);
+		self::assertArrayHasKey(key: 'establishedBy', array: $properties);
 	}//end testAResultCarriesItsSittingAndEstablishment()
 }//end class

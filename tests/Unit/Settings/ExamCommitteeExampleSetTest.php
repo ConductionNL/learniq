@@ -73,8 +73,8 @@ class ExamCommitteeExampleSetTest extends TestCase {
 	 * @return array<string, mixed>
 	 */
 	private static function one(string $schema, string $field, mixed $value): array {
-		$found = array_values(array_filter(self::rows($schema), static fn (array $row): bool => ($row[$field] ?? null) === $value));
-		self::assertCount(1, $found, $schema . ' ' . $field);
+		$found = array_values(array_filter(self::rows(schema: $schema), static fn (array $row): bool => ($row[$field] ?? null) === $value));
+		self::assertCount(expectedCount: 1, haystack: $found, message: $schema . ' ' . $field);
 
 		return $found[0];
 	}
@@ -87,13 +87,15 @@ class ExamCommitteeExampleSetTest extends TestCase {
 	 * @return void
 	 */
 	public function testMilansProgressIsWhatTheSeedDerives(): void {
-		$milan = self::one('learner-profile', 'ncUserId', self::MILAN);
-		$programme = self::one('programme', 'code', 'MT4');
-		$plan = self::one('curriculum-plan', 'uuid', $programme['curriculumPlanId']);
+		$milan = self::one(schema: 'learner-profile', field: 'ncUserId', value: self::MILAN);
+		$programme = self::one(schema: 'programme', field: 'code', value: 'MT4');
+		$plan = self::one(schema: 'curriculum-plan', field: 'uuid', value: $programme['curriculumPlanId']);
 		$plan['id'] = $plan['uuid'];
-		$entries = array_values(array_filter(self::rows('grade-entry'), static fn (array $e): bool => $e['learnerId'] === self::MILAN));
-		$cohort = self::one('cohort', 'name', 'MT4-2A');
-		$sittings = array_values(array_filter(self::rows('exam-sitting'), static fn (array $s): bool => in_array($cohort['uuid'], $s['cohortIds'], true)));
+		$entries = array_values(array_filter(self::rows(schema: 'grade-entry'), static fn (array $e): bool => $e['learnerId'] === self::MILAN));
+		$cohort = self::one(schema: 'cohort', field: 'name', value: 'MT4-2A');
+		$sittings = array_values(
+			array_filter(self::rows(schema: 'exam-sitting'), static fn (array $s): bool => in_array($cohort['uuid'], $s['cohortIds'], true))
+		);
 		$sittings = array_map(static fn (array $s): array => $s + ['id' => $s['uuid']], $sittings);
 
 		$derived = (new ExamProgress())->derive(
@@ -104,15 +106,18 @@ class ExamCommitteeExampleSetTest extends TestCase {
 		);
 
 		self::assertSame(
-			[3, 11, '3 van 11 examenonderdelen behaald', $milan['nextExamSittingId']],
-			[$derived['examComponentsPassed'], $derived['examComponentsTotal'], $derived['examProgressLabel'], $derived['nextExamSittingId']]
+			expected: [3, 11, '3 van 11 examenonderdelen behaald', $milan['nextExamSittingId']],
+			actual: [$derived['examComponentsPassed'], $derived['examComponentsTotal'], $derived['examProgressLabel'], $derived['nextExamSittingId']]
 		);
 		self::assertSame(
-			[3, 11, '3 van 11 examenonderdelen behaald'],
-			[$milan['examComponentsPassed'], $milan['examComponentsTotal'], $milan['examProgressLabel']]
+			expected: [3, 11, '3 van 11 examenonderdelen behaald'],
+			actual: [$milan['examComponentsPassed'], $milan['examComponentsTotal'], $milan['examProgressLabel']]
 		);
-		self::assertStringStartsWith('2026-11-03T09:00', self::one('exam-sitting', 'uuid', $milan['nextExamSittingId'])['startsAt']);
-		self::assertSame('Keuzedeel periode 3: Nog niet gekozen, kan tot 16 oktober', $milan['keuzedeelLabel']);
+		self::assertStringStartsWith(
+			prefix: '2026-11-03T09:00',
+			string: self::one(schema: 'exam-sitting', field: 'uuid', value: $milan['nextExamSittingId'])['startsAt']
+		);
+		self::assertSame(expected: 'Keuzedeel periode 3: Nog niet gekozen, kan tot 16 oktober', actual: $milan['keuzedeelLabel']);
 	}
 
 	/**
@@ -122,14 +127,14 @@ class ExamCommitteeExampleSetTest extends TestCase {
 	 * @return void
 	 */
 	public function testFourteenResultsOfThreeSittingsWaitToBeEstablished(): void {
-		$results = array_values(array_filter(self::rows('grade-entry'), static fn (array $e): bool => ($e['examSittingId'] ?? '') !== ''));
+		$results = array_values(array_filter(self::rows(schema: 'grade-entry'), static fn (array $e): bool => ($e['examSittingId'] ?? '') !== ''));
 
-		self::assertCount(14, $results);
-		self::assertCount(3, array_unique(array_column($results, 'examSittingId')));
+		self::assertCount(expectedCount: 14, haystack: $results);
+		self::assertCount(expectedCount: 3, haystack: array_unique(array_column($results, 'examSittingId')));
 		foreach ($results as $result) {
-			self::assertArrayNotHasKey('establishedAt', $result);
-			self::assertSame('published', $result['lifecycle']);
-			self::one('exam-sitting', 'uuid', $result['examSittingId']);
+			self::assertArrayNotHasKey(key: 'establishedAt', array: $result);
+			self::assertSame(expected: 'published', actual: $result['lifecycle']);
+			self::one(schema: 'exam-sitting', field: 'uuid', value: $result['examSittingId']);
 		}
 	}
 
@@ -140,19 +145,19 @@ class ExamCommitteeExampleSetTest extends TestCase {
 	 * @return void
 	 */
 	public function testTheObjectionOf25SeptemberIsDueOn9October(): void {
-		$objection = self::one('exam-objection', 'lifecycle', 'examiner-responded');
-		$result = self::one('grade-entry', 'uuid', $objection['gradeEntryId']);
+		$objection = self::one(schema: 'exam-objection', field: 'lifecycle', value: 'examiner-responded');
+		$result = self::one(schema: 'grade-entry', field: 'uuid', value: $objection['gradeEntryId']);
 
-		self::assertStringStartsWith('2026-09-25', $objection['submittedAt']);
-		self::assertSame(10, $objection['termWorkingDays']);
+		self::assertStringStartsWith(prefix: '2026-09-25', string: $objection['submittedAt']);
+		self::assertSame(expected: 10, actual: $objection['termWorkingDays']);
 		self::assertSame(
-			$objection['decideBy'],
-			WorkingDays::after(new DateTimeImmutable('2026-09-25'), 10)->format('Y-m-d')
+			expected: $objection['decideBy'],
+			actual: WorkingDays::after(new DateTimeImmutable('2026-09-25'), 10)->format('Y-m-d')
 		);
-		self::assertSame('2026-10-09', $objection['decideBy']);
-		self::assertSame($objection['uuid'], $result['examObjectionId']);
-		self::assertNotSame('', $result['examSittingId']);
-		self::assertSame($result['learnerId'], $objection['learnerUserId']);
+		self::assertSame(expected: '2026-10-09', actual: $objection['decideBy']);
+		self::assertSame(expected: $objection['uuid'], actual: $result['examObjectionId']);
+		self::assertNotSame(expected: '', actual: $result['examSittingId']);
+		self::assertSame(expected: $result['learnerId'], actual: $objection['learnerUserId']);
 	}
 
 	/**
@@ -161,15 +166,15 @@ class ExamCommitteeExampleSetTest extends TestCase {
 	 * @return void
 	 */
 	public function testThePeriod3WindowClosesOn16October(): void {
-		$cohort = self::one('cohort', 'name', 'MT4-2A');
-		$offers = self::rows('keuzedeel-offer');
+		$cohort = self::one(schema: 'cohort', field: 'name', value: 'MT4-2A');
+		$offers = self::rows(schema: 'keuzedeel-offer');
 
-		self::assertCount(2, $offers);
+		self::assertCount(expectedCount: 2, haystack: $offers);
 		foreach ($offers as $offer) {
-			self::assertSame(['3', '2026-10-16', 'offered'], [$offer['period'], $offer['choiceClosesOn'], $offer['lifecycle']]);
-			self::assertSame([$cohort['uuid']], $offer['cohortIds']);
+			self::assertSame(expected: ['3', '2026-10-16', 'offered'], actual: [$offer['period'], $offer['choiceClosesOn'], $offer['lifecycle']]);
+			self::assertSame(expected: [$cohort['uuid']], actual: $offer['cohortIds']);
 		}
 
-		self::assertSame([], self::rows('keuzedeel-choice'));
+		self::assertSame(expected: [], actual: self::rows(schema: 'keuzedeel-choice'));
 	}
 }

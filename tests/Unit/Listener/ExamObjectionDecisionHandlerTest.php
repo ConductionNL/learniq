@@ -56,12 +56,15 @@ class ExamObjectionDecisionHandlerTest extends TestCase {
 	public function testAChangedResultGoesThroughReviseAndRepublish(): void {
 		$handler = $this->handler(entryLifecycle: 'published');
 
-		$handler->handle($this->decided(['decisionOutcome' => 'result-changed', 'newValue' => 6.5, 'decisionRationale' => 'Herbeoordeeld.']));
+		$handler->handle($this->decided(fields: ['decisionOutcome' => 'result-changed', 'newValue' => 6.5, 'decisionRationale' => 'Herbeoordeeld.']));
 
-		self::assertSame(['transition ge-1 revise', 'save grade-entry', 'transition ge-1 republish', 'save exam-objection'], $this->steps);
-		self::assertSame(6.5, $this->saved[0]['object']['value']);
-		self::assertSame('obj-1', $this->saved[0]['object']['examObjectionId']);
-		self::assertSame('ge-1', $this->saved[1]['object']['resultingGradeEntryId']);
+		self::assertSame(
+			expected: ['transition ge-1 revise', 'save grade-entry', 'transition ge-1 republish', 'save exam-objection'],
+			actual: $this->steps
+		);
+		self::assertSame(expected: 6.5, actual: $this->saved[0]['object']['value']);
+		self::assertSame(expected: 'obj-1', actual: $this->saved[0]['object']['examObjectionId']);
+		self::assertSame(expected: 'ge-1', actual: $this->saved[1]['object']['resultingGradeEntryId']);
 	}//end testAChangedResultGoesThroughReviseAndRepublish()
 
 	/**
@@ -70,9 +73,9 @@ class ExamObjectionDecisionHandlerTest extends TestCase {
 	 * @return void
 	 */
 	public function testARevisedEntryIsOnlyRepublished(): void {
-		$this->handler(entryLifecycle: 'revised')->handle($this->decided(['decisionOutcome' => 'result-changed', 'newValue' => 7]));
+		$this->handler(entryLifecycle: 'revised')->handle($this->decided(fields: ['decisionOutcome' => 'result-changed', 'newValue' => 7]));
 
-		self::assertSame(['save grade-entry', 'transition ge-1 republish', 'save exam-objection'], $this->steps);
+		self::assertSame(expected: ['save grade-entry', 'transition ge-1 republish', 'save exam-objection'], actual: $this->steps);
 	}//end testARevisedEntryIsOnlyRepublished()
 
 	/**
@@ -81,9 +84,9 @@ class ExamObjectionDecisionHandlerTest extends TestCase {
 	 * @return void
 	 */
 	public function testAnUpheldResultChangesNothing(): void {
-		$this->handler(entryLifecycle: 'published')->handle($this->decided(['decisionOutcome' => 'result-upheld']));
+		$this->handler(entryLifecycle: 'published')->handle($this->decided(fields: ['decisionOutcome' => 'result-upheld']));
 
-		self::assertSame([], $this->steps);
+		self::assertSame(expected: [], actual: $this->steps);
 	}//end testAnUpheldResultChangesNothing()
 
 	/**
@@ -92,9 +95,9 @@ class ExamObjectionDecisionHandlerTest extends TestCase {
 	 * @return void
 	 */
 	public function testAMissingEntryChangesNothing(): void {
-		$this->handler(entryLifecycle: null)->handle($this->decided(['decisionOutcome' => 'result-changed', 'newValue' => 7]));
+		$this->handler(entryLifecycle: null)->handle($this->decided(fields: ['decisionOutcome' => 'result-changed', 'newValue' => 7]));
 
-		self::assertSame([], $this->steps);
+		self::assertSame(expected: [], actual: $this->steps);
 	}//end testAMissingEntryChangesNothing()
 
 	/**
@@ -105,10 +108,10 @@ class ExamObjectionDecisionHandlerTest extends TestCase {
 	 * @return ObjectTransitionedEvent
 	 */
 	private function decided(array $fields): ObjectTransitionedEvent {
-		$entity = $this->createMock(ObjectEntity::class);
+		$entity = $this->createMock(originalClassName: ObjectEntity::class);
 		$entity->method('jsonSerialize')->willReturn(['id' => 'obj-1', 'gradeEntryId' => 'ge-1', 'lifecycle' => 'decided'] + $fields);
 
-		$event = $this->createMock(ObjectTransitionedEvent::class);
+		$event = $this->createMock(originalClassName: ObjectTransitionedEvent::class);
 		$event->method('getObject')->willReturn($entity);
 		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('exam-objection');
@@ -125,11 +128,11 @@ class ExamObjectionDecisionHandlerTest extends TestCase {
 	 * @return ExamObjectionDecisionHandler
 	 */
 	private function handler(?string $entryLifecycle): ExamObjectionDecisionHandler {
-		$objects = $this->createMock(ObjectService::class);
+		$objects = $this->createMock(originalClassName: ObjectService::class);
 		$state   = $entryLifecycle;
 		$objects->method('find')->willReturnCallback(
 			function (int|string $id, ?ObjectFindOptions $options = null) use (&$state): ?ObjectEntity {
-				self::assertSame('grade-entry', $options?->schema);
+				self::assertSame(expected: 'grade-entry', actual: $options?->schema);
 				return ($state === null) ? null : OrEntityFactory::make(['id' => (string) $id, 'value' => 5.0, 'lifecycle' => $state], 'grade-entry');
 			}
 		);
@@ -141,7 +144,7 @@ class ExamObjectionDecisionHandlerTest extends TestCase {
 				return OrEntityFactory::make((array) $object, $schema);
 			}
 		);
-		$engine = $this->createMock(TransitionEngine::class);
+		$engine = $this->createMock(originalClassName: TransitionEngine::class);
 		$engine->method('transition')->willReturnCallback(
 			function (string $objectId, string $action) use (&$state): ObjectEntity {
 				$this->steps[] = 'transition ' . $objectId . ' ' . $action;
@@ -150,6 +153,11 @@ class ExamObjectionDecisionHandlerTest extends TestCase {
 			}
 		);
 
-		return new ExamObjectionDecisionHandler($objects, $engine, TransitionScope::resolver(), new NullLogger());
+		return new ExamObjectionDecisionHandler(
+			objectService: $objects,
+			transitionEngine: $engine,
+			schemas: TransitionScope::resolver(),
+			logger: new NullLogger()
+		);
 	}//end handler()
 }//end class

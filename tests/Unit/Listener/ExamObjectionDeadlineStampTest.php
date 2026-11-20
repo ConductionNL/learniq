@@ -38,14 +38,14 @@ class ExamObjectionDeadlineStampTest extends TestCase {
 	 * @return void
 	 */
 	public function testTheDeadlineIsTenWorkingDaysAfterSubmission(): void {
-		$event = $this->create(['submittedAt' => '2026-09-25T10:00:00+02:00', 'decideBy' => '2027-01-01', 'termWorkingDays' => 99]);
+		$event = $this->create(data: ['submittedAt' => '2026-09-25T10:00:00+02:00', 'decideBy' => '2027-01-01', 'termWorkingDays' => 99]);
 
 		$this->stamp(term: 10)->handle($event);
 
 		$stamped = $event->getModifiedData();
-		self::assertSame('2026-10-09', $stamped['decideBy']);
-		self::assertSame(10, $stamped['termWorkingDays']);
-		self::assertSame('2026-09-25T10:00:00+02:00', $stamped['submittedAt']);
+		self::assertSame(expected: '2026-10-09', actual: $stamped['decideBy']);
+		self::assertSame(expected: 10, actual: $stamped['termWorkingDays']);
+		self::assertSame(expected: '2026-09-25T10:00:00+02:00', actual: $stamped['submittedAt']);
 	}//end testTheDeadlineIsTenWorkingDaysAfterSubmission()
 
 	/**
@@ -54,14 +54,14 @@ class ExamObjectionDeadlineStampTest extends TestCase {
 	 * @return void
 	 */
 	public function testTheTermComesFromTheSettingAndTheDateDefaultsToNow(): void {
-		$event = $this->create([]);
+		$event = $this->create(data: []);
 
 		$this->stamp(term: 5)->handle($event);
 
 		$stamped = $event->getModifiedData();
-		self::assertSame(5, $stamped['termWorkingDays']);
-		self::assertSame(date('Y-m-d'), substr($stamped['submittedAt'], 0, 10));
-		self::assertGreaterThan(substr($stamped['submittedAt'], 0, 10), $stamped['decideBy']);
+		self::assertSame(expected: 5, actual: $stamped['termWorkingDays']);
+		self::assertSame(expected: date('Y-m-d'), actual: substr($stamped['submittedAt'], 0, 10));
+		self::assertGreaterThan(expected: substr($stamped['submittedAt'], 0, 10), actual: $stamped['decideBy']);
 	}//end testTheTermComesFromTheSettingAndTheDateDefaultsToNow()
 
 	/**
@@ -71,12 +71,14 @@ class ExamObjectionDeadlineStampTest extends TestCase {
 	 */
 	public function testAnotherSchemaIsNotStamped(): void {
 		$event    = new ObjectCreatingEvent(OrEntityFactory::make(['name' => 'x'], 'exemption-case'));
-		$resolver = $this->createMock(ListenerSchemaResolver::class);
+		$resolver = $this->createMock(originalClassName: ListenerSchemaResolver::class);
 		$resolver->method('guardSchemaSlug')->willReturn('exemption-case');
 
-		(new ExamObjectionDeadlineStamp($resolver, $this->createMock(IAppConfig::class)))->handle($event);
+		(
+			new ExamObjectionDeadlineStamp(schemaResolver: $resolver, appConfig: $this->createMock(originalClassName: IAppConfig::class))
+		)->handle($event);
 
-		self::assertSame([], $event->getModifiedData());
+		self::assertSame(expected: [], actual: $event->getModifiedData());
 	}//end testAnotherSchemaIsNotStamped()
 
 	/**
@@ -86,7 +88,7 @@ class ExamObjectionDeadlineStampTest extends TestCase {
 	 */
 	public function testTheRegistrarWiresTheStamp(): void {
 		$wired   = [];
-		$context = $this->createMock(IRegistrationContext::class);
+		$context = $this->createMock(originalClassName: IRegistrationContext::class);
 		$context->method('registerEventListener')->willReturnCallback(
 			static function (string $event, string $listener) use (&$wired): void {
 				$wired[] = [$event, $listener];
@@ -95,7 +97,7 @@ class ExamObjectionDeadlineStampTest extends TestCase {
 
 		(new GradingListenerRegistrar())->register($context);
 
-		self::assertContains([ObjectCreatingEvent::class, ExamObjectionDeadlineStamp::class], $wired);
+		self::assertContains(needle: [ObjectCreatingEvent::class, ExamObjectionDeadlineStamp::class], haystack: $wired);
 	}//end testTheRegistrarWiresTheStamp()
 
 	/**
@@ -117,11 +119,11 @@ class ExamObjectionDeadlineStampTest extends TestCase {
 	 * @return ExamObjectionDeadlineStamp
 	 */
 	private function stamp(int $term): ExamObjectionDeadlineStamp {
-		$resolver = $this->createMock(ListenerSchemaResolver::class);
+		$resolver = $this->createMock(originalClassName: ListenerSchemaResolver::class);
 		$resolver->method('guardSchemaSlug')->willReturn('exam-objection');
-		$config = $this->createMock(IAppConfig::class);
+		$config = $this->createMock(originalClassName: IAppConfig::class);
 		$config->method('getValueInt')->with('learniq', 'exam_objection_term_working_days', 10)->willReturn($term);
 
-		return new ExamObjectionDeadlineStamp($resolver, $config);
+		return new ExamObjectionDeadlineStamp(schemaResolver: $resolver, appConfig: $config);
 	}//end stamp()
 }//end class

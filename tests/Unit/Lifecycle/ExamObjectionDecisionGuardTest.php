@@ -53,7 +53,7 @@ class ExamObjectionDecisionGuardTest extends TestCase {
 		$verdict = $guard->check(['decisionOutcome' => 'result-upheld', 'decisionRationale' => '  '], 'decide', 'committee-1');
 
 		self::assertDenied($verdict);
-		self::assertSame('A decision on an objection needs a rationale.', $verdict->getMessage());
+		self::assertSame(expected: 'A decision on an objection needs a rationale.', actual: $verdict->getMessage());
 	}//end testADecisionWithoutARationaleIsRefused()
 
 	/**
@@ -65,7 +65,7 @@ class ExamObjectionDecisionGuardTest extends TestCase {
 		$verdict = (new ExamObjectionDecisionGuard())->check(['decisionRationale' => 'Gegrond.'], 'decide', 'committee-1');
 
 		self::assertDenied($verdict);
-		self::assertSame('Say whether the result is upheld or changed.', $verdict->getMessage());
+		self::assertSame(expected: 'Say whether the result is upheld or changed.', actual: $verdict->getMessage());
 	}//end testADecisionWithoutAnOutcomeIsRefused()
 
 	/**
@@ -79,7 +79,7 @@ class ExamObjectionDecisionGuardTest extends TestCase {
 
 		$missing = $guard->check($object, 'decide', 'committee-1');
 		self::assertDenied($missing);
-		self::assertSame('A decision that changes the result needs the new result.', $missing->getMessage());
+		self::assertSame(expected: 'A decision that changes the result needs the new result.', actual: $missing->getMessage());
 
 		self::assertAllowed($guard->check($object + ['newValue' => 6.5], 'decide', 'committee-1'));
 	}//end testAChangedResultNeedsTheNewResult()

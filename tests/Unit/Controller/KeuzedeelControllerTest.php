@@ -59,15 +59,15 @@ class KeuzedeelControllerTest extends TestCase {
 	public function testChoosingCreatesTheStudentsChoice(): void {
 		$response = $this->controller(user: 'milan', offer: ['choiceClosesOn' => '2999-12-31'])->choose('kd-1');
 
-		self::assertSame(201, $response->getStatus());
-		self::assertCount(1, $this->saved);
-		self::assertSame('milan', $this->saved[0]['object']['learnerId']);
-		self::assertSame('kd-1', $this->saved[0]['object']['offerId']);
-		self::assertSame('3', $this->saved[0]['object']['period']);
-		self::assertSame('K0125 Verdieping Engels', $this->saved[0]['object']['offerName']);
-		self::assertSame('school-1', $this->saved[0]['object']['tenant_id']);
-		self::assertFalse($this->saved[0]['rbac']);
-		self::assertSame(['milan'], $this->restamped);
+		self::assertSame(expected: 201, actual: $response->getStatus());
+		self::assertCount(expectedCount: 1, haystack: $this->saved);
+		self::assertSame(expected: 'milan', actual: $this->saved[0]['object']['learnerId']);
+		self::assertSame(expected: 'kd-1', actual: $this->saved[0]['object']['offerId']);
+		self::assertSame(expected: '3', actual: $this->saved[0]['object']['period']);
+		self::assertSame(expected: 'K0125 Verdieping Engels', actual: $this->saved[0]['object']['offerName']);
+		self::assertSame(expected: 'school-1', actual: $this->saved[0]['object']['tenant_id']);
+		self::assertFalse(condition: $this->saved[0]['rbac']);
+		self::assertSame(expected: ['milan'], actual: $this->restamped);
 	}//end testChoosingCreatesTheStudentsChoice()
 
 	/**
@@ -78,9 +78,9 @@ class KeuzedeelControllerTest extends TestCase {
 	public function testAClosedWindowIsRefused(): void {
 		$response = $this->controller(user: 'milan', offer: ['choiceClosesOn' => '2000-01-01'])->choose('kd-1');
 
-		self::assertSame(422, $response->getStatus());
-		self::assertSame(['error' => 'De keuze voor dit keuzedeel is gesloten.'], $response->getData());
-		self::assertSame([], $this->saved);
+		self::assertSame(expected: 422, actual: $response->getStatus());
+		self::assertSame(expected: ['error' => 'De keuze voor dit keuzedeel is gesloten.'], actual: $response->getData());
+		self::assertSame(expected: [], actual: $this->saved);
 	}//end testAClosedWindowIsRefused()
 
 	/**
@@ -89,10 +89,13 @@ class KeuzedeelControllerTest extends TestCase {
 	 * @return void
 	 */
 	public function testUnknownOfferAndNoSession(): void {
-		self::assertSame(404, $this->controller(user: 'milan', offer: ['choiceClosesOn' => '2999-12-31'])->choose('kd-other')->getStatus());
-		self::assertSame(401, $this->controller(user: null, offer: [])->choose('kd-1')->getStatus());
-		self::assertSame(401, $this->controller(user: null, offer: [])->mine()->getStatus());
-		self::assertSame([], $this->saved);
+		self::assertSame(
+			expected: 404,
+			actual: $this->controller(user: 'milan', offer: ['choiceClosesOn' => '2999-12-31'])->choose('kd-other')->getStatus()
+		);
+		self::assertSame(expected: 401, actual: $this->controller(user: null, offer: [])->choose('kd-1')->getStatus());
+		self::assertSame(expected: 401, actual: $this->controller(user: null, offer: [])->mine()->getStatus());
+		self::assertSame(expected: [], actual: $this->saved);
 	}//end testUnknownOfferAndNoSession()
 
 	/**
@@ -103,10 +106,10 @@ class KeuzedeelControllerTest extends TestCase {
 	public function testMineListsTheOffers(): void {
 		$data = $this->controller(user: 'milan', offer: ['choiceClosesOn' => '2999-12-31'])->mine()->getData();
 
-		self::assertSame('kd-1', $data['offers'][0]['id']);
-		self::assertFalse($data['offers'][0]['chosen']);
-		self::assertNull($data['offers'][0]['refusal']);
-		self::assertStringStartsWith('Keuzedeel periode 3: Nog niet gekozen, kan tot 31 december', (string) $data['line']);
+		self::assertSame(expected: 'kd-1', actual: $data['offers'][0]['id']);
+		self::assertFalse(condition: $data['offers'][0]['chosen']);
+		self::assertNull(actual: $data['offers'][0]['refusal']);
+		self::assertStringStartsWith(prefix: 'Keuzedeel periode 3: Nog niet gekozen, kan tot 31 december', string: (string) $data['line']);
 	}//end testMineListsTheOffers()
 
 	/**
@@ -121,12 +124,29 @@ class KeuzedeelControllerTest extends TestCase {
 		$store = [
 			'enrolment'        => [['id' => 'en-1', 'learnerId' => 'milan', 'programmeId' => 'p-1', 'cohortId' => 'mt3a', 'lifecycle' => 'active']],
 			'keuzedeel-offer'  => [
-				$offer + ['id' => 'kd-1', 'code' => 'K0125', 'name' => 'Verdieping Engels', 'period' => '3', 'programmeId' => 'p-1', 'places' => 20, 'lifecycle' => 'offered', 'tenant_id' => 'school-1'],
-				['id' => 'kd-other', 'code' => 'K9', 'name' => 'Ander', 'period' => '3', 'programmeId' => 'p-9', 'choiceClosesOn' => '2999-12-31', 'lifecycle' => 'offered'],
+				$offer + [
+					'id' => 'kd-1',
+					'code' => 'K0125',
+					'name' => 'Verdieping Engels',
+					'period' => '3',
+					'programmeId' => 'p-1',
+					'places' => 20,
+					'lifecycle' => 'offered',
+					'tenant_id' => 'school-1'
+				],
+				[
+					'id' => 'kd-other',
+					'code' => 'K9',
+					'name' => 'Ander',
+					'period' => '3',
+					'programmeId' => 'p-9',
+					'choiceClosesOn' => '2999-12-31',
+					'lifecycle' => 'offered'
+				],
 			],
 			'keuzedeel-choice' => [],
 		];
-		$objects = $this->createMock(ObjectService::class);
+		$objects = $this->createMock(originalClassName: ObjectService::class);
 		$objects->method('findAll')->willReturnCallback(
 			static function (array $config = []) use ($store): array {
 				$schema = (string) $config['filters']['schema'];
@@ -135,21 +155,21 @@ class KeuzedeelControllerTest extends TestCase {
 		);
 		$objects->method('saveObject')->willReturnCallback(
 			function (array|ObjectEntity $object, ObjectSaveOptions $options = new ObjectSaveOptions(), bool $_rbac = true): ObjectEntity {
-				self::assertSame('keuzedeel-choice', $options->target->schema);
+				self::assertSame(expected: 'keuzedeel-choice', actual: $options->target->schema);
 				$this->saved[] = ['object' => (array) $object, 'rbac' => $_rbac];
 				return OrEntityFactory::make(['id' => 'kc-1'] + (array) $object, 'keuzedeel-choice');
 			}
 		);
 
-		$session = $this->createMock(IUserSession::class);
+		$session = $this->createMock(originalClassName: IUserSession::class);
 		$account = null;
 		if ($user !== null) {
-			$account = $this->createMock(IUser::class);
+			$account = $this->createMock(originalClassName: IUser::class);
 			$account->method('getUID')->willReturn($user);
 		}
 
 		$session->method('getUser')->willReturn($account);
-		$restamp = $this->createMock(ExamProgressRestamp::class);
+		$restamp = $this->createMock(originalClassName: ExamProgressRestamp::class);
 		$restamp->method('restamp')->willReturnCallback(
 			function (string $learnerUserId): bool {
 				$this->restamped[] = $learnerUserId;
@@ -157,6 +177,12 @@ class KeuzedeelControllerTest extends TestCase {
 			}
 		);
 
-		return new KeuzedeelController($this->createMock(IRequest::class), $session, new KeuzedeelStore($objects), $restamp, new NullLogger());
+		return new KeuzedeelController(
+			request: $this->createMock(originalClassName: IRequest::class),
+			userSession: $session,
+			store: new KeuzedeelStore(objectService: $objects),
+			restamp: $restamp,
+			logger: new NullLogger()
+		);
 	}//end controller()
 }//end class

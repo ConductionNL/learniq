@@ -38,8 +38,8 @@ class ExamSittingEstablishGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testTheCommitteeMayEstablish(): void {
-		self::assertAllowed($this->guard(['compliance-officers'])->check(['id' => 's-1'], 'establish', 'actor-1'));
-		self::assertAllowed($this->guard(['admin'])->check(['id' => 's-1'], 'establish', 'actor-1'));
+		self::assertAllowed($this->guard(groups: ['compliance-officers'])->check(['id' => 's-1'], 'establish', 'actor-1'));
+		self::assertAllowed($this->guard(groups: ['admin'])->check(['id' => 's-1'], 'establish', 'actor-1'));
 	}//end testTheCommitteeMayEstablish()
 
 	/**
@@ -48,10 +48,10 @@ class ExamSittingEstablishGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testATeacherIsRefused(): void {
-		$result = $this->guard(['instructors'])->check(['id' => 's-1'], 'establish', 'actor-1');
+		$result = $this->guard(groups: ['instructors'])->check(['id' => 's-1'], 'establish', 'actor-1');
 
 		self::assertDenied($result);
-		self::assertSame('Only the exam committee can establish the results of a sitting.', $result->getMessage());
+		self::assertSame(expected: 'Only the exam committee can establish the results of a sitting.', actual: $result->getMessage());
 	}//end testATeacherIsRefused()
 
 	/**
@@ -60,8 +60,8 @@ class ExamSittingEstablishGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testNoOrAnUnknownActorIsRefused(): void {
-		self::assertDenied($this->guard(['compliance-officers'])->check(['id' => 's-1'], 'establish', ''));
-		self::assertDenied($this->guard(['compliance-officers'])->check(['id' => 's-1'], 'establish', 'someone-else'));
+		self::assertDenied($this->guard(groups: ['compliance-officers'])->check(['id' => 's-1'], 'establish', ''));
+		self::assertDenied($this->guard(groups: ['compliance-officers'])->check(['id' => 's-1'], 'establish', 'someone-else'));
 	}//end testNoOrAnUnknownActorIsRefused()
 
 	/**
@@ -72,14 +72,14 @@ class ExamSittingEstablishGuardTest extends TestCase {
 	 * @return ExamSittingEstablishGuard
 	 */
 	private function guard(array $groups): ExamSittingEstablishGuard {
-		$user        = $this->createMock(IUser::class);
-		$userManager = $this->createMock(IUserManager::class);
+		$user        = $this->createMock(originalClassName: IUser::class);
+		$userManager = $this->createMock(originalClassName: IUserManager::class);
 		$userManager->method('get')->willReturnCallback(
 			static fn (string $uid): ?IUser => $uid === 'actor-1' ? $user : null
 		);
-		$groupManager = $this->createMock(IGroupManager::class);
+		$groupManager = $this->createMock(originalClassName: IGroupManager::class);
 		$groupManager->method('getUserGroupIds')->willReturn($groups);
 
-		return new ExamSittingEstablishGuard($groupManager, $userManager, new NullLogger());
+		return new ExamSittingEstablishGuard(groupManager: $groupManager, userManager: $userManager, logger: new NullLogger());
 	}//end guard()
 }//end class

@@ -51,7 +51,14 @@ class ExamProgressRestamp {
 	 *
 	 * @var list<string>
 	 */
-	public const FIELDS = ['examComponentsPassed', 'examComponentsTotal', 'examProgressLabel', 'nextExamSittingId', 'nextExamLabel', 'keuzedeelLabel'];
+	public const FIELDS = [
+		'examComponentsPassed',
+		'examComponentsTotal',
+		'examProgressLabel',
+		'nextExamSittingId',
+		'nextExamLabel',
+		'keuzedeelLabel'
+	];
 
 	/**
 	 * Constructor.

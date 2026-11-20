@@ -36,7 +36,7 @@ class KeuzedeelStoreTest extends TestCase {
 	public function testOffersForTheStudent(): void {
 		$offers = $this->store()->offersFor('milan');
 
-		self::assertSame(['kd-all', 'kd-prog', 'kd-group'], array_column($offers, 'id'));
+		self::assertSame(expected: ['kd-all', 'kd-prog', 'kd-group'], actual: array_column($offers, 'id'));
 	}//end testOffersForTheStudent()
 
 	/**
@@ -47,10 +47,10 @@ class KeuzedeelStoreTest extends TestCase {
 	public function testOfferAndChoices(): void {
 		$store = $this->store();
 
-		self::assertSame('kd-prog', $store->offer('kd-prog')['id']);
-		self::assertNull($store->offer('nope'));
-		self::assertNull($store->offer(''));
-		self::assertSame(['kc-1'], array_column($store->choices(['learnerId' => 'milan']), 'id'));
+		self::assertSame(expected: 'kd-prog', actual: $store->offer('kd-prog')['id']);
+		self::assertNull(actual: $store->offer('nope'));
+		self::assertNull(actual: $store->offer(''));
+		self::assertSame(expected: ['kc-1'], actual: array_column($store->choices(['learnerId' => 'milan']), 'id'));
 	}//end testOfferAndChoices()
 
 	/**
@@ -73,7 +73,7 @@ class KeuzedeelStoreTest extends TestCase {
 			],
 			'keuzedeel-choice' => [['id' => 'kc-1', 'learnerId' => 'milan'], ['id' => 'kc-2', 'learnerId' => 'sara']],
 		];
-		$objects = $this->createMock(ObjectService::class);
+		$objects = $this->createMock(originalClassName: ObjectService::class);
 		$objects->method('findAll')->willReturnCallback(
 			static function (array $config = []) use ($rows): array {
 				$schema = (string) $config['filters']['schema'];
@@ -81,6 +81,6 @@ class KeuzedeelStoreTest extends TestCase {
 			}
 		);
 
-		return new KeuzedeelStore($objects);
+		return new KeuzedeelStore(objectService: $objects);
 	}//end store()
 }//end class

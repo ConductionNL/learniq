@@ -33,7 +33,7 @@ class WorkingDaysTest extends TestCase {
 	public function testTenWorkingDaysFromAFridayEndTwoFridaysLater(): void {
 		$end = WorkingDays::after(start: new DateTimeImmutable('2026-09-25T14:10:00+02:00'), days: 10);
 
-		self::assertSame('2026-10-09', $end->format('Y-m-d'));
+		self::assertSame(expected: '2026-10-09', actual: $end->format('Y-m-d'));
 	}//end testTenWorkingDaysFromAFridayEndTwoFridaysLater()
 
 	/**
@@ -42,9 +42,9 @@ class WorkingDaysTest extends TestCase {
 	 * @return void
 	 */
 	public function testAWeekendIsSkipped(): void {
-		self::assertSame('2026-09-28', WorkingDays::after(start: new DateTimeImmutable('2026-09-25'), days: 1)->format('Y-m-d'));
-		self::assertSame('2026-09-28', WorkingDays::after(start: new DateTimeImmutable('2026-09-26'), days: 1)->format('Y-m-d'));
-		self::assertSame('2026-09-29', WorkingDays::after(start: new DateTimeImmutable('2026-09-28'), days: 1)->format('Y-m-d'));
+		self::assertSame(expected: '2026-09-28', actual: WorkingDays::after(start: new DateTimeImmutable('2026-09-25'), days: 1)->format('Y-m-d'));
+		self::assertSame(expected: '2026-09-28', actual: WorkingDays::after(start: new DateTimeImmutable('2026-09-26'), days: 1)->format('Y-m-d'));
+		self::assertSame(expected: '2026-09-29', actual: WorkingDays::after(start: new DateTimeImmutable('2026-09-28'), days: 1)->format('Y-m-d'));
 	}//end testAWeekendIsSkipped()
 
 	/**
@@ -53,6 +53,6 @@ class WorkingDaysTest extends TestCase {
 	 * @return void
 	 */
 	public function testATermBelowOneCountsAsOne(): void {
-		self::assertSame('2026-09-28', WorkingDays::after(start: new DateTimeImmutable('2026-09-25'), days: 0)->format('Y-m-d'));
+		self::assertSame(expected: '2026-09-28', actual: WorkingDays::after(start: new DateTimeImmutable('2026-09-25'), days: 0)->format('Y-m-d'));
 	}//end testATermBelowOneCountsAsOne()
 }//end class
