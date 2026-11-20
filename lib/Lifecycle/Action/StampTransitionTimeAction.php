@@ -25,7 +25,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/compliance-attestation-locked-after-signing/specs/compliance-audit/spec.md#requirement-revoking-a-signed-attestation-records-a-reason-and-changes-nothing-else
+ * @spec openspec/specs/compliance-audit/spec.md#requirement-revoking-a-signed-attestation-records-a-reason-and-changes-nothing-else
  */
 
 declare(strict_types=1);
@@ -42,7 +42,7 @@ use RuntimeException;
 /**
  * Stamps when a transition happened, never trusting a caller-supplied value.
  *
- * @spec openspec/changes/compliance-attestation-locked-after-signing/specs/compliance-audit/spec.md#requirement-revoking-a-signed-attestation-records-a-reason-and-changes-nothing-else
+ * @spec openspec/specs/compliance-audit/spec.md#requirement-revoking-a-signed-attestation-records-a-reason-and-changes-nothing-else
  */
 class StampTransitionTimeAction implements ContextLifecycleActionInterface {
 
@@ -56,7 +56,7 @@ class StampTransitionTimeAction implements ContextLifecycleActionInterface {
 	 *
 	 * @throws RuntimeException When no timeField is declared.
 	 *
-	 * @spec openspec/changes/compliance-attestation-locked-after-signing/specs/compliance-audit/spec.md#requirement-revoking-a-signed-attestation-records-a-reason-and-changes-nothing-else
+	 * @spec openspec/specs/compliance-audit/spec.md#requirement-revoking-a-signed-attestation-records-a-reason-and-changes-nothing-else
 	 */
 	public function execute(LifecycleActionContext $context): array {
 		$objectData = $context->objectData;

@@ -87,7 +87,7 @@ class PublicCourseIndex {
 			return [];
 		}
 
-		$runs = $this->runsOf(courseIds: array_keys($offered), namespace: $namespace, today: $today);
+		$runs = $this->runsOf(courseIds: array_keys($offered), args: ['namespace' => $namespace, 'today' => $today]);
 		$out  = [];
 		foreach ($offered as $id => $course) {
 			if (isset($runs[$id]) === true) {
@@ -139,12 +139,14 @@ class PublicCourseIndex {
 	 * `{days, place}` per cohort with a lesson day to come.
 	 *
 	 * @param array<int, int|string> $courseIds The offered courses.
-	 * @param string                 $namespace The uuid namespace.
-	 * @param string                 $today     Today.
+	 * @param array{namespace: string, today: string} $args The namespace, today.
 	 *
 	 * @return array<string, array<int, array{days: array<int, string>, place: string}>>
 	 */
-	private function runsOf(array $courseIds, string $namespace, string $today): array {
+	private function runsOf(array $courseIds, array $args): array {
+		$namespace = $args['namespace'];
+		$today = $args['today'];
+
 		$places = [];
 		foreach ($this->reads->rows(schema: 'vestiging', namespace: $namespace) as $place) {
 			$places[$this->reads->idOf(row: $place)] = (string)($place['name'] ?? '');

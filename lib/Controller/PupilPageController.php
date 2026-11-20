@@ -28,8 +28,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\PupilPageServiceInterface;
 use OCA\Learniq\Service\Attendance\RollCallException;
-use OCA\Learniq\Service\Pupil\PupilPageService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -52,7 +52,7 @@ class PupilPageController extends Controller {
 	 *
 	 * @param IRequest         $request     The request.
 	 * @param IUserSession     $userSession The signed-in user.
-	 * @param PupilPageService $pupilPage   The pupil page's data.
+	 * @param PupilPageServiceInterface $pupilPage   The pupil page's data.
 	 * @param LoggerInterface  $logger      PSR logger.
 	 * @param IL10N            $l10n        Messages.
 	 *
@@ -61,7 +61,7 @@ class PupilPageController extends Controller {
 	public function __construct(
 		IRequest $request,
 		private readonly IUserSession $userSession,
-		private readonly PupilPageService $pupilPage,
+		private readonly PupilPageServiceInterface $pupilPage,
 		private readonly LoggerInterface $logger,
 		private readonly IL10N $l10n,
 	) {

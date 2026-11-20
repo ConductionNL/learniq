@@ -211,33 +211,7 @@ class ExampleSetDates implements ExampleSetDatesInterface {
 		}
 
 		try {
-			$entity = $this->objects->find(
-				id: $uuid,
-				options: new ObjectFindOptions(register: $register, schema: $schema, render: false, audit: false),
-				_rbac: false,
-				_multitenancy: false
-			);
-			if ($entity === null) {
-				return 'missing';
-			}
-
-			$data  = (array)$entity->getObject();
-			$moved = $this->demoDates->shift(value: $data, days: $days);
-			if ($moved === $data) {
-				return 'unchanged';
-			}
-
-			$this->objects->saveObject(
-				object: $moved,
-				options: new ObjectSaveOptions(
-					target: new ObjectFindTarget(register: $register, schema: $schema),
-					uuid: $uuid,
-					policy: new SavePolicy(silent: true, validation: false)
-				),
-				_rbac: false,
-				_multitenancy: false
-			);
-			return 'moved';
+			return $this->moveStored(target: ['uuid' => $uuid, 'register' => $register, 'schema' => $schema], days: $days);
 		} catch (Throwable $exception) {
 			$this->logger->warning(
 				'[ExampleSetDates] could not move {uuid}: {msg}',
@@ -246,4 +220,42 @@ class ExampleSetDates implements ExampleSetDatesInterface {
 			return 'failed';
 		}//end try
 	}//end moveOne()
+
+	/**
+	 * Move the dates of one stored object and save it when any moved.
+	 *
+	 * @param array{uuid: string, register: string, schema: string} $target Where the object is stored.
+	 * @param int                                                  $days   The days.
+	 *
+	 * @return string `moved`, `unchanged` or `missing`.
+	 */
+	private function moveStored(array $target, int $days): string {
+		$entity = $this->objects->find(
+			id: $target['uuid'],
+			options: new ObjectFindOptions(register: $target['register'], schema: $target['schema'], render: false, audit: false),
+			_rbac: false,
+			_multitenancy: false
+		);
+		if ($entity === null) {
+			return 'missing';
+		}
+
+		$data  = (array)$entity->getObject();
+		$moved = $this->demoDates->shift(value: $data, days: $days);
+		if ($moved === $data) {
+			return 'unchanged';
+		}
+
+		$this->objects->saveObject(
+			object: $moved,
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: $target['register'], schema: $target['schema']),
+				uuid: $target['uuid'],
+				policy: new SavePolicy(silent: true, validation: false)
+			),
+			_rbac: false,
+			_multitenancy: false
+		);
+		return 'moved';
+	}//end moveStored()
 }//end class

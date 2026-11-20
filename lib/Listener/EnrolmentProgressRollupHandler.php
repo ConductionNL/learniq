@@ -91,6 +91,21 @@ class EnrolmentProgressRollupHandler implements IEventListener {
 		}
 
 		$completion = $objectEntity->jsonSerialize();
+		$this->deferRollup(completion: $completion);
+	}//end handle()
+
+	/**
+	 * Defer the progress roll-up of the completion's learner and course, deduped
+	 * per learner and course; a completion without either owes none.
+	 *
+	 * @param array<string,mixed> $completion The LessonCompletion written.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/enrolment/spec.md#scenario-progress-percentage-recomputes-when-a-lesson-is-completed
+	 * @spec openspec/specs/progress-tracking/spec.md#requirement-a-lesson-completion-belongs-to-one-enrolment
+	 */
+	private function deferRollup(array $completion): void {
 		$learnerId = $completion['learnerId'] ?? '';
 		// LessonCompletion already denormalizes courseId (mirrors
 		// XapiStatement.courseId/.lessonId) — no extra Lesson lookup needed
@@ -120,7 +135,6 @@ class EnrolmentProgressRollupHandler implements IEventListener {
 			],
 			dedupeKey: $learnerId . '|' . $courseId
 		);
-
-	}//end handle()
+	}//end deferRollup()
 
 }//end class

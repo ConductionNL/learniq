@@ -372,6 +372,8 @@ class PortalLabelTranslatorTest extends TestCase {
 		$labelSets  = [
 			[PortalValueLabels::EXCUSE_STATUS, 'excuse-request', 'lifecycle'],
 			[PortalValueLabels::ABSENCE_KIND, 'excuse-request', 'reasonKind'],
+			[PortalValueLabels::LEAVE_STATUS, 'leave-request', 'lifecycle'],
+			[PortalValueLabels::LEAVE_KIND, 'leave-request', 'kind'],
 			[PortalValueLabels::ATTENDANCE_STATUS, 'attendance-record', 'status'],
 			[PortalValueLabels::SIGNUP_STATUS, 'conference-signup', 'lifecycle'],
 			[PortalValueLabels::SLOT_STATUS, 'conference-slot', 'lifecycle'],
