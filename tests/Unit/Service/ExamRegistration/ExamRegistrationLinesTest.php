@@ -38,9 +38,15 @@ class ExamRegistrationLinesTest extends TestCase {
 	private const JANSEN = ['id' => 'o-jansen', 'name' => 'Jansen Installatietechniek', 'contactName' => 'Linda Jansen'];
 
 	public function testABodyRequiresTheDefaultFieldsUnlessItNamesKnownOnes(): void {
-		self::assertSame(['fullName', 'birthDate', 'placeOfBirth'], (new ExamRegistrationLines())->required(required: []));
-		self::assertSame(['fullName', 'birthDate', 'placeOfBirth'], (new ExamRegistrationLines())->required(required: ['shoeSize']));
-		self::assertSame(['birthDate', 'fullName'], (new ExamRegistrationLines())->required(required: ['birthDate', 'fullName', 'birthDate', 'shoeSize']));
+		self::assertSame(expected: ['fullName', 'birthDate', 'placeOfBirth'], actual: (new ExamRegistrationLines())->required(required: []));
+		self::assertSame(
+			expected: ['fullName', 'birthDate', 'placeOfBirth'],
+			actual: (new ExamRegistrationLines())->required(required: ['shoeSize'])
+		);
+		self::assertSame(
+			expected: ['birthDate', 'fullName'],
+			actual: (new ExamRegistrationLines())->required(required: ['birthDate', 'fullName', 'birthDate', 'shoeSize'])
+		);
 	}//end testABodyRequiresTheDefaultFieldsUnlessItNamesKnownOnes()
 
 	public function testAMissingBirthDateNamesTheFieldAndTellsTheEmployerOnce(): void {
@@ -51,24 +57,31 @@ class ExamRegistrationLinesTest extends TestCase {
 			state: ['required' => ExamRegistrationLines::DEFAULT_REQUIRED, 'previous' => null, 'now' => '2026-10-05T07:30:00+02:00']
 		);
 
-		self::assertSame(['birthDate'], $line['missing']);
-		self::assertFalse($line['complete']);
-		self::assertSame('Youssef El Amrani', $line['learnerName']);
-		self::assertSame('Linda Jansen', $line['contactName']);
-		self::assertSame('2026-10-05T07:30:00+02:00', $line['employerNotifiedAt']);
-		self::assertSame(self::TASK, $line['employerTask']);
-		self::assertArrayNotHasKey('birthDate', $line, 'the list never carries the birth date');
-		self::assertSame('Van Youssef El Amrani (Jansen Installatietechniek) ontbreekt de geboortedatum.', (new ExamRegistrationLines())->missingSentence(line: $line));
+		self::assertSame(expected: ['birthDate'], actual: $line['missing']);
+		self::assertFalse(condition: $line['complete']);
+		self::assertSame(expected: 'Youssef El Amrani', actual: $line['learnerName']);
+		self::assertSame(expected: 'Linda Jansen', actual: $line['contactName']);
+		self::assertSame(expected: '2026-10-05T07:30:00+02:00', actual: $line['employerNotifiedAt']);
+		self::assertSame(expected: self::TASK, actual: $line['employerTask']);
+		self::assertArrayNotHasKey(key: 'birthDate', array: $line, message: 'the list never carries the birth date');
+		self::assertSame(
+			expected: 'Van Youssef El Amrani (Jansen Installatietechniek) ontbreekt de geboortedatum.',
+			actual: (new ExamRegistrationLines())->missingSentence(line: $line)
+		);
 
 		// A later refresh keeps the moment the employer was first told.
 		$again = (new ExamRegistrationLines())->line(
 			enrolment: ['id' => 'e-youssef', 'openTask' => self::TASK],
 			profile: self::YOUSSEF,
 			organisation: self::JANSEN,
-			state: ['required' => ExamRegistrationLines::DEFAULT_REQUIRED, 'previous' => array_merge($line, ['result' => 'pass']), 'now' => '2026-10-06T10:00:00+02:00']
+			state: [
+				'required' => ExamRegistrationLines::DEFAULT_REQUIRED,
+				'previous' => array_merge($line, ['result' => 'pass']),
+				'now' => '2026-10-06T10:00:00+02:00'
+			]
 		);
-		self::assertSame('2026-10-05T07:30:00+02:00', $again['employerNotifiedAt']);
-		self::assertSame('pass', $again['result']);
+		self::assertSame(expected: '2026-10-05T07:30:00+02:00', actual: $again['employerNotifiedAt']);
+		self::assertSame(expected: 'pass', actual: $again['result']);
 	}//end testAMissingBirthDateNamesTheFieldAndTellsTheEmployerOnce()
 
 	public function testACompleteLineClearsTheTaskAndWithoutAPortalTaskNobodyIsTold(): void {
@@ -76,12 +89,16 @@ class ExamRegistrationLinesTest extends TestCase {
 			enrolment: ['id' => 'e-1', 'openTask' => self::TASK],
 			profile: array_merge(self::YOUSSEF, ['birthDate' => '1998-03-04']),
 			organisation: self::JANSEN,
-			state: ['required' => ExamRegistrationLines::DEFAULT_REQUIRED, 'previous' => ['employerNotifiedAt' => '2026-10-05T07:30:00+02:00'], 'now' => '2026-10-06T10:00:00+02:00']
+			state: [
+				'required' => ExamRegistrationLines::DEFAULT_REQUIRED,
+				'previous' => ['employerNotifiedAt' => '2026-10-05T07:30:00+02:00'],
+				'now' => '2026-10-06T10:00:00+02:00'
+			]
 		);
-		self::assertTrue($complete['complete']);
-		self::assertSame([], $complete['missing']);
-		self::assertNull($complete['employerNotifiedAt']);
-		self::assertNull($complete['employerTask'], 'a stale task is not repeated');
+		self::assertTrue(condition: $complete['complete']);
+		self::assertSame(expected: [], actual: $complete['missing']);
+		self::assertNull(actual: $complete['employerNotifiedAt']);
+		self::assertNull(actual: $complete['employerTask'], message: 'a stale task is not repeated');
 
 		$alone = (new ExamRegistrationLines())->line(
 			enrolment: ['id' => 'e-2', 'learnerName' => 'Kim'],
@@ -89,45 +106,72 @@ class ExamRegistrationLinesTest extends TestCase {
 			organisation: [],
 			state: ['required' => ['fullName', 'birthDate'], 'previous' => null, 'now' => '2026-10-06T10:00:00+02:00']
 		);
-		self::assertSame(['fullName', 'birthDate'], $alone['missing'], 'a name needs both parts');
-		self::assertSame('Kim', $alone['learnerName']);
-		self::assertNull($alone['employerNotifiedAt'], 'no task on the portal, so nobody was told');
-		self::assertNull($alone['employerTask']);
-		self::assertSame('Van Kim ontbreekt de naam en de geboortedatum.', (new ExamRegistrationLines())->missingSentence(line: $alone));
+		self::assertSame(expected: ['fullName', 'birthDate'], actual: $alone['missing'], message: 'a name needs both parts');
+		self::assertSame(expected: 'Kim', actual: $alone['learnerName']);
+		self::assertNull(actual: $alone['employerNotifiedAt'], message: 'no task on the portal, so nobody was told');
+		self::assertNull(actual: $alone['employerTask']);
+		self::assertSame(
+			expected: 'Van Kim ontbreekt de naam en de geboortedatum.',
+			actual: (new ExamRegistrationLines())->missingSentence(line: $alone)
+		);
 	}//end testACompleteLineClearsTheTaskAndWithoutAPortalTaskNobodyIsTold()
 
 	public function testTheSummaryCountsTheCompleteParticipants(): void {
 		$lines = array_fill(0, 10, ['complete' => true]);
 		$lines[] = ['complete' => false];
 
-		self::assertSame('10 van de 11 deelnemers zijn compleet.', (new ExamRegistrationLines())->summary(lines: $lines));
-		self::assertSame(10, (new ExamRegistrationLines())->completeCount(lines: $lines));
-		self::assertSame('1 van de 2 deelnemers is compleet.', (new ExamRegistrationLines())->summary(lines: [['complete' => true], ['complete' => false]]));
-		self::assertSame('Alle 2 deelnemers zijn compleet.', (new ExamRegistrationLines())->summary(lines: [['complete' => true], ['complete' => true]]));
-		self::assertSame('De deelnemer is nog niet compleet.', (new ExamRegistrationLines())->summary(lines: [['complete' => false]]));
+		self::assertSame(expected: '10 van de 11 deelnemers zijn compleet.', actual: (new ExamRegistrationLines())->summary(lines: $lines));
+		self::assertSame(expected: 10, actual: (new ExamRegistrationLines())->completeCount(lines: $lines));
+		self::assertSame(
+			expected: '1 van de 2 deelnemers is compleet.',
+			actual: (new ExamRegistrationLines())->summary(lines: [['complete' => true], ['complete' => false]])
+		);
+		self::assertSame(
+			expected: 'Alle 2 deelnemers zijn compleet.',
+			actual: (new ExamRegistrationLines())->summary(lines: [['complete' => true], ['complete' => true]])
+		);
+		self::assertSame(
+			expected: 'De deelnemer is nog niet compleet.',
+			actual: (new ExamRegistrationLines())->summary(lines: [['complete' => false]])
+		);
 	}//end testTheSummaryCountsTheCompleteParticipants()
 
 	public function testTheNoticeSaysWhenTheEmployerWasTold(): void {
-		self::assertSame('De werkgever kreeg vanochtend bericht.', (new ExamRegistrationDates())->notice(notifiedAt: '2026-10-05T07:30:00+02:00', now: '2026-10-05T09:00:00+02:00'));
-		self::assertSame('De werkgever kreeg vanmiddag bericht.', (new ExamRegistrationDates())->notice(notifiedAt: '2026-10-05T12:30:00Z', now: '2026-10-05T16:00:00+02:00'));
-		self::assertSame('De werkgever kreeg gisteren bericht.', (new ExamRegistrationDates())->notice(notifiedAt: '2026-10-04T20:00:00+02:00', now: '2026-10-05T09:00:00+02:00'));
-		self::assertSame('De werkgever kreeg op 1 oktober bericht.', (new ExamRegistrationDates())->notice(notifiedAt: '2026-10-01T09:00:00+02:00', now: '2026-10-05T09:00:00+02:00'));
-		self::assertNull((new ExamRegistrationDates())->notice(notifiedAt: null, now: '2026-10-05T09:00:00+02:00'));
+		self::assertSame(
+			expected: 'De werkgever kreeg vanochtend bericht.',
+			actual: (new ExamRegistrationDates())->notice(notifiedAt: '2026-10-05T07:30:00+02:00', now: '2026-10-05T09:00:00+02:00')
+		);
+		self::assertSame(
+			expected: 'De werkgever kreeg vanmiddag bericht.',
+			actual: (new ExamRegistrationDates())->notice(notifiedAt: '2026-10-05T12:30:00Z', now: '2026-10-05T16:00:00+02:00')
+		);
+		self::assertSame(
+			expected: 'De werkgever kreeg gisteren bericht.',
+			actual: (new ExamRegistrationDates())->notice(notifiedAt: '2026-10-04T20:00:00+02:00', now: '2026-10-05T09:00:00+02:00')
+		);
+		self::assertSame(
+			expected: 'De werkgever kreeg op 1 oktober bericht.',
+			actual: (new ExamRegistrationDates())->notice(notifiedAt: '2026-10-01T09:00:00+02:00', now: '2026-10-05T09:00:00+02:00')
+		);
+		self::assertNull(actual: (new ExamRegistrationDates())->notice(notifiedAt: null, now: '2026-10-05T09:00:00+02:00'));
 	}//end testTheNoticeSaysWhenTheEmployerWasTold()
 
 	public function testTheClosingLineNamesTheExamDayAndTheMoment(): void {
 		self::assertSame(
-			'De aanmelding voor het examen van donderdag sluit woensdag om 12.00 uur.',
-			(new ExamRegistrationDates())->closingSentence(examDate: '2026-10-08', closesAt: '2026-10-07T10:00:00Z')
+			expected: 'De aanmelding voor het examen van donderdag sluit woensdag om 12.00 uur.',
+			actual: (new ExamRegistrationDates())->closingSentence(examDate: '2026-10-08', closesAt: '2026-10-07T10:00:00Z')
 		);
-		self::assertSame('De aanmelding voor het examen sluit woensdag om 12.00 uur.', (new ExamRegistrationDates())->closingSentence(examDate: null, closesAt: '2026-10-07T12:00:00+02:00'));
-		self::assertNull((new ExamRegistrationDates())->closingSentence(examDate: '2026-10-08', closesAt: 'not a moment'));
+		self::assertSame(
+			expected: 'De aanmelding voor het examen sluit woensdag om 12.00 uur.',
+			actual: (new ExamRegistrationDates())->closingSentence(examDate: null, closesAt: '2026-10-07T12:00:00+02:00')
+		);
+		self::assertNull(actual: (new ExamRegistrationDates())->closingSentence(examDate: '2026-10-08', closesAt: 'not a moment'));
 	}//end testTheClosingLineNamesTheExamDayAndTheMoment()
 
 	public function testAListIsDueFromItsMoment(): void {
-		self::assertFalse((new ExamRegistrationDates())->isDue(closesAt: '2026-10-07T12:00:00+02:00', now: '2026-10-07T11:59:00+02:00'));
-		self::assertTrue((new ExamRegistrationDates())->isDue(closesAt: '2026-10-07T12:00:00+02:00', now: '2026-10-07T10:00:00Z'));
-		self::assertFalse((new ExamRegistrationDates())->isDue(closesAt: null, now: '2026-10-07T12:00:00+02:00'));
+		self::assertFalse(condition: (new ExamRegistrationDates())->isDue(closesAt: '2026-10-07T12:00:00+02:00', now: '2026-10-07T11:59:00+02:00'));
+		self::assertTrue(condition: (new ExamRegistrationDates())->isDue(closesAt: '2026-10-07T12:00:00+02:00', now: '2026-10-07T10:00:00Z'));
+		self::assertFalse(condition: (new ExamRegistrationDates())->isDue(closesAt: null, now: '2026-10-07T12:00:00+02:00'));
 	}//end testAListIsDueFromItsMoment()
 
 	public function testTheExportFollowsTheBodysColumnsAndGuardsItsCells(): void {
@@ -135,16 +179,21 @@ class ExamRegistrationLinesTest extends TestCase {
 			required: ['birthDate', 'fullName', 'placeOfBirth'],
 			lines: [['learnerRef' => 'p-1', 'learnerName' => 'Tom Verbeek'], ['learnerRef' => 'p-2', 'learnerName' => 'Eva']],
 			profiles: [
-				'p-1' => ['givenName' => 'Tom', 'familyName' => 'Verbeek', 'birthDate' => '1990-01-02', 'placeOfBirth' => "'s-Hertogenbosch; Noord-Brabant"],
+				'p-1' => [
+					'givenName' => 'Tom',
+					'familyName' => 'Verbeek',
+					'birthDate' => '1990-01-02',
+					'placeOfBirth' => "'s-Hertogenbosch; Noord-Brabant"
+				],
 				'p-2' => ['givenName' => '=HYPERLINK("x")', 'familyName' => 'Smit', 'birthDate' => '', 'placeOfBirth' => 'Ede'],
 			]
 		);
 
 		self::assertSame(
-			"Geboortedatum;Naam;Geboorteplaats\r\n"
+			expected: "Geboortedatum;Naam;Geboorteplaats\r\n"
 			. "1990-01-02;Tom Verbeek;\"'s-Hertogenbosch; Noord-Brabant\"\r\n"
 			. ";\"\t=HYPERLINK(\"\"x\"\") Smit\";Ede\r\n",
-			$csv
+			actual: $csv
 		);
 	}//end testTheExportFollowsTheBodysColumnsAndGuardsItsCells()
 }//end class

@@ -186,7 +186,12 @@ class ExamRegistrationController extends Controller {
 	#[NoAdminRequired]
 	public function result(string $id, string $enrolmentId='', string $result=''): JSONResponse {
 		return $this->answer(
-			call: fn (IUser $user): array => $this->services->lists->recordResult(id: $id, enrolmentId: $enrolmentId, result: $result, userId: $user->getUID())
+			call: fn (IUser $user): array => $this->services->lists->recordResult(
+				id: $id,
+				enrolmentId: $enrolmentId,
+				result: $result,
+				userId: $user->getUID()
+			)
 		);
 	}//end result()
 
@@ -239,7 +244,9 @@ class ExamRegistrationController extends Controller {
 	 * @return JSONResponse
 	 */
 	private function answer(callable $call, int $status=Http::STATUS_OK): JSONResponse {
-		$denied = (new CallerActionCheck(userSession: $this->caller->userSession, actionAuth: $this->caller->actionAuth))->refusal(action: self::ACTION);
+		$denied = (
+			new CallerActionCheck(userSession: $this->caller->userSession, actionAuth: $this->caller->actionAuth)
+		)->refusal(action: self::ACTION);
 		if ($denied !== null) {
 			return $denied;
 		}

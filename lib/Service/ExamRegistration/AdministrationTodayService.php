@@ -234,6 +234,8 @@ class AdministrationTodayService implements AdministrationTodayServiceInterface 
 	 * @return string
 	 */
 	private function todayDate(): string {
-		return (new DateTimeImmutable('@' . $this->time->getDateTime()->getTimestamp()))->setTimezone(new DateTimeZone(ExamRegistrationLines::ZONE))->format('Y-m-d');
+		return (
+			new DateTimeImmutable('@' . $this->time->getDateTime()->getTimestamp())
+		)->setTimezone(new DateTimeZone(ExamRegistrationLines::ZONE))->format('Y-m-d');
 	}//end todayDate()
 }//end class

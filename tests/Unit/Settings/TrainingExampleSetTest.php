@@ -911,32 +911,45 @@ class TrainingExampleSetTest extends TestCase {
 	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-youssefs-birth-date
 	 */
 	public function testTheExamRegistrationOfTheFGassenDay(): void {
-		$lists = self::of('exam-registration');
-		self::assertCount(1, $lists);
+		$lists = self::of(schema: 'exam-registration');
+		self::assertCount(expectedCount: 1, haystack: $lists);
 		$list = $lists[0];
 
-		$profiles = array_column(self::of('learner-profile'), null, 'uuid');
-		$enrolments = array_column(self::of('enrolment'), null, 'uuid');
-		$companies = array_column(self::of('client-organisation'), null, 'uuid');
+		$profiles = array_column(self::of(schema: 'learner-profile'), null, 'uuid');
+		$enrolments = array_column(self::of(schema: 'enrolment'), null, 'uuid');
+		$companies = array_column(self::of(schema: 'client-organisation'), null, 'uuid');
 		foreach ($list['lines'] as $line) {
 			$enrolment = $enrolments[$line['enrolmentId']];
-			self::assertSame($list['cohortId'], $enrolment['cohortId']);
+			self::assertSame(expected: $list['cohortId'], actual: $enrolment['cohortId']);
 			$expected = (new ExamRegistrationLines())->line(
 				enrolment: array_merge($enrolment, ['id' => $enrolment['uuid']]),
 				profile: array_merge($profiles[$line['learnerRef']], ['id' => $line['learnerRef']]),
 				organisation: array_merge($companies[$line['organisationRef']], ['id' => $line['organisationRef']]),
-				state: ['required' => (new ExamRegistrationLines())->required(required: $list['requiredFields']), 'previous' => $line, 'now' => '2026-10-05T07:45:00+02:00']
+				state: [
+					'required' => (new ExamRegistrationLines())->required(required: $list['requiredFields']),
+					'previous' => $line,
+					'now' => '2026-10-05T07:45:00+02:00'
+				]
 			);
-			self::assertSame($expected, $line, $line['learnerName']);
+			self::assertSame(expected: $expected, actual: $line, message: $line['learnerName']);
 		}
 
-		self::assertSame('De aanmelding voor het examen van donderdag sluit woensdag om 12.00 uur.', (new ExamRegistrationDates())->closingSentence(examDate: $list['examDate'], closesAt: $list['closesAt']));
-		self::assertSame('2 van de 3 deelnemers zijn compleet.', (new ExamRegistrationLines())->summary(lines: $list['lines']));
-		self::assertSame([2, 3], [$list['completeCount'], $list['participantCount']]);
+		self::assertSame(
+			expected: 'De aanmelding voor het examen van donderdag sluit woensdag om 12.00 uur.',
+			actual: (new ExamRegistrationDates())->closingSentence(examDate: $list['examDate'], closesAt: $list['closesAt'])
+		);
+		self::assertSame(expected: '2 van de 3 deelnemers zijn compleet.', actual: (new ExamRegistrationLines())->summary(lines: $list['lines']));
+		self::assertSame(expected: [2, 3], actual: [$list['completeCount'], $list['participantCount']]);
 		$youssef = array_values(array_filter($list['lines'], static fn (array $line): bool => $line['complete'] === false));
-		self::assertCount(1, $youssef);
-		self::assertSame('Van Youssef El Amrani (Jansen Installatietechniek BV) ontbreekt de geboortedatum.', (new ExamRegistrationLines())->missingSentence(line: $youssef[0]));
-		self::assertSame('De werkgever kreeg vanochtend bericht.', (new ExamRegistrationDates())->notice(notifiedAt: $youssef[0]['employerNotifiedAt'], now: '2026-10-05T09:00:00+02:00'));
-		self::assertStringNotContainsString('1988-06-12', json_encode($list), 'the list carries no birth date');
+		self::assertCount(expectedCount: 1, haystack: $youssef);
+		self::assertSame(
+			expected: 'Van Youssef El Amrani (Jansen Installatietechniek BV) ontbreekt de geboortedatum.',
+			actual: (new ExamRegistrationLines())->missingSentence(line: $youssef[0])
+		);
+		self::assertSame(
+			expected: 'De werkgever kreeg vanochtend bericht.',
+			actual: (new ExamRegistrationDates())->notice(notifiedAt: $youssef[0]['employerNotifiedAt'], now: '2026-10-05T09:00:00+02:00')
+		);
+		self::assertStringNotContainsString(needle: '1988-06-12', haystack: json_encode($list), message: 'the list carries no birth date');
 	}//end testTheExamRegistrationOfTheFGassenDay()
 }//end class

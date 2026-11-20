@@ -66,13 +66,36 @@ class CertificateIssueServiceTest extends TestCase {
 		$lines      = [];
 		$enrolments = [];
 		for ($i = 1; $i <= 10; $i++) {
-			$enrolments[] = ['id' => 'e-' . $i, 'cohortId' => 'c-8', 'learnerId' => 'user' . $i, 'learnerRef' => 'p-' . $i, 'learnerName' => 'Deelnemer ' . sprintf('%02d', $i), 'courseId' => 'fgas', 'lifecycle' => 'active', 'tenant_id' => 't-1'];
+			$enrolments[] = [
+				'id' => 'e-' . $i,
+				'cohortId' => 'c-8',
+				'learnerId' => 'user' . $i,
+				'learnerRef' => 'p-' . $i,
+				'learnerName' => 'Deelnemer ' . sprintf('%02d', $i),
+				'courseId' => 'fgas',
+				'lifecycle' => 'active',
+				'tenant_id' => 't-1'
+			];
 			$lines[]      = ['enrolmentId' => 'e-' . $i, 'learnerName' => 'Deelnemer ' . sprintf('%02d', $i), 'result' => 'pass'];
 		}
 
-		$enrolments[] = ['id' => 'e-sanne', 'cohortId' => 'c-8', 'learnerRef' => 'p-sanne', 'learnerName' => 'Sanne de Wit', 'lifecycle' => 'active', 'tenant_id' => 't-1'];
+		$enrolments[] = [
+			'id' => 'e-sanne',
+			'cohortId' => 'c-8',
+			'learnerRef' => 'p-sanne',
+			'learnerName' => 'Sanne de Wit',
+			'lifecycle' => 'active',
+			'tenant_id' => 't-1'
+		];
 		$lines[]      = ['enrolmentId' => 'e-sanne', 'learnerName' => 'Sanne de Wit', 'result' => null];
-		$enrolments[] = ['id' => 'e-gone', 'cohortId' => 'c-8', 'learnerRef' => 'p-gone', 'learnerName' => 'Weg', 'lifecycle' => 'withdrawn', 'tenant_id' => 't-1'];
+		$enrolments[] = [
+			'id' => 'e-gone',
+			'cohortId' => 'c-8',
+			'learnerRef' => 'p-gone',
+			'learnerName' => 'Weg',
+			'lifecycle' => 'withdrawn',
+			'tenant_id' => 't-1'
+		];
 
 		$this->rows = [
 			'cohort' => [
@@ -93,7 +116,7 @@ class CertificateIssueServiceTest extends TestCase {
 	}//end setUp()
 
 	private function service(): CertificateIssueService {
-		$objects = $this->createMock(ObjectService::class);
+		$objects = $this->createMock(originalClassName: ObjectService::class);
 		$objects->method('findAll')->willReturnCallback(
 			function (array $config): array {
 				$filters = $config['filters'];
@@ -114,24 +137,31 @@ class CertificateIssueServiceTest extends TestCase {
 				$this->saves[] = [$options->target->schema, $object, $options->uuid];
 				$object['id']  = $options->uuid;
 				$this->rows[$options->target->schema][] = $object;
-				$entity = $this->createMock(ObjectEntity::class);
+				$entity = $this->createMock(originalClassName: ObjectEntity::class);
 				$entity->method('jsonSerialize')->willReturn($object);
 
 				return $entity;
 			}
 		);
-		$signing = $this->createMock(CredentialSigningServiceInterface::class);
+		$signing = $this->createMock(originalClassName: CredentialSigningServiceInterface::class);
 		$signing->method('sign')->willReturnCallback(
 			fn (array $credential): ?array => in_array($credential['enrolmentId'], $this->unsignable, true) === true
 				? null
 				: array_merge($credential, ['id' => 'cred-' . $credential['enrolmentId'], 'signature' => 'jws'])
 		);
-		$europass = $this->createMock(EuropassIssuerInterface::class);
-		$europass->method('withEuropass')->willReturnCallback(static fn (array $credential): array => array_merge($credential, ['edciPayload' => ['ok' => true]]));
-		$time = $this->createMock(ITimeFactory::class);
+		$europass = $this->createMock(originalClassName: EuropassIssuerInterface::class);
+		$europass->method('withEuropass')->willReturnCallback(
+			static fn (array $credential): array => array_merge($credential, ['edciPayload' => ['ok' => true]])
+		);
+		$time = $this->createMock(originalClassName: ITimeFactory::class);
 		$time->method('getDateTime')->willReturnCallback(static fn (): DateTime => new DateTime('2026-10-12T10:00:00+02:00'));
 
-		return new CertificateIssueService(objectService: $objects, time: $time, signers: new CertificateSigners(signing: $signing, europass: $europass), logger: $this->createMock(LoggerInterface::class));
+		return new CertificateIssueService(
+			objectService: $objects,
+			time: $time,
+			signers: new CertificateSigners(signing: $signing, europass: $europass),
+			logger: $this->createMock(originalClassName: LoggerInterface::class)
+		);
 	}//end service()
 
 	/**
@@ -140,38 +170,48 @@ class CertificateIssueServiceTest extends TestCase {
 	 * @return list<array<string, mixed>>
 	 */
 	private function credentials(): array {
-		return array_values(array_map(static fn (array $save): array => $save[1], array_filter($this->saves, static fn (array $save): bool => $save[0] === 'credential')));
+		return array_values(
+			array_map(
+				static fn (array $save): array => $save[1],
+				array_filter($this->saves, static fn (array $save): bool => $save[0] === 'credential')
+			)
+		);
 	}//end credentials()
 
 	public function testRobIssuesTenCertificatesAndTheParticipantWithoutAResultIsNamed(): void {
 		$outcome = $this->service()->issue(cohortId: 'c-8', userId: 'rob');
 
-		self::assertCount(10, $outcome['issued']);
-		self::assertSame(0, $outcome['alreadyIssued']);
-		self::assertSame([['enrolmentId' => 'e-sanne', 'learnerName' => 'Sanne de Wit', 'reason' => 'no-result', 'sentence' => 'Sanne de Wit: geen uitslag.']], $outcome['skipped']);
-		self::assertSame('10 certificaten uitgegeven. Niet uitgegeven: Sanne de Wit (geen uitslag).', $outcome['summary']);
+		self::assertCount(expectedCount: 10, haystack: $outcome['issued']);
+		self::assertSame(expected: 0, actual: $outcome['alreadyIssued']);
+		self::assertSame(
+			expected: [
+				['enrolmentId' => 'e-sanne', 'learnerName' => 'Sanne de Wit', 'reason' => 'no-result', 'sentence' => 'Sanne de Wit: geen uitslag.']
+			],
+			actual: $outcome['skipped']
+		);
+		self::assertSame(expected: '10 certificaten uitgegeven. Niet uitgegeven: Sanne de Wit (geen uitslag).', actual: $outcome['summary']);
 
 		$credentials = $this->credentials();
-		self::assertCount(10, $credentials);
+		self::assertCount(expectedCount: 10, haystack: $credentials);
 		$first = $credentials[0];
-		self::assertSame('p-1', $first['learnerId']);
-		self::assertSame('user1', $first['learnerUserId']);
-		self::assertSame('e-1', $first['enrolmentId']);
-		self::assertSame('certificate', $first['kind']);
-		self::assertSame('manual', $first['source']);
-		self::assertSame('rob', $first['issuedByUserId'], 'who issued');
-		self::assertSame('2026-10-12T10:00:00+02:00', $first['issuedAt'], 'and when');
-		self::assertSame('2031-10-11T10:00:00+02:00', $first['expiresAt'], 'the course is valid 1825 days');
-		self::assertSame('Warmtepompacademie', $first['issuedBy']);
-		self::assertSame(['ok' => true], $first['edciPayload']);
-		self::assertArrayNotHasKey('id', $first, 'saved under the signed uuid, not with an id field');
-		self::assertSame('cred-e-1', $this->saves[0][2]);
+		self::assertSame(expected: 'p-1', actual: $first['learnerId']);
+		self::assertSame(expected: 'user1', actual: $first['learnerUserId']);
+		self::assertSame(expected: 'e-1', actual: $first['enrolmentId']);
+		self::assertSame(expected: 'certificate', actual: $first['kind']);
+		self::assertSame(expected: 'manual', actual: $first['source']);
+		self::assertSame(expected: 'rob', actual: $first['issuedByUserId'], message: 'who issued');
+		self::assertSame(expected: '2026-10-12T10:00:00+02:00', actual: $first['issuedAt'], message: 'and when');
+		self::assertSame(expected: '2031-10-11T10:00:00+02:00', actual: $first['expiresAt'], message: 'the course is valid 1825 days');
+		self::assertSame(expected: 'Warmtepompacademie', actual: $first['issuedBy']);
+		self::assertSame(expected: ['ok' => true], actual: $first['edciPayload']);
+		self::assertArrayNotHasKey(key: 'id', array: $first, message: 'saved under the signed uuid, not with an id field');
+		self::assertSame(expected: 'cred-e-1', actual: $this->saves[0][2]);
 
 		// The certificates are written onto their lines of the day's list.
 		$list = array_values(array_filter($this->saves, static fn (array $save): bool => $save[0] === 'exam-registration'));
-		self::assertCount(1, $list);
-		self::assertSame('cred-e-1', $list[0][1]['lines'][0]['credentialId']);
-		self::assertNull($list[0][1]['lines'][10]['credentialId'] ?? null);
+		self::assertCount(expectedCount: 1, haystack: $list);
+		self::assertSame(expected: 'cred-e-1', actual: $list[0][1]['lines'][0]['credentialId']);
+		self::assertNull(actual: $list[0][1]['lines'][10]['credentialId'] ?? null);
 	}//end testRobIssuesTenCertificatesAndTheParticipantWithoutAResultIsNamed()
 
 	public function testASecondIssueIssuesNothingTwice(): void {
@@ -180,10 +220,13 @@ class CertificateIssueServiceTest extends TestCase {
 
 		$outcome = $this->service()->issue(cohortId: 'c-8', userId: 'rob');
 
-		self::assertSame([], $outcome['issued']);
-		self::assertSame(10, $outcome['alreadyIssued']);
-		self::assertSame([], $this->credentials());
-		self::assertSame('0 certificaten uitgegeven. 10 had al een certificaat. Niet uitgegeven: Sanne de Wit (geen uitslag).', $outcome['summary']);
+		self::assertSame(expected: [], actual: $outcome['issued']);
+		self::assertSame(expected: 10, actual: $outcome['alreadyIssued']);
+		self::assertSame(expected: [], actual: $this->credentials());
+		self::assertSame(
+			expected: '0 certificaten uitgegeven. 10 had al een certificaat. Niet uitgegeven: Sanne de Wit (geen uitslag).',
+			actual: $outcome['summary']
+		);
 	}//end testASecondIssueIssuesNothingTwice()
 
 	public function testAFailedResultAndAnUnsignableCertificateAreSkipped(): void {
@@ -192,38 +235,73 @@ class CertificateIssueServiceTest extends TestCase {
 
 		$outcome = $this->service()->issue(cohortId: 'c-8', userId: 'rob');
 
-		self::assertCount(8, $outcome['issued']);
-		self::assertSame(['e-2' => 'failed', 'e-3' => 'unsigned', 'e-sanne' => 'no-result'], array_column($outcome['skipped'], 'reason', 'enrolmentId'));
-		self::assertCount(8, $this->credentials());
+		self::assertCount(expectedCount: 8, haystack: $outcome['issued']);
+		self::assertSame(
+			expected: ['e-2' => 'failed', 'e-3' => 'unsigned', 'e-sanne' => 'no-result'],
+			actual: array_column($outcome['skipped'], 'reason', 'enrolmentId')
+		);
+		self::assertCount(expectedCount: 8, haystack: $this->credentials());
 	}//end testAFailedResultAndAnUnsignableCertificateAreSkipped()
 
 	public function testADayWithoutResultsOnAListReadsTheCompletedEnrolments(): void {
 		$this->rows['exam-registration'] = [];
 		$this->rows['enrolment'] = [
-			['id' => 'h-1', 'cohortId' => 'c-old', 'learnerId' => 'u1', 'learnerRef' => 'p-1', 'learnerName' => 'Anna', 'courseId' => 'hybride', 'lifecycle' => 'completed', 'tenant_id' => 't-1'],
-			['id' => 'h-2', 'cohortId' => 'c-old', 'learnerRef' => 'p-2', 'learnerName' => 'Bas', 'courseId' => 'hybride', 'lifecycle' => 'failed', 'tenant_id' => 't-1'],
-			['id' => 'h-3', 'cohortId' => 'c-old', 'learnerRef' => 'p-3', 'learnerName' => 'Cor', 'courseId' => 'hybride', 'lifecycle' => 'active', 'tenant_id' => 't-1'],
+			[
+				'id' => 'h-1',
+				'cohortId' => 'c-old',
+				'learnerId' => 'u1',
+				'learnerRef' => 'p-1',
+				'learnerName' => 'Anna',
+				'courseId' => 'hybride',
+				'lifecycle' => 'completed',
+				'tenant_id' => 't-1'
+			],
+			[
+				'id' => 'h-2',
+				'cohortId' => 'c-old',
+				'learnerRef' => 'p-2',
+				'learnerName' => 'Bas',
+				'courseId' => 'hybride',
+				'lifecycle' => 'failed',
+				'tenant_id' => 't-1'
+			],
+			[
+				'id' => 'h-3',
+				'cohortId' => 'c-old',
+				'learnerRef' => 'p-3',
+				'learnerName' => 'Cor',
+				'courseId' => 'hybride',
+				'lifecycle' => 'active',
+				'tenant_id' => 't-1'
+			],
 		];
 
 		$outcome = $this->service()->issue(cohortId: 'c-old', userId: 'rob');
 
-		self::assertSame(['h-1'], array_column($outcome['issued'], 'enrolmentId'));
-		self::assertSame(['h-2' => 'failed', 'h-3' => 'no-result'], array_column($outcome['skipped'], 'reason', 'enrolmentId'));
-		self::assertSame('2029-10-12T10:00:00+02:00', $this->credentials()[0]['expiresAt'], 'the published rule renews every 36 months');
-		self::assertSame('1 certificaat uitgegeven. Niet uitgegeven: Bas (niet geslaagd), Cor (geen uitslag).', $outcome['summary']);
+		self::assertSame(expected: ['h-1'], actual: array_column($outcome['issued'], 'enrolmentId'));
+		self::assertSame(expected: ['h-2' => 'failed', 'h-3' => 'no-result'], actual: array_column($outcome['skipped'], 'reason', 'enrolmentId'));
+		self::assertSame(
+			expected: '2029-10-12T10:00:00+02:00',
+			actual: $this->credentials()[0]['expiresAt'],
+			message: 'the published rule renews every 36 months'
+		);
+		self::assertSame(
+			expected: '1 certificaat uitgegeven. Niet uitgegeven: Bas (niet geslaagd), Cor (geen uitslag).',
+			actual: $outcome['summary']
+		);
 	}//end testADayWithoutResultsOnAListReadsTheCompletedEnrolments()
 
 	public function testOnlyACourseDayInRoundingOffIssues(): void {
 		try {
 			$this->service()->issue(cohortId: 'c-22', userId: 'rob');
-			self::fail('a day still to come does not issue');
+			self::fail(message: 'a day still to come does not issue');
 		} catch (CourseDayException $exception) {
-			self::assertSame(409, $exception->getStatus());
+			self::assertSame(expected: 409, actual: $exception->getStatus());
 		}
 
-		self::assertSame([], $this->saves);
-		$this->expectException(CourseDayException::class);
-		$this->expectExceptionMessage('This is not a course day.');
+		self::assertSame(expected: [], actual: $this->saves);
+		$this->expectException(exception: CourseDayException::class);
+		$this->expectExceptionMessage(message: 'This is not a course day.');
 		$this->service()->issue(cohortId: 'nope', userId: 'rob');
 	}//end testOnlyACourseDayInRoundingOffIssues()
 }//end class

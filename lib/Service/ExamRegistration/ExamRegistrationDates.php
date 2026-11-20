@@ -171,7 +171,9 @@ class ExamRegistrationDates {
 		}
 
 		try {
-			return (new DateTimeImmutable($value, new DateTimeZone(ExamRegistrationLines::ZONE)))->setTimezone(new DateTimeZone(ExamRegistrationLines::ZONE));
+			return (
+				new DateTimeImmutable($value, new DateTimeZone(ExamRegistrationLines::ZONE))
+			)->setTimezone(new DateTimeZone(ExamRegistrationLines::ZONE));
 		} catch (Exception) {
 			return null;
 		}

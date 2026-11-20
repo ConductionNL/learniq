@@ -55,42 +55,50 @@ class ExamRegistrationControllerTest extends TestCase {
 	private AdministrationTodayServiceInterface&MockObject $today;
 
 	private function controller(bool $allowed=true, array $params=[]): ExamRegistrationController {
-		$user = $this->createMock(IUser::class);
+		$user = $this->createMock(originalClassName: IUser::class);
 		$user->method('getUID')->willReturn('rob');
-		$session = $this->createMock(IUserSession::class);
+		$session = $this->createMock(originalClassName: IUserSession::class);
 		$session->method('getUser')->willReturn($user);
 
-		$auth = $this->createMock(ActionAuthService::class);
+		$auth = $this->createMock(originalClassName: ActionAuthService::class);
 		$call = $auth->method('requireAction')->with($this->anything(), ExamRegistrationController::ACTION);
 		if ($allowed === false) {
 			$call->willThrowException(new OCSForbiddenException('Not allowed.'));
 		}
 
-		$request = $this->createMock(IRequest::class);
+		$request = $this->createMock(originalClassName: IRequest::class);
 		$request->method('getParam')->willReturnCallback(static fn (string $key, mixed $default=null): mixed => ($params[$key] ?? $default));
 
-		$this->lists        = $this->createMock(ExamRegistrationServiceInterface::class);
-		$this->certificates = $this->createMock(CertificateIssueServiceInterface::class);
-		$this->today        = $this->createMock(AdministrationTodayServiceInterface::class);
+		$this->lists        = $this->createMock(originalClassName: ExamRegistrationServiceInterface::class);
+		$this->certificates = $this->createMock(originalClassName: CertificateIssueServiceInterface::class);
+		$this->today        = $this->createMock(originalClassName: AdministrationTodayServiceInterface::class);
 
 		return new ExamRegistrationController(
 			request: $request,
 			caller: new CallerActions(userSession: $session, actionAuth: $auth),
 			services: new ExamRegistrationServices(lists: $this->lists, certificates: $this->certificates, today: $this->today),
-			logger: $this->createMock(LoggerInterface::class)
+			logger: $this->createMock(originalClassName: LoggerInterface::class)
 		);
 	}//end controller()
 
 	public function testTheAdministrationOpensAListWithTheBodysFields(): void {
 		$controller = $this->controller(params: ['requiredFields' => ['birthDate', 'fullName']]);
 		$this->lists->expects($this->once())->method('open')
-			->with('c-8', ['bodyName' => 'Examenbureau', 'closesAt' => '2026-10-07T12:00:00+02:00', 'examDate' => null, 'requiredFields' => ['birthDate', 'fullName']])
+			->with(
+				'c-8',
+				[
+					'bodyName' => 'Examenbureau',
+					'closesAt' => '2026-10-07T12:00:00+02:00',
+					'examDate' => null,
+					'requiredFields' => ['birthDate', 'fullName']
+				]
+			)
 			->willReturn(['id' => 'l-8', 'lifecycle' => 'open']);
 
 		$response = $controller->open(cohortId: 'c-8', bodyName: 'Examenbureau', closesAt: '2026-10-07T12:00:00+02:00');
 
-		self::assertSame(Http::STATUS_CREATED, $response->getStatus());
-		self::assertSame(['id' => 'l-8', 'lifecycle' => 'open'], $response->getData());
+		self::assertSame(expected: Http::STATUS_CREATED, actual: $response->getStatus());
+		self::assertSame(expected: ['id' => 'l-8', 'lifecycle' => 'open'], actual: $response->getData());
 	}//end testTheAdministrationOpensAListWithTheBodysFields()
 
 	public function testCloseSendResultAndIssueActAsTheSignedInUser(): void {
@@ -100,10 +108,10 @@ class ExamRegistrationControllerTest extends TestCase {
 		$this->lists->expects($this->once())->method('recordResult')->with('l-8', 'e-1', 'pass', 'rob')->willReturn(['lifecycle' => 'sent']);
 		$this->certificates->expects($this->once())->method('issue')->with('c-8', 'rob')->willReturn(['summary' => '10 certificaten uitgegeven.']);
 
-		self::assertSame('closed', $controller->close(id: 'l-8')->getData()['lifecycle']);
-		self::assertSame('sent', $controller->markSent(id: 'l-8')->getData()['lifecycle']);
-		self::assertSame(Http::STATUS_OK, $controller->result(id: 'l-8', enrolmentId: 'e-1', result: 'pass')->getStatus());
-		self::assertSame('10 certificaten uitgegeven.', $controller->issueCertificates(id: 'c-8')->getData()['summary']);
+		self::assertSame(expected: 'closed', actual: $controller->close(id: 'l-8')->getData()['lifecycle']);
+		self::assertSame(expected: 'sent', actual: $controller->markSent(id: 'l-8')->getData()['lifecycle']);
+		self::assertSame(expected: Http::STATUS_OK, actual: $controller->result(id: 'l-8', enrolmentId: 'e-1', result: 'pass')->getStatus());
+		self::assertSame(expected: '10 certificaten uitgegeven.', actual: $controller->issueCertificates(id: 'c-8')->getData()['summary']);
 	}//end testCloseSendResultAndIssueActAsTheSignedInUser()
 
 	public function testAClosedListDownloadsAsCsvAndAnOpenOneIsRefused(): void {
@@ -119,15 +127,15 @@ class ExamRegistrationControllerTest extends TestCase {
 		);
 
 		$download = $controller->export(id: 'l-8');
-		self::assertInstanceOf(DataDownloadResponse::class, $download);
-		self::assertSame("Naam\r\nTom\r\n", $download->render());
+		self::assertInstanceOf(expected: DataDownloadResponse::class, actual: $download);
+		self::assertSame(expected: "Naam\r\nTom\r\n", actual: $download->render());
 		$headers = (new \ReflectionProperty(\OCP\AppFramework\Http\Response::class, 'headers'))->getValue($download);
-		self::assertStringContainsString('aanmelding.csv', $headers['Content-Disposition']);
-		self::assertSame('text/csv; charset=utf-8', $headers['Content-Type']);
+		self::assertStringContainsString(needle: 'aanmelding.csv', haystack: $headers['Content-Disposition']);
+		self::assertSame(expected: 'text/csv; charset=utf-8', actual: $headers['Content-Type']);
 
 		$refused = $controller->export(id: 'open');
-		self::assertSame(Http::STATUS_CONFLICT, $refused->getStatus());
-		self::assertSame('Only a closed list can be exported.', $refused->getData()['error']);
+		self::assertSame(expected: Http::STATUS_CONFLICT, actual: $refused->getStatus());
+		self::assertSame(expected: 'Only a closed list can be exported.', actual: $refused->getData()['error']);
 	}//end testAClosedListDownloadsAsCsvAndAnOpenOneIsRefused()
 
 	public function testTodayAndTheExpiringList(): void {
@@ -135,8 +143,11 @@ class ExamRegistrationControllerTest extends TestCase {
 		$this->today->expects($this->once())->method('today')->willReturn(['today' => '2026-10-05']);
 		$this->today->expects($this->once())->method('expiring')->with('2027-01-01')->willReturn([['credentialId' => 'k-1']]);
 
-		self::assertSame(['today' => '2026-10-05'], $controller->today()->getData());
-		self::assertSame(['before' => '2027-01-01', 'rows' => [['credentialId' => 'k-1']]], $controller->expiring(before: '2027-01-01')->getData());
+		self::assertSame(expected: ['today' => '2026-10-05'], actual: $controller->today()->getData());
+		self::assertSame(
+			expected: ['before' => '2027-01-01', 'rows' => [['credentialId' => 'k-1']]],
+			actual: $controller->expiring(before: '2027-01-01')->getData()
+		);
 	}//end testTodayAndTheExpiringList()
 
 	public function testWithoutTheActionNothingIsReadOrWritten(): void {
@@ -145,11 +156,11 @@ class ExamRegistrationControllerTest extends TestCase {
 		$this->certificates->expects($this->never())->method($this->anything());
 		$this->today->expects($this->never())->method($this->anything());
 
-		self::assertSame(Http::STATUS_FORBIDDEN, $controller->open(cohortId: 'c-8', bodyName: 'X', closesAt: 'x')->getStatus());
-		self::assertSame(Http::STATUS_FORBIDDEN, $controller->show(id: 'l-8')->getStatus());
-		self::assertSame(Http::STATUS_FORBIDDEN, $controller->export(id: 'l-8')->getStatus());
-		self::assertSame(Http::STATUS_FORBIDDEN, $controller->issueCertificates(id: 'c-8')->getStatus());
-		self::assertSame(Http::STATUS_FORBIDDEN, $controller->today()->getStatus());
+		self::assertSame(expected: Http::STATUS_FORBIDDEN, actual: $controller->open(cohortId: 'c-8', bodyName: 'X', closesAt: 'x')->getStatus());
+		self::assertSame(expected: Http::STATUS_FORBIDDEN, actual: $controller->show(id: 'l-8')->getStatus());
+		self::assertSame(expected: Http::STATUS_FORBIDDEN, actual: $controller->export(id: 'l-8')->getStatus());
+		self::assertSame(expected: Http::STATUS_FORBIDDEN, actual: $controller->issueCertificates(id: 'c-8')->getStatus());
+		self::assertSame(expected: Http::STATUS_FORBIDDEN, actual: $controller->today()->getStatus());
 	}//end testWithoutTheActionNothingIsReadOrWritten()
 
 	public function testAFailureIsUnavailableWithoutItsCause(): void {
@@ -158,7 +169,7 @@ class ExamRegistrationControllerTest extends TestCase {
 
 		$failed = $controller->show(id: 'l-8');
 
-		self::assertSame(Http::STATUS_SERVICE_UNAVAILABLE, $failed->getStatus());
-		self::assertStringNotContainsString('database', $failed->getData()['error']);
+		self::assertSame(expected: Http::STATUS_SERVICE_UNAVAILABLE, actual: $failed->getStatus());
+		self::assertStringNotContainsString(needle: 'database', haystack: $failed->getData()['error']);
 	}//end testAFailureIsUnavailableWithoutItsCause()
 }//end class

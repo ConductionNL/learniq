@@ -35,30 +35,30 @@ use RuntimeException;
 class ExamRegistrationCloseJobTest extends TestCase {
 
 	private function runJob(ExamRegistrationServiceInterface $lists, LoggerInterface $logger): void {
-		$job = new ExamRegistrationCloseJob(time: $this->createMock(ITimeFactory::class), lists: $lists, logger: $logger);
+		$job = new ExamRegistrationCloseJob(time: $this->createMock(originalClassName: ITimeFactory::class), lists: $lists, logger: $logger);
 		(new ReflectionMethod($job, 'run'))->invoke($job, null);
 	}//end runJob()
 
 	public function testItClosesTheDueListsAndSaysHowMany(): void {
-		$lists = $this->createMock(ExamRegistrationServiceInterface::class);
+		$lists = $this->createMock(originalClassName: ExamRegistrationServiceInterface::class);
 		$lists->expects($this->once())->method('closeDue')->willReturn(2);
-		$logger = $this->createMock(LoggerInterface::class);
-		$logger->expects($this->once())->method('info')->with($this->stringContains('closed at their moment'), ['count' => 2]);
+		$logger = $this->createMock(originalClassName: LoggerInterface::class);
+		$logger->expects($this->once())->method('info')->with($this->stringContains(string: 'closed at their moment'), ['count' => 2]);
 
 		$this->runJob(lists: $lists, logger: $logger);
 	}//end testItClosesTheDueListsAndSaysHowMany()
 
 	public function testNothingDueIsQuietAndAFailureIsAWarning(): void {
-		$quiet = $this->createMock(ExamRegistrationServiceInterface::class);
+		$quiet = $this->createMock(originalClassName: ExamRegistrationServiceInterface::class);
 		$quiet->method('closeDue')->willReturn(0);
-		$silent = $this->createMock(LoggerInterface::class);
+		$silent = $this->createMock(originalClassName: LoggerInterface::class);
 		$silent->expects($this->never())->method('info');
 		$this->runJob(lists: $quiet, logger: $silent);
 
-		$broken = $this->createMock(ExamRegistrationServiceInterface::class);
+		$broken = $this->createMock(originalClassName: ExamRegistrationServiceInterface::class);
 		$broken->method('closeDue')->willThrowException(new RuntimeException('database gone'));
-		$logger = $this->createMock(LoggerInterface::class);
-		$logger->expects($this->once())->method('warning')->with($this->stringContains('Stopped early'), ['msg' => 'database gone']);
+		$logger = $this->createMock(originalClassName: LoggerInterface::class);
+		$logger->expects($this->once())->method('warning')->with($this->stringContains(string: 'Stopped early'), ['msg' => 'database gone']);
 		$this->runJob(lists: $broken, logger: $logger);
 	}//end testNothingDueIsQuietAndAFailureIsAWarning()
 }//end class
