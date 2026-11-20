@@ -41,8 +41,6 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
-use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
-use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use RuntimeException;
@@ -69,8 +67,6 @@ class ClassRosterSync {
 	 */
 	public const SOURCE_FIELDS = ['name', 'academicYear', 'programmeYear', 'learnerIds', 'teacherIds'];
 
-	private const REGISTER = 'learniq';
-
 	/**
 	 * Enrolment states that are still open, and so withdrawn when a pupil leaves.
 	 */
@@ -82,9 +78,11 @@ class ClassRosterSync {
 	private const CLOSED = ['withdrawn', 'failed'];
 
 	/**
-	 * How many rows one read may return: a class's enrolments, all courses.
+	 * The learniq rows the sync reads and writes.
+	 *
+	 * @var SyncRows
 	 */
-	private const READ_LIMIT = 5000;
+	private readonly SyncRows $rows;
 
 	/**
 	 * Constructor.
@@ -93,9 +91,10 @@ class ClassRosterSync {
 	 * @param ITimeFactory  $time          The sync time.
 	 */
 	public function __construct(
-		private readonly ObjectService $objectService,
+		ObjectService $objectService,
 		private readonly ITimeFactory $time,
 	) {
+		$this->rows = new SyncRows(objectService: $objectService);
 	}//end __construct()
 
 	/**
@@ -118,7 +117,7 @@ class ClassRosterSync {
 			return ['code' => 'ROSTER-UNKNOWN-PUPIL', 'fields' => ['learnerIds']];
 		}
 
-		$existing = $this->first(
+		$existing = $this->rows->first(
 			schema: 'cohort',
 			filters: ['externalId' => (string)$data['externalId'], 'externalSource' => (string)$data['externalSource']]
 		);
@@ -132,7 +131,7 @@ class ClassRosterSync {
 			learnerIds: $learnerIds,
 			changes: (count($joiners) + count($leavers))
 		);
-		$cohortId = $this->idOf(row: $cohort);
+		$cohortId = $this->rows->idOf(row: $cohort);
 		if ($cohortId === '') {
 			throw new RuntimeException('The cohort was saved without an id.');
 		}
@@ -178,9 +177,9 @@ class ClassRosterSync {
 	private function resolveLearners(mixed $members): ?array {
 		$resolved = [];
 		foreach ($this->strings(value: $members) as $member) {
-			$profile = $this->first(schema: 'learner-profile', filters: ['ncUserId' => $member]);
+			$profile = $this->rows->first(schema: 'learner-profile', filters: ['ncUserId' => $member]);
 			if ($profile === null) {
-				$profile = $this->first(schema: 'learner-profile', filters: ['eckId' => $member]);
+				$profile = $this->rows->first(schema: 'learner-profile', filters: ['eckId' => $member]);
 			}
 
 			$userId = (string)($profile['ncUserId'] ?? '');
@@ -224,7 +223,7 @@ class ClassRosterSync {
 		$row['syncedAt'] = $this->time->getDateTime()->format(DATE_ATOM);
 		$row['syncChanges'] = $changes;
 
-		return $this->save(schema: 'cohort', row: $row);
+		return $this->rows->save(schema: 'cohort', row: $row);
 	}//end saveCohort()
 
 	/**
@@ -237,14 +236,14 @@ class ClassRosterSync {
 	 */
 	private function withdrawLeavers(string $cohortId, array $leavers): void {
 		foreach ($leavers as $learnerId) {
-			foreach ($this->all(schema: 'enrolment', filters: ['cohortId' => $cohortId, 'learnerId' => $learnerId]) as $enrolment) {
+			foreach ($this->rows->all(schema: 'enrolment', filters: ['cohortId' => $cohortId, 'learnerId' => $learnerId]) as $enrolment) {
 				if (in_array((string)($enrolment['lifecycle'] ?? 'pending'), self::OPEN, true) === false) {
 					continue;
 				}
 
 				$enrolment['lifecycle'] = 'withdrawn';
 				$enrolment['reason'] = self::LEAVER_REASON;
-				$this->save(schema: 'enrolment', row: $enrolment);
+				$this->rows->save(schema: 'enrolment', row: $enrolment);
 			}
 		}
 	}//end withdrawLeavers()
@@ -264,14 +263,14 @@ class ClassRosterSync {
 			return;
 		}
 
-		$enrolments = $this->all(schema: 'enrolment', filters: ['cohortId' => $cohortId]);
+		$enrolments = $this->rows->all(schema: 'enrolment', filters: ['cohortId' => $cohortId]);
 		foreach ($joiners as $learnerId) {
 			foreach ($this->courses(cohort: $cohort, enrolments: $enrolments) as $courseId) {
 				if ($this->holdsOpen(enrolments: $enrolments, learnerId: $learnerId, courseId: $courseId) === true) {
 					continue;
 				}
 
-				$this->save(
+				$this->rows->save(
 					schema: 'enrolment',
 					row: [
 						'learnerId' => $learnerId,
@@ -353,122 +352,4 @@ class ClassRosterSync {
 
 		return array_values(array_unique($strings));
 	}//end strings()
-
-	/**
-	 * The id of a row: `id`, `@self.id` or `uuid`.
-	 *
-	 * @param array<string, mixed> $row The row.
-	 *
-	 * @return string
-	 */
-	private function idOf(array $row): string {
-		foreach ([$row['id'] ?? null, $row['@self']['id'] ?? null, $row['uuid'] ?? null] as $candidate) {
-			if (is_scalar($candidate) === true && (string)$candidate !== '') {
-				return (string)$candidate;
-			}
-		}
-
-		return '';
-	}//end idOf()
-
-	/**
-	 * The first row matching the filters, read without RBAC.
-	 *
-	 * @param string               $schema  The schema slug.
-	 * @param array<string, mixed> $filters The filters.
-	 *
-	 * @return array<string, mixed>|null
-	 */
-	private function first(string $schema, array $filters): ?array {
-		$rows = $this->read(schema: $schema, filters: $filters, limit: 1);
-
-		return ($rows[0] ?? null);
-	}//end first()
-
-	/**
-	 * Every row matching the filters, read without RBAC.
-	 *
-	 * @param string               $schema  The schema slug.
-	 * @param array<string, mixed> $filters The filters.
-	 *
-	 * @return array<int, array<string, mixed>>
-	 */
-	private function all(string $schema, array $filters): array {
-		return $this->read(schema: $schema, filters: $filters, limit: self::READ_LIMIT);
-	}//end all()
-
-	/**
-	 * Rows matching the filters as arrays, read without RBAC.
-	 *
-	 * @param string               $schema  The schema slug.
-	 * @param array<string, mixed> $filters The filters.
-	 * @param int                  $limit   The most rows to read.
-	 *
-	 * @return array<int, array<string, mixed>>
-	 */
-	private function read(string $schema, array $filters, int $limit): array {
-		$rows = $this->objectService->findAll(
-			['filters' => array_merge($filters, ['register' => self::REGISTER, 'schema' => $schema]), 'limit' => $limit],
-			false,
-			false
-		);
-
-		$arrays = [];
-		foreach ((array)$rows as $row) {
-			$arrays[] = $this->toArray(row: $row);
-		}
-
-		return $arrays;
-	}//end read()
-
-	/**
-	 * A row as an array.
-	 *
-	 * @param mixed $row An array or an entity.
-	 *
-	 * @return array<string, mixed>
-	 */
-	private function toArray(mixed $row): array {
-		$data = [];
-		if (is_array($row) === true) {
-			$data = $row;
-		} else if (is_object($row) === true && method_exists($row, 'jsonSerialize') === true) {
-			$data = (array)$row->jsonSerialize();
-		}
-
-		// OpenRegister serves the id under `@self`; the sync keeps it as `id`
-		// and never writes the metadata block back.
-		$id = $this->idOf(row: $data);
-		unset($data['@self']);
-		if ($id !== '') {
-			$data['id'] = $id;
-		}
-
-		return $data;
-	}//end toArray()
-
-	/**
-	 * Write a row as the system and return it as saved.
-	 *
-	 * @param string               $schema The schema slug.
-	 * @param array<string, mixed> $row    The row.
-	 *
-	 * @return array<string, mixed>
-	 */
-	private function save(string $schema, array $row): array {
-		$uuid = $this->idOf(row: $row);
-		if ($uuid === '') {
-			$uuid = null;
-		}
-
-		unset($row['id'], $row['@self']);
-		$saved = $this->objectService->saveObject(
-			object: $row,
-			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: $schema), uuid: $uuid),
-			_rbac: false,
-			_multitenancy: false
-		);
-
-		return array_merge($row, $this->toArray(row: $saved));
-	}//end save()
 }//end class
