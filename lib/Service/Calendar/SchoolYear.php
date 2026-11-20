@@ -21,7 +21,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/school-year-setting/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
+ * @spec openspec/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
  */
 
 declare(strict_types=1);
@@ -35,7 +35,7 @@ use OCP\IAppConfig;
 /**
  * The school's school year.
  *
- * @spec openspec/changes/school-year-setting/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
+ * @spec openspec/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
  */
 class SchoolYear {
 
@@ -63,7 +63,7 @@ class SchoolYear {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/school-year-setting/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
+	 * @spec openspec/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
 	 */
 	public function start(): string {
 		$value = trim((string)($this->appConfig?->getValueString(AppIdentity::APP_ID, self::KEY, self::DEFAULT_START) ?? self::DEFAULT_START));
@@ -81,7 +81,7 @@ class SchoolYear {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/school-year-setting/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
+	 * @spec openspec/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
 	 */
 	public function yearOf(string $date): string {
 		$year = (int)substr($date, 0, 4);
@@ -99,7 +99,7 @@ class SchoolYear {
 	 *
 	 * @return array{0: string, 1: string} `Y-m-d` bounds.
 	 *
-	 * @spec openspec/changes/school-year-setting/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
+	 * @spec openspec/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
 	 */
 	public function bounds(string $academicYear): array {
 		$first = (int)substr($academicYear, 0, 4);
@@ -115,7 +115,7 @@ class SchoolYear {
 	 *
 	 * @return array{0: string, 1: string} `Y-m-d` bounds.
 	 *
-	 * @spec openspec/changes/school-year-setting/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
+	 * @spec openspec/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
 	 */
 	public function around(string $date): array {
 		return $this->bounds(academicYear: $this->yearOf(date: $date));

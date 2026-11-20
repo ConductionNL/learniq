@@ -90,7 +90,7 @@ class HourPlanController extends Controller {
 	 *                      400 for an unreadable year; 401 without a user; 403 outside the staff groups.
 	 *
 	 * @spec openspec/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
-	 * @spec openspec/changes/school-year-setting/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
+	 * @spec openspec/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]

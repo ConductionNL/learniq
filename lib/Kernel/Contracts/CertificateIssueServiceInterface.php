@@ -48,7 +48,7 @@ interface CertificateIssueServiceInterface {
 	 *
 	 * @throws \Throwable When the day is not in rounding off, or OpenRegister cannot be read or written.
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-thursdays-f-gassen-day
+	 * @spec openspec/specs/certification/spec.md#scenario-thursdays-f-gassen-day
 	 */
 	public function issue(string $cohortId, string $userId): array;
 }//end interface

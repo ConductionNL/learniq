@@ -21,7 +21,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
+ * @spec openspec/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
  */
 
 declare(strict_types=1);
@@ -45,7 +45,7 @@ use Throwable;
 /**
  * The exam registration endpoints.
  *
- * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
+ * @spec openspec/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
  */
 class ExamRegistrationController extends Controller {
 
@@ -65,7 +65,7 @@ class ExamRegistrationController extends Controller {
 	 *                                                          the administration's Today.
 	 * @param LoggerInterface                     $logger       PSR logger.
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
+	 * @spec openspec/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
 	 */
 	public function __construct(
 		IRequest $request,
@@ -86,7 +86,7 @@ class ExamRegistrationController extends Controller {
 	 *
 	 * @return JSONResponse
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
+	 * @spec openspec/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
 	 */
 	#[NoAdminRequired]
 	public function open(string $cohortId='', string $bodyName='', string $closesAt='', string $examDate=''): JSONResponse {
@@ -112,7 +112,7 @@ class ExamRegistrationController extends Controller {
 	 *
 	 * @return JSONResponse
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-youssefs-birth-date
+	 * @spec openspec/specs/certification/spec.md#scenario-youssefs-birth-date
 	 */
 	#[NoAdminRequired]
 	public function show(string $id): JSONResponse {
@@ -126,7 +126,7 @@ class ExamRegistrationController extends Controller {
 	 *
 	 * @return JSONResponse
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
+	 * @spec openspec/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
 	 */
 	#[NoAdminRequired]
 	public function close(string $id): JSONResponse {
@@ -140,7 +140,7 @@ class ExamRegistrationController extends Controller {
 	 *
 	 * @return DataDownloadResponse|JSONResponse
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
+	 * @spec openspec/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
 	 */
 	#[NoAdminRequired]
 	public function export(string $id): DataDownloadResponse|JSONResponse {
@@ -165,7 +165,7 @@ class ExamRegistrationController extends Controller {
 	 *
 	 * @return JSONResponse
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
+	 * @spec openspec/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
 	 */
 	#[NoAdminRequired]
 	public function markSent(string $id): JSONResponse {
@@ -181,7 +181,7 @@ class ExamRegistrationController extends Controller {
 	 *
 	 * @return JSONResponse
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-the-certificates-of-a-finished-course-day-are-issued-in-one-action
+	 * @spec openspec/specs/certification/spec.md#requirement-the-certificates-of-a-finished-course-day-are-issued-in-one-action
 	 */
 	#[NoAdminRequired]
 	public function result(string $id, string $enrolmentId='', string $result=''): JSONResponse {
@@ -202,7 +202,7 @@ class ExamRegistrationController extends Controller {
 	 *
 	 * @return JSONResponse
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-thursdays-f-gassen-day
+	 * @spec openspec/specs/certification/spec.md#scenario-thursdays-f-gassen-day
 	 */
 	#[NoAdminRequired]
 	public function issueCertificates(string $id): JSONResponse {
@@ -216,7 +216,7 @@ class ExamRegistrationController extends Controller {
 	 *
 	 * @return JSONResponse
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/tasks.md
+	 * @spec openspec/changes/archive/2026-11-20-exam-registration-and-certificate-issue/tasks.md
 	 */
 	#[NoAdminRequired]
 	public function expiring(string $before=''): JSONResponse {
@@ -228,7 +228,7 @@ class ExamRegistrationController extends Controller {
 	 *
 	 * @return JSONResponse
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-youssefs-birth-date
+	 * @spec openspec/specs/certification/spec.md#scenario-youssefs-birth-date
 	 */
 	#[NoAdminRequired]
 	public function today(): JSONResponse {

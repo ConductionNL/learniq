@@ -14,4 +14,4 @@
 
 ## 3. Close out
 
-- [ ] 3.1 Set both rows to `built` in `openspec/parity/capabilities.json` with the code as evidence, and archive this change.
+- [x] 3.1 Set both rows to `built` in `openspec/parity/capabilities.json` with the code as evidence, and archive this change.

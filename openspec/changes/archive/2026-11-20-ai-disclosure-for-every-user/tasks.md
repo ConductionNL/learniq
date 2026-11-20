@@ -11,4 +11,4 @@
 
 ## 3. Specs and matrix
 
-- [ ] 3.1 Set `gov-show-users-the-ai-disclosure` to `built` with the files above, and archive this change.
+- [x] 3.1 Set `gov-show-users-the-ai-disclosure` to `built` with the files above, and archive this change.

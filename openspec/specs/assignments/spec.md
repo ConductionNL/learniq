@@ -809,6 +809,52 @@ When every allocated mark on a submission is `submitted`, the marking screen MUS
 - **THEN** the final grade field shows 7,2
 - **AND** nothing is saved or returned until the coordinator confirms
 
+### Requirement: A learner reads the feedback summary of their own submission with reviewers anonymised
+
+The learner who handed in a Submission MUST be able to read its `PeerFeedbackSummary` once at least one `PeerReview` on it is `released`. The rule MUST be the schema's read authorization, so OpenRegister applies it before data is returned. Another learner MUST NOT read it. What the learner reads MUST NOT carry a reviewer's name, user id or `PeerReview` id. Staff read access MUST stay as it is.
+
+#### Scenario: A learner opens the feedback on their work
+- **GIVEN** learner Fenna's Submission with two released PeerReviews
+- **WHEN** Fenna opens her submission
+- **THEN** she reads one summary with the average score and the comments
+- **AND** no reviewer name or id is in the answer
+
+#### Scenario: Another learner's summary
+- **GIVEN** learner Daan's Submission with a released PeerReview
+- **WHEN** Fenna asks for its PeerFeedbackSummary
+- **THEN** no summary is returned
+
+#### Scenario: Nothing released yet
+- **GIVEN** Fenna's Submission whose PeerReviews are all `assigned` or `submitted`
+- **WHEN** Fenna opens her submission
+- **THEN** no summary is shown
+
+### Requirement: A teacher sets an assignment with instructions and a hand-in date
+
+An `Assignment` MUST carry a title, instructions, the course or group it belongs to and a `dueAt`. It MAY carry briefing materials, a rubric and whether late hand-in is allowed. It MUST start in `draft`, and learners MUST see it only once it is `published` through `AssignmentPublishGuard`.
+
+#### Scenario: A learner sees a published assignment with its date
+
+- **GIVEN** a teacher creates the assignment "Betoog schrijven" with instructions and a hand-in date of 14 March
+- **WHEN** the teacher publishes it and a learner of the group opens it
+- **THEN** the learner reads the instructions and the hand-in date
+
+#### Scenario: A draft assignment stays with the teacher
+
+- **GIVEN** the assignment "Betoog schrijven" in `draft`
+- **WHEN** a learner lists assignments
+- **THEN** the assignment is not returned
+
+### Requirement: A teacher marks a submission against a rubric with weighted criteria
+
+A `Rubric` MUST hold an ordered list of criteria, each with a label, a weight and achievement levels. The marking screen MUST show each criterion of the assignment's rubric, and a criterion's weight MUST set its share of the rubric's maximum points.
+
+#### Scenario: A criterion with twice the weight counts twice
+
+- **GIVEN** a rubric with "Structuur" weight 1 and "Argumentatie" weight 2
+- **WHEN** a teacher marks a submission and picks the top level on both
+- **THEN** "Argumentatie" contributes twice the points of "Structuur" to the mark
+
 ## Standards
 
 Schema.org `CreativeWork` / `MediaObject` for submissions; IMS Caliper for submission events; QTI is *not* used here (that's `assessment`); plagiarism providers (Turnitin/Ouriginal/Compilatio) behind an interface.

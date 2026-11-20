@@ -7,7 +7,7 @@
 //
 // Run via `node --test tests/unit-js/` (package.json `test:js-unit`).
 //
-// @spec openspec/changes/school-year-setting/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
+// @spec openspec/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
 
 import assert from 'node:assert/strict'
 import { test } from 'node:test'

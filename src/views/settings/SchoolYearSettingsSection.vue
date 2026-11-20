@@ -7,7 +7,7 @@
  read by the contact hours calendar and the standby slot validity; 1 August
  when nothing is set.
 
- @spec openspec/changes/school-year-setting/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
+ @spec openspec/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
 -->
 <template>
 	<NcSettingsSection
@@ -58,7 +58,7 @@ const ENDPOINT = { http: axios, url: generateUrl('/apps/learniq/api/settings') }
 /**
  * The school year start on the admin settings page.
  *
- * @spec openspec/changes/school-year-setting/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
+ * @spec openspec/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
  */
 export default {
 	name: 'SchoolYearSettingsSection',
@@ -77,7 +77,7 @@ export default {
 		 * The picked day as the stored start, `MM-DD`; null for no usable day.
 		 *
 		 * @return {string|null}
-		 * @spec openspec/changes/school-year-setting/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
+		 * @spec openspec/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
 		 */
 		start() {
 			return startOfDate(this.picked)
@@ -87,7 +87,7 @@ export default {
 		 * The school year today falls in with this start, or what is wrong.
 		 *
 		 * @return {string}
-		 * @spec openspec/changes/school-year-setting/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
+		 * @spec openspec/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
 		 */
 		helperText() {
 			if (this.start === null) {
@@ -106,7 +106,7 @@ export default {
 	 * Read the stored start.
 	 *
 	 * @return {Promise<void>}
-	 * @spec openspec/changes/school-year-setting/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
+	 * @spec openspec/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
 	 */
 	async created() {
 		try {
@@ -124,7 +124,7 @@ export default {
 		 * Store the start.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/school-year-setting/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
+		 * @spec openspec/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
 		 */
 		async save() {
 			if (this.start === null) return

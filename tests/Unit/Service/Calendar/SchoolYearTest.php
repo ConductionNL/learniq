@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/school-year-setting/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
+ * @spec openspec/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
  */
 
 declare(strict_types=1);
@@ -64,7 +64,7 @@ class SchoolYearTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/school-year-setting/specs/school-structure/spec.md#scenario-no-setting
+	 * @spec openspec/specs/school-structure/spec.md#scenario-no-setting
 	 */
 	public function testWithoutASettingTheYearStartsOnTheFirstOfAugust(): void {
 		$year = $this->year(start: null);
@@ -81,7 +81,7 @@ class SchoolYearTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/school-year-setting/specs/school-structure/spec.md#scenario-a-school-that-starts-in-september
+	 * @spec openspec/specs/school-structure/spec.md#scenario-a-school-that-starts-in-september
 	 */
 	public function testASchoolThatStartsInSeptember(): void {
 		$year = $this->year(start: '09-01');
@@ -106,7 +106,7 @@ class SchoolYearTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/school-year-setting/specs/school-structure/spec.md#scenario-no-setting
+	 * @spec openspec/specs/school-structure/spec.md#scenario-no-setting
 	 */
 	public function testAStandbySlotGetsTheSchoolYearAndTheTenant(): void {
 		$resolver = $this->createMock(ListenerSchemaResolver::class);

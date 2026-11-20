@@ -19,7 +19,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-youssefs-birth-date
+ * @spec openspec/specs/certification/spec.md#scenario-youssefs-birth-date
  */
 
 declare(strict_types=1);
@@ -33,7 +33,7 @@ use Exception;
 /**
  * Words the days and moments of an exam registration list.
  *
- * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-youssefs-birth-date
+ * @spec openspec/specs/certification/spec.md#scenario-youssefs-birth-date
  */
 class ExamRegistrationDates {
 
@@ -52,7 +52,7 @@ class ExamRegistrationDates {
 	 *
 	 * @return string|null
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-youssefs-birth-date
+	 * @spec openspec/specs/certification/spec.md#scenario-youssefs-birth-date
 	 */
 	public function notice(?string $notifiedAt, string $now): ?string {
 		$told  = $this->moment(value: $notifiedAt);
@@ -80,7 +80,7 @@ class ExamRegistrationDates {
 	 *
 	 * @return string|null Null when the list has no closing moment.
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-youssefs-birth-date
+	 * @spec openspec/specs/certification/spec.md#scenario-youssefs-birth-date
 	 */
 	public function closingSentence(?string $examDate, ?string $closesAt): ?string {
 		$closes = $this->moment(value: $closesAt);
@@ -105,7 +105,7 @@ class ExamRegistrationDates {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
+	 * @spec openspec/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
 	 */
 	public function isDue(?string $closesAt, string $now): bool {
 		$closes = $this->moment(value: $closesAt);

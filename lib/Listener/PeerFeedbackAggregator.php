@@ -39,7 +39,7 @@
  * @link https://conduction.nl
  *
  * @spec openspec/specs/assignments/spec.md#scenario-blind-and-double-blind-hide-reviewer-identity-in-the-feedback-summary
- * @spec openspec/changes/cohort-room-and-feedback-summary-for-the-learner/specs/assignments/spec.md#requirement-a-learner-reads-the-feedback-summary-of-their-own-submission-with-reviewers-anonymised
+ * @spec openspec/specs/assignments/spec.md#requirement-a-learner-reads-the-feedback-summary-of-their-own-submission-with-reviewers-anonymised
  */
 
 declare(strict_types=1);
@@ -132,7 +132,7 @@ class PeerFeedbackAggregator implements IEventListener {
 	 * @return void
 	 *
 	 * @spec openspec/specs/assignments/spec.md#scenario-blind-and-double-blind-hide-reviewer-identity-in-the-feedback-summary
-	 * @spec openspec/changes/cohort-room-and-feedback-summary-for-the-learner/specs/assignments/spec.md#requirement-a-learner-reads-the-feedback-summary-of-their-own-submission-with-reviewers-anonymised
+	 * @spec openspec/specs/assignments/spec.md#requirement-a-learner-reads-the-feedback-summary-of-their-own-submission-with-reviewers-anonymised
 	 */
 	private function recomputeSummary(string $submissionId, string $assignmentId): void {
 		$released = $this->fetchReleasedReviews(submissionId: $submissionId);
@@ -194,7 +194,7 @@ class PeerFeedbackAggregator implements IEventListener {
 	 *
 	 * @return list<string>
 	 *
-	 * @spec openspec/changes/cohort-room-and-feedback-summary-for-the-learner/specs/assignments/spec.md#requirement-a-learner-reads-the-feedback-summary-of-their-own-submission-with-reviewers-anonymised
+	 * @spec openspec/specs/assignments/spec.md#requirement-a-learner-reads-the-feedback-summary-of-their-own-submission-with-reviewers-anonymised
 	 */
 	private function learnerIdsOf(?array $submission): array {
 		$learnerIds = $submission['learnerIds'] ?? [];

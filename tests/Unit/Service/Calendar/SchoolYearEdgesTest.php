@@ -28,7 +28,7 @@ use PHPUnit\Framework\TestCase;
 /**
  * Edges of the school year: its first day, a calendar-year school, leap days.
  *
- * @spec openspec/changes/school-year-setting/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
+ * @spec openspec/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
  */
 #[CoversClass(SchoolYear::class)]
 class SchoolYearEdgesTest extends TestCase {

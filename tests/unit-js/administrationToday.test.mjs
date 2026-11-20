@@ -5,7 +5,7 @@
 // days to issue, the certificates expiring before 1 January and the coming
 // exams. Run by `npm run test:js-unit`.
 //
-// @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-youssefs-birth-date
+// @spec openspec/specs/certification/spec.md#scenario-youssefs-birth-date
 
 import assert from 'node:assert/strict'
 import { test } from 'node:test'

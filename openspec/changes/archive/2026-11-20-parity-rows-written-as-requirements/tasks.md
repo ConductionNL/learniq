@@ -7,4 +7,4 @@
 
 ## 2. Close out
 
-- [ ] 2.1 Archive this change so the requirements sync into the main specs.
+- [x] 2.1 Archive this change so the requirements sync into the main specs.

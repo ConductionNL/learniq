@@ -19,7 +19,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
+ * @spec openspec/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
  */
 
 declare(strict_types=1);
@@ -38,7 +38,7 @@ use OCP\AppFramework\Utility\ITimeFactory;
 /**
  * Opens, refreshes, closes, exports and sends an exam registration list.
  *
- * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
+ * @spec openspec/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
  */
 class ExamRegistrationService implements ExamRegistrationServiceInterface {
 	use CourseDayRows;
@@ -65,7 +65,7 @@ class ExamRegistrationService implements ExamRegistrationServiceInterface {
 	 * @param ExamRegistrationLines $lines         The list's lines and their wording.
 	 * @param ExamRegistrationDates $dates         The list's day and moment wording.
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
+	 * @spec openspec/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
@@ -89,7 +89,7 @@ class ExamRegistrationService implements ExamRegistrationServiceInterface {
 	 * @throws CourseDayException When the day is no course day or a field is missing.
 	 * @throws \Throwable         When OpenRegister cannot be read or written.
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
+	 * @spec openspec/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
 	 */
 	public function open(string $cohortId, array $exam): array {
 		$bodyName       = (string)($exam['bodyName'] ?? '');
@@ -133,7 +133,7 @@ class ExamRegistrationService implements ExamRegistrationServiceInterface {
 	 * @throws CourseDayException When the list does not exist.
 	 * @throws \Throwable         When OpenRegister cannot be read or written.
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-youssefs-birth-date
+	 * @spec openspec/specs/certification/spec.md#scenario-youssefs-birth-date
 	 */
 	public function show(string $id): array {
 		$list = $this->requireList(id: $id);
@@ -157,7 +157,7 @@ class ExamRegistrationService implements ExamRegistrationServiceInterface {
 	 * @throws CourseDayException When the list is not open.
 	 * @throws \Throwable         When OpenRegister cannot be read or written.
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
+	 * @spec openspec/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
 	 */
 	public function close(string $id, ?string $userId): array {
 		$list = $this->requireList(id: $id);
@@ -180,7 +180,7 @@ class ExamRegistrationService implements ExamRegistrationServiceInterface {
 	 *
 	 * @throws \Throwable When OpenRegister cannot be read or written.
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
+	 * @spec openspec/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
 	 */
 	public function closeDue(): int {
 		$closed = 0;
@@ -208,7 +208,7 @@ class ExamRegistrationService implements ExamRegistrationServiceInterface {
 	 * @throws CourseDayException When the list is still open.
 	 * @throws \Throwable         When OpenRegister cannot be read or written.
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
+	 * @spec openspec/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
 	 */
 	public function export(string $id): array {
 		$list = $this->requireList(id: $id);
@@ -246,7 +246,7 @@ class ExamRegistrationService implements ExamRegistrationServiceInterface {
 	 * @throws CourseDayException When the list is not closed.
 	 * @throws \Throwable         When OpenRegister cannot be read or written.
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
+	 * @spec openspec/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
 	 */
 	public function markSent(string $id, string $userId): array {
 		$list = $this->requireList(id: $id);
@@ -274,7 +274,7 @@ class ExamRegistrationService implements ExamRegistrationServiceInterface {
 	 * @throws CourseDayException When the list is open, the result unknown or the participant not on the list.
 	 * @throws \Throwable         When OpenRegister cannot be read or written.
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-the-certificates-of-a-finished-course-day-are-issued-in-one-action
+	 * @spec openspec/specs/certification/spec.md#requirement-the-certificates-of-a-finished-course-day-are-issued-in-one-action
 	 */
 	public function recordResult(string $id, string $enrolmentId, string $result, string $userId): array {
 		if (in_array($result, ['pass', 'fail', ''], true) === false) {
@@ -323,7 +323,7 @@ class ExamRegistrationService implements ExamRegistrationServiceInterface {
 	 *
 	 * @throws \Throwable When OpenRegister cannot be read.
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-the-certificates-of-a-finished-course-day-are-issued-in-one-action
+	 * @spec openspec/specs/certification/spec.md#requirement-the-certificates-of-a-finished-course-day-are-issued-in-one-action
 	 */
 	public function forCourseDay(string $cohortId): array {
 		return $this->many(schema: self::SCHEMA, filters: ['cohortId' => $cohortId]);
@@ -336,7 +336,7 @@ class ExamRegistrationService implements ExamRegistrationServiceInterface {
 	 *
 	 * @throws \Throwable When OpenRegister cannot be read or written.
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-youssefs-birth-date
+	 * @spec openspec/specs/certification/spec.md#scenario-youssefs-birth-date
 	 */
 	public function openLists(): array {
 		$views = [];
@@ -355,7 +355,7 @@ class ExamRegistrationService implements ExamRegistrationServiceInterface {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-youssefs-birth-date
+	 * @spec openspec/specs/certification/spec.md#scenario-youssefs-birth-date
 	 */
 	private function view(array $list): array {
 		$lines      = array_values((array)($list['lines'] ?? []));

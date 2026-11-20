@@ -424,6 +424,64 @@ A learner MUST read their own `GradeEntry` only when its `lifecycle` is `publish
 - **WHEN** a member of `instructors` reads it
 - **THEN** the entry is returned
 
+### Requirement: A school defines its own grade scales
+
+A user allowed to create grade scales SHALL be able to add, change and archive a `GradeScale` with a name and a kind: `numeric`, `percentage`, `letter`, `ects`, `pass-fail` or `band`. A numeric or percentage scale SHALL carry its lowest and highest value and its pass limit. A letter, ECTS or band scale SHALL carry its ordered bands, each with a value range and a pass flag. A curriculum plan SHALL name the scale its marks use, and every mark on that plan SHALL be read on that scale. learniq SHALL ship no fixed scale that a school must use.
+
+#### Scenario: A school sets up the Dutch 1 to 10
+
+- **GIVEN** an examinations officer
+- **WHEN** they add the scale "Cijfer 1 tot 10" as numeric from 1 to 10 with a pass at 5.5 and publish it
+- **THEN** a curriculum plan can name it, and its marks are read from 1 to 10
+
+#### Scenario: A training company marks pass or fail
+
+- **GIVEN** a training company with the scale "Behaald" of kind `pass-fail`
+- **WHEN** a trainer marks a practical exam on it
+- **THEN** the mark is recorded on "Behaald" and says passed or not passed
+
+### Requirement: The scale decides how a final grade is rounded and whether it passes
+
+The final grade SHALL be rounded by its scale's `roundingRule` before it is compared and stored: `none`, one decimal half up, a whole number half up, or the nearest half. On a numeric or percentage scale it SHALL pass when the rounded value is at or above the pass limit. On a letter, ECTS or band scale it SHALL pass when the band it falls in carries the pass flag. Pass rules a curriculum plan declares SHALL still apply on top.
+
+#### Scenario: Rounding lifts a mark over the limit
+
+- **GIVEN** a scale with a pass at 5.5 and rounding to one decimal half up
+- **WHEN** a learner's weighted average is 5.45
+- **THEN** the final grade is stored as 5.5 and passes
+
+#### Scenario: A band without the pass flag
+
+- **GIVEN** a letter scale where band E has no pass flag
+- **WHEN** a learner's final grade falls in band E
+- **THEN** the final grade does not pass
+
+### Requirement: A grade shows what it does to the final grade
+
+The grade impact page of a `GradeEntry` MUST show the grade's value, its effective weight, the points it contributes, the period average and the current final grade with its pass status. A grade that is not yet visible MUST show the date it becomes visible to the learner.
+
+#### Scenario: A teacher opens the impact of one grade
+
+- **GIVEN** a published grade of 7,5 in period 2 with weight 2
+- **WHEN** the teacher opens its grade impact page
+- **THEN** the page shows 7,5, the weight, the points contributed, the period 2 average and the current final grade
+
+### Requirement: A teacher reads one grid of every learner and every component
+
+The gradebook of a group MUST show one row per learner and one column per component of the group's plan, with each learner's mark per component and an average per column. A group without learners MUST say so.
+
+#### Scenario: The gradebook of a class
+
+- **GIVEN** a group of 24 learners whose plan has four components
+- **WHEN** the teacher opens the group's gradebook
+- **THEN** a grid of 24 rows and four columns shows the marks, with an average under each column
+
+#### Scenario: An empty group
+
+- **GIVEN** a group with no learners
+- **WHEN** the teacher opens its gradebook
+- **THEN** the page reads "No learners in this group."
+
 ## Standards
 
 Schema.org `Grade`; NL VO PTA/SE convention as a `CurriculumPlan` profile + `GradeScale` 1.0–10.0; ECTS A–F; AVG-Onderwijs (parent vs 18+-learner notification rights); Open Onderwijs API `results` endpoint shape for HE result publication (follow-up, out of scope here).

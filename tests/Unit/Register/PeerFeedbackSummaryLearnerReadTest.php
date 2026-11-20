@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/cohort-room-and-feedback-summary-for-the-learner/specs/assignments/spec.md#requirement-a-learner-reads-the-feedback-summary-of-their-own-submission-with-reviewers-anonymised
+ * @spec openspec/specs/assignments/spec.md#requirement-a-learner-reads-the-feedback-summary-of-their-own-submission-with-reviewers-anonymised
  */
 
 declare(strict_types=1);

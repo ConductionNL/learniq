@@ -51,7 +51,7 @@ final class SchoolYear {
 	 * @return string|null
 	 *
 	 * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#scenario-july-and-august-fall-in-different-school-years
-	 * @spec openspec/changes/school-year-setting/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
+	 * @spec openspec/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
 	 */
 	public static function of(string $date, string $start=self::DEFAULT_START): ?string {
 		if (preg_match('/^(\d{4})-(\d{2}-\d{2})$/', $date, $parts) !== 1) {

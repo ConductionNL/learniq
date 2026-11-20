@@ -20,7 +20,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-youssefs-birth-date
+ * @spec openspec/specs/certification/spec.md#scenario-youssefs-birth-date
  */
 
 declare(strict_types=1);
@@ -32,7 +32,7 @@ use OCA\Learniq\Support\SerialisedRow;
 /**
  * The refusals and the summary of a certificate issue.
  *
- * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-youssefs-birth-date
+ * @spec openspec/specs/certification/spec.md#scenario-youssefs-birth-date
  */
 class CertificateIssueOutcome {
 
@@ -56,7 +56,7 @@ class CertificateIssueOutcome {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-thursdays-f-gassen-day
+	 * @spec openspec/specs/certification/spec.md#scenario-thursdays-f-gassen-day
 	 */
 	public function summary(int $issued, array $skipped, int $already): string {
 		$noun = 'certificaten';
@@ -87,7 +87,7 @@ class CertificateIssueOutcome {
 	 *
 	 * @return array<string, array<string, mixed>>
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-youssefs-birth-date
+	 * @spec openspec/specs/certification/spec.md#scenario-youssefs-birth-date
 	 */
 	public function results(array $lists): array {
 		$results = [];
@@ -117,7 +117,7 @@ class CertificateIssueOutcome {
 	 *
 	 * @return string|null
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-youssefs-birth-date
+	 * @spec openspec/specs/certification/spec.md#scenario-youssefs-birth-date
 	 */
 	public function refusal(array $enrolment, ?array $line, bool $resultsKept): ?string {
 		if ($line !== null) {
@@ -148,7 +148,7 @@ class CertificateIssueOutcome {
 	 *
 	 * @return array{enrolmentId: string, learnerName: string|null, reason: string, sentence: string}
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-youssefs-birth-date
+	 * @spec openspec/specs/certification/spec.md#scenario-youssefs-birth-date
 	 */
 	public function skip(string $enrolmentId, ?string $name, string $reason): array {
 		return [
@@ -167,7 +167,7 @@ class CertificateIssueOutcome {
 	 *
 	 * @return string|null
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-youssefs-birth-date
+	 * @spec openspec/specs/certification/spec.md#scenario-youssefs-birth-date
 	 */
 	public function nameOf(array $enrolment, ?array $line): ?string {
 		$name = trim((string)($line['learnerName'] ?? ($enrolment['learnerName'] ?? '')));
@@ -186,7 +186,7 @@ class CertificateIssueOutcome {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-youssefs-birth-date
+	 * @spec openspec/specs/certification/spec.md#scenario-youssefs-birth-date
 	 */
 	public function savedId(mixed $saved, string $fallback): string {
 		$row = (new SerialisedRow())->asArray(object: $saved);

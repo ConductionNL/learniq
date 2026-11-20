@@ -908,7 +908,7 @@ class TrainingExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-youssefs-birth-date
+	 * @spec openspec/specs/certification/spec.md#scenario-youssefs-birth-date
 	 */
 	public function testTheExamRegistrationOfTheFGassenDay(): void {
 		$lists = self::of(schema: 'exam-registration');

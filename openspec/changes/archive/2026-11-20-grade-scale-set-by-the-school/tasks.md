@@ -11,4 +11,4 @@
 
 ## 3. Matrix
 
-- [ ] 3.1 When the tasks are done, archive this change, repoint `grd-your-own-grade-scale` to `openspec/specs/grading` and drop its `built.plan`.
+- [x] 3.1 When the tasks are done, archive this change, repoint `grd-your-own-grade-scale` to `openspec/specs/grading` and drop its `built.plan`.

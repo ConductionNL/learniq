@@ -46,7 +46,7 @@ interface AdministrationTodayServiceInterface {
 	 *
 	 * @throws \Throwable When OpenRegister cannot be read.
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-youssefs-birth-date
+	 * @spec openspec/specs/certification/spec.md#scenario-youssefs-birth-date
 	 */
 	public function today(): array;
 
@@ -59,7 +59,7 @@ interface AdministrationTodayServiceInterface {
 	 *
 	 * @throws \Throwable When the date cannot be read or OpenRegister cannot be read.
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/tasks.md
+	 * @spec openspec/changes/archive/2026-11-20-exam-registration-and-certificate-issue/tasks.md
 	 */
 	public function expiring(string $before): array;
 }//end interface

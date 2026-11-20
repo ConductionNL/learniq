@@ -18,7 +18,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-the-certificates-of-a-finished-course-day-are-issued-in-one-action
+ * @spec openspec/specs/certification/spec.md#requirement-the-certificates-of-a-finished-course-day-are-issued-in-one-action
  */
 
 declare(strict_types=1);
@@ -45,7 +45,7 @@ use Psr\Log\LoggerInterface;
  * skipped and named. A participant who already holds a certificate for the
  * enrolment is not issued a second one.
  *
- * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-the-certificates-of-a-finished-course-day-are-issued-in-one-action
+ * @spec openspec/specs/certification/spec.md#requirement-the-certificates-of-a-finished-course-day-are-issued-in-one-action
  */
 class CertificateIssueService implements CertificateIssueServiceInterface {
 	use CourseDayRows;
@@ -66,7 +66,7 @@ class CertificateIssueService implements CertificateIssueServiceInterface {
 	 * @param LoggerInterface                   $logger        Records a certificate that could not be signed.
 	 * @param CertificateIssueOutcome $outcome The per-participant refusals and the summary.
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-the-certificates-of-a-finished-course-day-are-issued-in-one-action
+	 * @spec openspec/specs/certification/spec.md#requirement-the-certificates-of-a-finished-course-day-are-issued-in-one-action
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
@@ -89,7 +89,7 @@ class CertificateIssueService implements CertificateIssueServiceInterface {
 	 * @throws CourseDayException When the day is no course day or not in rounding off.
 	 * @throws \Throwable         When OpenRegister cannot be read or written.
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-thursdays-f-gassen-day
+	 * @spec openspec/specs/certification/spec.md#scenario-thursdays-f-gassen-day
 	 */
 	public function issue(string $cohortId, string $userId): array {
 		$cohort = $this->one(schema: 'cohort', id: $cohortId);

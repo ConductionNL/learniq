@@ -19,7 +19,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-youssefs-birth-date
+ * @spec openspec/specs/certification/spec.md#scenario-youssefs-birth-date
  */
 
 declare(strict_types=1);
@@ -39,7 +39,7 @@ use OCP\AppFramework\Utility\ITimeFactory;
 /**
  * What the administration's Today shows.
  *
- * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-youssefs-birth-date
+ * @spec openspec/specs/certification/spec.md#scenario-youssefs-birth-date
  */
 class AdministrationTodayService implements AdministrationTodayServiceInterface {
 	use CourseDayRows;
@@ -51,7 +51,7 @@ class AdministrationTodayService implements AdministrationTodayServiceInterface 
 	 * @param ITimeFactory                     $time          The clock.
 	 * @param ExamRegistrationServiceInterface $lists         The exam registration lists.
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-youssefs-birth-date
+	 * @spec openspec/specs/certification/spec.md#scenario-youssefs-birth-date
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
@@ -69,7 +69,7 @@ class AdministrationTodayService implements AdministrationTodayServiceInterface 
 	 *
 	 * @throws \Throwable When OpenRegister cannot be read.
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-youssefs-birth-date
+	 * @spec openspec/specs/certification/spec.md#scenario-youssefs-birth-date
 	 */
 	public function today(): array {
 		$today = $this->todayDate();
@@ -95,7 +95,7 @@ class AdministrationTodayService implements AdministrationTodayServiceInterface 
 	 *
 	 * @return array<string, mixed>|null
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-youssefs-birth-date
+	 * @spec openspec/specs/certification/spec.md#scenario-youssefs-birth-date
 	 */
 	public static function firstToday(array $lists): ?array {
 		foreach ($lists as $list) {
@@ -117,7 +117,7 @@ class AdministrationTodayService implements AdministrationTodayServiceInterface 
 	 * @throws CourseDayException When the date cannot be read.
 	 * @throws \Throwable         When OpenRegister cannot be read.
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/tasks.md
+	 * @spec openspec/changes/archive/2026-11-20-exam-registration-and-certificate-issue/tasks.md
 	 */
 	public function expiring(string $before): array {
 		if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $before) !== 1) {
