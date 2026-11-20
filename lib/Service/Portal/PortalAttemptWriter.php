@@ -29,6 +29,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Portal;
 
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 
@@ -71,8 +73,7 @@ class PortalAttemptWriter {
 			user: $learner->user,
 			operation: fn () => $this->objectService->saveObject(
 				object: $data,
-				register: self::REGISTER,
-				schema: self::RESULT_SCHEMA
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: self::RESULT_SCHEMA))
 			)
 		);
 
@@ -97,9 +98,10 @@ class PortalAttemptWriter {
 			user: $learner->user,
 			operation: fn () => $this->objectService->saveObject(
 				object: $row,
-				register: self::REGISTER,
-				schema: self::RESULT_SCHEMA,
-				uuid: $id
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::REGISTER, schema: self::RESULT_SCHEMA),
+					uuid: $id
+				)
 			)
 		);
 	}//end saveAttempt()

@@ -36,6 +36,7 @@ use OCP\IUserSession;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 
 /**
  * Tests for EngagementController::getMe().
@@ -80,7 +81,11 @@ class EngagementControllerTest extends TestCase {
 		// willReturnCallback() hands the closure its arguments POSITIONALLY,
 		// so the closure must mirror that order.
 		$objectService->method('find')->willReturnCallback(
-			static function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($level, $levelThrows) {
+			static function (int|string $id, ?ObjectFindOptions $options = null) use ($level, $levelThrows) {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				if ($levelThrows === true) {
 					throw new DoesNotExistException('no such EngagementLevel');
 				}

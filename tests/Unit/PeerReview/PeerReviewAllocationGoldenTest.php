@@ -30,6 +30,7 @@ use OCP\AppFramework\Db\DoesNotExistException;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use ReflectionMethod;
+use OCA\Learniq\Tests\Support\LegacyObjectArgs;
 
 /**
  * Pins every ObjectService call PeerReviewAllocationService::allocate() makes,
@@ -131,6 +132,7 @@ class PeerReviewAllocationGoldenTest extends TestCase {
 		$service = $this->createMock(ObjectService::class);
 		$service->method('find')->willReturnCallback(
 			static function (...$args) use ($assignment) {
+				$args = LegacyObjectArgs::positional(method: 'find', args: $args);
 				if ($assignment === null) {
 					throw new DoesNotExistException('Object not found');
 				}
@@ -147,6 +149,7 @@ class PeerReviewAllocationGoldenTest extends TestCase {
 		);
 		$service->method('saveObject')->willReturnCallback(
 			static function (...$args) use (&$calls) {
+				$args = LegacyObjectArgs::positional(method: 'saveObject', args: $args);
 				$named = self::named('saveObject', $args);
 				$calls[] = ['saveObject' => $named];
 				return OrEntityFactory::make($named['object'], (string)$named['schema']);
@@ -166,7 +169,7 @@ class PeerReviewAllocationGoldenTest extends TestCase {
 	 * @return array<string, mixed>
 	 */
 	private static function named(string $method, array $args): array {
-		$params = (new ReflectionMethod(ObjectService::class, $method))->getParameters();
+		$params = LegacyObjectArgs::parameters(ObjectService::class, $method);
 		$named  = [];
 		foreach ($args as $i => $value) {
 			if ($params[$i]->isDefaultValueAvailable() === true && $params[$i]->getDefaultValue() === $value) {

@@ -110,7 +110,7 @@ class Cmi5LaunchSessions implements Cmi5LaunchSessionsInterface {
 		$lessonId   = (string)($launch['lessonId'] ?? '');
 		$activityId = (string)($launch['activityId'] ?? '');
 		$lesson     = (array)($launch['lesson'] ?? []);
-		$data       = $this->launchData(lesson: $lesson, lessonId: $lessonId, activityId: $activityId);
+		$data       = $this->launchData(lesson: $lesson, args: ['lessonId' => $lessonId, 'activityId' => $activityId]);
 
 		try {
 			$this->documents->put(
@@ -178,12 +178,14 @@ class Cmi5LaunchSessions implements Cmi5LaunchSessionsInterface {
 	 * activity is the AU's own activity IRI.
 	 *
 	 * @param array<string, mixed> $lesson     The lesson as read.
-	 * @param string               $lessonId   The lesson UUID.
-	 * @param string               $activityId The AU activity IRI of this launch.
+	 * @param array{lessonId: string, activityId: string} $args The lessonId, activityId.
 	 *
 	 * @return array<string, mixed> The document.
 	 */
-	private function launchData(array $lesson, string $lessonId, string $activityId): array {
+	private function launchData(array $lesson, array $args): array {
+		$lessonId = $args['lessonId'];
+		$activityId = $args['activityId'];
+
 		$moveOn = (string)($lesson['moveOn'] ?? '');
 		if (in_array($moveOn, self::MOVE_ON, true) === false) {
 			$moveOn = 'NotApplicable';

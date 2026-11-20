@@ -52,6 +52,8 @@ use Throwable;
  */
 class PortalHourWeekController extends Controller {
 
+	use PortalFormFields;
+
 	/**
 	 * The only audience this endpoint serves.
 	 */
@@ -72,6 +74,10 @@ class PortalHourWeekController extends Controller {
 		'hourWeekId',
 		'hoursApproved',
 		'note',
+		// A return names the day and asks a question (bpv-hours-per-day).
+		'outcome',
+		'returnedDate',
+		'question',
 	];
 
 	/**
@@ -136,37 +142,4 @@ class PortalHourWeekController extends Controller {
 
 		return new JSONResponse(data: $outcome->body, statusCode: $outcome->status);
 	}//end approve()
-
-	/**
-	 * The whitelisted fields the form sent.
-	 *
-	 * @return array<string, mixed>
-	 */
-	private function body(): array {
-		$body = [];
-		foreach (self::FIELDS as $field) {
-			$value = $this->request->getParam($field);
-			if ($value !== null) {
-				$body[$field] = $value;
-			}
-		}
-
-		return $body;
-	}//end body()
-
-	/**
-	 * A request parameter as a trimmed string, '' when absent or not a string.
-	 *
-	 * @param string $name The parameter.
-	 *
-	 * @return string
-	 */
-	private function stringParam(string $name): string {
-		$value = $this->request->getParam($name);
-		if (is_string($value) === false) {
-			return '';
-		}
-
-		return trim($value);
-	}//end stringParam()
 }//end class

@@ -18,6 +18,7 @@
 		@tabChange="activeTab = $event">
 		<MenuStructureSection />
 		<LearniqSettings v-if="storesReady" />
+		<CertificateSettingsSection />
 		<ActionAuthMatrix />
 
 		<template #tab-example-data>
@@ -38,6 +39,9 @@
 		<template #tab-store>
 			<StoreRegistrySettingsSection />
 		</template>
+		<template #tab-school-calendar>
+			<SchoolYearSettingsSection />
+		</template>
 		<template #tab-exam-board>
 			<ExamBoardSettingsSection />
 		</template>
@@ -54,12 +58,14 @@ import { generateUrl } from '@nextcloud/router'
 import ActionAuthMatrix from '../../components/admin/ActionAuthMatrix.vue'
 import LearniqSettings from '../LearniqSettings.vue'
 import AiTranslationReviewSection from './AiTranslationReviewSection.vue'
+import CertificateSettingsSection from './CertificateSettingsSection.vue'
 import DataExchangeSettingsSection from './DataExchangeSettingsSection.vue'
 import ExamBoardSettingsSection from './ExamBoardSettingsSection.vue'
 import ExampleDataSettingsSection from './ExampleDataSettingsSection.vue'
 import LtiSettingsSection from './LtiSettingsSection.vue'
 import MenuStructureSection from './MenuStructureSection.vue'
 import OpenMaterialSettingsSection from './OpenMaterialSettingsSection.vue'
+import SchoolYearSettingsSection from './SchoolYearSettingsSection.vue'
 import StoreRegistrySettingsSection from './StoreRegistrySettingsSection.vue'
 import TimetableExchangeSettingsSection from './TimetableExchangeSettingsSection.vue'
 import { initializeStores } from '../../store/store.js'
@@ -69,6 +75,7 @@ export default {
 	components: {
 		CnAdminSettingsShell,
 		LearniqSettings,
+		CertificateSettingsSection,
 		DataExchangeSettingsSection,
 		ExamBoardSettingsSection,
 		ExampleDataSettingsSection,
@@ -76,6 +83,7 @@ export default {
 		TimetableExchangeSettingsSection,
 		LtiSettingsSection,
 		OpenMaterialSettingsSection,
+		SchoolYearSettingsSection,
 		MenuStructureSection,
 		AiTranslationReviewSection,
 		ActionAuthMatrix,
@@ -108,6 +116,7 @@ export default {
 				{ id: 'lti', label: this.t('learniq', 'LTI tools') },
 				{ id: 'open-material', label: this.t('learniq', 'Open learning material') },
 				{ id: 'store', label: this.t('learniq', 'Store') },
+				{ id: 'school-calendar', label: this.t('learniq', 'School calendar') },
 				{ id: 'exam-board', label: this.t('learniq', 'Exam board') },
 				{ id: 'ai-translations', label: this.t('learniq', 'AI translations') },
 			]

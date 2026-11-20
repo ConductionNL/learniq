@@ -50,6 +50,9 @@ use DateTimeImmutable;
 use OCA\Learniq\Kernel\Contracts\BsaProgressEvaluatorInterface;
 use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
@@ -164,8 +167,7 @@ class BsaProgressFlagHandler implements IEventListener {
 	private function resolveProgrammeIds(string $courseId): array {
 		$course = $this->objectService->find(
 			id: $courseId,
-			register: self::LEARNIQ_REGISTER,
-			schema: self::COURSE_SCHEMA
+			options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::COURSE_SCHEMA)
 		);
 
 		if ($course === null) {
@@ -211,7 +213,7 @@ class BsaProgressFlagHandler implements IEventListener {
 				$trajectory = $trajectory->jsonSerialize();
 			}
 
-			$this->checkTrajectory(trajectory: $trajectory, learnerId: $learnerId, tenantId: $tenantId);
+			$this->checkTrajectory(trajectory: $trajectory, learner: ['learnerId' => $learnerId, 'tenantId' => $tenantId]);
 		}
 
 	}//end checkProgramme()
@@ -219,15 +221,16 @@ class BsaProgressFlagHandler implements IEventListener {
 	/**
 	 * Evaluate a single BsaTrajectory for a learner and create a flag if at risk.
 	 *
-	 * @param array<string,mixed> $trajectory BsaTrajectory data.
-	 * @param string $learnerId NC user ID of the learner.
-	 * @param string $tenantId Tenant ID.
+	 * @param array<string,mixed>                       $trajectory BsaTrajectory data.
+	 * @param array{learnerId: string, tenantId: string} $learner    NC user ID of the learner and the tenant ID.
 	 *
 	 * @return void
 	 *
 	 * @spec openspec/specs/study-progress/spec.md#requirement-credit-earned-and-at-risk-detection-are-declared-calculations-not-a-timedjob
 	 */
-	private function checkTrajectory(array $trajectory, string $learnerId, string $tenantId): void {
+	private function checkTrajectory(array $trajectory, array $learner): void {
+		$learnerId = $learner['learnerId'];
+		$tenantId = $learner['tenantId'];
 		$interimNormEcts = $trajectory['interimNormEcts'] ?? null;
 		if ($interimNormEcts === null) {
 			// No interim pace threshold configured — nothing to check ahead
@@ -265,8 +268,6 @@ class BsaProgressFlagHandler implements IEventListener {
 		}
 
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::BSA_PROGRESS_FLAG_SCHEMA,
 			object: [
 				'learnerId' => $learnerId,
 				'programmeId' => $programmeId,
@@ -277,7 +278,8 @@ class BsaProgressFlagHandler implements IEventListener {
 				'flaggedAt' => $now->format(\DATE_ATOM),
 				'lifecycle' => 'open',
 				'tenant_id' => $tenantId,
-			]
+			],
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::BSA_PROGRESS_FLAG_SCHEMA))
 		);
 
 	}//end checkTrajectory()

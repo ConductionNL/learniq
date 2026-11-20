@@ -34,6 +34,7 @@ use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Utility\ITimeFactory;
 use PHPUnit\Framework\TestCase;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 
 /**
  * Tests for PokParentSignatureRule::evaluate().
@@ -64,7 +65,11 @@ class PokParentSignatureRuleTest extends TestCase {
 	private function makeRule(string $today = '2026-09-27'): PokParentSignatureRule {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null, bool $_rbac = true) {
+			function (int|string $id, ?ObjectFindOptions $options = null, bool $_rbac = true) {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				$this->reads[] = ['schema' => (string)$schema, 'rbac' => $_rbac];
 				$row = $this->rows[(string)$schema][(string)$id] ?? null;
 				if ($row === null) {

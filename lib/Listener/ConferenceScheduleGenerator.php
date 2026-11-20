@@ -67,6 +67,8 @@ use OCA\Learniq\Service\ConferenceSlotPass;
 use OCA\Learniq\Service\ConferenceSlotSlicer;
 use OCA\Learniq\Support\EntityRow;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -176,15 +178,24 @@ class ConferenceScheduleGenerator implements IEventListener {
 		// minutes already consumed by a confirmed slot for that teacher.
 		$queues = $this->buildTeacherQueues(
 			availabilities: $availabilities,
-			slotDurationMinutes: (int)($round['slotDurationMinutes'] ?? 10),
-			bufferMinutes: (int)($round['bufferMinutes'] ?? 0),
-			confirmedByTeacher: $pinned['confirmedByTeacher']
+			args: [
+				'slotDurationMinutes' => (int)($round['slotDurationMinutes'] ?? 10),
+				'bufferMinutes' => (int)($round['bufferMinutes'] ?? 0),
+				'confirmedByTeacher' => $pinned['confirmedByTeacher'],
+			]
 		);
 
 		$outcome = $this->assignSignups(
 			signups: $this->pendingSignups(roundId: $roundId),
-			pass: new ConferenceSlotPass(roundId: (string)$roundId, tenantId: (string)$tenantId, queues: $queues, activeSlotKeys: $pinned['activeSlotKeys']),
-			intervalsBySignup: $pinned['intervalsBySignup']
+			args: [
+				'pass' => new ConferenceSlotPass(
+					roundId: (string)$roundId,
+					tenantId: (string)$tenantId,
+					queues: $queues,
+					activeSlotKeys: $pinned['activeSlotKeys']
+				),
+				'intervalsBySignup' => $pinned['intervalsBySignup'],
+			]
 		);
 
 		$this->writeOutcome(roundId: $roundId, outcome: $outcome);
@@ -258,11 +269,19 @@ class ConferenceScheduleGenerator implements IEventListener {
 	 */
 	private function writeOutcome(string $roundId, array $outcome): void {
 		foreach ($outcome['newSlots'] as $slot) {
-			$this->objectService->saveObject(register: self::LEARNIQ_REGISTER, schema: self::CONFERENCE_SLOT_SCHEMA, object: $slot);
+			$this->objectService->saveObject(
+				object: $slot,
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::CONFERENCE_SLOT_SCHEMA))
+			);
 		}
 
 		foreach ($outcome['signupSaves'] as $signup) {
-			$this->objectService->saveObject(register: self::LEARNIQ_REGISTER, schema: self::CONFERENCE_SIGNUP_SCHEMA, object: $signup);
+			$this->objectService->saveObject(
+				object: $signup,
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::CONFERENCE_SIGNUP_SCHEMA)
+				)
+			);
 		}
 
 		$this->logger->info(
@@ -317,7 +336,12 @@ class ConferenceScheduleGenerator implements IEventListener {
 			if ($signupId !== '' && isset($cancelledSignupIds[$signupId]) === true) {
 				$freedSlot = $slot;
 				$freedSlot['lifecycle'] = 'cancelled';
-				$this->objectService->saveObject(register: self::LEARNIQ_REGISTER, schema: self::CONFERENCE_SLOT_SCHEMA, object: $freedSlot);
+				$this->objectService->saveObject(
+					object: $freedSlot,
+					options: new ObjectSaveOptions(
+						target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::CONFERENCE_SLOT_SCHEMA)
+					)
+				);
 				continue;
 			}
 
@@ -349,20 +373,17 @@ class ConferenceScheduleGenerator implements IEventListener {
 	 * chronological order, excluding minutes a confirmed slot already consumes.
 	 *
 	 * @param array<int,mixed> $availabilities Submitted + locked TeacherAvailability rows.
-	 * @param int $slotDurationMinutes Length of one slot in minutes.
-	 * @param int $bufferMinutes Gap between consecutive slots in minutes.
-	 * @param array<string,array<int,array<string,mixed>>> $confirmedByTeacher Pinned confirmed intervals per teacher.
+	 * @param array{slotDurationMinutes: int, bufferMinutes: int, confirmedByTeacher: array<string,array<int,array<string,mixed>>>} $args The rest.
 	 *
 	 * @return array<string,array<int,array<string,mixed>>> Map of teacherId => ordered free slots.
 	 *
 	 * @spec openspec/specs/parent-conferences/spec.md#scenario-conflict-free-generation-from-sign-ups-and-availability
 	 */
-	private function buildTeacherQueues(
-		array $availabilities,
-		int $slotDurationMinutes,
-		int $bufferMinutes,
-		array $confirmedByTeacher,
-	): array {
+	private function buildTeacherQueues(array $availabilities, array $args): array {
+		$slotDurationMinutes = $args['slotDurationMinutes'];
+		$bufferMinutes = $args['bufferMinutes'];
+		$confirmedByTeacher = $args['confirmedByTeacher'];
+
 		$queues = [];
 
 		foreach ($availabilities as $availability) {
@@ -406,14 +427,16 @@ class ConferenceScheduleGenerator implements IEventListener {
 	 * in its notes, so the reason is never left implicit.
 	 *
 	 * @param array<int,array<string,mixed>>               $signups           Signups in submission order.
-	 * @param ConferenceSlotPass                           $pass              The pass: round, tenant, queues and satisfied requests.
-	 * @param array<string,array<int,array<string,mixed>>> $intervalsBySignup Intervals already assigned per signup.
+	 * @param array{pass: ConferenceSlotPass, intervalsBySignup: array<string,array<int,array<string,mixed>>>} $args The pass, intervalsBySignup.
 	 *
 	 * @return array{newSlots: array<int,array<string,mixed>>, signupSaves: array<int,array<string,mixed>>, scheduledCount: int, waitlistedCount: int}
 	 *
 	 * @spec openspec/specs/parent-conferences/spec.md#scenario-conflict-free-generation-from-sign-ups-and-availability
 	 */
-	private function assignSignups(array $signups, ConferenceSlotPass $pass, array $intervalsBySignup): array {
+	private function assignSignups(array $signups, array $args): array {
+		$pass = $args['pass'];
+		$intervalsBySignup = $args['intervalsBySignup'];
+
 		$newSlots = [];
 		$signupSaves = [];
 		$scheduledCount = 0;

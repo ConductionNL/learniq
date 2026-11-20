@@ -82,6 +82,7 @@ class KeyManagementService implements KeyManagementServiceInterface {
 	 * @throws \RuntimeException If OpenSSL key generation fails.
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-3
+	 * @spec openspec/changes/certificate-verification-and-key-rotation/specs/certification/spec.md#requirement-rotating-the-signing-key-keeps-earlier-certificates-checkable
 	 */
 	public function generateTenantKeypair(string $tenantId): array {
 		// #211: validate tenantId before touching key storage.

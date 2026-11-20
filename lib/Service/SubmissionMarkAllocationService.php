@@ -36,6 +36,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Kernel\Contracts\SubmissionMarkAllocationServiceInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -177,8 +179,6 @@ class SubmissionMarkAllocationService implements SubmissionMarkAllocationService
 	private function createMarks(array $submission, array $markerIds): void {
 		foreach ($markerIds as $markerId) {
 			$this->objectService->saveObject(
-				register: self::REGISTER,
-				schema: self::MARK_SCHEMA,
 				object: [
 					'submissionId' => (string)$submission['id'],
 					'assignmentId' => (string)($submission['assignmentId'] ?? ''),
@@ -187,6 +187,7 @@ class SubmissionMarkAllocationService implements SubmissionMarkAllocationService
 					'lifecycle' => 'draft',
 					'tenant_id' => (string)($submission['tenant_id'] ?? ''),
 				],
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: self::MARK_SCHEMA)),
 				_rbac: false
 			);
 		}
@@ -209,10 +210,11 @@ class SubmissionMarkAllocationService implements SubmissionMarkAllocationService
 			unset($row['@self']);
 			$row['markerIds'] = $union;
 			$this->objectService->saveObject(
-				register: self::REGISTER,
-				schema: self::SUBMISSION_SCHEMA,
 				object: $row,
-				uuid: (string)$submission['id'],
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::REGISTER, schema: self::SUBMISSION_SCHEMA),
+					uuid: (string)$submission['id']
+				),
 				_rbac: false
 			);
 		}

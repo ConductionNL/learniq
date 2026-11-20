@@ -361,6 +361,9 @@ class PrimarySchoolExampleSetTest extends TestCase {
 		self::assertSame('Sami heeft buikgriep', $today[0]['reason']);
 		self::assertSame('submitted', $today[0]['lifecycle']);
 		self::assertSame($fatima['uuid'], $today[0]['submittedByRef']);
+		// Seen by juf Esra at 8.12, before anyone decided (absence-reports-seen-and-ended T6).
+		self::assertSame('po-leerkracht-07', $today[0]['seenBy']);
+		self::assertSame('2026-10-05T08:12:00+02:00', $today[0]['seenAt']);
 		$marks = array_values(array_filter(self::of('attendance-record'), static fn (array $m): bool => $m['excuseRequestId'] === $today[0]['uuid']));
 		self::assertCount(1, $marks);
 		self::assertSame('2026-10-05T08:12:00+02:00', $marks[0]['markedAt']);
@@ -405,4 +408,42 @@ class PrimarySchoolExampleSetTest extends TestCase {
 		self::assertCount(1, $cards);
 		self::assertSame([7.9, 8.3, 7.9, 7.7, 7.7, 8.2], array_column($cards[0]['subjectGrades'], 'periodAverage'));
 	}//end testTheWilgenboomStoryIsInTheData()
+
+	/**
+	 * Groep 7's permission slips: the trip to the Openluchtmuseum open with
+	 * nobody answered, so Vera's guardian can answer, and the sports day
+	 * closed with every pupil but four answered by a guardian of their own.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/permission-slips/tasks.md
+	 */
+	public function testGroupSevenHasAnOpenAndAClosedPermissionSlip(): void {
+		$cohorts  = self::by(self::of('cohort'), 'uuid');
+		$requests = self::by(self::of('permission-request'), 'title');
+		self::assertSame(['Schoolreisje naar het Openluchtmuseum', 'Sportdag op het sportpark'], array_keys($requests));
+
+		$trip   = $requests['Schoolreisje naar het Openluchtmuseum'];
+		$sports = $requests['Sportdag op het sportpark'];
+		self::assertSame('Groep 7', $cohorts[$trip['cohortId']]['name']);
+		self::assertSame(['open', '2026-10-22', '2026-10-16T17:00:00+02:00', true], [$trip['lifecycle'], $trip['happensOn'], $trip['respondBy'], $trip['treatSilenceAsRefusal']]);
+		self::assertSame('closed', $sports['lifecycle']);
+		self::assertSame($trip['learnerRefs'], $sports['learnerRefs']);
+
+		$profiles = self::by(self::of('learner-profile'), 'uuid');
+		$vera     = array_values(array_filter($profiles, static fn (array $p): bool => $p['givenName'] === 'Vera' && $p['familyName'] === 'Hulstkamp'))[0];
+		self::assertContains($vera['uuid'], $trip['learnerRefs']);
+
+		$byRequest = [];
+		foreach (self::of('permission-response') as $response) {
+			$byRequest[$response['permissionRequestId']][] = $response;
+			self::assertContains($response['learnerRef'], $sports['learnerRefs']);
+			self::assertContains($response['answeredByRef'], $profiles[$response['learnerRef']]['guardianRefs']);
+		}
+
+		self::assertArrayNotHasKey($trip['uuid'], $byRequest);
+		self::assertCount(count($sports['learnerRefs']) - 4, $byRequest[$sports['uuid']]);
+		self::assertCount(count(array_unique(array_column($byRequest[$sports['uuid']], 'learnerRef'))), $byRequest[$sports['uuid']]);
+		self::assertContains('no', array_column($byRequest[$sports['uuid']], 'answer'));
+	}//end testGroupSevenHasAnOpenAndAClosedPermissionSlip()
 }//end class

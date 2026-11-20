@@ -84,7 +84,7 @@ class ComplianceRollupService implements ComplianceRollupServiceInterface {
 	 *
 	 * @return array<int,array<string,mixed>>
 	 *
-	 * @spec openspec/parity/capabilities.json#comp-roll-up-by-department
+	 * @spec openspec/specs/compliance-rule-coverage/spec.md#requirement-coverage-rolls-up-from-team-to-department-to-directorate
 	 */
 	public function byDepartment(?DateTimeImmutable $now=null): array {
 		$now = ($now ?? new DateTimeImmutable('now', new DateTimeZone('UTC')));

@@ -38,6 +38,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service\Attendance;
 
 use DateTimeImmutable;
+use OCA\Learniq\Service\Calendar\SchoolYear as SchoolCalendarYear;
+use OCA\Learniq\Support\SchoolYear;
 use Throwable;
 
 /**
@@ -47,6 +49,18 @@ use Throwable;
  */
 class AttendanceSummaryCalculator {
 
+	/**
+	 * Constructor.
+	 *
+	 * @param SchoolCalendarYear $schoolYear The school's school year, which says the day it starts.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private readonly SchoolCalendarYear $schoolYear=new SchoolCalendarYear(),
+	) {
+	}//end __construct()
+
 	public const ABSENT_AUTHORISED = 'absent-excused';
 	public const ABSENT_UNAUTHORISED = 'absent-unexcused';
 	public const LATE = 'late';
@@ -55,11 +69,6 @@ class AttendanceSummaryCalculator {
 	 * The statuses the summary counts; a recount reads only these.
 	 */
 	public const COUNTED_STATUSES = [self::ABSENT_AUTHORISED, self::ABSENT_UNAUTHORISED, self::LATE];
-
-	/**
-	 * The month a school year starts in.
-	 */
-	private const FIRST_MONTH = 8;
 
 	/**
 	 * The counts of a summary with nothing in it.
@@ -81,17 +90,8 @@ class AttendanceSummaryCalculator {
 	 *
 	 * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#scenario-july-and-august-fall-in-different-school-years
 	 */
-	public static function schoolYearOf(string $date): ?string {
-		if (preg_match('/^(\d{4})-(\d{2})-\d{2}$/', $date, $parts) !== 1) {
-			return null;
-		}
-
-		$year = (int)$parts[1];
-		if ((int)$parts[2] < self::FIRST_MONTH) {
-			$year--;
-		}
-
-		return $year . '-' . ($year + 1);
+	public function schoolYearOf(string $date): ?string {
+		return SchoolYear::of(date: $date, start: $this->schoolYear->start());
 	}//end schoolYearOf()
 
 	/**
@@ -200,7 +200,7 @@ class AttendanceSummaryCalculator {
 
 			$session = ($sessions[(string)($record['sessionId'] ?? '')] ?? null);
 			$day = $this->dayOf(record: $record, session: $session);
-			$year = self::schoolYearOf(date: (string)$day);
+			$year = $this->schoolYearOf(date: (string)$day);
 			if ($day === null || $year === null) {
 				continue;
 			}
@@ -336,6 +336,11 @@ class AttendanceSummaryCalculator {
 	private function sameValue(mixed $stored, mixed $value): bool {
 		if (is_int($value) === true) {
 			$stored = $this->intOrNull(value: $stored);
+		}
+
+		// A stored 14.0 comes back from JSON as 14.
+		if (is_float($value) === true && is_numeric($stored) === true) {
+			$stored = (float)$stored;
 		}
 
 		return $stored === $value;

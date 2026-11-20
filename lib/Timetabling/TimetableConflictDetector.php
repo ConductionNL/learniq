@@ -63,6 +63,8 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
 use OCA\Learniq\Kernel\Contracts\TimetableConflictDetectorInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
@@ -183,15 +185,30 @@ class TimetableConflictDetector implements TimetableConflictDetectorInterface {
 			}
 		}
 
+		$this->recordConflicts(window: $window, scan: $scan);
+	}//end scanSessions()
+
+	/**
+	 * Add the capacity conflicts of each session to the scan, then save every
+	 * conflict the scan collected.
+	 *
+	 * @param array<string,array<string,mixed>> $window The sessions of the window, by id.
+	 * @param ConflictScan                      $scan   The scan with the pair conflicts found so far.
+	 *
+	 * @return void
+	 */
+	private function recordConflicts(array $window, ConflictScan $scan): void {
 		foreach ($window as $session) {
 			$this->evaluateCapacity(scan: $scan, session: $session);
 		}
 
 		foreach ($scan->toCreate as $conflict) {
 			$this->objectService->saveObject(
-				register: self::LEARNIQ_REGISTER,
-				schema: self::TIMETABLE_CONFLICT_SCHEMA,
-				object: $conflict
+				object: $conflict,
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(
+						register: self::LEARNIQ_REGISTER,
+						schema: self::TIMETABLE_CONFLICT_SCHEMA
+					))
 			);
 		}
 
@@ -201,8 +218,7 @@ class TimetableConflictDetector implements TimetableConflictDetectorInterface {
 				['n' => count($scan->toCreate), 'w' => count($window)]
 			);
 		}
-
-	}//end scanSessions()
+	}//end recordConflicts()
 
 	/**
 	 * Evaluate the pairwise overlap kinds for one Session pair, queueing any
@@ -287,17 +303,20 @@ class TimetableConflictDetector implements TimetableConflictDetectorInterface {
 	}//end evaluateCapacity()
 
 	/**
-	 * Whether a Session with a linked Assessment holds more learners than its Room's capacity.
+	 * Whether a Session, an ordinary lesson as much as one linked to an
+	 * Assessment, holds more learners than its Room's capacity.
 	 *
 	 * @param ConflictScan        $scan    The running scan (caches mutated).
 	 * @param array<string,mixed> $session The Session.
 	 *
 	 * @return bool
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/timetabling/spec.md#requirement-a-planner-books-a-room-or-lab-for-a-session-and-an-overfull-booking-is-flagged
 	 */
 	private function exceedsRoomCapacity(ConflictScan $scan, array $session): bool {
 		$sessionId = self::sessionId(session: $session);
 		$roomId    = self::roomId(session: $session);
-		if ($sessionId === '' || $roomId === '' || $this->loader->hasLinkedAssessment(sessionId: $sessionId, scan: $scan) === false) {
+		if ($sessionId === '' || $roomId === '') {
 			return false;
 		}
 

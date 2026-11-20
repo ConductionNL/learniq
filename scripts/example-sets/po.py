@@ -104,6 +104,11 @@ SCHEMAS = [
     "item",
     "peer-review",
     "lesson",
+    # Appended last (permission-slips): every earlier schema keeps its uuid namespace.
+    "permission-request",
+    "permission-response",
+    # Appended last (leave-requests-decided-by-the-school, after permission-slips): every earlier schema keeps its uuid namespace.
+    "leave-request",
 ]
 
 # School events a parent sees in the portal calendar: (title, start, end, kind, groups or None for the whole
@@ -662,6 +667,9 @@ class SchoolYear:
             "name": "Leerplicht: 16 uur ongeoorloofd verzuim in 4 weken", "kind": "leerplicht-16uur", "scope": "per-learner",
             "window": {"type": "rolling-weeks", "weeks": 4, "termId": None}, "metric": "unexcused-lesuren", "limit": 16,
             "lessonHourMinutes": 60,
+            # attendance-warns-before-the-threshold: the school warns from a quarter of the limit, so the head
+            # of school sees Finn and Ryan (board wilgenboom/LqRolC) long before a report is due.
+            "warnAtHours": PO_WARN_AT_HOURS,
             "onCross": {"notify": True, "notifyRoles": ["mentor", "coordinator"], "createFlag": True, "dataExchangeTarget": None},
             "active": True, "lifecycle": "active",
         })
@@ -921,6 +929,13 @@ class SchoolYear:
         add_report_subject_grades(self.b)
         add_conference_invitations(self.b)
         add_detail_records(self.b, self.pupils, self.subject_courses)
+        # attendance-warns-before-the-threshold: added after every other object, so no uuid moves.
+        add_nearing_pupils(self.b, self.pupils, self.cohorts)
+        # learner-list-and-page-follow-the-boards: groep 7's Monday on the list board, after every other object.
+        add_group7_today(self.b, self.pupils, self.cohorts)
+        # leave-requests-decided-by-the-school: added last, so no uuid moves.
+        add_leave_requests(self.b, LEAVE_REQUESTS)
+        stamp_group_labels(self.b)
 
     def assemble(self) -> dict:
         """The profile file's content."""
@@ -1059,7 +1074,13 @@ STORY_EVENTS = [
     ("Naar de kinderboerderij", "2026-10-07T10:00:00+02:00", "2026-10-07T12:00:00+02:00", "trip", ["Groep 7"], "Laarzen en een regenjas mee."),
     ("Studiedag", "2026-10-09", None, "study-day", None, "Alle kinderen zijn die dag vrij."),
     ("Boekenmarkt op het plein", "2026-10-14T12:30:00+02:00", "2026-10-14T14:00:00+02:00", "event", None, "Kinderen verkopen en ruilen boeken die ze uit hebben. Bij regen in de hal."),
-    ("Ouderavond", "2026-10-29T18:00:00+01:00", "2026-10-29T20:00:00+01:00", "event", None, "Tien minuten met de leerkracht. Kies een tijd in Mijn Wilgenboom."),
+    ("Ouderavond", "2026-10-29T18:00:00+01:00", "2026-10-29T20:00:00+01:00", "parent-evening", None, "Tien minuten met de leerkracht. Kies een tijd in Mijn Wilgenboom."),
+]
+# The holidays of 2026-2027 that a parent plans around: (title, first day, last day, description). Added
+# after STORY_EVENTS so the uuids of every earlier school event stay where they were.
+SCHOOL_HOLIDAYS = [
+    ("Herfstvakantie", "2026-10-17", "2026-10-25", "De school is dicht."),
+    ("Kerstvakantie", "2026-12-19", "2027-01-03", "De school is dicht. Maandag 4 januari beginnen we weer."),
 ]
 # Homework for groep 7 this week: (subject course code, title, due date, instructions).
 STORY_HOMEWORK = [
@@ -1106,6 +1127,7 @@ class HulstkampStory:
         self.add_group4_parent_evening()
         self.add_school_calendar()
         self.add_group7_homework()
+        self.add_permission_slips()
 
     def update_report_card(self) -> None:
         """Vera's report 2 of June 2026 carries the grades on the board."""
@@ -1161,9 +1183,10 @@ class HulstkampStory:
         vera_dentist = self.excuse(self.vera_ref, self.vera["nc"], dt.date(2026, 9, 24), "Tandarts, 10.30 tot 11.30 uur", "medical-appointment",
                                    self.daan, stamp(dt.date(2026, 9, 23), 15, 45))
         vera_ill = self.excuse(self.vera_ref, self.vera["nc"], dt.date(2026, 10, 1), "Vera heeft koorts", "illness", self.daan, stamp(dt.date(2026, 10, 1), 8, 20))
-        # Today's report is not decided yet. The board's "gezien door de leerkracht om 8.12 uur" has no field in the
-        # register; the teacher's mark at 8.12 below is the nearest true thing.
+        # Today's report is not decided yet, and juf Esra saw it at 8.12 when she opened the register of groep 4
+        # (absence-reports-seen-and-ended T6: "Gezien door juf Esra om 8.12 uur", as ReportSeenStamp writes it).
         sami_today = self.excuse(self.sami_ref, self.sami["ncUserId"], STORY_TODAY, "Sami heeft buikgriep", "illness", None, None)
+        sami_today.update({"seenBy": self.esra, "seenAt": stamp(STORY_TODAY, 8, 12)})
 
         self.mark("Groep 4", self.sami["ncUserId"], self.sami_ref, dt.date(2026, 9, 11), "absent-excused", self.esra, (8, 25), "Ziek gemeld door ouder", sami_sep, 0, kind="illness")
         self.mark("Groep 7", self.vera["nc"], self.vera_ref, dt.date(2026, 9, 15), "late", self.daan, (8, 50), "Te laat binnengekomen", None, 335, late=10)
@@ -1182,6 +1205,8 @@ class HulstkampStory:
                 "learnerId": child_nc, "learnerRef": child_ref, "schoolYear": STORY_YEAR,
                 "absentDays": days_absent, "absentAuthorisedDays": days_absent, "absentUnauthorisedDays": 0,
                 "lateCount": lates, "lateMinutes": late_minutes, "updatedAt": stamp(STORY_TODAY, 8, 12),
+                # attendance-warns-before-the-threshold: no hours without permission in the last four weeks.
+                **window_fields(0.0),
                 "teacherIds": sorted(set(cohort["teacherIds"]) | {a["teacherId"] for a in cohort["teacherAssignments"]}),
             })
 
@@ -1230,6 +1255,11 @@ class HulstkampStory:
                 "audience": "groups" if groups else "school", "schoolId": self.school["uuid"],
                 "cohortIds": [self.cohorts[g]["uuid"] for g in groups or []],
             })
+        for title, starts, ends, description in SCHOOL_HOLIDAYS:
+            self.b.add("school-event", {
+                "title": title, "description": description, "startsAt": starts, "endsAt": ends, "kind": "holiday",
+                "audience": "school", "schoolId": self.school["uuid"], "cohortIds": [],
+            })
 
     def add_group7_homework(self) -> None:
         """Groep 7's homework this week."""
@@ -1240,6 +1270,170 @@ class HulstkampStory:
                 "cohortId": self.group7["uuid"], "dueAt": stamp(dt.date.fromisoformat(due), 8, 30), "maxPoints": 10,
                 "allowLateSubmission": True, "lifecycle": "published", "learnerRefs": members7,
             })
+
+    def add_permission_slips(self) -> None:
+        """Groep 7's permission slips (permission-slips): the trip to the Openluchtmuseum, open and to answer by
+        16 October, which nobody has answered yet so Fatima can answer for Vera; and September's sports day,
+        closed, with every pupil but the last four answered by their first guardian, every fifth of them no."""
+        members7 = sorted((p for p in self.pupils if p["class"] == "Groep 7"), key=lambda p: p["nc"])
+        refs7 = [p["profile"]["uuid"] for p in members7]
+        self.b.add("permission-request", {
+            "title": "Schoolreisje naar het Openluchtmuseum",
+            "explanation": "Groep 7 gaat op donderdag 22 oktober met de bus naar het Openluchtmuseum in Arnhem. We vertrekken om 8.45 uur en zijn om 15.30 uur terug. Neem een lunchpakket mee.",
+            "happensOn": "2026-10-22", "cohortId": self.group7["uuid"], "learnerRefs": refs7,
+            "respondBy": stamp(dt.date(2026, 10, 16), 17, 0), "treatSilenceAsRefusal": True, "lifecycle": "open",
+        })
+        sports = self.b.add("permission-request", {
+            "title": "Sportdag op het sportpark",
+            "explanation": "Groep 7 doet op woensdag 23 september mee aan de sportdag op sportpark De Vliet. We lopen er samen heen.",
+            "happensOn": "2026-09-23", "cohortId": self.group7["uuid"], "learnerRefs": refs7,
+            "respondBy": stamp(dt.date(2026, 9, 18), 17, 0), "treatSilenceAsRefusal": True, "lifecycle": "closed",
+        })
+        for index, pupil in enumerate(members7[:-4]):
+            self.b.add("permission-response", {
+                "permissionRequestId": sports["uuid"], "learnerRef": pupil["profile"]["uuid"],
+                "answer": "no" if index % 5 == 4 else "yes", "answeredByRef": pupil["guardians"][0]["uuid"],
+                "answeredAt": stamp(dt.date(2026, 9, 14 + index % 4), 19, 10 + index), "assuranceLevel": "substantial",
+            })
+
+
+# attendance-warns-before-the-threshold (board wilgenboom/LqRolC): the pupils the head of school is warned about.
+PO_LIMIT_HOURS = 16
+PO_WARN_AT_HOURS = 4
+# Per pupil: given name, family name, birth date, guardian's given name (None: an existing pupil) and the story
+# days of groep 7 they missed without permission. A school day runs 08:30 to 14:15, so a missed day is 5,75
+# lesuren and the counts read 5,8 and 11,5 where the board rounds to 6 and 12.
+NEARING_PUPILS = [
+    ("Finn", "Weidewijk", None, None, [dt.date(2026, 9, 24)]),
+    ("Ryan", "Maas", "2015-11-02", "Linda", [dt.date(2026, 9, 15), dt.date(2026, 10, 1)]),
+]
+
+
+def window_fields(hours: float) -> dict:
+    """The fields UnauthorisedHoursWindow writes on the summary of the current school year."""
+    hours = float(Decimal(str(hours)).quantize(Decimal("0.1"), rounding=ROUND_HALF_UP))
+    shown = str(int(hours)) if hours == int(hours) else str(hours).replace(".", ",")
+    return {
+        "unauthorisedHoursWindow": hours, "thresholdHours": PO_LIMIT_HOURS,
+        "windowLabel": f"{shown} van {PO_LIMIT_HOURS} uur",
+        "thresholdNearing": PO_WARN_AT_HOURS <= hours < PO_LIMIT_HOURS,
+    }
+
+
+def add_nearing_pupils(b: Builder, pupils: list[dict], cohorts: dict) -> None:
+    """Finn Weidewijk and Ryan Maas of groep 7 near the leerplicht limit on Monday 5 October 2026.
+
+    Ryan and his mother are new; Finn is a generated pupil. Each missed story day of groep 7 is an
+    unexcused attendance record on that day's lesson, and the summary of 2026-2027 carries the
+    window count the recount computes from them. Added after every other object and with no
+    random numbers, so no existing uuid or value moves.
+    """
+    group = cohorts["Groep 7"]
+    lessons = {s["startsAt"][:10]: s for s in b.buckets["session"] if s["cohortId"] == group["uuid"] and s["startsAt"] >= "2026-08"}
+    teacher = TEACHERS["Groep 7"][0][0]
+    for given, family, birth, guardian_name, missed in NEARING_PUPILS:
+        nc, ref = nearing_pupil(b, pupils, group, (given, family, birth, guardian_name))
+        hours = 0.0
+        for day in missed:
+            lesson = lessons[day.isoformat()]
+            b.add("attendance-record", {
+                "sessionId": lesson["uuid"], "learnerId": nc, "learnerRef": ref, "cohortId": group["uuid"],
+                "status": "absent-unexcused", "minutesAttended": 0, "markedBy": teacher, "markedAt": stamp(day, 8, 40),
+                "reason": "Niet op school, niet afgemeld", "excuseRequestId": None, "lateMinutes": None, "absenceReasonKind": None,
+            })
+            hours += minutes_of(day) / 60
+        b.add("attendance-summary", {
+            "learnerId": nc, "learnerRef": ref, "schoolYear": STORY_YEAR,
+            "absentDays": len(missed), "absentAuthorisedDays": 0, "absentUnauthorisedDays": len(missed),
+            "lateCount": 0, "lateMinutes": 0, "updatedAt": stamp(STORY_TODAY, 6, 0), **window_fields(hours),
+            "teacherIds": sorted(set(group["teacherIds"]) | {a["teacherId"] for a in group["teacherAssignments"]}),
+        })
+
+
+def nearing_pupil(b: Builder, pupils: list[dict], group: dict, person: tuple) -> tuple[str, str]:
+    """The pupil's account id and profile uuid: an existing pupil of the group, or a new one with a guardian."""
+    given, family, birth, guardian_name = person
+    if birth is None:
+        p = next(p for p in pupils if p["given"] == given and p["surname"] == family and p["class"] == group["name"])
+        return p["nc"], p["profile"]["uuid"]
+    profiles = b.buckets["learner-profile"]
+    nc = f"po-leerling-{sum(1 for o in profiles if o['ncUserId'].startswith('po-leerling-')) + 1:03d}"
+    parent_nc = f"po-ouder-{sum(1 for o in profiles if o['ncUserId'].startswith('po-ouder-')) + 1:03d}"
+    address = {"street": "Wilgenlaan", "houseNumber": "41", "postalCode": "0431 RM", "city": "Zuiddrecht", "country": "NL"}
+    guardian = b.add("learner-profile", {
+        "ncUserId": parent_nc, "givenName": guardian_name, "familyName": family, "roles": ["parent"],
+        "hasParentalAuthority": True, "address": address, "parentIds": [], "guardianRefs": [], "emergencyContacts": [],
+        "lifecycle": "active",
+    })
+    school = next(p for p in pupils if p["class"] == group["name"])["profile"]["schoolId"]
+    profile = b.add("learner-profile", {
+        "ncUserId": nc, "givenName": given, "familyName": family, "birthDate": birth, "schoolId": school,
+        "roles": ["learner"], "parentIds": [parent_nc], "guardianRefs": [guardian["uuid"]], "address": address,
+        "emergencyContacts": [], "allergies": None, "medicalConditions": None,
+        "beeldmateriaalConsent": {"website": True, "socialMedia": False, "schoolgids": True, "classPhoto": True, "video": False},
+        "lifecycle": "active",
+    })
+    group["learnerIds"].append(nc)
+    # A pupil since groep 1 who missed nothing in 2025-2026: every enrolled pupil has that year's summary.
+    b.add("attendance-summary", {
+        "learnerId": nc, "learnerRef": profile["uuid"], "schoolYear": YEAR,
+        "absentDays": 0, "absentAuthorisedDays": 0, "absentUnauthorisedDays": 0, "lateCount": 0, "lateMinutes": 0,
+        "updatedAt": stamp(LAST_DAY, 18, 0),
+        "teacherIds": sorted(set(group["teacherIds"]) | {a["teacherId"] for a in group["teacherAssignments"]}),
+    })
+    b.add("enrolment", {
+        "learnerId": nc, "learnerRef": profile["uuid"], "courseId": group["courseId"], "source": "admission",
+        "cohortId": group["uuid"], "cohortName": group["name"], "lifecycle": "active",
+        "inschrijvingDate": "2019-11-04", "volgnummer": int(nc[-3:]), "locationId": group["locationId"], "leerjaar": 7,
+    })
+    return nc, profile["uuid"]
+
+
+# learner-list-and-page-follow-the-boards (board wilgenboom/LqLijst): groep 7 on Monday 5 October 2026. Per pupil:
+# given name, family name, birth date, guardian's given name, the report the guardian made this morning (reason,
+# reasonKind, when) and the teacher's roll-call mark (absenceReasonKind, minutes in class today).
+GROUP7_TODAY = [
+    ("Lina", "Kievitlaan", "2016-01-19", "Samira", ("Tandarts tot 11.30 uur", "medical-appointment", (7, 48)), ("appointment", 165)),
+    ("Hamza", "Elzenhof", "2015-10-07", "Youssef", ("Hamza is ziek", "illness", (7, 55)), ("illness", 0)),
+]
+
+# Until what time of day a report of GROUP7_TODAY keeps the pupil away (the list's "Tandarts tot 11.30").
+GROUP7_UNTIL = {"Lina": "11:30"}
+
+
+def add_group7_today(b: Builder, pupils: list[dict], cohorts: dict) -> None:
+    """Lina at the dentist until 11.30 and Hamza reported ill, so the list of groep 7 reads two absent today.
+
+    Both are new pupils with a guardian who reported them this morning; Daan approved both reports
+    and marked them at the 08.30 roll call. Each gets the summary of 2026-2027 the attendance
+    recount writes from that mark (an excused absence at roll call counts as a day). Added after every other object and
+    with no random numbers, so no existing uuid or value moves.
+    """
+    group = cohorts["Groep 7"]
+    lesson = next(s for s in b.buckets["session"] if s["cohortId"] == group["uuid"] and s["startsAt"][:10] == STORY_TODAY.isoformat())
+    teacher = TEACHERS["Groep 7"][0][0]
+    for given, family, birth, guardian_name, (reason, kind, at), (mark_kind, minutes) in GROUP7_TODAY:
+        nc, ref = nearing_pupil(b, pupils, group, (given, family, birth, guardian_name))
+        profile = next(o for o in b.buckets["learner-profile"] if o["uuid"] == ref)
+        guardian = next(o for o in b.buckets["learner-profile"] if o["uuid"] == profile["guardianRefs"][0])
+        report = b.add("excuse-request", {
+            "learnerId": nc, "learnerRef": ref, "submittedBy": guardian["ncUserId"], "submittedByRef": guardian["uuid"],
+            "dateFrom": STORY_TODAY.isoformat(), "dateTo": STORY_TODAY.isoformat(), "reason": reason, "reasonKind": kind,
+            "submittedAuthLevel": "basic", "decidedBy": teacher, "decidedAt": stamp(STORY_TODAY, 8, 10),
+            "decisionNote": None, "lifecycle": "approved",
+            **({"untilTime": GROUP7_UNTIL[given]} if given in GROUP7_UNTIL else {}),
+        })
+        b.add("attendance-record", {
+            "sessionId": lesson["uuid"], "learnerId": nc, "learnerRef": ref, "cohortId": group["uuid"],
+            "status": "absent-excused", "minutesAttended": minutes, "markedBy": teacher, "markedAt": stamp(STORY_TODAY, 8, 30),
+            "reason": "Afgemeld door ouder", "excuseRequestId": report["uuid"], "lateMinutes": None, "absenceReasonKind": mark_kind,
+        })
+        b.add("attendance-summary", {
+            "learnerId": nc, "learnerRef": ref, "schoolYear": STORY_YEAR,
+            "absentDays": 1, "absentAuthorisedDays": 1, "absentUnauthorisedDays": 0,
+            "lateCount": 0, "lateMinutes": 0, "updatedAt": stamp(STORY_TODAY, 8, 30), **window_fields(0.0),
+            "teacherIds": sorted(set(group["teacherIds"]) | {a["teacherId"] for a in group["teacherAssignments"]}),
+        })
 
 
 def stamp_group_labels(b: Builder) -> None:
@@ -1327,6 +1521,34 @@ def add_conference_invitations(b: Builder) -> None:
             row["status"] = status
             row["tenant_id"] = round_.get("tenant_id", TENANT)
             b.add("conference-invitation", row)
+
+
+# Leave requests that wait for the directeur or teamleider (leave-requests-decided-by-the-school): (class,
+# skip ncUserIds, kind, first day, last day, reason, school days, decide by). The school days and the deadline are
+# what LeaveRequestSchoolDaysStamp writes on a live save; the families are the set's own, standing in for the
+# board's El Idrissi and Jansen.
+LEAVE_REQUESTS = [
+    ("Groep 7", set(), "wedding", "2026-10-29", "2026-10-30", "Bruiloft in de familie, in Rabat.", 2, "2026-10-07"),
+    ("Groep 4", set(), "family-circumstance", "2026-11-13", "2026-11-13", "Vijftigjarig huwelijk van opa en oma.", 1, "2026-10-09"),
+]
+
+
+def add_leave_requests(b: Builder, rows: list[tuple]) -> None:
+    """An open leave request per row, asked by the pupil's first guardian, for the first pupil of the class on
+    its list that the row does not skip. Runs last and draws no random number, so no earlier uuid moves.
+
+    @spec openspec/changes/leave-requests-decided-by-the-school/tasks.md
+    """
+    profiles = {p["ncUserId"]: p for p in b.buckets["learner-profile"]}
+    for class_name, skip, kind, first, last, reason, school_days, decide_by in rows:
+        cohort = next(c for c in b.buckets["cohort"] if c["name"] == class_name)
+        pupil = next(profiles[nc] for nc in sorted(cohort["learnerIds"]) if nc not in skip and profiles[nc].get("guardianRefs"))
+        b.add("leave-request", {
+            "learnerRef": pupil["uuid"], "requestedByRef": pupil["guardianRefs"][0],
+            "dateFrom": first, "dateTo": last, "kind": kind, "reason": reason,
+            "schoolDays": school_days, "decideBy": decide_by, "lifecycle": "submitted",
+            "teacherIds": list(cohort.get("teacherIds") or []),
+        })
 
 
 def add_detail_records(b: Builder, pupils: list[dict], subject_courses: dict) -> None:

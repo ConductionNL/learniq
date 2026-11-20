@@ -33,6 +33,7 @@ use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Approving an excuse request.
@@ -77,7 +78,10 @@ class ExcuseApprovalHandlerTest extends TestCase {
 			}
 		);
 		$store->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
+			function (array|ObjectEntity $object, ObjectSaveOptions $options = new ObjectSaveOptions()): ObjectEntity {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
 				$this->saves[] = ['register' => $register, 'schema' => $schema, 'object' => $object];
 				return OrEntityFactory::make((array)$object, (string)$schema);
 			}
@@ -171,4 +175,38 @@ class ExcuseApprovalHandlerTest extends TestCase {
 			$this->logs
 		);
 	}//end testIncompleteRequestsAndBadDatesReadNothing()
+
+	/**
+	 * An approved illness without a last day excuses every record from its
+	 * first day on, and none before it.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/absence-reports-seen-and-ended/specs/attendance/spec.md#requirement-a-report-may-cover-lesson-hours-and-an-illness-may-stay-open-until-the-pupil-is-better
+	 */
+	public function testAnOpenIllnessExcusesEveryDayFromItsFirst(): void {
+		$this->approve(
+			['id' => 'er-ill', 'learnerId' => 'pupil-1', 'dateFrom' => '2026-10-05', 'reasonKind' => 'illness'],
+			[
+				['id' => 'ar-before', 'markedAt' => '2026-10-02T08:30:00+00:00', 'status' => 'absent-unexcused'],
+				['id' => 'ar-mon', 'markedAt' => '2026-10-05T08:30:00+00:00', 'status' => 'absent-unexcused'],
+				['id' => 'ar-thu', 'markedAt' => '2026-10-08T08:30:00+00:00', 'status' => 'absent-unexcused'],
+			]
+		);
+
+		self::assertSame(['ar-mon', 'ar-thu'], array_map(static fn (array $save): string => $save['object']['id'], $this->saves));
+		self::assertSame(['er-ill', 'er-ill'], array_map(static fn (array $save): string => $save['object']['excuseRequestId'], $this->saves));
+	}//end testAnOpenIllnessExcusesEveryDayFromItsFirst()
+
+	/**
+	 * Any other reason without a last day is still incomplete.
+	 *
+	 * @return void
+	 */
+	public function testAnOpenAppointmentIsStillIncomplete(): void {
+		$this->approve(['id' => 'er-app', 'learnerId' => 'pupil-1', 'dateFrom' => '2026-10-05', 'reasonKind' => 'medical-appointment'], []);
+
+		self::assertSame([], $this->reads);
+		self::assertSame(['warning: [ExcuseApprovalHandler] ExcuseRequest er-app missing learnerId/dateFrom/dateTo — skipping.'], $this->logs);
+	}//end testAnOpenAppointmentIsStillIncomplete()
 }//end class

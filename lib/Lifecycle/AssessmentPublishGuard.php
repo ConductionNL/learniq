@@ -92,6 +92,7 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/specs/assessment/spec.md#requirement-publishing-an-assessment-requires-a-resolvable-item-source
  * @spec openspec/specs/ai-locality-guarantee/spec.md#requirement-the-system-must-refuse-to-let-an-ai-assisted-feature-take-effect-when-its-verified-or-unverified-locality-violates-the-school-s-policy
+ * @spec openspec/specs/platform-properties/spec.md#REQ-PLAT-003
  */
 class AssessmentPublishGuard implements LifecycleGuardInterface {
 

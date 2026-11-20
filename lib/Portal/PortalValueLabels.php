@@ -68,6 +68,34 @@ class PortalValueLabels {
 	];
 
 	/**
+	 * `leave-request.lifecycle`: where a guardian's leave request stands
+	 * (leave-requests-decided-by-the-school).
+	 *
+	 * @var array<string, string>
+	 */
+	public const LEAVE_STATUS = [
+		'submitted' => 'Submitted',
+		'allowed'   => 'Allowed',
+		'refused'   => 'Refused',
+		'forwarded' => 'Forwarded to the attendance officer',
+		'withdrawn' => 'Request withdrawn',
+	];
+
+	/**
+	 * `leave-request.kind`: what the leave is for.
+	 *
+	 * @var array<string, string>
+	 */
+	public const LEAVE_KIND = [
+		'wedding'                         => 'Wedding',
+		'funeral'                         => 'Funeral',
+		'religious-observance'            => 'Religious observance',
+		'family-circumstance'             => 'Family circumstance',
+		'holiday-outside-school-holidays' => 'Holiday outside the school holidays',
+		'other'                           => 'Other',
+	];
+
+	/**
 	 * `attendance-record.status`: whether the child was there.
 	 *
 	 * @var array<string, string>
@@ -134,6 +162,9 @@ class PortalValueLabels {
 	 * @spec openspec/changes/student-portal-reads-like-the-boards/specs/portal-contribution/spec.md#requirement-the-student-pages-use-the-words-of-the-boards
 	 */
 	public const HOUR_WEEK_STATUS = [
+		// Written day by day and kept for later ("Bewaren voor later",
+		// bpv-hours-per-day): her trainer does not see it yet.
+		'draft'     => 'Kept for later',
 		'submitted' => 'Waiting for approval',
 		'approved'  => 'Approved',
 		'corrected' => 'Approved with a correction',

@@ -38,6 +38,7 @@ namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Kernel\Contracts\RolloverServiceInterface;
 use OCA\Learniq\Support\ObjectRow;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Db\DoesNotExistException;
 
@@ -218,11 +219,7 @@ class RolloverService implements RolloverServiceInterface {
 			$report['counts'][$learnerAction] = (($report['counts'][$learnerAction] ?? 0) + 1);
 		}
 
-		$report['enrolmentsToCarry'] += $this->countCarryableEnrolments(
-			learnerIds: $job['members'],
-			overrides: $job['overrides'],
-			carryNonMandatory: (bool)($mapping['carryNonMandatory'] ?? false)
-		);
+		$report['enrolmentsToCarry'] += $this->countCarryableEnrolments(job: $job);
 
 		return $report;
 	}//end tallyPromotion()
@@ -310,7 +307,7 @@ class RolloverService implements RolloverServiceInterface {
 		}
 
 		try {
-			$obj = $this->objectService->find(id: $cohortId, register: self::LEARNIQ_REGISTER, schema: 'cohort');
+			$obj = $this->objectService->find(id: $cohortId, options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: 'cohort'));
 		} catch (DoesNotExistException) {
 			return [];
 		}
@@ -340,15 +337,16 @@ class RolloverService implements RolloverServiceInterface {
 	/**
 	 * Count carryable enrolments for a member set (preview only — no writes).
 	 *
-	 * @param array<int,string> $learnerIds Members.
-	 * @param array<string,array> $overrides Indexed overrides.
-	 * @param bool $carryNonMandatory Whether non-mandatory counts.
+	 * @param array<string,mixed> $job The mapping's `members`, indexed `overrides` and `mapping`
+	 *                                 (its carryNonMandatory says whether non-mandatory counts).
 	 *
 	 * @return int Count of enrolments that would be carried over.
 	 */
-	private function countCarryableEnrolments(array $learnerIds, array $overrides, bool $carryNonMandatory): int {
+	private function countCarryableEnrolments(array $job): int {
+		$overrides = $job['overrides'];
+		$carryNonMandatory = (bool)($job['mapping']['carryNonMandatory'] ?? false);
 		$count = 0;
-		foreach ($learnerIds as $learnerId) {
+		foreach ($job['members'] as $learnerId) {
 			$learnerAction = ($overrides[$learnerId]['action'] ?? 'promote');
 			if ($learnerAction !== 'promote' && $learnerAction !== 'retain') {
 				continue;

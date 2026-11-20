@@ -108,6 +108,26 @@ class TenantSignatureActionTest extends TestCase {
 	}//end testSignatureAndKeyIdEndUpOnTheSavedObject()
 
 	/**
+	 * A revocation reason is not part of what is signed, so a revoked record's signature still verifies.
+	 *
+	 * @return void
+	 */
+	public function testARevocationReasonIsLeftOutOfTheSignature(): void {
+		$action = $this->makeAction('super-secret-key');
+		$context = static fn (array $data): LifecycleActionContext => new LifecycleActionContext(
+			objectData: $data,
+			previousData: [],
+			parameters: [],
+			actionName: TenantSignatureAction::class
+		);
+
+		$plain = $action->execute($context($this->objectData()));
+		$withReason = $action->execute($context($this->objectData() + ['revocationReason' => 'Signed for the wrong course']));
+
+		$this->assertSame($plain['signature'], $withReason['signature']);
+	}//end testARevocationReasonIsLeftOutOfTheSignature()
+
+	/**
 	 * Stale signature fields and the lifecycle value do not change the digest.
 	 *
 	 * @return void
