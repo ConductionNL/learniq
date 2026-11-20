@@ -370,6 +370,74 @@ The verification route MUST accept a Europass file for a credential, check its s
 - **THEN** the answer says the credential is not valid
 - **AND** the answer holds no name and no payload
 
+### Requirement: An exam registration list closes at its moment and names who is incomplete
+
+For a course day whose exam is taken by an external examining body, learniq MUST keep a registration list with the body, the moment it closes, and per participant whether the fields the body requires are complete. An incomplete participant's employer MUST receive a task to complete the missing field. The list MUST close at its moment, and only a closed list MUST be exported. The birth date MUST appear only in the export.
+
+#### Scenario: Youssef's birth date
+- **GIVEN** the exam of Thursday 8 October closes Wednesday 12.00 and Youssef El Amrani has no birth date
+- **WHEN** the administration opens Today on Monday
+- **THEN** the card reads "10 van de 11 deelnemers zijn compleet" and names Youssef, and Linda Jansen has the task "Geboortedatum invullen"
+- @e2e exclude staff screen; spec-only proposal
+
+### Requirement: The certificates of a finished course day are issued in one action
+
+For a course day in rounding off, a member of the administration MUST be able to issue the certificate to every participant with a passing result in one action, recording who issued and when per certificate; participants without a passing result MUST be named and skipped.
+
+#### Scenario: Thursday's F-gassen day
+- **GIVEN** 11 participants, 10 passed and 1 without a result
+- **WHEN** Rob Maas issues the certificates of that day
+- **THEN** 10 certificates are issued and the participant without a result is named
+- @e2e exclude as above
+
+### Requirement: A certificate shows the days left before it lapses
+
+A `Credential` with an `expiresAt` MUST compute `daysUntilExpiry` and `expiryStatus`. `expiryStatus` MUST be `none` without an expiry date, `expired` at zero days or fewer, `expiring-soon` at thirty days or fewer, and `expiring` at ninety days or fewer.
+
+#### Scenario: A certificate that lapses in 20 days
+
+- **GIVEN** an issued certificate whose `expiresAt` is 20 days from today
+- **WHEN** its holder opens the certificate
+- **THEN** it shows 20 days left and `expiryStatus` is `expiring-soon`
+
+#### Scenario: A certificate without an expiry date
+
+- **GIVEN** an issued certificate with no `expiresAt`
+- **WHEN** it is read
+- **THEN** `daysUntilExpiry` is null and `expiryStatus` is `none`
+
+### Requirement: Revoking a certificate requires a reason
+
+The `revoke` transition of a `Credential` (`issued` to `revoked`) MUST require a non-empty `revocationReason` and MUST store it on the credential.
+
+#### Scenario: An HR officer revokes with a reason
+
+- **GIVEN** an issued certificate
+- **WHEN** an HR officer revokes it with the reason "Issued for the wrong course"
+- **THEN** the certificate is `revoked` and carries that reason
+
+#### Scenario: A revoke without a reason is refused
+
+- **GIVEN** an issued certificate
+- **WHEN** an HR officer revokes it without a reason
+- **THEN** the transition is refused and the certificate stays `issued`
+
+### Requirement: A certificate is read by its holder and the certificate managers only
+
+The `Credential` authorization MUST grant read to `hr`, to `compliance-officers` and to the signed-in user named in `learnerUserId`. Administrators read through the admin bypass. Nobody else MUST be able to read a credential.
+
+#### Scenario: The holder reads their own certificate
+
+- **GIVEN** a certificate whose `learnerUserId` is `f.elamrani`
+- **WHEN** `f.elamrani` lists credentials
+- **THEN** that certificate is returned
+
+#### Scenario: Another learner cannot read it
+
+- **GIVEN** the same certificate
+- **WHEN** another learner lists credentials
+- **THEN** that certificate is not returned
+
 ## Standards
 EDCI (Europass), Open Badges 3.0, E-Portfolio NL, Bologna Diploma Supplement, Schema.org `EducationalOccupationalCredential`.
 

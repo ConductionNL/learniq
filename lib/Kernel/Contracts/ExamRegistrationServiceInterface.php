@@ -50,7 +50,7 @@ interface ExamRegistrationServiceInterface {
 	 *
 	 * @throws \Throwable When the day is no course day, or OpenRegister cannot be read or written.
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
+	 * @spec openspec/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
 	 */
 	public function open(string $cohortId, array $exam): array;
 
@@ -63,7 +63,7 @@ interface ExamRegistrationServiceInterface {
 	 *
 	 * @throws \Throwable When the list does not exist or OpenRegister cannot be read.
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-youssefs-birth-date
+	 * @spec openspec/specs/certification/spec.md#scenario-youssefs-birth-date
 	 */
 	public function show(string $id): array;
 
@@ -77,7 +77,7 @@ interface ExamRegistrationServiceInterface {
 	 *
 	 * @throws \Throwable When the list is not open or OpenRegister cannot be written.
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
+	 * @spec openspec/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
 	 */
 	public function close(string $id, ?string $userId): array;
 
@@ -88,7 +88,7 @@ interface ExamRegistrationServiceInterface {
 	 *
 	 * @throws \Throwable When OpenRegister cannot be read or written.
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
+	 * @spec openspec/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
 	 */
 	public function closeDue(): int;
 
@@ -101,7 +101,7 @@ interface ExamRegistrationServiceInterface {
 	 *
 	 * @throws \Throwable When the list is still open or OpenRegister cannot be read.
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
+	 * @spec openspec/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
 	 */
 	public function export(string $id): array;
 
@@ -115,7 +115,7 @@ interface ExamRegistrationServiceInterface {
 	 *
 	 * @throws \Throwable When the list is not closed or OpenRegister cannot be written.
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
+	 * @spec openspec/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
 	 */
 	public function markSent(string $id, string $userId): array;
 
@@ -131,7 +131,7 @@ interface ExamRegistrationServiceInterface {
 	 *
 	 * @throws \Throwable When the list is open, the result unknown or OpenRegister cannot be written.
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-the-certificates-of-a-finished-course-day-are-issued-in-one-action
+	 * @spec openspec/specs/certification/spec.md#requirement-the-certificates-of-a-finished-course-day-are-issued-in-one-action
 	 */
 	public function recordResult(string $id, string $enrolmentId, string $result, string $userId): array;
 
@@ -144,7 +144,7 @@ interface ExamRegistrationServiceInterface {
 	 *
 	 * @throws \Throwable When OpenRegister cannot be read.
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-the-certificates-of-a-finished-course-day-are-issued-in-one-action
+	 * @spec openspec/specs/certification/spec.md#requirement-the-certificates-of-a-finished-course-day-are-issued-in-one-action
 	 */
 	public function forCourseDay(string $cohortId): array;
 
@@ -155,7 +155,7 @@ interface ExamRegistrationServiceInterface {
 	 *
 	 * @throws \Throwable When OpenRegister cannot be read or written.
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-youssefs-birth-date
+	 * @spec openspec/specs/certification/spec.md#scenario-youssefs-birth-date
 	 */
 	public function openLists(): array;
 }//end interface

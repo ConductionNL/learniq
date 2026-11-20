@@ -19,7 +19,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
+ * @spec openspec/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
  */
 
 declare(strict_types=1);
@@ -31,7 +31,7 @@ use OCA\Learniq\Service\CsvCellSanitizer;
 /**
  * Pure rules of an exam registration list.
  *
- * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
+ * @spec openspec/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
  */
 final class ExamRegistrationLines {
 
@@ -67,7 +67,7 @@ final class ExamRegistrationLines {
 	 *
 	 * @return list<string>
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
+	 * @spec openspec/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
 	 */
 	public function required(mixed $required): array {
 		$fields = [];
@@ -93,7 +93,7 @@ final class ExamRegistrationLines {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
+	 * @spec openspec/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
 	 */
 	public function value(array $profile, string $field): string {
 		if ($field === 'fullName') {
@@ -110,7 +110,7 @@ final class ExamRegistrationLines {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
+	 * @spec openspec/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
 	 */
 	public function fullName(array $profile): string {
 		$name = trim(trim((string)($profile['givenName'] ?? '')) . ' ' . trim((string)($profile['familyName'] ?? '')));
@@ -141,7 +141,7 @@ final class ExamRegistrationLines {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
+	 * @spec openspec/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
 	 */
 	public function line(array $enrolment, array $profile, array $organisation, array $state): array {
 		$required = array_values(array_map('strval', (array)($state['required'] ?? [])));
@@ -197,7 +197,7 @@ final class ExamRegistrationLines {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-youssefs-birth-date
+	 * @spec openspec/specs/certification/spec.md#scenario-youssefs-birth-date
 	 */
 	public function summary(array $lines): string {
 		$total    = count($lines);
@@ -229,7 +229,7 @@ final class ExamRegistrationLines {
 	 *
 	 * @return int
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-youssefs-birth-date
+	 * @spec openspec/specs/certification/spec.md#scenario-youssefs-birth-date
 	 */
 	public function completeCount(array $lines): int {
 		return count(array_filter($lines, static fn (array $line): bool => ($line['complete'] ?? false) === true));
@@ -242,7 +242,7 @@ final class ExamRegistrationLines {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-youssefs-birth-date
+	 * @spec openspec/specs/certification/spec.md#scenario-youssefs-birth-date
 	 */
 	public function missingSentence(array $line): string {
 		$nouns = array_map(static fn (string $field): string => self::FIELDS[$field]['noun'], (array)($line['missing'] ?? []));
@@ -275,7 +275,7 @@ final class ExamRegistrationLines {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
+	 * @spec openspec/specs/certification/spec.md#requirement-an-exam-registration-list-closes-at-its-moment-and-names-who-is-incomplete
 	 */
 	public function csv(array $required, array $lines, array $profiles): string {
 		$sanitizer = new CsvCellSanitizer();

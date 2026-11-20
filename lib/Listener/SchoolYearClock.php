@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/school-year-setting/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
+ * @spec openspec/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
  */
 
 declare(strict_types=1);
@@ -29,7 +29,7 @@ use OCP\AppFramework\Utility\ITimeFactory;
 /**
  * The school year as the school sets it and the server clock that says which day it is.
  *
- * @spec openspec/changes/school-year-setting/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
+ * @spec openspec/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
  */
 final class SchoolYearClock {
 

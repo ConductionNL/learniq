@@ -8,7 +8,7 @@
  * 1 August when nothing usable is stored. The checks here mirror that class, so
  * the page never offers a value the server would read as the default.
  *
- * @spec openspec/changes/school-year-setting/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
+ * @spec openspec/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
  */
 
 /** The app setting the server reads. */
@@ -23,7 +23,7 @@ export const DEFAULT_SCHOOL_YEAR_START = '08-01'
  *
  * @param {unknown} raw The value.
  * @return {string|null} The start.
- * @spec openspec/changes/school-year-setting/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
+ * @spec openspec/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
  */
 export function parseSchoolYearStart(raw) {
 	const text = String(raw ?? '').trim()
@@ -46,7 +46,7 @@ export function parseSchoolYearStart(raw) {
  * @param {string} start The start, `MM-DD`.
  * @param {number} year The year.
  * @return {Date} Local midnight of that day.
- * @spec openspec/changes/school-year-setting/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
+ * @spec openspec/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
  */
 export function startInYear(start, year) {
 	const [month, day] = start.split('-').map(Number)
@@ -58,7 +58,7 @@ export function startInYear(start, year) {
  *
  * @param {Date} date The picked date.
  * @return {string|null} The start, or null for no date.
- * @spec openspec/changes/school-year-setting/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
+ * @spec openspec/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
  */
 export function startOfDate(date) {
 	if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
@@ -76,7 +76,7 @@ export function startOfDate(date) {
  * @param {Date} date The date.
  * @param {string} start The start, `MM-DD`.
  * @return {{label: string, from: Date, until: Date}} The school year.
- * @spec openspec/changes/school-year-setting/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
+ * @spec openspec/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
  */
 export function schoolYearOf(date, start) {
 	const day = new Date(date.getFullYear(), date.getMonth(), date.getDate())
@@ -94,7 +94,7 @@ export function schoolYearOf(date, start) {
  *
  * @param {{http: object, url: string}} endpoint The settings endpoint.
  * @return {Promise<string>} The start.
- * @spec openspec/changes/school-year-setting/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
+ * @spec openspec/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
  */
 export async function loadSchoolYearStart(endpoint) {
 	const { data } = await endpoint.http.get(endpoint.url)
@@ -107,7 +107,7 @@ export async function loadSchoolYearStart(endpoint) {
  * @param {{http: object, url: string}} endpoint The settings endpoint.
  * @param {string} start The start, `MM-DD`.
  * @return {Promise<string>} The stored start.
- * @spec openspec/changes/school-year-setting/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
+ * @spec openspec/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
  */
 export async function saveSchoolYearStart(endpoint, start) {
 	const { data } = await endpoint.http.put(endpoint.url, {

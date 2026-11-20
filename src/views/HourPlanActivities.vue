@@ -142,7 +142,7 @@ import { activitiesCsv } from '../utils/hourPlan.js'
  *
  * @param {string} year `YYYY-YYYY`, or '' before the server has named it.
  * @return {string[]} The years.
- * @spec openspec/changes/school-year-setting/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
+ * @spec openspec/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
  */
 function yearsAround(year) {
 	const match = /^(\d{4})-\d{4}$/.exec(year || '')

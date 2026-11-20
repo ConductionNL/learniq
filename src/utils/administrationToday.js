@@ -15,7 +15,7 @@ import { dayAndMonth } from './plannerToday.js'
  *
  * @param {object|null} today The answer.
  * @return {{id: string, closingLine: string, summary: string, people: Array<{key: string, sentence: string, notice: string, contactName: string}>}|null} The card, or null when no list is open.
- * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-youssefs-birth-date
+ * @spec openspec/specs/certification/spec.md#scenario-youssefs-birth-date
  */
 export function registrationCard(today) {
 	const first = today?.first
@@ -42,7 +42,7 @@ export function registrationCard(today) {
  * @param {object|null} today The answer.
  * @param {string} locale The BCP 47 locale.
  * @return {Array<{id: string, name: string, date: string}>} The rows.
- * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-the-certificates-of-a-finished-course-day-are-issued-in-one-action
+ * @spec openspec/specs/certification/spec.md#requirement-the-certificates-of-a-finished-course-day-are-issued-in-one-action
  */
 export function issueRows(today, locale) {
 	return (Array.isArray(today?.toIssue) ? today.toIssue : []).map((day) => ({
@@ -58,7 +58,7 @@ export function issueRows(today, locale) {
  * @param {object|null} today The answer.
  * @param {string} locale The BCP 47 locale.
  * @return {Array<{id: string, learner: string, course: string, expires: string, renewal: string, booked: boolean}>} The rows.
- * @spec openspec/changes/exam-registration-and-certificate-issue/tasks.md
+ * @spec openspec/changes/archive/2026-11-20-exam-registration-and-certificate-issue/tasks.md
  */
 export function expiringRows(today, locale) {
 	const rows = Array.isArray(today?.expiring?.rows) ? today.expiring.rows : []
@@ -78,7 +78,7 @@ export function expiringRows(today, locale) {
  * @param {object|null} today The answer.
  * @param {string} locale The BCP 47 locale.
  * @return {Array<{id: string, date: string, course: string, body: string, participants: number}>} The rows.
- * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-youssefs-birth-date
+ * @spec openspec/specs/certification/spec.md#scenario-youssefs-birth-date
  */
 export function comingExamRows(today, locale) {
 	return (Array.isArray(today?.comingExams) ? today.comingExams : []).map((exam) => ({
@@ -95,7 +95,7 @@ export function comingExamRows(today, locale) {
  *
  * @param {object|null} today The answer.
  * @return {boolean} True when a list, a day, a certificate or an exam is on it.
- * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-youssefs-birth-date
+ * @spec openspec/specs/certification/spec.md#scenario-youssefs-birth-date
  */
 export function hasAnything(today) {
 	return registrationCard(today) !== null

@@ -10,7 +10,7 @@
  course days whose certificates are to be issued, the certificates expiring
  before 1 January with their renewal, and the coming exams.
 
- @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-youssefs-birth-date
+ @spec openspec/specs/certification/spec.md#scenario-youssefs-birth-date
 -->
 <!-- @visual exclude Dashboard card rendered inside LearniqDashboards (administration); the visual surface is LearniqDashboards, which carries the baseline. -->
 <template>
@@ -120,7 +120,7 @@ export default {
 		 * The registration list that asks for attention first.
 		 *
 		 * @return {object|null} The card.
-		 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-youssefs-birth-date
+		 * @spec openspec/specs/certification/spec.md#scenario-youssefs-birth-date
 		 */
 		card() {
 			return registrationCard(this.today)
@@ -138,7 +138,7 @@ export default {
 		 * The course days in rounding off.
 		 *
 		 * @return {Array<object>} The rows.
-		 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#requirement-the-certificates-of-a-finished-course-day-are-issued-in-one-action
+		 * @spec openspec/specs/certification/spec.md#requirement-the-certificates-of-a-finished-course-day-are-issued-in-one-action
 		 */
 		toIssue() {
 			return issueRows(this.today, this.locale)
@@ -148,7 +148,7 @@ export default {
 		 * The certificates expiring before 1 January.
 		 *
 		 * @return {Array<object>} The rows.
-		 * @spec openspec/changes/exam-registration-and-certificate-issue/tasks.md
+		 * @spec openspec/changes/archive/2026-11-20-exam-registration-and-certificate-issue/tasks.md
 		 */
 		expiring() {
 			return expiringRows(this.today, this.locale)
@@ -166,7 +166,7 @@ export default {
 		 * The exams still to come.
 		 *
 		 * @return {Array<object>} The rows.
-		 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-youssefs-birth-date
+		 * @spec openspec/specs/certification/spec.md#scenario-youssefs-birth-date
 		 */
 		comingExams() {
 			return comingExamRows(this.today, this.locale)

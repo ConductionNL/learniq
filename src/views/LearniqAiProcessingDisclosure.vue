@@ -31,7 +31,7 @@
  for anyone.
 
  @spec openspec/specs/ai-locality-guarantee/spec.md#requirement-the-system-shall-compose-an-ai-processing-disclosure-a-school-can-hand-to-its-dpo
- @spec openspec/changes/ai-disclosure-for-every-user/specs/ai-locality-guarantee/spec.md
+ @spec openspec/specs/ai-locality-guarantee/spec.md
 -->
 
 <template>
@@ -346,7 +346,7 @@ export default {
 		 * the empty text when none was written yet).
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/ai-disclosure-for-every-user/specs/ai-locality-guarantee/spec.md
+		 * @spec openspec/specs/ai-locality-guarantee/spec.md
 		 */
 		async loadText() {
 			const store = useObjectStore()
@@ -375,7 +375,7 @@ export default {
 		 * the schema refuses the write for anyone but an admin or compliance officer.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/ai-disclosure-for-every-user/specs/ai-locality-guarantee/spec.md
+		 * @spec openspec/specs/ai-locality-guarantee/spec.md
 		 */
 		async saveText() {
 			this.savingText = true

@@ -21,7 +21,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/cohort-room-and-feedback-summary-for-the-learner/specs/school-structure/spec.md#requirement-a-new-cohort-gets-its-own-talk-room-automatically
+ * @spec openspec/specs/school-structure/spec.md#requirement-a-new-cohort-gets-its-own-talk-room-automatically
  */
 
 declare(strict_types=1);
@@ -128,7 +128,7 @@ class CohortTalkRoomProvisionerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/cohort-room-and-feedback-summary-for-the-learner/specs/school-structure/spec.md#scenario-a-coordinator-activates-a-new-cohort
+	 * @spec openspec/specs/school-structure/spec.md#scenario-a-coordinator-activates-a-new-cohort
 	 */
 	public function testANewActiveCohortGetsOneLinkedRoomWithItsLearners(): void {
 		$this->talkLinks->method('isTalkAvailable')->willReturn(true);
@@ -190,7 +190,7 @@ class CohortTalkRoomProvisionerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/cohort-room-and-feedback-summary-for-the-learner/specs/school-structure/spec.md#scenario-a-cohort-that-already-has-a-room
+	 * @spec openspec/specs/school-structure/spec.md#scenario-a-cohort-that-already-has-a-room
 	 */
 	public function testACohortWithARoomGetsNoSecondOne(): void {
 		$this->talkLinks->method('isTalkAvailable')->willReturn(true);
@@ -206,7 +206,7 @@ class CohortTalkRoomProvisionerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/cohort-room-and-feedback-summary-for-the-learner/specs/school-structure/spec.md#scenario-talk-is-not-available
+	 * @spec openspec/specs/school-structure/spec.md#scenario-talk-is-not-available
 	 */
 	public function testTalkOffCreatesNothing(): void {
 		$this->talkLinks->method('isTalkAvailable')->willReturn(false);

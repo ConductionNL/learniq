@@ -173,7 +173,7 @@ class PeerFeedbackAggregatorTest extends TestCase {
 	 * @dataProvider anonymityModes
 	 *
 	 * @spec openspec/specs/assignments/spec.md#scenario-blind-and-double-blind-hide-reviewer-identity-in-the-feedback-summary
-	 * @spec openspec/changes/cohort-room-and-feedback-summary-for-the-learner/specs/assignments/spec.md#scenario-a-learner-opens-the-feedback-on-their-work
+	 * @spec openspec/specs/assignments/spec.md#scenario-a-learner-opens-the-feedback-on-their-work
 	 */
 	public function testTheSummaryCarriesNoReviewerIdentity(string $anonymity): void {
 		$assignment = ['id' => 'assignment-1', 'peerReviewAnonymity' => $anonymity];
@@ -210,7 +210,7 @@ class PeerFeedbackAggregatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/cohort-room-and-feedback-summary-for-the-learner/specs/assignments/spec.md#scenario-another-learners-summary
+	 * @spec openspec/specs/assignments/spec.md#scenario-another-learners-summary
 	 */
 	public function testTheSummaryNamesTheSubmissionsLearners(): void {
 		$reviews = [

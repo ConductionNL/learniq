@@ -847,7 +847,7 @@ export default {
 		 * one with no list, day, certificate or exam on it.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-youssefs-birth-date
+		 * @spec openspec/specs/certification/spec.md#scenario-youssefs-birth-date
 		 */
 		async loadAdministrationToday() {
 			try {
@@ -866,7 +866,7 @@ export default {
 		 *
 		 * @param {{widgets: Array<object>, layout: Array<object>}} config The declaration.
 		 * @return {{widgets: Array<object>, layout: Array<object>}} The declaration to render.
-		 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-youssefs-birth-date
+		 * @spec openspec/specs/certification/spec.md#scenario-youssefs-birth-date
 		 */
 		withAdministrationToday(config) {
 			if (this.administrationToday === null) {

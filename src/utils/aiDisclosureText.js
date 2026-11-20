@@ -8,7 +8,7 @@
  * object. Every signed-in user reads it; only an admin or compliance officer
  * edits it, and the server refuses anyone else's write.
  *
- * @spec openspec/changes/ai-disclosure-for-every-user/specs/ai-locality-guarantee/spec.md
+ * @spec openspec/specs/ai-locality-guarantee/spec.md
  */
 
 import { recordId } from './sovereigntyPolicy.js'
@@ -21,7 +21,7 @@ export const DISCLOSURE_EDITOR_ROLES = ['admin', 'compliance-officer']
  *
  * @param {string} primaryRole The resolved role (initial state `primaryRole`).
  * @return {boolean} True for an admin or compliance officer only.
- * @spec openspec/changes/ai-disclosure-for-every-user/specs/ai-locality-guarantee/spec.md
+ * @spec openspec/specs/ai-locality-guarantee/spec.md
  */
 export function canEditDisclosure(primaryRole) {
 	return DISCLOSURE_EDITOR_ROLES.includes(primaryRole)
@@ -63,7 +63,7 @@ function cleanNotes(notes) {
  *
  * @param {object|null} record A stored AiDisclosureText.
  * @return {{id: string|null, introduction: string|null, contact: string|null, featureNotes: Object<string, string>}} The state.
- * @spec openspec/changes/ai-disclosure-for-every-user/specs/ai-locality-guarantee/spec.md
+ * @spec openspec/specs/ai-locality-guarantee/spec.md
  */
 export function disclosureTextFromRecord(record) {
 	if (!record || typeof record !== 'object') {
@@ -111,7 +111,7 @@ export function disclosureTextForm(text, features) {
  * @param {object} form The edit form.
  * @param {string|null} id The stored record's id.
  * @return {object} The payload.
- * @spec openspec/changes/ai-disclosure-for-every-user/specs/ai-locality-guarantee/spec.md
+ * @spec openspec/specs/ai-locality-guarantee/spec.md
  */
 export function disclosureTextPayload(form, id) {
 	const payload = {

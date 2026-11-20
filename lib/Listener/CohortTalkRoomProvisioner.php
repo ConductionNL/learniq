@@ -36,7 +36,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/cohort-room-and-feedback-summary-for-the-learner/specs/school-structure/spec.md#requirement-a-new-cohort-gets-its-own-talk-room-automatically
+ * @spec openspec/specs/school-structure/spec.md#requirement-a-new-cohort-gets-its-own-talk-room-automatically
  */
 
 declare(strict_types=1);
@@ -61,7 +61,7 @@ use Throwable;
  *
  * @implements IEventListener<Event>
  *
- * @spec openspec/changes/cohort-room-and-feedback-summary-for-the-learner/specs/school-structure/spec.md#requirement-a-new-cohort-gets-its-own-talk-room-automatically
+ * @spec openspec/specs/school-structure/spec.md#requirement-a-new-cohort-gets-its-own-talk-room-automatically
  */
 class CohortTalkRoomProvisioner implements IEventListener {
 
@@ -101,7 +101,7 @@ class CohortTalkRoomProvisioner implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/cohort-room-and-feedback-summary-for-the-learner/specs/school-structure/spec.md#scenario-a-coordinator-activates-a-new-cohort
+	 * @spec openspec/specs/school-structure/spec.md#scenario-a-coordinator-activates-a-new-cohort
 	 */
 	public function handle(Event $event): void {
 		if (($event instanceof ObjectTransitionedEvent) === false || $this->isCohortActivation(event: $event) === false) {
@@ -177,8 +177,8 @@ class CohortTalkRoomProvisioner implements IEventListener {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/cohort-room-and-feedback-summary-for-the-learner/specs/school-structure/spec.md#scenario-a-cohort-that-already-has-a-room
-	 * @spec openspec/changes/cohort-room-and-feedback-summary-for-the-learner/specs/school-structure/spec.md#scenario-talk-is-not-available
+	 * @spec openspec/specs/school-structure/spec.md#scenario-a-cohort-that-already-has-a-room
+	 * @spec openspec/specs/school-structure/spec.md#scenario-talk-is-not-available
 	 */
 	private function needsRoom(string $cohortId): bool {
 		if ($this->talkLinkService->isTalkAvailable() === false) {

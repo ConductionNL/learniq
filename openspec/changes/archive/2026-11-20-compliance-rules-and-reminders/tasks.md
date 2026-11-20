@@ -16,4 +16,4 @@ Built 2026-11-13: 1.1 in `CredentialIssuanceHandler::resolveExpiresAt()` (the pu
 
 ## 3. Matrix
 
-- [ ] 3.1 When the tasks are done, set `comp-renewal-cycle-months` back to `built` with the handler as evidence, archive this change and repoint the seven rows to `openspec/specs/compliance-rule-coverage`.
+- [x] 3.1 When the tasks are done, set `comp-renewal-cycle-months` back to `built` with the handler as evidence, archive this change and repoint the seven rows to `openspec/specs/compliance-rule-coverage`.

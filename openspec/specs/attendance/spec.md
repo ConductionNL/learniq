@@ -470,6 +470,22 @@ A course day's session MAY be split into parts (morning, afternoon); attendance 
 - **THEN** the card reads "De middag is begonnen. Vul de aanwezigheid in." with "Vanochtend waren er 8 van de 9"
 - @e2e exclude staff screen; spec-only proposal
 
+### Requirement: An attendance mark records late and excused next to present and absent
+
+An `AttendanceRecord` MUST carry a `status` of `present`, `absent-unexcused`, `absent-excused`, `late` or `left-early`. A `late` mark MAY carry `lateMinutes`. Only `absent-unexcused` MUST count as an unexcused absence.
+
+#### Scenario: A teacher marks a learner late
+
+- **GIVEN** a lesson in progress
+- **WHEN** the teacher marks a learner `late` with 10 minutes
+- **THEN** the record has status `late` and `lateMinutes` 10, and it does not count as an unexcused absence
+
+#### Scenario: An excused absence
+
+- **GIVEN** an approved absence note for a learner
+- **WHEN** the learner's attendance for that lesson is read
+- **THEN** the status is `absent-excused`
+
 ## Standards
 
 Schema.org `Event` / `Schedule` for sessions; NL Leerplichtwet art. 21a (the 16-uur rule as an `AttendanceThreshold` profile); Digikoppeling / StUF for the leerplicht report (a `data-exchange` adapter); eIDAS / DigiD assurance for authenticated sick-reporting.

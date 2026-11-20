@@ -12,7 +12,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-youssefs-birth-date
+ * @spec openspec/specs/certification/spec.md#scenario-youssefs-birth-date
  */
 
 declare(strict_types=1);

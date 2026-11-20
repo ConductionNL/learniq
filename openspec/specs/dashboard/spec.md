@@ -373,6 +373,16 @@ The Today page MUST end an HR employee's subtitle with the name of the school wh
 - **THEN** the line after the date reads "hr-medewerker · schoolbreed, alle locaties"
 - @e2e exclude covered by `tests/unit-js/schoolName.test.mjs`
 
+### Requirement: HR reads learners, enrolments, attendance and diplomas on one searchable page
+
+The People dashboard MUST show counts and short lists of learners, enrolments, attendance and certificates for the whole school, and a search across them. The menu entry MUST be visible to `hr` among the staff groups.
+
+#### Scenario: An HR officer searches the People dashboard
+
+- **GIVEN** an HR officer
+- **WHEN** they open the People dashboard and type a learner's name
+- **THEN** the page shows the four counts and the matching learner
+
 ## Standards
 NL Design System, WCAG 2.1 AA, Schema.org `Dataset` / `Observation`, Caliper Analytics for event source.
 
