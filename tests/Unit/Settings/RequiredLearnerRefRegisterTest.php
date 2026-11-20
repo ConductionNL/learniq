@@ -71,12 +71,13 @@ class RequiredLearnerRefRegisterTest extends TestCase {
 
 	/**
 	 * Both schemas list learnerRef as required, and an absence report keeps
-	 * its four earlier required fields.
+	 * its earlier required fields, `dateTo` apart: an illness may leave it
+	 * empty (absence-reports-seen-and-ended).
 	 *
 	 * @return void
 	 */
 	public function testBothSchemasRequireTheLearnerProfile(): void {
-		self::assertSame(['dateFrom', 'dateTo', 'reason', 'reasonKind', 'learnerRef'], self::shippedSchema(slug: 'excuse-request')['required']);
+		self::assertSame(['dateFrom', 'reason', 'reasonKind', 'learnerRef'], self::shippedSchema(slug: 'excuse-request')['required']);
 		self::assertSame(['learnerRef'], self::shippedSchema(slug: 'conference-signup')['required']);
 	}//end testBothSchemasRequireTheLearnerProfile()
 

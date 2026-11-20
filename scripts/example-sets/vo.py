@@ -138,6 +138,10 @@ SCHEMAS = [
     "peer-review",
     "item-bank",
     "item",
+    # Appended last (leave-requests-decided-by-the-school): every earlier schema keeps its uuid namespace.
+    "leave-request",
+    # The public test week (portal-public-index): appended for the same reason.
+    "exam-sitting",
 ]
 
 # The same fictional region as the primary school set, so both sets agree.
@@ -1619,6 +1623,8 @@ class SchoolYear:
         add_board_pupils(self.b, self.courses)
         add_lesson_and_store_boards(self.b, self.courses)
         add_guardian_and_item_bank_boards(self.b)
+        add_leave_requests(self.b, LEAVE_REQUESTS)
+        add_public_test_week(self.b, self.courses)
 
     def assemble(self) -> dict:
         """The profile file's content, without the private working fields."""
@@ -2534,6 +2540,74 @@ NE_ITEMS = [
 ]
 # The rest of the bank's 48 items: a topic per block of eleven, numbered.
 NE_ITEM_TOPICS = ["Woordenschat", "Spelling", "Tekstverbanden", "Leesstrategie"]
+
+
+
+# Leave requests that wait for the directeur or teamleider (leave-requests-decided-by-the-school): (class,
+# skip ncUserIds, kind, first day, last day, reason, school days, decide by). The school days and the deadline are
+# what LeaveRequestSchoolDaysStamp writes on a live save; the families are the set's own, standing in for the
+# board's El Idrissi and Jansen.
+LEAVE_REQUESTS = [
+    ("4H1", set(), "religious-observance", "2026-11-19", "2026-11-19", "Religieuze feestdag in de familie.", 1, "2026-10-12"),
+    ("5V1", set(), "family-circumstance", "2026-11-26", "2026-11-27", "Begrafenis van een oudoom in Groningen; we reizen een dag eerder.", 2, "2026-10-13"),
+]
+
+
+# Toetsweek 1 of 4 havo as the vaartveld Editor board's "Toetsrooster" block draws it (portal-public-index T7): the
+# school marked the week public, so the website shows day, time, subject and room. (subject, start, end, room name)
+PUBLIC_TEST_WEEK = [
+    ("NE", "2026-11-09T08:30:00+01:00", "2026-11-09T10:10:00+01:00", "Aula"),
+    ("WA", "2026-11-10T08:30:00+01:00", "2026-11-10T10:10:00+01:00", "Lokaal H1.03 (4H1)"),
+    ("EN", "2026-11-11T10:30:00+01:00", "2026-11-11T12:10:00+01:00", "Aula"),
+    ("GS", "2026-11-12T08:30:00+01:00", "2026-11-12T10:00:00+01:00", "Lokaal H1.03 (4H1)"),
+]
+
+
+def add_public_test_week(b: Builder, courses: dict) -> None:
+    """Toetsweek 1 (9 to 13 November 2026), marked public, with the four 4 havo sittings of the vaartveld Editor
+    board (portal-public-index). Runs last and draws no random number, so no earlier uuid or value moves."""
+    by_name = {c["name"]: c for c in b.buckets["cohort"]}
+    rooms = {r["name"]: r for r in b.buckets["room"]}
+    h4 = by_name["4H1"]
+    period = b.add("exam-period", {
+        "name": "Toetsweek 1", "startsOn": "2026-11-09", "endsOn": "2026-11-13",
+        "cohortIds": [h4["uuid"]], "courseIds": [courses[s]["uuid"] for s, *_ in PUBLIC_TEST_WEEK],
+        "lifecycle": "published", "public": True,
+        "bringList": "Je schoolpas, pennen en potlood, een geodriehoek en je grafische rekenmachine.",
+    })
+    for s, starts, ends, room in PUBLIC_TEST_WEEK:
+        name = courses[s]["name"]
+        minutes = (dt.datetime.fromisoformat(ends) - dt.datetime.fromisoformat(starts)).seconds // 60
+        exam = b.add("exam", {
+            "title": f"Toetsweek 1: {name.lower()}, 4H1", "description": f"Schriftelijke toets, {minutes} minuten.",
+            "courseId": courses[s]["uuid"], "cohortId": h4["uuid"], "curriculumPlanComponentId": "tw1",
+            "gradeEntryComponentId": "tw1", "scoringScheme": "points", "timeLimitMinutes": minutes, "maxAttempts": 1,
+            "availableFrom": starts, "availableUntil": ends, "lifecycle": "published",
+        })
+        b.add("exam-sitting", {
+            "examPeriodId": period["uuid"], "assessmentId": exam["uuid"], "cohortIds": [h4["uuid"]],
+            "startsAt": starts, "endsAt": ends, "roomIds": [rooms[room]["uuid"]],
+            "headcount": len(h4.get("learnerIds") or []), "invigilatorsNeeded": 2, "clashWarnings": [],
+            "lifecycle": "planned",
+        })
+
+
+def add_leave_requests(b: Builder, rows: list[tuple]) -> None:
+    """An open leave request per row, asked by the pupil's first guardian, for the first pupil of the class on
+    its list that the row does not skip. Runs last and draws no random number, so no earlier uuid moves.
+
+    @spec openspec/changes/leave-requests-decided-by-the-school/tasks.md
+    """
+    profiles = {p["ncUserId"]: p for p in b.buckets["learner-profile"]}
+    for class_name, skip, kind, first, last, reason, school_days, decide_by in rows:
+        cohort = next(c for c in b.buckets["cohort"] if c["name"] == class_name)
+        pupil = next(profiles[nc] for nc in sorted(cohort["learnerIds"]) if nc not in skip and profiles[nc].get("guardianRefs"))
+        b.add("leave-request", {
+            "learnerRef": pupil["uuid"], "requestedByRef": pupil["guardianRefs"][0],
+            "dateFrom": first, "dateTo": last, "kind": kind, "reason": reason,
+            "schoolDays": school_days, "decideBy": decide_by, "lifecycle": "submitted",
+            "teacherIds": list(cohort.get("teacherIds") or []),
+        })
 
 
 def add_guardian_and_item_bank_boards(b: Builder) -> None:

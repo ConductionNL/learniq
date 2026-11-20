@@ -5,7 +5,7 @@
 // the occupancy of the coming days and the tile it adds to the dashboard.
 // Run by `npm run test:js-unit`.
 //
-// @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#scenario-four-of-six
+// @spec openspec/specs/course-management/spec.md#scenario-four-of-six
 
 import assert from 'node:assert/strict'
 import { test } from 'node:test'

@@ -116,17 +116,23 @@ class PortalContributionProvider {
 	private const STUDENT_EXCUSE_REQUEST_FIELDS = [
 		'dateFrom',
 		'dateTo',
+		// Part of a day (absence-reports-seen-and-ended T3): the lesson hours.
+		'fromLessonHour',
+		'toLessonHour',
 		'reason',
 		'reasonKind',
 		'attachmentRef',
 	];
 
+	// An illness may stay open until she reports better (absence-reports-
+	// seen-and-ended); the register still requires a last day for every
+	// other reason.
 	private const STUDENT_EXCUSE_REQUEST_DATE_TO = [
 		'label' => 'Last day you are absent',
-		'required' => true,
+		'required' => false,
 		'widget' => 'dateChoices',
 		'dateChoices' => 2,
-		'requiredMessage' => 'Choose the last day you are absent.',
+		'help' => 'Ill and not better yet? Leave it empty and report better later.',
 	];
 
 	private const PARENT_CONTRIBUTION_GUARDIAN_AUDIENCE = [
@@ -157,17 +163,23 @@ class PortalContributionProvider {
 		'learnerRef',
 		'dateFrom',
 		'dateTo',
+		// Part of a day (absence-reports-seen-and-ended T3): the lesson hours.
+		'fromLessonHour',
+		'toLessonHour',
 		'reason',
 		'reasonKind',
 		'attachmentRef',
 	];
 
+	// An illness may stay open until the child is better (absence-reports-
+	// seen-and-ended); the register still requires a last day for every
+	// other reason.
 	private const PARENT_EXCUSE_REQUEST_DATE_TO = [
 		'label' => 'Last day absent',
-		'required' => true,
+		'required' => false,
 		'widget' => 'dateChoices',
 		'dateChoices' => 2,
-		'requiredMessage' => 'Choose the last day your child is absent.',
+		'help' => 'Ill and not better yet? Leave it empty and report better later.',
 	];
 
 	private const PARENT_EXCUSE_REQUEST_CONFIRMATION = [
@@ -226,6 +238,11 @@ class PortalContributionProvider {
 		'decidedAt',
 		// Read only as a name (render: user), never as the user id.
 		'decidedBy',
+		// The school's first look (absence-reports-seen-and-ended T5), read as a name too.
+		'seenBy',
+		'seenAt',
+		'fromLessonHour',
+		'toLessonHour',
 	];
 
 	private const PARENT_REPORT_CARDS_FIELDS = [
@@ -245,6 +262,8 @@ class PortalContributionProvider {
 		['field' => 'lifecycle', 'label' => 'Status', 'valueLabels' => PortalValueLabels::EXCUSE_STATUS],
 		['field' => 'decidedAt', 'label' => 'Decided on'],
 		['field' => 'decidedBy', 'label' => 'Decided by', 'render' => 'user'],
+		['field' => 'seenBy', 'label' => 'Seen by', 'render' => 'user'],
+		['field' => 'seenAt', 'label' => 'Seen at', 'render' => 'datetime'],
 	];
 
 	private const PARENT_REPORT_CARDS_COLUMNS = [
@@ -356,6 +375,22 @@ class PortalContributionProvider {
 	public function schoolDocuments(string $id): array {
 		return ($this->records?->documents?->schoolPapers(schoolId: $id) ?? []);
 	}//end schoolDocuments()
+
+	/**
+	 * The `documents` provider of `studentEnrolments`: the learner's own
+	 * reports, approved subject choice, work placement agreement with its
+	 * signing state and certificates. Portaliq calls this only for an
+	 * enrolment it read through her own scoped collection.
+	 *
+	 * @param string $id The enrolment id.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 *
+	 * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-each-school-audience-offers-its-own-documents-grouped-per-record
+	 */
+	public function studentDocuments(string $id): array {
+		return ($this->records?->learner?->forEnrolment(enrolmentId: $id) ?? []);
+	}//end studentDocuments()
 
 	/**
 	 * The audiences this provider contributes to (contract v2, preferred).
@@ -610,6 +645,8 @@ class PortalContributionProvider {
 			// "Nu invullen" on her work processes (guardian-tasks-per-child-and-self-assessment).
 			(new StudentSelfAssessment())->action(),
 			$this->absenceAction(),
+			// She ends her own open illness (absence-reports-seen-and-ended T4).
+			(new ExcuseRecoveryAction())->forPupil(),
 		];
 
 	}//end studentActions()
@@ -668,6 +705,8 @@ class PortalContributionProvider {
 			'reason' => ['label' => 'Reason', 'required' => true],
 			'reasonKind' => self::EXCUSE_REQUEST_REASON_KIND,
 			'attachmentRef' => (new ExcuseAttachmentField())->config(),
+			'fromLessonHour' => ['label' => 'From lesson hour', 'required' => false],
+			'toLessonHour' => ['label' => 'To lesson hour', 'required' => false],
 		],
 		'submitLabel' => 'Report your absence',
 		'successMessage' => 'The school has your report. You see the decision in the list of absence reports.',
@@ -726,6 +765,7 @@ class PortalContributionProvider {
 		];
 		$extras = new ParentPortalCollections();
 		$record = new ParentRecordPage();
+		$leave  = new ParentLeaveRequests();
 		$collections = array_merge(
 			[$record->childrenCollection()],
 			$this->parentResultCollections(childJoin: $childJoin),
@@ -736,12 +776,15 @@ class PortalContributionProvider {
 			[$extras->reportSubjectGradesCollection(childJoin: $childJoin)],
 			$record->collections(childJoin: $childJoin),
 			[(new ParentDocumentsPage())->schoolsCollection(childJoin: $childJoin)],
-			(new ParentPermissionSlips())->collections(childJoin: $childJoin)
+			(new ParentPermissionSlips())->collections(childJoin: $childJoin),
+			// Leave asked in advance (leave-requests-decided-by-the-school).
+			$leave->collections(childJoin: $childJoin)
 		);
 		$actions = array_merge(
 			$this->parentActions(childJoin: $childJoin),
 			$extras->conferenceActions(),
-			(new ParentPermissionSlips())->actions()
+			(new ParentPermissionSlips())->actions(),
+			[$leave->action(childJoin: $childJoin)]
 		);
 
 		return [
@@ -810,6 +853,8 @@ class PortalContributionProvider {
 					// approved mockup shows.
 					'reasonKind' => self::EXCUSE_REQUEST_REASON_KIND,
 					'attachmentRef' => (new ExcuseAttachmentField())->config(),
+					'fromLessonHour' => ['label' => 'From lesson hour', 'required' => false],
+					'toLessonHour' => ['label' => 'To lesson hour', 'required' => false],
 				],
 				'submitLabel' => 'Report the absence',
 				'successMessage' => "The school has your report. You see the teacher's decision in the list of absence reports.",
@@ -820,6 +865,8 @@ class PortalContributionProvider {
 				// What she reads after sending (site-guardian-portal-design T6b, REQ-SMF-022).
 				'confirmation' => self::PARENT_EXCUSE_REQUEST_CONFIRMATION,
 			],
+			// Ends an open illness (absence-reports-seen-and-ended T4).
+			(new ExcuseRecoveryAction())->forGuardian(childJoin: $childJoin),
 		];
 
 	}//end parentActions()
@@ -903,6 +950,7 @@ class PortalContributionProvider {
 				'minTrust' => 'substantial',
 				'fields' => self::PARENT_EXCUSE_REQUESTS_FIELDS,
 				'columns' => self::PARENT_EXCUSE_REQUESTS_COLUMNS,
+				'rowActions' => [ExcuseRecoveryAction::ID],
 			],
 			[
 				'id' => 'parentReportCards',
@@ -930,6 +978,10 @@ class PortalContributionProvider {
 				// subject or a period (portal-parent-report-card-grades).
 				'fields' => self::PARENT_REPORT_CARDS_FIELDS,
 				'columns' => self::PARENT_REPORT_CARDS_COLUMNS,
+				// The rendered PDF is a file on the published card, so the guardian
+				// downloads it through portaliq's opt-in, scoped by the same join
+				// and filter as the read (report-card-pdf-to-guardians D2).
+				'filesDownload' => true,
 			],
 		];
 

@@ -47,7 +47,7 @@ interface PlannerTodayServiceInterface {
 	 *
 	 * @throws \Throwable When OpenRegister cannot be read.
 	 *
-	 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#scenario-four-of-six
+	 * @spec openspec/specs/course-management/spec.md#scenario-four-of-six
 	 */
 	public function today(): array;
 }//end interface
