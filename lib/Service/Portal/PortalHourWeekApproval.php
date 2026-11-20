@@ -40,7 +40,6 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Portal;
 
-use DateTimeImmutable;
 use OCA\Learniq\Kernel\Contracts\PortalHourWeekApprovalInterface;
 use OCA\Learniq\Service\HourDayLines;
 use OCA\Learniq\Service\HourReturnSubject;
@@ -279,7 +278,7 @@ class PortalHourWeekApproval implements PortalHourWeekApprovalInterface {
 				'hoursApproved' => $approved,
 				'approvedBy' => $trainerRef,
 				'approvedByName' => $name,
-				'approvedAt' => (new DateTimeImmutable())->format('Y-m-d\TH:i:sP'),
+				'approvedAt' => date('Y-m-d\TH:i:sP'),
 				'assuranceLevel' => $assurance,
 				'note' => $this->text(value: ($body['note'] ?? ($week['note'] ?? null))),
 				'lifecycle' => $lifecycle,
