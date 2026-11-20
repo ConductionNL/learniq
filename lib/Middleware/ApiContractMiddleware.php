@@ -138,6 +138,8 @@ class ApiContractMiddleware extends Middleware {
 	 *
 	 * @return Response The same response, decorated.
 	 *
+	 * @SuppressWarnings(PHPMD.StaticAccess) ApiPathAliases is a pure lookup that routes.php shares, outside any container.
+	 *
 	 * @spec openspec/specs/api-contract/spec.md
 	 */
 	private function decorate(Response $response): Response {

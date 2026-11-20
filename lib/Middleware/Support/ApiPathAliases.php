@@ -204,6 +204,8 @@ final class ApiPathAliases {
 	 *
 	 * @return bool True for an unversioned standard protocol path.
 	 *
+	 * @SuppressWarnings(PHPMD.StaticAccess) StandardProtocolPaths is a pure lookup that routes.php shares, outside any container.
+	 *
 	 * @spec openspec/specs/api-contract/spec.md
 	 */
 	private static function isStandardProtocolBase(string $path): bool {
