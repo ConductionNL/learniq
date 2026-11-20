@@ -30,9 +30,11 @@ Code is generic (decision 182): no Edurep-specific class names outside the integ
 - [ ] 2.3 The add endpoint calls the service before any object or file write; refusal returns 422 with the
       reason. Copy fetches the file through integriq, never from the browser.
   - Partial: `OpenMaterialController::add` runs `MaterialLicenceRules` before any write and answers 422 on refusal. Open: copy through integriq. Integriq offers no download yet, so a record the rules allow to copy is added as a link (`testACopyableRecordIsLinkedWhileIntegriqOffersNoDownload`).
-- [ ] 2.4 Paid or corporate course: a `nonCommercial` Material shows as not allowed on the Lesmateriaal
+- [x] 2.4 Paid or corporate course: a `nonCommercial` Material shows as not allowed on the Lesmateriaal
       tab and is not served to learners. Test with a course that changes from free to paid.
-  - Partial: `CommercialCourseCheck` refuses adding NC material to a paid or corporate course, and the Lesmateriaal tab and `LessonPlayer.vue` show it as not allowed. Open: "not served to learners" is enforced only in the client; the Material object is still readable through the OpenRegister API, and there is no free-to-paid test.
+  - `CommercialCourseCheck` refuses adding NC material to a paid or corporate course, and the Lesmateriaal tab and `LessonPlayer.vue` show it as not allowed.
+  - Server side: `NonCommercialWithholdingCascade` queues `NonCommercialWithholdingJob` whenever a course, a fee item or a material is created, updated or deleted; `NonCommercialWithholding` then sets `Material.withheldReason` to `non-commercial` on the course's NC material while the course is paid or corporate, and clears it once it is free. The Material read rule (schema 0.2.1, register 0.50.0) lets learners read a Material only while `withheldReason` is empty or absent; staff groups keep reading it.
+  - `NonCommercialWithholdingTest::testACourseThatBecomesPaidStopsServingItsNcMaterial` takes a course from free to paid and back, reading through the shipped rule as a learner and as an instructor.
 
 ## 3. Search panel
 
