@@ -172,7 +172,7 @@ class PortalElectiveSignUpTest extends TestCase {
 			 * @param string $veto The message.
 			 */
 			public function __construct(private readonly string $veto) {
-				parent::__construct(veto: 'stopped');
+				parent::__construct(message: 'stopped');
 			}//end __construct()
 
 			/**
