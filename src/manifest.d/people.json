@@ -3002,6 +3002,10 @@
 						}
 					},
 					{
+						"key": "todayUntil",
+						"label": "Away until"
+					},
+					{
 						"key": "absentDays",
 						"label": "Absent this year",
 						"widget": "number",

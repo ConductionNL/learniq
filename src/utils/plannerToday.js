@@ -13,7 +13,7 @@
  * @param {string|null} value The date.
  * @param {string} locale The BCP 47 locale.
  * @return {string} The day, or '' when the date cannot be read.
- * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#scenario-four-of-six
+ * @spec openspec/specs/course-management/spec.md#scenario-four-of-six
  */
 export function dayAndMonth(value, locale) {
 	if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
@@ -33,7 +33,7 @@ export function dayAndMonth(value, locale) {
  * @param {string|null} value The date.
  * @param {string} locale The BCP 47 locale.
  * @return {string} The day, or '' when the date cannot be read.
- * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#scenario-four-of-six
+ * @spec openspec/specs/course-management/spec.md#scenario-four-of-six
  */
 export function weekdayAndDate(value, locale) {
 	if (dayAndMonth(value, locale) === '') {
@@ -51,7 +51,7 @@ export function weekdayAndDate(value, locale) {
  * @param {object|null} answer The endpoint's answer.
  * @param {string} locale The BCP 47 locale.
  * @return {Array<{id: string, course: string, date: string, participants: number, minimum: number, decideBy: string, next: {id: string, date: string, free: number|null}|null}>} The cards.
- * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#scenario-four-of-six
+ * @spec openspec/specs/course-management/spec.md#scenario-four-of-six
  */
 export function decisionCards(answer, locale) {
 	const decisions = Array.isArray(answer?.decisions) ? answer.decisions : []
@@ -81,7 +81,7 @@ export function decisionCards(answer, locale) {
  * @param {object|null} answer The endpoint's answer.
  * @param {string} locale The BCP 47 locale.
  * @return {Array<{id: string, label: string, date: string, taken: number, capacity: number|null, short: boolean, trainers: number, rooms: Array<string>, unstaffed: boolean}>} The rows, earliest first.
- * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
+ * @spec openspec/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
  */
 export function occupancyRows(answer, locale) {
 	const days = Array.isArray(answer?.occupancy?.days) ? answer.occupancy.days : []
@@ -111,7 +111,7 @@ export function occupancyRows(answer, locale) {
  *
  * @param {object|null} answer The endpoint's answer.
  * @return {number} The count.
- * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
+ * @spec openspec/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
  */
 export function toConfirmCount(answer) {
 	return (Number(answer?.toConfirm?.bookings) || 0) + (Number(answer?.toConfirm?.enrolments) || 0)
@@ -125,7 +125,7 @@ export function toConfirmCount(answer) {
  * @param {object} tile The widget.
  * @param {number} height Its grid height.
  * @return {{widgets: Array<object>, layout: Array<object>}} The new declaration.
- * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
+ * @spec openspec/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
  */
 export function withTileBelow(config, tile, height) {
 	const layout = Array.isArray(config?.layout) ? config.layout : []

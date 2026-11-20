@@ -156,7 +156,7 @@ class EmployerBookingFacts {
 	 *
 	 * @return string|null
 	 *
-	 * @spec openspec/changes/training-provider-course-days/tasks.md#t7
+	 * @spec openspec/changes/archive/2026-11-17-training-provider-course-days/tasks.md#t7
 	 */
 	public static function participantStep(string $lifecycle, string $detailsStatus): ?string {
 		return match (true) {
@@ -176,7 +176,7 @@ class EmployerBookingFacts {
 	 *
 	 * @return list<string>
 	 *
-	 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-says-what-to-bring
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-course-says-what-to-bring
 	 */
 	public static function bringList(array $course): array {
 		$lines = [];
