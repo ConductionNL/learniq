@@ -59,6 +59,10 @@ $routes = [
         ['name' => 'credentialEuropass#download', 'url' => '/api/credentials/{id}/europass', 'verb' => 'GET'],
         ['name' => 'credentialEuropass#download', 'url' => '/api/credentials/{id}/europass/download', 'verb' => 'POST', 'postfix' => 'post'],
         ['name' => 'credentialEuropass#create', 'url' => '/api/credentials/{id}/europass', 'verb' => 'POST'],
+        // Certificate PDF (credentials-certificate-pdf): the holder, hr and
+        // compliance officers download the rendered PDF; others get a 404.
+        ['name' => 'credential#pdf', 'url' => '/api/credentials/{id}/pdf', 'verb' => 'GET'],
+        ['name' => 'credential#pdf', 'url' => '/api/credentials/{id}/pdf/download', 'verb' => 'POST', 'postfix' => 'post'],
 
         // Admin key management — admin-only via #[AuthorizedAdminSetting], cryptographic operation (ADR-031).
         // Controller: KeyAdminController (slug: keyAdmin).
@@ -346,6 +350,8 @@ $routes = [
         // and #1142): X-Portal-Subject assertion only, learnerRef from portaliq.
         // Controller: PortalCheckInController (slug: portalCheckIn).
         ['name' => 'portalCheckIn#checkIn', 'url' => '/api/portal/check-in', 'verb' => 'POST'],
+        // Controller: PortalProofOfEnrolmentController (school-documents-on-the-portal T4).
+        ['name' => 'portalProofOfEnrolment#request', 'url' => '/api/portal/proof-of-enrolment', 'verb' => 'POST'],
         // Roll-call (attendance-roll-call): the day's register of one group.
         // A group teacher opens their own groups, coordinators and
         // administration-managers every group; the server writes the records
