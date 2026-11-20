@@ -34,11 +34,24 @@ use RuntimeException;
  */
 class ExamRegistrationCloseJobTest extends TestCase {
 
+	/**
+	 * Run job.
+	 *
+	 * @param ExamRegistrationServiceInterface $lists  The lists.
+	 * @param LoggerInterface                  $logger The logger.
+	 *
+	 * @return void
+	 */
 	private function runJob(ExamRegistrationServiceInterface $lists, LoggerInterface $logger): void {
 		$job = new ExamRegistrationCloseJob(time: $this->createMock(originalClassName: ITimeFactory::class), lists: $lists, logger: $logger);
 		(new ReflectionMethod($job, 'run'))->invoke($job, null);
 	}//end runJob()
 
+	/**
+	 * It closes the due lists and says how many.
+	 *
+	 * @return void
+	 */
 	public function testItClosesTheDueListsAndSaysHowMany(): void {
 		$lists = $this->createMock(originalClassName: ExamRegistrationServiceInterface::class);
 		$lists->expects($this->once())->method('closeDue')->willReturn(2);
@@ -48,6 +61,11 @@ class ExamRegistrationCloseJobTest extends TestCase {
 		$this->runJob(lists: $lists, logger: $logger);
 	}//end testItClosesTheDueListsAndSaysHowMany()
 
+	/**
+	 * Nothing due is quiet and a failure is a warning.
+	 *
+	 * @return void
+	 */
 	public function testNothingDueIsQuietAndAFailureIsAWarning(): void {
 		$quiet = $this->createMock(originalClassName: ExamRegistrationServiceInterface::class);
 		$quiet->method('closeDue')->willReturn(0);

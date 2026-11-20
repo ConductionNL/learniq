@@ -50,6 +50,11 @@ class AdministrationTodayServiceTest extends TestCase {
 	 */
 	private array $open = [];
 
+	/**
+	 * Set up.
+	 *
+	 * @return void
+	 */
 	protected function setUp(): void {
 		$this->rows = [
 			'credential' => [
@@ -119,6 +124,11 @@ class AdministrationTodayServiceTest extends TestCase {
 		];
 	}//end setUp()
 
+	/**
+	 * Service.
+	 *
+	 * @return AdministrationTodayService
+	 */
 	private function service(): AdministrationTodayService {
 		$objects = $this->createMock(originalClassName: ObjectService::class);
 		$objects->method('findAll')->willReturnCallback(
@@ -144,6 +154,11 @@ class AdministrationTodayServiceTest extends TestCase {
 		return new AdministrationTodayService(objectService: $objects, time: $time, lists: $lists);
 	}//end service()
 
+	/**
+	 * Today opens on the soonest list with somebody incomplete.
+	 *
+	 * @return void
+	 */
 	public function testTodayOpensOnTheSoonestListWithSomebodyIncomplete(): void {
 		$today = $this->service()->today();
 
@@ -165,6 +180,11 @@ class AdministrationTodayServiceTest extends TestCase {
 		self::assertSame(expected: 11, actual: $today['comingExams'][0]['participantCount']);
 	}//end testTodayOpensOnTheSoonestListWithSomebodyIncomplete()
 
+	/**
+	 * Without an incomplete list the soonest comes first and without lists nothing.
+	 *
+	 * @return void
+	 */
 	public function testWithoutAnIncompleteListTheSoonestComesFirstAndWithoutListsNothing(): void {
 		self::assertSame(
 			expected: 'a',
@@ -173,6 +193,11 @@ class AdministrationTodayServiceTest extends TestCase {
 		self::assertNull(actual: AdministrationTodayService::firstToday(lists: []));
 	}//end testWithoutAnIncompleteListTheSoonestComesFirstAndWithoutListsNothing()
 
+	/**
+	 * The expiring list names the renewal booking.
+	 *
+	 * @return void
+	 */
 	public function testTheExpiringListNamesTheRenewalBooking(): void {
 		$rows = $this->service()->expiring(before: '2026-12-01');
 

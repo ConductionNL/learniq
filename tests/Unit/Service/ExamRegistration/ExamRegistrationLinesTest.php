@@ -37,6 +37,11 @@ class ExamRegistrationLinesTest extends TestCase {
 
 	private const JANSEN = ['id' => 'o-jansen', 'name' => 'Jansen Installatietechniek', 'contactName' => 'Linda Jansen'];
 
+	/**
+	 * A body requires the default fields unless it names known ones.
+	 *
+	 * @return void
+	 */
 	public function testABodyRequiresTheDefaultFieldsUnlessItNamesKnownOnes(): void {
 		self::assertSame(expected: ['fullName', 'birthDate', 'placeOfBirth'], actual: (new ExamRegistrationLines())->required(required: []));
 		self::assertSame(
@@ -49,6 +54,11 @@ class ExamRegistrationLinesTest extends TestCase {
 		);
 	}//end testABodyRequiresTheDefaultFieldsUnlessItNamesKnownOnes()
 
+	/**
+	 * A missing birth date names the field and tells the employer once.
+	 *
+	 * @return void
+	 */
 	public function testAMissingBirthDateNamesTheFieldAndTellsTheEmployerOnce(): void {
 		$line = (new ExamRegistrationLines())->line(
 			enrolment: ['id' => 'e-youssef', 'openTask' => self::TASK],
@@ -84,6 +94,11 @@ class ExamRegistrationLinesTest extends TestCase {
 		self::assertSame(expected: 'pass', actual: $again['result']);
 	}//end testAMissingBirthDateNamesTheFieldAndTellsTheEmployerOnce()
 
+	/**
+	 * A complete line clears the task and without a portal task nobody is told.
+	 *
+	 * @return void
+	 */
 	public function testACompleteLineClearsTheTaskAndWithoutAPortalTaskNobodyIsTold(): void {
 		$complete = (new ExamRegistrationLines())->line(
 			enrolment: ['id' => 'e-1', 'openTask' => self::TASK],
@@ -116,6 +131,11 @@ class ExamRegistrationLinesTest extends TestCase {
 		);
 	}//end testACompleteLineClearsTheTaskAndWithoutAPortalTaskNobodyIsTold()
 
+	/**
+	 * The summary counts the complete participants.
+	 *
+	 * @return void
+	 */
 	public function testTheSummaryCountsTheCompleteParticipants(): void {
 		$lines = array_fill(0, 10, ['complete' => true]);
 		$lines[] = ['complete' => false];
@@ -136,6 +156,11 @@ class ExamRegistrationLinesTest extends TestCase {
 		);
 	}//end testTheSummaryCountsTheCompleteParticipants()
 
+	/**
+	 * The notice says when the employer was told.
+	 *
+	 * @return void
+	 */
 	public function testTheNoticeSaysWhenTheEmployerWasTold(): void {
 		self::assertSame(
 			expected: 'De werkgever kreeg vanochtend bericht.',
@@ -156,6 +181,11 @@ class ExamRegistrationLinesTest extends TestCase {
 		self::assertNull(actual: (new ExamRegistrationDates())->notice(notifiedAt: null, now: '2026-10-05T09:00:00+02:00'));
 	}//end testTheNoticeSaysWhenTheEmployerWasTold()
 
+	/**
+	 * The closing line names the exam day and the moment.
+	 *
+	 * @return void
+	 */
 	public function testTheClosingLineNamesTheExamDayAndTheMoment(): void {
 		self::assertSame(
 			expected: 'De aanmelding voor het examen van donderdag sluit woensdag om 12.00 uur.',
@@ -168,12 +198,22 @@ class ExamRegistrationLinesTest extends TestCase {
 		self::assertNull(actual: (new ExamRegistrationDates())->closingSentence(examDate: '2026-10-08', closesAt: 'not a moment'));
 	}//end testTheClosingLineNamesTheExamDayAndTheMoment()
 
+	/**
+	 * A list is due from its moment.
+	 *
+	 * @return void
+	 */
 	public function testAListIsDueFromItsMoment(): void {
 		self::assertFalse(condition: (new ExamRegistrationDates())->isDue(closesAt: '2026-10-07T12:00:00+02:00', now: '2026-10-07T11:59:00+02:00'));
 		self::assertTrue(condition: (new ExamRegistrationDates())->isDue(closesAt: '2026-10-07T12:00:00+02:00', now: '2026-10-07T10:00:00Z'));
 		self::assertFalse(condition: (new ExamRegistrationDates())->isDue(closesAt: null, now: '2026-10-07T12:00:00+02:00'));
 	}//end testAListIsDueFromItsMoment()
 
+	/**
+	 * The export follows the bodys columns and guards its cells.
+	 *
+	 * @return void
+	 */
 	public function testTheExportFollowsTheBodysColumnsAndGuardsItsCells(): void {
 		$csv = (new ExamRegistrationLines())->csv(
 			required: ['birthDate', 'fullName', 'placeOfBirth'],

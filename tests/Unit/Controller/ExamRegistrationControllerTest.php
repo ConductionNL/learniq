@@ -54,6 +54,14 @@ class ExamRegistrationControllerTest extends TestCase {
 
 	private AdministrationTodayServiceInterface&MockObject $today;
 
+	/**
+	 * Controller.
+	 *
+	 * @param bool  $allowed The allowed.
+	 * @param array $params  The params.
+	 *
+	 * @return ExamRegistrationController
+	 */
 	private function controller(bool $allowed=true, array $params=[]): ExamRegistrationController {
 		$user = $this->createMock(originalClassName: IUser::class);
 		$user->method('getUID')->willReturn('rob');
@@ -81,6 +89,11 @@ class ExamRegistrationControllerTest extends TestCase {
 		);
 	}//end controller()
 
+	/**
+	 * The administration opens a list with the bodys fields.
+	 *
+	 * @return void
+	 */
 	public function testTheAdministrationOpensAListWithTheBodysFields(): void {
 		$controller = $this->controller(params: ['requiredFields' => ['birthDate', 'fullName']]);
 		$this->lists->expects($this->once())->method('open')
@@ -101,6 +114,11 @@ class ExamRegistrationControllerTest extends TestCase {
 		self::assertSame(expected: ['id' => 'l-8', 'lifecycle' => 'open'], actual: $response->getData());
 	}//end testTheAdministrationOpensAListWithTheBodysFields()
 
+	/**
+	 * Close send result and issue act as the signed in user.
+	 *
+	 * @return void
+	 */
 	public function testCloseSendResultAndIssueActAsTheSignedInUser(): void {
 		$controller = $this->controller();
 		$this->lists->expects($this->once())->method('close')->with('l-8', 'rob')->willReturn(['lifecycle' => 'closed']);
@@ -114,6 +132,11 @@ class ExamRegistrationControllerTest extends TestCase {
 		self::assertSame(expected: '10 certificaten uitgegeven.', actual: $controller->issueCertificates(id: 'c-8')->getData()['summary']);
 	}//end testCloseSendResultAndIssueActAsTheSignedInUser()
 
+	/**
+	 * A closed list downloads as csv and an open one is refused.
+	 *
+	 * @return void
+	 */
 	public function testAClosedListDownloadsAsCsvAndAnOpenOneIsRefused(): void {
 		$controller = $this->controller();
 		$this->lists->method('export')->willReturnCallback(
@@ -138,6 +161,11 @@ class ExamRegistrationControllerTest extends TestCase {
 		self::assertSame(expected: 'Only a closed list can be exported.', actual: $refused->getData()['error']);
 	}//end testAClosedListDownloadsAsCsvAndAnOpenOneIsRefused()
 
+	/**
+	 * Today and the expiring list.
+	 *
+	 * @return void
+	 */
 	public function testTodayAndTheExpiringList(): void {
 		$controller = $this->controller();
 		$this->today->expects($this->once())->method('today')->willReturn(['today' => '2026-10-05']);
@@ -150,6 +178,11 @@ class ExamRegistrationControllerTest extends TestCase {
 		);
 	}//end testTodayAndTheExpiringList()
 
+	/**
+	 * Without the action nothing is read or written.
+	 *
+	 * @return void
+	 */
 	public function testWithoutTheActionNothingIsReadOrWritten(): void {
 		$controller = $this->controller(allowed: false);
 		$this->lists->expects($this->never())->method($this->anything());
@@ -163,6 +196,11 @@ class ExamRegistrationControllerTest extends TestCase {
 		self::assertSame(expected: Http::STATUS_FORBIDDEN, actual: $controller->today()->getStatus());
 	}//end testWithoutTheActionNothingIsReadOrWritten()
 
+	/**
+	 * A failure is unavailable without its cause.
+	 *
+	 * @return void
+	 */
 	public function testAFailureIsUnavailableWithoutItsCause(): void {
 		$controller = $this->controller();
 		$this->lists->method('show')->willThrowException(new RuntimeException('database gone'));
