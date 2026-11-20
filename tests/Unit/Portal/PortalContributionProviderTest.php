@@ -298,10 +298,39 @@ class PortalContributionProviderTest extends TestCase {
 		$actions = $manifest['actions'];
 
 		$this->assertSame(
-			['createSubmission', 'submitHourWeek', 'writeHourDay', 'fillInSelfAssessment', 'createExcuseRequest', 'reportRecovered', 'listTests', 'startTest', 'saveTestAnswer', 'submitTest', 'readTestResult', 'handIn', 'listCatalogue', 'signUpForCourse', 'withdrawSignUp', 'listWorkGroups', 'joinWorkGroup', 'leaveWorkGroup', 'checkIn'],
+			[
+				'createSubmission',
+				'submitHourWeek',
+				'writeHourDay',
+				'fillInSelfAssessment',
+				'createExcuseRequest',
+				'reportRecovered',
+				'listTests',
+				'startTest',
+				'saveTestAnswer',
+				'submitTest',
+				'readTestResult',
+				'handIn',
+				'listCatalogue',
+				'signUpForCourse',
+				'withdrawSignUp',
+				'listWorkGroups',
+				'joinWorkGroup',
+				'leaveWorkGroup',
+				'checkIn',
+				'requestProofOfEnrolment'
+			],
 			array_column($actions, 'id')
 		);
 		$byId = array_column($actions, null, 'id');
+
+		// School-documents-on-the-portal T4: she fills in nothing; who she is
+		// comes from the claim, never from the form.
+		$proof = $byId['requestProofOfEnrolment'];
+		$this->assertSame(expected: 'endpoint-forward', actual: $proof['type']);
+		$this->assertSame(expected: '/apps/learniq/api/portal/proof-of-enrolment', actual: $proof['endpoint']);
+		$this->assertSame(expected: [], actual: $proof['fields']);
+		$this->assertSame(expected: 'learnerRef', actual: $proof['scopeClaim']);
 
 		$submission = $byId['createSubmission'];
 		$this->assertSame('create', $submission['type']);
@@ -604,6 +633,12 @@ class PortalContributionProviderTest extends TestCase {
 		// finalised" requirement) — the reader's singular `filter` key, applied
 		// BEFORE the scope filter (ContributionController::collection()).
 		$this->assertSame(['lifecycle' => 'published-to-parents'], $byId['parentReportCards']['filter']);
+
+		// The published card's PDF is downloadable (report-card-pdf-to-guardians), and
+		// only there: no other guardian collection opts in to files.
+		$this->assertTrue($byId['parentReportCards']['filesDownload']);
+		$downloading = array_keys(array_filter($byId, static fn (array $c): bool => ($c['filesDownload'] ?? false) === true));
+		$this->assertSame(['parentReportCards'], $downloading);
 
 	}//end testParentManifestShape()
 
@@ -977,7 +1012,8 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame('endpoint-forward', $approval['type']);
 		$this->assertSame('/apps/learniq/api/portal/hour-weeks/approve', $approval['endpoint']);
 		$this->assertSame('POST', $approval['method']);
-		$this->assertArrayNotHasKey('schema', $approval);
+		// The schema only shapes the inputs: `hoursApproved` is a number.
+		$this->assertSame(expected: 'bpv-hour-week', actual: $approval['schema']);
 		$this->assertSame('practicalTrainerId', $approval['subjectField']);
 		$this->assertSame('practicalTrainerId', $approval['scopeClaim']);
 		$this->assertSame('low', $approval['minTrust']);

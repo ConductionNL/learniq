@@ -1349,8 +1349,8 @@
       "area": "compliance",
       "name": "Ask a learner to sign that they read and understood the training.",
       "built": {
-        "state": "specified",
-        "evidence": "lib/Settings/learniq_register.json components.schemas.Attestation, signed by lib/Lifecycle/AttestationSigningGuard.php Not built: the learner cannot read or update an Attestation (authorization names only hr and compliance-officers), and there is no read-and-understood confirmation step.",
+        "state": "built",
+        "evidence": "lib/Settings/learniq_register.json components.schemas.Attestation (the learner reads their own and signs it while drafted; readAndUnderstood is asked on sign), signed by lib/Lifecycle/AttestationSigningGuard.php (a learner signing without confirming is refused); tests/Unit/Lifecycle/AttestationSigningGuardTest.php",
         "owner": "ConductionNL/learniq",
         "change": "compliance-audit",
         "requirement": [
@@ -3200,12 +3200,12 @@
       "area": "enrolment",
       "name": "Give a cohort its own chat room automatically.",
       "built": {
-        "state": "specified",
-        "evidence": "lib/Listener/CohortTalkMembershipHandler.php",
+        "state": "built",
+        "evidence": "lib/Listener/CohortTalkRoomProvisioner.php",
         "owner": "ConductionNL/learniq",
         "change": "cohort-room-and-feedback-summary-for-the-learner",
         "requirement": "openspec/changes/cohort-room-and-feedback-summary-for-the-learner/specs/school-structure :: A new cohort gets its own Talk room automatically",
-        "note": "decision 392 (12 Nov): the room is created and linked automatically, not built. Before: built on lib/Listener/CohortTalkMembershipHandler.php, which syncs members of a room a coordinator links by hand (change 2026-07-16-talk-classroom-spaces)."
+        "note": "decision 392 (12 Nov): a cohort that becomes active with no Talk room linked gets its own, named after it and linked through OpenRegister's TalkLinkService, with its active learners added; lib/Listener/CohortTalkMembershipHandler.php keeps the members in step."
       },
       "provider": "nextcloud",
       "providerHow": "read: the platform provides it and this repository consumes it",
@@ -4565,8 +4565,8 @@
       "area": "assignments",
       "name": "Stop a mark being released while a rubric criterion is unscored.",
       "built": {
-        "state": "specified",
-        "evidence": "lib/Lifecycle/RubricScoresCompletionGuard.php Not built: RubricScoresCompletionGuard guards only PeerReview and SelfAssessment submit; Submission return, GradeEntry publish and MarkSubmissionView have no check for unscored criteria.",
+        "state": "built",
+        "evidence": "lib/Lifecycle/RubricScoresCompletionGuard.php (PeerReview and SelfAssessment submit); lib/Lifecycle/MarkRubricCompletionGuard.php (Submission return refuses while a rubric criterion is unscored and names it); tests/Unit/Lifecycle/MarkRubricCompletionGuardTest.php",
         "owner": "ConductionNL/learniq",
         "change": "assignments",
         "requirement": [
@@ -4709,12 +4709,12 @@
       "area": "assignments",
       "name": "Show a learner one summary of all the feedback they received.",
       "built": {
-        "state": "specified",
+        "state": "built",
         "evidence": "lib/Settings/learniq_register.json components.schemas.PeerFeedbackSummary; lib/Listener/PeerFeedbackAggregator.php",
         "owner": "ConductionNL/learniq",
         "change": "cohort-room-and-feedback-summary-for-the-learner",
         "requirement": "openspec/changes/cohort-room-and-feedback-summary-for-the-learner/specs/assignments :: A learner reads the feedback summary of their own submission with reviewers anonymised",
-        "note": "decision 392 (12 Nov): the learner sees their own summary with reviewers anonymised, not built. Before: built on PeerFeedbackSummary, which has no learner read rule (change 2026-07-16-peer-and-self-assessment)."
+        "note": "decision 392 (12 Nov): PeerFeedbackSummary has a read rule for the submission's own learner once a peer review is released, carries no reviewer identity, and shows on the Submission page."
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -4930,8 +4930,8 @@
       "area": "grading",
       "name": "Show a learner what one more mark would do to their average.",
       "built": {
-        "state": "specified",
-        "evidence": "src/manifest.d/learning.json GradeImpactDetail Not built: there is no learner what-if calculation; GradeImpactDetail only shows the impact of an existing grade.",
+        "state": "built",
+        "evidence": "src/views/GradeImpactDetail.vue (What would one more mark do? card); src/utils/gradeForecast.js (average with a possible next mark and its weight, pass against the plan's final-grade rule, never saved); tests/unit-js/gradeForecast.test.mjs",
         "owner": "ConductionNL/learniq",
         "change": "grading",
         "requirement": [
@@ -5262,8 +5262,8 @@
       "area": "grading",
       "name": "See where a group's skills are thin, on one page.",
       "built": {
-        "state": "specified",
-        "evidence": "src/manifest.d/progress.json SkillsGapDashboard Not built: SkillsGapDashboard is per learner only (self or ?learnerId=), with no cohort-level view.",
+        "state": "built",
+        "evidence": "src/manifest.d/progress.json SkillsGapDashboard; src/views/SkillsGapDashboard.vue (cohort view with ?cohortId=: per required competency, the learners below the framework's targetLevelId); src/utils/cohortSkillsGap.js; tests/unit-js/cohortSkillsGap.test.mjs",
         "owner": "ConductionNL/learniq",
         "change": "2026-07-16-competency-framework",
         "requirement": [
@@ -5559,8 +5559,8 @@
       "area": "support",
       "name": "Keep every version of a plan, so you can see what changed.",
       "built": {
-        "state": "specified",
-        "evidence": "lib/Settings/learniq_register.json LearningPlan is versioned; a material revision creates a new version Not built: LearningPlanDetail only links to the version it replaces (supersedesId); nothing compares two versions.",
+        "state": "built",
+        "evidence": "lib/Settings/learniq_register.json LearningPlan is versioned (version, supersedesId); src/manifest.d/learning.json LearningPlanDetail lp-version (Replaces links to the earlier version) and the lp-version-changes body section; src/components/sections/LearningPlanVersionChanges.vue; src/utils/planVersionChanges.js (goals and support measures added, removed or changed, matched on goalId and measureId); tests/unit-js/planVersionChanges.test.mjs",
         "owner": "ConductionNL/openregister",
         "change": "learning-plan",
         "requirement": [
@@ -6478,8 +6478,8 @@
       "area": "attendance",
       "name": "Tell everyone when a lesson moves or is cancelled.",
       "built": {
-        "state": "specified",
-        "evidence": "lib/Listener/SessionChangeNoticeHandler.php; lib/Lifecycle/SessionChangeGuard.php Not built: only a batch room change sends a notice (SessionChangeBatch batchApplied); a single-lesson room change is a plain PATCH that SessionChangeNoticeHandler ignores, and nothing moves a lesson to another time.",
+        "state": "built",
+        "evidence": "lib/Listener/SessionChangeNoticeHandler.php; lib/Lifecycle/SessionChangeGuard.php; lib/Listener/SessionMoveNoticeHandler.php (one lesson moved to another room or time notifies the group's learners and parents through the Session's lessonMoved notification); tests/Unit/Listener/SessionMoveNoticeHandlerTest.php",
         "owner": "ConductionNL/learniq",
         "change": "2026-07-16-timetabling-and-substitution",
         "requirement": [
@@ -7690,8 +7690,8 @@
         "state": "built",
         "evidence": "appinfo/info.xml, a Nextcloud app under EUPL-1.2 with no hosted component",
         "owner": "ConductionNL/learniq",
-        "spec": "openspec/changes/platform-properties/specs/platform-properties",
-        "requirement": "openspec/changes/platform-properties/specs/platform-properties :: The app runs on the school's own Nextcloud (REQ-PLAT-001)"
+        "spec": "openspec/specs/platform-properties",
+        "requirement": "openspec/specs/platform-properties :: The app runs on the school's own Nextcloud (REQ-PLAT-001)"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -7725,8 +7725,8 @@
         "state": "built",
         "evidence": "appinfo/info.xml licence EUPL-1.2, public repository",
         "owner": "ConductionNL/learniq",
-        "spec": "openspec/changes/platform-properties/specs/platform-properties",
-        "requirement": "openspec/changes/platform-properties/specs/platform-properties :: The source code is open under the EUPL-1.2 (REQ-PLAT-002)"
+        "spec": "openspec/specs/platform-properties",
+        "requirement": "openspec/specs/platform-properties :: The source code is open under the EUPL-1.2 (REQ-PLAT-002)"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -8311,9 +8311,9 @@
         "evidence": "lib/Controller/AiProcessingDisclosureController.php degrades gracefully when hermiq is absent",
         "owner": "ConductionNL/hermiq",
         "change": "2026-07-16-sovereign-ai-guarantee",
-        "spec": "openspec/changes/platform-properties/specs/platform-properties",
+        "spec": "openspec/specs/platform-properties",
         "requirement": [
-          "openspec/changes/platform-properties/specs/platform-properties :: The whole product runs with no AI at all (REQ-PLAT-003)",
+          "openspec/specs/platform-properties :: The whole product runs with no AI at all (REQ-PLAT-003)",
           "openspec/specs/ai-locality-guarantee :: The system SHALL compose an AI-processing disclosure a school can hand to its DPO"
         ]
       },

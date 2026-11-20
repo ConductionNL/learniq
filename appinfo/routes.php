@@ -59,6 +59,10 @@ $routes = [
         ['name' => 'credentialEuropass#download', 'url' => '/api/credentials/{id}/europass', 'verb' => 'GET'],
         ['name' => 'credentialEuropass#download', 'url' => '/api/credentials/{id}/europass/download', 'verb' => 'POST', 'postfix' => 'post'],
         ['name' => 'credentialEuropass#create', 'url' => '/api/credentials/{id}/europass', 'verb' => 'POST'],
+        // Certificate PDF (credentials-certificate-pdf): the holder, hr and
+        // compliance officers download the rendered PDF; others get a 404.
+        ['name' => 'credential#pdf', 'url' => '/api/credentials/{id}/pdf', 'verb' => 'GET'],
+        ['name' => 'credential#pdf', 'url' => '/api/credentials/{id}/pdf/download', 'verb' => 'POST', 'postfix' => 'post'],
 
         // Admin key management — admin-only via #[AuthorizedAdminSetting], cryptographic operation (ADR-031).
         // Controller: KeyAdminController (slug: keyAdmin).
@@ -350,12 +354,17 @@ $routes = [
         // and #1142): X-Portal-Subject assertion only, learnerRef from portaliq.
         // Controller: PortalCheckInController (slug: portalCheckIn).
         ['name' => 'portalCheckIn#checkIn', 'url' => '/api/portal/check-in', 'verb' => 'POST'],
+        // Controller: PortalProofOfEnrolmentController (school-documents-on-the-portal T4).
+        ['name' => 'portalProofOfEnrolment#request', 'url' => '/api/portal/proof-of-enrolment', 'verb' => 'POST'],
         // Roll-call (attendance-roll-call): the day's register of one group.
         // A group teacher opens their own groups, coordinators and
         // administration-managers every group; the server writes the records
         // (rules in RollCallService). Controller: RollCallController (slug: rollCall).
         ['name' => 'rollCall#show', 'url' => '/api/attendance/roll-call', 'verb' => 'GET'],
         ['name' => 'rollCall#save', 'url' => '/api/attendance/roll-call', 'verb' => 'POST'],
+        // A group teacher opening one absence report on its own page stamps her
+        // first look (absence-reports-seen-and-ended T2). Controller: ExcuseRequestSeenController.
+        ['name' => 'excuseRequestSeen#seen', 'url' => '/api/attendance/excuse-requests/{id}/seen', 'verb' => 'POST'],
         // Course days (training-provider-course-days): the planner moves a day on
         // the board, decides go or no-go and moves the participants of a cancelled
         // day to another day of the course. Guarded by course-day.plan.

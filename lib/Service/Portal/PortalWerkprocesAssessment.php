@@ -150,8 +150,13 @@ class PortalWerkprocesAssessment implements PortalWerkprocesAssessmentInterface 
 	 */
 	public function submit(string $trainerRef, string $trust, array $body): PortalOutcome {
 		$assurance = (self::TRUST_TO_ASSURANCE[$trust] ?? 'basic');
-		$placementId = $this->text(value: ($body['bpvPlacementId'] ?? null));
-		$refusal = $this->requestRefusal(assurance: $assurance, request: ['trainerRef' => $trainerRef, 'placementId' => $placementId]);
+		$answers = new PortalAnswers();
+		$placementId = $answers->text(field: 'bpvPlacementId', value: ($body['bpvPlacementId'] ?? null));
+		$refusal = $this->requestRefusal(
+			assurance: $assurance,
+			request: ['trainerRef' => $trainerRef, 'placementId' => $placementId],
+			answers: $answers
+		);
 		if ($refusal !== null) {
 			return $refusal;
 		}
@@ -196,12 +201,13 @@ class PortalWerkprocesAssessment implements PortalWerkprocesAssessmentInterface 
 	 *
 	 * @param string               $assurance The caller's assurance level.
 	 * @param array<string, mixed> $request   trainerRef and placementId.
+	 * @param PortalAnswers        $answers   The form's answers, which name the missing fields.
 	 *
 	 * @return PortalOutcome|null Null when the request may proceed.
 	 *
 	 * @spec openspec/changes/an-invited-trainer-may-assess/specs/bpv/spec.md#requirement-an-assessment-records-who-assessed-and-how-sure-the-school-is
 	 */
-	private function requestRefusal(string $assurance, array $request): ?PortalOutcome {
+	private function requestRefusal(string $assurance, array $request, PortalAnswers $answers): ?PortalOutcome {
 		$floor = $this->floor();
 		if (self::ASSURANCE_ORDER[$assurance] < self::ASSURANCE_ORDER[$floor]) {
 			return new PortalOutcome(
@@ -212,7 +218,7 @@ class PortalWerkprocesAssessment implements PortalWerkprocesAssessmentInterface 
 		}
 
 		if ($request['trainerRef'] === '' || $request['placementId'] === '') {
-			return new PortalOutcome(status: 422, body: ['error' => 'incomplete'], reason: 'incomplete');
+			return $answers->refused(error: 'incomplete', reason: 'incomplete');
 		}
 
 		return null;

@@ -21,4 +21,5 @@
 
 - [x] 4.1 Node test on the section's state (learniq has no vitest): holder with offer, claimed, failed, none, staff user (tests/unit-js/credentialWalletOffer.test.mjs).
 - [ ] 4.2 Playwright `tests/e2e/credential-wallet-offer.spec.ts`: as staff run "offer to wallet" against the integriq test double, sign in as the learner, see the QR and link. Tag the scenarios with `@e2e`.
+  - Written, and the two scenarios it covers are tagged. Without integriq on the instance the staff step skips and the offer integriq would write is seeded, so the learner's half still runs. Tick it after a live run with integriq.
 - [ ] 4.3 Set row `cred-push-to-eudi-wallet` to `built` once 4.2 passes live with integriq; archive this change. The portal QR stays with portaliq.

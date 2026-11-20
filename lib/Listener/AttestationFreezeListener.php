@@ -91,6 +91,7 @@ class AttestationFreezeListener implements IEventListener {
 		'signingKeyId',
 		'signedAt',
 		'tenant_id',
+		'readAndUnderstood',
 	];
 
 	/**
@@ -211,7 +212,10 @@ class AttestationFreezeListener implements IEventListener {
 		}
 
 		if (self::changed(old: $old, new: $new, fields: self::EVIDENCE_FIELDS) === true) {
-			return ['reason' => 'attestation-signed', 'message' => 'A signed attestation cannot be changed. Revoke it with a reason and sign a new one.'];
+			return [
+				'reason' => 'attestation-signed',
+				'message' => 'A signed attestation cannot be changed. Revoke it with a reason and sign a new one.'
+			];
 		}
 
 		$newState = (string)($new['lifecycle'] ?? $state);

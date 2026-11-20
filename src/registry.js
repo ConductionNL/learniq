@@ -18,6 +18,8 @@ import AssignmentPeerReviewAllocation from './components/sections/AssignmentPeer
 import CredentialWalletOffer from './components/sections/CredentialWalletOffer.vue'
 // exam-sitting-overview-section: body section on ExamSittingDetail.
 import ExamSittingOverview from './components/sections/ExamSittingOverview.vue'
+import ExcuseRequestSeen from './components/sections/ExcuseRequestSeen.vue'
+import LearningPlanVersionChanges from './components/sections/LearningPlanVersionChanges.vue'
 import PermissionRequestOutcome from './components/sections/PermissionRequestOutcome.vue'
 // learner-list-and-page-follow-the-boards T5: the guardian conversation on the pupil's page.
 import PupilGuardianConversation from './components/sections/PupilGuardianConversation.vue'
@@ -425,10 +427,20 @@ export default {
 		component: PupilGuardianConversation,
 		_note: 'The conversation with the guardians on LearnerProfileDetail: the newest messages the reader takes part in, read through portaliq\'s staff messaging by /api/pupils/{learnerId}/conversation in CnConversationThread, with a reply box for a participant.',
 	},
+	ExcuseRequestSeen: {
+		kind: 'section',
+		component: ExcuseRequestSeen,
+		_note: 'The seen line on ExcuseRequestDetail: opening the report posts to /api/attendance/excuse-requests/{id}/seen, which stamps a group teacher\'s first look (never the lifecycle), and shows who saw it and when. Empty until someone has seen it, and for a reader the server refuses.',
+	},
 	CredentialWalletOffer: {
 		kind: 'section',
 		component: CredentialWalletOffer,
 		_note: 'The holder\'s wallet block on CredentialDetail: the open offer as a QR code with its link, the claim date, or a sentence. Only the holder (learnerUserId) sees it.',
+	},
+	LearningPlanVersionChanges: {
+		kind: 'section',
+		component: LearningPlanVersionChanges,
+		_note: 'What changed on LearningPlanDetail against the version the plan replaces (supersedesId): goals and support measures added, removed or changed. Hidden on a first version; reads the earlier version through OpenRegister.',
 	},
 	AssignmentPeerReviewAllocation: {
 		kind: 'section',

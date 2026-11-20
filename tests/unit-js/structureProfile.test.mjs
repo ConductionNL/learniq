@@ -627,14 +627,17 @@ test('the full profile is exactly the plain manifest build', () => {
 	// (training-provider-course-days); 113 since permission-slips added the
 	// Permission slips entry at the top level, beside the School calendar;
 	// 114 with Leave to decide under People (leave-requests-decided-by-the-school);
-	// 115 with Participants (training-provider-course-days T7).
-	assert.equal(entries.length, 115)
-	assert.equal(plain.menu.length, 27)
+	// 115 with Participants (training-provider-course-days T7); 116 since
+	// ai-disclosure-for-every-user added the AI processing disclosure to the
+	// footer for every signed-in user (footer 2 -> 3).
+	assert.equal(entries.length, 116)
+	// 28 top-level items: the AI disclosure is one of them.
+	assert.equal(plain.menu.length, 28)
 	// 106 in main: Course days, Permission slips, Leave to decide and
 	// Participants each added one.
 	assert.deepEqual(
 		[count('main'), count('footer'), count('settings')],
-		[106, 2, 7],
+		[106, 3, 7],
 	)
 	// 347 since the four unreached pages (BulkEnrol, CohortTimetable,
 	// MarkAttendanceView, SubmitExcuseModal) became actions; 348 with

@@ -38,9 +38,12 @@ use OCA\Learniq\Kernel\Contracts\CallerTenantResolverInterface;
 use OCA\Learniq\Kernel\Contracts\CatalogueMessagesInterface;
 use OCA\Learniq\Kernel\Contracts\CatalogueReaderInterface;
 use OCA\Learniq\Kernel\Contracts\CatalogueSignUpServiceInterface;
+use OCA\Learniq\Kernel\Contracts\CertificatePdfDelegationServiceInterface;
+use OCA\Learniq\Kernel\Contracts\CertificatePdfFileInterface;
 use OCA\Learniq\Kernel\Contracts\CheckInCodeServiceInterface;
 use OCA\Learniq\Kernel\Contracts\CheckInMessagesInterface;
 use OCA\Learniq\Kernel\Contracts\CheckInServiceInterface;
+use OCA\Learniq\Kernel\Contracts\ProofOfEnrolmentInterface;
 use OCA\Learniq\Kernel\Contracts\Cmi5LaunchSessionsInterface;
 use OCA\Learniq\Kernel\Contracts\Cmi5LaunchTokenServiceInterface;
 use OCA\Learniq\Kernel\Contracts\CohortNameRestampInterface;
@@ -154,6 +157,7 @@ use OCA\Learniq\Kernel\Contracts\RegulationAssignmentServiceInterface;
 use OCA\Learniq\Kernel\Contracts\RegulationAssignPreviewInterface;
 use OCA\Learniq\Kernel\Contracts\RegulationCoverageServiceInterface;
 use OCA\Learniq\Kernel\Contracts\ReportCardGradeLinesInterface;
+use OCA\Learniq\Kernel\Contracts\ReportCardPdfAttacherInterface;
 use OCA\Learniq\Kernel\Contracts\ReportCardPdfDelegationServiceInterface;
 use OCA\Learniq\Kernel\Contracts\ReportCardTemplateSectionResolverInterface;
 use OCA\Learniq\Kernel\Contracts\ReportPeriodLocksInterface;
@@ -205,6 +209,7 @@ use OCA\Learniq\Service\Catalogue\CatalogueSignUpService;
 use OCA\Learniq\Service\CheckIn\CheckInCodeService;
 use OCA\Learniq\Service\CheckIn\CheckInMessages;
 use OCA\Learniq\Service\CheckIn\CheckInService;
+use OCA\Learniq\Service\Portal\ProofOfEnrolment;
 use OCA\Learniq\Service\Course\CourseTemplateService;
 use OCA\Learniq\Service\CourseDay\CourseDayStatusService;
 use OCA\Learniq\Service\CourseDay\PlannerTodayService;
@@ -290,9 +295,12 @@ final class ContractBindings {
 		CatalogueMessagesInterface::class => CatalogueMessages::class,
 		CatalogueReaderInterface::class => CatalogueReader::class,
 		CatalogueSignUpServiceInterface::class => CatalogueSignUpService::class,
+		CertificatePdfDelegationServiceInterface::class => CertificatePdfDelegationService::class,
+		CertificatePdfFileInterface::class => CertificatePdfFile::class,
 		CheckInCodeServiceInterface::class => CheckInCodeService::class,
 		CheckInMessagesInterface::class => CheckInMessages::class,
 		CheckInServiceInterface::class => CheckInService::class,
+		ProofOfEnrolmentInterface::class => ProofOfEnrolment::class,
 		Cmi5LaunchSessionsInterface::class => Cmi5LaunchSessions::class,
 		Cmi5LaunchTokenServiceInterface::class => Cmi5LaunchTokenService::class,
 		CohortNameRestampInterface::class => CohortNameRestamp::class,
@@ -408,6 +416,7 @@ final class ContractBindings {
 		RegulationAssignmentServiceInterface::class => RegulationAssignmentService::class,
 		RegulationCoverageServiceInterface::class => RegulationCoverageService::class,
 		ReportCardGradeLinesInterface::class => ReportCardGradeLines::class,
+		ReportCardPdfAttacherInterface::class => ReportCardPdfAttacher::class,
 		ReportCardPdfDelegationServiceInterface::class => ReportCardPdfDelegationService::class,
 		ReportCardTemplateSectionResolverInterface::class => ReportCardTemplateSectionResolver::class,
 		ReportPeriodLocksInterface::class => ReportPeriodLocks::class,

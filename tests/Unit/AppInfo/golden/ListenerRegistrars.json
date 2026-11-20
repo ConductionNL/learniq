@@ -295,6 +295,14 @@
                 "OCA\\Learniq\\Listener\\SessionChangeNoticeHandler",
                 "int"
             ]
+        ],
+        [
+            "registerEventListener",
+            [
+                "OCA\\OpenRegister\\Event\\ObjectUpdatedEvent",
+                "OCA\\Learniq\\Listener\\SessionMoveNoticeHandler",
+                "int"
+            ]
         ]
     ],
     "filtered": [

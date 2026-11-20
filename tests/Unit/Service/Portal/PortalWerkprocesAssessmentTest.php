@@ -230,6 +230,7 @@ class PortalWerkprocesAssessmentTest extends TestCase {
 
 		$incomplete = $this->service()->submit(trainerRef: self::TRAINER, trust: 'low', body: []);
 		self::assertSame(422, $incomplete->status);
+		self::assertSame(expected: ['bpvPlacementId' => ''], actual: $incomplete->body['errors']);
 		self::assertSame([], $this->store->saves);
 	}//end testOnlyHerOwnPlacementIsAccepted()
 
