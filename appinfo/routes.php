@@ -375,6 +375,20 @@ $routes = [
         ['name' => 'courseDay#moveParticipants', 'url' => '/api/course-days/{id}/move-participants', 'verb' => 'POST'],
         ['name' => 'courseDay#today', 'url' => '/api/course-days/today', 'verb' => 'GET'],
         ['name' => 'courseDay#sessionParts', 'url' => '/api/course-days/sessions/{sessionId}/parts', 'verb' => 'GET'],
+        // Exam registration and certificate issue (exam-registration-and-certificate-issue):
+        // the administration's registration list of a course day's exam with an
+        // external examining body, its export, the results, "Certificaten uitgeven"
+        // and the administration's Today. Guarded by exam-registration.manage.
+        // Controller: ExamRegistrationController (slug: examRegistration).
+        ['name' => 'examRegistration#today', 'url' => '/api/exam-registrations/today', 'verb' => 'GET'],
+        ['name' => 'examRegistration#expiring', 'url' => '/api/exam-registrations/expiring', 'verb' => 'GET'],
+        ['name' => 'examRegistration#open', 'url' => '/api/exam-registrations', 'verb' => 'POST'],
+        ['name' => 'examRegistration#show', 'url' => '/api/exam-registrations/{id}', 'verb' => 'GET'],
+        ['name' => 'examRegistration#close', 'url' => '/api/exam-registrations/{id}/close', 'verb' => 'POST'],
+        ['name' => 'examRegistration#export', 'url' => '/api/exam-registrations/{id}/export', 'verb' => 'GET'],
+        ['name' => 'examRegistration#markSent', 'url' => '/api/exam-registrations/{id}/sent', 'verb' => 'POST'],
+        ['name' => 'examRegistration#result', 'url' => '/api/exam-registrations/{id}/result', 'verb' => 'POST'],
+        ['name' => 'examRegistration#issueCertificates', 'url' => '/api/course-days/{id}/certificates', 'verb' => 'POST'],
         // Work groups (enrolment-self-join-work-group): the signed-in learner
         // sees the work groups of their classes and joins, moves or leaves
         // while sign-up is open (rules in WorkGroupMembershipService).

@@ -373,6 +373,7 @@ const KNOWN_UNLINKED = {
 		'CourseParticipantsMenu',
 		'DossierNotesMenu',
 		'ExamAccommodationsMenu',
+		'ExamRegistrationsMenu',
 		'FirstAidIncidentsMenu',
 		'GradeCorrectionsMenu',
 		'GroupPlans',
@@ -413,6 +414,7 @@ const KNOWN_UNLINKED = {
 		'CourseParticipantsMenu',
 		'DossierReviewsMenu',
 		'ExamAccommodationsMenu',
+		'ExamRegistrationsMenu',
 		'ExchangeJobsMenu',
 		'ExchangeRejectionsMenu',
 		'GradeCorrectionsMenu',
@@ -446,6 +448,7 @@ const KNOWN_UNLINKED = {
 		'CourseDaysMenu',
 		'CourseParticipantsMenu',
 		'ExamAccommodationsMenu',
+		'ExamRegistrationsMenu',
 		'GroupPeople',
 		'HourPlanActivitiesMenu',
 		'MyLearningRecordMenu',
@@ -630,14 +633,15 @@ test('the full profile is exactly the plain manifest build', () => {
 	// 115 with Participants (training-provider-course-days T7); 116 since
 	// ai-disclosure-for-every-user added the AI processing disclosure to the
 	// footer for every signed-in user (footer 2 -> 3).
-	assert.equal(entries.length, 116)
+	// 117 with Exam registrations (exam-registration-and-certificate-issue).
+	assert.equal(entries.length, 117)
 	// 28 top-level items: the AI disclosure is one of them.
 	assert.equal(plain.menu.length, 28)
 	// 106 in main: Course days, Permission slips, Leave to decide and
 	// Participants each added one.
 	assert.deepEqual(
 		[count('main'), count('footer'), count('settings')],
-		[106, 3, 7],
+		[107, 3, 7],
 	)
 	// 347 since the four unreached pages (BulkEnrol, CohortTimetable,
 	// MarkAttendanceView, SubmitExcuseModal) became actions; 348 with
@@ -650,7 +654,8 @@ test('the full profile is exactly the plain manifest build', () => {
 	// 356 with company visits (bpv-coach-today-and-placement-board; its placement
 	// board is a view mode of BpvPlacements, not a page); 358 with
 	// CourseParticipants and CourseParticipantDetail (training-provider-course-days T7).
-	assert.equal(plain.pages.length, 359)
+	// One more with ExamRegistrations (exam-registration-and-certificate-issue).
+	assert.equal(plain.pages.length, 360)
 })
 
 test('menu-layout.json holds no profile key, so the full profile cannot gain an overlay', () => {
