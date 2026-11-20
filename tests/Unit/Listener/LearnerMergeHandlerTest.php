@@ -244,7 +244,7 @@ class LearnerMergeHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/compliance-attestation-locked-after-signing/specs/compliance-audit/spec.md#requirement-a-signed-attestation-cannot-be-edited
+	 * @spec openspec/specs/compliance-audit/spec.md#requirement-a-signed-attestation-cannot-be-edited
 	 */
 	public function testMergeLeavesSignedAttestationsWhereTheyAre(): void {
 		$handler = new LearnerMergeHandler(new LearnerMergeService($this->makeObjectService(), new NullLogger()), new NullLogger(), \OCA\Learniq\Tests\Support\TransitionScope::resolver());

@@ -2762,6 +2762,8 @@
         "Shows": "Shows",
         "Which lessons the screen shows.": "Which lessons the screen shows.",
         "Today": "Today",
+        "Away until": "Away until",
+        "Time of day, HH:MM, until which a report for part of a single day keeps the pupil away (an appointment until 11:30). Empty when the report names no time.": "Time of day, HH:MM, until which a report for part of a single day keeps the pupil away (an appointment until 11:30). Empty when the report names no time.",
         "Today and tomorrow": "Today and tomorrow",
         "Changes only": "Changes only",
         "Show teacher codes": "Show teacher codes",
@@ -5434,6 +5436,8 @@
         "SPDX license identifier or rights statement. Open material from a source carries its normalised licence code, such as CC-BY-4.0, or other.": "SPDX license identifier or rights statement. Open material from a source carries its normalised licence code, such as CC-BY-4.0, or other.",
         "This material is not available in this course.": "This material is not available in this course.",
         "The licence allows a copy, but learniq cannot fetch files from Edurep yet, so it adds a link. The learner opens the material at the source.": "The licence allows a copy, but learniq cannot fetch files from Edurep yet, so it adds a link. The learner opens the material at the source.",
+        "Substitute until": "Substitute until",
+        "Until when an employer may send a colleague in a participant's place. Empty: the working day before the first course day at 12.00.": "Until when an employer may send a colleague in a participant's place. Empty: the working day before the first course day at 12.00.",
         "Exam assessor assignment": "Exam assessor assignment",
         "Assess a practical exam": "Assess a practical exam",
         "The exam": "The exam",
@@ -5745,7 +5749,12 @@
         "The phase the card was moved to by hand.": "The phase the card was moved to by hand.",
         "Nextcloud user ID of who moved the card; stamped by the server.": "Nextcloud user ID of who moved the card; stamped by the server.",
         "When the card was moved; stamped by the server.": "When the card was moved; stamped by the server.",
-        "The facts the manual move holds for; the move lapses when one of them changes. Stamped by the server.": "The facts the manual move holds for; the move lapses when one of them changes. Stamped by the server."
+        "The facts the manual move holds for; the move lapses when one of them changes. Stamped by the server.": "The facts the manual move holds for; the move lapses when one of them changes. Stamped by the server.",
+        "A colleague in their place": "A colleague in their place",
+        "Colleague who goes instead": "Colleague who goes instead",
+        "The place stays on the booking. Until the working day before the course at 12.00.": "The place stays on the booking. Until the working day before the course at 12.00.",
+        "Send this colleague": "Send this colleague",
+        "Your colleague takes the place. The participant you replaced gets a message.": "Your colleague takes the place. The participant you replaced gets a message."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

@@ -18,7 +18,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
+ * @spec openspec/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
  */
 
 declare(strict_types=1);
@@ -34,7 +34,7 @@ use OCP\AppFramework\Utility\ITimeFactory;
 /**
  * Keeps `cohort.dayStatus` in step with the day's facts.
  *
- * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
+ * @spec openspec/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
  */
 class CourseDayStatusService implements CourseDayStatusServiceInterface {
 	use CourseDayRows;
@@ -66,7 +66,7 @@ class CourseDayStatusService implements CourseDayStatusServiceInterface {
 	 * @param ObjectService $objectService The OpenRegister object service.
 	 * @param ITimeFactory  $time          The clock.
 	 *
-	 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
@@ -85,7 +85,7 @@ class CourseDayStatusService implements CourseDayStatusServiceInterface {
 	 *
 	 * @throws \Throwable When OpenRegister cannot be read or written.
 	 *
-	 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
 	 */
 	public function restamp(string $cohortId): ?string {
 		$cohort = $this->courseDay(cohortId: $cohortId);
@@ -119,7 +119,7 @@ class CourseDayStatusService implements CourseDayStatusServiceInterface {
 	 *
 	 * @return array<string, mixed>|null
 	 *
-	 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
 	 */
 	private function restampChanges(array $cohort, array $next): ?array {
 		if (self::isSettled(cohort: $cohort, next: $next) === true) {
@@ -176,7 +176,7 @@ class CourseDayStatusService implements CourseDayStatusServiceInterface {
 	 * @throws CourseDayException When the status is unknown or the cohort is no course day.
 	 * @throws \Throwable         When OpenRegister cannot be read or written.
 	 *
-	 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
 	 */
 	public function move(string $cohortId, string $status, string $userId): string {
 		if (in_array($status, CourseDayStatus::ALL, true) === false) {
@@ -210,7 +210,7 @@ class CourseDayStatusService implements CourseDayStatusServiceInterface {
 	 * @throws CourseDayException When the decision is unknown or the cohort is no course day.
 	 * @throws \Throwable         When OpenRegister cannot be read or written.
 	 *
-	 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
 	 */
 	public function decide(string $cohortId, ?string $decision, string $userId): string {
 		self::assertDecision(decision: $decision);
@@ -252,7 +252,7 @@ class CourseDayStatusService implements CourseDayStatusServiceInterface {
 	 * @throws CourseDayException When the cohort is no course day.
 	 * @throws \Throwable         When OpenRegister cannot be read.
 	 *
-	 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
 	 */
 	public function alternatives(string $cohortId): array {
 		$cohort = $this->requireCourseDay(cohortId: $cohortId);
@@ -297,7 +297,7 @@ class CourseDayStatusService implements CourseDayStatusServiceInterface {
 	 *
 	 * @return array{id: string, name: string, date: string, free: int|null}|null
 	 *
-	 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
 	 */
 	private function alternative(array $other, string $today): ?array {
 		$id   = self::idOf(row: $other);
@@ -344,7 +344,7 @@ class CourseDayStatusService implements CourseDayStatusServiceInterface {
 	 *                            day of the same course, or it lacks the places.
 	 * @throws \Throwable         When OpenRegister cannot be read or written.
 	 *
-	 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
 	 */
 	public function moveParticipants(string $cohortId, string $targetId, string $userId): array {
 		$cohort = $this->requireCourseDay(cohortId: $cohortId);
@@ -375,7 +375,7 @@ class CourseDayStatusService implements CourseDayStatusServiceInterface {
 	 *
 	 * @throws CourseDayException 409 when the target cannot take them.
 	 *
-	 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
 	 */
 	private function assertRoomOn(string $cohortId, string $targetId): void {
 		$target = self::dayById(days: $this->alternatives(cohortId: $cohortId), id: $targetId);
@@ -415,7 +415,7 @@ class CourseDayStatusService implements CourseDayStatusServiceInterface {
 	 *
 	 * @return int How many rows moved.
 	 *
-	 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
 	 */
 	private function moveRows(string $schema, array $route): int {
 		$moved = 0;
@@ -454,7 +454,7 @@ class CourseDayStatusService implements CourseDayStatusServiceInterface {
 	 *
 	 * @throws \Throwable When OpenRegister cannot be read.
 	 *
-	 * @spec openspec/changes/training-provider-course-days/specs/attendance/spec.md#requirement-a-trainer-registers-attendance-per-part-of-the-day
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-trainer-registers-attendance-per-part-of-the-day
 	 */
 	public function placesTakenOn(string $cohortId): int {
 		return $this->placesTaken(cohortId: $cohortId);
@@ -508,7 +508,7 @@ class CourseDayStatusService implements CourseDayStatusServiceInterface {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
 	 */
 	public static function fingerprint(array $facts): string {
 		$past = CourseDayStatus::isPast(facts: $facts);
@@ -676,7 +676,7 @@ class CourseDayStatusService implements CourseDayStatusServiceInterface {
 	 *
 	 * @return int
 	 *
-	 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
 	 */
 	public static function participants(array $bookings, array $enrolments): int {
 		[$total, $byBooking] = self::placedEnrolments(enrolments: $enrolments);
