@@ -217,6 +217,15 @@ function checkShape(at, s, { errors, warnings }) {
 			`${at}: only ${props.length} properties and no x-openregister-* declarations — verify this isn't a stub left by a bad merge`,
 		)
 	}
+	// OpenRegister refuses a schema whose property "type" is a list
+	// (["string", "null"]): the whole schema is left out of the import.
+	for (const prop of props) {
+		if (Array.isArray(s.properties[prop]?.type)) {
+			errors.push(
+				`${at}: property "${prop}" has a list as "type" (${JSON.stringify(s.properties[prop].type)}); OpenRegister refuses the schema. Use one type and "nullable": true`,
+			)
+		}
+	}
 	// appendOnly placement
 	if (
 		s['x-openregister']

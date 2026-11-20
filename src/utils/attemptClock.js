@@ -7,6 +7,8 @@
 //
 // @spec openspec/specs/assessment/spec.md#requirement-the-in-app-test-screen-shows-the-servers-deadline-and-saves-answers-as-the-learner-works
 
+import { objectId } from './customPages.js'
+
 /**
  * Seconds left until the server's deadline, never below zero.
  *
@@ -46,15 +48,15 @@ export function serverOffsetMs(dateHeader, nowMs) {
 /**
  * The responses payload the screen saves: one row per item, unscored.
  *
- * @param {Array<{uuid: string}>} items The items shown
+ * @param {Array<object>} items The items shown, as OpenRegister returned them
  * @param {Object<string, unknown>} responses The answers by item uuid
  * @return {Array<{itemId: string, response: {value: unknown}, autoScore: null, manualScore: null}>} The rows
  * @spec openspec/specs/assessment/spec.md#requirement-the-in-app-test-screen-shows-the-servers-deadline-and-saves-answers-as-the-learner-works
  */
 export function responsesPayload(items, responses) {
 	return items.map((item) => ({
-		itemId: item.uuid,
-		response: { value: responses[item.uuid] ?? null },
+		itemId: objectId(item),
+		response: { value: responses[objectId(item)] ?? null },
 		autoScore: null,
 		manualScore: null,
 	}))
