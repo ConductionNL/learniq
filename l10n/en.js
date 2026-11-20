@@ -5733,6 +5733,8 @@ OC.L10N.register(
         "Nextcloud user ID of who moved the card; stamped by the server.": "Nextcloud user ID of who moved the card; stamped by the server.",
         "When the card was moved; stamped by the server.": "When the card was moved; stamped by the server.",
         "The facts the manual move holds for; the move lapses when one of them changes. Stamped by the server.": "The facts the manual move holds for; the move lapses when one of them changes. Stamped by the server.",
+        "Sign in to open this absence report.": "Sign in to open this absence report.",
+        "This absence report was not found.": "This absence report was not found.",
         "Choices and statements": "Choices and statements",
         "Contracts": "Contracts",
         "Signed by all three": "Signed by all three",
