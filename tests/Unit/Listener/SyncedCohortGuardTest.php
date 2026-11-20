@@ -67,7 +67,7 @@ class SyncedCohortGuardTest extends TestCase {
 	 * @return SyncedCohortGuard
 	 */
 	private function guard(?string $uid, string $slug = 'cohort', bool $resolverThrows = false): SyncedCohortGuard {
-		$resolver = $this->createMock(ListenerSchemaResolver::class);
+		$resolver = $this->createMock(originalClassName: ListenerSchemaResolver::class);
 		if ($resolverThrows === true) {
 			$resolver->method('guardSchemaSlug')->willThrowException(new RuntimeException('unknown schema'));
 		} else {
@@ -76,11 +76,11 @@ class SyncedCohortGuardTest extends TestCase {
 
 		$user = null;
 		if ($uid !== null) {
-			$user = $this->createMock(IUser::class);
+			$user = $this->createMock(originalClassName: IUser::class);
 			$user->method('getUID')->willReturn($uid);
 		}
 
-		$session = $this->createMock(IUserSession::class);
+		$session = $this->createMock(originalClassName: IUserSession::class);
 		$session->method('getUser')->willReturn($user);
 
 		return new SyncedCohortGuard(schemaResolver: $resolver, userSession: $session, logger: new NullLogger());
@@ -106,18 +106,18 @@ class SyncedCohortGuardTest extends TestCase {
 	 * @spec openspec/changes/enrolment-sync-classes-from-student-administration/specs/enrolment/spec.md#scenario-a-coordinator-renames-a-synced-class
 	 */
 	public function testACoordinatorRenamesASyncedClass(): void {
-		$event = $this->update(['name' => '3HV-B (mentorgroep)']);
+		$event = $this->update(changes: ['name' => '3HV-B (mentorgroep)']);
 
 		$this->guard(uid: 'coordinator')->handle($event);
 
-		self::assertTrue($event->isPropagationStopped());
+		self::assertTrue(condition: $event->isPropagationStopped());
 		self::assertSame(
-			[
+			expected: [
 				'reason'  => 'cohort-field-from-source',
 				'field'   => 'name',
 				'message' => 'The name of this group comes from the student administration (magister) and cannot be changed in learniq.',
 			],
-			$event->getErrors()
+			actual: $event->getErrors()
 		);
 	}//end testACoordinatorRenamesASyncedClass()
 
@@ -136,12 +136,12 @@ class SyncedCohortGuardTest extends TestCase {
 			'externalSource' => ['', 'source'],
 		];
 		foreach ($changes as $field => [$value, $label]) {
-			$event = $this->update([$field => $value]);
+			$event = $this->update(changes: [$field => $value]);
 			$this->guard(uid: 'coordinator')->handle($event);
 
-			self::assertTrue($event->isPropagationStopped(), $field);
-			self::assertSame($field, $event->getErrors()['field']);
-			self::assertStringStartsWith('The '.$label.' of this group', $event->getErrors()['message']);
+			self::assertTrue(condition: $event->isPropagationStopped(), message: $field);
+			self::assertSame(expected: $field, actual: $event->getErrors()['field']);
+			self::assertStringStartsWith(prefix: 'The '.$label.' of this group', string: $event->getErrors()['message']);
 		}
 	}//end testEverySourceFieldIsReadOnly()
 
@@ -153,16 +153,25 @@ class SyncedCohortGuardTest extends TestCase {
 	 * @spec openspec/changes/enrolment-sync-classes-from-student-administration/specs/enrolment/spec.md#scenario-a-teacher-adds-a-note
 	 */
 	public function testATeacherAddsANote(): void {
-		$event = $this->update(['notes' => 'Ouderavond 12 november', 'reportCardTemplateId' => 'tpl-1', 'learnerIds' => ['bram', 'anna'], 'programmeYear' => '3', 'syncChanges' => 99, 'syncedAt' => 'never']);
+		$event = $this->update(
+			changes: [
+				'notes' => 'Ouderavond 12 november',
+				'reportCardTemplateId' => 'tpl-1',
+				'learnerIds' => ['bram', 'anna'],
+				'programmeYear' => '3',
+				'syncChanges' => 99,
+				'syncedAt' => 'never'
+			]
+		);
 
 		$this->guard(uid: 't.mentor')->handle($event);
 
-		self::assertFalse($event->isPropagationStopped());
+		self::assertFalse(condition: $event->isPropagationStopped());
 		$saved = $event->getNewObject()->getObject();
-		self::assertSame('Ouderavond 12 november', $saved['notes']);
-		self::assertSame('tpl-1', $saved['reportCardTemplateId']);
-		self::assertSame(3, $saved['syncChanges']);
-		self::assertSame('2026-11-02T07:00:00+00:00', $saved['syncedAt']);
+		self::assertSame(expected: 'Ouderavond 12 november', actual: $saved['notes']);
+		self::assertSame(expected: 'tpl-1', actual: $saved['reportCardTemplateId']);
+		self::assertSame(expected: 3, actual: $saved['syncChanges']);
+		self::assertSame(expected: '2026-11-02T07:00:00+00:00', actual: $saved['syncedAt']);
 	}//end testATeacherAddsANote()
 
 	/**
@@ -175,7 +184,7 @@ class SyncedCohortGuardTest extends TestCase {
 
 		$this->guard(uid: 't.mentor')->handle($event);
 
-		self::assertFalse($event->isPropagationStopped());
+		self::assertFalse(condition: $event->isPropagationStopped());
 	}//end testAPartialSaveOfLearniqsFieldsPasses()
 
 	/**
@@ -184,25 +193,25 @@ class SyncedCohortGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testWhatTheGuardLeavesAlone(): void {
-		$sync = $this->update(['name' => 'renamed by the source', 'learnerIds' => ['anna']]);
+		$sync = $this->update(changes: ['name' => 'renamed by the source', 'learnerIds' => ['anna']]);
 		$this->guard(uid: null)->handle($sync);
-		self::assertFalse($sync->isPropagationStopped(), 'the sync runs as the system');
+		self::assertFalse(condition: $sync->isPropagationStopped(), message: 'the sync runs as the system');
 
-		$own = $this->update(['name' => 'Werkgroep'], ['id' => 'c2', 'name' => 'Groep 6']);
+		$own = $this->update(changes: ['name' => 'Werkgroep'], stored: ['id' => 'c2', 'name' => 'Groep 6']);
 		$this->guard(uid: 'coordinator')->handle($own);
-		self::assertFalse($own->isPropagationStopped(), 'a group made in learniq stays editable');
+		self::assertFalse(condition: $own->isPropagationStopped(), message: 'a group made in learniq stays editable');
 
-		$other = $this->update(['name' => 'x']);
+		$other = $this->update(changes: ['name' => 'x']);
 		$this->guard(uid: 'coordinator', slug: 'course')->handle($other);
-		self::assertFalse($other->isPropagationStopped());
+		self::assertFalse(condition: $other->isPropagationStopped());
 
-		$unknown = $this->update(['name' => 'x']);
+		$unknown = $this->update(changes: ['name' => 'x']);
 		$this->guard(uid: 'coordinator', resolverThrows: true)->handle($unknown);
-		self::assertFalse($unknown->isPropagationStopped());
+		self::assertFalse(condition: $unknown->isPropagationStopped());
 
 		$create = new ObjectCreatingEvent(OrEntityFactory::make(self::SYNCED, 'cohort'));
 		$this->guard(uid: 'coordinator')->handle($create);
-		self::assertFalse($create->isPropagationStopped());
+		self::assertFalse(condition: $create->isPropagationStopped());
 	}//end testWhatTheGuardLeavesAlone()
 
 	/**
@@ -212,7 +221,7 @@ class SyncedCohortGuardTest extends TestCase {
 	 */
 	public function testTheGuardIsRegistered(): void {
 		$pairs = [];
-		$context = $this->createMock(IRegistrationContext::class);
+		$context = $this->createMock(originalClassName: IRegistrationContext::class);
 		$context->method('registerEventListener')->willReturnCallback(
 			static function (string $event, string $listener) use (&$pairs): void {
 				$pairs[] = $event.' => '.$listener;
@@ -221,6 +230,6 @@ class SyncedCohortGuardTest extends TestCase {
 
 		(new IntegrityListenerRegistrar())->register(context: $context);
 
-		self::assertContains(ObjectUpdatingEvent::class.' => '.SyncedCohortGuard::class, $pairs);
+		self::assertContains(needle: ObjectUpdatingEvent::class.' => '.SyncedCohortGuard::class, haystack: $pairs);
 	}//end testTheGuardIsRegistered()
 }//end class
