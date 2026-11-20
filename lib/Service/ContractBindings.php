@@ -37,6 +37,7 @@ use OCA\Learniq\Kernel\Contracts\BsaProgressEvaluatorInterface;
 use OCA\Learniq\Kernel\Contracts\BulkEnrolServiceInterface;
 use OCA\Learniq\Kernel\Contracts\CallerTenantResolverInterface;
 use OCA\Learniq\Kernel\Contracts\CatalogueMessagesInterface;
+use OCA\Learniq\Kernel\Contracts\PortalElectiveSignUpInterface;
 use OCA\Learniq\Kernel\Contracts\CatalogueReaderInterface;
 use OCA\Learniq\Kernel\Contracts\CatalogueSignUpServiceInterface;
 use OCA\Learniq\Kernel\Contracts\CertificateIssueServiceInterface;
@@ -236,6 +237,7 @@ use OCA\Learniq\Service\Portal\BpvPlacementSteps;
 use OCA\Learniq\Service\Portal\EmployerBookingProjection;
 use OCA\Learniq\Service\Portal\EmployerBookingSteps;
 use OCA\Learniq\Service\Portal\PortalAttemptService;
+use OCA\Learniq\Service\Portal\PortalElectiveSignUp;
 use OCA\Learniq\Service\Portal\PortalEmployerBookings;
 use OCA\Learniq\Service\Portal\PortalHourDayWrite;
 use OCA\Learniq\Service\Portal\PortalHourWeekApproval;
@@ -300,6 +302,7 @@ final class ContractBindings {
 		BulkEnrolServiceInterface::class => BulkEnrolService::class,
 		CallerTenantResolverInterface::class => CallerTenantResolver::class,
 		CatalogueMessagesInterface::class => CatalogueMessages::class,
+		PortalElectiveSignUpInterface::class => PortalElectiveSignUp::class,
 		CatalogueReaderInterface::class => CatalogueReader::class,
 		CatalogueSignUpServiceInterface::class => CatalogueSignUpService::class,
 		CertificateIssueServiceInterface::class => CertificateIssueService::class,
