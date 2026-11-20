@@ -11,7 +11,7 @@
  the register. The endpoint refuses anyone but a trainer of the day or a
  planner; a refused session is left out.
 
- @spec openspec/changes/training-provider-course-days/specs/attendance/spec.md#requirement-a-trainer-registers-attendance-per-part-of-the-day
+ @spec openspec/specs/attendance/spec.md#requirement-a-trainer-registers-attendance-per-part-of-the-day
 -->
 <!-- @visual exclude Dashboard card rendered inside LearniqDashboards (teacher role); the visual surface is LearniqDashboards, which carries the baseline. -->
 <template>
@@ -66,7 +66,7 @@ export default {
 			/**
 			 * Reload the notices when the teacher's session filter changes.
 			 *
-			 * @spec openspec/changes/training-provider-course-days/specs/attendance/spec.md#requirement-a-trainer-registers-attendance-per-part-of-the-day
+			 * @spec openspec/specs/attendance/spec.md#requirement-a-trainer-registers-attendance-per-part-of-the-day
 			 */
 			handler() {
 				this.load()
@@ -76,7 +76,7 @@ export default {
 		/**
 		 * Reload the notices once the dashboard has worked out the filter.
 		 *
-		 * @spec openspec/changes/training-provider-course-days/specs/attendance/spec.md#requirement-a-trainer-registers-attendance-per-part-of-the-day
+		 * @spec openspec/specs/attendance/spec.md#requirement-a-trainer-registers-attendance-per-part-of-the-day
 		 */
 		pending() {
 			this.load()
@@ -92,7 +92,7 @@ export default {
 		 * Read today's sessions with parts and the part that is due on each.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/training-provider-course-days/specs/attendance/spec.md#scenario-the-afternoon-has-begun
+		 * @spec openspec/specs/attendance/spec.md#scenario-the-afternoon-has-begun
 		 */
 		async load() {
 			if (this.pending) {
@@ -130,7 +130,7 @@ export default {
 		 *
 		 * @param {object} session A Session row.
 		 * @return {Promise<object|null>} The notice.
-		 * @spec openspec/changes/training-provider-course-days/specs/attendance/spec.md#scenario-the-afternoon-has-begun
+		 * @spec openspec/specs/attendance/spec.md#scenario-the-afternoon-has-begun
 		 */
 		async noticeFor(session) {
 			const sessionId = objectId(session)

@@ -126,7 +126,8 @@ final class PupilList {
 	 * page; a pupil without a profile keeps the user id.
 	 *
 	 * The pupil holds `profile` (the pupil's profile, or null when there is
-	 * none), `todayState` (a TodayState constant), `summary` (the attendance
+	 * none), `todayState` (a TodayState constant), `todayUntil` (until what
+	 * time the pupil is reported away today, `HH:MM`, or null), `summary` (the attendance
 	 * summary of this school year, or null) and `records` (the pupil's
 	 * conference-slot, learning-plan, support-request, attendance-flag,
 	 * grade-entry and bpv-placement rows, keyed by schema).
@@ -154,6 +155,7 @@ final class PupilList {
 				'profileId' => $profileId,
 				'name' => self::nameOf(learnerId: $learnerId, profile: $profile),
 				'todayState' => (string)($pupil['todayState'] ?? ''),
+				'todayUntil' => self::untilOrNull(value: ($pupil['todayUntil'] ?? null)),
 				'absentDays' => self::count(row: $summary, key: 'absentDays'),
 				'lateCount' => self::count(row: $summary, key: 'lateCount'),
 			],
@@ -170,6 +172,21 @@ final class PupilList {
 			self::placementFields(placement: PupilPage::runningPlacement(placements: ($records['bpv-placement'] ?? [])))
 		);
 	}//end row()
+
+	/**
+	 * A time of day `HH:MM`, else null.
+	 *
+	 * @param mixed $value The value.
+	 *
+	 * @return string|null
+	 */
+	private static function untilOrNull(mixed $value): ?string {
+		if (is_string($value) === false || $value === '') {
+			return null;
+		}
+
+		return $value;
+	}//end untilOrNull()
 
 	/**
 	 * A value that is an array, else null.

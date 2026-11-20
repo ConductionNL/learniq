@@ -91,6 +91,38 @@ class TodayStateService {
 	}//end forCohort()
 
 	/**
+	 * Until what time of day each pupil of the group is reported away today,
+	 * keyed by pupil: only pupils whose covering report names a time.
+	 *
+	 * @param array<string, mixed> $cohort The group, with its learnerIds.
+	 * @param string               $date   The day, `Y-m-d`.
+	 *
+	 * @return array<string, string> `HH:MM` per pupil.
+	 *
+	 * @spec openspec/changes/learner-list-and-page-follow-the-boards/tasks.md#T1
+	 */
+	public function untilForCohort(array $cohort, string $date): array {
+		$learnerIds = array_values(array_filter((array)($cohort['learnerIds'] ?? []), static fn ($id): bool => is_string($id) === true && $id !== ''));
+		if ($learnerIds === []) {
+			return [];
+		}
+
+		$until = [];
+		foreach ($this->reader->reportsOn(learnerIds: $learnerIds, date: $date) as $learnerId => $report) {
+			if (is_array($report) === false) {
+				continue;
+			}
+
+			$time = TodayState::untilOf(report: $report);
+			if ($time !== null) {
+				$until[(string)$learnerId] = $time;
+			}
+		}
+
+		return $until;
+	}//end untilForCohort()
+
+	/**
 	 * How many pupils of a state list are absent today.
 	 *
 	 * @param array<string, string> $states The states, keyed by pupil.

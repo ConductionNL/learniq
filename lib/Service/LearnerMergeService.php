@@ -326,7 +326,7 @@ class LearnerMergeService implements LearnerMergeServiceInterface {
 	 *
 	 * @return bool True when the record is not moved.
 	 *
-	 * @spec openspec/changes/compliance-attestation-locked-after-signing/specs/compliance-audit/spec.md#requirement-a-signed-attestation-cannot-be-edited
+	 * @spec openspec/specs/compliance-audit/spec.md#requirement-a-signed-attestation-cannot-be-edited
 	 */
 	private static function isSignedEvidence(string $schema, array $row): bool {
 		return in_array((string)($row['lifecycle'] ?? ''), (self::SIGNED_EVIDENCE[$schema] ?? []), true);

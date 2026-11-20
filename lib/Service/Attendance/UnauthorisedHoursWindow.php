@@ -8,7 +8,7 @@
  * flag at 16. This class counts the lesuren a pupil missed without permission
  * in the threshold's rolling window ending today, and says whether the count
  * is at the warning level. It reads, never writes, and never creates a flag:
- * the warning is a read model (openspec/changes/attendance-warns-before-the-threshold).
+ * the warning is a read model (openspec/specs/attendance).
  *
  * @category Service
  * @package  OCA\Learniq\Service\Attendance
@@ -24,7 +24,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/attendance-warns-before-the-threshold/specs/attendance/spec.md
+ * @spec openspec/specs/attendance/spec.md
  */
 
 declare(strict_types=1);
@@ -42,7 +42,7 @@ use Throwable;
  * A lesson counts as its length divided by the threshold's minutes per
  * lesuur; a record without a known lesson length counts as one lesuur.
  *
- * @spec openspec/changes/attendance-warns-before-the-threshold/specs/attendance/spec.md
+ * @spec openspec/specs/attendance/spec.md
  */
 class UnauthorisedHoursWindow {
 
@@ -67,7 +67,7 @@ class UnauthorisedHoursWindow {
 	 *
 	 * @return bool True for an active per-learner unexcused-lesuren threshold over rolling weeks.
 	 *
-	 * @spec openspec/changes/attendance-warns-before-the-threshold/specs/attendance/spec.md
+	 * @spec openspec/specs/attendance/spec.md
 	 */
 	public function applies(array $threshold): bool {
 		return $this->isActivePerLearner(threshold: $threshold) === true
@@ -112,7 +112,7 @@ class UnauthorisedHoursWindow {
 	 *
 	 * @return float The lesuren, rounded to one decimal.
 	 *
-	 * @spec openspec/changes/attendance-warns-before-the-threshold/specs/attendance/spec.md
+	 * @spec openspec/specs/attendance/spec.md
 	 */
 	public function count(array $records, array $sessions, array $threshold, string $today): float {
 		$last = DateTimeImmutable::createFromFormat('!Y-m-d', $today);
@@ -170,7 +170,7 @@ class UnauthorisedHoursWindow {
 	 *
 	 * @return float The warning level.
 	 *
-	 * @spec openspec/changes/attendance-warns-before-the-threshold/specs/attendance/spec.md
+	 * @spec openspec/specs/attendance/spec.md
 	 */
 	public function warnAt(array $threshold): float {
 		$warnAt = ($threshold['warnAtHours'] ?? null);
@@ -189,7 +189,7 @@ class UnauthorisedHoursWindow {
 	 *
 	 * @return bool True when staff should see the pupil as nearing the limit.
 	 *
-	 * @spec openspec/changes/attendance-warns-before-the-threshold/specs/attendance/spec.md
+	 * @spec openspec/specs/attendance/spec.md
 	 */
 	public function nearing(float $hours, array $threshold): bool {
 		return $hours >= $this->warnAt(threshold: $threshold) && $hours < (float)($threshold['limit'] ?? 0);
@@ -203,7 +203,7 @@ class UnauthorisedHoursWindow {
 	 *
 	 * @return string The line.
 	 *
-	 * @spec openspec/changes/attendance-warns-before-the-threshold/specs/attendance/spec.md
+	 * @spec openspec/specs/attendance/spec.md
 	 */
 	public static function label(float $hours, float $limit): string {
 		return self::number(value: $hours) . ' van ' . self::number(value: $limit) . ' uur';
@@ -219,7 +219,7 @@ class UnauthorisedHoursWindow {
 	 *
 	 * @return array{unauthorisedHoursWindow: float|null, thresholdHours: float|null, windowLabel: string|null, thresholdNearing: bool}
 	 *
-	 * @spec openspec/changes/attendance-warns-before-the-threshold/specs/attendance/spec.md
+	 * @spec openspec/specs/attendance/spec.md
 	 */
 	public function fields(array $records, array $sessions, ?array $threshold, string $today): array {
 		if ($threshold === null || $this->applies(threshold: $threshold) === false) {

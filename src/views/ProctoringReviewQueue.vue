@@ -72,7 +72,7 @@
 			<ul class="proctoring-review-queue__sessions">
 				<li
 					v-for="session in sessionsWithPendingFlags"
-					:key="session.uuid"
+					:key="sessionId(session)"
 					class="proctoring-review-queue__session">
 					<CnDetailCard
 						:title="
@@ -153,10 +153,10 @@
 						</ul>
 
 						<p
-							v-if="sessionError[session.uuid]"
+							v-if="sessionError[sessionId(session)]"
 							role="alert"
 							class="proctoring-review-queue__error-inline">
-							{{ sessionError[session.uuid] }}
+							{{ sessionError[sessionId(session)] }}
 						</p>
 					</CnDetailCard>
 				</li>
@@ -179,12 +179,14 @@
 import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { getCurrentUser } from '@nextcloud/auth'
 import { generateOcsUrl, generateUrl } from '@nextcloud/router'
+import { objectId } from '../utils/customPages.js'
 import { displayDateTime } from '../utils/displayDateTime.js'
 import { createLearnerNameResolver } from '../utils/learnerName.js'
 import {
 	minutesIn,
 	nameOrId,
 	openFlagCount,
+	sessionPath,
 	withDecision,
 } from '../utils/proctoringFlags.js'
 
@@ -244,6 +246,17 @@ export default {
 	},
 
 	methods: {
+		/**
+		 * A session's id, whichever key OpenRegister returned it under.
+		 *
+		 * @param {object} session ProctoringSession object
+		 * @return {string} The id.
+		 * @spec openspec/specs/assessment/spec.md#requirement-staff-reach-the-proctoring-flag-review-page
+		 */
+		sessionId(session) {
+			return objectId(session)
+		},
+
 		/**
 		 * Fetch the ProctoringSession objects, then what their cards name.
 		 *
@@ -485,13 +498,11 @@ export default {
 		 */
 		async recordDecision(session, flag, decision) {
 			this.savingFlagId = flag.flagId
-			this.sessionError = { ...this.sessionError, [session.uuid]: null }
+			this.sessionError = { ...this.sessionError, [this.sessionId(session)]: null }
 
 			try {
 				const flags = withDecision(session.flags, flag.flagId, decision)
-				const url = generateUrl(
-					`/apps/openregister/api/objects/learniq/proctoring-session/${session.uuid}`,
-				)
+				const url = generateUrl(sessionPath(session))
 				const resp = await fetch(url, {
 					method: 'PATCH',
 					headers: { ...HEADERS, 'Content-Type': 'application/json' },
@@ -505,7 +516,7 @@ export default {
 				const saved = await resp.json().catch(() => null)
 				const stored = Array.isArray(saved?.flags) ? saved.flags : flags
 				this.sessions = this.sessions.map((s) =>
-					s.uuid === session.uuid ? { ...s, flags: stored } : s,
+					this.sessionId(s) === this.sessionId(session) ? { ...s, flags: stored } : s,
 				)
 				const reviewer = stored.find((f) => f.flagId === flag.flagId)?.reviewedBy
 				if (reviewer && !this.names[reviewer]) {
@@ -514,7 +525,7 @@ export default {
 			} catch (err) {
 				this.sessionError = {
 					...this.sessionError,
-					[session.uuid]: this.t(
+					[this.sessionId(session)]: this.t(
 						'learniq',
 						'Failed to save review decision. Please try again.',
 					),

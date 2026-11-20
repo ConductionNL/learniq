@@ -80,6 +80,25 @@ final class TodayState {
 	}//end of()
 
 	/**
+	 * Until what time of day the covering absence report keeps the pupil away,
+	 * `HH:MM`, or null when the report holds no time or there is no report.
+	 *
+	 * @param array<string, mixed>|null $report The absence report that covers today.
+	 *
+	 * @return string|null
+	 *
+	 * @spec openspec/changes/learner-list-and-page-follow-the-boards/tasks.md#T1
+	 */
+	public static function untilOf(?array $report): ?string {
+		$until = ($report['untilTime'] ?? null);
+		if (is_string($until) === false || preg_match('/^([01]\d|2[0-3]):[0-5]\d$/', $until) !== 1) {
+			return null;
+		}
+
+		return $until;
+	}//end untilOf()
+
+	/**
 	 * An absence mark in words: its reason when the teacher noted one.
 	 *
 	 * @param array<string, mixed> $mark The mark.
