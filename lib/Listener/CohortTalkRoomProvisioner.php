@@ -155,7 +155,9 @@ class CohortTalkRoomProvisioner implements IEventListener {
 			|| is_string($name) === false || trim($name) === ''
 			|| ctype_digit($registerId) === false || ctype_digit($schemaId) === false
 		) {
-			$this->logger->info('[CohortTalkRoomProvisioner] Activated cohort lacks a uuid, a name or a numeric register/schema; no Talk room created.');
+			$this->logger->info(
+				'[CohortTalkRoomProvisioner] Activated cohort lacks a uuid, a name or a numeric register/schema; no Talk room created.'
+			);
 			return null;
 		}
 

@@ -67,7 +67,12 @@ class PeerFeedbackAggregatorTest extends TestCase {
 	 *
 	 * @return PeerFeedbackAggregator
 	 */
-	private function makeAggregator(array $assignment, array $releasedReviews, ?array $existingSummary = null, ?array $learnerIds = ['learner-1']): PeerFeedbackAggregator {
+	private function makeAggregator(
+		array $assignment,
+		array $releasedReviews,
+		?array $existingSummary = null,
+		?array $learnerIds = ['learner-1']
+	): PeerFeedbackAggregator {
 		$objectService = $this->createMock(ObjectService::class);
 
 		$objectService->method('find')->willReturnCallback(
@@ -173,7 +178,14 @@ class PeerFeedbackAggregatorTest extends TestCase {
 	public function testTheSummaryCarriesNoReviewerIdentity(string $anonymity): void {
 		$assignment = ['id' => 'assignment-1', 'peerReviewAnonymity' => $anonymity];
 		$reviews = [
-			['id' => 'pr-1', 'submissionId' => 'sub-1', 'reviewerId' => 'reviewer-a', 'totalScore' => 8, 'comments' => 'Good', 'rubricScores' => [['criterionId' => 'c-1', 'points' => 4]]],
+			[
+				'id' => 'pr-1',
+				'submissionId' => 'sub-1',
+				'reviewerId' => 'reviewer-a',
+				'totalScore' => 8,
+				'comments' => 'Good',
+				'rubricScores' => [['criterionId' => 'c-1', 'points' => 4]]
+			],
 		];
 
 		$aggregator = $this->makeAggregator($assignment, $reviews);
@@ -183,13 +195,13 @@ class PeerFeedbackAggregatorTest extends TestCase {
 		self::assertSame('peer-feedback-summary', $this->savedObjects[0]['schema']);
 		$summary = $this->savedObjects[0]['object'];
 		self::assertSame(
-			[['comments' => 'Good', 'rubricScores' => [['criterionId' => 'c-1', 'points' => 4]]]],
-			$summary['feedbackItems']
+			expected: [['comments' => 'Good', 'rubricScores' => [['criterionId' => 'c-1', 'points' => 4]]]],
+			actual: $summary['feedbackItems']
 		);
 		$serialised = (string)json_encode($summary);
-		self::assertStringNotContainsString('reviewer-a', $serialised);
-		self::assertStringNotContainsString('pr-1', $serialised);
-		self::assertStringNotContainsString('reviewerId', $serialised);
+		self::assertStringNotContainsString(needle: 'reviewer-a', haystack: $serialised);
+		self::assertStringNotContainsString(needle: 'pr-1', haystack: $serialised);
+		self::assertStringNotContainsString(needle: 'reviewerId', haystack: $serialised);
 	}//end testTheSummaryCarriesNoReviewerIdentity()
 
 	/**
@@ -205,12 +217,17 @@ class PeerFeedbackAggregatorTest extends TestCase {
 			['id' => 'pr-1', 'submissionId' => 'sub-1', 'reviewerId' => 'reviewer-a', 'totalScore' => 8, 'comments' => 'Good', 'rubricScores' => []],
 		];
 
-		$aggregator = $this->makeAggregator(['id' => 'assignment-1'], $reviews, null, ['fenna', '', 7, 'sem', 'fenna']);
+		$aggregator = $this->makeAggregator(
+			assignment: ['id' => 'assignment-1'],
+			releasedReviews: $reviews,
+			existingSummary: null,
+			learnerIds: ['fenna', '', 7, 'sem', 'fenna']
+		);
 		$aggregator->handle($this->makeEvent(['id' => 'pr-1', 'submissionId' => 'sub-1', 'assignmentId' => 'assignment-1']));
 
 		$summary = $this->savedObjects[0]['object'];
-		self::assertSame(['fenna', 'sem'], $summary['learnerIds']);
-		self::assertSame('tenant-1', $summary['tenant_id']);
+		self::assertSame(expected: ['fenna', 'sem'], actual: $summary['learnerIds']);
+		self::assertSame(expected: 'tenant-1', actual: $summary['tenant_id']);
 	}//end testTheSummaryNamesTheSubmissionsLearners()
 
 	/**
@@ -224,12 +241,12 @@ class PeerFeedbackAggregatorTest extends TestCase {
 			['id' => 'pr-1', 'submissionId' => 'sub-1', 'reviewerId' => 'reviewer-a', 'totalScore' => 8, 'comments' => 'Good', 'rubricScores' => []],
 		];
 
-		$aggregator = $this->makeAggregator(['id' => 'assignment-1'], $reviews, null, null);
+		$aggregator = $this->makeAggregator(assignment: ['id' => 'assignment-1'], releasedReviews: $reviews, existingSummary: null, learnerIds: null);
 		$aggregator->handle($this->makeEvent(['id' => 'pr-1', 'submissionId' => 'sub-1', 'assignmentId' => 'assignment-1']));
 
 		$summary = $this->savedObjects[0]['object'];
-		self::assertSame([], $summary['learnerIds']);
-		self::assertSame('', $summary['tenant_id']);
+		self::assertSame(expected: [], actual: $summary['learnerIds']);
+		self::assertSame(expected: '', actual: $summary['tenant_id']);
 	}//end testAnUnreadableSubmissionNamesNoLearner()
 
 	/**

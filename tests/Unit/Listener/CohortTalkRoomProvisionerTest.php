@@ -69,10 +69,10 @@ class CohortTalkRoomProvisionerTest extends TestCase {
 	 */
 	protected function setUp(): void {
 		parent::setUp();
-		$this->talkLinks = $this->createMock(TalkLinkService::class);
-		$this->objects = $this->createMock(ObjectService::class);
-		$this->manager = $this->createMock(TalkManager::class);
-		$this->participants = $this->createMock(TalkParticipantService::class);
+		$this->talkLinks = $this->createMock(originalClassName: TalkLinkService::class);
+		$this->objects = $this->createMock(originalClassName: ObjectService::class);
+		$this->manager = $this->createMock(originalClassName: TalkManager::class);
+		$this->participants = $this->createMock(originalClassName: TalkParticipantService::class);
 	}//end setUp()
 
 	/**
@@ -81,7 +81,7 @@ class CohortTalkRoomProvisionerTest extends TestCase {
 	 * @return CohortTalkRoomProvisioner
 	 */
 	private function provisioner(): CohortTalkRoomProvisioner {
-		$container = $this->createMock(ContainerInterface::class);
+		$container = $this->createMock(originalClassName: ContainerInterface::class);
 		$container->method('get')->willReturnCallback(
 			fn (string $id): object => match ($id) {
 				'OCA\\Talk\\Manager' => $this->manager,
@@ -91,11 +91,11 @@ class CohortTalkRoomProvisionerTest extends TestCase {
 		);
 
 		return new CohortTalkRoomProvisioner(
-			$this->talkLinks,
-			$this->objects,
-			$container,
-			$this->createMock(LoggerInterface::class),
-			TransitionScope::resolver()
+			talkLinkService: $this->talkLinks,
+			objectService: $this->objects,
+			container: $container,
+			logger: $this->createMock(originalClassName: LoggerInterface::class),
+			schemas: TransitionScope::resolver()
 		);
 	}//end provisioner()
 
@@ -109,11 +109,11 @@ class CohortTalkRoomProvisionerTest extends TestCase {
 	 * @return ObjectTransitionedEvent
 	 */
 	private function event(string $schema, string $to, array $data): ObjectTransitionedEvent {
-		$entity = $this->createMock(ObjectEntity::class);
+		$entity = $this->createMock(originalClassName: ObjectEntity::class);
 		$entity->method('jsonSerialize')->willReturn($data);
 		$entity->method('getUuid')->willReturn($data['id'] ?? null);
 
-		$event = $this->createMock(ObjectTransitionedEvent::class);
+		$event = $this->createMock(originalClassName: ObjectTransitionedEvent::class);
 		$event->method('getObject')->willReturn($entity);
 		$event->method('getRegister')->willReturn(TransitionScope::LEARNIQ_REGISTER_ID);
 		$event->method('getSchema')->willReturn(TransitionScope::schemaId($schema));
@@ -153,21 +153,21 @@ class CohortTalkRoomProvisionerTest extends TestCase {
 			]
 		)->willReturn([['learnerId' => 'fenna'], ['learnerId' => 'daan'], ['learnerId' => ''], ['learnerId' => 'fenna']]);
 
-		$room = $this->createMock(TalkRoom::class);
+		$room = $this->createMock(originalClassName: TalkRoom::class);
 		$this->manager->method('getRoomByToken')->with('tok-1')->willReturn($room);
 		$this->participants->expects(self::once())->method('addUsers')->with(
 			$room,
 			[['actorType' => 'users', 'actorId' => 'fenna'], ['actorType' => 'users', 'actorId' => 'daan']]
 		);
 
-		$this->provisioner()->handle($this->event('cohort', 'active', ['id' => 'cohort-1', 'name' => ' Verpleegkunde 2027 ']));
+		$this->provisioner()->handle($this->event(schema: 'cohort', to: 'active', data: ['id' => 'cohort-1', 'name' => ' Verpleegkunde 2027 ']));
 
-		self::assertInstanceOf(RoomCreation::class, $created);
-		self::assertSame('Verpleegkunde 2027', $created->roomName);
-		self::assertSame(2, $created->roomType);
-		self::assertSame('cohort-1', $created->object->objectUuid);
-		self::assertSame((int)TransitionScope::LEARNIQ_REGISTER_ID, $created->object->registerId);
-		self::assertSame((int)TransitionScope::schemaId('cohort'), $created->object->schemaId);
+		self::assertInstanceOf(expected: RoomCreation::class, actual: $created);
+		self::assertSame(expected: 'Verpleegkunde 2027', actual: $created->roomName);
+		self::assertSame(expected: 2, actual: $created->roomType);
+		self::assertSame(expected: 'cohort-1', actual: $created->object->objectUuid);
+		self::assertSame(expected: (int)TransitionScope::LEARNIQ_REGISTER_ID, actual: $created->object->registerId);
+		self::assertSame(expected: (int)TransitionScope::schemaId('cohort'), actual: $created->object->schemaId);
 	}//end testANewActiveCohortGetsOneLinkedRoomWithItsLearners()
 
 	/**
@@ -182,7 +182,7 @@ class CohortTalkRoomProvisionerTest extends TestCase {
 		$this->objects->method('findAll')->willReturn([]);
 		$this->participants->expects(self::never())->method('addUsers');
 
-		$this->provisioner()->handle($this->event('cohort', 'active', ['id' => 'cohort-1', 'name' => 'Klas 1A']));
+		$this->provisioner()->handle($this->event(schema: 'cohort', to: 'active', data: ['id' => 'cohort-1', 'name' => 'Klas 1A']));
 	}//end testACohortWithoutActiveLearnersGetsAnEmptyRoom()
 
 	/**
@@ -198,7 +198,7 @@ class CohortTalkRoomProvisionerTest extends TestCase {
 		$this->talkLinks->expects(self::never())->method('createAndLinkRoom');
 		$this->participants->expects(self::never())->method('addUsers');
 
-		$this->provisioner()->handle($this->event('cohort', 'active', ['id' => 'cohort-1', 'name' => 'Klas 1A']));
+		$this->provisioner()->handle($this->event(schema: 'cohort', to: 'active', data: ['id' => 'cohort-1', 'name' => 'Klas 1A']));
 	}//end testACohortWithARoomGetsNoSecondOne()
 
 	/**
@@ -213,7 +213,7 @@ class CohortTalkRoomProvisionerTest extends TestCase {
 		$this->talkLinks->expects(self::never())->method('getLinkedRooms');
 		$this->talkLinks->expects(self::never())->method('createAndLinkRoom');
 
-		$this->provisioner()->handle($this->event('cohort', 'active', ['id' => 'cohort-1', 'name' => 'Klas 1A']));
+		$this->provisioner()->handle($this->event(schema: 'cohort', to: 'active', data: ['id' => 'cohort-1', 'name' => 'Klas 1A']));
 	}//end testTalkOffCreatesNothing()
 
 	/**
@@ -228,7 +228,7 @@ class CohortTalkRoomProvisionerTest extends TestCase {
 		$this->talkLinks->method('createAndLinkRoom')->willThrowException(new \Exception('No user logged in'));
 		$this->objects->expects(self::never())->method('findAll');
 
-		$this->provisioner()->handle($this->event('cohort', 'active', ['id' => 'cohort-1', 'name' => 'Klas 1A']));
+		$this->provisioner()->handle($this->event(schema: 'cohort', to: 'active', data: ['id' => 'cohort-1', 'name' => 'Klas 1A']));
 		$this->addToAssertionCount(1);
 	}//end testARefusedRoomFailsSoft()
 
@@ -244,9 +244,9 @@ class CohortTalkRoomProvisionerTest extends TestCase {
 		$this->talkLinks->expects(self::never())->method('createAndLinkRoom');
 
 		$provisioner = $this->provisioner();
-		$provisioner->handle($this->event('cohort', 'completed', ['id' => 'cohort-1', 'name' => 'Klas 1A']));
-		$provisioner->handle($this->event('enrolment', 'active', ['id' => 'enr-1', 'name' => 'Klas 1A']));
-		$provisioner->handle($this->event('cohort', 'active', ['id' => 'cohort-1', 'name' => '  ']));
-		$provisioner->handle($this->createMock(Event::class));
+		$provisioner->handle($this->event(schema: 'cohort', to: 'completed', data: ['id' => 'cohort-1', 'name' => 'Klas 1A']));
+		$provisioner->handle($this->event(schema: 'enrolment', to: 'active', data: ['id' => 'enr-1', 'name' => 'Klas 1A']));
+		$provisioner->handle($this->event(schema: 'cohort', to: 'active', data: ['id' => 'cohort-1', 'name' => '  ']));
+		$provisioner->handle($this->createMock(originalClassName: Event::class));
 	}//end testOnlyANamedCohortBecomingActiveCounts()
 }//end class
