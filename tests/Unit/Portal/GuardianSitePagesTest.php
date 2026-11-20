@@ -291,8 +291,11 @@ class GuardianSitePagesTest extends TestCase {
 
 		self::assertTrue($overview['home']);
 		// The board's order (school-design vaartveld MijnOverzicht): greeting, today's timetable with
-		// the whole week, homework and tests, grades, absence.
-		self::assertSame(['greeting', 'calendar', 'cta', 'tasks', 'collection', 'kpi', 'cta', 'cta', 'inbox'], array_column($overview['blocks'], 'type'));
+		// the whole week, homework and tests, a talk to book, grades, absence.
+		self::assertSame(
+			expected: ['greeting', 'calendar', 'cta', 'tasks', 'tasks', 'collection', 'kpi', 'cta', 'cta', 'inbox'],
+			actual: array_column($overview['blocks'], 'type')
+		);
 		self::assertSame(['timetable', 'day'], [$overview['blocks'][1]['display'], $overview['blocks'][1]['range']]);
 		self::assertSame('studentSessions', $overview['blocks'][2]['page']);
 		self::assertSame('studentHomework', $overview['blocks'][3]['collection']);
@@ -304,9 +307,17 @@ class GuardianSitePagesTest extends TestCase {
 			$overview['blocks'][3]['lookups']
 		);
 		self::assertSame(['lookup' => 'submission', 'in' => ['submitted', 'late', 'returned']], $overview['blocks'][3]['excludeWhen']);
-		self::assertSame(['studentGrades', 3], [$overview['blocks'][4]['collection'], $overview['blocks'][4]['limit']]);
-		self::assertSame('studentAttendanceSummary', $overview['blocks'][5]['collection']);
-		self::assertSame(['absentDays', 'lateCount', 'absentUnauthorisedDays'], array_column($overview['blocks'][5]['cards'], 'field'));
+		// Pupil-books-support-lessons-and-mentor-talks: her invitation links to the booking page.
+		self::assertSame(
+			expected: ['studentConferenceInvitations', 'Choose a time'],
+			actual: [$overview['blocks'][4]['collection'], $overview['blocks'][4]['buttonLabel']]
+		);
+		self::assertSame(expected: ['studentGrades', 3], actual: [$overview['blocks'][5]['collection'], $overview['blocks'][5]['limit']]);
+		self::assertSame(expected: 'studentAttendanceSummary', actual: $overview['blocks'][6]['collection']);
+		self::assertSame(
+			expected: ['absentDays', 'lateCount', 'absentUnauthorisedDays'],
+			actual: array_column($overview['blocks'][6]['cards'], 'field')
+		);
 
 		$inMenu = [];
 		foreach ($pages as $id => $page) {
@@ -317,7 +328,16 @@ class GuardianSitePagesTest extends TestCase {
 
 		self::assertSame(
 			// "BPV en uren" from the esdoornveen board (student-portal-reads-like-the-boards).
-			['studentSessions' => 'Timetable', 'studentGrades' => 'Grades', 'studentHourWeeks' => 'BPV and hours', 'studentExcuseRequests' => 'Report an absence', 'studentTests' => 'Tests', 'studentHomework' => 'Hand in'],
+			// Her documents per enrolment (school-documents-on-the-portal T3).
+			[
+				'studentSessions' => 'Timetable',
+				'studentGrades' => 'Grades',
+				'studentHourWeeks' => 'BPV and hours',
+				'studentExcuseRequests' => 'Report an absence',
+				'studentTests' => 'Tests',
+				'studentHomework' => 'Hand in',
+				'studentDocuments' => 'Documents'
+			],
 			$inMenu
 		);
 

@@ -533,6 +533,22 @@
 					}
 				},
 				{
+					"id": "ExamRegistrationsMenu",
+					"label": "Exam registrations",
+					"icon": "Calendar",
+					"route": "ExamRegistrations",
+					"order": 73,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						}
+					}
+				},
+				{
 					"id": "CourseParticipantsMenu",
 					"label": "Participants",
 					"icon": "AccountMultiple",
@@ -2520,6 +2536,29 @@
 						}
 					},
 					{
+						"id": "coh-source",
+						"type": "facts",
+						"title": "Student administration",
+						"content": {
+							"fields": [
+								{
+									"path": "externalSource",
+									"label": "Name, year, learners and teachers from"
+								},
+								{
+									"path": "syncedAt",
+									"label": "Last synced",
+									"format": "longdatetime"
+								},
+								{
+									"path": "syncChanges",
+									"label": "Changes in the last sync"
+								}
+							],
+							"hideEmpty": true
+						}
+					},
+					{
 						"id": "coh-notes",
 						"type": "facts",
 						"title": "Notes",
@@ -3060,7 +3099,153 @@
 				"defaultSort": "dayDate",
 				"rowRoute": "CohortDetail",
 				"countText": "{shown} of {total} course days",
-				"bulkNoun": "course days"
+				"bulkNoun": "course days",
+				"actions": [
+					{
+						"id": "issue-certificates",
+						"label": "Issue certificates",
+						"icon": "CertificateOutline",
+						"type": "api-call",
+						"method": "POST",
+						"url": "/apps/learniq/api/course-days/@objectId/certificates",
+						"successMessage": "The certificates of the passed participants were issued.",
+						"visibleWhen": {
+							"field": "dayStatus",
+							"op": "eq",
+							"value": "rounding-off"
+						}
+					}
+				]
+			}
+		},
+		{
+			"id": "ExamRegistrations",
+			"route": "/exam-registrations",
+			"type": "index",
+			"title": "Exam registrations",
+			"_note": "exam-registration-and-certificate-issue T1/T3: the administration registers the participants of a course day with an external examining body. A list is opened with Open a registration list (POST /api/exam-registrations); its lines (who is complete for the fields the body requires) are written by ExamRegistrationService and refreshed while the list is open; ExamRegistrationCloseJob closes it at its moment. A closed list downloads as CSV in the body's column order (GET /api/exam-registrations/{id}/export) and is marked sent. Every endpoint is guarded by exam-registration.manage.",
+			"config": {
+				"register": "learniq",
+				"schema": "ExamRegistration",
+				"showTitle": true,
+				"showDeleteAction": false,
+				"showMassImport": false,
+				"showMassCopy": false,
+				"showMassDelete": false,
+				"headerActions": [
+					{
+						"id": "open-exam-registration",
+						"label": "Open a registration list",
+						"icon": "ClipboardListOutline",
+						"type": "open-form",
+						"register": "learniq",
+						"endpoint": {
+							"url": "/apps/learniq/api/exam-registrations",
+							"method": "POST"
+						},
+						"formProperties": {
+							"cohortId": {
+								"type": "string",
+								"format": "uuid",
+								"$ref": "cohort",
+								"title": "Course day"
+							},
+							"bodyName": {
+								"type": "string",
+								"title": "Examining body"
+							},
+							"closesAt": {
+								"type": "string",
+								"format": "date-time",
+								"title": "Closes at",
+								"description": "After this moment the list closes and can be exported."
+							},
+							"examDate": {
+								"type": "string",
+								"format": "date",
+								"title": "Exam date",
+								"description": "Leave empty for the date of the course day."
+							}
+						}
+					}
+				],
+				"columns": [
+					{
+						"key": "courseName",
+						"label": "Course"
+					},
+					{
+						"key": "examDate",
+						"label": "Exam date",
+						"formatter": "date"
+					},
+					{
+						"key": "bodyName",
+						"label": "Examining body"
+					},
+					{
+						"key": "closesAt",
+						"label": "Closes at",
+						"formatter": "date"
+					},
+					{
+						"key": "completeCount",
+						"label": "Complete"
+					},
+					{
+						"key": "participantCount",
+						"label": "Participants"
+					},
+					{
+						"key": "lifecycle",
+						"label": "Status"
+					}
+				],
+				"actions": [
+					{
+						"id": "close-registration",
+						"label": "Close the list",
+						"icon": "LockOutline",
+						"type": "api-call",
+						"method": "POST",
+						"url": "/apps/learniq/api/exam-registrations/@objectId/close",
+						"successMessage": "The list is closed.",
+						"visibleWhen": {
+							"field": "lifecycle",
+							"op": "eq",
+							"value": "open"
+						}
+					},
+					{
+						"id": "export-registration",
+						"label": "Download the list",
+						"icon": "Download",
+						"type": "navigate",
+						"target": "/index.php/apps/learniq/api/exam-registrations/{objectId}/export",
+						"visibleWhen": {
+							"field": "lifecycle",
+							"op": "neq",
+							"value": "open"
+						}
+					},
+					{
+						"id": "mark-registration-sent",
+						"label": "Mark as sent",
+						"icon": "SendOutline",
+						"type": "api-call",
+						"method": "POST",
+						"url": "/apps/learniq/api/exam-registrations/@objectId/sent",
+						"successMessage": "The list is marked as sent.",
+						"visibleWhen": {
+							"field": "lifecycle",
+							"op": "eq",
+							"value": "closed"
+						}
+					}
+				],
+				"defaultSort": "examDate",
+				"countText": "{shown} of {total} registration lists",
+				"bulkNoun": "registration lists"
 			}
 		},
 		{
@@ -5103,7 +5288,7 @@
 						}
 					]
 				},
-				"_note": "A Submission is a learner's handed-in work for an assignment (attachments, feedback, rubric scores, proposed grade, linked grade entry) — a result/score record. Body leads with the submission data including feedback and rubric scores (8-wide), a proposed-grade KPI stat, and a Related panel resolving the assignment and grade entry. The submitted work renders as a Files leaf (attachments are the point of a submission). No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail.",
+				"_note": "A Submission is a learner's handed-in work for an assignment (attachments, feedback, rubric scores, proposed grade, linked grade entry) — a result/score record. Body leads with the submission data including feedback and rubric scores (8-wide), a proposed-grade KPI stat, and a Related panel resolving the assignment and grade entry. The submitted work renders as a Files leaf (attachments are the point of a submission). No comms leaves (no linkedTypes). Sidebar keeps metadata + audit-trail. Peer feedback is the Submission's PeerFeedbackSummary (average score, number of released reviews): its read rule lets the Submission's own learner in once a review is released, and it names no reviewer (cohort-room-and-feedback-summary-for-the-learner).",
 				"widgets": [
 					{
 						"id": "sub-data",
@@ -5126,6 +5311,27 @@
 						"integrationId": "files",
 						"title": "Submitted work",
 						"icon": "FolderOutline"
+					},
+					{
+						"id": "sub-peer-feedback",
+						"type": "record-list",
+						"title": "Peer feedback",
+						"icon": "MessageTextOutline",
+						"content": {
+							"register": "learniq",
+							"schema": "peer-feedback-summary",
+							"filter": {
+								"submissionId": "@objectId"
+							},
+							"limit": 1,
+							"presentation": "rows",
+							"title": "Average score {averageScore}",
+							"meta": "{reviewCount} released reviews",
+							"trailing": [
+								"{lastComputedAt|date}"
+							],
+							"emptyText": "No peer feedback released yet"
+						}
 					}
 				],
 				"layout": [
@@ -5155,6 +5361,15 @@
 						"gridWidth": 12,
 						"gridHeight": 3,
 						"showTitle": false
+					},
+					{
+						"id": "4",
+						"widgetId": "sub-peer-feedback",
+						"gridX": 0,
+						"gridY": 8,
+						"gridWidth": 12,
+						"gridHeight": 2,
+						"showTitle": true
 					}
 				],
 				"sidebar": {
@@ -5415,7 +5630,7 @@
 				"register": "learniq",
 				"schema": "peer-feedback-summary",
 				"readOnly": true,
-				"_note": "PeerFeedbackSummary is a computed, read-only aggregate of a Submission's released PeerReviews (peer-and-self-assessment) — the only surface a submission's author reads peer feedback through; feedbackItems[].reviewerId is server-computed as null when the governing Assignment's peerReviewAnonymity is blind/double-blind. Mirrors FinalGrade's own read-only detail-page archetype. Body leads with the aggregate data (8-wide) and a Related panel resolving the submission/assignment. No lifecycle (fully derived). No comms leaves.",
+				"_note": "PeerFeedbackSummary is a computed, read-only aggregate of a Submission's released PeerReviews (peer-and-self-assessment) — the only surface a submission's author reads peer feedback through; it carries no reviewer identity in any anonymity mode. Mirrors FinalGrade's own read-only detail-page archetype. Body leads with the aggregate data (8-wide) and a Related panel resolving the submission/assignment. No lifecycle (fully derived). No comms leaves.",
 				"widgets": [
 					{
 						"id": "pfs-data",
@@ -7978,6 +8193,14 @@
 					"route": "LearningPlans"
 				},
 				"headerMeta": "coordinator {coordinatorId|user}, next evaluation {nextReviewAt|longdate}",
+				"bodyWidgets": [
+					{
+						"id": "lp-version-changes",
+						"component": "LearningPlanVersionChanges",
+						"title": "What changed",
+						"placement": "after-data"
+					}
+				],
 				"widgets": [
 					{
 						"id": "lp-goals",
@@ -9913,9 +10136,60 @@
 			"config": {
 				"register": "learniq",
 				"schema": "report-card",
-				"_note": "report-card-composer: a ReportCard is one composed periodic rapport for one learner (subjectGrades[] snapshotting FinalGrade.breakdown.periods[periodCode], attendanceSummary, teacher/mentor comments, fail-soft docudesk PDF-render state) — a document/record archetype. Body leads with the card data (8-wide, generic 'data' widget renders subjectGrades[]/attendanceSummary as-is, no content.fields allowlist needed per the DataMappingProfile.fieldMappings precedent) and a Related panel resolving the ReportPeriod/learner. lifecycleActions expose pullIntoReview/finalise/reopen/publishToParents/recompose/renderToPdf/rerenderToPdf declaratively — ReportCardFinaliseGuard/ReportCardReopenGuard/ReportCardVisibilityGuard enforce the review-then-publish gate server-side; the cohort-wide bulk review grid lives in the separate RapportvergaderingReviewView custom view. Sidebar keeps metadata + audit-trail.",
+				"_note": "report-card-composer: a ReportCard is one composed periodic rapport for one learner (subjectGrades[] snapshotting FinalGrade.breakdown.periods[periodCode], attendanceSummary, teacher/mentor comments, fail-soft docudesk PDF-render state) — a document/record archetype. Body leads with the card data (8-wide, generic 'data' widget renders subjectGrades[]/attendanceSummary as-is, no content.fields allowlist needed per the DataMappingProfile.fieldMappings precedent) and a Related panel resolving the ReportPeriod/learner. lifecycleActions declare all seven of the schema's transitions (pullIntoReview/recompose/finalise/publishToParents/reopen/renderToPdf/rerenderToPdf), because a declared list replaces the server's available-actions list — ReportCardFinaliseGuard/ReportCardReopenGuard/ReportCardVisibilityGuard enforce the review-then-publish gate server-side; the cohort-wide bulk review grid lives in the separate RapportvergaderingReviewView custom view. Sidebar keeps metadata + audit-trail. report-card-pdf-to-guardians: the card's PDF is rendered on publish and attached to the card, so card-files lists it; docudeskRenderStatus reads through its x-enum-labels in the data widget, and renderToPdf/rerenderToPdf read 'Render the PDF again' for the retry after a failed render.",
 				"lifecycleActions": {
-					"field": "lifecycle"
+					"field": "lifecycle",
+					"transitions": [
+						{
+							"from": "draft",
+							"to": "rapportvergadering-review",
+							"action": "pullIntoReview",
+							"label": "Pull into review",
+							"variant": "primary"
+						},
+						{
+							"from": "draft",
+							"to": "draft",
+							"action": "recompose",
+							"label": "Recompose",
+							"variant": "secondary"
+						},
+						{
+							"from": "rapportvergadering-review",
+							"to": "finalised",
+							"action": "finalise",
+							"label": "Finalise",
+							"variant": "primary"
+						},
+						{
+							"from": "finalised",
+							"to": "published-to-parents",
+							"action": "publishToParents",
+							"label": "Publish to parents",
+							"variant": "primary"
+						},
+						{
+							"from": "finalised",
+							"to": "rapportvergadering-review",
+							"action": "reopen",
+							"label": "Reopen",
+							"variant": "secondary"
+						},
+						{
+							"from": "finalised",
+							"to": "finalised",
+							"action": "renderToPdf",
+							"label": "Render the PDF again",
+							"variant": "secondary"
+						},
+						{
+							"from": "published-to-parents",
+							"to": "published-to-parents",
+							"action": "rerenderToPdf",
+							"label": "Render the PDF again",
+							"variant": "secondary"
+						}
+					]
 				},
 				"widgets": [
 					{
@@ -9932,6 +10206,13 @@
 						"type": "related",
 						"title": "Related",
 						"icon": "LinkVariant"
+					},
+					{
+						"id": "card-files",
+						"type": "integration",
+						"integrationId": "files",
+						"title": "Report card PDF",
+						"icon": "FolderOutline"
 					}
 				],
 				"layout": [
@@ -9951,6 +10232,15 @@
 						"gridY": 0,
 						"gridWidth": 4,
 						"gridHeight": 6,
+						"showTitle": false
+					},
+					{
+						"id": "3",
+						"widgetId": "card-files",
+						"gridX": 0,
+						"gridY": 6,
+						"gridWidth": 12,
+						"gridHeight": 3,
 						"showTitle": false
 					}
 				],

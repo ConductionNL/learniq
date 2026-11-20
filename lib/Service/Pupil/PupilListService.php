@@ -35,6 +35,7 @@ use OCA\Learniq\Service\Attendance\RollCallAccess;
 use OCA\Learniq\Service\Attendance\RollCallException;
 use OCA\Learniq\Service\Attendance\TodayState;
 use OCA\Learniq\Service\Attendance\TodayStateService;
+use OCA\Learniq\Service\Calendar\SchoolYear as SchoolCalendarYear;
 use OCA\Learniq\Support\SchoolYear;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IUser;
@@ -60,6 +61,7 @@ class PupilListService {
 	 * @param TodayStateService $todayStates Today's state per pupil of a group.
 	 * @param PupilPageReader   $reader      The pupils' records.
 	 * @param ITimeFactory      $time        Clock.
+	 * @param SchoolCalendarYear $schoolYear The school's school year, which says the day it starts.
 	 *
 	 * @return void
 	 */
@@ -68,6 +70,7 @@ class PupilListService {
 		private readonly TodayStateService $todayStates,
 		private readonly PupilPageReader $reader,
 		private readonly ITimeFactory $time,
+		private readonly SchoolCalendarYear $schoolYear=new SchoolCalendarYear(),
 	) {
 	}//end __construct()
 
@@ -104,7 +107,7 @@ class PupilListService {
 		$zone = $this->access->zone(user: $user);
 		$today = $this->access->today(zone: $zone);
 		$now = (new DateTimeImmutable('@' . $this->time->getTime()))->setTimezone($zone);
-		$schoolYear = (SchoolYear::of(date: $today) ?? '');
+		$schoolYear = (SchoolYear::of(date: $today, start: $this->schoolYear->start()) ?? '');
 
 		$rows = [];
 		if ($learnerIds !== []) {

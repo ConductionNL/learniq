@@ -704,13 +704,54 @@ class StudentPortalPages {
 			$pages[] = $this->collectionPage(collection: $collection, actions: $actions);
 		}
 
+		// The page her mentor-talk task opens.
+		if (in_array('studentConferenceInvitations', array_column($collections, 'id'), true) === true) {
+			$pages[] = (new StudentSelfBooking())->pickATimePage();
+		}
+
 		// Her self-assessment, where her work processes are read.
 		if (in_array('studentWorkProcesses', array_column($collections, 'id'), true) === true) {
 			$pages[] = (new StudentSelfAssessment())->page();
 		}
 
+		// Her documents, a group per enrolment (school-documents-on-the-portal T3).
+		if (in_array('studentEnrolments', array_column($collections, 'id'), true) === true) {
+			$pages[] = $this->documentsPage();
+		}
+
 		return $pages;
 	}//end pages()
+
+	/**
+	 * Her documents (vaartveld/Documenten, esdoornveen/Documenten): a group
+	 * per enrolment with her reports, statements, agreements and
+	 * certificates. Portaliq lists every group through the per-row route,
+	 * which proves the enrolment is hers before LearnerDocuments is asked.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-each-school-audience-offers-its-own-documents-grouped-per-record
+	 */
+	public function documentsPage(): array {
+		return [
+			'id' => 'studentDocuments',
+			'label' => 'Documents',
+			'icon' => 'FileDocumentMultipleOutline',
+			'group' => ParentSitePages::GROUP,
+			'blocks' => [
+				['type' => 'richText', 'markdown' => 'Your reports, choices, agreements and certificates. You can download and keep them all.'],
+				// A proof of enrolment for a side job or a travel card (school-documents-on-the-portal T4).
+				['type' => 'action', 'action' => 'requestProofOfEnrolment'],
+				[
+					'type' => 'documents',
+					'collection' => 'studentEnrolments',
+					'eachRecord' => true,
+					'titleFields' => ['cohortName'],
+					'emptyLabel' => 'There are no documents yet.',
+				],
+			],
+		];
+	}//end documentsPage()
 
 	/**
 	 * The overview, in the order of the board (school-design vaartveld,
@@ -740,6 +781,8 @@ class StudentPortalPages {
 				$this->timetableBlock(label: 'Your timetable today', range: 'day'),
 				['type' => 'cta', 'page' => 'studentSessions', 'label' => 'Whole week'],
 				self::STUDENT_HOMEWORK_TASKS_BLOCK,
+				// Her talk invitation links to the booking page (pupil-books-support-lessons-and-mentor-talks, D-5).
+				(new StudentSelfBooking())->invitationTasksBlock(),
 				self::STUDENT_LATEST_GRADES_BLOCK,
 				$this->absenceFigures(),
 				['type' => 'cta', 'action' => 'createSubmission', 'label' => 'Hand in work'],

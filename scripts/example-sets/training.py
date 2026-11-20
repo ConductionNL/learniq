@@ -119,6 +119,8 @@ SCHEMAS = [
     # The client company and its bookings (employer-portal-audience).
     "client-organisation",
     "course-booking",
+    # The exam registration list of the F-gassen day (exam-registration-and-certificate-issue).
+    "exam-registration",
 ]
 IDENTITY = SetIdentity(SET, SET_NUMBER, SCHEMAS)
 
@@ -658,6 +660,14 @@ STORY_PEOPLE = [
     ("daan", "Daan", "Visser", "2001-09-04"),
 ]
 
+# exam-registration-and-certificate-issue. Where the employees were born: the examining body asks for it
+# besides the name and the birth date. Only the export of the registration list carries it.
+STORY_BIRTHPLACE = {"tom": "Utrecht", "youssef": "Amersfoort", "sanne": "Zeist", "daan": "Houten"}
+# The registration of the 8 October F-gassen exam: closes on Wednesday 7 October at 12.00 (board LqRolC);
+# Linda's task for Youssef's birth date was seen on the morning of today.
+STORY_EXAM_CLOSES = (dt.date(2026, 10, 7), 12, 0)
+STORY_EMPLOYER_TOLD = (STORY_TODAY, 7, 45)
+
 # The editions: (course, inschrijving number, trainer, days, people, enrolment lifecycle, enrolled at).
 # The inschrijving number I-2026-NNNN has no field of its own; Enrolment.volgnummer carries NNNN.
 STORY_EDITIONS = [
@@ -1005,6 +1015,7 @@ class JansenStory:
         self.add_credentials()
         self.add_course_days()
         self.add_booking_facts()
+        self.add_exam_registration()
 
     def add_rooms(self) -> None:
         """Rooms in the praktijkhal."""
@@ -1062,6 +1073,7 @@ class JansenStory:
             fields = {"ncUserId": f"training-deelnemer-{n:03d}", "givenName": given, "familyName": family}
             if birth is not None:
                 fields["birthDate"] = birth
+            fields["placeOfBirth"] = STORY_BIRTHPLACE[key]
             fields.update({
                 "schoolId": self.school["uuid"], "roles": ["learner"], "eduPersonAffiliation": ["affiliate"], "managerId": self.linda["ncUserId"],
                 "department": f"{STORY_COMPANY}/Montage", "parentIds": [], "guardianRefs": [], "lifecycle": "active",
@@ -1223,6 +1235,33 @@ class JansenStory:
             booking.update(facts["booking"])
             for e in rows:
                 e.update(facts["enrolments"][e["uuid"]])
+
+    def add_exam_registration(self) -> None:
+        """exam-registration-and-certificate-issue: the registration list of the 8 October F-gassen exam with the
+        examining body, as ExamRegistrationService writes it: one line per participant, Youssef's birth date missing
+        and Linda's task for it. The list never carries a birth date or a place of birth."""
+        required = ["fullName", "birthDate", "placeOfBirth"]
+        enrolments = [self.enrolments[(412, key)] for key in ("tom", "youssef", "sanne")]
+        lines = []
+        for e in enrolments:
+            p = next(p for p in self.people.values() if p["uuid"] == e["learnerRef"])
+            missing = [f for f in required if not (f"{p.get('givenName', '')} {p.get('familyName', '')}".strip() if f == "fullName" else p.get(f))]
+            task = e.get("openTask") if missing else None
+            lines.append({
+                "enrolmentId": e["uuid"], "learnerRef": p["uuid"], "learnerName": f"{p['givenName']} {p['familyName']}",
+                "organisationRef": self.company["uuid"], "organisationName": self.company["name"], "contactName": self.company["contactName"],
+                "missing": missing, "complete": not missing, "employerTask": task,
+                "employerNotifiedAt": stamp(*STORY_EMPLOYER_TOLD) if task else None,
+                "result": None, "resultBy": None, "credentialId": None,
+            })
+        lines.sort(key=lambda line: line["learnerName"])
+        course = self.courses["FGAS-H"]
+        self.b.add("exam-registration", {
+            "cohortId": enrolments[0]["cohortId"], "courseId": course["uuid"], "courseName": course["name"],
+            "examDate": dt.date(2026, 10, 8).isoformat(), "bodyName": EXAM_COOLING[0], "closesAt": stamp(*STORY_EXAM_CLOSES),
+            "requiredFields": required, "lines": lines, "participantCount": len(lines),
+            "completeCount": sum(1 for line in lines if line["complete"]), "lifecycle": "open",
+        })
 
 
 def build() -> dict:

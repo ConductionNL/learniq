@@ -377,6 +377,22 @@ class PortalContributionProvider {
 	}//end schoolDocuments()
 
 	/**
+	 * The `documents` provider of `studentEnrolments`: the learner's own
+	 * reports, approved subject choice, work placement agreement with its
+	 * signing state and certificates. Portaliq calls this only for an
+	 * enrolment it read through her own scoped collection.
+	 *
+	 * @param string $id The enrolment id.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 *
+	 * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-each-school-audience-offers-its-own-documents-grouped-per-record
+	 */
+	public function studentDocuments(string $id): array {
+		return ($this->records?->learner?->forEnrolment(enrolmentId: $id) ?? []);
+	}//end studentDocuments()
+
+	/**
 	 * The audiences this provider contributes to (contract v2, preferred).
 	 *
 	 * The registry probes for this method first. Learniq serves the learner
@@ -496,10 +512,13 @@ class PortalContributionProvider {
 	private function studentContribution(): array {
 		$site = new StudentPortalPages();
 		$own  = new StudentPortalCollections();
+		$booking = new StudentSelfBooking();
 		$collections = array_merge(
 			$own->studentResultCollections(),
 			$own->studentActivityCollections(site: $site),
-			[$own->studentTestsCollection(), $site->homeworkCollection(), $site->attendanceSummaryCollection(), $site->sessionsCollection()]
+			[$own->studentTestsCollection(), $site->homeworkCollection(), $site->attendanceSummaryCollection(), $site->sessionsCollection()],
+			$booking->electiveCollections(),
+			$booking->conferenceCollections()
 		);
 		$actions = array_merge(
 			$this->studentActions(site: $site),
@@ -507,7 +526,8 @@ class PortalContributionProvider {
 			[$this->handInAction()],
 			(new CatalogueFlowActions())->actions(),
 			(new WorkGroupFlowActions())->actions(),
-			(new StudentFlowActions())->actions()
+			(new StudentFlowActions())->actions(),
+			[$booking->signUpForElectiveAction(), $booking->bookConferenceSlotAction()]
 		);
 
 		return [
@@ -958,6 +978,10 @@ class PortalContributionProvider {
 				// subject or a period (portal-parent-report-card-grades).
 				'fields' => self::PARENT_REPORT_CARDS_FIELDS,
 				'columns' => self::PARENT_REPORT_CARDS_COLUMNS,
+				// The rendered PDF is a file on the published card, so the guardian
+				// downloads it through portaliq's opt-in, scoped by the same join
+				// and filter as the read (report-card-pdf-to-guardians D2).
+				'filesDownload' => true,
 			],
 		];
 

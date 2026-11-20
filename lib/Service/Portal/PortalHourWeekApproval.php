@@ -40,7 +40,6 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Portal;
 
-use DateTimeImmutable;
 use OCA\Learniq\Kernel\Contracts\PortalHourWeekApprovalInterface;
 use OCA\Learniq\Service\HourDayLines;
 use OCA\Learniq\Service\HourReturnSubject;
@@ -116,8 +115,9 @@ class PortalHourWeekApproval implements PortalHourWeekApprovalInterface {
 	 */
 	public function approve(string $trainerRef, string $trust, array $body): PortalOutcome {
 		$assurance = (self::TRUST_TO_ASSURANCE[$trust] ?? 'basic');
-		$weekId = $this->text(value: ($body['hourWeekId'] ?? null));
-		$refusal = $this->requestRefusal(assurance: $assurance, request: ['trainerRef' => $trainerRef, 'weekId' => $weekId]);
+		$answers = new PortalAnswers();
+		$weekId = $answers->text(field: 'hourWeekId', value: ($body['hourWeekId'] ?? null));
+		$refusal = $this->requestRefusal(assurance: $assurance, request: ['trainerRef' => $trainerRef, 'weekId' => $weekId], answers: $answers);
 		if ($refusal !== null) {
 			return $refusal;
 		}
@@ -172,19 +172,20 @@ class PortalHourWeekApproval implements PortalHourWeekApprovalInterface {
 	 *
 	 * @param string               $assurance The caller's assurance level.
 	 * @param array<string, mixed> $request   trainerRef and weekId.
+	 * @param PortalAnswers        $answers   The form's answers, which name the missing fields.
 	 *
 	 * @return PortalOutcome|null Null when the request may proceed.
 	 *
 	 * @spec openspec/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
 	 */
-	private function requestRefusal(string $assurance, array $request): ?PortalOutcome {
+	private function requestRefusal(string $assurance, array $request, PortalAnswers $answers): ?PortalOutcome {
 		$floor = $this->floor();
 		if (self::ASSURANCE_ORDER[$assurance] < self::ASSURANCE_ORDER[$floor]) {
 			return new PortalOutcome(status: 403, body: ['error' => 'assurance_too_low', 'required' => $floor], reason: 'assurance-too-low');
 		}
 
 		if ($request['trainerRef'] === '' || $request['weekId'] === '') {
-			return new PortalOutcome(status: 422, body: ['error' => 'incomplete'], reason: 'incomplete');
+			return $answers->refused(error: 'incomplete', reason: 'incomplete');
 		}
 
 		return null;
@@ -277,7 +278,7 @@ class PortalHourWeekApproval implements PortalHourWeekApprovalInterface {
 				'hoursApproved' => $approved,
 				'approvedBy' => $trainerRef,
 				'approvedByName' => $name,
-				'approvedAt' => (new DateTimeImmutable())->format('Y-m-d\TH:i:sP'),
+				'approvedAt' => date('Y-m-d\TH:i:sP'),
 				'assuranceLevel' => $assurance,
 				'note' => $this->text(value: ($body['note'] ?? ($week['note'] ?? null))),
 				'lifecycle' => $lifecycle,

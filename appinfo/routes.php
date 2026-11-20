@@ -59,6 +59,10 @@ $routes = [
         ['name' => 'credentialEuropass#download', 'url' => '/api/credentials/{id}/europass', 'verb' => 'GET'],
         ['name' => 'credentialEuropass#download', 'url' => '/api/credentials/{id}/europass/download', 'verb' => 'POST', 'postfix' => 'post'],
         ['name' => 'credentialEuropass#create', 'url' => '/api/credentials/{id}/europass', 'verb' => 'POST'],
+        // Certificate PDF (credentials-certificate-pdf): the holder, hr and
+        // compliance officers download the rendered PDF; others get a 404.
+        ['name' => 'credential#pdf', 'url' => '/api/credentials/{id}/pdf', 'verb' => 'GET'],
+        ['name' => 'credential#pdf', 'url' => '/api/credentials/{id}/pdf/download', 'verb' => 'POST', 'postfix' => 'post'],
 
         // Admin key management — admin-only via #[AuthorizedAdminSetting], cryptographic operation (ADR-031).
         // Controller: KeyAdminController (slug: keyAdmin).
@@ -300,6 +304,10 @@ $routes = [
         // user, never a body value); the roster and placing behind elective.manage.
         // Every write passes ElectiveSignUpRules. #[NoAdminRequired], checks in the body.
         ['name' => 'elective#mine', 'url' => '/api/electives', 'verb' => 'GET'],
+        // Keuzedelen (exam-committee-today-and-keuzedelen): the offers open to the signed-in
+        // student and choosing one; the student is the session user, never a body value.
+        ['name' => 'keuzedeel#mine', 'url' => '/api/keuzedelen', 'verb' => 'GET'],
+        ['name' => 'keuzedeel#choose', 'url' => '/api/keuzedelen/{offerId}/choose', 'verb' => 'POST', 'requirements' => ['offerId' => '[^/]+']],
         ['name' => 'elective#signUp', 'url' => '/api/electives/{offerId}/sign-up', 'verb' => 'POST', 'requirements' => ['offerId' => '[^/]+']],
         ['name' => 'elective#roster', 'url' => '/api/electives/{offerId}/roster', 'verb' => 'GET', 'requirements' => ['offerId' => '[^/]+']],
         ['name' => 'elective#place', 'url' => '/api/electives/{offerId}/place', 'verb' => 'POST', 'requirements' => ['offerId' => '[^/]+']],
@@ -346,12 +354,17 @@ $routes = [
         // and #1142): X-Portal-Subject assertion only, learnerRef from portaliq.
         // Controller: PortalCheckInController (slug: portalCheckIn).
         ['name' => 'portalCheckIn#checkIn', 'url' => '/api/portal/check-in', 'verb' => 'POST'],
+        // Controller: PortalProofOfEnrolmentController (school-documents-on-the-portal T4).
+        ['name' => 'portalProofOfEnrolment#request', 'url' => '/api/portal/proof-of-enrolment', 'verb' => 'POST'],
         // Roll-call (attendance-roll-call): the day's register of one group.
         // A group teacher opens their own groups, coordinators and
         // administration-managers every group; the server writes the records
         // (rules in RollCallService). Controller: RollCallController (slug: rollCall).
         ['name' => 'rollCall#show', 'url' => '/api/attendance/roll-call', 'verb' => 'GET'],
         ['name' => 'rollCall#save', 'url' => '/api/attendance/roll-call', 'verb' => 'POST'],
+        // A group teacher opening one absence report on its own page stamps her
+        // first look (absence-reports-seen-and-ended T2). Controller: ExcuseRequestSeenController.
+        ['name' => 'excuseRequestSeen#seen', 'url' => '/api/attendance/excuse-requests/{id}/seen', 'verb' => 'POST'],
         // Course days (training-provider-course-days): the planner moves a day on
         // the board, decides go or no-go and moves the participants of a cancelled
         // day to another day of the course. Guarded by course-day.plan.
@@ -362,6 +375,20 @@ $routes = [
         ['name' => 'courseDay#moveParticipants', 'url' => '/api/course-days/{id}/move-participants', 'verb' => 'POST'],
         ['name' => 'courseDay#today', 'url' => '/api/course-days/today', 'verb' => 'GET'],
         ['name' => 'courseDay#sessionParts', 'url' => '/api/course-days/sessions/{sessionId}/parts', 'verb' => 'GET'],
+        // Exam registration and certificate issue (exam-registration-and-certificate-issue):
+        // the administration's registration list of a course day's exam with an
+        // external examining body, its export, the results, "Certificaten uitgeven"
+        // and the administration's Today. Guarded by exam-registration.manage.
+        // Controller: ExamRegistrationController (slug: examRegistration).
+        ['name' => 'examRegistration#today', 'url' => '/api/exam-registrations/today', 'verb' => 'GET'],
+        ['name' => 'examRegistration#expiring', 'url' => '/api/exam-registrations/expiring', 'verb' => 'GET'],
+        ['name' => 'examRegistration#open', 'url' => '/api/exam-registrations', 'verb' => 'POST'],
+        ['name' => 'examRegistration#show', 'url' => '/api/exam-registrations/{id}', 'verb' => 'GET'],
+        ['name' => 'examRegistration#close', 'url' => '/api/exam-registrations/{id}/close', 'verb' => 'POST'],
+        ['name' => 'examRegistration#export', 'url' => '/api/exam-registrations/{id}/export', 'verb' => 'GET'],
+        ['name' => 'examRegistration#markSent', 'url' => '/api/exam-registrations/{id}/sent', 'verb' => 'POST'],
+        ['name' => 'examRegistration#result', 'url' => '/api/exam-registrations/{id}/result', 'verb' => 'POST'],
+        ['name' => 'examRegistration#issueCertificates', 'url' => '/api/course-days/{id}/certificates', 'verb' => 'POST'],
         // Work groups (enrolment-self-join-work-group): the signed-in learner
         // sees the work groups of their classes and joins, moves or leaves
         // while sign-up is open (rules in WorkGroupMembershipService).
@@ -397,6 +424,9 @@ $routes = [
         ['name' => 'portalCatalogue#catalogue', 'url' => '/api/portal/catalogue', 'verb' => 'POST'],
         ['name' => 'portalCatalogue#signUp', 'url' => '/api/portal/catalogue/sign-up', 'verb' => 'POST'],
         ['name' => 'portalCatalogue#withdraw', 'url' => '/api/portal/catalogue/withdraw', 'verb' => 'POST'],
+        // A pupil signs up for the next lesson of an optional-lesson offer from the
+        // portal (pupil-books-support-lessons-and-mentor-talks). Controller: PortalElectiveController.
+        ['name' => 'portalElective#signUp', 'url' => '/api/portal/electives/sign-up', 'verb' => 'POST'],
         // portal-guardian-invitation: the school invites a guardian to the parent portal.
         ['name' => 'portalGuardian#invite', 'url' => '/api/portal/guardians/{guardianRef}/invite', 'verb' => 'POST'],
         // employer-signs-in-with-eherkenning: the institute invites a client company's contact person.

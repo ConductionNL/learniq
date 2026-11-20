@@ -44,6 +44,7 @@ class PortalRowActionConditionsTest extends TestCase {
 		'handIn' => ['field' => 'lifecycle', 'in' => ['draft']],
 		// An absence that may still be going on (absence-reports-seen-and-ended T4).
 		'reportRecovered' => ['field' => 'lifecycle', 'in' => ['submitted', 'approved']],
+		'signUpForElective' => ['field' => 'lifecycle', 'in' => ['open']],
 		// A participant who still has a place (employer-substitutes-a-colleague T4).
 		'substituteParticipant' => ['field' => 'lifecycle', 'in' => ['pending', 'active']],
 	];

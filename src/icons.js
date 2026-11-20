@@ -82,6 +82,7 @@ import DatabaseExportOutline from 'vue-material-design-icons/DatabaseExportOutli
 import DatabaseImportOutline from 'vue-material-design-icons/DatabaseImportOutline.vue'
 import DatabaseOutline from 'vue-material-design-icons/DatabaseOutline.vue'
 import Door from 'vue-material-design-icons/Door.vue'
+import Download from 'vue-material-design-icons/Download.vue'
 import Earth from 'vue-material-design-icons/Earth.vue'
 import EmoticonOutline from 'vue-material-design-icons/EmoticonOutline.vue'
 import ExportVariant from 'vue-material-design-icons/ExportVariant.vue'
@@ -119,6 +120,7 @@ import HumanWheelchair from 'vue-material-design-icons/HumanWheelchair.vue'
 import InformationOutline from 'vue-material-design-icons/InformationOutline.vue'
 import LinkVariant from 'vue-material-design-icons/LinkVariant.vue'
 import Lock from 'vue-material-design-icons/Lock.vue'
+import LockOutline from 'vue-material-design-icons/LockOutline.vue'
 import MapMarker from 'vue-material-design-icons/MapMarker.vue'
 import MapMarkerCheckOutline from 'vue-material-design-icons/MapMarkerCheckOutline.vue'
 import MapMarkerOutline from 'vue-material-design-icons/MapMarkerOutline.vue'
@@ -146,6 +148,7 @@ import RobotOutline from 'vue-material-design-icons/RobotOutline.vue'
 import ScaleBalance from 'vue-material-design-icons/ScaleBalance.vue'
 import School from 'vue-material-design-icons/School.vue'
 import SchoolOutline from 'vue-material-design-icons/SchoolOutline.vue'
+import SendOutline from 'vue-material-design-icons/SendOutline.vue'
 import ShareVariant from 'vue-material-design-icons/ShareVariant.vue'
 import ShareVariantOutline from 'vue-material-design-icons/ShareVariantOutline.vue'
 import ShieldAccountOutline from 'vue-material-design-icons/ShieldAccountOutline.vue'
@@ -247,6 +250,7 @@ export default {
 	DatabaseImportOutline,
 	DatabaseOutline,
 	Door,
+	Download,
 	Earth,
 	EmoticonOutline,
 	ExportVariant,
@@ -284,6 +288,7 @@ export default {
 	InformationOutline,
 	LinkVariant,
 	Lock,
+	LockOutline,
 	MapMarker,
 	MapMarkerCheckOutline,
 	MapMarkerOutline,
@@ -311,6 +316,7 @@ export default {
 	ScaleBalance,
 	School,
 	SchoolOutline,
+	SendOutline,
 	ShareVariant,
 	ShareVariantOutline,
 	ShieldAccountOutline,

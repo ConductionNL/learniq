@@ -5,6 +5,7 @@
 - [x] 1.1 Add a route or view that lists the caller's open invitations. Verify: PHPUnit for own only and closed campaigns excluded; hydra gates 5, 7 and 30. Done: `CourseEvaluationAnswerServiceTest` (RegisterFaithfulStore, the real eligibility guard and submitted handler behind the transition, Opis against the shipped response schema), `CourseEvaluationAnswerControllerTest`.
 - [x] 1.2a Build the My evaluations page and the answer form from `questions`. Verify: node tests for each question kind (`tests/unit-js/evaluationAnswers.test.mjs`; the repo runs `node --test`, not vitest).
 - [ ] 1.2b Playwright flow answer and see it disappear (CI only).
+  - Written: `tests/e2e/spec-coverage/course-evaluation-answering.spec.ts` (own learner account, open campaign and invitation; answer, gone after reload, invitation `hasResponded`, a second answer 409). Tick it after the CI run.
 
 ## 2. Staff side
 

@@ -40,7 +40,7 @@ interface ExchangeImportLandingInterface {
 	/**
 	 * The targets this service lands.
 	 */
-	public const TARGETS = ['lvs-results', 'oso', 'migration-import'];
+	public const TARGETS = ['lvs-results', 'oso', 'migration-import', 'class-roster'];
 
 	/**
 	 * Land a job's records.

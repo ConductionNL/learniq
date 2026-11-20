@@ -147,6 +147,11 @@ SCHEMAS = [
     # BPV-begeleider. Appended for the same reason; its parent, bpv-placement,
     # sits above it.
     "bpv-visit",
+    # exam-committee-today-and-keuzedelen: the objection against a result and
+    # the keuzedelen on offer. Appended for the same reason; the objection's
+    # parent, grade-entry, sits above it.
+    "exam-objection",
+    "keuzedeel-offer",
 ]
 IDENTITY = SetIdentity(SET, SET_NUMBER, SCHEMAS)
 
@@ -624,6 +629,7 @@ STEPS = (
     "add_fraud_case", "add_dismissed_fraud_case", "add_final_grades", "add_trajectories", "add_progress_flags",
     "add_warnings", "add_bsa_decisions", "settle_diplomas", "add_support_requests", "add_dossier_notes",
     "add_hour_plans", "add_assessor_shares", "add_hour_weeks", "add_story_and_stamps", "add_practical_exam",
+    "add_exam_committee",
 )
 
 
@@ -1745,7 +1751,8 @@ class SchoolYear:
 
     # --- the Esdoornveen story (after everything else, so nothing moves) -------
     def add_story_and_stamps(self) -> None:
-        add_story(self)
+        self.story = StoryAutumn(self)
+        self.story.add()
         stamp_hour_totals(self.b)
         stamp_group_labels(self.b)
 
@@ -1783,6 +1790,11 @@ class SchoolYear:
                     "sittingStartsAt": starts, "examTitle": exam["title"],
                 })
 
+
+    # --- exam-committee-today-and-keuzedelen: the committee's open work and Milan's page line ---
+    # Added after everything else, so no earlier uuid moves; no random draws.
+    def add_exam_committee(self) -> None:
+        self.story.add_exam_committee()
 
 def programme_unit_codes(key: str) -> list[str]:
     return [u[0] for u in UNITS if u[1] == key] + [u[0] for u in BPV_UNITS if u[1] == key]
@@ -2245,6 +2257,38 @@ BOARD_VISITS = [
 BOARD_STORY_PHASES = {MILAN: ("assessment", "2026-10-13", ""), AYLIN: ("running", None, "")}
 
 
+def story_oer_components() -> list[dict]:
+    """The Mechatronica exam plan's unit components: one final assessment per unit, Nederlands by its three parts.
+
+    exam-committee-today-and-keuzedelen: Nederlands is examined as lezen en luisteren (the centraal examen of
+    3 November), schrijven and spreken, so the plan holds eleven exam components with the two proeven.
+    """
+    components = []
+    for code, name, _hours, _teachers, _kerntaken, parts in STORY_UNITS:
+        if parts:
+            components.extend({"componentId": f"{code}-{part}", "label": f"{code} {name}, {label.lower()}", "weight": 1,
+                               "period": "S1", "kind": "assessment"} for part, label in parts)
+        else:
+            components.append({"componentId": f"{code}-EB", "label": f"{code} {name}", "weight": 1, "period": "S1", "kind": "assessment"})
+    return components
+
+
+# exam-committee-today-and-keuzedelen: the three September sittings whose results the committee has not established
+# yet (14 results), and the student who objects to one of them. Unit, exam title, day, the students by place in the class
+# (Milan, place 0, sits none of them) and their marks.
+COMMITTEE_SITTINGS = [
+    ("MT-2.6", "Engels spreken", dt.date(2026, 9, 22), (1, 2, 3, 4, 5, 6, 7), (6.4, 7.0, 5.2, 6.8, 7.5, 6.1, 5.9)),
+    ("MT-2.4", "Loopbaan en burgerschap, presentatie", dt.date(2026, 9, 24), (1, 2, 3, 4), (7.2, 6.6, 8.0, 6.9)),
+    ("MT-2.7", "Rekenen 3F", dt.date(2026, 9, 29), (5, 6, 7), (5.8, 6.3, 7.1)),
+]
+COMMITTEE_OBJECTOR = 3  # place in the class; the Engels spreken mark objected to is 5.2
+MILAN_PASSED = (("MT-2.1-EB", 6.8, dt.date(2026, 9, 18)), ("MT-2.2-EB", 7.1, dt.date(2026, 9, 25)), ("MT-2.3-EB", 6.2, dt.date(2026, 10, 2)))
+KEUZEDELEN = [
+    ("KD-MT-301", "Robotica in de praktijk", 240),
+    ("KD-MT-302", "Duurzame energietechniek", 240),
+]
+
+
 def add_story(year: SchoolYear) -> dict:
     """Milan de Groot's autumn at Esdoornveen, as the esdoornveen boards show it.
 
@@ -2352,7 +2396,7 @@ class StoryAutumn:
         self.plans["MT-OER"] = self.b.add("curriculum-plan", {
             "name": f"Examenplan Mechatronica, {STORY_YEAR}", "kind": "oer",
             "requiredCourseIds": [self.courses[c[0]]["uuid"] for c in STORY_UNITS] + [self.courses["MT-BPV2"]["uuid"]], "electiveCourseIds": [],
-            "components": [{"componentId": f"{c[0]}-EB", "label": f"{c[0]} {c[1]}", "weight": 1, "period": "S1", "kind": "assessment"} for c in STORY_UNITS] + STORY_PVB_COMPONENTS,
+            "components": story_oer_components() + STORY_PVB_COMPONENTS,
             "formula": "all-must-pass", "gradeScaleId": self.year.numeric["uuid"], "passRules": [], "periods": STORY_PERIOD_ROWS, "lifecycle": "published",
         })
         for unit in STORY_UNITS:
@@ -2597,10 +2641,97 @@ class StoryAutumn:
         self.add_exam_sitting(period, exam)
 
     def add_exam_sitting(self, period: dict, exam: dict) -> None:
-        self.b.add("exam-sitting", {
+        self.next_sitting = self.b.add("exam-sitting", {
             "examPeriodId": period["uuid"], "assessmentId": exam["uuid"], "cohortIds": [self.cohort["uuid"]],
             "startsAt": stamp(dt.date(2026, 11, 3), 9, 0), "endsAt": stamp(dt.date(2026, 11, 3), 10, 30),
             "roomIds": [self.rooms["B1.08"]["uuid"]], "headcount": 2, "invigilatorsNeeded": 1, "lifecycle": "planned",
+        })
+
+    # exam-committee-today-and-keuzedelen: what the exam committee's Today and Milan's page line show on Monday
+    # 5 October. Run by SchoolYear.add_exam_committee after every other step, with no random draws, so no earlier
+    # uuid moves.
+    def add_exam_committee(self) -> None:
+        oer = self.plans["MT-OER"]
+        classmates = self.cohort["learnerIds"]
+        period = self.b.add("exam-period", {
+            "name": "Toetsweek september 2026", "startsOn": "2026-09-21", "endsOn": "2026-10-02", "cohortIds": [self.cohort["uuid"]],
+            "courseIds": sorted({self.courses[s[0]]["uuid"] for s in COMMITTEE_SITTINGS}), "lifecycle": "published",
+        })
+        objected = None
+        for unit, title, day, places, marks in COMMITTEE_SITTINGS:
+            exam = self.b.add("exam", {
+                "title": title, "description": f"Examen {title}, MT4-2A.", "courseId": self.courses[unit]["uuid"],
+                "cohortId": self.cohort["uuid"], "curriculumPlanComponentId": f"{unit}-EB", "gradeEntryComponentId": f"{unit}-EB",
+                "scoringScheme": "passMark", "passMark": 5.5, "timeLimitMinutes": 60, "maxAttempts": 1, "lifecycle": "published",
+            })
+            sitting = self.b.add("exam-sitting", {
+                "examPeriodId": period["uuid"], "assessmentId": exam["uuid"], "cohortIds": [self.cohort["uuid"]],
+                "startsAt": stamp(day, 9, 0), "endsAt": stamp(day, 10, 0), "roomIds": [self.rooms["B1.08"]["uuid"]],
+                "headcount": len(places), "invigilatorsNeeded": 1, "lifecycle": "planned",
+            })
+            teacher = next(c[3][0] for c in STORY_UNITS if c[0] == unit)
+            graded = day + dt.timedelta(days=2)
+            for place, mark in zip(places, marks):
+                nc = classmates[place]
+                entry = self.add_result(nc, unit, f"{unit}-EB", mark, teacher, graded)
+                entry["examSittingId"] = sitting["uuid"]
+                if place == COMMITTEE_OBJECTOR and unit == "MT-2.6":
+                    objected = entry
+        objector = objected["learnerId"]
+        objection = self.b.add("exam-objection", {
+            "gradeEntryId": objected["uuid"], "learnerId": self.profiles[objector]["uuid"], "learnerUserId": objector,
+            "cohortId": self.cohort["uuid"],
+            "groundsDescription": "Bij het spreekexamen Engels kreeg ik minder tijd dan de andere studenten, omdat de opname haperde. "
+                                  "Ik vraag de commissie het resultaat te herzien of mij het onderdeel opnieuw te laten doen.",
+            "submittedAt": stamp(dt.date(2026, 9, 25), 14, 10), "termWorkingDays": 10, "decideBy": "2026-10-09",
+            "examinerResponse": "De opname is na vier minuten twee minuten gestopt; de student heeft die tijd niet ingehaald. "
+                                "De beoordeling gaat uit van het deel dat wel is opgenomen.",
+            "examinerRespondedAt": stamp(dt.date(2026, 10, 1), 11, 30), "lifecycle": "examiner-responded",
+        })
+        objected["examObjectionId"] = objection["uuid"]
+        for component, mark, day in MILAN_PASSED:
+            unit = component.rsplit("-", 1)[0]
+            self.add_result(MILAN, unit, component, mark, next(c[3][0] for c in STORY_UNITS if c[0] == unit), day)
+        for code, name, hours in KEUZEDELEN:
+            self.b.add("keuzedeel-offer", {
+                "code": code, "name": name, "studyLoadHours": hours, "period": "3", "programmeId": self.programme["uuid"],
+                "cohortIds": [self.cohort["uuid"]], "choiceOpensOn": "2026-09-28", "choiceClosesOn": "2026-10-16", "places": 12,
+                "lifecycle": "offered",
+            })
+        self.add_committee_finals()
+        total = len([c for c in oer["components"] if c.get("kind") == "assessment"])
+        self.profiles[MILAN].update({
+            "examComponentsPassed": len(MILAN_PASSED), "examComponentsTotal": total,
+            "examProgressLabel": f"{len(MILAN_PASSED)} van {total} examenonderdelen behaald",
+            "nextExamSittingId": self.next_sitting["uuid"],
+            "nextExamLabel": "Volgende: NE-3F-CE op 3 november",
+            "keuzedeelLabel": "Keuzedeel periode 3: Nog niet gekozen, kan tot 16 oktober",
+        })
+
+    def add_committee_finals(self) -> None:
+        """One final grade per student on the exam plan, as the grade engine computes it from these results."""
+        oer = self.plans["MT-OER"]
+        by_learner: dict[str, list[dict]] = {}
+        for entry in self.b.buckets["grade-entry"]:
+            if entry.get("curriculumPlanId") == oer["uuid"]:
+                by_learner.setdefault(entry["learnerId"], []).append(entry)
+        for nc in sorted(by_learner):
+            entries = by_learner[nc]
+            value, passed, breakdown = evaluate_final(entries, (oer, float(self.year.numeric["passThreshold"])))
+            self.b.add("final-grade", {
+                "learnerId": nc, "learnerRef": self.profiles[nc]["uuid"], "courseId": self.courses["MT-OPL"]["uuid"],
+                "programmeId": self.programme["uuid"], "curriculumPlanId": oer["uuid"], "gradeScaleId": self.year.numeric["uuid"],
+                "value": value, "passed": passed, "breakdown": breakdown,
+                "lastRecomputedAt": max(e["gradedAt"] for e in entries if e["lifecycle"] == "published"),
+            })
+
+    def add_result(self, nc: str, unit: str, component: str, mark: float, teacher: str, day: dt.date) -> dict:
+        moment = stamp(day, 16, 0)
+        return self.b.add("grade-entry", {
+            "learnerId": nc, "learnerRef": self.profiles[nc]["uuid"], "curriculumPlanId": self.plans["MT-OER"]["uuid"],
+            "componentId": component, "courseId": self.courses[unit]["uuid"], "cohortId": self.cohort["uuid"], "sourceKind": "manual",
+            "value": mark, "gradeScaleId": self.year.numeric["uuid"], "period": "S1", "grader": teacher, "gradedAt": moment,
+            "visibleFrom": moment, "lifecycle": "published",
         })
 
     # attendance-warns-before-the-threshold: Sem Visser and the class's past lessons he missed. Added last, so no

@@ -185,6 +185,11 @@ class ConferenceInvitations implements ConferenceInvitationsInterface {
 		}
 
 		$object = array_merge(($row ?? []), self::fields(round: $round, learnerRef: $learnerRef), ['status' => $status]);
+		// A round that no longer lets pupils book takes it back from her task.
+		if (($object['pupilMayBook'] ?? false) === true && ($round['pupilMayBook'] ?? false) !== true) {
+			$object['pupilMayBook'] = false;
+		}
+
 		if ($row !== null && $object === $row) {
 			return null;
 		}
@@ -228,6 +233,12 @@ class ConferenceInvitations implements ConferenceInvitationsInterface {
 			'learnerRef' => $learnerRef,
 		];
 		$fields = array_merge($fields, self::copiedFields(round: $round));
+		// The pupil books the time herself: her portal's task reads it
+		// (pupil-books-support-lessons-and-mentor-talks). Written only for
+		// such a round, so every other invitation stays as it was.
+		if (($round['pupilMayBook'] ?? false) === true) {
+			$fields['pupilMayBook'] = true;
+		}
 
 		// An enum takes no null: a round without a mode leaves the key out.
 		if (in_array(($round['bookingMode'] ?? null), self::MODES, true) === true) {

@@ -9,6 +9,8 @@
  *
  * @spec openspec/changes/example-portal-declares-its-site/specs/example-sets/spec.md
  * @spec openspec/changes/site-pupil-portal-design/specs/portal-contribution/spec.md#requirement-the-pupil-overview-follows-the-designed-board
+ * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-each-school-audience-offers-its-own-documents-grouped-per-record
+ * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-a-pupil-asks-for-a-proof-of-enrolment
  */
 
 import { expect, test } from '@playwright/test'
@@ -163,5 +165,37 @@ test.describe('vaartveld: Mijn Zuiddrecht (Fenna de Jong)', () => {
 			info.project.name === 'phone' ? 'MobielHome' : 'MijnOverzicht',
 			info,
 		)
+	})
+
+	test('Documenten: her reports and a proof of enrolment', async ({ browser }, info) => {
+		await ensurePortalAccount(
+			NOOR.user,
+			'student',
+			{ learnerRef: NOOR.ref },
+			NOOR.name,
+		)
+		const page = await signInAs(
+			browser,
+			PORTAL,
+			NOOR.user,
+			info.project.use.viewport ?? { width: 1440, height: 1000 },
+		)
+		await page.goto(
+			`${siteUrl(PORTAL)}&route=${encodeURIComponent('/mijn/learniq/studentDocuments')}`,
+		)
+		await expectTexts(page, ['Rapporten', 'Keuzes en verklaringen'])
+		// She asks for a proof of enrolment; it joins her statements.
+		await page
+			.getByRole('button', { name: 'Vraag een bewijs van inschrijving aan' })
+			.first()
+			.click()
+		await expect(
+			page.getByText(/Bewijs van inschrijving, schooljaar \d{4}-\d{4}/).first(),
+		).toBeVisible({ timeout: 15_000 })
+		if (info.project.name === 'phone') {
+			await expectNoHorizontalScroll(page)
+		}
+		await expectNoSeriousAxeFinding(page)
+		await boardShot(page, PORTAL, 'Documenten', info)
 	})
 })

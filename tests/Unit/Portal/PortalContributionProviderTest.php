@@ -201,7 +201,7 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame([], $manifest['notifications']);
 
 		$collections = $manifest['collections'];
-		$this->assertCount(17, $collections);
+		$this->assertCount(expectedCount: 22, haystack: $collections);
 		$this->assertSame(
 			[
 				'studentGrades',
@@ -228,6 +228,13 @@ class PortalContributionProviderTest extends TestCase {
 				'studentAttendanceSummary',
 				// site-pupil-portal-design T1: her timetable (its page still follows the overview).
 				'studentSessions',
+				// Pupil-books-support-lessons-and-mentor-talks: the support lessons of her groups and her sign-ups.
+				'studentElectiveOffers',
+				'studentElectiveSignUps',
+				// Her invitation to a talk she books herself, its free times, and her talks.
+				'studentConferenceInvitations',
+				'studentConferenceTimes',
+				'studentConferenceSignups',
 			],
 			array_column($collections, 'id')
 		);
@@ -254,6 +261,26 @@ class PortalContributionProviderTest extends TestCase {
 				continue;
 			}
 
+			if ($collection['id'] === 'studentConferenceTimes') {
+				// A free time names the pupils who may book it; she reads only
+				// those of a round that lets pupils book.
+				$this->assertSame(expected: 'eligibleLearnerRefs', actual: $collection['scopeField']);
+				$this->assertSame(expected: ['lifecycle' => 'free', 'pupilMayBook' => true], actual: $collection['filter']);
+				continue;
+			}
+
+			if ($collection['id'] === 'studentElectiveOffers') {
+				// An offer belongs to groups: reached through her own live
+				// enrolments, as her lessons are, and only while it is open.
+				$this->assertSame(expected: 'eligibleCohortIds', actual: $collection['scopeField']);
+				$this->assertSame(
+					expected: ['enrolment', 'learnerRef', 'cohortId'],
+					actual: [$collection['via']['schema'], $collection['via']['scopeField'], $collection['via']['targetField']]
+				);
+				$this->assertSame(expected: ['lifecycle' => 'open'], actual: $collection['filter']);
+				continue;
+			}
+
 			if (in_array($collection['id'], ['studentTrainers', 'studentSchoolCoaches'], true) === true) {
 				// Her supervisors: reached through her own placements, never by a field on the person.
 				$this->assertSame(['bpv-placement', 'learnerRef'], [$collection['via']['schema'], $collection['via']['scopeField']]);
@@ -266,6 +293,28 @@ class PortalContributionProviderTest extends TestCase {
 		}
 
 	}//end testStudentManifestShape()
+
+	/**
+	 * A guardian is told of a talk her child booked herself: an inbox over
+	 * the child's own bookings only, through the guardian's children.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/pupil-books-support-lessons-and-mentor-talks/specs/portal-contribution/spec.md#requirement-a-pupil-may-book-her-own-mentor-talk-when-the-round-allows-it
+	 */
+	public function testTheGuardianReadsTheTalksHerChildBooked(): void {
+		$byId = array_column($this->provider->getContribution(self::PARENT_SUBJECT)['collections'], null, 'id');
+		$inbox = $byId['parentPupilBookingInbox'];
+
+		$this->assertSame(
+			expected: ['inbox', 'conference-signup', 'learnerRef', 'guardianRef'],
+			actual: [$inbox['kind'], $inbox['schema'], $inbox['scopeField'], $inbox['scopeClaim']]
+		);
+		$this->assertSame(expected: ['bookedBy' => 'pupil'], actual: $inbox['filter']);
+		$this->assertSame(expected: $byId['parentConferenceSignups']['via'], actual: $inbox['via']);
+		$this->assertSame(expected: ['subject' => 'slotLabel', 'receivedAt' => 'bookedAt'], actual: $inbox['messageFields']);
+		$this->assertSame(expected: 'substantial', actual: $inbox['minTrust']);
+	}//end testTheGuardianReadsTheTalksHerChildBooked()
 
 	/**
 	 * The student inbox is a `kind: inbox` collection scoped by learnerRef.
@@ -298,10 +347,41 @@ class PortalContributionProviderTest extends TestCase {
 		$actions = $manifest['actions'];
 
 		$this->assertSame(
-			['createSubmission', 'submitHourWeek', 'writeHourDay', 'fillInSelfAssessment', 'createExcuseRequest', 'reportRecovered', 'listTests', 'startTest', 'saveTestAnswer', 'submitTest', 'readTestResult', 'handIn', 'listCatalogue', 'signUpForCourse', 'withdrawSignUp', 'listWorkGroups', 'joinWorkGroup', 'leaveWorkGroup', 'checkIn'],
+			[
+				'createSubmission',
+				'submitHourWeek',
+				'writeHourDay',
+				'fillInSelfAssessment',
+				'createExcuseRequest',
+				'reportRecovered',
+				'listTests',
+				'startTest',
+				'saveTestAnswer',
+				'submitTest',
+				'readTestResult',
+				'handIn',
+				'listCatalogue',
+				'signUpForCourse',
+				'withdrawSignUp',
+				'listWorkGroups',
+				'joinWorkGroup',
+				'leaveWorkGroup',
+				'checkIn',
+				'requestProofOfEnrolment',
+				'signUpForElective',
+				'bookConferenceSlotAsPupil'
+			],
 			array_column($actions, 'id')
 		);
 		$byId = array_column($actions, null, 'id');
+
+		// School-documents-on-the-portal T4: she fills in nothing; who she is
+		// comes from the claim, never from the form.
+		$proof = $byId['requestProofOfEnrolment'];
+		$this->assertSame(expected: 'endpoint-forward', actual: $proof['type']);
+		$this->assertSame(expected: '/apps/learniq/api/portal/proof-of-enrolment', actual: $proof['endpoint']);
+		$this->assertSame(expected: [], actual: $proof['fields']);
+		$this->assertSame(expected: 'learnerRef', actual: $proof['scopeClaim']);
 
 		$submission = $byId['createSubmission'];
 		$this->assertSame('create', $submission['type']);
@@ -513,9 +593,35 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame(['conference.answered'], array_column($manifest['notifications'], 'ruleKey'), 'one rule: the teacher answered a booking');
 
 		$collections = $manifest['collections'];
-		$this->assertCount(24, $collections);
+		$this->assertCount(expectedCount: 25, haystack: $collections);
 		$this->assertSame(
-			['parentChildren', 'parentGrades', 'parentAttendance', 'parentReportCardGrades', 'parentExcuseRequests', 'parentReportCards', 'parentConferenceRounds', 'parentConferenceInvitations', 'parentConferenceFreeSlots', 'parentConferenceSignups', 'parentConferenceSlots', 'parentGroupMemberships', 'parentReportSubjectGrades', 'parentInbox', 'parentGradeInbox', 'parentAttendanceSummary', 'parentHomework', 'parentSubmissions', 'parentSchoolEvents', 'parentSchoolCalendar', 'parentSchools', 'parentPermissionRequests', 'parentLeaveRequests', 'parentOpenLeaveRequests'],
+			[
+				'parentChildren',
+				'parentGrades',
+				'parentAttendance',
+				'parentReportCardGrades',
+				'parentExcuseRequests',
+				'parentReportCards',
+				'parentConferenceRounds',
+				'parentConferenceInvitations',
+				'parentConferenceFreeSlots',
+				'parentConferenceSignups',
+				'parentConferenceSlots',
+				'parentGroupMemberships',
+				'parentReportSubjectGrades',
+				'parentInbox',
+				'parentGradeInbox',
+				'parentPupilBookingInbox',
+				'parentAttendanceSummary',
+				'parentHomework',
+				'parentSubmissions',
+				'parentSchoolEvents',
+				'parentSchoolCalendar',
+				'parentSchools',
+				'parentPermissionRequests',
+				'parentLeaveRequests',
+				'parentOpenLeaveRequests'
+			],
 			array_column($collections, 'id')
 		);
 
@@ -604,6 +710,12 @@ class PortalContributionProviderTest extends TestCase {
 		// finalised" requirement) — the reader's singular `filter` key, applied
 		// BEFORE the scope filter (ContributionController::collection()).
 		$this->assertSame(['lifecycle' => 'published-to-parents'], $byId['parentReportCards']['filter']);
+
+		// The published card's PDF is downloadable (report-card-pdf-to-guardians), and
+		// only there: no other guardian collection opts in to files.
+		$this->assertTrue($byId['parentReportCards']['filesDownload']);
+		$downloading = array_keys(array_filter($byId, static fn (array $c): bool => ($c['filesDownload'] ?? false) === true));
+		$this->assertSame(['parentReportCards'], $downloading);
 
 	}//end testParentManifestShape()
 
@@ -977,7 +1089,8 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame('endpoint-forward', $approval['type']);
 		$this->assertSame('/apps/learniq/api/portal/hour-weeks/approve', $approval['endpoint']);
 		$this->assertSame('POST', $approval['method']);
-		$this->assertArrayNotHasKey('schema', $approval);
+		// The schema only shapes the inputs: `hoursApproved` is a number.
+		$this->assertSame(expected: 'bpv-hour-week', actual: $approval['schema']);
 		$this->assertSame('practicalTrainerId', $approval['subjectField']);
 		$this->assertSame('practicalTrainerId', $approval['scopeClaim']);
 		$this->assertSame('low', $approval['minTrust']);

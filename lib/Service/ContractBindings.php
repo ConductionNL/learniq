@@ -28,6 +28,7 @@ use OCA\Learniq\Kernel\Contracts\AssessmentAccessFactsInterface;
 use OCA\Learniq\Kernel\Contracts\AssessmentAttemptLimitsInterface;
 use OCA\Learniq\Kernel\Contracts\AssessmentResultAudienceInterface;
 use OCA\Learniq\Kernel\Contracts\AssessmentResultPortalStampInterface;
+use OCA\Learniq\Kernel\Contracts\AdministrationTodayServiceInterface;
 use OCA\Learniq\Kernel\Contracts\AttendanceSummaryServiceInterface;
 use OCA\Learniq\Kernel\Contracts\AttendanceWindowAggregatorInterface;
 use OCA\Learniq\Kernel\Contracts\AuditPackBuilderInterface;
@@ -36,11 +37,16 @@ use OCA\Learniq\Kernel\Contracts\BsaProgressEvaluatorInterface;
 use OCA\Learniq\Kernel\Contracts\BulkEnrolServiceInterface;
 use OCA\Learniq\Kernel\Contracts\CallerTenantResolverInterface;
 use OCA\Learniq\Kernel\Contracts\CatalogueMessagesInterface;
+use OCA\Learniq\Kernel\Contracts\PortalElectiveSignUpInterface;
 use OCA\Learniq\Kernel\Contracts\CatalogueReaderInterface;
 use OCA\Learniq\Kernel\Contracts\CatalogueSignUpServiceInterface;
+use OCA\Learniq\Kernel\Contracts\CertificateIssueServiceInterface;
+use OCA\Learniq\Kernel\Contracts\CertificatePdfDelegationServiceInterface;
+use OCA\Learniq\Kernel\Contracts\CertificatePdfFileInterface;
 use OCA\Learniq\Kernel\Contracts\CheckInCodeServiceInterface;
 use OCA\Learniq\Kernel\Contracts\CheckInMessagesInterface;
 use OCA\Learniq\Kernel\Contracts\CheckInServiceInterface;
+use OCA\Learniq\Kernel\Contracts\ProofOfEnrolmentInterface;
 use OCA\Learniq\Kernel\Contracts\Cmi5LaunchSessionsInterface;
 use OCA\Learniq\Kernel\Contracts\Cmi5LaunchTokenServiceInterface;
 use OCA\Learniq\Kernel\Contracts\CohortNameRestampInterface;
@@ -85,6 +91,7 @@ use OCA\Learniq\Kernel\Contracts\EnrolmentProgressEvaluatorInterface;
 use OCA\Learniq\Kernel\Contracts\EuropassIssuerInterface;
 use OCA\Learniq\Kernel\Contracts\ExampleSetDatesInterface;
 use OCA\Learniq\Kernel\Contracts\ExampleSetSizesInterface;
+use OCA\Learniq\Kernel\Contracts\ExamRegistrationServiceInterface;
 use OCA\Learniq\Kernel\Contracts\ExamSittingOverviewInterface;
 use OCA\Learniq\Kernel\Contracts\ExchangeDisclosureInterface;
 use OCA\Learniq\Kernel\Contracts\ExchangeGateServiceInterface;
@@ -154,6 +161,7 @@ use OCA\Learniq\Kernel\Contracts\RegulationAssignmentServiceInterface;
 use OCA\Learniq\Kernel\Contracts\RegulationAssignPreviewInterface;
 use OCA\Learniq\Kernel\Contracts\RegulationCoverageServiceInterface;
 use OCA\Learniq\Kernel\Contracts\ReportCardGradeLinesInterface;
+use OCA\Learniq\Kernel\Contracts\ReportCardPdfAttacherInterface;
 use OCA\Learniq\Kernel\Contracts\ReportCardPdfDelegationServiceInterface;
 use OCA\Learniq\Kernel\Contracts\ReportCardTemplateSectionResolverInterface;
 use OCA\Learniq\Kernel\Contracts\ReportPeriodLocksInterface;
@@ -205,6 +213,7 @@ use OCA\Learniq\Service\Catalogue\CatalogueSignUpService;
 use OCA\Learniq\Service\CheckIn\CheckInCodeService;
 use OCA\Learniq\Service\CheckIn\CheckInMessages;
 use OCA\Learniq\Service\CheckIn\CheckInService;
+use OCA\Learniq\Service\Portal\ProofOfEnrolment;
 use OCA\Learniq\Service\Course\CourseTemplateService;
 use OCA\Learniq\Service\CourseDay\CourseDayStatusService;
 use OCA\Learniq\Service\CourseDay\PlannerTodayService;
@@ -215,6 +224,9 @@ use OCA\Learniq\Service\CourseStore\CourseStorePublisher;
 use OCA\Learniq\Service\CourseStore\StoreAccessService;
 use OCA\Learniq\Service\Enrolment\BulkEnrolService;
 use OCA\Learniq\Service\Exam\PracticalExamBoardResults;
+use OCA\Learniq\Service\ExamRegistration\AdministrationTodayService;
+use OCA\Learniq\Service\ExamRegistration\CertificateIssueService;
+use OCA\Learniq\Service\ExamRegistration\ExamRegistrationService;
 use OCA\Learniq\Service\Grading\CorrectionApprovals;
 use OCA\Learniq\Service\Grading\ReportPeriodLocks;
 use OCA\Learniq\Service\LessonOnboarding\LessonOnboardingImporter;
@@ -225,6 +237,7 @@ use OCA\Learniq\Service\Portal\BpvPlacementSteps;
 use OCA\Learniq\Service\Portal\EmployerBookingProjection;
 use OCA\Learniq\Service\Portal\EmployerBookingSteps;
 use OCA\Learniq\Service\Portal\PortalAttemptService;
+use OCA\Learniq\Service\Portal\PortalElectiveSignUp;
 use OCA\Learniq\Service\Portal\PortalEmployerBookings;
 use OCA\Learniq\Service\Portal\PortalHourDayWrite;
 use OCA\Learniq\Service\Portal\PortalHourWeekApproval;
@@ -280,6 +293,7 @@ final class ContractBindings {
 		AssessmentAttemptLimitsInterface::class => AssessmentAttemptLimits::class,
 		AssessmentResultAudienceInterface::class => AssessmentResultAudience::class,
 		AssessmentResultPortalStampInterface::class => AssessmentResultPortalStamp::class,
+		AdministrationTodayServiceInterface::class => AdministrationTodayService::class,
 		AttendanceSummaryServiceInterface::class => AttendanceSummaryService::class,
 		AttendanceWindowAggregatorInterface::class => AttendanceWindowAggregator::class,
 		AuditPackBuilderInterface::class => AuditPackBuilder::class,
@@ -288,11 +302,16 @@ final class ContractBindings {
 		BulkEnrolServiceInterface::class => BulkEnrolService::class,
 		CallerTenantResolverInterface::class => CallerTenantResolver::class,
 		CatalogueMessagesInterface::class => CatalogueMessages::class,
+		PortalElectiveSignUpInterface::class => PortalElectiveSignUp::class,
 		CatalogueReaderInterface::class => CatalogueReader::class,
 		CatalogueSignUpServiceInterface::class => CatalogueSignUpService::class,
+		CertificateIssueServiceInterface::class => CertificateIssueService::class,
+		CertificatePdfDelegationServiceInterface::class => CertificatePdfDelegationService::class,
+		CertificatePdfFileInterface::class => CertificatePdfFile::class,
 		CheckInCodeServiceInterface::class => CheckInCodeService::class,
 		CheckInMessagesInterface::class => CheckInMessages::class,
 		CheckInServiceInterface::class => CheckInService::class,
+		ProofOfEnrolmentInterface::class => ProofOfEnrolment::class,
 		Cmi5LaunchSessionsInterface::class => Cmi5LaunchSessions::class,
 		Cmi5LaunchTokenServiceInterface::class => Cmi5LaunchTokenService::class,
 		CohortNameRestampInterface::class => CohortNameRestamp::class,
@@ -338,6 +357,7 @@ final class ContractBindings {
 		EnrolmentForecastServiceInterface::class => EnrolmentForecastService::class,
 		EnrolmentProgressEvaluatorInterface::class => EnrolmentProgressEvaluator::class,
 		EuropassIssuerInterface::class => EuropassIssuer::class,
+		ExamRegistrationServiceInterface::class => ExamRegistrationService::class,
 		ExamSittingOverviewInterface::class => ExamSittingOverview::class,
 		ExampleSetDatesInterface::class => ExampleSetDates::class,
 		ExampleSetSizesInterface::class => ExampleSetSizes::class,
@@ -408,6 +428,7 @@ final class ContractBindings {
 		RegulationAssignmentServiceInterface::class => RegulationAssignmentService::class,
 		RegulationCoverageServiceInterface::class => RegulationCoverageService::class,
 		ReportCardGradeLinesInterface::class => ReportCardGradeLines::class,
+		ReportCardPdfAttacherInterface::class => ReportCardPdfAttacher::class,
 		ReportCardPdfDelegationServiceInterface::class => ReportCardPdfDelegationService::class,
 		ReportCardTemplateSectionResolverInterface::class => ReportCardTemplateSectionResolver::class,
 		ReportPeriodLocksInterface::class => ReportPeriodLocks::class,

@@ -140,6 +140,8 @@ SCHEMAS = [
     "item",
     # Appended last (leave-requests-decided-by-the-school): every earlier schema keeps its uuid namespace.
     "leave-request",
+    # The public test week (portal-public-index): appended for the same reason.
+    "exam-sitting",
 ]
 
 # The same fictional region as the primary school set, so both sets agree.
@@ -1622,6 +1624,7 @@ class SchoolYear:
         add_lesson_and_store_boards(self.b, self.courses)
         add_guardian_and_item_bank_boards(self.b)
         add_leave_requests(self.b, LEAVE_REQUESTS)
+        add_public_test_week(self.b, self.courses)
 
     def assemble(self) -> dict:
         """The profile file's content, without the private working fields."""
@@ -1988,7 +1991,11 @@ class FennaStory:
             "description": "Elke dinsdag het 8e uur, van 15.20 tot 16.10 uur in lokaal 2.14. Meneer Bos legt uit wat je lastig vindt.",
             "sessionIds": [self.steunles["uuid"]], "timetableSessionRefs": [], "capacityPerLesson": 12,
             "eligibleCohortIds": [self.h4b["uuid"]], "windowMode": "relative", "opensDaysBefore": 7, "closesHoursBefore": 12,
-            "lifecycle": "open",
+            "lifecycle": "open", "teacherName": "Meneer Bos",
+            # What ElectiveOfferCopiesStamp writes on a live save: the next lesson and its places left,
+            # the line Noor reads on her portal (pupil-books-support-lessons-and-mentor-talks).
+            "nextLessonStartsAt": self.steunles["startsAt"], "nextLessonEndsAt": self.steunles["endsAt"],
+            "nextLessonLocation": self.steunles["location"], "placesLeft": 6, "placesLeftLine": "Nog 6 plekken",
         })
         self.others = [p for p in self.havo3 if p is not self.noor]
         for p in self.others[:6]:
@@ -2007,6 +2014,8 @@ class FennaStory:
             "bookingOpensAt": stamp(TODAY, 7, 50), "bookingClosesAt": stamp(dt.date(2026, 10, 9), 23, 59),
             "invitedLearnerIds": list(self.h4b["learnerIds"]), "invitedLearnerRefs": self.learner_refs,
             "bookingMode": "direct", "maxBookingsPerChild": 1, "lifecycle": "booking-open",
+            # Noor books her own talk; her father gets a notice (pupil-books-support-lessons-and-mentor-talks).
+            "pupilMayBook": True,
             "evenings": [{"date": d.isoformat(), "from": f"{sh:02d}:{sm:02d}", "until": f"{eh:02d}:{em:02d}"}
                          for d, (sh, sm), (eh, em) in blocks],
         })
@@ -2027,6 +2036,7 @@ class FennaStory:
                     "startsAt": start.isoformat(), "endsAt": end.isoformat(),
                     "slotLabel": f"{start:%d-%m-%Y %H:%M}-{end:%H:%M}, {mentor_name}",
                     "eligibleLearnerRefs": self.learner_refs, "location": "Lokaal 1.12", "lifecycle": "free",
+                    "pupilMayBook": True,
                 }
                 booked = taken.get((day, start.hour, start.minute))
                 if booked is not None:
@@ -2541,6 +2551,45 @@ LEAVE_REQUESTS = [
     ("4H1", set(), "religious-observance", "2026-11-19", "2026-11-19", "Religieuze feestdag in de familie.", 1, "2026-10-12"),
     ("5V1", set(), "family-circumstance", "2026-11-26", "2026-11-27", "Begrafenis van een oudoom in Groningen; we reizen een dag eerder.", 2, "2026-10-13"),
 ]
+
+
+# Toetsweek 1 of 4 havo as the vaartveld Editor board's "Toetsrooster" block draws it (portal-public-index T7): the
+# school marked the week public, so the website shows day, time, subject and room. (subject, start, end, room name)
+PUBLIC_TEST_WEEK = [
+    ("NE", "2026-11-09T08:30:00+01:00", "2026-11-09T10:10:00+01:00", "Aula"),
+    ("WA", "2026-11-10T08:30:00+01:00", "2026-11-10T10:10:00+01:00", "Lokaal H1.03 (4H1)"),
+    ("EN", "2026-11-11T10:30:00+01:00", "2026-11-11T12:10:00+01:00", "Aula"),
+    ("GS", "2026-11-12T08:30:00+01:00", "2026-11-12T10:00:00+01:00", "Lokaal H1.03 (4H1)"),
+]
+
+
+def add_public_test_week(b: Builder, courses: dict) -> None:
+    """Toetsweek 1 (9 to 13 November 2026), marked public, with the four 4 havo sittings of the vaartveld Editor
+    board (portal-public-index). Runs last and draws no random number, so no earlier uuid or value moves."""
+    by_name = {c["name"]: c for c in b.buckets["cohort"]}
+    rooms = {r["name"]: r for r in b.buckets["room"]}
+    h4 = by_name["4H1"]
+    period = b.add("exam-period", {
+        "name": "Toetsweek 1", "startsOn": "2026-11-09", "endsOn": "2026-11-13",
+        "cohortIds": [h4["uuid"]], "courseIds": [courses[s]["uuid"] for s, *_ in PUBLIC_TEST_WEEK],
+        "lifecycle": "published", "public": True,
+        "bringList": "Je schoolpas, pennen en potlood, een geodriehoek en je grafische rekenmachine.",
+    })
+    for s, starts, ends, room in PUBLIC_TEST_WEEK:
+        name = courses[s]["name"]
+        minutes = (dt.datetime.fromisoformat(ends) - dt.datetime.fromisoformat(starts)).seconds // 60
+        exam = b.add("exam", {
+            "title": f"Toetsweek 1: {name.lower()}, 4H1", "description": f"Schriftelijke toets, {minutes} minuten.",
+            "courseId": courses[s]["uuid"], "cohortId": h4["uuid"], "curriculumPlanComponentId": "tw1",
+            "gradeEntryComponentId": "tw1", "scoringScheme": "points", "timeLimitMinutes": minutes, "maxAttempts": 1,
+            "availableFrom": starts, "availableUntil": ends, "lifecycle": "published",
+        })
+        b.add("exam-sitting", {
+            "examPeriodId": period["uuid"], "assessmentId": exam["uuid"], "cohortIds": [h4["uuid"]],
+            "startsAt": starts, "endsAt": ends, "roomIds": [rooms[room]["uuid"]],
+            "headcount": len(h4.get("learnerIds") or []), "invigilatorsNeeded": 2, "clashWarnings": [],
+            "lifecycle": "planned",
+        })
 
 
 def add_leave_requests(b: Builder, rows: list[tuple]) -> None:
