@@ -8001,6 +8001,14 @@
 					"route": "LearningPlans"
 				},
 				"headerMeta": "coordinator {coordinatorId|user}, next evaluation {nextReviewAt|longdate}",
+				"bodyWidgets": [
+					{
+						"id": "lp-version-changes",
+						"component": "LearningPlanVersionChanges",
+						"title": "What changed",
+						"placement": "after-data"
+					}
+				],
 				"widgets": [
 					{
 						"id": "lp-goals",

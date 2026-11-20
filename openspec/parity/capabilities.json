@@ -1349,8 +1349,8 @@
       "area": "compliance",
       "name": "Ask a learner to sign that they read and understood the training.",
       "built": {
-        "state": "specified",
-        "evidence": "lib/Settings/learniq_register.json components.schemas.Attestation, signed by lib/Lifecycle/AttestationSigningGuard.php Not built: the learner cannot read or update an Attestation (authorization names only hr and compliance-officers), and there is no read-and-understood confirmation step.",
+        "state": "built",
+        "evidence": "lib/Settings/learniq_register.json components.schemas.Attestation (the learner reads their own and signs it while drafted; readAndUnderstood is asked on sign), signed by lib/Lifecycle/AttestationSigningGuard.php (a learner signing without confirming is refused); tests/Unit/Lifecycle/AttestationSigningGuardTest.php",
         "owner": "ConductionNL/learniq",
         "change": "compliance-audit",
         "requirement": [
@@ -4565,8 +4565,8 @@
       "area": "assignments",
       "name": "Stop a mark being released while a rubric criterion is unscored.",
       "built": {
-        "state": "specified",
-        "evidence": "lib/Lifecycle/RubricScoresCompletionGuard.php Not built: RubricScoresCompletionGuard guards only PeerReview and SelfAssessment submit; Submission return, GradeEntry publish and MarkSubmissionView have no check for unscored criteria.",
+        "state": "built",
+        "evidence": "lib/Lifecycle/RubricScoresCompletionGuard.php (PeerReview and SelfAssessment submit); lib/Lifecycle/MarkRubricCompletionGuard.php (Submission return refuses while a rubric criterion is unscored and names it); tests/Unit/Lifecycle/MarkRubricCompletionGuardTest.php",
         "owner": "ConductionNL/learniq",
         "change": "assignments",
         "requirement": [
@@ -4930,8 +4930,8 @@
       "area": "grading",
       "name": "Show a learner what one more mark would do to their average.",
       "built": {
-        "state": "specified",
-        "evidence": "src/manifest.d/learning.json GradeImpactDetail Not built: there is no learner what-if calculation; GradeImpactDetail only shows the impact of an existing grade.",
+        "state": "built",
+        "evidence": "src/views/GradeImpactDetail.vue (What would one more mark do? card); src/utils/gradeForecast.js (average with a possible next mark and its weight, pass against the plan's final-grade rule, never saved); tests/unit-js/gradeForecast.test.mjs",
         "owner": "ConductionNL/learniq",
         "change": "grading",
         "requirement": [
@@ -5262,8 +5262,8 @@
       "area": "grading",
       "name": "See where a group's skills are thin, on one page.",
       "built": {
-        "state": "specified",
-        "evidence": "src/manifest.d/progress.json SkillsGapDashboard Not built: SkillsGapDashboard is per learner only (self or ?learnerId=), with no cohort-level view.",
+        "state": "built",
+        "evidence": "src/manifest.d/progress.json SkillsGapDashboard; src/views/SkillsGapDashboard.vue (cohort view with ?cohortId=: per required competency, the learners below the framework's targetLevelId); src/utils/cohortSkillsGap.js; tests/unit-js/cohortSkillsGap.test.mjs",
         "owner": "ConductionNL/learniq",
         "change": "2026-07-16-competency-framework",
         "requirement": [
@@ -5559,8 +5559,8 @@
       "area": "support",
       "name": "Keep every version of a plan, so you can see what changed.",
       "built": {
-        "state": "specified",
-        "evidence": "lib/Settings/learniq_register.json LearningPlan is versioned; a material revision creates a new version Not built: LearningPlanDetail only links to the version it replaces (supersedesId); nothing compares two versions.",
+        "state": "built",
+        "evidence": "lib/Settings/learniq_register.json LearningPlan is versioned (version, supersedesId); src/manifest.d/learning.json LearningPlanDetail lp-version (Replaces links to the earlier version) and the lp-version-changes body section; src/components/sections/LearningPlanVersionChanges.vue; src/utils/planVersionChanges.js (goals and support measures added, removed or changed, matched on goalId and measureId); tests/unit-js/planVersionChanges.test.mjs",
         "owner": "ConductionNL/openregister",
         "change": "learning-plan",
         "requirement": [
@@ -6478,8 +6478,8 @@
       "area": "attendance",
       "name": "Tell everyone when a lesson moves or is cancelled.",
       "built": {
-        "state": "specified",
-        "evidence": "lib/Listener/SessionChangeNoticeHandler.php; lib/Lifecycle/SessionChangeGuard.php Not built: only a batch room change sends a notice (SessionChangeBatch batchApplied); a single-lesson room change is a plain PATCH that SessionChangeNoticeHandler ignores, and nothing moves a lesson to another time.",
+        "state": "built",
+        "evidence": "lib/Listener/SessionChangeNoticeHandler.php; lib/Lifecycle/SessionChangeGuard.php; lib/Listener/SessionMoveNoticeHandler.php (one lesson moved to another room or time notifies the group's learners and parents through the Session's lessonMoved notification); tests/Unit/Listener/SessionMoveNoticeHandlerTest.php",
         "owner": "ConductionNL/learniq",
         "change": "2026-07-16-timetabling-and-substitution",
         "requirement": [

@@ -34,12 +34,14 @@ namespace OCA\Learniq\Listener\Registrar;
 
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Event\ObjectUpdatedEvent;
 use OCA\Learniq\Listener\AdmissionsWaitlistPromoter;
 use OCA\Learniq\Listener\ApplicationConversionHandler;
 use OCA\Learniq\Listener\ApplicationSubmittedAtStamp;
 use OCA\Learniq\Listener\AssessmentAttemptGateListener;
 use OCA\Learniq\Listener\EnrolmentPrerequisiteListener;
 use OCA\Learniq\Listener\SessionChangeNoticeHandler;
+use OCA\Learniq\Listener\SessionMoveNoticeHandler;
 use OCA\Learniq\Listener\SubjectChoiceEnrolmentBridge;
 use OCA\Learniq\Listener\SubjectChoiceValidator;
 use OCA\Learniq\Listener\WalletOfferConcludedListener;
@@ -124,6 +126,11 @@ class SchedulingListenerRegistrar {
 		// parentIds), so the declared x-openregister-notifications rules'
 		// kind:field recipients can resolve without a runtime join.
 		[ObjectTransitionedEvent::class, SessionChangeNoticeHandler::class],
+		// ADR-031 legitimate exception (capability-rows-say-what-they-do): one
+		// Session moved to another room or time outside a change batch ->
+		// affected learners/parents, moveNotice and movedAt written onto it,
+		// so the declared lessonMoved notification reaches them.
+		[ObjectUpdatedEvent::class, SessionMoveNoticeHandler::class],
 	];
 
 	/**
