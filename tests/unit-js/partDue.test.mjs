@@ -5,7 +5,7 @@
 // registered, with how many were there in the part before it.
 // Run by `npm run test:js-unit`.
 //
-// @spec openspec/changes/training-provider-course-days/specs/attendance/spec.md#scenario-the-afternoon-has-begun
+// @spec openspec/specs/attendance/spec.md#scenario-the-afternoon-has-begun
 
 import assert from 'node:assert/strict'
 import { test } from 'node:test'

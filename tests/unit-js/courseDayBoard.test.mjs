@@ -6,7 +6,7 @@
 // real fragment and checks the board, the calendar and the handler that has to
 // answer the drop.
 //
-// @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
+// @spec openspec/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
 
 import assert from 'node:assert/strict'
 import fs from 'node:fs'

@@ -12,7 +12,7 @@ import { applyAnswer, runAnswers, runContent, runQuestion, SAVE_ANSWER } from '.
 
 test('a choice item offers its options in the attempt order; an essay is answered in words', () => {
 	const choices = [{ id: 'B', label: 'Celkern' }, { id: 'A', label: 'Celwand' }]
-	const choice = runQuestion({ uuid: 'i1', interactionType: 'choice' }, { prompt: 'Welk deel?', choices, help: 'Kies één antwoord.' })
+	const choice = runQuestion({ id: 'i1', interactionType: 'choice' }, { prompt: 'Welk deel?', choices, help: 'Kies één antwoord.' })
 	assert.deepEqual(choice, {
 		id: 'i1',
 		text: 'Welk deel?',
@@ -20,7 +20,7 @@ test('a choice item offers its options in the attempt order; an essay is answere
 		options: [{ value: 'B', label: 'Celkern' }, { value: 'A', label: 'Celwand' }],
 		help: 'Kies één antwoord.',
 	})
-	const essay = runQuestion({ uuid: 'i2', interactionType: 'extendedText' }, { prompt: 'Leg uit.', choices, help: '' })
+	const essay = runQuestion({ id: 'i2', interactionType: 'extendedText' }, { prompt: 'Leg uit.', choices, help: '' })
 	assert.equal(essay.type, 'text')
 	assert.deepEqual(essay.options, [])
 })
