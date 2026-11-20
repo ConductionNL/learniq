@@ -370,6 +370,66 @@
         {
             "name": "credential-migration",
             "description": "Certificates taken over from the previous system."
+        },
+        {
+            "name": "portal-practical-exam",
+            "description": "Receives the assessor's practical exam form from portaliq."
+        },
+        {
+            "name": "practical-exam-results",
+            "description": "Lists a sitting's co-signed practical exam results."
+        },
+        {
+            "name": "portal-bpv-visit",
+            "description": "Receives the trainer's answer to a proposed visit date."
+        },
+        {
+            "name": "portal-hour-day",
+            "description": "Receives portaliq's day-of-hours forward for one student."
+        },
+        {
+            "name": "portal-permission",
+            "description": "Receives a guardian's answer to a permission request."
+        },
+        {
+            "name": "keuzedeel",
+            "description": "A student's keuzedelen: the offers open to her, her choices, and choosing one."
+        },
+        {
+            "name": "school-activity",
+            "description": "Staff endpoints of school activities."
+        },
+        {
+            "name": "portal-proof-of-enrolment",
+            "description": "Receives portaliq's proof-of-enrolment forward for one learner."
+        },
+        {
+            "name": "excuse-request-seen",
+            "description": "The seen stamp of one absence report."
+        },
+        {
+            "name": "course-day",
+            "description": "The course day endpoints."
+        },
+        {
+            "name": "exam-registration",
+            "description": "The exam registration endpoints."
+        },
+        {
+            "name": "pupil-page",
+            "description": "The pupil page endpoint."
+        },
+        {
+            "name": "pupil-conversation",
+            "description": "The guardian conversation endpoints of the pupil's page."
+        },
+        {
+            "name": "pupil-list",
+            "description": "The pupil list endpoint."
+        },
+        {
+            "name": "portal-elective",
+            "description": "Receives portaliq's optional-lesson sign-up forward for one pupil."
         }
     ],
     "paths": {
@@ -7128,61 +7188,1645 @@
                 }
             }
         },
-        "/timetable/feed/{feedFile}": {
-            "get": {
-                "operationId": "timetable-feed-feed",
-                "summary": "Serve the feed of the token's owner as iCalendar",
-                "description": "Serve the feed of the token's owner as iCalendar.\n\nThe last path segment is the feed file name: the 64-character feed token followed by `.ics`.\n\nAn unknown, replaced or malformed token, and an owner who no longer exists or is disabled, all answer 404 with no body. When the timetable source is unavailable the feed answers 503 with no body and a `Retry-After` header.",
+        "/credentials/{id}/pdf/download": {
+            "post": {
+                "operationId": "credential-pdf-post",
+                "summary": "The certificate's rendered PDF, for its holder, hr and compliance officers",
+                "description": "The certificate's rendered PDF, for its holder, hr and compliance officers. Needs a signed-in Nextcloud user.",
                 "tags": [
-                    "timetable-feed"
+                    "credential"
                 ],
-                "security": [],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "The credential uuid.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "The result.",
+                        "description": "The request succeeded.",
                         "headers": {
                             "API-Version": {
                                 "$ref": "#/components/headers/API-Version"
                             }
                         },
                         "content": {
-                            "text/calendar": {
+                            "application/json": {
+                                "schema": {}
+                            },
+                            "application/octet-stream": {
                                 "schema": {
-                                    "type": "string"
+                                    "type": "string",
+                                    "format": "binary"
                                 }
                             }
                         }
                     },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    },
                     "404": {
-                        "description": "No feed for this token. The body is empty."
-                    },
-                    "500": {
-                        "$ref": "#/components/responses/Problem500"
-                    },
-                    "503": {
-                        "description": "The timetable source is unavailable. The body is empty.",
+                        "$ref": "#/components/responses/Problem404"
+                    }
+                }
+            }
+        },
+        "/portal/practical-exam-assessments": {
+            "post": {
+                "operationId": "portal-practical-exam-submit",
+                "summary": "Save a step of, or submit, the assessment the assessor named in the assertion",
+                "description": "Save a step of, or submit, the assessment the assessor named in the assertion. Public: it needs no login.",
+                "tags": [
+                    "portal-practical-exam"
+                ],
+                "security": [],
+                "responses": {
+                    "200": {
+                        "description": "The request succeeded.",
                         "headers": {
-                            "Retry-After": {
-                                "description": "Seconds to wait before asking again.",
-                                "schema": {
-                                    "type": "integer"
-                                }
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Problem403"
+                    }
+                }
+            }
+        },
+        "/portal/practical-exam-assessments/draft": {
+            "get": {
+                "operationId": "portal-practical-exam-draft",
+                "summary": "The assessor's own draft for a candidate at a sitting, to resume the form",
+                "description": "The assessor's own draft for a candidate at a sitting, to resume the form. Public: it needs no login.",
+                "tags": [
+                    "portal-practical-exam"
+                ],
+                "security": [],
+                "responses": {
+                    "200": {
+                        "description": "The request succeeded.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Problem403"
+                    }
+                }
+            }
+        },
+        "/portal/practical-exam-assessments/{id}/signatures": {
+            "post": {
+                "operationId": "portal-practical-exam-sign",
+                "summary": "Sign a submitted practical exam assessment as one of its two assessors",
+                "description": "Sign a submitted practical exam assessment as one of its two assessors. Public: it needs no login.",
+                "tags": [
+                    "portal-practical-exam"
+                ],
+                "security": [],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "The assessment to sign.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The request succeeded.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Problem403"
+                    }
+                }
+            }
+        },
+        "/portal/practical-exam-sittings/{id}": {
+            "get": {
+                "operationId": "portal-practical-exam-sitting",
+                "summary": "One exam sitting and its documents, for an assessor assigned to it",
+                "description": "One exam sitting and its documents, for an assessor assigned to it. Public: it needs no login.",
+                "tags": [
+                    "portal-practical-exam"
+                ],
+                "security": [],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "The sitting.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The request succeeded.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Problem403"
+                    }
+                }
+            }
+        },
+        "/practical-exam-results": {
+            "get": {
+                "operationId": "practical-exam-results-index",
+                "summary": "The practical exam results of one sitting that both assessors signed",
+                "description": "The practical exam results of one sitting that both assessors signed. Needs a signed-in Nextcloud user.",
+                "tags": [
+                    "practical-exam-results"
+                ],
+                "parameters": [
+                    {
+                        "name": "examSittingId",
+                        "in": "query",
+                        "required": false,
+                        "description": "The sitting.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The request succeeded.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Problem422"
+                    },
+                    "502": {
+                        "$ref": "#/components/responses/Problem502"
+                    }
+                }
+            }
+        },
+        "/portal/bpv-visits/answer": {
+            "post": {
+                "operationId": "portal-bpv-visit-answer",
+                "summary": "Store the trainer's answer to a proposed visit date",
+                "description": "Store the trainer's answer to a proposed visit date. Public: it needs no login.",
+                "tags": [
+                    "portal-bpv-visit"
+                ],
+                "security": [],
+                "responses": {
+                    "200": {
+                        "description": "The request succeeded.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Problem403"
+                    },
+                    "502": {
+                        "$ref": "#/components/responses/Problem502"
+                    }
+                }
+            }
+        },
+        "/portal/hour-weeks/day": {
+            "post": {
+                "operationId": "portal-hour-day-write",
+                "summary": "Write one day of the student's own week of hours",
+                "description": "Write one day of the student's own week of hours. Public: it needs no login.",
+                "tags": [
+                    "portal-hour-day"
+                ],
+                "security": [],
+                "responses": {
+                    "200": {
+                        "description": "The request succeeded.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/portal/permission-answers": {
+            "post": {
+                "operationId": "portal-permission-answer",
+                "summary": "Store the guardian's answer for one of her children",
+                "description": "Store the guardian's answer for one of her children. Public: it needs no login.",
+                "tags": [
+                    "portal-permission"
+                ],
+                "security": [],
+                "responses": {
+                    "200": {
+                        "description": "The request succeeded.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Problem403"
+                    },
+                    "502": {
+                        "$ref": "#/components/responses/Problem502"
+                    }
+                }
+            }
+        },
+        "/portal/employer/substitutions": {
+            "post": {
+                "operationId": "portal-employer-substitute",
+                "summary": "Send a colleague in place of a participant of the company's booking, before the deadline",
+                "description": "Send a colleague in place of a participant of the company's booking, before the deadline. Public: it needs no login.",
+                "tags": [
+                    "portal-employer"
+                ],
+                "security": [],
+                "responses": {
+                    "200": {
+                        "description": "The request succeeded.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Problem403"
+                    }
+                }
+            }
+        },
+        "/keuzedelen": {
+            "get": {
+                "operationId": "keuzedeel-mine",
+                "summary": "The offers open to the signed-in student, each with whether and why not she may choose it, and her line",
+                "description": "The offers open to the signed-in student, each with whether and why not she may choose it, and her line. Needs a signed-in Nextcloud user.",
+                "tags": [
+                    "keuzedeel"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The request succeeded.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    }
+                }
+            }
+        },
+        "/keuzedelen/{offerId}/choose": {
+            "post": {
+                "operationId": "keuzedeel-choose",
+                "summary": "Choose a keuzedeel as the signed-in student",
+                "description": "Choose a keuzedeel as the signed-in student. Needs a signed-in Nextcloud user.",
+                "tags": [
+                    "keuzedeel"
+                ],
+                "parameters": [
+                    {
+                        "name": "offerId",
+                        "in": "path",
+                        "required": true,
+                        "description": "The offer.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/Problem404"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Problem422"
+                    }
+                }
+            }
+        },
+        "/school-activities": {
+            "get": {
+                "operationId": "school-activity-index",
+                "summary": "The activities with their places, confirmed sign-ups and waiting list",
+                "description": "The activities with their places, confirmed sign-ups and waiting list. Needs a signed-in Nextcloud user.",
+                "tags": [
+                    "school-activity"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The request succeeded.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Problem403"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/Problem404"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Problem422"
+                    },
+                    "502": {
+                        "$ref": "#/components/responses/Problem502"
+                    }
+                }
+            }
+        },
+        "/school-activities/{id}/open": {
+            "put": {
+                "operationId": "school-activity-open",
+                "summary": "Open an activity:",
+                "description": "Open an activity: 422 `no_places` when it has no place, and it stays a draft. Needs a signed-in Nextcloud user.",
+                "tags": [
+                    "school-activity"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "The activity.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The request succeeded.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Problem403"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/Problem404"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Problem422"
+                    },
+                    "502": {
+                        "$ref": "#/components/responses/Problem502"
+                    }
+                }
+            }
+        },
+        "/school-activities/{id}/roster": {
+            "get": {
+                "operationId": "school-activity-roster",
+                "summary": "The roster of one activity",
+                "description": "The roster of one activity. Needs a signed-in Nextcloud user.",
+                "tags": [
+                    "school-activity"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "The activity.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The request succeeded.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Problem403"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/Problem404"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Problem422"
+                    },
+                    "502": {
+                        "$ref": "#/components/responses/Problem502"
+                    }
+                }
+            }
+        },
+        "/school-activities/{id}/attendance": {
+            "put": {
+                "operationId": "school-activity-attendance",
+                "summary": "Mark a child for a session",
+                "description": "Mark a child for a session. Needs a signed-in Nextcloud user.",
+                "tags": [
+                    "school-activity"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "The activity.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "sessionId": {
+                                        "type": "string",
+                                        "description": "The session."
+                                    },
+                                    "childRef": {
+                                        "type": "string",
+                                        "description": "The child."
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "description": "present, absent or excused."
+                                    }
+                                },
+                                "additionalProperties": false
                             }
                         }
                     }
                 },
-                "parameters": [
-                    {
-                        "name": "feedFile",
-                        "in": "path",
-                        "required": true,
-                        "description": "The feed token followed by `.ics`.",
-                        "schema": {
-                            "type": "string",
-                            "pattern": "^[a-f0-9]{64}\\.ics$"
+                "responses": {
+                    "200": {
+                        "description": "The request succeeded.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Problem403"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/Problem404"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/Problem422"
+                    },
+                    "502": {
+                        "$ref": "#/components/responses/Problem502"
+                    }
+                }
+            }
+        },
+        "/portal/proof-of-enrolment": {
+            "post": {
+                "operationId": "portal-proof-of-enrolment-request",
+                "summary": "Render the learner's proof of enrolment for the current school year",
+                "description": "Render the learner's proof of enrolment for the current school year. Public: it needs no login.",
+                "tags": [
+                    "portal-proof-of-enrolment"
+                ],
+                "security": [],
+                "responses": {
+                    "200": {
+                        "description": "The request succeeded.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
                         }
                     }
-                ]
+                }
+            }
+        },
+        "/attendance/excuse-requests/{id}/seen": {
+            "post": {
+                "operationId": "excuse-request-seen-seen",
+                "summary": "Stamp the caller's first look at one report, and answer who saw it and when",
+                "description": "Stamp the caller's first look at one report, and answer who saw it and when. Needs a signed-in Nextcloud user.",
+                "tags": [
+                    "excuse-request-seen"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "The report's id.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The request succeeded.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/Problem404"
+                    }
+                }
+            }
+        },
+        "/course-days/{id}/status": {
+            "post": {
+                "operationId": "course-day-move",
+                "summary": "Move a course day to a status by hand (a drag on the board)",
+                "description": "Move a course day to a status by hand (a drag on the board). Needs a signed-in Nextcloud user.",
+                "tags": [
+                    "course-day"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "The cohort uuid.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "status": {
+                                        "type": "string",
+                                        "description": "The status."
+                                    }
+                                },
+                                "additionalProperties": false
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "The request succeeded.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    },
+                    "503": {
+                        "$ref": "#/components/responses/Problem503"
+                    }
+                }
+            }
+        },
+        "/course-days/{id}/decision": {
+            "post": {
+                "operationId": "course-day-decide",
+                "summary": "Decide whether a course day goes ahead:",
+                "description": "Decide whether a course day goes ahead: `go`, `no-go`, or empty to undo. Needs a signed-in Nextcloud user.",
+                "tags": [
+                    "course-day"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "The cohort uuid.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "decision": {
+                                        "type": "string",
+                                        "description": "The decision."
+                                    }
+                                },
+                                "additionalProperties": false
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "The request succeeded.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    },
+                    "503": {
+                        "$ref": "#/components/responses/Problem503"
+                    }
+                }
+            }
+        },
+        "/course-days/{id}/alternatives": {
+            "get": {
+                "operationId": "course-day-alternatives",
+                "summary": "The other coming days of the course with places",
+                "description": "The other coming days of the course with places. Needs a signed-in Nextcloud user.",
+                "tags": [
+                    "course-day"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "The cohort uuid.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The request succeeded.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    },
+                    "503": {
+                        "$ref": "#/components/responses/Problem503"
+                    }
+                }
+            }
+        },
+        "/course-days/{id}/move-participants": {
+            "post": {
+                "operationId": "course-day-move-participants",
+                "summary": "Move the participants of a cancelled course day to another day of the course",
+                "description": "Move the participants of a cancelled course day to another day of the course. Needs a signed-in Nextcloud user.",
+                "tags": [
+                    "course-day"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "The cancelled day.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "targetId": {
+                                        "type": "string",
+                                        "description": "The day to move them to."
+                                    }
+                                },
+                                "additionalProperties": false
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "The request succeeded.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    },
+                    "503": {
+                        "$ref": "#/components/responses/Problem503"
+                    }
+                }
+            }
+        },
+        "/course-days/today": {
+            "get": {
+                "operationId": "course-day-today",
+                "summary": "The planner's Today:",
+                "description": "The planner's Today: the course days that ask for a decision now, what waits for confirmation, and the occupancy, trainers and rooms of the coming course days. Needs a signed-in Nextcloud user.",
+                "tags": [
+                    "course-day"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The request succeeded.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    },
+                    "503": {
+                        "$ref": "#/components/responses/Problem503"
+                    }
+                }
+            }
+        },
+        "/course-days/sessions/{sessionId}/parts": {
+            "get": {
+                "operationId": "course-day-session-parts",
+                "summary": "A session's attendance per part of the day, for the trainer's Today",
+                "description": "A session's attendance per part of the day, for the trainer's Today. The service admits a trainer of the course day or a planner, nobody else. Needs a signed-in Nextcloud user.",
+                "tags": [
+                    "course-day"
+                ],
+                "parameters": [
+                    {
+                        "name": "sessionId",
+                        "in": "path",
+                        "required": true,
+                        "description": "The session uuid.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The request succeeded.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    },
+                    "503": {
+                        "$ref": "#/components/responses/Problem503"
+                    }
+                }
+            }
+        },
+        "/exam-registrations/today": {
+            "get": {
+                "operationId": "exam-registration-today",
+                "summary": "The administration's Today",
+                "description": "The administration's Today. Needs a signed-in Nextcloud user.",
+                "tags": [
+                    "exam-registration"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The request succeeded.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    },
+                    "503": {
+                        "$ref": "#/components/responses/Problem503"
+                    }
+                }
+            }
+        },
+        "/exam-registrations/expiring": {
+            "get": {
+                "operationId": "exam-registration-expiring",
+                "summary": "The issued certificates expiring before a date",
+                "description": "The issued certificates expiring before a date. Needs a signed-in Nextcloud user.",
+                "tags": [
+                    "exam-registration"
+                ],
+                "parameters": [
+                    {
+                        "name": "before",
+                        "in": "query",
+                        "required": false,
+                        "description": "The date (Y-m-d).",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The request succeeded.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    },
+                    "503": {
+                        "$ref": "#/components/responses/Problem503"
+                    }
+                }
+            }
+        },
+        "/exam-registrations": {
+            "post": {
+                "operationId": "exam-registration-open",
+                "summary": "Open a registration list for a course day's exam",
+                "description": "Open a registration list for a course day's exam. Needs a signed-in Nextcloud user.",
+                "tags": [
+                    "exam-registration"
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "cohortId": {
+                                        "type": "string",
+                                        "description": "The course day."
+                                    },
+                                    "bodyName": {
+                                        "type": "string",
+                                        "description": "The examining body."
+                                    },
+                                    "closesAt": {
+                                        "type": "string",
+                                        "description": "The moment the list closes (ISO 8601)."
+                                    },
+                                    "examDate": {
+                                        "type": "string",
+                                        "description": "The exam date (Y-m-d), empty for the course day's date."
+                                    }
+                                },
+                                "additionalProperties": false
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    },
+                    "503": {
+                        "$ref": "#/components/responses/Problem503"
+                    }
+                }
+            }
+        },
+        "/exam-registrations/{id}": {
+            "get": {
+                "operationId": "exam-registration-show",
+                "summary": "One list, refreshed while it is open",
+                "description": "One list, refreshed while it is open. Needs a signed-in Nextcloud user.",
+                "tags": [
+                    "exam-registration"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "The list.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The request succeeded.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    },
+                    "503": {
+                        "$ref": "#/components/responses/Problem503"
+                    }
+                }
+            }
+        },
+        "/exam-registrations/{id}/close": {
+            "post": {
+                "operationId": "exam-registration-close",
+                "summary": "Close a list before its moment",
+                "description": "Close a list before its moment. Needs a signed-in Nextcloud user.",
+                "tags": [
+                    "exam-registration"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "The list.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The request succeeded.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    },
+                    "503": {
+                        "$ref": "#/components/responses/Problem503"
+                    }
+                }
+            }
+        },
+        "/exam-registrations/{id}/export": {
+            "get": {
+                "operationId": "exam-registration-export",
+                "summary": "The CSV of a closed list, for the examining body",
+                "description": "The CSV of a closed list, for the examining body. Needs a signed-in Nextcloud user.",
+                "tags": [
+                    "exam-registration"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "The list.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The request succeeded.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            },
+                            "application/octet-stream": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    },
+                    "503": {
+                        "$ref": "#/components/responses/Problem503"
+                    }
+                }
+            }
+        },
+        "/exam-registrations/{id}/sent": {
+            "post": {
+                "operationId": "exam-registration-mark-sent",
+                "summary": "Mark a closed list sent to the examining body",
+                "description": "Mark a closed list sent to the examining body. Needs a signed-in Nextcloud user.",
+                "tags": [
+                    "exam-registration"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "The list.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The request succeeded.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    },
+                    "503": {
+                        "$ref": "#/components/responses/Problem503"
+                    }
+                }
+            }
+        },
+        "/exam-registrations/{id}/result": {
+            "post": {
+                "operationId": "exam-registration-result",
+                "summary": "Enter the examining body's result for one participant",
+                "description": "Enter the examining body's result for one participant. Needs a signed-in Nextcloud user.",
+                "tags": [
+                    "exam-registration"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "The list.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "enrolmentId": {
+                                        "type": "string",
+                                        "description": "The participant's enrolment."
+                                    },
+                                    "result": {
+                                        "type": "string",
+                                        "description": "`pass`, `fail`, or empty to clear it."
+                                    }
+                                },
+                                "additionalProperties": false
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "The request succeeded.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    },
+                    "503": {
+                        "$ref": "#/components/responses/Problem503"
+                    }
+                }
+            }
+        },
+        "/course-days/{id}/certificates": {
+            "post": {
+                "operationId": "exam-registration-issue-certificates",
+                "summary": "\"Certificaten uitgeven\":",
+                "description": "\"Certificaten uitgeven\": issue the certificates of a course day in rounding off. Needs a signed-in Nextcloud user.",
+                "tags": [
+                    "exam-registration"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "The course day.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The request succeeded.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    },
+                    "503": {
+                        "$ref": "#/components/responses/Problem503"
+                    }
+                }
+            }
+        },
+        "/pupils/{learnerId}/page": {
+            "get": {
+                "operationId": "pupil-page-show",
+                "summary": "The opening data of a pupil's page",
+                "description": "The opening data of a pupil's page. Needs a signed-in Nextcloud user.",
+                "tags": [
+                    "pupil-page"
+                ],
+                "parameters": [
+                    {
+                        "name": "learnerId",
+                        "in": "path",
+                        "required": true,
+                        "description": "The pupil's Nextcloud user id.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "cohortId",
+                        "in": "query",
+                        "required": false,
+                        "description": "The group the page is opened from; empty for the pupil's first group of the caller.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The request succeeded.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    },
+                    "503": {
+                        "$ref": "#/components/responses/Problem503"
+                    }
+                }
+            }
+        },
+        "/pupils/{learnerId}/conversation": {
+            "get": {
+                "operationId": "pupil-conversation-show",
+                "summary": "The newest messages with the pupil's guardians",
+                "description": "The newest messages with the pupil's guardians. Needs a signed-in Nextcloud user.",
+                "tags": [
+                    "pupil-conversation"
+                ],
+                "parameters": [
+                    {
+                        "name": "learnerId",
+                        "in": "path",
+                        "required": true,
+                        "description": "The pupil's Nextcloud user id.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The request succeeded.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    },
+                    "503": {
+                        "$ref": "#/components/responses/Problem503"
+                    }
+                }
+            },
+            "post": {
+                "operationId": "pupil-conversation-reply",
+                "summary": "Send a message to the pupil's guardians",
+                "description": "Send a message to the pupil's guardians. Needs a signed-in Nextcloud user.",
+                "tags": [
+                    "pupil-conversation"
+                ],
+                "parameters": [
+                    {
+                        "name": "learnerId",
+                        "in": "path",
+                        "required": true,
+                        "description": "The pupil's Nextcloud user id.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "message": {
+                                        "type": "string",
+                                        "description": "The message."
+                                    }
+                                },
+                                "additionalProperties": false
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "The request succeeded.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    },
+                    "503": {
+                        "$ref": "#/components/responses/Problem503"
+                    }
+                }
+            }
+        },
+        "/pupil-list": {
+            "get": {
+                "operationId": "pupil-list-index",
+                "summary": "The pupils of a group, as list rows with the saved views' counts",
+                "description": "The pupils of a group, as list rows with the saved views' counts. Needs a signed-in Nextcloud user.",
+                "tags": [
+                    "pupil-list"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The request succeeded.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    },
+                    "503": {
+                        "$ref": "#/components/responses/Problem503"
+                    }
+                }
+            }
+        },
+        "/portal/electives/sign-up": {
+            "post": {
+                "operationId": "portal-elective-sign-up",
+                "summary": "Sign the pupil up for the next lesson of an offer",
+                "description": "Sign the pupil up for the next lesson of an offer. Body: `offerId`. Public: it needs no login.",
+                "tags": [
+                    "portal-elective"
+                ],
+                "security": [],
+                "responses": {
+                    "200": {
+                        "description": "The request succeeded.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
             }
         }
     },
