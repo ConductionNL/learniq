@@ -84,12 +84,13 @@ class PortalElectiveControllerTest extends TestCase {
 		$user = $this->createMock(originalClassName: IUser::class);
 		$learners = $this->createMock(originalClassName: PortalLearnerResolverInterface::class);
 		$learners->method('resolve')->willReturnCallback(
-			static fn (string $learnerRef): ?PortalLearner => ($account === true) ? new PortalLearner(
-				profileRef: $learnerRef,
-				ncUserId: 'noor',
-				tenantId: '',
-				user: $user
-			) : null
+			static function (string $learnerRef) use ($account, $user): ?PortalLearner {
+				if ($account !== true) {
+					return null;
+				}
+
+				return new PortalLearner(profileRef: $learnerRef, ncUserId: 'noor', tenantId: '', user: $user);
+			}
 		);
 		$signUps = $this->createMock(originalClassName: PortalElectiveSignUpInterface::class);
 		$signUps->method('signUp')->willReturnCallback(

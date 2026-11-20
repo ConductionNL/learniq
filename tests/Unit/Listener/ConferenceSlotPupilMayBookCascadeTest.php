@@ -67,7 +67,11 @@ class ConferenceSlotPupilMayBookCascadeTest extends TestCase {
 					throw new RuntimeException('gone');
 				}
 
-				return ($config['filters']['schema'] === 'conference-slot') ? $slots : [];
+				if ($config['filters']['schema'] === 'conference-slot') {
+					return $slots;
+				}
+
+				return [];
 			}
 		);
 		$objects->method('saveObject')->willReturnCallback(

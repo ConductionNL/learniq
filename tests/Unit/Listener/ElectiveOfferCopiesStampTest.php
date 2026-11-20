@@ -81,7 +81,7 @@ class ElectiveOfferCopiesStampTest extends TestCase {
 		$resolver = $this->createMock(originalClassName: ListenerSchemaResolver::class);
 		$resolver->method('guardSchemaSlug')->willReturnCallback(static fn ($entity) => $entity->getSchema());
 		$electives = $this->createMock(originalClassName: ElectiveServiceInterface::class);
-		$electives->method('offer')->willReturnCallback(static fn (string $id): ?array => ($id === 'offer-1') ? $stored : null);
+		$electives->method('offer')->willReturnCallback(static fn (string $id): ?array => ['offer-1' => $stored][$id] ?? null);
 		$copies = $this->createMock(originalClassName: ElectiveOfferCopies::class);
 		$copies->method('copies')->willReturnCallback(
 			function (array $offer): array {

@@ -513,7 +513,7 @@ class ConferenceSlotBookingStampTest extends TestCase {
 		$user = $this->createMock(originalClassName: IUser::class);
 		$user->method('getUID')->willReturn($uid);
 		$session = $this->createMock(IUserSession::class);
-		$session->method('getUser')->willReturn($signedIn === true ? $user : null);
+		$session->method('getUser')->willReturn([1 => $user][(int) $signedIn] ?? null);
 
 		return new ConferenceSlotBookingStamp(
 			$resolver,

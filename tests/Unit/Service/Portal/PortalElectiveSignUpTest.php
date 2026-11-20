@@ -109,7 +109,7 @@ class PortalElectiveSignUpTest extends TestCase {
 	 */
 	private function service(): PortalElectiveSignUp {
 		$objects = $this->createMock(originalClassName: ObjectService::class);
-		$objects->method('find')->willReturnCallback(fn ($id) => ($id === 'offer-1') ? OrEntityFactory::make($this->offer, 'elective-offer') : null);
+		$objects->method('find')->willReturnCallback(fn ($id) => ['offer-1' => OrEntityFactory::make($this->offer, 'elective-offer')][$id] ?? null);
 		$objects->method('findAll')->willReturnCallback(
 			static fn (array $config): array => match ($config['filters']['schema'] ?? '') {
 				'session' => [

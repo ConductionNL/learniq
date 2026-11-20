@@ -72,7 +72,7 @@ class ElectiveOfferCopiesTest extends TestCase {
 		$l10n = $this->createMock(originalClassName: IL10N::class);
 		$l10n->method('t')->willReturnCallback(static fn (string $text): string => 'nl:' . $text);
 		$l10n->method('n')->willReturnCallback(
-			static fn (string $one, string $many, int $count): string => str_replace('%n', (string)$count, ($count === 1) ? $one : $many)
+			static fn (string $one, string $many, int $count): string => str_replace('%n', (string)$count, [1 => $one][$count] ?? $many)
 		);
 		$factory = $this->createMock(originalClassName: IFactory::class);
 		$factory->method('get')->willReturn($l10n);

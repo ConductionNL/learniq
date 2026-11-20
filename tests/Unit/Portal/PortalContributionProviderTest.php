@@ -228,7 +228,7 @@ class PortalContributionProviderTest extends TestCase {
 				'studentAttendanceSummary',
 				// site-pupil-portal-design T1: her timetable (its page still follows the overview).
 				'studentSessions',
-				// pupil-books-support-lessons-and-mentor-talks: the support lessons of her groups and her sign-ups.
+				// Pupil-books-support-lessons-and-mentor-talks: the support lessons of her groups and her sign-ups.
 				'studentElectiveOffers',
 				'studentElectiveSignUps',
 				// Her invitation to a talk she books herself, its free times, and her talks.
