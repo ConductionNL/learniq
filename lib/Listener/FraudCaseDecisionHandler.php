@@ -135,6 +135,24 @@ class FraudCaseDecisionHandler implements IEventListener {
 			return;
 		}
 
+		$this->invalidateIfConcept(case: $case);
+
+	}//end invalidateContestedGradeEntry()
+
+	/**
+	 * Invalidate the case's contested GradeEntry when it is still concept; a
+	 * missing or published entry is logged and left alone.
+	 *
+	 * @param array<string,mixed> $case The FraudCase data, with a contestedGradeEntryId.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/exam-board/spec.md#requirement-a-fraud-proven-decision-invalidates-a-still-concept-contested-gradeentry
+	 */
+	private function invalidateIfConcept(array $case): void {
+		$caseId = $case['id'] ?? ($case['uuid'] ?? '');
+		$contestedEntryId = $case['contestedGradeEntryId'];
+
 		$entry = $this->fetchGradeEntry(gradeEntryId: (string)$contestedEntryId);
 
 		if ($entry === null) {
@@ -166,8 +184,7 @@ class FraudCaseDecisionHandler implements IEventListener {
 			'[FraudCaseDecisionHandler] FraudCase {id} decided fraud-proven — invalidated GradeEntry {entryId}.',
 			['id' => $caseId, 'entryId' => $contestedEntryId]
 		);
-
-	}//end invalidateContestedGradeEntry()
+	}//end invalidateIfConcept()
 
 	/**
 	 * Fetch the contested GradeEntry by id.

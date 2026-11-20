@@ -101,13 +101,48 @@ class ExternalTrainingImport implements ExternalTrainingImportInterface {
 		string $submittedBy,
 		array $run,
 	): array {
-		$dryRun = $run['dryRun'];
-		$now = ($run['now'] ?? new DateTimeImmutable('now', new DateTimeZone('UTC')));
-		$batchId = null;
-		if ($dryRun === false) {
-			$batchId = bin2hex(random_bytes(16));
+		$batch = [
+			'tenantId' => $tenantId,
+			'submittedBy' => $submittedBy,
+			'dryRun' => $run['dryRun'],
+			'now' => ($run['now'] ?? new DateTimeImmutable('now', new DateTimeZone('UTC'))),
+			'batchId' => null,
+		];
+		if ($batch['dryRun'] === false) {
+			$batch['batchId'] = bin2hex(random_bytes(16));
 		}
 
+		$report = $this->reportRows(rows: $rows, batch: $batch);
+		$summary = ['ready' => 0, 'created' => 0, 'skipped' => 0, 'failed' => 0, 'total' => count($report)];
+		foreach ($report as $line) {
+			$summary[self::bucket(status: $line['status'])]++;
+		}
+
+		$batchId = $batch['batchId'];
+		if ($summary['created'] === 0) {
+			$batchId = null;
+		}
+
+		return [
+			'dryRun' => $batch['dryRun'],
+			'batchId' => $batchId,
+			'summary' => $summary,
+			'rows' => $report,
+		];
+	}//end import()
+
+	/**
+	 * Check every row, against the tenant and the rows before it, and save
+	 * the ready ones unless this is a dry run.
+	 *
+	 * @param array<int,mixed>    $rows  The parsed rows.
+	 * @param array<string,mixed> $batch The caller's `tenantId` and `submittedBy`, `dryRun`, the evaluation
+	 *                                   instant (`now`) and the upload's `batchId` (null on a dry run).
+	 *
+	 * @return array<int,array<string,mixed>> One report line per row.
+	 */
+	private function reportRows(array $rows, array $batch): array {
+		$tenantId = $batch['tenantId'];
 		$seen = [];
 		$report = [];
 		foreach (array_values($rows) as $index => $row) {
@@ -115,35 +150,21 @@ class ExternalTrainingImport implements ExternalTrainingImportInterface {
 				$row = [];
 			}
 
-			$checked = $this->check(row: $row, tenantId: $tenantId, now: $now);
+			$checked = $this->check(row: $row, tenantId: $tenantId, now: $batch['now']);
 			$line = ($index + 1);
 			$checked['row'] = $line;
 			$checked = $this->againstEarlier(checked: $checked, line: $line, seen: $seen, tenantId: $tenantId);
 
-			if ($checked['status'] === 'ready' && $dryRun === false) {
-				$checked = $this->record(checked: $checked, batchId: (string)$batchId, tenantId: $tenantId, submittedBy: $submittedBy);
+			if ($checked['status'] === 'ready' && $batch['dryRun'] === false) {
+				$checked = $this->record(checked: $checked, batch: $batch);
 			}
 
 			unset($checked['record']);
 			$report[] = $checked;
 		}//end foreach
 
-		$summary = ['ready' => 0, 'created' => 0, 'skipped' => 0, 'failed' => 0, 'total' => count($report)];
-		foreach ($report as $line) {
-			$summary[self::bucket(status: $line['status'])]++;
-		}
-
-		if ($summary['created'] === 0) {
-			$batchId = null;
-		}
-
-		return [
-			'dryRun' => $dryRun,
-			'batchId' => $batchId,
-			'summary' => $summary,
-			'rows' => $report,
-		];
-	}//end import()
+		return $report;
+	}//end reportRows()
 
 	/**
 	 * Validate one row's fields and match its learner.
@@ -249,13 +270,14 @@ class ExternalTrainingImport implements ExternalTrainingImportInterface {
 	 * Save one ready row.
 	 *
 	 * @param array<string,mixed> $checked The checked row.
-	 * @param string $batchId The upload's batch.
-	 * @param string $tenantId The caller's tenant.
-	 * @param string $submittedBy The caller's user id.
+	 * @param array<string,mixed> $batch   The upload's `batchId`, the caller's `tenantId` and `submittedBy`.
 	 *
 	 * @return array<string,mixed> The row as created, or failed with the reason.
 	 */
-	private function record(array $checked, string $batchId, string $tenantId, string $submittedBy): array {
+	private function record(array $checked, array $batch): array {
+		$batchId = (string)$batch['batchId'];
+		$tenantId = $batch['tenantId'];
+		$submittedBy = $batch['submittedBy'];
 		$object = array_merge(
 			$checked['record'],
 			['submittedBy' => $submittedBy, 'batchId' => $batchId, 'tenant_id' => $tenantId]

@@ -126,6 +126,34 @@
 					}
 				},
 				{
+					"id": "BpvVisitsMenu",
+					"label": "Company visits",
+					"icon": "CalendarClockOutline",
+					"route": "BpvVisits",
+					"order": 735,
+					"visibleIf": {
+						"user.primaryRole": {
+							"in": [
+								"instructor",
+								"coordinator",
+								"administration-manager",
+								"admin"
+							]
+						},
+						"workspace.segment": {
+							"in": [
+								"mbo",
+								"corporate"
+							]
+						},
+						"workspace.chosenSegment": {
+							"notIn": [
+								"corporate"
+							]
+						}
+					}
+				},
+				{
 					"id": "BpvVisitReportsMenu",
 					"label": "Visit reports",
 					"icon": "ChartBoxOutline",
@@ -253,6 +281,39 @@
 						"label": "Status"
 					}
 				],
+				"viewModes": [
+					"table",
+					"board"
+				],
+				"viewMode": "table",
+				"board": {
+					"statusField": "phase",
+					"cardFields": [
+						"learnerId",
+						"trainingCompanyName",
+						"lateLabel"
+					],
+					"cardCells": {
+						"learnerId": {
+							"widget": "learnerName"
+						}
+					},
+					"card": {
+						"title": "learnerId",
+						"sub": [
+							"trainingCompanyName",
+							"lateLabel"
+						],
+						"due": "phaseDueAt"
+					},
+					"dueRule": {
+						"field": "phaseDueAt",
+						"soonDays": 7
+					},
+					"moveHandler": "movePlacementPhase",
+					"hint": "A card moves by itself when its step is done. You can drag it too.",
+					"wrap": true
+				},
 				"countText": "{shown} of {total} placements",
 				"searchPlaceholder": "Search a student, training company or KvK number",
 				"quickFilters": [
@@ -285,7 +346,8 @@
 					}
 				],
 				"bulkNoun": "placements",
-				"allowSavedViews": true
+				"allowSavedViews": true,
+				"_note": "bpv-coach-today-and-placement-board T4 (esdoornveen/LqBord): the board view mode (`?_view=board`, menu \"Placements by phase\") shows the placements per phase. A card moves by itself when its step is done, because the server derives `phase` from the placement's facts; a drag is a manual move (`movePlacementPhase` sends phaseOverride, logged with who and when, held until the next fact change). The card reads the student, the company and the late line in words (`lateLabel`), and its due date is marked by `phaseDueAt`."
 			}
 		},
 		{
@@ -343,6 +405,53 @@
 					"werkprocesCode",
 					"werkprocesLabel"
 				]
+			}
+		},
+		{
+			"id": "BpvVisits",
+			"route": "/bpv/visits",
+			"type": "index",
+			"title": "Company visits",
+			"config": {
+				"showTitle": true,
+				"register": "learniq",
+				"schema": "bpv-visit",
+				"_note": "bpv-coach-today-and-placement-board T3: the coach's planned company visits. Datum voorstellen is filling in the proposed moment: the visit then reads proposed and waits on the praktijkopleider's portal, who accepts it (planned) or answers with a note (back to unplanned, her answer in the list). Soonest moment first.",
+				"columns": [
+					{
+						"key": "learnerRef",
+						"label": "Learner",
+						"widget": "fkResolve",
+						"widgetProps": {
+							"register": "learniq",
+							"schema": "learner-profile"
+						}
+					},
+					{
+						"key": "visitKind",
+						"label": "Visit"
+					},
+					{
+						"key": "proposedAt",
+						"label": "Proposed moment"
+					},
+					{
+						"key": "plannedAt",
+						"label": "Planned moment"
+					},
+					{
+						"key": "lifecycle",
+						"label": "Status"
+					},
+					{
+						"key": "trainerResponse",
+						"label": "Company answer"
+					}
+				],
+				"defaultSort": {
+					"field": "proposedAt",
+					"direction": "asc"
+				}
 			}
 		},
 		{

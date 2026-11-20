@@ -452,77 +452,116 @@ class ReportCardComposer implements IEventListener {
 	 * @return array<int,array<string,mixed>>
 	 */
 	private function buildSubjectGrades(string $learnerId, array $curriculumPlanIds, string $periodCode): array {
-		$rows = [];
+		$scope = ['learnerId' => $learnerId, 'periodCode' => $periodCode];
 
-		foreach ($curriculumPlanIds as $curriculumPlanId) {
-			$finalGrades = $this->objectService->findAll(
-				[
-					'filters' => [
-						'register' => self::LEARNIQ_REGISTER,
-						'schema' => self::FINAL_GRADE_SCHEMA,
-						'learnerId' => $learnerId,
-						'curriculumPlanId' => $curriculumPlanId,
-					],
-					'limit' => 1,
-				]
-			);
-
-			$finalGrade = [];
-			if (empty($finalGrades) === false) {
-				$finalGrade = $this->normalise(row: $finalGrades[0]);
-			}
-
-			$breakdown = $finalGrade['breakdown'] ?? [];
-
-			$periods = [];
-			if (is_array($breakdown) === true) {
-				$periods = $breakdown['periods'] ?? [];
-			}
-
-			$periodAverage = null;
-			if (is_array($periods) === true) {
-				$periodAverage = $periods[$periodCode] ?? null;
-			}
-
-			$sourceGradeEntries = $this->objectService->findAll(
-				[
-					'filters' => [
-						'register' => self::LEARNIQ_REGISTER,
-						'schema' => self::GRADE_ENTRY_SCHEMA,
-						'learnerId' => $learnerId,
-						'curriculumPlanId' => $curriculumPlanId,
-						'period' => $periodCode,
-						'lifecycle' => 'published',
-					],
-					'limit' => 500,
-				]
-			);
-
-			$sourceGradeEntryIds = array_values(
-				array_filter(
-					array_map(
-						function ($entry): string {
-							$entry = $this->normalise(row: $entry);
-							return (string)($entry['id'] ?? ($entry['uuid'] ?? ''));
-						},
-						$sourceGradeEntries
-					),
-					static fn (string $id): bool => $id !== ''
-				)
-			);
-
-			$rows[] = [
-				'curriculumPlanId' => $curriculumPlanId,
-				'courseId' => $finalGrade['courseId'] ?? null,
-				'periodAverage' => $this->toNullableFloat(value: $periodAverage),
-				'passed' => $finalGrade['passed'] ?? null,
-				'teacherComment' => null,
-				'sourceGradeEntryIds' => $sourceGradeEntryIds,
-			];
-		}//end foreach
-
-		return $rows;
+		return array_map(
+			fn ($curriculumPlanId): array => $this->subjectGrade(scope: $scope, curriculumPlanId: $curriculumPlanId),
+			array_values($curriculumPlanIds)
+		);
 	}//end buildSubjectGrades()
+
+	/**
+	 * One `subjectGrades[]` row: the learner's period average from the
+	 * plan's FinalGrade and the contributing published GradeEntry ids.
+	 *
+	 * @param array{learnerId: string, periodCode: string} $scope            The learner's NC user ID and the ReportPeriod's periodCode.
+	 * @param mixed                                        $curriculumPlanId The qualifying CurriculumPlan UUID.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private function subjectGrade(array $scope, mixed $curriculumPlanId): array {
+		$periodCode = $scope['periodCode'];
+		$finalGrade = $this->planFinalGrade(learnerId: $scope['learnerId'], curriculumPlanId: $curriculumPlanId);
+
+		$breakdown = $finalGrade['breakdown'] ?? [];
+
+		$periods = [];
+		if (is_array($breakdown) === true) {
+			$periods = $breakdown['periods'] ?? [];
+		}
+
+		$periodAverage = null;
+		if (is_array($periods) === true) {
+			$periodAverage = $periods[$periodCode] ?? null;
+		}
+
+		return [
+			'curriculumPlanId' => $curriculumPlanId,
+			'courseId' => $finalGrade['courseId'] ?? null,
+			'periodAverage' => $this->toNullableFloat(value: $periodAverage),
+			'passed' => $finalGrade['passed'] ?? null,
+			'teacherComment' => null,
+			'sourceGradeEntryIds' => $this->sourceGradeEntryIds(scope: $scope, curriculumPlanId: $curriculumPlanId),
+		];
+	}//end subjectGrade()
+
+	/**
+	 * The learner's FinalGrade for a plan, normalised, or [] when there is none.
+	 *
+	 * @param string $learnerId        NC user ID.
+	 * @param mixed  $curriculumPlanId The CurriculumPlan UUID.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private function planFinalGrade(string $learnerId, mixed $curriculumPlanId): array {
+		$finalGrades = $this->objectService->findAll(
+			[
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::FINAL_GRADE_SCHEMA,
+					'learnerId' => $learnerId,
+					'curriculumPlanId' => $curriculumPlanId,
+				],
+				'limit' => 1,
+			]
+		);
+
+		$finalGrade = [];
+		if (empty($finalGrades) === false) {
+			$finalGrade = $this->normalise(row: $finalGrades[0]);
+		}
+
+		return $finalGrade;
+	}//end planFinalGrade()
+
+	/**
+	 * The ids of the published GradeEntries for (learner, plan, period).
+	 *
+	 * @param array{learnerId: string, periodCode: string} $scope            The learner's NC user ID and the ReportPeriod's periodCode.
+	 * @param mixed                                        $curriculumPlanId The CurriculumPlan UUID.
+	 *
+	 * @return array<int,string>
+	 */
+	private function sourceGradeEntryIds(array $scope, mixed $curriculumPlanId): array {
+		$learnerId = $scope['learnerId'];
+		$periodCode = $scope['periodCode'];
+		$sourceGradeEntries = $this->objectService->findAll(
+			[
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::GRADE_ENTRY_SCHEMA,
+					'learnerId' => $learnerId,
+					'curriculumPlanId' => $curriculumPlanId,
+					'period' => $periodCode,
+					'lifecycle' => 'published',
+				],
+				'limit' => 500,
+			]
+		);
+
+		return array_values(
+			array_filter(
+				array_map(
+					function ($entry): string {
+						$entry = $this->normalise(row: $entry);
+						return (string)($entry['id'] ?? ($entry['uuid'] ?? ''));
+					},
+					$sourceGradeEntries
+				),
+				static fn (string $id): bool => $id !== ''
+			)
+		);
+	}//end sourceGradeEntryIds()
 
 	/**
 	 * Current moment as an ISO-8601 string, via the injected time source.

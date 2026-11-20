@@ -3,11 +3,11 @@
 /**
  * The data-access surface OpenRegister publishes to consuming apps.
  *
- * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @license EUPL-1.2
  * @copyright Conduction B.V.
+ *
+ * SPDX-License-Identifier: EUPL-1.2
+ * SPDX-FileCopyrightText: 2026 Conduction B.V.
  */
 
 declare(strict_types=1);

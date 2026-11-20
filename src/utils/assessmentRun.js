@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: EUPL-1.2
 // Copyright (C) 2026 Conduction B.V.
 
+import { objectId } from './customPages.js'
+
 /**
  * An attempt as CnChecklistRunWidget reads it (learniq/LqLlToetsMaken): one
  * question per drawn item, the answers kept so far, and the widget config that
@@ -22,7 +24,7 @@ export const SAVE_ANSWER = 'save-answer'
 export function runQuestion(item, parts) {
 	const choice = item.interactionType === 'choice'
 	return {
-		id: item.uuid,
+		id: objectId(item),
 		text: parts.prompt,
 		type: choice ? 'choice' : 'text',
 		options: choice ? parts.choices.map((option) => ({ value: option.id, label: option.label })) : [],

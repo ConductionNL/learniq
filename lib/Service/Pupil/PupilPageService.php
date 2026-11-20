@@ -29,6 +29,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service\Pupil;
 
 use DateTimeImmutable;
+use OCA\Learniq\Kernel\Contracts\PupilPageServiceInterface;
 use OCA\Learniq\Service\Attendance\RollCallAccess;
 use OCA\Learniq\Service\Attendance\RollCallException;
 use OCA\Learniq\Service\Attendance\TodayState;
@@ -43,7 +44,7 @@ use OCP\IUserManager;
  *
  * @spec openspec/changes/learner-list-and-page-follow-the-boards/specs/pupil-dossier/spec.md#requirement-the-pupils-page-opens-with-a-header-one-next-step-and-the-people-around-the-pupil
  */
-class PupilPageService {
+class PupilPageService implements PupilPageServiceInterface {
 
 	public const NOT_FOUND = 404;
 
@@ -78,7 +79,7 @@ class PupilPageService {
 	 * @param string      $learnerId The pupil's Nextcloud user id.
 	 * @param string|null $cohortId  The group the page is opened from; null for the pupil's first group of the caller.
 	 *
-	 * @return array<string, mixed> learnerId, cohortId, todayState, header, nextStep (or null) and people.
+	 * @return array<string, mixed> learnerId, cohortId, todayState, todayUntil, header, nextStep (or null) and people.
 	 *
 	 * @throws RollCallException 403 for a caller who may not open a group of this pupil, 404 for a pupil without a profile.
 	 *
@@ -109,6 +110,7 @@ class PupilPageService {
 			'learnerId' => $learnerId,
 			'cohortId' => $this->reader->idOf(row: $cohort),
 			'todayState' => $todayState,
+			'todayUntil' => ($this->todayStates->untilForCohort(cohort: $cohort, date: $today)[$learnerId] ?? null),
 			'header' => PupilPage::header(profile: $profile, cohort: $cohort, todayState: $todayState, flags: $flags, placement: $placement),
 			'nextStep' => $this->nextStep->first(slots: $slots, visits: $visits, flags: $flags, now: $now),
 			'people' => $this->named(people: PupilPage::people(cohort: $cohort, plans: $plans, placement: $placement)),

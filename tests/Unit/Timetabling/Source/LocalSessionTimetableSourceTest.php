@@ -58,4 +58,37 @@ class LocalSessionTimetableSourceTest extends TestCase {
 		self::assertSame(['s-1'], array_column($source->sessionsForTeacher(userId: 'eva', from: null, to: null), 'id'));
 		self::assertSame([false, false], $calls);
 	}//end testReadsWithoutCallerRbacInsideTheAskedScope()
+
+	/**
+	 * Per asked course, in the asked order: only the sessions that hold that
+	 * course are kept, each marked with this source; an empty id is skipped.
+	 *
+	 * @return void
+	 */
+	public function testKeepsOnlyTheAskedCoursesSessionsInAskedOrder(): void {
+		$asked = [];
+		$objects = $this->createMock(originalClassName: ObjectService::class);
+		$objects->method('findAll')->willReturnCallback(
+			static function (array $config) use (&$asked): array {
+				$asked[] = $config['filters']['courseId'];
+				return OrEntityFactory::makeMany(
+					[
+						['id' => 'a-' . $config['filters']['courseId'], 'courseId' => $config['filters']['courseId']],
+						['id' => 'other', 'courseId' => 'k-9'],
+					],
+					'session'
+				);
+			}
+		);
+		$source = new LocalSessionTimetableSource(objectService: $objects);
+
+		$rows = $source->sessionsForCourses(courseIds: ['k-2', '', 'k-1', 'k-2'], from: null, to: null);
+
+		self::assertSame(expected: ['k-2', 'k-1'], actual: $asked);
+		self::assertSame(expected: ['a-k-2', 'a-k-1'], actual: array_column($rows, 'id'));
+		self::assertSame(
+			expected: [LocalSessionTimetableSource::NAME, LocalSessionTimetableSource::NAME],
+			actual: array_column($rows, 'source')
+		);
+	}//end testKeepsOnlyTheAskedCoursesSessionsInAskedOrder()
 }//end class
