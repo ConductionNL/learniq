@@ -631,7 +631,8 @@ test('the full profile is exactly the plain manifest build', () => {
 	// ai-disclosure-for-every-user added the AI processing disclosure to the
 	// footer for every signed-in user (footer 2 -> 3).
 	assert.equal(entries.length, 116)
-	assert.equal(plain.menu.length, 27)
+	// 28 top-level items: the AI disclosure is one of them.
+	assert.equal(plain.menu.length, 28)
 	// 106 in main: Course days, Permission slips, Leave to decide and
 	// Participants each added one.
 	assert.deepEqual(
