@@ -40,19 +40,19 @@ class PortalAnswersTest extends TestCase {
 	 */
 	public function testEmptyAndWrongAnswersAreNamed(): void {
 		$answers = new PortalAnswers();
-		self::assertSame('', $answers->text(field: 'learnerRef', value: '  '));
-		self::assertSame('14-03-1994', $answers->text(field: 'birthDate', value: ' 14-03-1994 '));
-		self::assertSame('ok', $answers->text(field: 'note', value: 'ok'));
+		self::assertSame(expected: '', actual: $answers->text(field: 'learnerRef', value: '  '));
+		self::assertSame(expected: '14-03-1994', actual: $answers->text(field: 'birthDate', value: ' 14-03-1994 '));
+		self::assertSame(expected: 'ok', actual: $answers->text(field: 'note', value: 'ok'));
 		$answers->wrongKind(field: 'birthDate', kind: 'date');
 		$answers->wrongKind(field: 'learnerRef', kind: 'date');
 
 		$outcome = $answers->refused(error: 'birth_date_invalid', reason: 'birth-date-invalid');
 
-		self::assertSame(422, $outcome->status);
-		self::assertSame('birth-date-invalid', $outcome->reason);
+		self::assertSame(expected: 422, actual: $outcome->status);
+		self::assertSame(expected: 'birth-date-invalid', actual: $outcome->reason);
 		self::assertSame(
-			['error' => 'birth_date_invalid', 'errors' => ['learnerRef' => ''], 'invalid' => ['birthDate' => 'date']],
-			$outcome->body
+			expected: ['error' => 'birth_date_invalid', 'errors' => ['learnerRef' => ''], 'invalid' => ['birthDate' => 'date']],
+			actual: $outcome->body
 		);
 	}//end testEmptyAndWrongAnswersAreNamed()
 
@@ -64,15 +64,15 @@ class PortalAnswersTest extends TestCase {
 	 */
 	public function testACountIsAWholeNumberInItsRange(): void {
 		$answers = new PortalAnswers();
-		self::assertSame(3, $answers->count(field: 'a', value: 3, min: 1, max: 12));
-		self::assertSame(4, $answers->count(field: 'b', value: ' 4 ', min: 1, max: 12));
-		self::assertNull($answers->count(field: 'c', value: 'twee', min: 1, max: 12));
-		self::assertNull($answers->count(field: 'd', value: 13, min: 1, max: 12));
-		self::assertNull($answers->count(field: 'e', value: null, min: 1, max: 12));
+		self::assertSame(expected: 3, actual: $answers->count(field: 'a', value: 3, min: 1, max: 12));
+		self::assertSame(expected: 4, actual: $answers->count(field: 'b', value: ' 4 ', min: 1, max: 12));
+		self::assertNull(actual: $answers->count(field: 'c', value: 'twee', min: 1, max: 12));
+		self::assertNull(actual: $answers->count(field: 'd', value: 13, min: 1, max: 12));
+		self::assertNull(actual: $answers->count(field: 'e', value: null, min: 1, max: 12));
 
 		self::assertSame(
-			['error' => 'incomplete', 'errors' => ['e' => ''], 'invalid' => ['c' => 'integer', 'd' => 'range']],
-			$answers->refused(error: 'incomplete', reason: 'incomplete')->body
+			expected: ['error' => 'incomplete', 'errors' => ['e' => ''], 'invalid' => ['c' => 'integer', 'd' => 'range']],
+			actual: $answers->refused(error: 'incomplete', reason: 'incomplete')->body
 		);
 	}//end testACountIsAWholeNumberInItsRange()
 
@@ -85,6 +85,6 @@ class PortalAnswersTest extends TestCase {
 		$answers = new PortalAnswers();
 		$answers->text(field: 'hourWeekId', value: 'week-1');
 
-		self::assertSame(['error' => 'incomplete'], $answers->refused(error: 'incomplete', reason: 'incomplete')->body);
+		self::assertSame(expected: ['error' => 'incomplete'], actual: $answers->refused(error: 'incomplete', reason: 'incomplete')->body);
 	}//end testARefusalWithoutAnEmptyAnswerNamesNoField()
 }//end class

@@ -152,7 +152,11 @@ class PortalWerkprocesAssessment implements PortalWerkprocesAssessmentInterface 
 		$assurance = (self::TRUST_TO_ASSURANCE[$trust] ?? 'basic');
 		$answers = new PortalAnswers();
 		$placementId = $answers->text(field: 'bpvPlacementId', value: ($body['bpvPlacementId'] ?? null));
-		$refusal = $this->requestRefusal(assurance: $assurance, request: ['trainerRef' => $trainerRef, 'placementId' => $placementId], answers: $answers);
+		$refusal = $this->requestRefusal(
+			assurance: $assurance,
+			request: ['trainerRef' => $trainerRef, 'placementId' => $placementId],
+			answers: $answers
+		);
 		if ($refusal !== null) {
 			return $refusal;
 		}

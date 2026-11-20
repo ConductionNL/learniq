@@ -355,13 +355,13 @@ class PortalHourWeekApprovalTest extends TestCase {
 		$incomplete = $this->approvals()->approve(trainerRef: self::TRAINER, trust: 'low', body: []);
 		self::assertSame(422, $incomplete->status);
 		self::assertSame('incomplete', $incomplete->reason);
-		self::assertSame(['hourWeekId' => ''], $incomplete->body['errors']);
+		self::assertSame(expected: ['hourWeekId' => ''], actual: $incomplete->body['errors']);
 
 		// A trainer the assertion did not name is the same refusal: there is
 		// nobody to attribute the decision to.
 		$nobody = $this->approvals()->approve(trainerRef: '', trust: 'low', body: ['hourWeekId' => self::WEEK]);
 		self::assertSame(422, $nobody->status);
-		self::assertArrayNotHasKey('errors', $nobody->body);
+		self::assertArrayNotHasKey(key: 'errors', array: $nobody->body);
 
 		$unknown = $this->approvals()->approve(
 			trainerRef: self::TRAINER,

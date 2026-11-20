@@ -1013,7 +1013,7 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame('/apps/learniq/api/portal/hour-weeks/approve', $approval['endpoint']);
 		$this->assertSame('POST', $approval['method']);
 		// The schema only shapes the inputs: `hoursApproved` is a number.
-		$this->assertSame('bpv-hour-week', $approval['schema']);
+		$this->assertSame(expected: 'bpv-hour-week', actual: $approval['schema']);
 		$this->assertSame('practicalTrainerId', $approval['subjectField']);
 		$this->assertSame('practicalTrainerId', $approval['scopeClaim']);
 		$this->assertSame('low', $approval['minTrust']);
