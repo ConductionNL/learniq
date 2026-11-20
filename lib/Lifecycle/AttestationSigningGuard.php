@@ -34,6 +34,7 @@
  *
  * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-2
  * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-12
+ * @spec openspec/changes/capability-rows-say-what-they-do/specs/compliance-audit/spec.md#requirement-a-learner-confirms-and-signs-their-own-attestation-after-the-training
  */
 
 declare(strict_types=1);
@@ -116,6 +117,7 @@ class AttestationSigningGuard implements LifecycleGuardInterface {
 	 */
 	public function check(array $object, string $action, string $userId): GuardResult {
 		$refusal = ($this->identifierRefusal(attestation: $object)
+			?? $this->confirmationRefusal(attestation: $object, userId: $userId)
 			?? $this->completionRefusal(attestation: $object)
 			?? $this->missingKeyRefusal(tenantId: (string)($object['tenant_id'] ?? '')));
 
@@ -140,6 +142,30 @@ class AttestationSigningGuard implements LifecycleGuardInterface {
 		);
 		return GuardResult::deny('The attestation names no learner or no lesson, so it can not be signed.');
 	}//end identifierRefusal()
+
+	/**
+	 * The refusal of a learner signing their own attestation without confirming
+	 * that they read and understood the training, or null. Staff signing on a
+	 * learner's behalf are not asked for the learner's confirmation.
+	 *
+	 * @param array<string,mixed> $attestation The Attestation as it would be saved.
+	 * @param string              $userId      The caller's uid, or '' without a session.
+	 *
+	 * @return GuardResult|null
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/compliance-audit/spec.md#scenario-a-learner-signs-after-finishing-the-training
+	 */
+	private function confirmationRefusal(array $attestation, string $userId): ?GuardResult {
+		if ($userId === '' || $userId !== (string)($attestation['learnerId'] ?? '')) {
+			return null;
+		}
+
+		if (($attestation['readAndUnderstood'] ?? false) === true) {
+			return null;
+		}
+
+		return GuardResult::deny('Confirm that you read and understood the training before you sign.');
+	}//end confirmationRefusal()
 
 	/**
 	 * The refusal of an attestation whose learner has no cmi5.completed (or
