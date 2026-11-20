@@ -655,7 +655,7 @@ test('the full profile is exactly the plain manifest build', () => {
 	// board is a view mode of BpvPlacements, not a page); 358 with
 	// CourseParticipants and CourseParticipantDetail (training-provider-course-days T7).
 	// One more with ExamRegistrations (exam-registration-and-certificate-issue).
-	assert.equal(plain.pages.length, 359)
+	assert.equal(plain.pages.length, 360)
 })
 
 test('menu-layout.json holds no profile key, so the full profile cannot gain an overlay', () => {

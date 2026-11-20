@@ -159,6 +159,7 @@ import MarkSubmissionView from './views/MarkSubmissionView.vue'
 import MyElectives from './views/MyElectives.vue'
 // assessment-course-evaluation-answer-page: a learner answers their course evaluations.
 import MyEvaluationsView from './views/MyEvaluationsView.vue'
+import MyKeuzedelen from './views/MyKeuzedelen.vue'
 // portable-learning-record: the three genuine new custom views this change
 // adds — the learner's aggregate dashboard + export/share actions, the
 // coordinator's prior-record upload + live coverage report, and the public
@@ -381,6 +382,7 @@ export default {
 	AllocateMarkersView: page(AllocateMarkersView),
 	MyLearningRecordView: page(MyLearningRecordView),
 	MyElectives: page(MyElectives),
+	MyKeuzedelen: page(MyKeuzedelen),
 	MyTimetable: page(MyTimetable),
 	PeerReviewMarkingView: page(PeerReviewMarkingView),
 	PeopleDashboard: page(PeopleDashboard),
