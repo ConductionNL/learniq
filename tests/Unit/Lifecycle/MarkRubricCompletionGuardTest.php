@@ -64,7 +64,7 @@ class MarkRubricCompletionGuardTest extends TestCase {
 	 * @return MarkRubricCompletionGuard
 	 */
 	private function makeGuard(?array $assignment, ?array $rubric, bool $throws=false): MarkRubricCompletionGuard {
-		$objectService = $this->createMock(ObjectService::class);
+		$objectService = $this->createMock(originalClassName: ObjectService::class);
 		$objectService->method('find')->willReturnCallback(
 			function (int|string $id, ?ObjectFindOptions $options = null) use ($assignment, $rubric, $throws) {
 				$schema = $options?->schema;
@@ -84,7 +84,7 @@ class MarkRubricCompletionGuardTest extends TestCase {
 			}
 		);
 
-		return new MarkRubricCompletionGuard($objectService, $this->createMock(LoggerInterface::class));
+		return new MarkRubricCompletionGuard(objectService: $objectService, logger: $this->createMock(originalClassName: LoggerInterface::class));
 	}//end makeGuard()
 
 	/**
@@ -111,12 +111,12 @@ class MarkRubricCompletionGuardTest extends TestCase {
 	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/assignments/spec.md#scenario-a-teacher-forgets-one-criterion
 	 */
 	public function testReturnWithAnUnscoredCriterionIsRefusedAndNamesIt(): void {
-		$guard = $this->makeGuard(['id' => self::ASSIGNMENT_ID, 'rubricId' => self::RUBRIC_ID], $this->rubric);
+		$guard = $this->makeGuard(assignment: ['id' => self::ASSIGNMENT_ID, 'rubricId' => self::RUBRIC_ID], rubric: $this->rubric);
 
-		$result = $guard->check($this->submission([['criterionId' => 'structuur', 'levelId' => 'goed', 'points' => 3]]), 'return', 'teacher');
+		$result = $guard->check($this->submission(scores: [['criterionId' => 'structuur', 'levelId' => 'goed', 'points' => 3]]), 'return', 'teacher');
 
-		self::assertFalse($result->isAllowed());
-		self::assertSame('Score every rubric criterion before releasing the mark. Unscored: Argumentatie.', $result->getMessage());
+		self::assertFalse(condition: $result->isAllowed());
+		self::assertSame(expected: 'Score every rubric criterion before releasing the mark. Unscored: Argumentatie.', actual: $result->getMessage());
 	}//end testReturnWithAnUnscoredCriterionIsRefusedAndNamesIt()
 
 	/**
@@ -127,11 +127,11 @@ class MarkRubricCompletionGuardTest extends TestCase {
 	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/assignments/spec.md#scenario-every-criterion-is-scored
 	 */
 	public function testReturnWithEveryCriterionScoredIsAllowed(): void {
-		$guard = $this->makeGuard(['id' => self::ASSIGNMENT_ID, 'rubricId' => self::RUBRIC_ID], $this->rubric);
+		$guard = $this->makeGuard(assignment: ['id' => self::ASSIGNMENT_ID, 'rubricId' => self::RUBRIC_ID], rubric: $this->rubric);
 
 		$result = $guard->check(
 			$this->submission(
-				[
+				scores: [
 					['criterionId' => 'structuur', 'levelId' => 'goed', 'points' => 3],
 					['criterionId' => 'argumentatie', 'levelId' => 'voldoende', 'points' => 2],
 				]
@@ -140,7 +140,7 @@ class MarkRubricCompletionGuardTest extends TestCase {
 			'teacher'
 		);
 
-		self::assertTrue($result->isAllowed());
+		self::assertTrue(condition: $result->isAllowed());
 	}//end testReturnWithEveryCriterionScoredIsAllowed()
 
 	/**
@@ -151,11 +151,14 @@ class MarkRubricCompletionGuardTest extends TestCase {
 	public function testNothingScoredNamesEveryCriterionInRubricOrder(): void {
 		$rubric = $this->rubric;
 		$rubric['criteria'][] = ['criterionId' => 'bronnen', 'weight' => 1, 'levels' => []];
-		$guard = $this->makeGuard(['id' => self::ASSIGNMENT_ID, 'rubricId' => self::RUBRIC_ID], $rubric);
+		$guard = $this->makeGuard(assignment: ['id' => self::ASSIGNMENT_ID, 'rubricId' => self::RUBRIC_ID], rubric: $rubric);
 
-		$result = $guard->check($this->submission([]), 'return', 'teacher');
+		$result = $guard->check($this->submission(scores: []), 'return', 'teacher');
 
-		self::assertSame('Score every rubric criterion before releasing the mark. Unscored: Structuur, Argumentatie, bronnen.', $result->getMessage());
+		self::assertSame(
+			expected: 'Score every rubric criterion before releasing the mark. Unscored: Structuur, Argumentatie, bronnen.',
+			actual: $result->getMessage()
+		);
 	}//end testNothingScoredNamesEveryCriterionInRubricOrder()
 
 	/**
@@ -164,9 +167,9 @@ class MarkRubricCompletionGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testAnAssignmentWithoutARubricAllowsTheReturn(): void {
-		$guard = $this->makeGuard(['id' => self::ASSIGNMENT_ID], null);
+		$guard = $this->makeGuard(assignment: ['id' => self::ASSIGNMENT_ID], rubric: null);
 
-		self::assertTrue($guard->check($this->submission([]), 'return', 'teacher')->isAllowed());
+		self::assertTrue(condition: $guard->check($this->submission(scores: []), 'return', 'teacher')->isAllowed());
 	}//end testAnAssignmentWithoutARubricAllowsTheReturn()
 
 	/**
@@ -175,12 +178,12 @@ class MarkRubricCompletionGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testAnUnreadableRubricRefusesTheReturn(): void {
-		$guard = $this->makeGuard(['id' => self::ASSIGNMENT_ID, 'rubricId' => 'gone'], $this->rubric);
+		$guard = $this->makeGuard(assignment: ['id' => self::ASSIGNMENT_ID, 'rubricId' => 'gone'], rubric: $this->rubric);
 
-		$result = $guard->check($this->submission([]), 'return', 'teacher');
+		$result = $guard->check($this->submission(scores: []), 'return', 'teacher');
 
-		self::assertFalse($result->isAllowed());
-		self::assertSame('The rubric of this assignment cannot be read, so the mark cannot be released.', $result->getMessage());
+		self::assertFalse(condition: $result->isAllowed());
+		self::assertSame(expected: 'The rubric of this assignment cannot be read, so the mark cannot be released.', actual: $result->getMessage());
 	}//end testAnUnreadableRubricRefusesTheReturn()
 
 	/**
@@ -189,8 +192,8 @@ class MarkRubricCompletionGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testAReadFailureRefusesTheReturn(): void {
-		$guard = $this->makeGuard(['id' => self::ASSIGNMENT_ID, 'rubricId' => self::RUBRIC_ID], $this->rubric, true);
+		$guard = $this->makeGuard(assignment: ['id' => self::ASSIGNMENT_ID, 'rubricId' => self::RUBRIC_ID], rubric: $this->rubric, throws: true);
 
-		self::assertFalse($guard->check($this->submission([]), 'return', 'teacher')->isAllowed());
+		self::assertFalse(condition: $guard->check($this->submission(scores: []), 'return', 'teacher')->isAllowed());
 	}//end testAReadFailureRefusesTheReturn()
 }//end class

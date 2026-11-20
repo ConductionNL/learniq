@@ -67,7 +67,7 @@ class SessionMoveNoticeHandlerTest extends TestCase {
 	 */
 	protected function setUp(): void {
 		$this->saved = [];
-		$this->objectService = $this->createMock(ObjectService::class);
+		$this->objectService = $this->createMock(originalClassName: ObjectService::class);
 		$this->objectService->method('find')->willReturnCallback(
 			function (int|string $id, ?ObjectFindOptions $options = null): ?ObjectEntity {
 				$schema = $options?->schema;
@@ -96,10 +96,15 @@ class SessionMoveNoticeHandlerTest extends TestCase {
 	 * @return SessionMoveNoticeHandler
 	 */
 	private function handler(): SessionMoveNoticeHandler {
-		$notices = $this->createMock(SessionChangeNoticeHandlerInterface::class);
+		$notices = $this->createMock(originalClassName: SessionChangeNoticeHandlerInterface::class);
 		$notices->method('affectedPeople')->willReturn(['learnerIds' => ['fenna', 'daan'], 'parentIds' => ['parent-fenna']]);
 
-		return new SessionMoveNoticeHandler($this->objectService, $notices, TransitionScope::resolver(), new NullLogger());
+		return new SessionMoveNoticeHandler(
+			objectService: $this->objectService,
+			notices: $notices,
+			schemas: TransitionScope::resolver(),
+			logger: new NullLogger()
+		);
 	}//end handler()
 
 	/**
@@ -149,15 +154,15 @@ class SessionMoveNoticeHandlerTest extends TestCase {
 	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/timetabling/spec.md#scenario-a-single-lesson-moves-to-another-room
 	 */
 	public function testASingleLessonMovedToAnotherRoomNotifiesTheGroupAndParents(): void {
-		$this->update($this->lesson(), $this->lesson(['roomId' => self::ROOM_108]));
+		$this->update(old: $this->lesson(), new: $this->lesson(changes: ['roomId' => self::ROOM_108]));
 
-		self::assertCount(1, $this->saved);
+		self::assertCount(expectedCount: 1, haystack: $this->saved);
 		$row = $this->saved[0];
-		self::assertSame(['fenna', 'daan'], $row['affectedLearnerIds']);
-		self::assertSame(['parent-fenna'], $row['affectedParentIds']);
-		self::assertSame('Wiskunde B, 4 havo, 17-11-2026 10:15, 1.08', $row['moveNotice']);
-		self::assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+00:00$/', $row['movedAt']);
-		self::assertSame(self::ROOM_108, $row['roomId']);
+		self::assertSame(expected: ['fenna', 'daan'], actual: $row['affectedLearnerIds']);
+		self::assertSame(expected: ['parent-fenna'], actual: $row['affectedParentIds']);
+		self::assertSame(expected: 'Wiskunde B, 4 havo, 17-11-2026 10:15, 1.08', actual: $row['moveNotice']);
+		self::assertMatchesRegularExpression(pattern: '/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+00:00$/', string: $row['movedAt']);
+		self::assertSame(expected: self::ROOM_108, actual: $row['roomId']);
 	}//end testASingleLessonMovedToAnotherRoomNotifiesTheGroupAndParents()
 
 	/**
@@ -168,11 +173,14 @@ class SessionMoveNoticeHandlerTest extends TestCase {
 	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/timetabling/spec.md#scenario-a-lesson-moves-to-another-time
 	 */
 	public function testALessonMovedToAnotherTimeNamesTheNewTime(): void {
-		$this->update($this->lesson(), $this->lesson(['startsAt' => '2026-11-17T13:00:00+01:00', 'endsAt' => '2026-11-17T13:50:00+01:00']));
+		$this->update(
+			old: $this->lesson(),
+			new: $this->lesson(changes: ['startsAt' => '2026-11-17T13:00:00+01:00', 'endsAt' => '2026-11-17T13:50:00+01:00'])
+		);
 
-		self::assertCount(1, $this->saved);
-		self::assertSame('Wiskunde B, 4 havo, 17-11-2026 13:00', $this->saved[0]['moveNotice']);
-		self::assertSame(['fenna', 'daan'], $this->saved[0]['affectedLearnerIds']);
+		self::assertCount(expectedCount: 1, haystack: $this->saved);
+		self::assertSame(expected: 'Wiskunde B, 4 havo, 17-11-2026 13:00', actual: $this->saved[0]['moveNotice']);
+		self::assertSame(expected: ['fenna', 'daan'], actual: $this->saved[0]['affectedLearnerIds']);
 	}//end testALessonMovedToAnotherTimeNamesTheNewTime()
 
 	/**
@@ -181,9 +189,12 @@ class SessionMoveNoticeHandlerTest extends TestCase {
 	 * @return void
 	 */
 	public function testALocationChangeNamesTheNewLocation(): void {
-		$this->update($this->lesson(['roomId' => null, 'location' => '2.14']), $this->lesson(['roomId' => null, 'location' => 'Aula']));
+		$this->update(
+			old: $this->lesson(changes: ['roomId' => null, 'location' => '2.14']),
+			new: $this->lesson(changes: ['roomId' => null, 'location' => 'Aula'])
+		);
 
-		self::assertSame('Wiskunde B, 4 havo, 17-11-2026 10:15, Aula', $this->saved[0]['moveNotice']);
+		self::assertSame(expected: 'Wiskunde B, 4 havo, 17-11-2026 10:15, Aula', actual: $this->saved[0]['moveNotice']);
 	}//end testALocationChangeNamesTheNewLocation()
 
 	/**
@@ -192,9 +203,9 @@ class SessionMoveNoticeHandlerTest extends TestCase {
 	 * @return void
 	 */
 	public function testTheSameStartInAnotherOffsetIsNoMove(): void {
-		$this->update($this->lesson(), $this->lesson(['startsAt' => '2026-11-17T09:15:00+00:00']));
+		$this->update(old: $this->lesson(), new: $this->lesson(changes: ['startsAt' => '2026-11-17T09:15:00+00:00']));
 
-		self::assertSame([], $this->saved);
+		self::assertSame(expected: [], actual: $this->saved);
 	}//end testTheSameStartInAnotherOffsetIsNoMove()
 
 	/**
@@ -205,10 +216,13 @@ class SessionMoveNoticeHandlerTest extends TestCase {
 	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/timetabling/spec.md#scenario-a-coordinator-moves-three-weeks-of-a-lesson-to-another-room
 	 */
 	public function testALessonChangedByABatchSendsNoMessageOfItsOwn(): void {
-		$this->update($this->lesson(), $this->lesson(['roomId' => self::ROOM_108, 'changeBatchId' => 'batch-1']));
-		$this->update($this->lesson(['roomId' => self::ROOM_108, 'changeBatchId' => 'batch-1']), $this->lesson(['changeBatchId' => null]));
+		$this->update(old: $this->lesson(), new: $this->lesson(changes: ['roomId' => self::ROOM_108, 'changeBatchId' => 'batch-1']));
+		$this->update(
+			old: $this->lesson(changes: ['roomId' => self::ROOM_108, 'changeBatchId' => 'batch-1']),
+			new: $this->lesson(changes: ['changeBatchId' => null])
+		);
 
-		self::assertSame([], $this->saved);
+		self::assertSame(expected: [], actual: $this->saved);
 	}//end testALessonChangedByABatchSendsNoMessageOfItsOwn()
 
 	/**
@@ -217,9 +231,12 @@ class SessionMoveNoticeHandlerTest extends TestCase {
 	 * @return void
 	 */
 	public function testALaterSingleMoveOfALessonOnceInABatchIsNotified(): void {
-		$this->update($this->lesson(['changeBatchId' => 'batch-1']), $this->lesson(['changeBatchId' => 'batch-1', 'roomId' => self::ROOM_108]));
+		$this->update(
+			old: $this->lesson(changes: ['changeBatchId' => 'batch-1']),
+			new: $this->lesson(changes: ['changeBatchId' => 'batch-1', 'roomId' => self::ROOM_108])
+		);
 
-		self::assertCount(1, $this->saved);
+		self::assertCount(expectedCount: 1, haystack: $this->saved);
 	}//end testALaterSingleMoveOfALessonOnceInABatchIsNotified()
 
 	/**
@@ -228,11 +245,11 @@ class SessionMoveNoticeHandlerTest extends TestCase {
 	 * @return void
 	 */
 	public function testAnUpdateThatMovesNothingWritesNothing(): void {
-		$moved = $this->lesson(['roomId' => self::ROOM_108]);
-		$this->update($moved, array_merge($moved, ['moveNotice' => 'x', 'movedAt' => '2026-11-15T10:00:00+00:00']));
-		$this->update($this->lesson(), $this->lesson(['title' => 'Wiskunde B']));
+		$moved = $this->lesson(changes: ['roomId' => self::ROOM_108]);
+		$this->update(old: $moved, new: array_merge($moved, ['moveNotice' => 'x', 'movedAt' => '2026-11-15T10:00:00+00:00']));
+		$this->update(old: $this->lesson(), new: $this->lesson(changes: ['title' => 'Wiskunde B']));
 
-		self::assertSame([], $this->saved);
+		self::assertSame(expected: [], actual: $this->saved);
 	}//end testAnUpdateThatMovesNothingWritesNothing()
 
 	/**
@@ -241,9 +258,9 @@ class SessionMoveNoticeHandlerTest extends TestCase {
 	 * @return void
 	 */
 	public function testACancelledLessonGetsNoMoveNotice(): void {
-		$this->update($this->lesson(), $this->lesson(['lifecycle' => 'cancelled', 'roomId' => self::ROOM_108]));
+		$this->update(old: $this->lesson(), new: $this->lesson(changes: ['lifecycle' => 'cancelled', 'roomId' => self::ROOM_108]));
 
-		self::assertSame([], $this->saved);
+		self::assertSame(expected: [], actual: $this->saved);
 	}//end testACancelledLessonGetsNoMoveNotice()
 
 	/**
@@ -254,11 +271,11 @@ class SessionMoveNoticeHandlerTest extends TestCase {
 	public function testAnotherSchemasUpdateIsIgnored(): void {
 		$this->handler()->handle(
 			new ObjectUpdatedEvent(
-				OrEntityFactory::make($this->lesson(['roomId' => self::ROOM_108]), 'room'),
+				OrEntityFactory::make($this->lesson(changes: ['roomId' => self::ROOM_108]), 'room'),
 				OrEntityFactory::make($this->lesson(), 'room')
 			)
 		);
 
-		self::assertSame([], $this->saved);
+		self::assertSame(expected: [], actual: $this->saved);
 	}//end testAnotherSchemasUpdateIsIgnored()
 }//end class
