@@ -377,6 +377,22 @@ class PortalContributionProvider {
 	}//end schoolDocuments()
 
 	/**
+	 * The `documents` provider of `studentEnrolments`: the learner's own
+	 * reports, approved subject choice, work placement agreement with its
+	 * signing state and certificates. Portaliq calls this only for an
+	 * enrolment it read through her own scoped collection.
+	 *
+	 * @param string $id The enrolment id.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 *
+	 * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-each-school-audience-offers-its-own-documents-grouped-per-record
+	 */
+	public function studentDocuments(string $id): array {
+		return ($this->records?->learner?->forEnrolment(enrolmentId: $id) ?? []);
+	}//end studentDocuments()
+
+	/**
 	 * The audiences this provider contributes to (contract v2, preferred).
 	 *
 	 * The registry probes for this method first. Learniq serves the learner
