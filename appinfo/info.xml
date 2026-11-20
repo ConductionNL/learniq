@@ -132,6 +132,10 @@ Vrij en open source onder de EUPL-1.2-licentie.
              day) stops being coming the day after its last course day
              (past-course-days-drop-off). -->
         <job>OCA\Learniq\BackgroundJob\PastCourseDaysJob</job>
+        <!-- Every 15 minutes: closes each exam registration list whose closing
+             moment has come, so it can be exported and sent
+             (exam-registration-and-certificate-issue). -->
+        <job>OCA\Learniq\BackgroundJob\ExamRegistrationCloseJob</job>
         <!-- attendance-warns-before-the-threshold: once a day, recounts the
              pupils whose rolling unauthorised-hours window still holds hours,
              so an absence that slid out of the window lowers the count. -->
