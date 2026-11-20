@@ -596,4 +596,19 @@ class PortalEmployerBookings implements PortalEmployerBookingsInterface {
 
 		return (array)$saved->jsonSerialize();
 	}//end save()
+
+	/**
+	 * A string value, trimmed, or ''.
+	 *
+	 * @param mixed $value The value.
+	 *
+	 * @return string
+	 */
+	private function text(mixed $value): string {
+		if (is_string($value) === false) {
+			return '';
+		}
+
+		return trim($value);
+	}//end text()
 }//end class
