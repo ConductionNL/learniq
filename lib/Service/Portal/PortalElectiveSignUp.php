@@ -52,6 +52,9 @@ use Throwable;
  * Signs a portal pupil up for an offer's next lesson.
  *
  * @spec openspec/changes/pupil-books-support-lessons-and-mentor-talks/specs/portal-contribution/spec.md#requirement-a-pupil-reads-her-schools-open-support-lessons-and-signs-herself-up
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects) At the threshold: the sign-up reads the
+ * offer, checks the rules, saves as the learner and answers in her language.
  */
 class PortalElectiveSignUp implements PortalElectiveSignUpInterface {
 
@@ -127,10 +130,10 @@ class PortalElectiveSignUp implements PortalElectiveSignUpInterface {
 			'status' => 'signed-up',
 			'tenant_id' => (string)($offer['tenant_id'] ?? $learner->tenantId),
 		];
+		$signUp['timetableSessionRef'] = $lesson['timetableSessionRef'];
 		if ($lesson['sessionId'] !== null) {
+			unset($signUp['timetableSessionRef']);
 			$signUp['sessionId'] = $lesson['sessionId'];
-		} else {
-			$signUp['timetableSessionRef'] = $lesson['timetableSessionRef'];
 		}
 
 		try {

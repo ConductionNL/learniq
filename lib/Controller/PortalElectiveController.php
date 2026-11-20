@@ -59,6 +59,10 @@ use Psr\Log\LoggerInterface;
  * Receives portaliq's optional-lesson sign-up forward for one pupil.
  *
  * @spec openspec/changes/pupil-books-support-lessons-and-mentor-talks/specs/portal-contribution/spec.md#requirement-a-pupil-reads-her-schools-open-support-lessons-and-signs-herself-up
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects) At the threshold because the portal
+ * endpoint attributes (PublicPage, NoCSRFRequired, AnonRateLimit, BruteForceProtection)
+ * count as dependencies, as on the other portal controllers.
  */
 class PortalElectiveController extends Controller {
 

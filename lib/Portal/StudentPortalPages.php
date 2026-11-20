@@ -781,8 +781,7 @@ class StudentPortalPages {
 				$this->timetableBlock(label: 'Your timetable today', range: 'day'),
 				['type' => 'cta', 'page' => 'studentSessions', 'label' => 'Whole week'],
 				self::STUDENT_HOMEWORK_TASKS_BLOCK,
-				// Her invitation to a talk she books herself links to the booking
-				// page (pupil-books-support-lessons-and-mentor-talks, D-5).
+				// Her talk invitation links to the booking page (pupil-books-support-lessons-and-mentor-talks, D-5).
 				(new StudentSelfBooking())->invitationTasksBlock(),
 				self::STUDENT_LATEST_GRADES_BLOCK,
 				$this->absenceFigures(),

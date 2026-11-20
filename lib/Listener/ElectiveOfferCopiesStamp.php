@@ -59,6 +59,10 @@ use Throwable;
  * @template-implements IEventListener<Event>
  *
  * @spec openspec/changes/pupil-books-support-lessons-and-mentor-talks/specs/portal-contribution/spec.md#requirement-a-pupil-reads-her-schools-open-support-lessons-and-signs-herself-up
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects) It listens to the four object events
+ * (creating, updating, created, updated) and saves through OpenRegister's value objects;
+ * each dependency is one capability the stamp needs.
  */
 class ElectiveOfferCopiesStamp implements IEventListener {
 
@@ -119,11 +123,7 @@ class ElectiveOfferCopiesStamp implements IEventListener {
 			return;
 		}
 
-		if ($event instanceof ObjectUpdatingEvent) {
-			$entity = $event->getNewObject();
-		} else {
-			$entity = $event->getObject();
-		}
+		$entity = $this->entityOf(event: $event);
 
 		if ($this->slug(entity: $entity) !== ElectiveService::OFFER_SCHEMA) {
 			return;
@@ -140,6 +140,21 @@ class ElectiveOfferCopiesStamp implements IEventListener {
 
 		$event->setModifiedData(array_merge($event->getModifiedData(), $copies));
 	}//end stampOffer()
+
+	/**
+	 * The object an event is about: the new state of an update.
+	 *
+	 * @param ObjectCreatingEvent|ObjectUpdatingEvent $event The event.
+	 *
+	 * @return mixed
+	 */
+	private function entityOf(ObjectCreatingEvent|ObjectUpdatingEvent $event): mixed {
+		if ($event instanceof ObjectUpdatingEvent) {
+			return $event->getNewObject();
+		}
+
+		return $event->getObject();
+	}//end entityOf()
 
 	/**
 	 * Save a sign-up's offer again when its copies changed.

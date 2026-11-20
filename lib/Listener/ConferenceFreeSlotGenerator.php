@@ -267,11 +267,7 @@ class ConferenceFreeSlotGenerator implements IEventListener {
 		];
 		// The pupil books this time herself: her portal lists only such
 		// times (pupil-books-support-lessons-and-mentor-talks).
-		if (($round['pupilMayBook'] ?? false) === true) {
-			$slot['pupilMayBook'] = true;
-		}
-
-		return $slot;
+		return $slot + array_filter(['pupilMayBook' => ($round['pupilMayBook'] ?? false) === true]);
 	}//end freeSlot()
 
 	/**

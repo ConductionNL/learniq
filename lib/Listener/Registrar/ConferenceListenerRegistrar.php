@@ -50,6 +50,9 @@ use OCP\AppFramework\Bootstrap\IRegistrationContext;
  * Wires the direct conference booking listeners.
  *
  * @spec openspec/changes/direct-conference-booking/specs/parent-conferences/spec.md
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects) A registrar names every listener it
+ * wires and every event it wires them to; that list is its job.
  */
 class ConferenceListenerRegistrar {
 	/**
