@@ -48,10 +48,25 @@ use RuntimeException;
  */
 class ExamRegistrationControllerTest extends TestCase {
 
+	/**
+	 * The registration lists double.
+	 *
+	 * @var ExamRegistrationServiceInterface&MockObject
+	 */
 	private ExamRegistrationServiceInterface&MockObject $lists;
 
+	/**
+	 * The certificate issue double.
+	 *
+	 * @var CertificateIssueServiceInterface&MockObject
+	 */
 	private CertificateIssueServiceInterface&MockObject $certificates;
 
+	/**
+	 * The administration Today double.
+	 *
+	 * @var AdministrationTodayServiceInterface&MockObject
+	 */
 	private AdministrationTodayServiceInterface&MockObject $today;
 
 	/**
