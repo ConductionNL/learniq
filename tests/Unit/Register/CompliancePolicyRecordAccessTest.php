@@ -50,7 +50,7 @@ class CompliancePolicyRecordAccessTest extends TestCase {
 		'AccessibilityStatement',
 		'AccessibilityLimitation',
 		'AccessibilityCriterionResult',
-		// ai-disclosure-for-every-user: the school's own part of the AI disclosure.
+		// Ai-disclosure-for-every-user: the school's own part of the AI disclosure.
 		'AiDisclosureText',
 	];
 
