@@ -38,9 +38,12 @@ use OCA\Learniq\Kernel\Contracts\CallerTenantResolverInterface;
 use OCA\Learniq\Kernel\Contracts\CatalogueMessagesInterface;
 use OCA\Learniq\Kernel\Contracts\CatalogueReaderInterface;
 use OCA\Learniq\Kernel\Contracts\CatalogueSignUpServiceInterface;
+use OCA\Learniq\Kernel\Contracts\CertificatePdfDelegationServiceInterface;
+use OCA\Learniq\Kernel\Contracts\CertificatePdfFileInterface;
 use OCA\Learniq\Kernel\Contracts\CheckInCodeServiceInterface;
 use OCA\Learniq\Kernel\Contracts\CheckInMessagesInterface;
 use OCA\Learniq\Kernel\Contracts\CheckInServiceInterface;
+use OCA\Learniq\Kernel\Contracts\ProofOfEnrolmentInterface;
 use OCA\Learniq\Kernel\Contracts\Cmi5LaunchSessionsInterface;
 use OCA\Learniq\Kernel\Contracts\Cmi5LaunchTokenServiceInterface;
 use OCA\Learniq\Kernel\Contracts\CohortNameRestampInterface;
@@ -128,7 +131,9 @@ use OCA\Learniq\Kernel\Contracts\PointEngagementEvaluatorInterface;
 use OCA\Learniq\Kernel\Contracts\PokParentSignatureRuleInterface;
 use OCA\Learniq\Kernel\Contracts\PortalAttemptServiceInterface;
 use OCA\Learniq\Kernel\Contracts\PortalEmployerBookingsInterface;
+use OCA\Learniq\Kernel\Contracts\PortalHourDayWriteInterface;
 use OCA\Learniq\Kernel\Contracts\PortalHourWeekApprovalInterface;
+use OCA\Learniq\Kernel\Contracts\PortalVisitAnswerInterface;
 use OCA\Learniq\Kernel\Contracts\PortalPermissionAnswerInterface;
 use OCA\Learniq\Kernel\Contracts\PortalLearnerResolverInterface;
 use OCA\Learniq\Kernel\Contracts\PortalMessagesInterface;
@@ -152,6 +157,7 @@ use OCA\Learniq\Kernel\Contracts\RegulationAssignmentServiceInterface;
 use OCA\Learniq\Kernel\Contracts\RegulationAssignPreviewInterface;
 use OCA\Learniq\Kernel\Contracts\RegulationCoverageServiceInterface;
 use OCA\Learniq\Kernel\Contracts\ReportCardGradeLinesInterface;
+use OCA\Learniq\Kernel\Contracts\ReportCardPdfAttacherInterface;
 use OCA\Learniq\Kernel\Contracts\ReportCardPdfDelegationServiceInterface;
 use OCA\Learniq\Kernel\Contracts\ReportCardTemplateSectionResolverInterface;
 use OCA\Learniq\Kernel\Contracts\ReportPeriodLocksInterface;
@@ -190,6 +196,7 @@ use OCA\Learniq\Kernel\Contracts\XapiDocumentStoreInterface;
 use OCA\Learniq\Kernel\Contracts\XapiEnrolmentCompletionInterface;
 use OCA\Learniq\Kernel\Contracts\XapiStatementIngestInterface;
 use OCA\Learniq\Kernel\Contracts\SchoolActivityStaffInterface;
+use OCA\Learniq\Kernel\Contracts\SchoolPhoneInterface;
 use OCA\Learniq\Service\Pupil\PupilPageService;
 use OCA\Learniq\Service\SchoolActivity\SchoolActivityStaff;
 use OCA\Learniq\Service\Accessibility\ConformanceEvidence;
@@ -202,6 +209,7 @@ use OCA\Learniq\Service\Catalogue\CatalogueSignUpService;
 use OCA\Learniq\Service\CheckIn\CheckInCodeService;
 use OCA\Learniq\Service\CheckIn\CheckInMessages;
 use OCA\Learniq\Service\CheckIn\CheckInService;
+use OCA\Learniq\Service\Portal\ProofOfEnrolment;
 use OCA\Learniq\Service\Course\CourseTemplateService;
 use OCA\Learniq\Service\CourseDay\CourseDayStatusService;
 use OCA\Learniq\Service\CourseDay\PlannerTodayService;
@@ -223,7 +231,9 @@ use OCA\Learniq\Service\Portal\EmployerBookingProjection;
 use OCA\Learniq\Service\Portal\EmployerBookingSteps;
 use OCA\Learniq\Service\Portal\PortalAttemptService;
 use OCA\Learniq\Service\Portal\PortalEmployerBookings;
+use OCA\Learniq\Service\Portal\PortalHourDayWrite;
 use OCA\Learniq\Service\Portal\PortalHourWeekApproval;
+use OCA\Learniq\Service\Portal\PortalVisitAnswer;
 use OCA\Learniq\Service\Portal\PortalPermissionAnswer;
 use OCA\Learniq\Service\Portal\PortalLearnerResolver;
 use OCA\Learniq\Service\Portal\PortalMessages;
@@ -238,6 +248,7 @@ use OCA\Learniq\Service\Programme\ProgrammeProgress;
 use OCA\Learniq\Service\Programme\ProgrammeRequirements;
 use OCA\Learniq\Service\Settings\AppealTerm;
 use OCA\Learniq\Service\Settings\MenuStructure;
+use OCA\Learniq\Service\Settings\SchoolPhone;
 use OCA\Learniq\Service\Signing\SigningService;
 use OCA\Learniq\Service\WorkGroup\WorkGroupMembershipService;
 use OCA\Learniq\Service\WorkGroup\WorkGroupMessages;
@@ -284,9 +295,12 @@ final class ContractBindings {
 		CatalogueMessagesInterface::class => CatalogueMessages::class,
 		CatalogueReaderInterface::class => CatalogueReader::class,
 		CatalogueSignUpServiceInterface::class => CatalogueSignUpService::class,
+		CertificatePdfDelegationServiceInterface::class => CertificatePdfDelegationService::class,
+		CertificatePdfFileInterface::class => CertificatePdfFile::class,
 		CheckInCodeServiceInterface::class => CheckInCodeService::class,
 		CheckInMessagesInterface::class => CheckInMessages::class,
 		CheckInServiceInterface::class => CheckInService::class,
+		ProofOfEnrolmentInterface::class => ProofOfEnrolment::class,
 		Cmi5LaunchSessionsInterface::class => Cmi5LaunchSessions::class,
 		Cmi5LaunchTokenServiceInterface::class => Cmi5LaunchTokenService::class,
 		CohortNameRestampInterface::class => CohortNameRestamp::class,
@@ -325,6 +339,7 @@ final class ContractBindings {
 		ElectiveSlotServiceInterface::class => ElectiveSlotService::class,
 		PupilPageServiceInterface::class => PupilPageService::class,
 		SchoolActivityStaffInterface::class => SchoolActivityStaff::class,
+		SchoolPhoneInterface::class => SchoolPhone::class,
 		EmployerBookingProjectionInterface::class => EmployerBookingProjection::class,
 		EmployerBookingStepsInterface::class => EmployerBookingSteps::class,
 		EngagementScoreEvaluatorInterface::class => EngagementScoreEvaluator::class,
@@ -376,7 +391,9 @@ final class ContractBindings {
 		PokParentSignatureRuleInterface::class => PokParentSignatureRule::class,
 		PortalAttemptServiceInterface::class => PortalAttemptService::class,
 		PortalEmployerBookingsInterface::class => PortalEmployerBookings::class,
+		PortalHourDayWriteInterface::class => PortalHourDayWrite::class,
 		PortalHourWeekApprovalInterface::class => PortalHourWeekApproval::class,
+		PortalVisitAnswerInterface::class => PortalVisitAnswer::class,
 		PortalPermissionAnswerInterface::class => PortalPermissionAnswer::class,
 		PortalLearnerResolverInterface::class => PortalLearnerResolver::class,
 		PortalMessagesInterface::class => PortalMessages::class,
@@ -399,6 +416,7 @@ final class ContractBindings {
 		RegulationAssignmentServiceInterface::class => RegulationAssignmentService::class,
 		RegulationCoverageServiceInterface::class => RegulationCoverageService::class,
 		ReportCardGradeLinesInterface::class => ReportCardGradeLines::class,
+		ReportCardPdfAttacherInterface::class => ReportCardPdfAttacher::class,
 		ReportCardPdfDelegationServiceInterface::class => ReportCardPdfDelegationService::class,
 		ReportCardTemplateSectionResolverInterface::class => ReportCardTemplateSectionResolver::class,
 		ReportPeriodLocksInterface::class => ReportPeriodLocks::class,

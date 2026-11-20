@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "learniq demo data",
-    "version": "1.1.51",
+    "version": "1.1.52",
     "description": "Demo data covering every schema this app supplies, offered as the first step of the app's setup walkthrough. Generated from the schemas themselves, so every object satisfies the schema that will validate it."
   },
   "x-openregister": {
@@ -10601,6 +10601,69 @@
         "assessorName": "Voorbeeld Givenname 3 Voorbeeld Familyname 3",
         "assuranceLevel": "basic",
         "lifecycle": "draft"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "leave-request",
+          "slug": "leaverequest-leaverequest-1-1",
+          "id": "ee00ffa5-0000-4000-8000-000000000001"
+        },
+        "learnerRef": "ee000046-0000-4000-8000-000000000001",
+        "requestedByRef": "00000000-0000-4000-8000-000000000000",
+        "dateFrom": "2026-03-12",
+        "dateTo": "2026-03-13",
+        "kind": "wedding",
+        "reason": "Bruiloft van een tante in Utrecht.",
+        "schoolDays": 2,
+        "decideBy": "2026-03-09",
+        "lifecycle": "submitted",
+        "teacherIds": [],
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "leave-request",
+          "slug": "leaverequest-leaverequest-2-1",
+          "id": "ee00ffa5-0000-4000-8000-000000000002"
+        },
+        "learnerRef": "ee000046-0000-4000-8000-000000000002",
+        "requestedByRef": "00000000-0000-4000-8000-000000000001",
+        "dateFrom": "2026-03-05",
+        "dateTo": "2026-03-05",
+        "kind": "funeral",
+        "reason": "Uitvaart van opa.",
+        "schoolDays": 1,
+        "decideBy": "2026-03-09",
+        "lifecycle": "allowed",
+        "teacherIds": [],
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "decidedBy": "Voorbeeld Decidedby 2",
+        "decidedAt": "2026-03-02T09:00:00+00:00",
+        "decisionNote": "Sterkte gewenst."
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "leave-request",
+          "slug": "leaverequest-leaverequest-3-1",
+          "id": "ee00ffa5-0000-4000-8000-000000000003"
+        },
+        "learnerRef": "ee000046-0000-4000-8000-000000000003",
+        "requestedByRef": "00000000-0000-4000-8000-000000000002",
+        "dateFrom": "2026-03-16",
+        "dateTo": "2026-03-20",
+        "kind": "holiday-outside-school-holidays",
+        "reason": "Vakantie buiten de schoolvakanties.",
+        "schoolDays": 5,
+        "decideBy": "2026-03-09",
+        "lifecycle": "refused",
+        "teacherIds": [],
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "decidedBy": "Voorbeeld Decidedby 3",
+        "decidedAt": "2026-03-03T09:00:00+00:00",
+        "decisionNote": "Vakantie buiten de schoolvakanties is geen reden voor verlof."
       }
     ]
   }

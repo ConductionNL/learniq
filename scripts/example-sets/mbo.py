@@ -143,6 +143,10 @@ SCHEMAS = [
     # each of them assesses. Appended for the same reason; its parents,
     # external-assessor, learner-profile and exam-sitting, sit above it.
     "exam-assessor-assignment",
+    # bpv-coach-today-and-placement-board: the planned company visits of the
+    # BPV-begeleider. Appended for the same reason; its parent, bpv-placement,
+    # sits above it.
+    "bpv-visit",
 ]
 IDENTITY = SetIdentity(SET, SET_NUMBER, SCHEMAS)
 
@@ -2094,6 +2098,20 @@ STORY_UNITS = [
 ]
 
 
+def story_days(monday: dt.date, count: int, questions: dict) -> list[dict]:
+    """`count` day lines from `monday`, each 08.00 to 16.30 with 30 minutes break (8 hours) on the
+    placement's first work processes; `questions` puts the trainer's question on a day by its index."""
+    lines = []
+    for i in range(count):
+        line = {"date": (monday + dt.timedelta(days=i)).isoformat(), "startTime": "08:00", "endTime": "16:30",
+                "breakMinutes": 30, "hours": 8, "werkprocesCodes": [STORY_PROGRESS[2][0]],
+                "description": "Aan de transportbandopstelling gewerkt."}
+        if i in questions:
+            line["returnedQuestion"] = questions[i]
+        lines.append(line)
+    return lines
+
+
 def stamp_hour_totals(b: Builder) -> None:
     """Every placement's waiting and returned hours, as HourWeekTotalRollup keeps them on a live save
     (bpv-hours-match-the-board): waiting is the hours submitted on a week still `submitted`, returned the
@@ -2189,6 +2207,44 @@ LEERPLICHT_WARN_AT = 12
 STORY_UNIT_NAMES = {c[0]: c[1] for c in STORY_UNITS}
 
 
+# The placement board of MT4-2A on Monday 5 October 2026 (esdoornveen/LqBord,
+# bpv-coach-today-and-placement-board T6): a placement in every phase. Daan
+# Smits has no company five weeks into the period; Jesse Kok's tussentijdse
+# beoordeling has no date yet. Student, given name, family name, birth date.
+BOARD_DAY = dt.date(2026, 10, 5)
+BOARD_PEOPLE = [
+    ("mbo-student-254", "Daan", "Smits", "2008-01-22"),
+    ("mbo-student-255", "Jesse", "Kok", "2007-11-09"),
+    ("mbo-student-256", "Sanne", "de Wit", "2008-05-30"),
+    ("mbo-student-257", "Thijs", "Visser", "2007-09-17"),
+    ("mbo-student-258", "Bram", "Jansen", "2007-12-03"),
+]
+BOARD_COMPANY, BOARD_KVK = "Van Dijk Machinebouw", "00000020"
+# Placements: student, company, start, end, lifecycle, POK lifecycle (None: no agreement yet),
+# the parties that signed it, and what the board shows on Monday 5 October.
+BOARD_PLACEMENTS = [
+    ("mbo-student-254", "", dt.date(2026, 8, 31), dt.date(2027, 1, 29), "proposed", None, [],
+     ("searching", "2026-08-31", "5 weken te laat")),
+    ("mbo-student-255", BOARD_COMPANY, dt.date(2026, 8, 31), dt.date(2027, 1, 29), "active", "active",
+     ["student", "school", "praktijkopleider"], ("running", None, "")),
+    ("mbo-student-256", BOARD_COMPANY, dt.date(2026, 10, 19), dt.date(2027, 1, 29), "confirmed", "draft",
+     ["student"], ("agreement", "2026-10-19", "")),
+    ("mbo-student-257", BOARD_COMPANY, dt.date(2026, 2, 2), dt.date(2026, 7, 3), "active", "active",
+     ["student", "school", "praktijkopleider"], ("rounding-off", "2026-07-03", "13 weken te laat")),
+    ("mbo-student-258", BOARD_COMPANY, dt.date(2026, 2, 2), dt.date(2026, 7, 3), "completed", "active",
+     ["student", "school", "praktijkopleider"], ("done", None, "")),
+]
+# The visits on the board: student, kind, lifecycle, the agreed moment (None: no date yet).
+BOARD_VISITS = [
+    (MILAN, "tussentijds-gesprek", "planned", stamp(dt.date(2026, 10, 13), 10, 0)),
+    ("mbo-student-255", "tussentijds-gesprek", "unplanned", None),
+    ("mbo-student-257", "eindgesprek", "unplanned", None),
+    ("mbo-student-258", "eindgesprek", "done", stamp(dt.date(2026, 6, 24), 13, 0)),
+]
+# What the board shows for the two story placements on that Monday.
+BOARD_STORY_PHASES = {MILAN: ("assessment", "2026-10-13", ""), AYLIN: ("running", None, "")}
+
+
 def add_story(year: SchoolYear) -> dict:
     """Milan de Groot's autumn at Esdoornveen, as the esdoornveen boards show it.
 
@@ -2208,7 +2264,7 @@ class StoryAutumn:
         for step in (self.add_staff_and_rooms, self.add_framework, self.add_competencies, self.add_programme,
                      self.add_unit_courses, self.add_plans, self.add_class, self.add_students, self.add_teachers,
                      self.add_placements, self.add_visits, self.add_progress, self.add_hour_weeks, self.add_lessons,
-                     self.add_conference, self.add_exam, self.add_nearing_student):
+                     self.add_conference, self.add_exam, self.add_nearing_student, self.add_placement_board):
             step()
         return {"milan": self.profiles[MILAN], "aylin": self.profiles[AYLIN], "petra": self.petra, "cohort": self.cohort,
                 "milan_placement": self.placements[MILAN], "aylin_placement": self.placements[AYLIN]}
@@ -2440,19 +2496,25 @@ class StoryAutumn:
             self.b.add("werkproces-progress", row)
 
     # Weeks of BPV hours. Milan: weeks 36 to 39 approved (4 x 24 = 96). Week
-    # 40 is two records, because a week record has no per-day lines (D-7):
-    # Monday and Wednesday (16 hours) still wait for Petra, and the Tuesday
-    # (8 hours) she sent back with her question. Approving none of a record is
-    # `rejected`; her note names the day. Aylin: weeks 35 to 39 approved
-    # (5 x 32 = 160) and week 40 waiting.
+    # 40 holds its days (bpv-hours-per-day): Monday 28, Tuesday 29 and
+    # Wednesday 30 September, each 08.00 to 16.30 with 30 minutes break (24
+    # hours). Petra sent the week back about the Tuesday with her question, so
+    # nothing of it is approved yet (D-7: she approves the week, a return names
+    # the day). Week 41 is a draft he keeps for later with Monday 5 October.
+    # Aylin: weeks 35 to 39 approved (5 x 32 = 160) and week 40 waiting.
     def add_hour_weeks(self) -> None:
         self.add_approved_weeks(MILAN, (dt.date(2026, 8, 31), 4, 24, 2, (9, 20)))
-        self.week(MILAN, (dt.date(2026, 9, 28), 16, 2, None))
-        self.week(MILAN, (dt.date(2026, 9, 28), 8, 1, {
-            "approved": 0, "at": stamp(dt.date(2026, 10, 2), 16, 42), "lifecycle": "rejected",
-            "note": ("Dinsdag 29 september: je schreef 8 uur. Volgens mij ging je om 14.00 uur naar de tandarts. "
-                     "Wil je de uren aanpassen? Dan keur ik de hele week goed."),
+        question = ("Je schreef 8 uur op dinsdag 29 september. Volgens mij ging je om 14.00 uur naar de tandarts. "
+                    "Wil je de uren aanpassen? Dan keur ik de hele week goed.")
+        returned = self.week(MILAN, (dt.date(2026, 9, 28), 24, 2, {
+            "approved": 0, "at": stamp(dt.date(2026, 10, 2), 16, 42), "lifecycle": "rejected", "note": question,
         }))
+        returned["days"] = story_days(dt.date(2026, 9, 28), 3, {1: question})
+        returned["returnSubject"] = "Vraag over je uren van dinsdag 29 september"
+        draft = self.week(MILAN, (dt.date(2026, 10, 5), 8, 0, None))
+        draft["days"] = story_days(dt.date(2026, 10, 5), 1, {})
+        draft["lifecycle"] = "draft"
+        del draft["submittedAt"]
         self.add_approved_weeks(AYLIN, (dt.date(2026, 8, 24), 5, 32, 3, (9, 30)))
         self.week(AYLIN, (dt.date(2026, 9, 28), 32, 3, None))
 
@@ -2579,6 +2641,63 @@ class StoryAutumn:
             "mentorId": STORY_SLB,
         })
 
+
+    # The placement board (bpv-coach-today-and-placement-board T6): five more
+    # students of MT4-2A (254-258, after Sem Visser), one placement in every phase, and the visits the
+    # BPV-begeleider plans. The phase each placement shows on Monday 5 October
+    # is written as BpvPlacementPhaseStamp writes it on a live save.
+    def add_placement_board(self) -> None:
+        for volgnummer, (nc, given, family, birth) in enumerate(BOARD_PEOPLE, start=254):
+            address = {"street": "Lindehof", "houseNumber": str(volgnummer - 230), "postalCode": "0512 AD", "city": "Zuiddrecht", "country": "NL"}
+            contacts = [{"name": f"Ouder van {given} {family}", "relationship": "ouder", "phone": f"06-0000{volgnummer + 4000}", "priority": 1}]
+            self.add_student(volgnummer, (nc, (given, family, birth, address, contacts)))
+            self.cohort["learnerIds"].append(nc)
+        self.ilse = self.b.add("praktijkopleider", {
+            "givenName": "Ilse", "familyName": "van Dijk", "email": "ilse.vandijk@vandijk-machinebouw.example", "phone": "06-00003172",
+            "trainingCompanyName": BOARD_COMPANY, "trainingCompanyKvkNumber": BOARD_KVK, "active": True,
+        })
+        for spec in BOARD_PLACEMENTS:
+            self.placements[spec[0]] = self.board_placement(spec)
+        for nc, shown in BOARD_STORY_PHASES.items():
+            self.placements[nc].update(dict(zip(("phase", "phaseDueAt", "lateLabel"), shown)))
+        for nc, kind, lifecycle, planned in BOARD_VISITS:
+            visit = {"bpvPlacementId": self.placements[nc]["uuid"], "learnerRef": self.profiles[nc]["uuid"], "visitKind": kind,
+                     "schoolCoachId": STORY_COACH, "practicalTrainerId": self.placements[nc]["practicalTrainerId"], "lifecycle": lifecycle}
+            if planned is not None:
+                visit.update({"proposedAt": planned, "plannedAt": planned})
+            self.b.add("bpv-visit", visit)
+
+    def board_placement(self, spec: tuple) -> dict:
+        nc, company, start, end, lifecycle, pok_state, signers, shown = spec
+        fields = {
+            "learnerId": nc, "learnerRef": self.profiles[nc]["uuid"], "programmeId": self.programme["uuid"],
+            "curriculumPlanId": self.plans["MT-BPV2"]["uuid"], "schoolCoachId": STORY_COACH,
+            "periodFrom": start.isoformat(), "periodTo": end.isoformat(), "agreedHours": 480, "hoursApprovedTotal": 0,
+            "lifecycle": lifecycle, "phase": shown[0], "phaseDueAt": shown[1], "lateLabel": shown[2],
+        }
+        if company:
+            fields.update({"practicalTrainerId": self.ilse["uuid"], "trainingCompanyName": company, "trainingCompanyKvkNumber": BOARD_KVK})
+        placement = self.b.add("bpv-placement", fields)
+        if pok_state is not None:
+            self.board_agreement(placement, (nc, start, end, pok_state, signers))
+        return placement
+
+    def board_agreement(self, placement: dict, agreed: tuple) -> None:
+        nc, start, end, pok_state, signers = agreed
+        pok = self.b.add("praktijkovereenkomst", {
+            "bpvPlacementId": placement["uuid"], "periodFrom": start.isoformat(), "periodTo": end.isoformat(),
+            "terms": (f"Beroepspraktijkvorming bij {BOARD_COMPANY} van {dutch_date(start)} tot en met {dutch_date(end)}, "
+                      "op maandag, dinsdag en woensdag van 08.00 tot 16.30 uur, samen 480 uur. Praktijkopleider Ilse van Dijk, "
+                      "BPV-begeleider Ruud Hermans."),
+            "version": 1, "parentSignatureRequired": False, "lifecycle": pok_state,
+        })
+        signer_of = {"student": (nc, 10, "basic", "Nextcloud-account"),
+                     "school": (STORY_COACH, 11, "substantial", "Nextcloud-account met tweestapsverificatie"),
+                     "praktijkopleider": (self.ilse["uuid"], 14, "basic", "Ondertekenlink per e-mail")}
+        for role in signers:
+            signer, hour, level, method = signer_of[role]
+            self.b.add("pok-signature", {"subjectId": pok["uuid"], "subjectVersion": 1, "signerId": signer, "signerRole": role,
+                                         "signedAt": stamp(start - dt.timedelta(days=7), hour, 5), "assuranceLevel": level, "method": method})
 
 def story_unit_components(unit: tuple) -> list[dict]:
     """A story unit's components: its named parts, or one final assessment."""

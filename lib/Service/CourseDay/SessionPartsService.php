@@ -18,7 +18,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/training-provider-course-days/specs/attendance/spec.md#requirement-a-trainer-registers-attendance-per-part-of-the-day
+ * @spec openspec/specs/attendance/spec.md#requirement-a-trainer-registers-attendance-per-part-of-the-day
  */
 
 declare(strict_types=1);
@@ -35,7 +35,7 @@ use OCP\IUser;
 /**
  * The trainer's view of a session's parts.
  *
- * @spec openspec/changes/training-provider-course-days/specs/attendance/spec.md#requirement-a-trainer-registers-attendance-per-part-of-the-day
+ * @spec openspec/specs/attendance/spec.md#requirement-a-trainer-registers-attendance-per-part-of-the-day
  */
 class SessionPartsService implements SessionPartsServiceInterface {
 	use CourseDayRows;
@@ -55,7 +55,7 @@ class SessionPartsService implements SessionPartsServiceInterface {
 	 * @param ActionAuthService      $actionAuth    The action matrix.
 	 * @param ITimeFactory           $time          The clock.
 	 *
-	 * @spec openspec/changes/training-provider-course-days/specs/attendance/spec.md#requirement-a-trainer-registers-attendance-per-part-of-the-day
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-trainer-registers-attendance-per-part-of-the-day
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
@@ -76,7 +76,7 @@ class SessionPartsService implements SessionPartsServiceInterface {
 	 * @throws CourseDayException When the session or its course day is gone (404) or the user may not read it (403).
 	 * @throws \Throwable         When OpenRegister cannot be read.
 	 *
-	 * @spec openspec/changes/training-provider-course-days/specs/attendance/spec.md#requirement-a-trainer-registers-attendance-per-part-of-the-day
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-trainer-registers-attendance-per-part-of-the-day
 	 */
 	public function forSession(string $sessionId, IUser $user): array {
 		$session  = $this->one(schema: 'session', id: $sessionId);

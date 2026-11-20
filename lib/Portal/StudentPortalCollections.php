@@ -117,8 +117,14 @@ class StudentPortalCollections {
 			'sessionId',
 			'cohortId',
 			'status',
-			'minutesAttended',
+			// Minutes late, not minutes present (portal proof run 3).
+			'lateMinutes',
 			'markedAt',
+		],
+		'columns' => [
+			['field' => 'markedAt', 'label' => 'Date', 'render' => 'date'],
+			['field' => 'status', 'label' => 'Attendance', 'valueLabels' => PortalValueLabels::ATTENDANCE_STATUS],
+			['field' => 'lateMinutes', 'label' => 'Minutes late'],
 		],
 	];
 
@@ -138,6 +144,7 @@ class StudentPortalCollections {
 			'source',
 			'regulationSlug',
 			'cohortId',
+			'cohortName',
 		],
 		// Who she may write to: the teachers of each active group
 		// (portal-message-contacts, portaliq site-messages-per-record).
@@ -146,6 +153,9 @@ class StudentPortalCollections {
 			'composeLabel' => 'A message to your teacher',
 			'composeHint' => 'Your teacher usually answers within two school days.',
 		],
+		// Her own documents per enrolment (school-documents-on-the-portal T3):
+		// reports, statements, agreements with their signing state, certificates.
+		'documents' => ['label' => 'Documents', 'provider' => 'studentDocuments'],
 	];
 
 	private const STUDENT_SUBMISSIONS = [
@@ -193,6 +203,39 @@ class StudentPortalCollections {
 		],
 	];
 
+	/**
+	 * Her weeks of hours her workplace trainer sent back, as messages: the
+	 * line names the day ("Vraag over je uren van dinsdag 29 september"),
+	 * the text is the trainer's question (bpv-hours-per-day). A week drops
+	 * out once she sends it again, because only `rejected` weeks are read.
+	 */
+	private const STUDENT_RETURNED_HOURS = [
+		'id' => 'studentReturnedHours',
+		'kind' => 'inbox',
+		'register' => self::REGISTER,
+		'schema' => 'bpv-hour-week',
+		'scopeField' => 'learnerRef',
+		'scopeClaim' => 'learnerRef',
+		'filter' => ['lifecycle' => 'rejected'],
+		'label' => 'Questions about your hours',
+		'listable' => true,
+		'minTrust' => 'low',
+		'fields' => [
+			'learnerRef',
+			'isoWeek',
+			'returnSubject',
+			'note',
+			'approvedByName',
+			'approvedAt',
+			'lifecycle',
+		],
+		'messageFields' => [
+			'subject' => 'returnSubject',
+			'body' => 'note',
+			'receivedAt' => 'approvedAt',
+		],
+	];
+
 	private const STUDENT_EXCUSE_REQUESTS = [
 		'id' => 'studentExcuseRequests',
 		'register' => self::REGISTER,
@@ -210,7 +253,13 @@ class StudentPortalCollections {
 			'attachmentRef',
 			'lifecycle',
 			'decidedAt',
+			// The school's first look and the lesson hours (absence-reports-seen-and-ended).
+			'seenAt',
+			'fromLessonHour',
+			'toLessonHour',
 		],
+		// She ends her own open illness (absence-reports-seen-and-ended T4).
+		'rowActions' => [ExcuseRecoveryAction::ID],
 	];
 
 	private const STUDENT_TESTS_FIELDS = [
@@ -292,9 +341,9 @@ class StudentPortalCollections {
 
 
 	/**
-	 * Her absence reports and her inbox.
+	 * Her absence reports, her inbox and her trainer's questions about her hours.
 	 *
-	 * @return array<int, array<string, mixed>> Two collections.
+	 * @return array<int, array<string, mixed>> Three collections.
 	 *
 	 * @spec openspec/specs/portal-contribution/spec.md
 	 */
@@ -305,6 +354,7 @@ class StudentPortalCollections {
 			// notifications, scoped by learnerRef. Portaliq renders
 			// `kind: inbox` collections in the shared inbox surface.
 			self::STUDENT_INBOX,
+			self::STUDENT_RETURNED_HOURS,
 		];
 
 	}//end studentWelfareAndInboxCollections()
