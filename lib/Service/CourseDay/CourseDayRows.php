@@ -17,7 +17,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/training-provider-course-days/specs/attendance/spec.md#requirement-a-trainer-registers-attendance-per-part-of-the-day
+ * @spec openspec/specs/attendance/spec.md#requirement-a-trainer-registers-attendance-per-part-of-the-day
  */
 
 declare(strict_types=1);
@@ -31,7 +31,7 @@ use OCA\Learniq\Support\SerialisedRow;
  *
  * The using class holds an `ObjectService $objectService` property.
  *
- * @spec openspec/changes/training-provider-course-days/specs/attendance/spec.md#requirement-a-trainer-registers-attendance-per-part-of-the-day
+ * @spec openspec/specs/attendance/spec.md#requirement-a-trainer-registers-attendance-per-part-of-the-day
  */
 trait CourseDayRows {
 
@@ -43,7 +43,7 @@ trait CourseDayRows {
 	 *
 	 * @return array<string, mixed>|null
 	 *
-	 * @spec openspec/changes/training-provider-course-days/specs/attendance/spec.md#requirement-a-trainer-registers-attendance-per-part-of-the-day
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-trainer-registers-attendance-per-part-of-the-day
 	 */
 	private function one(string $schema, string $id): ?array {
 		if ($id === '') {
@@ -73,7 +73,7 @@ trait CourseDayRows {
 	 *
 	 * @return list<array<string, mixed>>
 	 *
-	 * @spec openspec/changes/training-provider-course-days/specs/attendance/spec.md#requirement-a-trainer-registers-attendance-per-part-of-the-day
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-trainer-registers-attendance-per-part-of-the-day
 	 */
 	private function many(string $schema, array $filters): array {
 		$objects = $this->objectService->findAll(

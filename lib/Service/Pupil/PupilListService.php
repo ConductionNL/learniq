@@ -139,6 +139,7 @@ class PupilListService {
 		$cohort = $group['cohort'];
 		$learnerIds = $group['learnerIds'];
 		$states = $this->todayStates->forCohort(cohort: $cohort, date: $moment['today'], zone: $moment['zone']);
+		$until = $this->todayStates->untilForCohort(cohort: $cohort, date: $moment['today']);
 		$profiles = $this->reader->ofPupils(schema: 'learner-profile', learnerIds: $learnerIds, field: 'ncUserId');
 		$summaries = $this->reader->ofPupils(schema: 'attendance-summary', learnerIds: $learnerIds);
 
@@ -156,6 +157,7 @@ class PupilListService {
 					'learnerId' => $learnerId,
 					'profile' => ($profiles[$learnerId][0] ?? null),
 					'todayState' => ($states[$learnerId] ?? TodayState::NOT_REGISTERED),
+					'todayUntil' => ($until[$learnerId] ?? null),
 					'summary' => self::summaryOf(summaries: ($summaries[$learnerId] ?? []), schoolYear: $moment['schoolYear']),
 					'records' => ($records[$learnerId] ?? []),
 				],
