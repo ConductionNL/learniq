@@ -36,6 +36,7 @@ use OCP\IAppConfig;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use RuntimeException;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * A trainer approves, corrects or is refused one week of hours.
@@ -95,7 +96,11 @@ class PortalHourWeekApprovalTest extends TestCase {
 		);
 		$objectService->method('saveObject')->willReturnCallback(
 			// The real saveObject() answers an entity, never an array.
-			function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null) use ($saveThrows): object {
+			function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) use ($saveThrows): object {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
+				$uuid = $options->uuid;
 				if ($saveThrows === true) {
 					throw new RuntimeException('SQLSTATE 23505 secret table name');
 				}
@@ -155,6 +160,8 @@ class PortalHourWeekApprovalTest extends TestCase {
 		self::assertArrayNotHasKey('returnedQuestion', $week['days'][0]);
 		self::assertSame('Volgens mij ging je om 14.00 uur naar de tandarts.', $week['days'][1]['returnedQuestion']);
 		self::assertSame('Karin Smit', $week['approvedByName']);
+		// The line the student reads in her messages names the day.
+		self::assertSame('Vraag over je uren van dinsdag 29 september', $week['returnSubject']);
 	}//end testAReturnWritesTheQuestionOnTheDayItNames()
 
 	/**
@@ -203,6 +210,7 @@ class PortalHourWeekApprovalTest extends TestCase {
 		self::assertSame('rejected', $outcome->body['lifecycle']);
 		self::assertSame('Klopt week 39?', $this->store->rows['bpv-hour-week'][0]['note']);
 		self::assertArrayNotHasKey('days', $this->store->rows['bpv-hour-week'][0]);
+		self::assertSame('Vraag over je uren van week 39', $this->store->rows['bpv-hour-week'][0]['returnSubject']);
 
 		$refused = $this->approvals()->approve(trainerRef: self::TRAINER, trust: 'low', body: ['hourWeekId' => self::WEEK, 'outcome' => 'returned']);
 		self::assertSame(422, $refused->status);
@@ -481,7 +489,7 @@ class PortalHourWeekApprovalTest extends TestCase {
 		$asArrays->method('saveObject')->willReturnCallback(
 			// saveObject() always answers an entity; only the READ shape is
 			// what this case varies.
-			fn (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null): object => OrEntityFactory::make($object, 'bpv-hour-week')
+			fn (array $object, mixed ...$rest): object => OrEntityFactory::make($object, 'bpv-hour-week')
 		);
 		$outcome = (new PortalHourWeekApproval(
 			objectService: $asArrays,
@@ -513,7 +521,7 @@ class PortalHourWeekApprovalTest extends TestCase {
 			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $this->store->findAll($config, $_rbac, $_multitenancy)
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			fn (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null): object => $this->store->save((string)$schema, $object, $uuid ?? self::WEEK)
+			fn (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()): object => $this->store->save((string)($options->target->schema), $object, ($options->uuid) ?? self::WEEK)
 		);
 
 		return $objectService;

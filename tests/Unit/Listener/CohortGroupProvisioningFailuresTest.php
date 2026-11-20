@@ -35,6 +35,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
+use OCA\Learniq\Tests\Support\LegacyObjectArgs;
 
 /**
  * @covers \OCA\Learniq\Listener\CohortGroupProvisioningHandler
@@ -190,12 +191,12 @@ class CohortGroupProvisioningFailuresTest extends TestCase {
 			}
 		);
 		$group->expects(self::once())->method('addUser')->with($teacher);
-		$this->objectService->expects(self::once())->method('saveObject')->with(
-			['id' => 'c-1', 'teacherIds' => ['teacher', '', 7], 'learnerIds' => ['gone', 'boom', 'teacher'], 'ncGroupId' => 'learniq-cohort-c-1'],
-			self::anything(),
-			'learniq',
-			'cohort'
-		);
+		$this->objectService->expects(self::once())->method('saveObject')->with(...LegacyObjectArgs::with(method: 'saveObject', expected: [
+				'object' => ['id' => 'c-1', 'teacherIds' => ['teacher', '', 7], 'learnerIds' => ['gone', 'boom', 'teacher'], 'ncGroupId' => 'learniq-cohort-c-1'],
+				'extend' => self::anything(),
+				'register' => 'learniq',
+				'schema' => 'cohort',
+			]));
 
 		$this->handler->handle(
 			$this->event('cohort', 'activate', ['id' => 'c-1', 'teacherIds' => ['teacher', '', 7], 'learnerIds' => ['gone', 'boom', 'teacher']])

@@ -22,7 +22,10 @@ declare(strict_types=1);
 namespace OCA\Learniq\Repair;
 
 use OCA\Learniq\Kernel\Contracts\LearnerRefResolverInterface;
+use OCA\Learniq\Repair\Support\MissingLearnerRef;
 use OCA\Learniq\Repair\Support\RepairRowWalk;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Migration\IOutput;
 use OCP\Migration\IRepairStep;
@@ -114,7 +117,7 @@ class BackfillGradeEntryLearnerRef implements IRepairStep {
 	 * @return string|null Counter to bump, or null when the row needed nothing.
 	 */
 	private function stampRow(array $row, array &$cache): ?string {
-		$candidate = $this->candidate(row: $row);
+		$candidate = (new MissingLearnerRef())->inRow(row: $row);
 		if ($candidate === null) {
 			return null;
 		}
@@ -131,9 +134,10 @@ class BackfillGradeEntryLearnerRef implements IRepairStep {
 
 			$this->objectService->saveObject(
 				object: array_merge($row, ['learnerRef' => $cache[$learnerId]]),
-				register: self::LEARNIQ_REGISTER,
-				schema: self::GRADE_ENTRY_SCHEMA,
-				uuid: $uuid,
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::GRADE_ENTRY_SCHEMA),
+					uuid: $uuid
+				),
 				_rbac: false,
 				_multitenancy: false
 			);
@@ -147,27 +151,4 @@ class BackfillGradeEntryLearnerRef implements IRepairStep {
 
 		return 'stamped';
 	}//end stampRow()
-
-	/**
-	 * The learnerId and uuid of a row that still needs a learnerRef, or null
-	 * when it already has one or lacks either value.
-	 *
-	 * @param array<string, mixed> $row The GradeEntry.
-	 *
-	 * @return array{0: string, 1: string}|null
-	 */
-	private function candidate(array $row): ?array {
-		$existing = ($row['learnerRef'] ?? null);
-		if (is_string($existing) === true && $existing !== '') {
-			return null;
-		}
-
-		$learnerId = ($row['learnerId'] ?? null);
-		$uuid = ($row['id'] ?? ($row['uuid'] ?? null));
-		if (is_string($learnerId) === false || $learnerId === '' || is_string($uuid) === false || $uuid === '') {
-			return null;
-		}
-
-		return [$learnerId, $uuid];
-	}//end candidate()
 }//end class

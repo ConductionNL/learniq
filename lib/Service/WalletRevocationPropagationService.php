@@ -186,6 +186,22 @@ class WalletRevocationPropagationService implements LifecycleGuardInterface, Wal
 			return $credential;
 		}
 
+		return $this->revokeOffer(credential: $credential, attestationRef: $attestationRef);
+	}//end propagate()
+
+	/**
+	 * Ask openconnector to revoke the outstanding wallet offer and stamp the
+	 * outcome on the credential; never throws (fail-soft on the wallet rail).
+	 *
+	 * @param array<string,mixed> $credential     The credential, its wallet offer uri cleared.
+	 * @param string              $attestationRef The wallet attestation to revoke by.
+	 *
+	 * @return array<string,mixed> The Credential with the propagation outcome applied.
+	 *
+	 * @spec openspec/specs/certification/spec.md#requirement-revoking-a-credential-propagates-to-any-outstanding-wallet-offer-fail-soft
+	 * @spec openspec/changes/credential-wallet-offer-for-the-learner/specs/certification/spec.md#requirement-the-credential-keeps-the-wallet-offer-link-while-the-offer-is-open
+	 */
+	private function revokeOffer(array $credential, string $attestationRef): array {
 		try {
 			$handled = $this->callOpenConnectorRevoke(attestationRef: $attestationRef);
 			if ($handled === true) {
@@ -213,7 +229,7 @@ class WalletRevocationPropagationService implements LifecycleGuardInterface, Wal
 		}//end try
 
 		return $credential;
-	}//end propagate()
+	}//end revokeOffer()
 
 	/**
 	 * Call openconnector's consumer-gated offer-revocation endpoint.

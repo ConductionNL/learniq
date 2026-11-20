@@ -35,6 +35,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -153,7 +154,14 @@ class LtiToolPlacementController extends Controller {
 			);
 		}
 
-		$event = $this->buildEvent(eventClass: $eventClass, placementId: $placementId, placement: $placement, uid: $user->getUID());
+		$event = $this->buildEvent(
+			eventClass: $eventClass,
+			args: [
+				'placementId' => $placementId,
+				'placement' => $placement,
+				'uid' => $user->getUID(),
+			]
+		);
 		if ($event === null) {
 			return new JSONResponse(data: ['error' => 'No LTI launch handler answered'], statusCode: Http::STATUS_SERVICE_UNAVAILABLE);
 		}
@@ -165,13 +173,15 @@ class LtiToolPlacementController extends Controller {
 	 * Build and dispatch the launch event, or null when it cannot be raised.
 	 *
 	 * @param string               $eventClass  The resolved event class.
-	 * @param string               $placementId The placement UUID.
-	 * @param array<string, mixed> $placement   The placement.
-	 * @param string               $uid         The caller.
+	 * @param array{placementId: string, placement: array<string, mixed>, uid: string} $args The placementId, placement, uid.
 	 *
 	 * @return Event|null The dispatched event, or null.
 	 */
-	private function buildEvent(string $eventClass, string $placementId, array $placement, string $uid): ?Event {
+	private function buildEvent(string $eventClass, array $args): ?Event {
+		$placementId = $args['placementId'];
+		$placement = $args['placement'];
+		$uid = $args['uid'];
+
 		$messageType = 'LtiResourceLinkRequest';
 		if (($placement['launchMode'] ?? 'resource-link') === 'deep-linking') {
 			$messageType = 'LtiDeepLinkingRequest';
@@ -356,7 +366,7 @@ class LtiToolPlacementController extends Controller {
 	 */
 	private function findObject(string $id, string $schema): ?array {
 		try {
-			$object = $this->objectService->find(id: $id, register: self::LEARNIQ_REGISTER, schema: $schema);
+			$object = $this->objectService->find(id: $id, options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: $schema));
 		} catch (Throwable $e) {
 			return null;
 		}

@@ -4,7 +4,7 @@
 
 **Open-source leerlingvolgsysteem (LVS) + leeromgeving (LMS) for Nextcloud**
 
-Scholiq is a compliance-training and learning management app for organisations and schools. It ships as a Nextcloud app built manifest-first on OpenRegister — every entity, lifecycle, notification, and dashboard widget is declared in a JSON schema register, not hand-coded in PHP services.
+Scholiq is a compliance-training and learning management app for organisations and schools. It ships as a Nextcloud app built manifest-first on OpenRegister — every entity, lifecycle, notification, and dashboard widget is declared in a JSON schema register, not hand-coded in PHP services. Install it from the [Nextcloud App Store](https://apps.nextcloud.com/apps/learniq).
 
 [![Latest release](https://img.shields.io/github/v/release/ConductionNL/learniq)](https://github.com/ConductionNL/learniq/releases)
 [![License](https://img.shields.io/badge/license-EUPL--1.2-blue)](LICENSE)

@@ -67,6 +67,9 @@ use DateTimeImmutable;
 use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Kernel\Contracts\LtiAgsPullClientInterface;
 use OCA\Learniq\Support\ObjectRow;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\IJob;
@@ -266,8 +269,6 @@ class LtiAgsScorePollJob extends TimedJob {
 		// written is decided above (placement, line item, learner), not by the
 		// caller's rights.
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::GRADE_ENTRY_SCHEMA,
 			object: $this->gradeEntryFor(
 				score: $score,
 				target: $target,
@@ -275,6 +276,7 @@ class LtiAgsScorePollJob extends TimedJob {
 				placementId: $placementId,
 				resultId: $resultId
 			),
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::GRADE_ENTRY_SCHEMA)),
 			_rbac: false,
 			_multitenancy: false
 		);
@@ -358,8 +360,10 @@ class LtiAgsScorePollJob extends TimedJob {
 			'ltiAgsResultId' => $resultId,
 			'value' => $this->normaliseScore(
 				scoreGiven: $score['scoreGiven'],
-				scoreMaximum: $score['scoreMaximum'],
-				gradeScaleId: $scaleId
+				args: [
+					'scoreMaximum' => $score['scoreMaximum'],
+					'gradeScaleId' => $scaleId,
+				]
 			),
 			'gradeScaleId' => $scaleId,
 			'grader' => 'lti-ags',
@@ -481,8 +485,7 @@ class LtiAgsScorePollJob extends TimedJob {
 		try {
 			$object = $this->objectService->find(
 				id: $lineItemId,
-				register: self::LEARNIQ_REGISTER,
-				schema: self::PLACEMENT_SCHEMA,
+				options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::PLACEMENT_SCHEMA),
 				_rbac: false,
 				_multitenancy: false
 			);
@@ -570,12 +573,14 @@ class LtiAgsScorePollJob extends TimedJob {
 	 * never a blocked import.
 	 *
 	 * @param float $scoreGiven The raw AGS scoreGiven value.
-	 * @param float|null $scoreMaximum The raw AGS scoreMaximum value, if present.
-	 * @param string $gradeScaleId UUID of the target GradeScale.
+	 * @param array{scoreMaximum: float|null, gradeScaleId: string} $args The scoreMaximum, gradeScaleId.
 	 *
 	 * @return float The normalised value to store on the GradeEntry.
 	 */
-	private function normaliseScore(float $scoreGiven, ?float $scoreMaximum, string $gradeScaleId): float {
+	private function normaliseScore(float $scoreGiven, array $args): float {
+		$scoreMaximum = $args['scoreMaximum'];
+		$gradeScaleId = $args['gradeScaleId'];
+
 		if ($scoreMaximum === null || $scoreMaximum <= 0.0 || $gradeScaleId === '') {
 			return $scoreGiven;
 		}
@@ -585,8 +590,7 @@ class LtiAgsScorePollJob extends TimedJob {
 		// in schema 'GradeScale'") and no grade was written.
 		$scale = $this->objectService->find(
 			id: $gradeScaleId,
-			register: self::LEARNIQ_REGISTER,
-			schema: self::GRADE_SCALE_SCHEMA,
+			options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::GRADE_SCALE_SCHEMA),
 			_rbac: false,
 			_multitenancy: false
 		);

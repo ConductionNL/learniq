@@ -40,6 +40,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
+use OCA\Learniq\Tests\Support\LegacyObjectArgs;
 
 /**
  * The confirmed import: guards, the draft lesson, its materials, the row.
@@ -192,6 +193,7 @@ class LessonOnboardingImporterTest extends TestCase {
 		$updated = null;
 		$this->objectService->expects($this->once())->method('saveObject')->willReturnCallback(
 			function (...$args) use (&$updated) {
+				$args = LegacyObjectArgs::positional(method: 'saveObject', args: $args);
 				$updated = $args;
 				return OrEntityFactory::make([], 'lesson');
 			}

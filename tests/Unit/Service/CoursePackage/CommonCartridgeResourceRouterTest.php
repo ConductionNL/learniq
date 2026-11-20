@@ -26,6 +26,8 @@ use OCP\Files\Node;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectDeletion;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * CommonCartridgeResourceRouter routes every Common Cartridge resource to its
@@ -112,7 +114,10 @@ class CommonCartridgeResourceRouterTest extends TestCase {
 		$this->saveAnswers = ['material' => 'mat-1', 'lesson' => 'les-1', 'lti-tool-placement' => 'lti-1'];
 		$this->objectService = $this->createMock(ObjectService::class);
 		$this->objectService->method('saveObject')->willReturnCallback(
-			function (array $object, ?array $extend = [], mixed $register = null, mixed $schema = null): ObjectEntity {
+			function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()): ObjectEntity {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
 				$this->saves[] = [$schema, $object];
 				$answer = ($this->saveAnswers[$schema] ?? null);
 				if ($answer instanceof \Throwable) {
@@ -125,7 +130,10 @@ class CommonCartridgeResourceRouterTest extends TestCase {
 			}
 		);
 		$this->objectService->method('deleteObject')->willReturnCallback(
-			function (string $uuid, mixed $register = null, mixed $schema = null): bool {
+			function (ObjectDeletion $deletion): bool {
+				$uuid = $deletion->uuid;
+				$register = $deletion->target->register;
+				$schema = $deletion->target->schema;
 				$this->deletes[] = [$uuid, $register, $schema];
 				if ($this->deleteFailure !== null) {
 					throw $this->deleteFailure;

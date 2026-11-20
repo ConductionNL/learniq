@@ -39,6 +39,8 @@ namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Kernel\Contracts\RegulationAssignmentServiceInterface;
 use OCA\Learniq\Support\SerialisedRow;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
@@ -109,35 +111,12 @@ class RegulationAssignmentService implements RegulationAssignmentServiceInterfac
 		$learners = $this->learnersInScope(regulation: $regulation, audience: $audience);
 		$result['inScope'] = count($learners);
 
+		$run = ['regulation' => $regulation, 'slug' => $slug, 'learners' => $learners, 'dueDate' => $dueDate];
 		foreach ($courses as $course) {
-			$courseId = (string)($course['id'] ?? ($course['uuid'] ?? ''));
-			$enrolled = $this->liveEnrolledUsers(courseId: $courseId);
-			foreach ($learners as $learner) {
-				$userId = (string)$learner['ncUserId'];
-				if (isset($enrolled[$userId]) === true) {
-					$result['skipped']++;
-					continue;
-				}
-
-				$enrolment = [
-					'learnerId' => $userId,
-					'learnerRef' => (string)($learner['id'] ?? ($learner['uuid'] ?? '')),
-					'courseId' => $courseId,
-					'mandatory' => true,
-					'regulationSlug' => $slug,
-					'source' => 'system',
-					'managerId' => $learner['managerId'] ?? null,
-					'tenant_id' => (string)($regulation['tenant_id'] ?? ($course['tenant_id'] ?? '')),
-				];
-				if ($dueDate !== null) {
-					$enrolment['dueDate'] = $dueDate;
-				}
-
-				$this->objectService->saveObject(object: $enrolment, register: self::LEARNIQ_REGISTER, schema: 'enrolment');
-				$enrolled[$userId] = true;
-				$result['created']++;
-			}//end foreach
-		}//end foreach
+			$tally = $this->enrolCourse(course: $course, run: $run);
+			$result['created'] += $tally['created'];
+			$result['skipped'] += $tally['skipped'];
+		}
 
 		$this->logger->info(
 			'[RegulationAssignmentService] Regulation {slug}: {created} enrolment(s) created, {skipped} already enrolled, {inScope} learner(s) in scope.',
@@ -146,6 +125,50 @@ class RegulationAssignmentService implements RegulationAssignmentServiceInterfac
 
 		return $result;
 	}//end assign()
+
+	/**
+	 * Enrol every learner in scope who is not yet enrolled in one course.
+	 *
+	 * @param array<string,mixed> $course The published course.
+	 * @param array<string,mixed> $run    The `regulation`, its `slug`, the `learners` in scope and the `dueDate` (or null).
+	 *
+	 * @return array{created: int, skipped: int}
+	 */
+	private function enrolCourse(array $course, array $run): array {
+		$tally = ['created' => 0, 'skipped' => 0];
+		$courseId = (string)($course['id'] ?? ($course['uuid'] ?? ''));
+		$enrolled = $this->liveEnrolledUsers(courseId: $courseId);
+		foreach ($run['learners'] as $learner) {
+			$userId = (string)$learner['ncUserId'];
+			if (isset($enrolled[$userId]) === true) {
+				$tally['skipped']++;
+				continue;
+			}
+
+			$enrolment = [
+				'learnerId' => $userId,
+				'learnerRef' => (string)($learner['id'] ?? ($learner['uuid'] ?? '')),
+				'courseId' => $courseId,
+				'mandatory' => true,
+				'regulationSlug' => $run['slug'],
+				'source' => 'system',
+				'managerId' => $learner['managerId'] ?? null,
+				'tenant_id' => (string)($run['regulation']['tenant_id'] ?? ($course['tenant_id'] ?? '')),
+			];
+			if ($run['dueDate'] !== null) {
+				$enrolment['dueDate'] = $run['dueDate'];
+			}
+
+			$this->objectService->saveObject(
+				object: $enrolment,
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: 'enrolment'))
+			);
+			$enrolled[$userId] = true;
+			$tally['created']++;
+		}//end foreach
+
+		return $tally;
+	}//end enrolCourse()
 
 	/**
 	 * Check every published regulation against one person: enrol them in the
@@ -227,8 +250,7 @@ class RegulationAssignmentService implements RegulationAssignmentServiceInterfac
 					'managerId' => $profile['managerId'] ?? null,
 					'tenant_id' => (string)($regulation['tenant_id'] ?? ($course['tenant_id'] ?? '')),
 				],
-				register: self::LEARNIQ_REGISTER,
-				schema: 'enrolment'
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: 'enrolment'))
 			);
 			$created[] = (string)($this->asRow(object: $saved)['id'] ?? '');
 		}//end foreach
@@ -259,7 +281,10 @@ class RegulationAssignmentService implements RegulationAssignmentServiceInterfac
 
 			$object = array_merge($enrolment, ['outOfScopeSince' => $today]);
 			unset($object['@self'], $object['id'], $object['uuid']);
-			$this->objectService->saveObject(object: $object, register: self::LEARNIQ_REGISTER, schema: 'enrolment', uuid: $id);
+			$this->objectService->saveObject(
+				object: $object,
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: 'enrolment'), uuid: $id)
+			);
 			$marked[] = $id;
 		}
 

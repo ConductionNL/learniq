@@ -26,6 +26,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Repair;
 
 use OCA\Learniq\Kernel\Contracts\CallerTenantResolverInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IConfig;
 use OCP\Migration\IOutput;
@@ -221,9 +223,10 @@ class MoveInstanceIdTenantToDefaultTenant implements IRepairStep {
 		try {
 			$this->objectService->saveObject(
 				object: array_merge($row, ['tenant_id' => CallerTenantResolverInterface::DEFAULT_TENANT]),
-				register: self::REGISTER,
-				schema: $schema,
-				uuid: $uuid,
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::REGISTER, schema: $schema),
+					uuid: $uuid
+				),
 				_rbac: false,
 				_multitenancy: false
 			);

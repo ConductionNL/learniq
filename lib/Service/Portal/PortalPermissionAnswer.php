@@ -34,6 +34,8 @@ use OCA\Learniq\Kernel\Contracts\LearnerRefResolverInterface;
 use OCA\Learniq\Kernel\Contracts\PortalPermissionAnswerInterface;
 use OCA\Learniq\Support\SerialisedRow;
 use OCA\Learniq\Support\TextValue;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IAppConfig;
 use Psr\Log\LoggerInterface;
@@ -202,8 +204,7 @@ class PortalPermissionAnswer implements PortalPermissionAnswerInterface {
 
 		$this->objectService->saveObject(
 			object: $response,
-			register: self::REGISTER,
-			schema: self::RESPONSE_SCHEMA,
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: self::RESPONSE_SCHEMA)),
 			_rbac: false,
 			_multitenancy: false
 		);

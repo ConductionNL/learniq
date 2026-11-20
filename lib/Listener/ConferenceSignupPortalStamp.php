@@ -52,6 +52,7 @@ use OCA\Learniq\Service\ConferenceBookingMode;
 use OCA\Learniq\Support\TextValue;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -130,6 +131,21 @@ class ConferenceSignupPortalStamp implements IEventListener {
 			return;
 		}
 
+		$this->stampOrRefuse(event: $event, payload: $payload);
+	}//end handle()
+
+	/**
+	 * Stamp the portal signup with its booking outcome, or refuse it with the
+	 * reason when it cannot be booked.
+	 *
+	 * @param ObjectCreatingEvent $event   The signup being created.
+	 * @param array<string,mixed> $payload The portal signup as it will be saved.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/portal-parent-conference-booking/specs/parent-conferences/spec.md
+	 */
+	private function stampOrRefuse(ObjectCreatingEvent $event, array $payload): void {
 		try {
 			$outcome = $this->outcomeFor(payload: $payload);
 		} catch (Throwable $exception) {
@@ -148,7 +164,7 @@ class ConferenceSignupPortalStamp implements IEventListener {
 		}
 
 		$event->setModifiedData(array_merge($event->getModifiedData(), $outcome['stamp']));
-	}//end handle()
+	}//end stampOrRefuse()
 
 	/**
 	 * A portal signup: no session user, a guardianRef, a learnerRef, no
@@ -265,8 +281,7 @@ class ConferenceSignupPortalStamp implements IEventListener {
 
 		$object = $this->objectService->find(
 			id: $id,
-			register: self::REGISTER,
-			schema: $schema,
+			options: new ObjectFindOptions(register: self::REGISTER, schema: $schema),
 			_rbac: false,
 			_multitenancy: false
 		);

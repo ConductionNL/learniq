@@ -58,6 +58,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
@@ -177,7 +178,7 @@ class AdmissionsDecisionGuard implements LifecycleGuardInterface {
 			return true;
 		}
 
-		return $this->checkDecision(round: $round, object: $object, roundId: $roundId, to: $to);
+		return $this->checkDecision(round: $round, args: ['object' => $object, 'roundId' => $roundId, 'to' => $to]);
 	}//end allows()
 
 	/**
@@ -187,15 +188,17 @@ class AdmissionsDecisionGuard implements LifecycleGuardInterface {
 	 * the referenced AdmissionsRound already resolved by check().
 	 *
 	 * @param array<string,mixed> $round AdmissionsRound property array.
-	 * @param array<string,mixed> $object Application property array.
-	 * @param string $roundId AdmissionsRound UUID.
-	 * @param string $to Target lifecycle state.
+	 * @param array{object: array<string,mixed>, roundId: string, to: string} $args The object, roundId, to.
 	 *
 	 * @return bool True when the decision may proceed; false blocks the transition.
 	 *
 	 * @spec openspec/specs/enrolment/spec.md#requirement-a-vo-schooladvies-must-be-adjusted-upward-when-the-doorstroomtoets-scores-higher-unless-motivated
 	 */
-	private function checkDecision(array $round, array $object, string $roundId, string $to): bool {
+	private function checkDecision(array $round, array $args): bool {
+		$object = $args['object'];
+		$roundId = $args['roundId'];
+		$to = $args['to'];
+
 		$kind = (string)($round['kind'] ?? 'generic');
 
 		if ($kind === 'vo-schooladvies-doorstroomtoets' && $this->schooladviesAdjustmentSatisfied(object: $object) === false) {
@@ -216,7 +219,13 @@ class AdmissionsDecisionGuard implements LifecycleGuardInterface {
 			return false;
 		}
 
-		if ($to === 'placed' && $this->capacityReached(round: $round, roundId: $roundId, tenantId: (string)($object['tenant_id'] ?? '')) === true) {
+		if (
+			$to === 'placed' && $this->capacityReached(round: $round,
+			args: [
+				'roundId' => $roundId,
+				'tenantId' => (string)($object['tenant_id'] ?? ''),
+			]
+		) === true) {
 			$this->logger->info(
 				'[AdmissionsDecisionGuard] AdmissionsRound {id} — capacity reached; blocking placement (target waitlisted instead).',
 				['id' => $roundId]
@@ -399,14 +408,16 @@ class AdmissionsDecisionGuard implements LifecycleGuardInterface {
 	 * Capacity branch: whether the round's placed/converted count has reached capacity.
 	 *
 	 * @param array<string,mixed> $round AdmissionsRound property array.
-	 * @param string $roundId AdmissionsRound UUID.
-	 * @param string $tenantId Tenant ID to scope the query.
+	 * @param array{roundId: string, tenantId: string} $args The roundId, tenantId.
 	 *
 	 * @return bool True when capacity has been reached (placement must be blocked).
 	 *
 	 * @spec openspec/specs/enrolment/spec.md#requirement-placement-capacity-is-enforced-and-a-waitlisted-application-is-auto-promoted-when-a-seat-frees-up
 	 */
-	private function capacityReached(array $round, string $roundId, string $tenantId): bool {
+	private function capacityReached(array $round, array $args): bool {
+		$roundId = $args['roundId'];
+		$tenantId = $args['tenantId'];
+
 		$capacity = $round['capacity'] ?? null;
 		if (is_int($capacity) === false) {
 			// Null/uncapped.
@@ -452,8 +463,7 @@ class AdmissionsDecisionGuard implements LifecycleGuardInterface {
 	private function fetchRound(string $roundId): ?array {
 		$round = $this->objectService->find(
 			id: $roundId,
-			register: self::LEARNIQ_REGISTER,
-			schema: self::ADMISSIONS_ROUND_SCHEMA
+			options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::ADMISSIONS_ROUND_SCHEMA)
 		);
 
 		if ($round === null) {

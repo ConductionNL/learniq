@@ -16,6 +16,7 @@ use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use OCA\Learniq\Tests\Support\LegacyObjectArgs;
 
 /**
  * CoursePackageImportReporter builds report rows, resolves the lifecycle and
@@ -148,8 +149,8 @@ class CoursePackageImportReporterTest extends TestCase {
 
 		$this->objectService->expects($this->once())
 			->method('saveObject')
-			->with(
-				$this->identicalTo(
+			->with(...LegacyObjectArgs::with(method: 'saveObject', expected: [
+					'object' => $this->identicalTo(
 					[
 						'sourceFormat' => 'imscc',
 						'sourceFilename' => 'course.imscc',
@@ -166,10 +167,10 @@ class CoursePackageImportReporterTest extends TestCase {
 						'tenant_id' => 'tenant-1',
 					]
 				),
-				[],
-				'learniq',
-				'course-package-import-report'
-			)
+					'extend' => [],
+					'register' => 'learniq',
+					'schema' => 'course-package-import-report',
+				]))
 			->willReturn($saved);
 
 		$report = $this->reporter->persistReport(
@@ -189,15 +190,15 @@ class CoursePackageImportReporterTest extends TestCase {
 		$entries = [$this->entryWith('a', 'imported')];
 		$this->objectService->expects($this->once())
 			->method('saveObject')
-			->with(
-				$this->callback(
+			->with(...LegacyObjectArgs::with(method: 'saveObject', expected: [
+					'object' => $this->callback(
 					static fn (array $object): bool => $object['lifecycle'] === 'succeeded'
 						&& $object['resourcesTotal'] === 1
 						&& $object['resourcesImported'] === 1
 						&& $object['resourcesDegraded'] === 0
 						&& $object['resourcesDropped'] === 0
-				)
-			)
+				),
+				]))
 			->willReturn(new ObjectEntity());
 
 		$this->reporter->persistReport(
@@ -215,14 +216,14 @@ class CoursePackageImportReporterTest extends TestCase {
 		$entries = [$this->entryWith('a', 'imported')];
 		$this->objectService->expects($this->once())
 			->method('saveObject')
-			->with(
-				$this->callback(
+			->with(...LegacyObjectArgs::with(method: 'saveObject', expected: [
+					'object' => $this->callback(
 					static fn (array $object): bool => $object['lifecycle'] === 'failed'
 						&& $object['errorMessage'] === 'Corrupt archive'
 						&& $object['courseId'] === null
 						&& $object['sourceFormat'] === 'learniq-json'
-				)
-			)
+				),
+				]))
 			->willReturn(new ObjectEntity());
 
 		$this->reporter->persistReport(

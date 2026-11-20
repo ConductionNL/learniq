@@ -91,6 +91,20 @@ class SchoolAdviesVoorlopigRodHandler implements IEventListener {
 		}
 
 		$advies = $entity->jsonSerialize();
+		$this->deferVoorlopig(advies: $advies);
+	}//end handle()
+
+	/**
+	 * Defer sending the voorlopig advies to the ROD when it is due, deduped per
+	 * advies.
+	 *
+	 * @param array<string,mixed> $advies The SchoolAdvies written.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-the-voorlopig-school-advice-goes-to-rod-when-it-is-given
+	 */
+	private function deferVoorlopig(array $advies): void {
 		$id = (string)($advies['id'] ?? ($advies['uuid'] ?? ''));
 		if ($id === '' || $this->timing->voorlopigDue(advies: $advies) === false) {
 			return;
@@ -101,5 +115,5 @@ class SchoolAdviesVoorlopigRodHandler implements IEventListener {
 			entry: ['schoolAdviesId' => $id],
 			dedupeKey: 'voorlopig|' . $id
 		);
-	}//end handle()
+	}//end deferVoorlopig()
 }//end class

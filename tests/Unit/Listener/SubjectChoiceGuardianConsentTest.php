@@ -39,6 +39,8 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Noor (15) submits her own choice; it waits. Her linked guardian consents;
@@ -93,7 +95,7 @@ class SubjectChoiceGuardianConsentTest extends TestCase {
 	private function validator(): SubjectChoiceValidator {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('find')->willReturnCallback(
-			static fn (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null): ?ObjectEntity => $schema === 'curriculum-plan'
+			static fn (int|string $id, ?ObjectFindOptions $options = null): ?ObjectEntity => ($options?->schema) === 'curriculum-plan'
 				? OrEntityFactory::make(['id' => 'plan-1', 'electiveRules' => ['minElectives' => 2, 'maxElectives' => 2]], 'curriculum-plan')
 				: null
 		);
@@ -103,7 +105,10 @@ class SubjectChoiceGuardianConsentTest extends TestCase {
 				: []
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
+			function (array|ObjectEntity $object, ObjectSaveOptions $options = new ObjectSaveOptions()): ObjectEntity {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
 				$this->saved[] = (array)$object;
 				return OrEntityFactory::make((array)$object, (string)$schema);
 			}
