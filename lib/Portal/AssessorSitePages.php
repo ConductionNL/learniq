@@ -54,6 +54,15 @@ class AssessorSitePages {
 	private const REGISTER = 'learniq';
 
 	private const EA_OVERVIEW_BLOCKS = [
+		// His exams first, earliest first: the mockup's day opens with the
+		// exams he assesses (practical-exam-assessment). Each row names the
+		// time, the candidate and the exam.
+		[
+			'type' => 'collection',
+			'label' => 'Your exams',
+			'collection' => 'eaExams',
+			'sort' => ['field' => 'sittingStartsAt', 'direction' => 'asc'],
+		],
 		// One list, longest access first. Each row names the candidate,
 		// the portfolio and the date his access runs to, so the mockup's
 		// sentence is read off the rows until portaliq can fill a text
@@ -141,6 +150,55 @@ class AssessorSitePages {
 		'whenEmpty' => ['expiresAt' => 'Your access has no end date. The school ends the access.'],
 	];
 
+	/**
+	 * The assessment form (practical-exam-assessment): through learniq's own
+	 * endpoint, because only a forwarded request carries the assertion, and
+	 * the assertion is where his sign-in level is. The server only accepts it
+	 * for a candidate at a sitting he holds a live assignment for, writes who
+	 * assessed and at which assurance level, and keeps every step as a draft.
+	 */
+	public const ASSESS_ACTION = [
+		'id' => 'assessPracticalExam',
+		'type' => 'endpoint-forward',
+		'label' => 'Assess a practical exam',
+		'endpoint' => '/apps/learniq/api/portal/practical-exam-assessments',
+		'method' => 'POST',
+		'minTrust' => 'low',
+		'subjectField' => 'externalAssessorId',
+		'scopeClaim' => 'externalAssessorId',
+		'fields' => ['examSittingId', 'learnerRef', 'assessmentModelId', 'criteria', 'outcome'],
+		'requiredFields' => ['examSittingId', 'learnerRef', 'outcome'],
+		// He picks the exam and the candidate from his own assignments: the
+		// collection provider reads the subject-scoped `eaExams`.
+		'optionsProviders' => [
+			'examSittingId' => [
+				'type' => 'collection',
+				'register' => self::REGISTER,
+				'schema' => 'exam-assessor-assignment',
+				'labelField' => 'examTitle',
+				'valueField' => 'examSittingId',
+			],
+			'learnerRef' => [
+				'type' => 'collection',
+				'register' => self::REGISTER,
+				'schema' => 'exam-assessor-assignment',
+				'labelField' => 'learnerName',
+				'valueField' => 'learnerRef',
+			],
+		],
+		'fieldConfigs' => [
+			'examSittingId' => ['label' => 'The exam', 'required' => true],
+			'learnerRef' => ['label' => 'The candidate', 'required' => true],
+			'criteria' => ['label' => 'The criteria you scored'],
+			'outcome' => ['label' => 'Your judgement', 'required' => true],
+		],
+		'submitLabel' => 'Send the assessment',
+		'confirmation' => [
+			'title' => 'Your assessment has been sent',
+			'body' => 'It reaches the exam board once the second assessor has signed it too.',
+		],
+	];
+
 	private const ASSESSOR_COLLECTIONS = [
 		[
 			'id' => 'eaSharedPortfolios',
@@ -178,6 +236,28 @@ class AssessorSitePages {
 			'fields' => self::ENTRY_FIELDS,
 			'columns' => [
 				['field' => 'title', 'label' => 'Part'],
+			],
+		],
+		[
+			// The exams he is assigned to (practical-exam-assessment): scoped
+			// by the assignment's own `externalAssessorId`, so a sitting
+			// without an assignment for him lists nothing.
+			'id' => 'eaExams',
+			'register' => self::REGISTER,
+			'schema' => 'exam-assessor-assignment',
+			'scopeField' => 'externalAssessorId',
+			'scopeClaim' => 'externalAssessorId',
+			'label' => 'Your exams',
+			'listable' => true,
+			'minTrust' => 'low',
+			// A withdrawn assignment grants nothing.
+			'filter' => ['lifecycle' => 'assigned'],
+			'fields' => ['examSittingId', 'learnerRef', 'role', 'lifecycle', 'learnerName', 'sittingStartsAt', 'examTitle'],
+			'columns' => [
+				['field' => 'sittingStartsAt', 'label' => 'Time', 'render' => 'datetime'],
+				['field' => 'learnerName', 'label' => 'Candidate'],
+				['field' => 'examTitle', 'label' => 'Exam'],
+				['field' => 'role', 'label' => 'As assessor'],
 			],
 		],
 	];
@@ -230,9 +310,9 @@ class AssessorSitePages {
 					['type' => 'detail', 'collection' => (string)$collection['id']],
 				],
 			];
-			// The menu is Overzicht and Gedeeld met mij; the entries are read
-			// from a share's own page.
-			if ($collection['id'] !== 'eaSharedPortfolios') {
+			// The menu is Overzicht, Gedeeld met mij and his exams; the entries
+			// are read from a share's own page.
+			if (in_array($collection['id'], ['eaSharedPortfolios', 'eaExams'], true) === false) {
 				$page['menu'] = false;
 			}
 
@@ -317,7 +397,8 @@ class AssessorSitePages {
 		$contribution = [
 			'label' => 'Learniq',
 			'collections' => self::ASSESSOR_COLLECTIONS,
-			'actions' => [],
+			// Read-only apart from the assessment he is assigned to (practical-exam-assessment).
+			'actions' => [self::ASSESS_ACTION],
 			'notifications' => [],
 		];
 		// The share names its candidate and portfolio, and the assessor gets an

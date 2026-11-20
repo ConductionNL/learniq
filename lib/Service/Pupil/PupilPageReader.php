@@ -47,6 +47,13 @@ class PupilPageReader {
 	private const MAX_ROWS = 500;
 
 	/**
+	 * Upper bound on one read for a whole group.
+	 *
+	 * @var int
+	 */
+	private const GROUP_MAX_ROWS = 5000;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OpenRegister object access.
@@ -120,6 +127,34 @@ class PupilPageReader {
 	}//end ofPupil()
 
 	/**
+	 * Rows of a schema that belong to any of the pupils, keyed by pupil.
+	 *
+	 * @param string       $schema     The schema slug.
+	 * @param list<string> $learnerIds The pupils' Nextcloud user ids.
+	 * @param string       $field      The field that names the pupil: `learnerId`, or `ncUserId` for profiles.
+	 *
+	 * @return array<string, list<array<string, mixed>>>
+	 *
+	 * @spec openspec/changes/learner-list-and-page-follow-the-boards/tasks.md#T2
+	 */
+	public function ofPupils(string $schema, array $learnerIds, string $field='learnerId'): array {
+		$learnerIds = array_values(array_filter($learnerIds, static fn (mixed $id): bool => is_string($id) === true && $id !== ''));
+		if ($learnerIds === []) {
+			return [];
+		}
+
+		$byPupil = [];
+		foreach ($this->rows(schema: $schema, filters: [$field => $learnerIds], limit: self::GROUP_MAX_ROWS) as $row) {
+			$learnerId = $row[$field] ?? null;
+			if (is_string($learnerId) === true && in_array($learnerId, $learnerIds, true) === true) {
+				$byPupil[$learnerId][] = $row;
+			}
+		}
+
+		return $byPupil;
+	}//end ofPupils()
+
+	/**
 	 * The visits of placements.
 	 *
 	 * @param list<string> $placementIds The placements' uuids.
@@ -165,14 +200,15 @@ class PupilPageReader {
 	 *
 	 * @param string               $schema  The schema slug.
 	 * @param array<string, mixed> $filters Filters; a list is an IN filter.
+	 * @param int                  $limit   Upper bound on the rows read.
 	 *
 	 * @return list<array<string, mixed>>
 	 */
-	private function rows(string $schema, array $filters): array {
+	private function rows(string $schema, array $filters, int $limit=self::MAX_ROWS): array {
 		$rows = $this->objectService->findAll(
 			config: [
 				'filters' => array_merge(['register' => self::REGISTER, 'schema' => $schema], $filters),
-				'limit' => self::MAX_ROWS,
+				'limit' => $limit,
 			],
 			_rbac: false,
 			_multitenancy: false

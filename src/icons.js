@@ -47,6 +47,7 @@ import Calendar from 'vue-material-design-icons/Calendar.vue'
 import CalendarCheckOutline from 'vue-material-design-icons/CalendarCheckOutline.vue'
 import CalendarClockOutline from 'vue-material-design-icons/CalendarClockOutline.vue'
 import CalendarMultiselectOutline from 'vue-material-design-icons/CalendarMultiselectOutline.vue'
+import CalendarQuestion from 'vue-material-design-icons/CalendarQuestion.vue'
 import CalendarRangeOutline from 'vue-material-design-icons/CalendarRangeOutline.vue'
 import CalendarRemoveOutline from 'vue-material-design-icons/CalendarRemoveOutline.vue'
 import CalendarStar from 'vue-material-design-icons/CalendarStar.vue'
@@ -166,6 +167,7 @@ import Target from 'vue-material-design-icons/Target.vue'
 import TargetVariant from 'vue-material-design-icons/TargetVariant.vue'
 import TextBoxOutline from 'vue-material-design-icons/TextBoxOutline.vue'
 import Timeline from 'vue-material-design-icons/Timeline.vue'
+import TrayArrowDown from 'vue-material-design-icons/TrayArrowDown.vue'
 import TrendingUp from 'vue-material-design-icons/TrendingUp.vue'
 import Trophy from 'vue-material-design-icons/Trophy.vue'
 import TrophyOutline from 'vue-material-design-icons/TrophyOutline.vue'
@@ -210,6 +212,7 @@ export default {
 	CalendarCheckOutline,
 	CalendarClockOutline,
 	CalendarMultiselectOutline,
+	CalendarQuestion,
 	CalendarRangeOutline,
 	CalendarRemoveOutline,
 	CalendarStar,
@@ -329,6 +332,7 @@ export default {
 	TargetVariant,
 	TextBoxOutline,
 	Timeline,
+	TrayArrowDown,
 	TrendingUp,
 	Trophy,
 	TrophyOutline,

@@ -165,28 +165,12 @@ class ExamplePortalProvisioner implements ExamplePortalProvisionerInterface {
 			return ['status' => 'portaliq-absent', 'slug' => $slug];
 		}
 
-		$theme = $this->themes->resolve(
-			preferred: (string)($declaration['portal']['theme'] ?? ''),
-			fallback: (string)($declaration['portal']['themeFallback'] ?? ($declaration['portal']['theme'] ?? ''))
+		$theme  = $this->themeFor(declaration: $declaration);
+		$result = $this->applyOrReport(
+			declaration: $declaration,
+			context: ['theme' => $theme['theme'], 'set' => $profileId, 'move' => ['shipped' => $shipped, 'previous' => $previous, 'days' => $days]]
 		);
-		if ($theme['fallback'] === true && ($declaration['portal']['theme'] ?? '') !== $theme['theme']) {
-			$this->logger->info(
-				'[ExamplePortalProvisioner] thematiq has no token set "{wanted}" yet; portal "{slug}" gets "{theme}".',
-				['wanted' => (string)($declaration['portal']['theme'] ?? ''), 'slug' => $slug, 'theme' => $theme['theme']]
-			);
-		}
-
-		try {
-			$result = $this->apply(
-				declaration: $declaration,
-				theme: $theme['theme'],
-				move: ['shipped' => $shipped, 'previous' => $previous, 'days' => $days]
-			);
-		} catch (Throwable $exception) {
-			$this->logger->warning(
-				'[ExamplePortalProvisioner] could not provision portal "{slug}" for example set "{set}": {msg}',
-				['slug' => $slug, 'set' => $profileId, 'msg' => $exception->getMessage()]
-			);
+		if ($result === null) {
 			return ['status' => 'failed', 'slug' => $slug];
 		}
 
@@ -197,6 +181,55 @@ class ExamplePortalProvisioner implements ExamplePortalProvisionerInterface {
 
 		return ['slug' => $slug, 'theme' => $theme['theme'], 'themeFallback' => $theme['fallback']] + $result;
 	}//end provision()
+
+	/**
+	 * The theme the portal gets: the declared one, else its fallback.
+	 *
+	 * @param array<string, mixed> $declaration The set's declaration.
+	 *
+	 * @return array{theme: string, fallback: bool}
+	 *
+	 * @spec openspec/changes/example-portal-declares-its-site/specs/example-sets/spec.md#requirement-loading-a-set-writes-its-declared-site-once
+	 */
+	private function themeFor(array $declaration): array {
+		$portal = $declaration['portal'];
+		$theme  = $this->themes->resolve(
+			preferred: (string)($portal['theme'] ?? ''),
+			fallback: (string)($portal['themeFallback'] ?? ($portal['theme'] ?? ''))
+		);
+		if ($theme['fallback'] === true && ($portal['theme'] ?? '') !== $theme['theme']) {
+			$this->logger->info(
+				'[ExamplePortalProvisioner] thematiq has no token set "{wanted}" yet; portal "{slug}" gets "{theme}".',
+				['wanted' => (string)($portal['theme'] ?? ''), 'slug' => (string)$portal['slug'], 'theme' => $theme['theme']]
+			);
+		}
+
+		return $theme;
+
+	}//end themeFor()
+
+	/**
+	 * Apply the declaration; a failure is logged and answered with null, never thrown.
+	 *
+	 * @param array<string, mixed> $declaration The set's declaration, dates moved.
+	 * @param array<string, mixed> $context     The theme to write, the set id, and the date move.
+	 *
+	 * @return array<string, mixed>|null What apply() answered, or null when it failed.
+	 *
+	 * @spec openspec/changes/example-portal-declares-its-site/specs/example-sets/spec.md#requirement-loading-a-set-writes-its-declared-site-once
+	 */
+	private function applyOrReport(array $declaration, array $context): ?array {
+		try {
+			return $this->apply(declaration: $declaration, theme: $context['theme'], move: $context['move']);
+		} catch (Throwable $exception) {
+			$this->logger->warning(
+				'[ExamplePortalProvisioner] could not provision portal "{slug}" for example set "{set}": {msg}',
+				['slug' => (string)$declaration['portal']['slug'], 'set' => $context['set'], 'msg' => $exception->getMessage()]
+			);
+			return null;
+		}
+
+	}//end applyOrReport()
 
 	/**
 	 * One line that says what the portal step did.
@@ -303,39 +336,20 @@ class ExamplePortalProvisioner implements ExamplePortalProvisionerInterface {
 		unset($portal['themeFallback']);
 
 		$existing = $this->content->findOne(schema: self::SCHEMA, match: static fn (array $row): bool => ($row['slug'] ?? null) === $portal['slug']);
-		if ($existing !== null && in_array((string)($existing['title'] ?? ''), (array)($declaration['legacyTitles'] ?? []), true) === true) {
-			$this->logger->info(
-				'[ExamplePortalProvisioner] portal "{slug}" is "{title}" from an older example set; it is left as it is.',
-				['slug' => $portal['slug'], 'title' => (string)$existing['title']]
-			);
+		if ($this->isLegacy(existing: $existing, declaration: $declaration) === true) {
 			return ['status' => 'kept-legacy'];
 		}
 
-		$refs   = [$portal['slug']];
-		$status = 'created';
+		$outcome = ['status' => 'created', 'missing' => [], 'refs' => []];
 		if ($existing === null) {
-			$refs[] = $this->content->save(schema: self::SCHEMA, object: $this->newPortal(portal: $portal));
+			$outcome['refs'] = self::refs(refs: [$portal['slug'], $this->content->save(schema: self::SCHEMA, object: $this->newPortal(portal: $portal))]);
+		} else {
+			$outcome = $this->refreshExisting(existing: $existing, context: ['portal' => $portal, 'move' => $move]);
 		}
 
-		$missing = [];
-		if ($existing !== null) {
-			$status  = $this->fill(existing: $existing, portal: $portal);
-			$refs[]  = $this->content->idOf(row: $existing);
-			$missing = $this->missingModes(existing: $existing, portal: $portal);
-		}
-
-		$refs = array_values(array_filter($refs, static fn ($ref): bool => is_string($ref) && $ref !== ''));
-
-		// Pages and news from a load in another week move to this week first.
-		if ($existing !== null) {
-			$previous = ($move['previous'] ?? null);
-			$this->content->moveDates(
-				declaration: (array)($move['shipped'] ?? []),
-				refs: $refs,
-				previous: $previous,
-				days: (int)($move['days'] ?? 0) - (int)$previous
-			);
-		}
+		$refs    = $outcome['refs'];
+		$status  = $outcome['status'];
+		$missing = $outcome['missing'];
 
 		return [
 			'status'       => $status,
@@ -345,6 +359,72 @@ class ExamplePortalProvisioner implements ExamplePortalProvisionerInterface {
 			'news'         => $this->content->news(declaration: $declaration),
 		];
 	}//end apply()
+
+	/**
+	 * Whether the stored portal is one an older example set wrote, which a load leaves alone.
+	 *
+	 * @param array<string, mixed>|null $existing    The portal as stored, or null.
+	 * @param array<string, mixed>      $declaration The set's declaration.
+	 *
+	 * @return boolean
+	 *
+	 * @spec openspec/changes/example-portal-declares-its-site/specs/example-sets/spec.md#requirement-loading-a-set-writes-its-declared-site-once
+	 */
+	private function isLegacy(?array $existing, array $declaration): bool {
+		if ($existing === null || in_array((string)($existing['title'] ?? ''), (array)($declaration['legacyTitles'] ?? []), true) === false) {
+			return false;
+		}
+
+		$this->logger->info(
+			'[ExamplePortalProvisioner] portal "{slug}" is "{title}" from an older example set; it is left as it is.',
+			['slug' => $declaration['portal']['slug'], 'title' => (string)$existing['title']]
+		);
+		return true;
+
+	}//end isLegacy()
+
+	/**
+	 * Fill an existing portal's empty fields and move its pages and news to this week.
+	 *
+	 * Pages and news from a load in another week move to this week first.
+	 *
+	 * @param array<string, mixed> $existing The portal as stored.
+	 * @param array<string, mixed> $context  The declared portal (theme resolved) and the date move.
+	 *
+	 * @return array{status: string, missing: array<int, string>, refs: array<int, string>}
+	 *
+	 * @spec openspec/changes/example-portal-declares-its-site/specs/example-sets/spec.md#requirement-loading-a-set-writes-its-declared-site-once
+	 */
+	private function refreshExisting(array $existing, array $context): array {
+		$portal  = $context['portal'];
+		$move    = $context['move'];
+		$status  = $this->fill(existing: $existing, portal: $portal);
+		$refs    = self::refs(refs: [$portal['slug'], $this->content->idOf(row: $existing)]);
+		$missing = $this->missingModes(existing: $existing, portal: $portal);
+
+		$previous = ($move['previous'] ?? null);
+		$this->content->moveDates(
+			declaration: (array)($move['shipped'] ?? []),
+			refs: $refs,
+			previous: $previous,
+			days: (int)($move['days'] ?? 0) - (int)$previous
+		);
+
+		return ['status' => $status, 'missing' => $missing, 'refs' => $refs];
+
+	}//end refreshExisting()
+
+	/**
+	 * The non-empty string references of a portal.
+	 *
+	 * @param array<int, mixed> $refs The candidate references.
+	 *
+	 * @return array<int, string>
+	 */
+	private static function refs(array $refs): array {
+		return array_values(array_filter($refs, static fn ($ref): bool => is_string($ref) && $ref !== ''));
+
+	}//end refs()
 
 	/**
 	 * The declared sign-in modes an existing portal does not offer.

@@ -317,6 +317,8 @@ class ParentRecordPage {
 			$site->overviewPage(sources: $this->childSources()),
 			$site->perChild(page: $this->recordPage()),
 			$site->absencePage(),
+			// "Verlof": ask leave and read the decision (leave-requests-decided-by-the-school).
+			(new ParentLeaveRequests())->page(),
 			$site->conferencesPage(),
 			$site->inGroup(page: $this->calendarPage()),
 			// "Rapporten en documenten" (guardian-reports-and-documents).

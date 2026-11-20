@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/attendance-warns-before-the-threshold/specs/attendance/spec.md
+ * @spec openspec/specs/attendance/spec.md
  */
 
 declare(strict_types=1);
@@ -46,11 +46,11 @@ class AttendanceWindowExampleSetTest extends TestCase {
 	private const TODAY = '2026-10-05';
 
 	/**
-	 * Finn and Ryan in the primary school set are nearing the limit; Vera and Sami are at zero.
+	 * Finn and Ryan in the primary school set are nearing the limit; Vera, Sami, Lina and Hamza (excused) are at zero.
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/attendance-warns-before-the-threshold/specs/attendance/spec.md#requirement-staff-see-the-unauthorised-hours-against-the-limit-before-a-flag-exists
+	 * @spec openspec/specs/attendance/spec.md#requirement-staff-see-the-unauthorised-hours-against-the-limit-before-a-flag-exists
 	 */
 	public function testThePrimarySchoolWarnsAboutFinnAndRyan(): void {
 		$rows = self::windowRows(set: 'po');
@@ -61,6 +61,8 @@ class AttendanceWindowExampleSetTest extends TestCase {
 				'po-leerling-199' => ['0 van 16 uur', false],
 				'po-leerling-167' => ['5,8 van 16 uur', true],
 				'po-leerling-200' => ['11,5 van 16 uur', true],
+				'po-leerling-201' => ['0 van 16 uur', false],
+				'po-leerling-202' => ['0 van 16 uur', false],
 			],
 			actual: $rows
 		);
@@ -71,7 +73,7 @@ class AttendanceWindowExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/attendance-warns-before-the-threshold/specs/attendance/spec.md#scenario-sem-at-14-of-16
+	 * @spec openspec/specs/attendance/spec.md#scenario-sem-at-14-of-16
 	 */
 	public function testTheCollegeWarnsAboutSemAtFourteen(): void {
 		self::assertSame(expected: ['mbo-student-253' => ['14 van 16 uur', true]], actual: self::windowRows(set: 'mbo'));

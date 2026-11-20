@@ -175,11 +175,7 @@ class AttendanceFlagCreationHandler implements IEventListener {
 			return;
 		}
 
-		$duplicate = $this->flagAlreadyExists(
-			learnerId: $detail['learnerId'],
-			thresholdId: $detail['thresholdId'],
-			windowStart: $detail['windowStart']
-		);
+		$duplicate = $this->flagAlreadyExists(detail: $detail);
 		if ($duplicate === true) {
 			return;
 		}
@@ -294,7 +290,7 @@ class AttendanceFlagCreationHandler implements IEventListener {
 			return;
 		}
 
-		$jobId = $this->requestExchangeJob(target: $dataExchangeTarget, flagId: $flagId, tenantId: (string)$detail['tenantId']);
+		$jobId = $this->requestExchangeJob(target: $dataExchangeTarget, args: ['flagId' => $flagId, 'tenantId' => (string)$detail['tenantId']]);
 		if ($jobId === null) {
 			return;
 		}
@@ -315,15 +311,17 @@ class AttendanceFlagCreationHandler implements IEventListener {
 	 * Idempotency check: whether an AttendanceFlag already exists for the same
 	 * learner + threshold + measurement window.
 	 *
-	 * @param mixed $learnerId NC user ID of the flagged learner.
-	 * @param mixed $thresholdId UUID of the AttendanceThreshold that was crossed.
-	 * @param mixed $windowStart Start date of the measurement window (Y-m-d).
+	 * @param array<string,mixed> $detail The crossing: `learnerId` (NC user ID of the flagged learner), `thresholdId`
+	 *                                    (UUID of the AttendanceThreshold that was crossed) and `windowStart` (Y-m-d).
 	 *
 	 * @return bool True when a flag for this crossing already exists.
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-10
 	 */
-	private function flagAlreadyExists(mixed $learnerId, mixed $thresholdId, mixed $windowStart): bool {
+	private function flagAlreadyExists(array $detail): bool {
+		$learnerId = $detail['learnerId'];
+		$thresholdId = $detail['thresholdId'];
+		$windowStart = $detail['windowStart'];
 		$existing = $this->objectService->findAll(
 			[
 				'filters' => [
@@ -357,14 +355,16 @@ class AttendanceFlagCreationHandler implements IEventListener {
 	 * human in the loop the old `pending-review` job state stood for).
 	 *
 	 * @param string $target   The exchange target (e.g. 'leerplicht').
-	 * @param string $flagId   UUID of the saved AttendanceFlag.
-	 * @param string $tenantId Tenant UUID.
+	 * @param array{flagId: string, tenantId: string} $args The flagId, tenantId.
 	 *
 	 * @return string|null The integriq job id, or null when integriq did not take it.
 	 *
 	 * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
 	 */
-	private function requestExchangeJob(string $target, string $flagId, string $tenantId): ?string {
+	private function requestExchangeJob(string $target, array $args): ?string {
+		$flagId = $args['flagId'];
+		$tenantId = $args['tenantId'];
+
 		$mapping = null;
 		if ($target === self::LEERPLICHT_TARGET) {
 			$mapping = self::LEERPLICHT_MAPPING;

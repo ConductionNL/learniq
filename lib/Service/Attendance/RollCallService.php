@@ -64,6 +64,7 @@ class RollCallService implements RollCallServiceInterface {
 	 * @param ObjectService   $objectService OpenRegister writes.
 	 * @param ITimeFactory    $time          Clock for markedAt.
 	 * @param IL10N           $l10n          Messages.
+	 * @param ReportSeenStamp $seen          Records a group teacher's first look at an open absence report.
 	 *
 	 * @return void
 	 */
@@ -75,6 +76,7 @@ class RollCallService implements RollCallServiceInterface {
 		private readonly ObjectService $objectService,
 		private readonly ITimeFactory $time,
 		private readonly IL10N $l10n,
+		private readonly ReportSeenStamp $seen,
 	) {
 	}//end __construct()
 
@@ -128,7 +130,7 @@ class RollCallService implements RollCallServiceInterface {
 				'sessionId' => $this->idOrNull(row: $session),
 				'editable' => ($locked === ''),
 				'locked' => $locked,
-				'pupils' => $this->pupils(cohort: $cohort, records: $records, date: $date),
+				'pupils' => $this->pupils(cohort: $cohort, records: $records, date: $date, userId: $user->getUID()),
 			]
 		);
 	}//end open()
@@ -162,7 +164,7 @@ class RollCallService implements RollCallServiceInterface {
 		$session = ($session ?? $this->lessons->create(cohort: $cohort, date: $date, zone: $zone));
 		$context = ['user' => $user->getUID(), 'cohort' => $cohort, 'session' => $session, 'profiles' => $profiles, 'date' => $date];
 		foreach ($marks as $mark) {
-			$this->writeMark(mark: $mark, record: ($records[(string)$mark['learnerId']] ?? null), context: $context);
+			$this->writeMark(mark: $mark, context: $context + ['record' => ($records[(string)$mark['learnerId']] ?? null)]);
 		}
 
 		return $this->open(user: $user, cohortId: $cohortId, date: $date, sessionId: $this->idOf(row: $session));
@@ -171,36 +173,20 @@ class RollCallService implements RollCallServiceInterface {
 	/**
 	 * Write one mark as an AttendanceRecord, unless the saved record already holds it.
 	 *
-	 * @param array<string, mixed>      $mark    A valid mark.
-	 * @param array<string, mixed>|null $record  The pupil's saved record.
-	 * @param array<string, mixed>      $context user, cohort, session, profiles and date.
+	 * @param array<string, mixed> $mark    A valid mark.
+	 * @param array<string, mixed> $context user, cohort, session, profiles, date and the pupil's saved `record` (or null).
 	 *
 	 * @return void
 	 */
-	private function writeMark(array $mark, ?array $record, array $context): void {
+	private function writeMark(array $mark, array $context): void {
+		$record = $context['record'];
 		$learnerId = (string)$mark['learnerId'];
 		$normal = $this->marks->normalise(mark: $mark);
 		if ($record !== null && $this->marks->unchanged(record: $record, mark: $normal) === true) {
 			return;
 		}
 
-		$profile = ($context['profiles'][$learnerId] ?? null);
-		$minutes = $this->lessons->lengthOf(session: $context['session']);
-		$body = array_merge(
-			$normal,
-			[
-				'sessionId' => $this->idOf(row: $context['session']),
-				'learnerId' => $learnerId,
-				'learnerRef' => $this->idOrNull(row: $profile) ?? ($record['learnerRef'] ?? null),
-				'cohortId' => $this->idOf(row: $context['cohort']),
-				'minutesAttended' => $this->marks->minutesAttended(mark: $normal, minutes: $minutes, record: $record),
-				'excuseRequestId' => $this->excuseFor(status: $normal['status'], learnerId: $learnerId, date: $context['date'], record: $record),
-				'markedBy' => $context['user'],
-				'markedAt' => (new DateTimeImmutable('@' . $this->time->getTime()))->format(DATE_ATOM),
-				'markedVia' => 'teacher',
-				'tenant_id' => (string)($context['session']['tenant_id'] ?? ($context['cohort']['tenant_id'] ?? '')),
-			]
-		);
+		$body = $this->recordBody(normal: $normal, context: $context + ['learnerId' => $learnerId]);
 
 		if ($record === null) {
 			$this->objectService->saveObject(
@@ -220,6 +206,37 @@ class RollCallService implements RollCallServiceInterface {
 			_rbac: false
 		);
 	}//end writeMark()
+
+	/**
+	 * The AttendanceRecord fields a normalised mark is written with.
+	 *
+	 * @param array<string, mixed> $normal  The normalised mark.
+	 * @param array<string, mixed> $context user, cohort, session, profiles, date, the saved `record` (or null)
+	 *                                      and the pupil's `learnerId`.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function recordBody(array $normal, array $context): array {
+		$learnerId = $context['learnerId'];
+		$record = $context['record'];
+		$profile = ($context['profiles'][$learnerId] ?? null);
+		$minutes = $this->lessons->lengthOf(session: $context['session']);
+		return array_merge(
+			$normal,
+			[
+				'sessionId' => $this->idOf(row: $context['session']),
+				'learnerId' => $learnerId,
+				'learnerRef' => $this->idOrNull(row: $profile) ?? ($record['learnerRef'] ?? null),
+				'cohortId' => $this->idOf(row: $context['cohort']),
+				'minutesAttended' => $this->marks->minutesAttended(mark: $normal, minutes: $minutes, record: $record),
+				'excuseRequestId' => $this->excuseFor(status: $normal['status'], learnerId: $learnerId, date: $context['date'], record: $record),
+				'markedBy' => $context['user'],
+				'markedAt' => (new DateTimeImmutable('@' . $this->time->getTime()))->format(DATE_ATOM),
+				'markedVia' => 'teacher',
+				'tenant_id' => (string)($context['session']['tenant_id'] ?? ($context['cohort']['tenant_id'] ?? '')),
+			]
+		);
+	}//end recordBody()
 
 	/**
 	 * The absence report an excused record points at: the approved report
@@ -306,13 +323,21 @@ class RollCallService implements RollCallServiceInterface {
 	 * @param array<string, mixed>                $cohort  The group.
 	 * @param array<string, array<string, mixed>> $records Saved records by pupil.
 	 * @param string                              $date    The day.
+	 * @param string                              $userId  The caller; a group teacher's first look at an open report is recorded.
 	 *
 	 * @return array<int, array<string, mixed>>
+	 *
+	 * @spec openspec/changes/absence-reports-seen-and-ended/specs/attendance/spec.md#requirement-a-teachers-first-look-at-an-absence-report-is-recorded
 	 */
-	private function pupils(array $cohort, array $records, string $date): array {
+	private function pupils(array $cohort, array $records, string $date, string $userId): array {
 		$learnerIds = $this->learnerIdsOf(cohort: $cohort);
 		$profiles = $this->reader->profilesOf(learnerIds: $learnerIds);
-		$reports = $this->reader->reportsOn(learnerIds: $learnerIds, date: $date);
+		// Allowed leave reads as an absence with permission, the way an approved report does;
+		// a group teacher's first look is recorded on the real reports only.
+		$reports = RollCallReader::withLeave(
+			reports: $this->seen->seen(reports: $this->reader->reportsOn(learnerIds: $learnerIds, date: $date), userId: $userId),
+			leave: $this->reader->allowedLeaveOn(learnerIds: $learnerIds, date: $date)
+		);
 
 		$rows = [];
 		foreach ($learnerIds as $learnerId) {

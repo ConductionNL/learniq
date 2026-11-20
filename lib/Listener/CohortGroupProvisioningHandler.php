@@ -337,6 +337,19 @@ class CohortGroupProvisioningHandler implements IEventListener {
 			return null;
 		}
 
+		return $this->groupById(groupId: $groupId, cohortId: $cohortId);
+	}//end resolveProvisionedGroup()
+
+	/**
+	 * The Nextcloud group with this id, or null when it cannot be resolved or no
+	 * longer exists (both logged).
+	 *
+	 * @param string $groupId  The cohort's Nextcloud group id.
+	 * @param string $cohortId The cohort, for the log.
+	 *
+	 * @return object|null The `IGroup`, or null.
+	 */
+	private function groupById(string $groupId, string $cohortId): ?object {
 		try {
 			$group = $this->groupManager->get($groupId);
 		} catch (Throwable $e) {
@@ -355,8 +368,7 @@ class CohortGroupProvisioningHandler implements IEventListener {
 		}
 
 		return $group;
-
-	}//end resolveProvisionedGroup()
+	}//end groupById()
 
 	/**
 	 * Add or remove a resolved user from a resolved group, and log the result.
