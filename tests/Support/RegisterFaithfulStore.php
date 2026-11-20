@@ -523,7 +523,11 @@ final class RegisterFaithfulStore {
 			}
 
 			if (is_array($expected) === true && count($expected) === 1 && array_key_exists('$eq', $expected) === true
-				&& (is_array($expected['$eq']) === false && (is_string($expected['$eq']) === false || str_starts_with($expected['$eq'], '$') === false))
+				&& (
+					is_array($expected['$eq']) === false && (
+						is_string($expected['$eq']) === false || str_starts_with($expected['$eq'], '$') === false
+					)
+				)
 			) {
 				$expected = $expected['$eq'];
 			}

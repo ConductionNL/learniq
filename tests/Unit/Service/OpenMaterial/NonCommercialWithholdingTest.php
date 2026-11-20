@@ -95,7 +95,14 @@ class NonCommercialWithholdingTest extends TestCase {
 			],
 			'fee-item' => [],
 			'material' => [
-				['id' => 'material-nc', 'title' => 'Licht en schaduw', 'kind' => 'link', 'courseId' => self::COURSE, 'nonCommercial' => true, '@self' => ['owner' => 'someone']],
+				[
+					'id' => 'material-nc',
+					'title' => 'Licht en schaduw',
+					'kind' => 'link',
+					'courseId' => self::COURSE,
+					'nonCommercial' => true,
+					'@self' => ['owner' => 'someone']
+				],
 				['id' => 'material-open', 'title' => 'Compositie', 'kind' => 'link', 'courseId' => self::COURSE, 'nonCommercial' => false],
 				['id' => 'material-elsewhere', 'title' => 'Ander vak', 'kind' => 'link', 'courseId' => self::OTHER_COURSE, 'nonCommercial' => true],
 			],
@@ -108,12 +115,15 @@ class NonCommercialWithholdingTest extends TestCase {
 	 * @return NonCommercialWithholding
 	 */
 	private function makeWithholding(): NonCommercialWithholding {
-		$objectService = $this->createMock(ObjectService::class);
+		$objectService = $this->createMock(originalClassName: ObjectService::class);
 		$objectService->method('findAll')->willReturnCallback(
 			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $this->store->findAll($config, $_rbac, $_multitenancy)
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			fn (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) => $this->store->save((string)$options->target->schema, $object, $options->uuid)
+			fn (
+				array $object,
+				ObjectSaveOptions $options = new ObjectSaveOptions()
+			) => $this->store->save((string)$options->target->schema, $object, $options->uuid)
 		);
 
 		return new NonCommercialWithholding(
@@ -137,7 +147,7 @@ class NonCommercialWithholdingTest extends TestCase {
 			}
 		}
 
-		self::fail('No material ' . $id);
+		self::fail(message: 'No material ' . $id);
 	}//end material()
 
 	/**
@@ -168,26 +178,26 @@ class NonCommercialWithholdingTest extends TestCase {
 	public function testACourseThatBecomesPaidStopsServingItsNcMaterial(): void {
 		$withholding = $this->makeWithholding();
 
-		self::assertSame(0, $withholding->syncCourse(courseId: self::COURSE));
-		self::assertSame(['material-nc', 'material-open'], $this->readableBy(groups: ['students']));
+		self::assertSame(expected: 0, actual: $withholding->syncCourse(courseId: self::COURSE));
+		self::assertSame(expected: ['material-nc', 'material-open'], actual: $this->readableBy(groups: ['students']));
 
 		$this->store->rows['fee-item'][] = ['id' => 'fee-1', 'kind' => 'course-enrolment', 'amount' => 250, 'linkedCourseId' => self::COURSE];
-		self::assertSame(1, $withholding->syncCourse(courseId: self::COURSE));
+		self::assertSame(expected: 1, actual: $withholding->syncCourse(courseId: self::COURSE));
 
-		self::assertSame(['material-nc'], array_column($this->store->saves, 'uuid'));
-		self::assertSame('non-commercial', $this->material(id: 'material-nc')['withheldReason']);
-		self::assertArrayNotHasKey('@self', $this->store->saves[0]['object']);
-		self::assertArrayNotHasKey('withheldReason', $this->material(id: 'material-open'));
-		self::assertSame(['material-open'], $this->readableBy(groups: ['students']));
-		self::assertSame(['material-nc', 'material-open'], $this->readableBy(groups: ['instructors']));
+		self::assertSame(expected: ['material-nc'], actual: array_column($this->store->saves, 'uuid'));
+		self::assertSame(expected: 'non-commercial', actual: $this->material(id: 'material-nc')['withheldReason']);
+		self::assertArrayNotHasKey(key: '@self', array: $this->store->saves[0]['object']);
+		self::assertArrayNotHasKey(key: 'withheldReason', array: $this->material(id: 'material-open'));
+		self::assertSame(expected: ['material-open'], actual: $this->readableBy(groups: ['students']));
+		self::assertSame(expected: ['material-nc', 'material-open'], actual: $this->readableBy(groups: ['instructors']));
 
 		// A second sync with nothing changed writes nothing.
-		self::assertSame(0, $withholding->syncCourse(courseId: self::COURSE));
+		self::assertSame(expected: 0, actual: $withholding->syncCourse(courseId: self::COURSE));
 
 		$this->store->rows['fee-item'] = [];
-		self::assertSame(1, $withholding->syncCourse(courseId: self::COURSE));
-		self::assertSame('', $this->material(id: 'material-nc')['withheldReason']);
-		self::assertSame(['material-nc', 'material-open'], $this->readableBy(groups: ['students']));
+		self::assertSame(expected: 1, actual: $withholding->syncCourse(courseId: self::COURSE));
+		self::assertSame(expected: '', actual: $this->material(id: 'material-nc')['withheldReason']);
+		self::assertSame(expected: ['material-nc', 'material-open'], actual: $this->readableBy(groups: ['students']));
 	}//end testACourseThatBecomesPaidStopsServingItsNcMaterial()
 
 	/**
@@ -199,18 +209,18 @@ class NonCommercialWithholdingTest extends TestCase {
 	public function testWhatCountsAsCommercial(): void {
 		$withholding = $this->makeWithholding();
 
-		self::assertSame(1, $withholding->syncCourse(courseId: self::OTHER_COURSE));
-		self::assertSame('non-commercial', $this->material(id: 'material-elsewhere')['withheldReason']);
+		self::assertSame(expected: 1, actual: $withholding->syncCourse(courseId: self::OTHER_COURSE));
+		self::assertSame(expected: 'non-commercial', actual: $this->material(id: 'material-elsewhere')['withheldReason']);
 
 		$this->store->rows['fee-item'] = [
 			['id' => 'fee-trip', 'kind' => 'course-enrolment', 'amount' => 40, 'voluntary' => true, 'linkedCourseId' => self::COURSE],
 			['id' => 'fee-zero', 'kind' => 'course-enrolment', 'amount' => 0, 'linkedCourseId' => self::COURSE],
 		];
-		self::assertSame(0, $withholding->syncCourse(courseId: self::COURSE));
+		self::assertSame(expected: 0, actual: $withholding->syncCourse(courseId: self::COURSE));
 
 		$this->store->rows['material'][2]['nonCommercial'] = false;
-		self::assertSame(1, $withholding->syncCourse(courseId: self::OTHER_COURSE));
-		self::assertSame('', $this->material(id: 'material-elsewhere')['withheldReason']);
+		self::assertSame(expected: 1, actual: $withholding->syncCourse(courseId: self::OTHER_COURSE));
+		self::assertSame(expected: '', actual: $this->material(id: 'material-elsewhere')['withheldReason']);
 	}//end testWhatCountsAsCommercial()
 
 	/**
@@ -221,11 +231,11 @@ class NonCommercialWithholdingTest extends TestCase {
 	public function testReasonFor(): void {
 		$withholding = $this->makeWithholding();
 
-		self::assertSame('non-commercial', $withholding->reasonFor(material: ['nonCommercial' => true], commercial: true));
-		self::assertSame('', $withholding->reasonFor(material: ['nonCommercial' => true], commercial: false));
-		self::assertSame('', $withholding->reasonFor(material: ['nonCommercial' => false], commercial: true));
-		self::assertSame('', $withholding->reasonFor(material: ['nonCommercial' => 'yes'], commercial: true));
-		self::assertSame('', $withholding->reasonFor(material: [], commercial: true));
+		self::assertSame(expected: 'non-commercial', actual: $withholding->reasonFor(material: ['nonCommercial' => true], commercial: true));
+		self::assertSame(expected: '', actual: $withholding->reasonFor(material: ['nonCommercial' => true], commercial: false));
+		self::assertSame(expected: '', actual: $withholding->reasonFor(material: ['nonCommercial' => false], commercial: true));
+		self::assertSame(expected: '', actual: $withholding->reasonFor(material: ['nonCommercial' => 'yes'], commercial: true));
+		self::assertSame(expected: '', actual: $withholding->reasonFor(material: [], commercial: true));
 	}//end testReasonFor()
 
 	/**
@@ -236,12 +246,12 @@ class NonCommercialWithholdingTest extends TestCase {
 	public function testAnUnreadableCourseChangesNothing(): void {
 		$withholding = $this->makeWithholding();
 
-		self::assertSame(0, $withholding->syncCourse(courseId: ''));
-		self::assertSame(0, $withholding->syncCourse(courseId: 'course-gone'));
+		self::assertSame(expected: 0, actual: $withholding->syncCourse(courseId: ''));
+		self::assertSame(expected: 0, actual: $withholding->syncCourse(courseId: 'course-gone'));
 
 		$this->store->failReads = 'database gone';
-		self::assertSame(0, $withholding->syncCourse(courseId: self::OTHER_COURSE));
-		self::assertSame([], $this->store->saves);
+		self::assertSame(expected: 0, actual: $withholding->syncCourse(courseId: self::OTHER_COURSE));
+		self::assertSame(expected: [], actual: $this->store->saves);
 	}//end testAnUnreadableCourseChangesNothing()
 
 	/**
@@ -250,8 +260,14 @@ class NonCommercialWithholdingTest extends TestCase {
 	 * @return void
 	 */
 	public function testAFailedSaveSkipsOnlyThatMaterial(): void {
-		$this->store->rows['material'][] = ['id' => 'material-broken', 'title' => 'Kapot', 'kind' => 'link', 'courseId' => self::OTHER_COURSE, 'nonCommercial' => true];
-		$objectService = $this->createMock(ObjectService::class);
+		$this->store->rows['material'][] = [
+			'id' => 'material-broken',
+			'title' => 'Kapot',
+			'kind' => 'link',
+			'courseId' => self::OTHER_COURSE,
+			'nonCommercial' => true
+		];
+		$objectService = $this->createMock(originalClassName: ObjectService::class);
 		$objectService->method('findAll')->willReturnCallback(
 			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $this->store->findAll($config, $_rbac, $_multitenancy)
 		);
@@ -270,8 +286,8 @@ class NonCommercialWithholdingTest extends TestCase {
 			logger: new NullLogger()
 		);
 
-		self::assertSame(1, $withholding->syncCourse(courseId: self::OTHER_COURSE));
-		self::assertSame(['material-elsewhere'], array_column($this->store->saves, 'uuid'));
+		self::assertSame(expected: 1, actual: $withholding->syncCourse(courseId: self::OTHER_COURSE));
+		self::assertSame(expected: ['material-elsewhere'], actual: array_column($this->store->saves, 'uuid'));
 	}//end testAFailedSaveSkipsOnlyThatMaterial()
 
 	/**
@@ -283,13 +299,13 @@ class NonCommercialWithholdingTest extends TestCase {
 	 */
 	private function makeCascade(string $slug): NonCommercialWithholdingCascade {
 		$this->deferred = [];
-		$deferral = $this->createMock(ListenerDeferralService::class);
+		$deferral = $this->createMock(originalClassName: ListenerDeferralService::class);
 		$deferral->method('defer')->willReturnCallback(
 			function (string $jobClass, array $entry, int $chunkSize = 50, ?string $dedupeKey = null): void {
 				$this->deferred[] = ['jobClass' => $jobClass, 'entry' => $entry, 'dedupeKey' => $dedupeKey];
 			}
 		);
-		$resolver = $this->createMock(ListenerSchemaResolver::class);
+		$resolver = $this->createMock(originalClassName: ListenerSchemaResolver::class);
 		$resolver->method('guardSchemaSlug')->willReturn($slug);
 
 		return new NonCommercialWithholdingCascade(schemaResolver: $resolver, deferral: $deferral);
@@ -306,25 +322,34 @@ class NonCommercialWithholdingTest extends TestCase {
 			OrEntityFactory::make(['id' => self::COURSE, 'level' => 'mbo'], 'course', self::COURSE)
 		));
 		self::assertSame(
-			[['jobClass' => NonCommercialWithholdingJob::class, 'entry' => ['courseId' => self::COURSE], 'dedupeKey' => 'nc-withholding:' . self::COURSE]],
-			$this->deferred
+			expected: [
+				[
+					'jobClass' => NonCommercialWithholdingJob::class,
+					'entry' => ['courseId' => self::COURSE],
+					'dedupeKey' => 'nc-withholding:' . self::COURSE
+				]
+			],
+			actual: $this->deferred
 		);
 
 		$this->makeCascade(slug: 'fee-item')->handle(new ObjectCreatedEvent(
 			OrEntityFactory::make(['id' => 'fee-1', 'linkedCourseId' => self::COURSE], 'fee-item', 'fee-1')
 		));
-		self::assertSame([['courseId' => self::COURSE]], array_column($this->deferred, 'entry'));
+		self::assertSame(expected: [['courseId' => self::COURSE]], actual: array_column($this->deferred, 'entry'));
 
 		$this->makeCascade(slug: 'fee-item')->handle(new ObjectDeletedEvent(
 			OrEntityFactory::make(['id' => 'fee-1', 'linkedCourseId' => self::OTHER_COURSE], 'fee-item', 'fee-1')
 		));
-		self::assertSame([['courseId' => self::OTHER_COURSE]], array_column($this->deferred, 'entry'));
+		self::assertSame(expected: [['courseId' => self::OTHER_COURSE]], actual: array_column($this->deferred, 'entry'));
 
 		$this->makeCascade(slug: 'material')->handle(new ObjectUpdatedEvent(
 			OrEntityFactory::make(['id' => 'material-nc', 'courseId' => self::OTHER_COURSE], 'material', 'material-nc'),
 			OrEntityFactory::make(['id' => 'material-nc', 'courseId' => self::COURSE], 'material', 'material-nc')
 		));
-		self::assertSame([['courseId' => self::OTHER_COURSE], ['courseId' => self::COURSE]], array_column($this->deferred, 'entry'));
+		self::assertSame(
+			expected: [['courseId' => self::OTHER_COURSE], ['courseId' => self::COURSE]],
+			actual: array_column($this->deferred, 'entry')
+		);
 	}//end testTheCascadeQueuesTheCourse()
 
 	/**
@@ -336,19 +361,19 @@ class NonCommercialWithholdingTest extends TestCase {
 		$this->makeCascade(slug: 'lesson')->handle(new ObjectCreatedEvent(
 			OrEntityFactory::make(['id' => 'lesson-1', 'courseId' => self::COURSE], 'lesson', 'lesson-1')
 		));
-		self::assertSame([], $this->deferred);
+		self::assertSame(expected: [], actual: $this->deferred);
 
 		$this->makeCascade(slug: 'material')->handle(new Event());
-		self::assertSame([], $this->deferred);
+		self::assertSame(expected: [], actual: $this->deferred);
 
 		$this->makeCascade(slug: 'fee-item')->handle(new ObjectCreatedEvent(
 			OrEntityFactory::make(['id' => 'fee-2', 'linkedCourseId' => null], 'fee-item', 'fee-2')
 		));
-		self::assertSame([], $this->deferred);
+		self::assertSame(expected: [], actual: $this->deferred);
 
-		$deferral = $this->createMock(ListenerDeferralService::class);
+		$deferral = $this->createMock(originalClassName: ListenerDeferralService::class);
 		$deferral->expects(self::never())->method('defer');
-		$resolver = $this->createMock(ListenerSchemaResolver::class);
+		$resolver = $this->createMock(originalClassName: ListenerSchemaResolver::class);
 		$resolver->method('guardSchemaSlug')->willThrowException(new RuntimeException('unknown schema'));
 		(new NonCommercialWithholdingCascade(schemaResolver: $resolver, deferral: $deferral))->handle(new ObjectCreatedEvent(
 			OrEntityFactory::make(['id' => self::COURSE], 'course', self::COURSE)
@@ -361,7 +386,7 @@ class NonCommercialWithholdingTest extends TestCase {
 	 * @return void
 	 */
 	public function testTheJobSyncsEachCourseOnce(): void {
-		$withholding = $this->createMock(NonCommercialWithholding::class);
+		$withholding = $this->createMock(originalClassName: NonCommercialWithholding::class);
 		$synced = [];
 		$withholding->method('syncCourse')->willReturnCallback(
 			static function (string $courseId) use (&$synced): int {
@@ -371,10 +396,10 @@ class NonCommercialWithholdingTest extends TestCase {
 		);
 		$job = new NonCommercialWithholdingJob(
 			forwarding: new ActorForwarding(
-				time: $this->createMock(ITimeFactory::class),
-				userSession: $this->createMock(IUserSession::class),
-				userManager: $this->createMock(IUserManager::class),
-				organisation: $this->createMock(OrganisationService::class)
+				time: $this->createMock(originalClassName: ITimeFactory::class),
+				userSession: $this->createMock(originalClassName: IUserSession::class),
+				userManager: $this->createMock(originalClassName: IUserManager::class),
+				organisation: $this->createMock(originalClassName: OrganisationService::class)
 			),
 			logger: new NullLogger(),
 			withholding: $withholding
@@ -382,7 +407,7 @@ class NonCommercialWithholdingTest extends TestCase {
 		$entries = [['courseId' => self::COURSE], ['courseId' => self::OTHER_COURSE], ['courseId' => self::COURSE], ['courseId' => ''], []];
 		(new ReflectionMethod($job, 'runDeferred'))->invoke($job, new DeferredListenerContext(userId: 'admin', orgUuid: null, entries: $entries));
 
-		self::assertSame([self::COURSE, self::OTHER_COURSE], $synced);
+		self::assertSame(expected: [self::COURSE, self::OTHER_COURSE], actual: $synced);
 	}//end testTheJobSyncsEachCourseOnce()
 
 	/**
@@ -392,7 +417,7 @@ class NonCommercialWithholdingTest extends TestCase {
 	 */
 	public function testTheCascadeIsRegistered(): void {
 		$registered = [];
-		$context = $this->createMock(IRegistrationContext::class);
+		$context = $this->createMock(originalClassName: IRegistrationContext::class);
 		$context->method('registerEventListener')->willReturnCallback(
 			static function (string $event, string $listener) use (&$registered): void {
 				$registered[] = $event . ' => ' . $listener;
@@ -402,7 +427,7 @@ class NonCommercialWithholdingTest extends TestCase {
 		(new IntegrityListenerRegistrar())->register(context: $context);
 
 		foreach ([ObjectCreatedEvent::class, ObjectUpdatedEvent::class, ObjectDeletedEvent::class] as $event) {
-			self::assertContains($event . ' => ' . NonCommercialWithholdingCascade::class, $registered);
+			self::assertContains(needle: $event . ' => ' . NonCommercialWithholdingCascade::class, haystack: $registered);
 		}
 	}//end testTheCascadeIsRegistered()
 }//end class
