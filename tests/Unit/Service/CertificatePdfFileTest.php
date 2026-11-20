@@ -45,18 +45,18 @@ class CertificatePdfFileTest extends TestCase {
 	 * @return CertificatePdfFile
 	 */
 	private function reader(): CertificatePdfFile {
-		$pdf = $this->createMock(File::class);
+		$pdf = $this->createMock(originalClassName: File::class);
 		$pdf->method('getMimetype')->willReturn('application/pdf');
 		$pdf->method('getContent')->willReturn('%PDF-1.7');
-		$text = $this->createMock(File::class);
+		$text = $this->createMock(originalClassName: File::class);
 		$text->method('getMimetype')->willReturn('text/plain');
 		$text->expects($this->never())->method('getContent');
-		$locked = $this->createMock(File::class);
+		$locked = $this->createMock(originalClassName: File::class);
 		$locked->method('getMimetype')->willReturn('application/pdf');
 		$locked->method('getContent')->willThrowException(new NotPermittedException('locked'));
-		$nodes = [4711 => $pdf, 4712 => $text, 4713 => $this->createMock(Folder::class), 4714 => $locked];
+		$nodes = [4711 => $pdf, 4712 => $text, 4713 => $this->createMock(originalClassName: Folder::class), 4714 => $locked];
 
-		$root = $this->createMock(IRootFolder::class);
+		$root = $this->createMock(originalClassName: IRootFolder::class);
 		$root->method('getFirstNodeById')->willReturnCallback(
 			function (int $id) use ($nodes) {
 				$this->asked[] = $id;
@@ -73,8 +73,8 @@ class CertificatePdfFileTest extends TestCase {
 	 * @return void
 	 */
 	public function testAFileIdOfAPdfReadsAsItsBytes(): void {
-		self::assertSame('%PDF-1.7', $this->reader()->read(documentRef: ' 4711 '));
-		self::assertSame([4711], $this->asked);
+		self::assertSame(expected: '%PDF-1.7', actual: $this->reader()->read(documentRef: ' 4711 '));
+		self::assertSame(expected: [4711], actual: $this->asked);
 	}//end testAFileIdOfAPdfReadsAsItsBytes()
 
 	/**
@@ -85,11 +85,11 @@ class CertificatePdfFileTest extends TestCase {
 	public function testAnythingButAReadablePdfReadsAsNull(): void {
 		$reader = $this->reader();
 
-		self::assertNull($reader->read(documentRef: '4712'));
-		self::assertNull($reader->read(documentRef: '4713'));
-		self::assertNull($reader->read(documentRef: '404'));
-		self::assertNull($reader->read(documentRef: '4714'));
-		self::assertSame([4712, 4713, 404, 4714], $this->asked);
+		self::assertNull(actual: $reader->read(documentRef: '4712'));
+		self::assertNull(actual: $reader->read(documentRef: '4713'));
+		self::assertNull(actual: $reader->read(documentRef: '404'));
+		self::assertNull(actual: $reader->read(documentRef: '4714'));
+		self::assertSame(expected: [4712, 4713, 404, 4714], actual: $this->asked);
 	}//end testAnythingButAReadablePdfReadsAsNull()
 
 	/**
@@ -101,9 +101,9 @@ class CertificatePdfFileTest extends TestCase {
 		$reader = $this->reader();
 
 		foreach (['', 'doc-42', '0', '-3', '12abc', '../4711'] as $ref) {
-			self::assertNull($reader->read(documentRef: $ref), $ref);
+			self::assertNull(actual: $reader->read(documentRef: $ref), message: $ref);
 		}
 
-		self::assertSame([], $this->asked);
+		self::assertSame(expected: [], actual: $this->asked);
 	}//end testAReferenceThatIsNoFileIdIsNotLookedUp()
 }//end class

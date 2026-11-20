@@ -67,27 +67,34 @@ class CertificatePdfFieldsSchemaTest extends TestCase {
 	 * @return CertificatePdfDelegationService
 	 */
 	private function service(): CertificatePdfDelegationService {
-		$response = $this->createMock(IResponse::class);
+		$response = $this->createMock(originalClassName: IResponse::class);
 		$response->method('getBody')->willReturn((string)$this->answer);
-		$client = $this->createMock(IClient::class);
+		$client = $this->createMock(originalClassName: IClient::class);
 		if ($this->answer === null) {
 			$client->method('post')->willThrowException(new RuntimeException('connection refused'));
 		} else {
 			$client->method('post')->willReturn($response);
 		}
 
-		$clients = $this->createMock(IClientService::class);
+		$clients = $this->createMock(originalClassName: IClientService::class);
 		$clients->method('newClient')->willReturn($client);
-		$urls = $this->createMock(IURLGenerator::class);
+		$urls = $this->createMock(originalClassName: IURLGenerator::class);
 		$urls->method('getAbsoluteURL')->willReturnCallback(static fn (string $path): string => 'https://nc.example' . $path);
-		$config = $this->createMock(IAppConfig::class);
+		$config = $this->createMock(originalClassName: IAppConfig::class);
 		$config->method('getValueString')->willReturn('tok');
-		$apps = $this->createMock(IAppManager::class);
+		$apps = $this->createMock(originalClassName: IAppManager::class);
 		$apps->method('isInstalled')->willReturnCallback(fn (string $id): bool => $this->filinq && $id === 'filinq');
-		$copies = $this->createMock(ReadableCopiesInterface::class);
+		$copies = $this->createMock(originalClassName: ReadableCopiesInterface::class);
 		$copies->method('derive')->willReturn([]);
 
-		return new CertificatePdfDelegationService($clients, $urls, $config, $apps, new NullLogger(), $copies);
+		return new CertificatePdfDelegationService(
+			clientService: $clients,
+			urlGenerator: $urls,
+			appConfig: $config,
+			appManager: $apps,
+			logger: new NullLogger(),
+			copies: $copies
+		);
 	}//end service()
 
 	/**
@@ -102,7 +109,7 @@ class CertificatePdfFieldsSchemaTest extends TestCase {
 
 		$fragment = ['type' => 'object', 'properties' => []];
 		foreach (self::PDF_FIELDS as $field) {
-			self::assertArrayHasKey($field, $properties, 'Credential declares ' . $field);
+			self::assertArrayHasKey(key: $field, array: $properties, message: 'Credential declares ' . $field);
 			$property = array_filter(
 				$properties[$field],
 				static fn (string $key): bool => str_starts_with($key, 'x-') === false,
@@ -152,14 +159,14 @@ class CertificatePdfFieldsSchemaTest extends TestCase {
 		$cases['unavailable'] = $this->written();
 
 		foreach ($cases as $status => $written) {
-			self::assertSame($status, $written->pdfRenderStatus);
+			self::assertSame(expected: $status, actual: $written->pdfRenderStatus);
 			$result = $validator->validate($written, $this->fragment());
-			self::assertTrue($result->isValid(), $status . ': ' . json_encode($result->error()?->message()));
+			self::assertTrue(condition: $result->isValid(), message: $status . ': ' . json_encode($result->error()?->message()));
 		}
 
-		self::assertSame('doc-42', $cases['rendered']->pdfDocumentRef);
-		self::assertNull($cases['rendered']->pdfRenderError);
-		self::assertStringContainsString('filinq', (string)$cases['unavailable']->pdfRenderError);
+		self::assertSame(expected: 'doc-42', actual: $cases['rendered']->pdfDocumentRef);
+		self::assertNull(actual: $cases['rendered']->pdfRenderError);
+		self::assertStringContainsString(needle: 'filinq', haystack: (string)$cases['unavailable']->pdfRenderError);
 	}//end testEveryOutcomePassesTheRealSchema()
 
 	/**
@@ -172,10 +179,13 @@ class CertificatePdfFieldsSchemaTest extends TestCase {
 		$written = $this->written();
 		$written->pdfRenderStatus = 'done';
 
-		self::assertFalse((new Validator())->validate($written, $this->fragment())->isValid());
+		self::assertFalse(condition: (new Validator())->validate($written, $this->fragment())->isValid());
 
 		$written->pdfRenderStatus = 'rendered';
 		$written->pdfDocumentRef = 42;
-		self::assertFalse((new Validator())->validate($written, $this->fragment())->isValid(), 'a non-string reference is refused');
+		self::assertFalse(
+			condition: (new Validator())->validate($written, $this->fragment())->isValid(),
+			message: 'a non-string reference is refused'
+		);
 	}//end testAStatusTheSchemaDoesNotListIsRefused()
 }//end class
