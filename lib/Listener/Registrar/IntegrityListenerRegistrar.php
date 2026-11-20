@@ -39,6 +39,7 @@ use OCA\Learniq\Listener\GradeEntryLearnerRefStamp;
 use OCA\Learniq\Listener\LessonNoteAuthorGuard;
 use OCA\Learniq\Listener\HrFieldOwnershipGuard;
 use OCA\Learniq\Listener\ProfileScopeChangeHandler;
+use OCA\Learniq\Listener\SyncedCohortGuard;
 use OCA\Learniq\Listener\LvsResultLearnerRefStamp;
 use OCA\Learniq\Listener\ReportCardGradeLinesStamp;
 use OCA\Learniq\Listener\PortfolioEntryOwnershipListener;
@@ -116,6 +117,10 @@ class IntegrityListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectUpdatingEvent::class,
 			listener: LessonNoteAuthorGuard::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: SyncedCohortGuard::class
 		);
 
 		// HR-fed profiles (compliance-assign-from-hr-roles): the HR system
