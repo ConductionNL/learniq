@@ -8,6 +8,14 @@
 	},
 	"menu": [
 		{
+			"id": "AiProcessingDisclosureMenu",
+			"label": "AI processing disclosure",
+			"icon": "Lock",
+			"route": "AiProcessingDisclosure",
+			"section": "footer",
+			"order": 91
+		},
+		{
 			"id": "Dashboard",
 			"label": "Dashboard",
 			"icon": "ViewDashboardOutline",
@@ -154,21 +162,6 @@
 					}
 				},
 				{
-					"id": "AiProcessingDisclosureMenu",
-					"label": "AI processing disclosure",
-					"icon": "Lock",
-					"route": "AiProcessingDisclosure",
-					"order": 42,
-					"visibleIf": {
-						"user.primaryRole": {
-							"in": [
-								"admin",
-								"compliance-officer"
-							]
-						}
-					}
-				},
-				{
 					"id": "AccessibilityFeedbacksMenu",
 					"label": "Accessibility feedback",
 					"icon": "CommentOutline",
@@ -307,7 +300,7 @@
 			"type": "custom",
 			"title": "AI processing disclosure",
 			"component": "LearniqAiProcessingDisclosure",
-			"_note": "sovereign-ai-guarantee: the AI-processing locality disclosure surface a school hands to its DPO, mirrors LearniqAccessibilityStatement's exact shape (no generic lib index/detail analogue, no :id route param, singleton disclosure page). Composes AiProcessingDisclosureController's server-side read (Hermiq agentaifeature register + scholiq-ai-features AVG carrier + AiLocalityClassifier/SovereigntyPolicyService verdict) with an inline SovereigntyPolicy editor. Gated to admin/compliance-officer via the AiProcessingDisclosure nav entry's visibleIf (unlike Accessibility, which is open to every authenticated user)."
+			"_note": "sovereign-ai-guarantee: the AI-processing locality disclosure surface a school hands to its DPO, mirrors LearniqAccessibilityStatement's exact shape (no generic lib index/detail analogue, no :id route param, singleton disclosure page). Composes AiProcessingDisclosureController's server-side read (Hermiq agentaifeature register + scholiq-ai-features AVG carrier + AiLocalityClassifier/SovereigntyPolicyService verdict) with an inline SovereigntyPolicy editor. Read by every signed-in user through the footer entry AiProcessingDisclosureMenu, which carries no role gate (ai-disclosure-for-every-user, decision 399); only admin and compliance-officer get the edit mode."
 		},
 		{
 			"id": "PrivacyGovernanceDashboard",

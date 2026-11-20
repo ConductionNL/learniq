@@ -82,6 +82,9 @@ const UNIVERSAL = new Set([
 	// support-confidential-concern-report design D5: anyone can be bullied or
 	// harassed, staff included, so everyone can reach the counsellors.
 	'ReportConcernMenu',
+	// ai-disclosure-for-every-user (decision 399): a student or teacher whose
+	// work an AI feature reads can find out that it does, and where it runs.
+	'AiProcessingDisclosureMenu',
 ])
 
 /**
