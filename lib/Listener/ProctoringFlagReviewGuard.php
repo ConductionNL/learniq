@@ -30,7 +30,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/proctoring-flag-review-page/specs/assessment/spec.md#requirement-only-staff-decide-a-flag-and-the-server-records-who-did
+ * @spec openspec/specs/assessment/spec.md#requirement-only-staff-decide-a-flag-and-the-server-records-who-did
  */
 
 declare(strict_types=1);
@@ -55,7 +55,7 @@ use Throwable;
  *
  * @template-implements IEventListener<Event>
  *
- * @spec openspec/changes/proctoring-flag-review-page/specs/assessment/spec.md#requirement-only-staff-decide-a-flag-and-the-server-records-who-did
+ * @spec openspec/specs/assessment/spec.md#requirement-only-staff-decide-a-flag-and-the-server-records-who-did
  */
 class ProctoringFlagReviewGuard implements IEventListener {
 
@@ -92,7 +92,7 @@ class ProctoringFlagReviewGuard implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/proctoring-flag-review-page/specs/assessment/spec.md#requirement-only-staff-decide-a-flag-and-the-server-records-who-did
+	 * @spec openspec/specs/assessment/spec.md#requirement-only-staff-decide-a-flag-and-the-server-records-who-did
 	 */
 	public function handle(Event $event): void {
 		if ($event instanceof ObjectCreatingEvent === false && $event instanceof ObjectUpdatingEvent === false) {

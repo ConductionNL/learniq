@@ -152,7 +152,7 @@ class PortalEmployerController extends Controller {
 	#[BruteForceProtection(action: self::THROTTLE_ACTION)]
 	public function substitute(): JSONResponse {
 		return $this->answer(
-			fields: ['bookingRef', 'learnerRef', 'substituteRef'],
+			fields: ['bookingRef', 'learnerRef', 'enrolmentId', 'substituteRef'],
 			work: fn (string $company, array $body): PortalOutcome => $this->bookings->substituteParticipant(organisationRef: $company, body: $body)
 		);
 	}//end substitute()

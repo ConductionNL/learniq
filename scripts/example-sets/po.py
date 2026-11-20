@@ -1397,6 +1397,9 @@ GROUP7_TODAY = [
     ("Hamza", "Elzenhof", "2015-10-07", "Youssef", ("Hamza is ziek", "illness", (7, 55)), ("illness", 0)),
 ]
 
+# Until what time of day a report of GROUP7_TODAY keeps the pupil away (the list's "Tandarts tot 11.30").
+GROUP7_UNTIL = {"Lina": "11:30"}
+
 
 def add_group7_today(b: Builder, pupils: list[dict], cohorts: dict) -> None:
     """Lina at the dentist until 11.30 and Hamza reported ill, so the list of groep 7 reads two absent today.
@@ -1418,6 +1421,7 @@ def add_group7_today(b: Builder, pupils: list[dict], cohorts: dict) -> None:
             "dateFrom": STORY_TODAY.isoformat(), "dateTo": STORY_TODAY.isoformat(), "reason": reason, "reasonKind": kind,
             "submittedAuthLevel": "basic", "decidedBy": teacher, "decidedAt": stamp(STORY_TODAY, 8, 10),
             "decisionNote": None, "lifecycle": "approved",
+            **({"untilTime": GROUP7_UNTIL[given]} if given in GROUP7_UNTIL else {}),
         })
         b.add("attendance-record", {
             "sessionId": lesson["uuid"], "learnerId": nc, "learnerRef": ref, "cohortId": group["uuid"],
