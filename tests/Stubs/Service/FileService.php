@@ -22,12 +22,10 @@ declare(strict_types=1);
 namespace OCA\OpenRegister\Service;
 
 use OCA\OpenRegister\Db\ObjectEntity;
-use OCA\OpenRegister\Service\File\FileUpload;
-use OCP\Files\File;
 
 /**
  * Mirrors the methods learniq calls, with the signatures of openregister
- * main (lib/Service/FileService.php getFiles() and saveFile()).
+ * main (lib/Service/FileService.php getFiles(), saveFile(), deleteFile()).
  */
 abstract class FileService {
 
@@ -42,23 +40,33 @@ abstract class FileService {
 	abstract public function getFiles(ObjectEntity|string $object, ?bool $sharedFilesOnly = false): array;
 
 	/**
-	 * Save a file to an object's folder, replacing one of the same name.
+	 * Write a file in an object's folder, replacing one of the same name.
 	 *
-	 * @param ObjectEntity           $objectEntity The object.
-	 * @param FileUpload|string|null $upload       The file, or its name.
-	 * @param mixed                  $content      The content, beside a name.
-	 * @param bool                   $share        Whether to share a new file.
-	 * @param array                  $tags         Tags for the file.
-	 * @param string|null            $fileName     The file name.
+	 * @param ObjectEntity                                $objectEntity The object.
+	 * @param \OCA\OpenRegister\Service\File\FileUpload|string|null $upload       The upload, or the file name.
+	 * @param mixed                                       $content      The file content.
+	 * @param bool                                        $share        Whether to share a new file.
+	 * @param array<int, string>                          $tags         Tags for the file.
+	 * @param string|null                                 $fileName     The file name.
 	 *
-	 * @return File
+	 * @return \OCP\Files\File
 	 */
 	abstract public function saveFile(
 		ObjectEntity $objectEntity,
-		FileUpload|string|null $upload = null,
+		mixed $upload = null,
 		mixed $content = null,
 		bool $share = false,
 		array $tags = [],
 		?string $fileName = null,
-	): File;
+	): \OCP\Files\File;
+
+	/**
+	 * Delete a file by node, path or id.
+	 *
+	 * @param \OCP\Files\Node|string|int $file   The file.
+	 * @param ObjectEntity|null          $object The object it belongs to.
+	 *
+	 * @return bool
+	 */
+	abstract public function deleteFile(\OCP\Files\Node|string|int $file, ?ObjectEntity $object = null): bool;
 }//end class
