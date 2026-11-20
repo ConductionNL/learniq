@@ -36,6 +36,7 @@ use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\Learniq\Lifecycle\PortfolioShareGrantHandler;
 use OCA\Learniq\Listener\CohortGroupProvisioningHandler;
 use OCA\Learniq\Listener\CohortTalkMembershipHandler;
+use OCA\Learniq\Listener\CohortTalkRoomProvisioner;
 use OCA\Learniq\Listener\ConferenceScheduleGenerator;
 use OCA\Learniq\Listener\CourseEvaluationResponseSubmittedHandler;
 use OCA\Learniq\Listener\CourseQualityScoreRollupHandler;
@@ -130,6 +131,17 @@ class CollaborationListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectTransitionedEvent::class,
 			listener: CohortTalkMembershipHandler::class
+		);
+
+		// ADR-031 legitimate exception (cohort-room-and-feedback-summary-for-the-learner):
+		// a Cohort that becomes active with no Talk conversation linked gets
+		// its own one, named after the cohort and linked through
+		// OpenRegister's TalkLinkService, with its active learners added.
+		// Fails soft (no-op, logged) when Talk is unavailable or a room is
+		// already linked; a coordinator can still link one by hand.
+		$context->registerEventListener(
+			event: ObjectTransitionedEvent::class,
+			listener: CohortTalkRoomProvisioner::class
 		);
 
 		// ADR-031 legitimate exception (cohort-group-provisioning): Cohort
