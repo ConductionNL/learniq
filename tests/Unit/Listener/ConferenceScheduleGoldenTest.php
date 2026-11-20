@@ -33,6 +33,7 @@ use OCP\IUserManager;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use ReflectionMethod;
+use OCA\Learniq\Tests\Support\LegacyObjectArgs;
 
 /**
  * Pins every saveObject call ConferenceScheduleGenerator makes for a round
@@ -46,6 +47,8 @@ use ReflectionMethod;
  * @uses   \OCA\Learniq\Service\ConferenceBookingMode
  * @uses   \OCA\Learniq\Service\ConferenceSlotSlicer
  * @uses   \OCA\Learniq\Service\ListenerSchemaResolver
+ * @uses   \OCA\Learniq\Service\ConferenceSlotPattern
+ * @uses   \OCA\Learniq\Support\EntityRow
  */
 class ConferenceScheduleGoldenTest extends TestCase {
 
@@ -169,9 +172,10 @@ class ConferenceScheduleGoldenTest extends TestCase {
 				return $found;
 			}
 		);
-		$params = (new ReflectionMethod(ObjectService::class, 'saveObject'))->getParameters();
+		$params = LegacyObjectArgs::parameters(ObjectService::class, 'saveObject');
 		$service->method('saveObject')->willReturnCallback(
 			static function (...$args) use ($params, &$calls): ObjectEntity {
+				$args = LegacyObjectArgs::positional(method: 'saveObject', args: $args);
 				$named = [];
 				foreach ($args as $i => $value) {
 					if ($params[$i]->isDefaultValueAvailable() === true && $params[$i]->getDefaultValue() === $value) {

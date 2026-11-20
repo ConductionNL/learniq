@@ -32,10 +32,11 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
-use OCA\Learniq\AppInfo\Registrar\EventListenerWiring;
+use OCA\Learniq\Listener\Registrar\EventListenerWiring;
 use OCA\Learniq\Listener\CorrectionAppliedHandler;
 use OCA\Learniq\Listener\GradeRollupHandler;
 use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Tests\Support\ContractImplementations;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\Learniq\Tests\Support\TransitionScope;
 use OCA\OpenRegister\Db\ObjectEntity;
@@ -55,6 +56,7 @@ use ReflectionMethod;
 use ReflectionNamedType;
 use RuntimeException;
 use Throwable;
+use OCA\Learniq\Tests\Support\LegacyObjectArgs;
 
 class CorrectionAppliedAfterRollupFailureTest extends TestCase {
 
@@ -126,6 +128,7 @@ class CorrectionAppliedAfterRollupFailureTest extends TestCase {
 		$objects = $this->createMock(ObjectService::class);
 		$objects->method('find')->willReturnCallback(
 			function (mixed ...$args) use ($systemReadFails): ?ObjectEntity {
+				$args = LegacyObjectArgs::positional(method: 'find', args: $args);
 				$named = self::named(method: 'find', args: $args);
 				if (($named['schema'] ?? null) !== 'curriculum-plan') {
 					return null;
@@ -157,6 +160,7 @@ class CorrectionAppliedAfterRollupFailureTest extends TestCase {
 		);
 		$objects->method('saveObject')->willReturnCallback(
 			function (mixed ...$args): ObjectEntity {
+				$args = LegacyObjectArgs::positional(method: 'saveObject', args: $args);
 				$named = self::named(method: 'saveObject', args: $args);
 				$object = $named['object'];
 				$data = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
@@ -178,7 +182,7 @@ class CorrectionAppliedAfterRollupFailureTest extends TestCase {
 	 */
 	private static function named(string $method, array $args): array {
 		$named = [];
-		foreach ((new ReflectionMethod(ObjectService::class, $method))->getParameters() as $position => $parameter) {
+		foreach (LegacyObjectArgs::parameters(ObjectService::class, $method) as $position => $parameter) {
 			if (array_key_exists($position, $args) === true) {
 				$named[$parameter->getName()] = $args[$position];
 			}
@@ -196,6 +200,7 @@ class CorrectionAppliedAfterRollupFailureTest extends TestCase {
 	 * @return object
 	 */
 	private function build(string $class, array $known): object {
+		$class = ContractImplementations::concrete($class);
 		if (isset($known[$class]) === true) {
 			return $known[$class];
 		}

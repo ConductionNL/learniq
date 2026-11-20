@@ -1,0 +1,475 @@
+<?php
+
+/**
+ * Learniq Integrity Listener Registrar
+ *
+ * One of the domain-scoped registrars `Application::register()` delegates its
+ * event-listener wiring to. This one wires the pre-write vetoes that keep
+ * evidence objects immutable where a schema flag cannot: today the
+ * AssessmentResult integrity rules that replace `appendOnly` (learniq#948).
+ *
+ * @category Listener
+ * @package  OCA\Learniq\Listener\Registrar
+ *
+ * @author    Conduction Development Team <dev@conductio.nl>
+ * @copyright 2026 Conduction B.V.
+ * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * SPDX-License-Identifier: EUPL-1.2
+ *
+ * @version GIT: <git-id>
+ *
+ * @link https://conduction.nl
+ *
+ * @spec openspec/specs/assessment/spec.md#requirement-a-teacher-scores-open-answers-question-by-question-and-a-finished-attempt-stays-immutable
+ */
+
+declare(strict_types=1);
+
+namespace OCA\Learniq\Listener\Registrar;
+
+use OCA\Learniq\Listener\CompetencyAlignmentListener;
+use OCA\Learniq\Listener\CheckInWindowStamp;
+use OCA\Learniq\Listener\ConferenceSignupPortalStamp;
+use OCA\Learniq\Listener\ExcuseRecoveryGuard;
+use OCA\Learniq\Listener\ExcuseRequestOwnerStamp;
+use OCA\Learniq\Listener\LeaveRequestPortalStamp;
+use OCA\Learniq\Listener\LeaveRequestSchoolDaysStamp;
+use OCA\Learniq\Listener\GradeEntryLearnerRefStamp;
+use OCA\Learniq\Listener\LessonNoteAuthorGuard;
+use OCA\Learniq\Listener\HrFieldOwnershipGuard;
+use OCA\Learniq\Listener\ProfileScopeChangeHandler;
+use OCA\Learniq\Listener\LvsResultLearnerRefStamp;
+use OCA\Learniq\Listener\ReportCardGradeLinesStamp;
+use OCA\Learniq\Listener\PortfolioEntryOwnershipListener;
+use OCA\Learniq\Listener\AssignmentLearnerRefsStamp;
+use OCA\Learniq\Listener\CohortNameCascade;
+use OCA\Learniq\Listener\HourWeekSubmissionStamp;
+use OCA\Learniq\Listener\LearningRecordCreatedTransition;
+use OCA\Learniq\Listener\LearningRecordOwnerStamp;
+use OCA\Learniq\Listener\WerkprocesAssessmentLearnerStamp;
+use OCA\Learniq\Listener\BpvPlacementPhaseStamp;
+use OCA\Learniq\Listener\BpvVisitPhaseRollup;
+use OCA\Learniq\Listener\BpvVisitProposalStamp;
+use OCA\Learniq\Listener\HourWeekTotalRollup;
+use OCA\Learniq\Listener\LearnerGroupLabelCascade;
+use OCA\Learniq\Listener\CourseDayStatusCascade;
+use OCA\Learniq\Listener\EmployerBookingCascade;
+use OCA\Learniq\Listener\ReadableCopyStamp;
+use OCA\Learniq\Listener\SubmissionLearnerRefsStamp;
+use OCA\Learniq\Listener\SubjectChoiceConsentStamp;
+use OCA\Learniq\Listener\SubmissionOwnerStamp;
+use OCA\Learniq\Listener\SubmissionResubmissionDateListener;
+use OCA\OpenRegister\Event\ObjectCreatedEvent;
+use OCA\OpenRegister\Event\ObjectCreatingEvent;
+use OCA\OpenRegister\Event\ObjectUpdatedEvent;
+use OCA\OpenRegister\Event\ObjectUpdatingEvent;
+use OCP\AppFramework\Bootstrap\IRegistrationContext;
+
+/**
+ * Wires the evidence-integrity vetoes.
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects) This class exists to name
+ * every integrity listener in one place, the same reason BootListenerRegistrar
+ * carries this suppression. Each listener is one more class by construction;
+ * splitting the registrar to dodge the metric would move the same coupling
+ * around without reducing it.
+ *
+ * @spec openspec/specs/assessment/spec.md#requirement-a-teacher-scores-open-answers-question-by-question-and-a-finished-attempt-stays-immutable
+ */
+class IntegrityListenerRegistrar {
+	/**
+	 * Register every integrity listener.
+	 *
+	 * @param IRegistrationContext $context Nextcloud registration context.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/assessment/spec.md#requirement-a-teacher-scores-open-answers-question-by-question-and-a-finished-attempt-stays-immutable
+	 */
+	public function register(IRegistrationContext $context): void {
+		// The evidence freezes (a submitted AssessmentResult, a verified
+		// LvsResult) live in their own registrar.
+		(new EvidenceFreezeListenerRegistrar())->register(context: $context);
+
+		$this->registerOwnerStamps(context: $context);
+
+		// PortfolioEntry ownership (learniq#981): every learner may create an
+		// entry, so a non-staff caller may only write one in their own name
+		// into their own portfolio.
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: PortfolioEntryOwnershipListener::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: PortfolioEntryOwnershipListener::class
+		);
+
+		// Lesson notes (timetabling-lesson-note): only a lesson's own teachers,
+		// its substitute and team leads write a note on it. A rule across
+		// rows (cohort teachers, substitute), so a pre-write veto.
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: LessonNoteAuthorGuard::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: LessonNoteAuthorGuard::class
+		);
+
+		// HR-fed profiles (compliance-assign-from-hr-roles): the HR system
+		// owns department, roles, manager and job title on a profile with
+		// hrSource, so a manual change is vetoed before the write; and a
+		// created profile or a change of department, roles or job title
+		// re-runs the mandatory-training assignment for that one person.
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: HrFieldOwnershipGuard::class
+		);
+		$context->registerEventListener(
+			event: ObjectCreatedEvent::class,
+			listener: ProfileScopeChangeHandler::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatedEvent::class,
+			listener: ProfileScopeChangeHandler::class
+		);
+
+		// Competency alignments (goal-alignment-depth): keeps competencyIds
+		// derived from competencyAlignments on Lesson, Course, Assignment and
+		// Assessment, and refuses a depth the goal's framework does not know.
+		// A pre-write veto that also writes, so registered directly.
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: CompetencyAlignmentListener::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: CompetencyAlignmentListener::class
+		);
+
+		// GradeEntry learnerRef (gradeentry-learnerref-stamp): the server
+		// derives the portal subject from learnerId on every write, whoever
+		// creates the grade. A stamp, not a veto: it never stops the write.
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: GradeEntryLearnerRefStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: GradeEntryLearnerRefStamp::class
+		);
+
+		// LvsResult learnerRef (lvs-result-learner-ref): a Cito, IEP, Boom or
+		// Dia result names its pupil by LearnerProfile, derived by the server
+		// from learnerId on every write, imported or entered by hand. A stamp,
+		// not a veto: it never stops the write.
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: LvsResultLearnerRefStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: LvsResultLearnerRefStamp::class
+		);
+
+		// Submission learnerRefs (learner-lookup-and-learnerrefs-fixes): the
+		// portal's student submissions collection scopes on learnerRefs, so the
+		// server derives it from learnerIds on every write. A stamp, not a veto.
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: SubmissionLearnerRefsStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: SubmissionLearnerRefsStamp::class
+		);
+
+		$this->registerHomeworkScope(context: $context);
+		$this->registerReadableCopies(context: $context);
+
+		// Submission resubmission date (submission-resubmission-action): the
+		// date moves the hand-in deadline, so only staff may write it. Drops
+		// or restores the value; never stops the write.
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: SubmissionResubmissionDateListener::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: SubmissionResubmissionDateListener::class
+		);
+	}//end register()
+
+	/**
+	 * Register the owner stamps: the listeners that fill, on the server, who a
+	 * portal write belongs to, and refuse any write that still lacks it.
+	 *
+	 * @param IRegistrationContext $context Nextcloud registration context.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/attendance/spec.md#requirement-the-server-stamps-who-an-excuse-request-is-about-and-who-filed-it
+	 */
+	private function registerOwnerStamps(IRegistrationContext $context): void {
+		// Submission owner (assignment-portal-wiring): a portal hand-in gets
+		// its learners and tenant from the pupil's profile, every other write
+		// gets learnerRef from learnerIds[0], and no write may end without
+		// learners or tenant. Create and update, so a client never keeps a
+		// learnerRef of its own.
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: SubmissionOwnerStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: SubmissionOwnerStamp::class
+		);
+
+		// ReportCard grade lines (portal-parent-report-card-grades): the
+		// period name and one readable line per subject, derived from
+		// subjectGrades on every write, so the parent portal can show them.
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: ReportCardGradeLinesStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: ReportCardGradeLinesStamp::class
+		);
+
+		// ExcuseRequest owner (settings-and-excuse-authorization): a portal
+		// absence report gets its pupil, submitter, level and tenant from the
+		// profile, a guardian's only for a child that lists them, every other
+		// write gets learnerRef from learnerId, and no write may end without
+		// the pupil, a submitter or the tenant.
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: ExcuseRequestOwnerStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: ExcuseRequestOwnerStamp::class
+		);
+
+		// An open illness ended with reportRecovered (absence-reports-seen-
+		// and-ended T4): the last day may not be before the first day.
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: ExcuseRecoveryGuard::class
+		);
+
+		// LeaveRequest school days (leave-requests-decided-by-the-school T2):
+		// the server counts the school days of the range, which decide who may
+		// decide, and stamps the date the school answers by on a new request.
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: LeaveRequestSchoolDaysStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: LeaveRequestSchoolDaysStamp::class
+		);
+		// A guardian asks leave for her own child only, checked again on the
+		// server after portaliq's cross-reference check; the pupil's group
+		// teachers are stamped so they read it.
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: LeaveRequestPortalStamp::class
+		);
+
+		// ConferenceSignup from the parent portal (portal-parent-conference-
+		// booking): the child must list the guardian and the round must be
+		// open to the child; learnerId, guardianId, tenant and `submitted` are
+		// stamped so the scheduling generator considers the signup.
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: ConferenceSignupPortalStamp::class
+		);
+
+		// CheckInWindow (attendance-self-check-in): the teacher who opens it,
+		// the lesson's tenant and the default times.
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: CheckInWindowStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: CheckInWindowStamp::class
+		);
+
+		// SubjectChoice: who gave the guardian consent.
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: SubjectChoiceConsentStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: SubjectChoiceConsentStamp::class
+		);
+
+		// LearningRecordExport and LearningRecordShare: the learner, their
+		// profile and tenant, and the requester or sharer come from the
+		// session; once created, the export is generated and the share granted.
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: LearningRecordOwnerStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: LearningRecordOwnerStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectCreatedEvent::class,
+			listener: LearningRecordCreatedTransition::class
+		);
+	}//end registerOwnerStamps()
+
+	/**
+	 * Assignment learnerRefs (portal-parent-child-record): the guardian portal
+	 * scopes homework on the pupils of the assignment's group, so the server
+	 * derives them from the group's enrolments on every write.
+	 *
+	 * @param IRegistrationContext $context The registration context.
+	 *
+	 * @return void
+	 */
+	private function registerHomeworkScope(IRegistrationContext $context): void {
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: AssignmentLearnerRefsStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: AssignmentLearnerRefsStamp::class
+		);
+	}//end registerHomeworkScope()
+
+	/**
+	 * Readable copies (site-guardian-portal-design, site-external-assessor-portal-design):
+	 * the portal shows a course name on a grade, a group name on an enrolment
+	 * and a portfolio title and learner name on a share, so the server writes
+	 * them on every save and re-stamps the enrolments when a group is renamed.
+	 *
+	 * @param IRegistrationContext $context The registration context.
+	 *
+	 * @return void
+	 */
+	private function registerReadableCopies(IRegistrationContext $context): void {
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: ReadableCopyStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: ReadableCopyStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatedEvent::class,
+			listener: CohortNameCascade::class
+		);
+		// A pupil's group line in the guardian's menu follows the enrolment (school-portals-use-the-new-blocks).
+		$context->registerEventListener(
+			event: ObjectCreatedEvent::class,
+			listener: LearnerGroupLabelCascade::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatedEvent::class,
+			listener: LearnerGroupLabelCascade::class
+		);
+		// A company booking follows its participants' enrolments, birth dates and
+		// names, deferred (employer-portal-audience).
+		$context->registerEventListener(
+			event: ObjectCreatedEvent::class,
+			listener: EmployerBookingCascade::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatedEvent::class,
+			listener: EmployerBookingCascade::class
+		);
+		$this->registerCourseDayStatus(context: $context);
+		// Who entered a week of hours, when, for which student and for which
+		// school, all from the placement the week names: the pupil's form may
+		// send none of it (internship-hours).
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: HourWeekSubmissionStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: HourWeekSubmissionStamp::class
+		);
+		// The student a werkproces assessment is about, copied from its
+		// placement on every write, so the student's own read rule can match
+		// it (learning-record-own-rows). A stamp, not a veto.
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: WerkprocesAssessmentLearnerStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: WerkprocesAssessmentLearnerStamp::class
+		);
+		// A placement's approved hours stay equal to the sum of its weeks,
+		// because the trainer's progress card reads one row and a total that
+		// lived only in a query could never reach it (internship-hours).
+		$context->registerEventListener(
+			event: ObjectCreatedEvent::class,
+			listener: HourWeekTotalRollup::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatedEvent::class,
+			listener: HourWeekTotalRollup::class
+		);
+		// A placement's phase follows its facts, so the board card moves by
+		// itself: stamped on every save of the placement, and the placement is
+		// saved again when one of its visits changes
+		// (bpv-coach-today-and-placement-board T1).
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: BpvPlacementPhaseStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: BpvPlacementPhaseStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectCreatedEvent::class,
+			listener: BpvVisitPhaseRollup::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatedEvent::class,
+			listener: BpvVisitPhaseRollup::class
+		);
+		// "Datum voorstellen": a moment the coach proposes puts the visit in
+		// proposed, waiting for the praktijkopleider (T3).
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: BpvVisitProposalStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: BpvVisitProposalStamp::class
+		);
+	}//end registerReadableCopies()
+
+	/**
+	 * A course day's status follows its bookings, enrolments, sessions,
+	 * minimum and decision, deferred (training-provider-course-days).
+	 *
+	 * @param IRegistrationContext $context The registration context.
+	 *
+	 * @return void
+	 */
+	private function registerCourseDayStatus(IRegistrationContext $context): void {
+		$context->registerEventListener(
+			event: ObjectCreatedEvent::class,
+			listener: CourseDayStatusCascade::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatedEvent::class,
+			listener: CourseDayStatusCascade::class
+		);
+	}//end registerCourseDayStatus()
+}//end class

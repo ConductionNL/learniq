@@ -52,6 +52,11 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\PeerReviewAllocationServiceInterface;
+use OCA\Learniq\Support\SerialisedRow;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use Psr\Log\LoggerInterface;
@@ -62,7 +67,7 @@ use Psr\Log\LoggerInterface;
  * @spec openspec/specs/assignments/spec.md#requirement-reviewer-allocation-runs-as-a-dedicated-service-supporting-round-robin-random-and-manual-strategies
  * @spec openspec/specs/assignments/spec.md#requirement-allocation-reads-and-writes-as-the-system-after-the-controllers-check
  */
-class PeerReviewAllocationService {
+class PeerReviewAllocationService implements PeerReviewAllocationServiceInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const ASSIGNMENT_SCHEMA = 'assignment';
@@ -119,6 +124,22 @@ class PeerReviewAllocationService {
 			return $this->result(strategy: self::DEFAULT_STRATEGY, submissionsProcessed: 0, createdCount: 0);
 		}
 
+		return $this->allocateFor(assignment: $assignment, assignmentId: $assignmentId);
+	}//end allocate()
+
+	/**
+	 * Allocate reviewers for a found assignment by its strategy.
+	 *
+	 * @param array<string,mixed> $assignment   The assignment.
+	 * @param string              $assignmentId Its id.
+	 *
+	 * @return array{strategy: string, submissionsProcessed: int, createdCount: int}
+	 *
+	 * @spec openspec/specs/assignments/spec.md#scenario-round-robin-allocates-the-configured-reviewer-count-while-excluding-self
+	 * @spec openspec/specs/assignments/spec.md#scenario-manual-strategy-performs-no-automatic-allocation
+	 * @spec openspec/specs/assignments/spec.md#scenario-re-running-allocation-is-idempotent
+	 */
+	private function allocateFor(array $assignment, string $assignmentId): array {
 		$strategy = $this->resolveStrategy(assignment: $assignment);
 		if ($strategy === 'manual') {
 			// No-op — the teacher creates PeerReview rows by hand.
@@ -149,7 +170,7 @@ class PeerReviewAllocationService {
 		);
 
 		return $this->result(strategy: $strategy, submissionsProcessed: count($submissions), createdCount: $createdCount);
-	}//end allocate()
+	}//end allocateFor()
 
 	/**
 	 * Walk every Submission in order, topping up short-of-quota reviewer counts.
@@ -224,8 +245,6 @@ class PeerReviewAllocationService {
 			$assignedCount++;
 
 			$this->objectService->saveObject(
-				register: self::LEARNIQ_REGISTER,
-				schema: self::PEER_REVIEW_SCHEMA,
 				object: [
 					'assignmentId' => $rotation->assignmentId,
 					'submissionId' => $need->submissionId,
@@ -234,6 +253,7 @@ class PeerReviewAllocationService {
 					'lifecycle' => 'assigned',
 					'tenant_id' => $need->submission['tenant_id'] ?? '',
 				],
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::PEER_REVIEW_SCHEMA)),
 				_rbac: false
 			);
 		}//end while
@@ -455,7 +475,7 @@ class PeerReviewAllocationService {
 	 */
 	private function fetchObject(string $id, string $schema): ?array {
 		try {
-			$obj = $this->objectService->find(id: $id, register: self::LEARNIQ_REGISTER, schema: $schema);
+			$obj = $this->objectService->find(id: $id, options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: $schema));
 		} catch (DoesNotExistException) {
 			$obj = null;
 		}
@@ -476,17 +496,6 @@ class PeerReviewAllocationService {
 	 * @return array<string,mixed>
 	 */
 	private function toArray(mixed $value): array {
-		if (is_array($value) === true) {
-			return $value;
-		}
-
-		if (is_object($value) === true && method_exists($value, 'jsonSerialize') === true) {
-			$serialized = $value->jsonSerialize();
-			if (is_array($serialized) === true) {
-				return $serialized;
-			}
-		}
-
-		return [];
+		return (new SerialisedRow())->asArray(object: $value);
 	}//end toArray()
 }//end class

@@ -72,6 +72,7 @@ class StudentPortalPages {
 		'room-unavailable' => 'Other room',
 		'teacher-absence'  => 'Other teacher',
 		'timetable-change' => 'Changed',
+		'other'            => 'Changed',
 	];
 
 	private const STUDENT_SESSIONS_FIELDS = [
@@ -290,6 +291,68 @@ class StudentPortalPages {
 		'hoursSubmitted' => ['label' => 'Hours you worked', 'required' => true],
 	];
 
+	/**
+	 * The phone form of one day (board MobielDetail): the placement and the
+	 * day, when she started and stopped, her break, what she did and the work
+	 * processes it belongs to, and whether she keeps the week or sends it.
+	 */
+	private const WRITE_HOUR_DAY_FIELDS = [
+		'bpvPlacementId',
+		'date',
+		'startTime',
+		'endTime',
+		'breakMinutes',
+		'description',
+		'werkprocesCodes',
+		'send',
+	];
+
+	private const WRITE_HOUR_DAY_OPTIONS_PROVIDERS = [
+		'bpvPlacementId' => self::PLACEMENT_OPTIONS,
+		'breakMinutes' => [
+			'type' => 'static',
+			'options' => [
+				['value' => '0', 'label' => 'No break'],
+				['value' => '30', 'label' => '30 minutes'],
+				['value' => '60', 'label' => '60 minutes'],
+			],
+		],
+		// Her own work process rows: portaliq fills a collection provider
+		// from her subject-scoped read of the schema.
+		'werkprocesCodes' => [
+			'type' => 'collection',
+			'register' => self::REGISTER,
+			'schema' => 'werkproces-progress',
+			'labelField' => 'werkprocesLabel',
+			'valueField' => 'werkprocesCode',
+		],
+		'send' => [
+			'type' => 'static',
+			'options' => [
+				['value' => 'keep', 'label' => 'Keep for later'],
+				['value' => 'send', 'label' => 'Send to your workplace trainer'],
+			],
+		],
+	];
+
+	private const WRITE_HOUR_DAY_FIELD_CONFIGS = [
+		'bpvPlacementId' => ['label' => 'Your placement', 'required' => true],
+		'date' => ['label' => 'Which day, as 2026-10-05', 'required' => true],
+		'startTime' => ['label' => 'Started at, as 08:00', 'required' => true],
+		'endTime' => ['label' => 'Stopped at, as 16:30', 'required' => true],
+		'breakMinutes' => ['label' => 'Break', 'widget' => 'choices'],
+		'description' => ['label' => 'What did you do?', 'size' => 'large'],
+		'werkprocesCodes' => ['label' => 'Which work process does this belong to? You may choose more than one.'],
+		'send' => ['label' => 'Send now or later?', 'required' => true, 'widget' => 'choices'],
+	];
+
+	/**
+	 * Work to hand in on the overview. Her own submission is looked up per
+	 * assignment; work handed in, handed in late or marked leaves the list,
+	 * a draft or no submission keeps it (portaliq REQ-SMO-025).
+	 *
+	 * @spec openspec/changes/site-pupil-portal-design/specs/portal-contribution/spec.md
+	 */
 	private const STUDENT_HOMEWORK_TASKS_BLOCK = [
 		'type' => 'tasks',
 		'label' => 'Homework and tests',
@@ -297,6 +360,15 @@ class StudentPortalPages {
 		'collection' => 'studentHomework',
 		'dueField' => 'dueAt',
 		'titleFields' => ['title'],
+		'lookups' => [
+			[
+				'as' => 'submission',
+				'collection' => 'studentSubmissions',
+				'matchField' => 'assignmentId',
+				'valueField' => 'lifecycle',
+			],
+		],
+		'excludeWhen' => ['lookup' => 'submission', 'in' => ['submitted', 'late', 'returned']],
 	];
 
 	private const STUDENT_LATEST_GRADES_BLOCK = [
@@ -573,6 +645,40 @@ class StudentPortalPages {
 	}//end hourWeekAction()
 
 	/**
+	 * She writes the hours of one day (board MobielDetail): the day becomes a
+	 * line of her week, created as a draft when she has none for it, and she
+	 * keeps the week for later or sends it to her workplace trainer.
+	 *
+	 * Through learniq's own endpoint, because a day is a line inside the week
+	 * that must be added or replaced, not a record of its own. The placement
+	 * is checked there to be hers, and the hours are worked out there, never
+	 * taken from the form. The photo of the board is not part of the form:
+	 * portaliq writes files only through its own upload into a record's
+	 * folder, and a day line is not a record.
+	 *
+	 * @return array<string, mixed> The endpoint-forward action.
+	 *
+	 * @spec openspec/changes/bpv-hours-per-day/specs/portal-contribution/spec.md#requirement-a-student-writes-hours-per-day-and-keeps-a-draft
+	 */
+	public function hourDayAction(): array {
+		return [
+			'id' => 'writeHourDay',
+			'type' => 'endpoint-forward',
+			'label' => 'Write the hours of a day',
+			'endpoint' => '/apps/learniq/api/portal/hour-weeks/day',
+			'method' => 'POST',
+			'minTrust' => 'low',
+			'subjectField' => 'learnerRef',
+			'scopeClaim' => 'learnerRef',
+			'fields' => self::WRITE_HOUR_DAY_FIELDS,
+			'optionsProviders' => self::WRITE_HOUR_DAY_OPTIONS_PROVIDERS,
+			'fieldConfigs' => self::WRITE_HOUR_DAY_FIELD_CONFIGS,
+			'submitLabel' => 'Save this day',
+			'successMessage' => 'Your day is saved. A week you sent is with your workplace trainer; a week you keep waits for you.',
+		];
+	}//end hourDayAction()
+
+	/**
 	 * The pupil's pages: the overview, the menu pages, then every other
 	 * listable collection's page out of the menu. Page ids are the collection
 	 * ids, so the routes portaliq gave them before stay the same.
@@ -677,59 +783,150 @@ class StudentPortalPages {
 	 */
 	private function collectionPage(array $collection, array $actions): array {
 		$id = (string)$collection['id'];
-		$schema = (string)($collection['schema'] ?? '');
-		if ($id === 'studentHomework') {
-			$schema = 'submission';
-		}
-
-		$blocks = [];
 		if ($id === 'studentSessions') {
 			// The timetable page is the week, not a table of every lesson.
-			return [
-				'id' => $id,
-				'label' => self::MENU_PAGES[$id],
-				'group' => ParentSitePages::GROUP,
-				'blocks' => [$this->timetableBlock(label: 'Timetable', range: 'week')],
-			];
+			return $this->timetablePage(id: $id);
 		}
 
+		$page = ['id' => $id, 'label' => (string)($collection['label'] ?? $id)];
+		// A collection with steps is a record page: the open row's steps under the list.
+		if (isset($collection['steps']) === true) {
+			$page['record'] = ['collection' => $id, 'titleFields' => ['trainingCompanyName']];
+		}
+
+		$page['blocks'] = $this->pageBlocks(collection: $collection, actions: $actions);
+
+		return $this->menuPage(page: $page);
+	}//end collectionPage()
+
+	/**
+	 * A collection page's blocks: the list, its steps, then the record tail.
+	 *
+	 * @param array<string, mixed>            $collection The collection.
+	 * @param array<int, array<string, mixed>> $actions    The audience's actions.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function pageBlocks(array $collection, array $actions): array {
+		return array_merge(
+			$this->listBlocks(collection: $collection, actions: $actions),
+			$this->stepBlocks(collection: $collection),
+			$this->recordTail(id: (string)$collection['id'])
+		);
+	}//end pageBlocks()
+
+	/**
+	 * The week timetable page of a student's lessons.
+	 *
+	 * @param string $id The collection id.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function timetablePage(string $id): array {
+		return [
+			'id' => $id,
+			'label' => self::MENU_PAGES[$id],
+			'group' => ParentSitePages::GROUP,
+			'blocks' => [$this->timetableBlock(label: 'Timetable', range: 'week')],
+		];
+	}//end timetablePage()
+
+	/**
+	 * The blocks above and of a collection's list: the hours bar of the hour
+	 * weeks, the collection's first create form, then the list itself.
+	 *
+	 * @param array<string, mixed>            $collection The collection.
+	 * @param array<int, array<string, mixed>> $actions    The audience's actions.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function listBlocks(array $collection, array $actions): array {
+		$id = (string)$collection['id'];
+		$blocks = [];
 		if ($id === 'studentHourWeeks') {
 			$blocks[] = $this->hoursBar(collection: 'studentBpvPlacements');
 		}
 
-		$form = $this->firstCreateFor(schema: $schema, actions: $actions);
+		$form = $this->firstCreateFor(schema: $this->formSchema(collection: $collection), actions: $actions);
 		if ($form !== null) {
 			$blocks[] = ['type' => 'action', 'action' => $form];
 		}
 
 		$blocks[] = ['type' => 'collection', 'collection' => $id];
-		$page = ['id' => $id, 'label' => (string)($collection['label'] ?? $id)];
-		// A collection with steps is a record page: the open row's steps under the list.
-		if (isset($collection['steps']) === true) {
-			$page['record'] = ['collection' => $id, 'titleFields' => ['trainingCompanyName']];
-			// "Volgende stap": the current step as a highlight card (portaliq #1409),
-			// its button "Zelfbeoordeling afmaken" opening her self-assessment of this placement.
-			$blocks[] = [
-				'type' => 'steps',
-				'collection' => $id,
-				'display' => 'highlight',
-				'eyebrow' => 'Next step',
-				'buttonLabel' => 'Finish your self-assessment',
-				'page' => StudentSelfAssessment::PAGE,
-				'withRecord' => true,
-			];
-			// Bars across, as the board's "Waar sta je?" (portaliq steps `display: bars`).
-			$blocks[] = ['type' => 'steps', 'collection' => $id, 'label' => (string)($collection['steps']['label'] ?? ''), 'display' => 'bars'];
+
+		return $blocks;
+	}//end listBlocks()
+
+	/**
+	 * The schema whose create form a collection page offers: homework is
+	 * handed in as a submission.
+	 *
+	 * @param array<string, mixed> $collection The collection.
+	 *
+	 * @return string
+	 */
+	private function formSchema(array $collection): string {
+		if ((string)$collection['id'] === 'studentHomework') {
+			return 'submission';
 		}
 
-		$blocks = array_merge($blocks, $this->recordTail(id: $id));
-		$page['blocks'] = $blocks;
-		if (isset(self::MENU_PAGES[$id]) === false) {
+		return (string)($collection['schema'] ?? '');
+	}//end formSchema()
+
+	/**
+	 * The step blocks of a collection with steps, none for any other.
+	 *
+	 * @param array<string, mixed> $collection The collection.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function stepBlocks(array $collection): array {
+		if (isset($collection['steps']) === false) {
+			return [];
+		}
+
+		$id = (string)$collection['id'];
+		return [
+			$this->nextStepBlock(id: $id),
+			// Bars across, as the board's "Waar sta je?" (portaliq steps `display: bars`).
+			['type' => 'steps', 'collection' => $id, 'label' => (string)($collection['steps']['label'] ?? ''), 'display' => 'bars'],
+		];
+	}//end stepBlocks()
+
+	/**
+	 * "Volgende stap": the current step as a highlight card (portaliq #1409),
+	 * its button "Zelfbeoordeling afmaken" opening her self-assessment of this placement.
+	 *
+	 * @param string $id The collection id.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function nextStepBlock(string $id): array {
+		return [
+			'type' => 'steps',
+			'collection' => $id,
+			'display' => 'highlight',
+			'eyebrow' => 'Next step',
+			'buttonLabel' => 'Finish your self-assessment',
+			'page' => StudentSelfAssessment::PAGE,
+			'withRecord' => true,
+		];
+	}//end nextStepBlock()
+
+	/**
+	 * A collection page in the menu under its menu label, or kept out of it.
+	 *
+	 * @param array<string, mixed> $page The page.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function menuPage(array $page): array {
+		if (isset(self::MENU_PAGES[$page['id']]) === false) {
 			return $page + ['menu' => false];
 		}
 
-		return array_merge($page, ['label' => self::MENU_PAGES[$id], 'group' => ParentSitePages::GROUP]);
-	}//end collectionPage()
+		return array_merge($page, ['label' => self::MENU_PAGES[$page['id']], 'group' => ParentSitePages::GROUP]);
+	}//end menuPage()
 
 	/**
 	 * The blocks under a collection page's list: the selected row's detail,

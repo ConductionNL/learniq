@@ -30,10 +30,10 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Portal\EmployerCompanyTenancy;
-use OCA\Learniq\Portal\PortalAssertionVerifier;
-use OCA\Learniq\Service\Portal\PortalEmployerBookings;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\EmployerCompanyTenancyInterface;
+use OCA\Learniq\Kernel\Contracts\PortalAssertionVerifierInterface;
+use OCA\Learniq\Kernel\Contracts\PortalEmployerBookingsInterface;
 use OCA\Learniq\Service\Portal\PortalOutcome;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -70,19 +70,19 @@ class PortalEmployerController extends Controller {
 	 * Constructor.
 	 *
 	 * @param IRequest                $request   The request.
-	 * @param PortalAssertionVerifier $verifier  Verifies X-Portal-Subject.
-	 * @param PortalEmployerBookings  $bookings  Checks and stores the writes.
-	 * @param EmployerCompanyTenancy  $tenancy   Checks the company lies in the portal's organisation.
+	 * @param PortalAssertionVerifierInterface $verifier  Verifies X-Portal-Subject.
+	 * @param PortalEmployerBookingsInterface  $bookings  Checks and stores the writes.
+	 * @param EmployerCompanyTenancyInterface  $tenancy   Checks the company lies in the portal's organisation.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		IRequest $request,
-		private readonly PortalAssertionVerifier $verifier,
-		private readonly PortalEmployerBookings $bookings,
-		private readonly EmployerCompanyTenancy $tenancy,
+		private readonly PortalAssertionVerifierInterface $verifier,
+		private readonly PortalEmployerBookingsInterface $bookings,
+		private readonly EmployerCompanyTenancyInterface $tenancy,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -140,6 +140,24 @@ class PortalEmployerController extends Controller {
 	}//end supplyBirthDate()
 
 	/**
+	 * Send a colleague in place of a participant of the company's booking, before the deadline.
+	 *
+	 * @return JSONResponse 200 with the booking, or 401 / 403 / 404 / 409 (with the deadline in words) / 422 / 502.
+	 *
+	 * @spec openspec/changes/employer-substitutes-a-colleague/specs/portal-contribution/spec.md#requirement-an-employer-sends-a-colleague-in-place-of-a-participant-before-the-deadline
+	 */
+	#[PublicPage]
+	#[NoCSRFRequired]
+	#[AnonRateLimit(limit: 600, period: 60)]
+	#[BruteForceProtection(action: self::THROTTLE_ACTION)]
+	public function substitute(): JSONResponse {
+		return $this->answer(
+			fields: ['bookingRef', 'learnerRef', 'enrolmentId', 'substituteRef'],
+			work: fn (string $company, array $body): PortalOutcome => $this->bookings->substituteParticipant(organisationRef: $company, body: $body)
+		);
+	}//end substitute()
+
+	/**
 	 * Verify the assertion and the audience, then run the write.
 	 *
 	 * @param array<int, string>                                    $fields The fields the form may send.
@@ -148,7 +166,7 @@ class PortalEmployerController extends Controller {
 	 * @return JSONResponse
 	 */
 	private function answer(array $fields, callable $work): JSONResponse {
-		$claims = $this->verifier->verify(jwt: (string)$this->request->getHeader(PortalAssertionVerifier::HEADER));
+		$claims = $this->verifier->verify(jwt: (string)$this->request->getHeader(PortalAssertionVerifierInterface::HEADER));
 		if ($claims === null) {
 			$response = new JSONResponse(data: ['error' => 'unauthorized'], statusCode: Http::STATUS_UNAUTHORIZED);
 			$response->throttle(['action' => self::THROTTLE_ACTION]);

@@ -33,8 +33,12 @@ namespace OCA\Learniq\Service\Signing;
 
 use DateTimeZone;
 use OCA\Learniq\Exception\SigningRefusedException;
+use OCA\Learniq\Kernel\Contracts\SigningServiceInterface;
 use OCA\Learniq\Service\PokParentSignatureRule;
 use OCA\Learniq\Support\FindOrNull;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -45,7 +49,7 @@ use OCP\IGroupManager;
  *
  * @spec openspec/specs/learning-plan/spec.md#requirement-a-signature-is-recorded-by-the-server-in-a-role-the-signer-holds
  */
-class SigningService {
+class SigningService implements SigningServiceInterface {
 	use FindOrNull;
 
 	private const REGISTER = 'learniq';
@@ -161,15 +165,7 @@ class SigningService {
 			);
 		}
 
-		$held = $this->heldRoles(subject: $request->subject, record: $record, userId: $userId);
-		$role = $request->role;
-		if ($role === '' && $held !== []) {
-			$role = $held[0];
-		}
-
-		if (in_array($role, $held, true) === false) {
-			throw new SigningRefusedException(status: Http::STATUS_FORBIDDEN, reason: 'role-not-held', message: 'You cannot sign this document in that role.');
-		}
+		$role = $this->signingRole(userId: $userId, job: ['request' => $request, 'record' => $record]);
 
 		$version = (int)($record['version'] ?? 1);
 		$signer = [
@@ -198,7 +194,11 @@ class SigningService {
 			$row['subjectKind'] = $config['subjectKind'];
 		}
 
-		$saved = $this->objects->saveObject(object: $row, register: self::REGISTER, schema: $config['signatureSchema'], _rbac: false);
+		$saved = $this->objects->saveObject(
+			object: $row,
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: $config['signatureSchema'])),
+			_rbac: false
+		);
 
 		return [
 			'id' => (string)($saved->jsonSerialize()['id'] ?? ''),
@@ -207,6 +207,34 @@ class SigningService {
 			'subjectVersion' => $version,
 		];
 	}//end sign()
+
+	/**
+	 * The role the user signs in: the requested one, or the first role held when
+	 * none was requested. Refused when the user does not hold it.
+	 *
+	 * @param string               $userId The signer.
+	 * @param array<string, mixed> $job    request: the SignatureRequest; record: the document.
+	 *
+	 * @return string
+	 *
+	 * @throws SigningRefusedException When the user does not hold the role.
+	 *
+	 * @spec openspec/specs/learning-plan/spec.md#requirement-a-signature-is-recorded-by-the-server-in-a-role-the-signer-holds
+	 */
+	private function signingRole(string $userId, array $job): string {
+		$request = $job['request'];
+		$held = $this->heldRoles(subject: $request->subject, record: $job['record'], userId: $userId);
+		$role = $request->role;
+		if ($role === '' && $held !== []) {
+			$role = $held[0];
+		}
+
+		if (in_array($role, $held, true) === false) {
+			throw new SigningRefusedException(status: Http::STATUS_FORBIDDEN, reason: 'role-not-held', message: 'You cannot sign this document in that role.');
+		}
+
+		return $role;
+	}//end signingRole()
 
 	/**
 	 * The configuration of a subject slug.
@@ -237,6 +265,23 @@ class SigningService {
 	private function validCapture(array $capture): array {
 		$mode = $capture['mode'] ?? '';
 		$value = $capture['value'] ?? '';
+		self::requireComplete(capture: $capture, value: $value);
+		self::requireFittingSignature(mode: $mode, value: $value);
+
+		return [$mode, trim($value)];
+	}//end validCapture()
+
+	/**
+	 * Refuse a capture that is not affirmed or carries no signature text.
+	 *
+	 * @param array<string, mixed> $capture The capture.
+	 * @param mixed                $value   Its signature value.
+	 *
+	 * @return void
+	 *
+	 * @throws SigningRefusedException 422 `incomplete`.
+	 */
+	private static function requireComplete(array $capture, mixed $value): void {
 		if (($capture['affirmed'] ?? false) !== true || is_string($value) === false || trim($value) === '') {
 			throw new SigningRefusedException(
 				status: Http::STATUS_UNPROCESSABLE_ENTITY,
@@ -244,21 +289,43 @@ class SigningService {
 				message: 'Sign and confirm that you agree before saving.'
 			);
 		}
+	}//end requireComplete()
 
-		$valid = ($mode === 'typed' && mb_strlen($value) <= self::MAX_TYPED_LENGTH)
-			|| ($mode === 'drawn'
-			&& str_starts_with($value, self::DRAWN_PREFIX) === true
-			&& strlen($value) <= self::MAX_DRAWN_LENGTH);
-		if ($valid === false) {
+	/**
+	 * Refuse a signature of an unknown mode, or one over its mode's size limit.
+	 *
+	 * @param mixed  $mode  The capture mode.
+	 * @param string $value The signature value.
+	 *
+	 * @return void
+	 *
+	 * @throws SigningRefusedException 422 `invalid-signature`.
+	 */
+	private static function requireFittingSignature(mixed $mode, string $value): void {
+		if (self::fitsMode(mode: $mode, value: $value) === false) {
 			throw new SigningRefusedException(
 				status: Http::STATUS_UNPROCESSABLE_ENTITY,
 				reason: 'invalid-signature',
 				message: 'This signature cannot be saved.'
 			);
 		}
+	}//end requireFittingSignature()
 
-		return [$mode, trim($value)];
-	}//end validCapture()
+	/**
+	 * Whether a value is a typed name within its length, or a drawn PNG data
+	 * URI within its size.
+	 *
+	 * @param mixed  $mode  The capture mode.
+	 * @param string $value The signature value.
+	 *
+	 * @return bool
+	 */
+	private static function fitsMode(mixed $mode, string $value): bool {
+		return ($mode === 'typed' && mb_strlen($value) <= self::MAX_TYPED_LENGTH)
+			|| ($mode === 'drawn'
+			&& str_starts_with($value, self::DRAWN_PREFIX) === true
+			&& strlen($value) <= self::MAX_DRAWN_LENGTH);
+	}//end fitsMode()
 
 	/**
 	 * Load a record as an array.
@@ -271,7 +338,11 @@ class SigningService {
 	 * @throws SigningRefusedException When the record does not exist.
 	 */
 	private function load(string $schema, string $id): array {
-		$find = fn () => $this->objects->find(id: $id, register: self::REGISTER, schema: $schema, _rbac: false, _render: false);
+		$find = fn () => $this->objects->find(
+			id: $id,
+			options: new ObjectFindOptions(register: self::REGISTER, schema: $schema, render: false),
+			_rbac: false
+		);
 		$record = $this->findRowOrNull(find: $find);
 		if (is_array($record) === false) {
 			throw new SigningRefusedException(status: Http::STATUS_NOT_FOUND, reason: 'not-found', message: 'This document could not be found.');
@@ -311,15 +382,7 @@ class SigningService {
 	 */
 	private function learningPlanRoles(array $plan, string $userId): array {
 		$learnerId = (string)($plan['learnerId'] ?? '');
-		$roles = [];
-		if ($learnerId !== '' && $learnerId === $userId) {
-			$roles[] = 'learner';
-		}
-
-		if ((string)($plan['coordinatorId'] ?? '') === $userId) {
-			$roles[] = 'coordinator';
-		}
-
+		$roles = self::namedRoles(plan: $plan, userId: $userId);
 		if (in_array($userId, $this->parentIdsOf(learnerId: $learnerId, tenantId: (string)($plan['tenant_id'] ?? '')), true) === true) {
 			$roles[] = 'parent';
 		}
@@ -330,6 +393,28 @@ class SigningService {
 
 		return $roles;
 	}//end learningPlanRoles()
+
+	/**
+	 * The roles the plan itself names the user in: its learner, its coordinator.
+	 *
+	 * @param array<string, mixed> $plan   The learning plan.
+	 * @param string               $userId The user.
+	 *
+	 * @return array<int, string>
+	 */
+	private static function namedRoles(array $plan, string $userId): array {
+		$learnerId = (string)($plan['learnerId'] ?? '');
+		$roles = [];
+		if ($learnerId !== '' && $learnerId === $userId) {
+			$roles[] = 'learner';
+		}
+
+		if ((string)($plan['coordinatorId'] ?? '') === $userId) {
+			$roles[] = 'coordinator';
+		}
+
+		return $roles;
+	}//end namedRoles()
 
 	/**
 	 * Roles on a work placement agreement: student, school, parent. The
@@ -371,7 +456,11 @@ class SigningService {
 			return [];
 		}
 
-		$find = fn () => $this->objects->find(id: $placementId, register: self::REGISTER, schema: 'bpv-placement', _rbac: false, _render: false);
+		$find = fn () => $this->objects->find(
+			id: $placementId,
+			options: new ObjectFindOptions(register: self::REGISTER, schema: 'bpv-placement', render: false),
+			_rbac: false
+		);
 		return $this->findRowOrNull(find: $find) ?? [];
 	}//end findPlacement()
 

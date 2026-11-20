@@ -52,10 +52,13 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\ItemAnalysisServiceInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Service\AssessmentObjectReads;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\Service\ItemAnalysisService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -105,21 +108,29 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 	];
 
 	/**
+	 * Reads the assessment objects this class works from.
+	 *
+	 * @var AssessmentObjectReads
+	 */
+	private readonly AssessmentObjectReads $reads;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OR object access.
-	 * @param ItemAnalysisService $itemAnalysisService CTT statistics calculation engine.
+	 * @param ItemAnalysisServiceInterface $itemAnalysisService CTT statistics calculation engine.
 	 * @param ITimeFactory $timeFactory NC time source (injectable "now" for tests).
-	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly ItemAnalysisService $itemAnalysisService,
+		private readonly ItemAnalysisServiceInterface $itemAnalysisService,
 		private readonly ITimeFactory $timeFactory,
-		private readonly ListenerSchemaResolver $schemas,
+		private readonly ListenerSchemaResolverInterface $schemas,
 	) {
+		$this->reads = new AssessmentObjectReads(objectService: $objectService);
 	}//end __construct()
 
 	/**
@@ -145,6 +156,20 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 		}
 
 		$result = $event->getObject()->jsonSerialize();
+		$this->recomputeFor(result: $result);
+	}//end handle()
+
+	/**
+	 * Recompute the item statistics and the reliability of the result's
+	 * assessment; a result without an assessment owes none.
+	 *
+	 * @param array<string,mixed> $result The AssessmentResult just graded.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/assessment/spec.md#requirement-per-item-statistics-are-computed-from-graded-results-gated-by-a-minimum-sample-size
+	 */
+	private function recomputeFor(array $result): void {
 		$assessmentId = $result['assessmentId'] ?? null;
 
 		if ($assessmentId === null) {
@@ -153,18 +178,17 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 
 		$tenantId = $result['tenant_id'] ?? '';
 
-		$assessment = $this->fetchOne(schema: self::ASSESSMENT_SCHEMA, uuid: $assessmentId, tenantId: $tenantId);
+		$assessment = $this->reads->inTenant(tenantId: $tenantId)->one(schema: self::ASSESSMENT_SCHEMA, uuid: $assessmentId);
 		$config = $this->itemAnalysisService->resolveConfig(assessment: $assessment);
 
-		$gradedResults = $this->fetchGradedResults(assessmentId: $assessmentId, tenantId: $tenantId);
+		$gradedResults = $this->reads->inTenant(tenantId: $tenantId)->gradedResults(assessmentId: $assessmentId);
 		$itemIds = $this->resolveReferencedItemIds(gradedResults: $gradedResults);
 
 		$this->recomputeItemStatistics(itemIds: $itemIds, assessmentId: $assessmentId, tenantId: $tenantId, config: $config);
 
 		$reliability = $this->itemAnalysisService->computeReliability(assessmentId: $assessmentId);
 		$this->upsertAssessmentReliability(assessmentId: $assessmentId, tenantId: $tenantId, reliability: $reliability);
-
-	}//end handle()
+	}//end recomputeFor()
 
 	/**
 	 * Collect every distinct itemId referenced across a set of
@@ -271,9 +295,8 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 	private function upsert(string $schema, array $fields): array {
 		$existingData = $this->existingRow(schema: $schema, keys: array_intersect_key($fields, array_flip(self::UPSERT_KEYS[$schema])));
 		$saved = $this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: $schema,
 			object: array_merge($existingData, $fields),
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: $schema)),
 			_rbac: false
 		);
 
@@ -370,8 +393,6 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 
 		// System context (item-revision-flag): as above.
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::ITEM_REVISION_FLAG_SCHEMA,
 			object: [
 				'itemId' => $flag['itemId'],
 				'itemStatisticsId' => $flag['itemStatisticsId'],
@@ -382,6 +403,10 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 				'lifecycle' => 'open',
 				'tenant_id' => $flag['tenantId'],
 			],
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(
+					register: self::LEARNIQ_REGISTER,
+					schema: self::ITEM_REVISION_FLAG_SCHEMA
+				)),
 			_rbac: false
 		);
 
@@ -417,75 +442,6 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 
 		return false;
 	}//end hasOpenFlag()
-
-	/**
-	 * Fetch every `graded` AssessmentResult for an Assessment.
-	 *
-	 * @param string $assessmentId UUID of the Assessment.
-	 * @param string $tenantId Tenant ID, or '' to skip tenant scoping.
-	 *
-	 * @return array<int,array<string,mixed>>
-	 */
-	private function fetchGradedResults(string $assessmentId, string $tenantId): array {
-		$filters = ['assessmentId' => $assessmentId, 'lifecycle' => 'graded'];
-		if ($tenantId !== '') {
-			$filters['tenant_id'] = $tenantId;
-		}
-
-		$results = $this->objectService->findAll(
-			[
-				'filters' => array_merge(
-					$filters,
-					[
-						'register' => self::LEARNIQ_REGISTER,
-						'schema' => self::ASSESSMENT_RESULT_SCHEMA,
-					]
-				),
-			]
-		);
-
-		return array_map(
-			fn ($result) => $this->toArrayData(object: $result),
-			$results
-		);
-
-	}//end fetchGradedResults()
-
-	/**
-	 * Fetch a single object by uuid, optionally scoped to a tenant.
-	 *
-	 * @param string $schema OR schema slug.
-	 * @param string $uuid Object UUID.
-	 * @param string $tenantId Tenant ID, or '' to skip tenant scoping.
-	 *
-	 * @return array<string,mixed>|null
-	 */
-	private function fetchOne(string $schema, string $uuid, string $tenantId = ''): ?array {
-		$filters = [];
-		if ($tenantId !== '') {
-			$filters['tenant_id'] = $tenantId;
-		}
-
-		$matches = $this->objectService->findAll(
-			[
-				'ids' => [$uuid],
-				'filters' => array_merge(
-					$filters,
-					[
-						'register' => self::LEARNIQ_REGISTER,
-						'schema' => $schema,
-					]
-				),
-				'limit' => 1,
-			]
-		);
-
-		if (empty($matches) === true) {
-			return null;
-		}
-
-		return $this->toArrayData(object: $matches[0]);
-	}//end fetchOne()
 
 	/**
 	 * Normalize an OR findAll()/saveObject() result entry (a raw array or an

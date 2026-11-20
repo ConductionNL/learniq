@@ -31,7 +31,9 @@ namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
 use DateTimeZone;
-use OCA\Learniq\Timetabling\Source\TimetableSourceResolver;
+use OCA\Learniq\Kernel\Contracts\ElectiveSlotServiceInterface;
+use OCA\Learniq\Kernel\Contracts\TimetableSourceResolverInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use RuntimeException;
 use Throwable;
@@ -39,7 +41,7 @@ use Throwable;
 /**
  * Weekly slots of courses and of the caller's core lessons.
  */
-class ElectiveSlotService {
+class ElectiveSlotService implements ElectiveSlotServiceInterface {
 	/**
 	 * Days ahead the slots are read from.
 	 *
@@ -48,22 +50,15 @@ class ElectiveSlotService {
 	private const DAYS_AHEAD = 28;
 
 	/**
-	 * Most courses asked for at once.
-	 *
-	 * @var int
-	 */
-	public const MAX_COURSES = 20;
-
-	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService            $objectService OR object service; a course is read with RBAC on first.
-	 * @param TimetableSourceResolver  $sources       Where sessions are read from.
+	 * @param TimetableSourceResolverInterface  $sources       Where sessions are read from.
 	 * @param PersonalTimetableService $timetable     The caller's own lessons.
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly TimetableSourceResolver $sources,
+		private readonly TimetableSourceResolverInterface $sources,
 		private readonly PersonalTimetableService $timetable,
 	) {
 	}//end __construct()
@@ -162,7 +157,7 @@ class ElectiveSlotService {
 		}
 
 		try {
-			return $this->objectService->find(id: $courseId, register: 'learniq', schema: 'course') !== null;
+			return $this->objectService->find(id: $courseId, options: new ObjectFindOptions(register: 'learniq', schema: 'course')) !== null;
 		} catch (Throwable) {
 			return false;
 		}

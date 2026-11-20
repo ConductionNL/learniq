@@ -43,6 +43,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use ReflectionMethod;
 use RuntimeException;
+use OCA\Learniq\Tests\Support\LegacyObjectArgs;
 
 /**
  * Pins every call CommonCartridgeCourseImporter::importManifest() makes, its
@@ -63,6 +64,8 @@ use RuntimeException;
  * @uses   \OCA\Learniq\Service\CoursePackage\PackageXmlValueReader
  * @uses   \OCA\Learniq\Service\QtiImportService
  * @uses   \OCA\Learniq\Service\QtiManifestScanner
+ * @uses \OCA\Learniq\Service\QtiItemTarget
+ * @uses \OCA\Learniq\Service\FolderFileWriter
  */
 class CommonCartridgeImportGoldenTest extends TestCase {
 
@@ -167,9 +170,10 @@ class CommonCartridgeImportGoldenTest extends TestCase {
 	private function callsFor(string $dir, array $manifest): array {
 		$calls   = [];
 		$service = $this->createMock(ObjectService::class);
-		$params   = (new ReflectionMethod(ObjectService::class, 'saveObject'))->getParameters();
+		$params   = LegacyObjectArgs::parameters(ObjectService::class, 'saveObject');
 		$service->method('saveObject')->willReturnCallback(
 			static function (...$args) use ($params, &$calls) {
+				$args = LegacyObjectArgs::positional(method: 'saveObject', args: $args);
 				$named = [];
 				foreach ($args as $i => $value) {
 					if ($params[$i]->isDefaultValueAvailable() === true && $params[$i]->getDefaultValue() === $value) {
@@ -188,9 +192,10 @@ class CommonCartridgeImportGoldenTest extends TestCase {
 			}
 		);
 
-		$deleteParams = (new ReflectionMethod(ObjectService::class, 'deleteObject'))->getParameters();
+		$deleteParams = LegacyObjectArgs::parameters(ObjectService::class, 'deleteObject');
 		$service->method('deleteObject')->willReturnCallback(
 			static function (...$args) use ($deleteParams, &$calls): bool {
+				$args = LegacyObjectArgs::positional(method: 'deleteObject', args: $args);
 				$named = [];
 				foreach ($args as $i => $value) {
 					if ($deleteParams[$i]->isDefaultValueAvailable() === false || $deleteParams[$i]->getDefaultValue() !== $value) {
@@ -253,4 +258,62 @@ class CommonCartridgeImportGoldenTest extends TestCase {
 			new CoursePackageOutput($objectWriter, $fileWriter, $reporter),
 		);
 	}//end importer()
+	/**
+	 * The pending QTI entries resolve in order against the Items the shared
+	 * QTI import created: a created Item imports, the rest degrade; without
+	 * an item bank nothing is imported; without QTI resources no bank is made.
+	 *
+	 * @return void
+	 */
+	public function testPendingQtiEntriesResolveAgainstTheCreatedItems(): void {
+		$qti = [
+			['identifier' => 'Q1', 'type' => 'imsqti_xmlv1p2', 'title' => 'Title Q1', 'href' => 'q.xml', 'classification' => 'imsqti_item'],
+			['identifier' => 'Q2', 'type' => 'imsqti_xmlv1p2/imscc_xmlv1p1/assessment', 'title' => 'Title Q2', 'href' => 't.xml', 'classification' => 'imsqti_test'],
+		];
+		$actual = [];
+		foreach (['two pending, one item' => [$qti, 'bank-1'], 'no item bank' => [$qti, null], 'no qti' => [[], 'bank-1']] as $name => [$resources, $bankId]) {
+			$calls = [];
+			$writer = $this->createMock(CoursePackageObjectWriter::class);
+			$writer->method('createItemBank')->willReturnCallback(
+				static function (string $name, string $tenantId) use (&$calls, $bankId): ?string {
+					$calls[] = ['createItemBank', $name, $tenantId];
+					return $bankId;
+				}
+			);
+			$qtiImport = $this->createMock(QtiImportService::class);
+			$qtiImport->method('importFromDirectory')->willReturnCallback(
+				static function (string $dir, string $itemBankId, string $tenantId) use (&$calls): array {
+					$calls[] = ['importFromDirectory', $dir, $itemBankId, $tenantId];
+					return ['item-1'];
+				}
+			);
+			$output = new CoursePackageOutput($writer, $this->createMock(CoursePackageFileWriter::class), new CoursePackageImportReporter($this->createMock(ObjectService::class)));
+			$importer = new CommonCartridgeCourseImporter(
+				$qtiImport,
+				new CommonCartridgeParser(),
+				new CommonCartridgeResourceRouter($output, new PackageXmlValueReader(), new NullLogger()),
+				$output
+			);
+
+			$entries = [];
+			$importer->importManifest(['organizationNodes' => [], 'resources' => $resources], new PackageContext('/pkg', 'teacher1', 't1'), $entries);
+			$actual[$name] = ['calls' => $calls, 'entries' => $entries];
+		}
+
+		self::assertSame(
+			[
+				'two pending, one item' => [
+					'calls' => [['createItemBank', 'Imported items', 't1'], ['importFromDirectory', '/pkg', 'bank-1', 't1']],
+					'entries' => [
+						['resourceIdentifier' => 'Q1', 'resourceType' => 'imsqti_xmlv1p2', 'title' => 'Title Q1', 'outcome' => 'imported', 'targetType' => 'item', 'targetId' => 'item-1', 'reason' => null],
+						['resourceIdentifier' => 'Q2', 'resourceType' => 'imsqti_xmlv1p2/imscc_xmlv1p1/assessment', 'title' => 'Title Q2', 'outcome' => 'degraded', 'targetType' => null, 'targetId' => null, 'reason' => 'Item could not be parsed from the package (see application log).'],
+					],
+				],
+			],
+			['two pending, one item' => $actual['two pending, one item']]
+		);
+		self::assertSame([['createItemBank', 'Imported items', 't1']], $actual['no item bank']['calls']);
+		self::assertSame(['degraded', 'degraded'], array_column($actual['no item bank']['entries'], 'outcome'));
+		self::assertSame([[], []], [$actual['no qti']['calls'], $actual['no qti']['entries']]);
+	}//end testPendingQtiEntriesResolveAgainstTheCreatedItems()
 }//end class

@@ -24,6 +24,7 @@ import { generateUrl } from '@nextcloud/router'
 import { createApp, h } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import App from './App.vue'
+import handlers from './handlers.js'
 import appIcons from './icons.js'
 import bundledManifest from './manifest.json'
 import menuLayoutFull from './menu-layout.json'
@@ -296,7 +297,7 @@ tryLoadTranslations()
 // Cloning yields extensible objects without altering the values the lib
 // resolves at render time.
 const pageTypesProp = { ...defaultPageTypes }
-const registryProp = { ...registry }
+const registryProp = { ...registry, ...handlers }
 
 // The caller's tenant (CallerTenantResolver, via PageController) becomes
 // nextcloud-vue's tenant context, so the shared create dialog fills a hidden

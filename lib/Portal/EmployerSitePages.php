@@ -43,27 +43,19 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Portal;
 
+use OCA\Learniq\Kernel\Contracts\EmployerSitePagesInterface;
+
 /**
  * Builds the employer's collections, actions and pages.
  *
  * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-reads-only-her-own-companys-people-and-bookings
  */
-class EmployerSitePages {
+class EmployerSitePages implements EmployerSitePagesInterface {
 
 	/**
 	 * The audience.
 	 */
 	public const AUDIENCE = 'employer';
-
-	/**
-	 * The claim every employer collection is scoped by.
-	 */
-	public const CLAIM = 'organisationRef';
-
-	/**
-	 * The claim the booking form's editions are scoped by.
-	 */
-	public const LOCATION_CLAIM = 'editionLocationRef';
 
 	/**
 	 * The provider method that answers a booking's steps.
@@ -143,6 +135,9 @@ class EmployerSitePages {
 
 	private const EMPLOYER_PARTICIPANTS_EXTRA = [
 		'fieldConfigs' => ['detailsStatus' => ['valueLabels' => self::DETAILS_STATUS]],
+		// "Collega in zijn plaats" on each participant who still has a place
+		// (employer-substitutes-a-colleague T4).
+		'rowActions' => [self::SUBSTITUTE_ACTION],
 		'columns' => [
 			['field' => 'learnerName', 'label' => 'Participant'],
 			['field' => 'certificateLine', 'label' => 'Certificate'],
@@ -150,7 +145,23 @@ class EmployerSitePages {
 		],
 	];
 
-	private const EMPLOYER_EMPLOYEES_EXTRA = [
+	/**
+	 * The row action that sends a colleague in place of a participant.
+	 *
+	 * @var string
+	 */
+	public const SUBSTITUTE_ACTION = 'substituteParticipant';
+
+	private const SUBSTITUTE_FIELD_CONFIGS = [
+		'enrolmentId' => ['label' => 'Participant', 'required' => true],
+		'substituteRef' => [
+			'label' => 'Colleague who goes instead',
+			'required' => true,
+			'help' => 'The place stays on the booking. Until the working day before the course at 12.00.',
+		],
+	];
+
+		private const EMPLOYER_EMPLOYEES_EXTRA = [
 		'filter' => ['lifecycle' => 'active'],
 		'defaultSort' => ['field' => 'familyName', 'direction' => 'asc'],
 		'columns' => [
@@ -299,17 +310,15 @@ class EmployerSitePages {
 		],
 		['type' => 'steps', 'collection' => 'employerBookings', 'label' => 'Where does this booking stand?'],
 		// The board's participants (Detail): each name with the certificate
-		// line and whether the details are complete (REPORT-2, item 9).
+		// line and whether the details are complete (REPORT-2, item 9). A
+		// table, not dated rows: portaliq draws a collection's row actions
+		// ("Collega in zijn plaats", employer-substitutes-a-colleague T4) in
+		// its table only, and the collection's columns are these three.
 		[
 			'type' => 'collection',
 			'label' => 'Participants',
 			'collection' => 'employerParticipants',
 			'recordField' => 'bookingRef',
-			'display' => 'rows',
-			'titleFields' => ['learnerName'],
-			'subtitleField' => 'certificateLine',
-			'statusField' => 'detailsStatus',
-			'statusTones' => ['complete' => 'success', 'birth-date-missing' => 'warning'],
 		],
 		['type' => 'detail', 'collection' => 'employerBookings'],
 		['type' => 'action', 'action' => 'supplyBirthDate'],
@@ -349,7 +358,7 @@ class EmployerSitePages {
 	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-reads-only-her-own-companys-people-and-bookings
 	 */
 	public function collections(): array {
-		$statusConfig = ['employerStatus' => ['valueLabels' => self::BOOKING_STATUS]];
+		$statusConfig = self::bookingFieldConfigs();
 
 		return [
 			$this->direct(
@@ -404,6 +413,37 @@ class EmployerSitePages {
 			self::EMPLOYER_EDITIONS,
 		];
 	}//end collections()
+
+	/**
+	 * Every booking field she reads on an opened booking, in words: portaliq
+	 * shows a field without a label by its schema title, in English, so the
+	 * detail read "Booking number", "Days" and "Booked on" (portal proof run 3).
+	 *
+	 * @return array<string, array<string, mixed>>
+	 *
+	 * @spec openspec/changes/board-checks-follow-the-live-week/specs/portal-contribution/spec.md#requirement-an-opened-booking-names-its-fields-in-the-readers-language
+	 */
+	public static function bookingFieldConfigs(): array {
+		return [
+			'bookingNumber' => ['label' => 'Booking number'],
+			'bookingLabel' => ['label' => 'Booking'],
+			'courseName' => ['label' => 'Course name'],
+			'firstDay' => ['label' => 'First day'],
+			'dayLabel' => ['label' => 'Days'],
+			'timeLabel' => ['label' => 'Time'],
+			'placeLabel' => ['label' => 'Where'],
+			'trainerName' => ['label' => 'Trainer'],
+			'participantCount' => ['label' => 'Places'],
+			'participantNames' => ['label' => 'Participants'],
+			'missingDetailsCount' => ['label' => 'Details missing'],
+			'employerStatus' => ['label' => 'Status', 'valueLabels' => self::BOOKING_STATUS],
+			'statusNote' => ['label' => 'Status note'],
+			'detailsDueAt' => ['label' => 'Details due'],
+			'requestedAt' => ['label' => 'Booked on'],
+			'upcoming' => ['label' => 'Coming'],
+			'lifecycle' => ['label' => 'Stage of the booking', 'valueLabels' => self::BOOKING_STATUS],
+		];
+	}//end bookingFieldConfigs()
 
 	/**
 	 * The certificates her people hold, the first to expire first. Only
@@ -466,6 +506,7 @@ class EmployerSitePages {
 					'successMessage' => 'The employee has a place on the booking.',
 				]
 			),
+			$this->substituteAction(),
 			$this->endpoint(
 				id: 'supplyBirthDate',
 				path: 'birth-date',
@@ -483,6 +524,36 @@ class EmployerSitePages {
 			),
 		];
 	}//end actions()
+
+	/**
+	 * "Collega in zijn plaats": a row action on her participants that sends
+	 * one of her people in place of that participant. Portaliq stamps the
+	 * row's enrolment id; the receiver reads the booking and the replaced
+	 * participant from it, checks both are her company's, and refuses after
+	 * the deadline. Shown only on a participant who still has a place.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/employer-substitutes-a-colleague/specs/portal-contribution/spec.md#requirement-an-employer-sends-a-colleague-in-place-of-a-participant-before-the-deadline
+	 */
+	public function substituteAction(): array {
+		return $this->endpoint(
+			id: self::SUBSTITUTE_ACTION,
+			path: 'substitutions',
+			schema: 'enrolment',
+			label: 'A colleague in their place',
+			fields: ['enrolmentId', 'substituteRef'],
+			extra: [
+				'rowField' => 'enrolmentId',
+				'rowWhen' => ['field' => 'lifecycle', 'in' => ['pending', 'active']],
+				'optionsProviders' => ['substituteRef' => $this->options(schema: 'learner-profile', label: 'fullName', value: 'id')],
+				'fieldConfigs' => self::SUBSTITUTE_FIELD_CONFIGS,
+				'requiredFields' => ['enrolmentId', 'substituteRef'],
+				'submitLabel' => 'Send this colleague',
+				'successMessage' => 'Your colleague takes the place. The participant you replaced gets a message.',
+			]
+		);
+	}//end substituteAction()
 
 	/**
 	 * Her pages: the overview, the bookings with the open one in detail, her

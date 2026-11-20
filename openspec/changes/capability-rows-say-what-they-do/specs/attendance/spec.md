@@ -16,3 +16,20 @@ An `AttendanceFlag` in `reported` MUST NOT move to `resolved` until `municipalit
 - **GIVEN** a reported flag on which a coordinator recorded the MAS route "casusoverleg"
 - **WHEN** the coordinator resolves the flag
 - **THEN** the flag moves to `resolved`
+
+### Requirement: A school sets its own absence limit next to the statutory one
+
+A coordinator or administrator MUST be able to create and change an `AttendanceThreshold` with its own `limit`, `metric`, `window` and `scope`, for example a lower early-warning limit next to the statutory 16 hours. Each active threshold MUST be checked on its own, so a learner can cross the school's own limit while still below the statutory one. A change to a threshold MUST be kept in its history.
+
+#### Scenario: A school warns at eight hours
+
+- **GIVEN** the statutory threshold of 16 unexcused lesson hours in a rolling four weeks
+- **WHEN** a coordinator adds an active threshold "Vroeg signaal bij verzuim" of 8 unexcused lesson hours in a rolling four weeks
+- **THEN** a learner with 9 unexcused lesson hours in that window gets a flag from the school's own threshold
+- **AND** no report goes to the authority, because the statutory threshold is not crossed
+
+#### Scenario: The school lowers its limit
+
+- **GIVEN** the school's own threshold at 10 lesson hours
+- **WHEN** a coordinator changes it to 8 and saves
+- **THEN** the threshold checks against 8 from then on, and its history shows the change with who made it

@@ -49,6 +49,7 @@ use OCP\Files\NotFoundException;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use ReflectionMethod;
+use OCA\Learniq\Tests\Support\LegacyObjectArgs;
 
 /**
  * Pins every saveObject call CoursePackageImportService::import() makes, and
@@ -83,6 +84,10 @@ use ReflectionMethod;
  * @uses   \OCA\Learniq\Service\QtiImportService
  * @uses   \OCA\Learniq\Service\QtiManifestScanner
  * @uses   \OCA\Learniq\Service\QtiPackageExtractor
+ * @uses \OCA\Learniq\Service\ExtractionTarget
+ * @uses \OCA\Learniq\Service\QtiItemTarget
+ * @uses \OCA\Learniq\Service\FolderFileWriter
+ * @uses \OCA\Learniq\Service\XmlChildText
  */
 class CoursePackageImportGoldenTest extends TestCase {
 
@@ -171,9 +176,10 @@ class CoursePackageImportGoldenTest extends TestCase {
 
 		$calls   = [];
 		$service = $this->createMock(ObjectService::class);
-		$params   = (new ReflectionMethod(ObjectService::class, 'saveObject'))->getParameters();
+		$params   = LegacyObjectArgs::parameters(ObjectService::class, 'saveObject');
 		$service->method('saveObject')->willReturnCallback(
 			static function (...$args) use ($params, &$calls) {
+				$args = LegacyObjectArgs::positional(method: 'saveObject', args: $args);
 				$named = [];
 				foreach ($args as $i => $value) {
 					if ($params[$i]->isDefaultValueAvailable() === true && $params[$i]->getDefaultValue() === $value) {

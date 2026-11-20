@@ -44,12 +44,13 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\BsaProgressEvaluatorInterface;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
  * Sums a learner's earned ECTS credits within a Programme's course scope.
  */
-class BsaProgressEvaluator {
+class BsaProgressEvaluator implements BsaProgressEvaluatorInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const FINAL_GRADE_SCHEMA = 'final-grade';

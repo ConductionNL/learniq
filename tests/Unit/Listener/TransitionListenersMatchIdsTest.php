@@ -76,6 +76,7 @@ use OCA\Learniq\Listener\SubjectChoiceValidator;
 use OCA\Learniq\Listener\SupportRequestSubmitHandler;
 use OCA\Learniq\Listener\WerkprocesGradeEmitHandler;
 use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Tests\Support\ContractImplementations;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\Learniq\Tests\Support\TransitionScope;
 use OCA\OpenRegister\Db\ObjectEntity;
@@ -249,7 +250,7 @@ class TransitionListenersMatchIdsTest extends TestCase {
 		foreach (($reflection->getConstructor()?->getParameters() ?? []) as $parameter) {
 			$type = $parameter->getType();
 			self::assertInstanceOf(ReflectionNamedType::class, $type);
-			$name = $type->getName();
+			$name = ContractImplementations::concrete($type->getName());
 			$arguments[$parameter->getName()] = match (true) {
 				$name === ListenerSchemaResolver::class => TransitionScope::resolver(),
 				$name === LoggerInterface::class => new NullLogger(),

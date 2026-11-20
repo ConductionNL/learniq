@@ -43,6 +43,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Portal;
 
+use OCA\Learniq\Kernel\Contracts\PortalWriteSubjectInterface;
 use OCA\Learniq\Service\LearnerRefResolver;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
@@ -53,7 +54,7 @@ use Throwable;
  *
  * @spec openspec/specs/assignments/spec.md#requirement-a-pupil-hands-in-a-portal-draft-through-learniqs-own-endpoint
  */
-class PortalWriteSubject {
+class PortalWriteSubject implements PortalWriteSubjectInterface {
 
 	/**
 	 * Constructor.

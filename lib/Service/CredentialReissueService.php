@@ -41,7 +41,10 @@ namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
 use DateTimeInterface;
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\CertificatePdfDelegationServiceInterface;
+use OCA\Learniq\Kernel\Contracts\CredentialReissueServiceInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IAppConfig;
@@ -55,7 +58,7 @@ use Throwable;
  *
  * @spec openspec/specs/certification/spec.md#requirement-staff-reissue-every-certificate-of-a-course-in-one-action
  */
-class CredentialReissueService {
+class CredentialReissueService implements CredentialReissueServiceInterface {
 
 	private const REGISTER = 'learniq';
 	private const SCHEMA = 'credential';
@@ -77,7 +80,13 @@ class CredentialReissueService {
 		'openbadges3Payload', 'signature', 'issuerDid', 'verificationUrl', 'issuedBy', 'edciPayload',
 		'reissuedAt', 'reissueCount', 'reissueReason', 'reissuedBy', 'reissueRunId',
 		'walletOfferStatus', 'walletOfferNote',
+		'pdfDocumentRef', 'pdfRenderStatus', 'pdfRenderError',
 	];
+
+	/**
+	 * The rendered-PDF fields a reissue replaces when the course names a template.
+	 */
+	private const PDF_FIELDS = ['pdfDocumentRef', 'pdfRenderStatus', 'pdfRenderError'];
 
 	/**
 	 * Constructor.
@@ -88,6 +97,7 @@ class CredentialReissueService {
 	 * @param EuropassIssuer           $europass    Rebuilds and signs the Europass form.
 	 * @param IAppConfig               $config      Holds run summaries.
 	 * @param LoggerInterface          $logger      Logs a failed credential.
+	 * @param CertificatePdfDelegationServiceInterface $certificatePdf Prints the reissued certificate on the course's current template, fail soft.
 	 *
 	 * @return void
 	 */
@@ -98,6 +108,7 @@ class CredentialReissueService {
 		private readonly EuropassIssuer $europass,
 		private readonly IAppConfig $config,
 		private readonly LoggerInterface $logger,
+		private readonly CertificatePdfDelegationServiceInterface $certificatePdf,
 	) {
 	}//end __construct()
 
@@ -112,7 +123,7 @@ class CredentialReissueService {
 	 */
 	public function preview(string $courseId): array {
 		$counts = ['issued' => 0, 'revoked' => 0, 'expired' => 0];
-		foreach ($this->credentials(courseId: $courseId, offset: 0, limit: 10000) as $credential) {
+		foreach ($this->credentials(courseId: $courseId, page: new CredentialPage(offset: 0, limit: 10000)) as $credential) {
 			$state = (string)($credential['lifecycle'] ?? 'issued');
 			if (array_key_exists($state, $counts) === true) {
 				$counts[$state]++;
@@ -132,7 +143,7 @@ class CredentialReissueService {
 	 * @spec openspec/specs/certification/spec.md#requirement-staff-reissue-every-certificate-of-a-course-in-one-action
 	 */
 	public function summary(string $runId): ?array {
-		$json = $this->config->getValueString(app: Application::APP_ID, key: self::RUN_KEY_PREFIX . $runId, default: '');
+		$json = $this->config->getValueString(app: AppIdentity::APP_ID, key: self::RUN_KEY_PREFIX . $runId, default: '');
 		$summary = json_decode($json, true);
 		if (is_array($summary) === false) {
 			return null;
@@ -158,7 +169,7 @@ class CredentialReissueService {
 		$totals = $this->reissueAll(courseId: $courseId, run: $run);
 
 		$this->config->setValueString(
-			app: Application::APP_ID,
+			app: AppIdentity::APP_ID,
 			key: self::RUN_KEY_PREFIX . $runId,
 			value: (string)json_encode($totals + ['courseId' => $courseId, 'finishedAt' => $this->now()])
 		);
@@ -176,12 +187,13 @@ class CredentialReissueService {
 	 */
 	private function reissueAll(string $courseId, CredentialReissueRun $run): array {
 		$totals = ['processed' => 0, 'skipped' => 0, 'failed' => 0];
+		$course = $this->course(courseId: $courseId);
 		$offset = 0;
 		$more = true;
 		while ($more === true) {
-			$batch = $this->credentials(courseId: $courseId, offset: $offset, limit: self::BATCH);
+			$batch = $this->credentials(courseId: $courseId, page: new CredentialPage(offset: $offset, limit: self::BATCH));
 			foreach ($batch as $credential) {
-				$outcome = $this->reissueOne(credential: $credential, run: $run);
+				$outcome = $this->reissueOne(credential: $credential, run: $run, course: $course);
 				$totals[$outcome]++;
 			}
 
@@ -198,16 +210,23 @@ class CredentialReissueService {
 	 *
 	 * @param array<string, mixed> $credential The credential.
 	 * @param CredentialReissueRun $run        The run.
+	 * @param array<string, mixed> $course     The course, empty when it could not be read.
 	 *
 	 * @return string
 	 */
-	private function reissueOne(array $credential, CredentialReissueRun $run): string {
+	private function reissueOne(array $credential, CredentialReissueRun $run, array $course): string {
 		if (($credential['lifecycle'] ?? 'issued') !== 'issued' || ($credential['reissueRunId'] ?? '') === $run->runId) {
 			return 'skipped';
 		}
 
+		// A certificate taken over from the previous system is not learniq's
+		// to sign (credentials-migrate-with-validity D2): left, not failed.
+		if (CredentialSigningService::isMigrated(credential: $credential) === true) {
+			return 'skipped';
+		}
+
 		try {
-			$data = $this->rebuilt(credential: $credential, run: $run);
+			$data = $this->rebuilt(credential: $credential, run: $run, course: $course);
 			if ($data === null) {
 				throw new RuntimeException('the credential could not be signed');
 			}
@@ -230,14 +249,18 @@ class CredentialReissueService {
 	/**
 	 * The transition data: freshly signed payloads and the history fields.
 	 * Identity and dates are passed to the signer as they are and never
-	 * written back.
+	 * written back. When the course names a certificate template, the PDF is
+	 * rendered again from it and replaces the stored one.
 	 *
 	 * @param array<string, mixed> $credential The credential.
 	 * @param CredentialReissueRun $run        The run.
+	 * @param array<string, mixed> $course     The course, empty when it could not be read.
 	 *
 	 * @return array<string, mixed>|null
+	 *
+	 * @spec openspec/changes/credentials-certificate-pdf/specs/certification/spec.md#requirement-reissuing-renders-the-pdf-again
 	 */
-	private function rebuilt(array $credential, CredentialReissueRun $run): ?array {
+	private function rebuilt(array $credential, CredentialReissueRun $run, array $course): ?array {
 		$current = $this->currentCredential(credential: $credential);
 		$signed = $this->signer->sign(credential: $current);
 		if ($signed === null) {
@@ -250,8 +273,72 @@ class CredentialReissueService {
 		$data['edciPayload'] = $signed['edciPayload'] ?? ($credential['edciPayload'] ?? null);
 		$data += $run->historyFields(previousCount: (int)($credential['reissueCount'] ?? 0), now: $this->now());
 
-		return $this->withWalletNote(credential: $credential, data: $data);
+		return $this->withPdf(signed: $signed, course: $course, data: $this->withWalletNote(credential: $credential, data: $data));
 	}//end rebuilt()
+
+	/**
+	 * The transition data with the PDF rendered again on the course's current
+	 * template. A course without `certificateTemplateSlug` leaves the stored
+	 * PDF fields alone; a failed render replaces them with its status and
+	 * reason, so the old document is not offered as the reissued one.
+	 *
+	 * @param array<string, mixed> $signed The freshly signed credential.
+	 * @param array<string, mixed> $course The course.
+	 * @param array<string, mixed> $data   The transition data so far.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/credentials-certificate-pdf/specs/certification/spec.md#requirement-reissuing-renders-the-pdf-again
+	 */
+	private function withPdf(array $signed, array $course, array $data): array {
+		if (trim((string)($course['certificateTemplateSlug'] ?? '')) === '') {
+			return $data;
+		}
+
+		$rendered = $this->certificatePdf->render(credential: $signed, course: $course);
+		foreach (self::PDF_FIELDS as $field) {
+			$data[$field] = $rendered[$field] ?? null;
+		}
+
+		// The render keeps a document it did not make; the reissued
+		// certificate must not point at the one from before the reissue.
+		if ($data['pdfRenderStatus'] !== 'rendered') {
+			$data['pdfDocumentRef'] = null;
+		}
+
+		return $data;
+	}//end withPdf()
+
+	/**
+	 * The course whose certificates are reissued, or an empty array when it
+	 * cannot be read: the reissue then goes on without a PDF render.
+	 *
+	 * @param string $courseId The course uuid.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function course(string $courseId): array {
+		try {
+			$course = $this->objects->find(
+				id: $courseId,
+				options: new ObjectFindOptions(register: self::REGISTER, schema: 'course'),
+				_rbac: false,
+				_multitenancy: false
+			);
+		} catch (Throwable $exception) {
+			$this->logger->warning(
+				'[CredentialReissueService] Course {id} could not be read for the PDF render: {msg}',
+				['id' => $courseId, 'msg' => $exception->getMessage()]
+			);
+			return [];
+		}
+
+		if ($course === null) {
+			return [];
+		}
+
+		return $course->jsonSerialize();
+	}//end course()
 
 	/**
 	 * The credential as it is signed again: the tenant's current School name
@@ -337,23 +424,33 @@ class CredentialReissueService {
 	/**
 	 * A page of the course's credentials.
 	 *
-	 * @param string $courseId The course uuid.
-	 * @param int    $offset   The offset.
-	 * @param int    $limit    The page size.
+	 * @param string         $courseId The course uuid.
+	 * @param CredentialPage $page     From where, and how many.
 	 *
 	 * @return list<array<string, mixed>>
 	 */
-	private function credentials(string $courseId, int $offset, int $limit): array {
+	private function credentials(string $courseId, CredentialPage $page): array {
 		$rows = $this->objects->findAll(
 			config: [
 				'filters' => ['register' => self::REGISTER, 'schema' => self::SCHEMA, 'courseId' => $courseId],
-				'limit' => $limit,
-				'offset' => $offset,
+				'limit' => $page->limit,
+				'offset' => $page->offset,
 			],
 			_rbac: false,
 			_multitenancy: false
 		);
 
+		return $this->credentialRows(rows: $rows);
+	}//end credentials()
+
+	/**
+	 * The found credentials as arrays, each with its id; anything that is not one is left out.
+	 *
+	 * @param array<int, mixed> $rows What findAll() answered.
+	 *
+	 * @return list<array<string, mixed>>
+	 */
+	private function credentialRows(array $rows): array {
 		$credentials = [];
 		foreach ($rows as $row) {
 			if (is_object($row) === true && method_exists($row, 'jsonSerialize') === true) {
@@ -367,7 +464,7 @@ class CredentialReissueService {
 		}
 
 		return $credentials;
-	}//end credentials()
+	}//end credentialRows()
 
 	/**
 	 * Now, as an ATOM date-time.

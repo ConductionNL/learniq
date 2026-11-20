@@ -229,9 +229,12 @@ import {
 	serverOffsetMs,
 } from '../utils/attemptClock.js'
 import { attemptCreateError } from '../utils/attemptRefusal.js'
+import { objectId } from '../utils/customPages.js'
 import { transitionUrl } from '../utils/manualScoring.js'
 import { sendJson, sendJsonOrFail } from '../utils/ocsJson.js'
+import { lookupObject } from '../utils/portfolioEvidence.js'
 import { orderChoices, parseSimpleChoices } from '../utils/qtiChoices.js'
+import { readObject } from '../utils/registerRequests.js'
 
 export default {
 	name: 'TakeAssessmentView',
@@ -405,11 +408,11 @@ export default {
 		// with no `end` transition recorded — itself informative to a reviewer.
 		if (
 			!this.submitted
-			&& this.proctoringSession?.uuid
+			&& objectId(this.proctoringSession)
 			&& typeof navigator !== 'undefined'
 			&& typeof navigator.sendBeacon === 'function'
 		) {
-			const url = generateUrl(transitionUrl(this.proctoringSession.uuid))
+			const url = generateUrl(transitionUrl(objectId(this.proctoringSession)))
 			const blob = new Blob([JSON.stringify({ action: 'end' })], {
 				type: 'application/json',
 			})
@@ -658,24 +661,14 @@ export default {
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-27
 		 */
 		async loadAssessment(id) {
-			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/exam/${id}`,
+			// `notFound` marks the single-object lookup — see the same guard
+			// in PortfolioBuilder.vue. init() also awaits list-shaped loads,
+			// and a 404 from one of those means a schema did not resolve
+			// rather than that this assessment is gone.
+			this.assessment = await lookupObject(
+				generateUrl(`/apps/openregister/api/objects/learniq/exam/${id}`),
+				'Assessment',
 			)
-			const resp = await fetch(url, {
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-			})
-			if (!resp.ok) {
-				// `notFound` marks the single-object lookup — see the same guard
-				// in PortfolioBuilder.vue. init() also awaits list-shaped loads,
-				// and a 404 from one of those means a schema did not resolve
-				// rather than that this assessment is gone.
-				const err = new Error(`Assessment fetch failed: ${resp.status}`)
-				err.status = resp.status
-				err.notFound = resp.status === 404
-				throw err
-			}
-			const json = await resp.json()
-			this.assessment = json.object ?? json ?? {}
 		},
 
 		/**
@@ -700,18 +693,10 @@ export default {
 			// Fetch each item individually (OR REST supports single object fetch).
 			const fetched = await Promise.all(
 				itemIds.map(async (itemId) => {
-					const url = generateUrl(
-						`/apps/openregister/api/objects/learniq/Item/${itemId}`,
+					const read = await readObject(
+						generateUrl(`/apps/openregister/api/objects/learniq/Item/${itemId}`),
 					)
-					const resp = await fetch(url, {
-						headers: {
-							'OCS-APIREQUEST': 'true',
-							Accept: 'application/json',
-						},
-					})
-					if (!resp.ok) return null
-					const json = await resp.json()
-					return json.object ?? json ?? null
+					return read.ok ? (read.object ?? null) : null
 				}),
 			)
 
@@ -1105,7 +1090,7 @@ export default {
 			const json = await resp.json()
 			this.proctoringSession = json.object ?? json ?? {}
 
-			await this.dispatchTransition(this.proctoringSession.uuid, {
+			await this.dispatchTransition(objectId(this.proctoringSession), {
 				action: 'activate',
 				failure: 'ProctoringSession activate transition failed',
 			})
@@ -1268,7 +1253,7 @@ export default {
 		 * @spec openspec/specs/assessment/spec.md
 		 */
 		async appendFlag(kind, severity) {
-			if (!this.proctoringSession?.uuid) return
+			if (!objectId(this.proctoringSession)) return
 			if (!this.takeFlagSlot(kind)) return
 
 			const newFlag = this.newFlag(kind, severity)
@@ -1329,7 +1314,7 @@ export default {
 		 */
 		saveSessionFlags(flags) {
 			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/proctoring-session/${this.proctoringSession.uuid}`,
+				`/apps/openregister/api/objects/learniq/proctoring-session/${objectId(this.proctoringSession)}`,
 			)
 			return sendJsonOrFail(url, {
 				method: 'PATCH',
@@ -1351,7 +1336,7 @@ export default {
 			this.releaseTabLock()
 			await this.leaveFullscreen()
 
-			if (this.proctoringSession?.uuid) {
+			if (objectId(this.proctoringSession)) {
 				await this.endProctoringSession()
 			}
 		},
@@ -1379,7 +1364,7 @@ export default {
 		 */
 		async endProctoringSession() {
 			try {
-				await this.dispatchTransition(this.proctoringSession.uuid, {
+				await this.dispatchTransition(objectId(this.proctoringSession), {
 					action: 'end',
 					failure: 'ProctoringSession end transition failed',
 				})
@@ -1447,7 +1432,7 @@ export default {
 		 * @spec openspec/specs/assessment/spec.md#requirement-per-attempt-item-order-and-answer-option-shuffle-are-independently-configurable
 		 */
 		optionOrderFor(item) {
-			const ref = (this.result?.drawnItemRefs ?? []).find((r) => r.itemId === item.uuid)
+			const ref = (this.result?.drawnItemRefs ?? []).find((r) => r.itemId === objectId(item))
 			return ref?.optionOrder ?? null
 		},
 

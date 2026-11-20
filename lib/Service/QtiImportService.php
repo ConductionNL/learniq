@@ -46,6 +46,9 @@ namespace OCA\Learniq\Service;
 use DOMDocument;
 use DOMElement;
 use DOMNodeList;
+use OCA\Learniq\Kernel\Contracts\QtiImportServiceInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
@@ -55,7 +58,7 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-4
  */
-class QtiImportService {
+class QtiImportService implements QtiImportServiceInterface {
 
 	/**
 	 * Map of QTI interaction element names → Learniq interactionType slugs.
@@ -375,7 +378,10 @@ class QtiImportService {
 	 * @return string|null The uuid, or null when the saved entity has none.
 	 */
 	private function saveItem(array $itemData): ?string {
-		$uuid = $this->objectService->saveObject(register: 'learniq', schema: 'item', object: $itemData)->getUuid();
+		$uuid = $this->objectService->saveObject(
+			object: $itemData,
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: 'learniq', schema: 'item'))
+		)->getUuid();
 		if (is_string($uuid) === true) {
 			return $uuid;
 		}

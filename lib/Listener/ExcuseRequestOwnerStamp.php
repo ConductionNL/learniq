@@ -53,11 +53,11 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\Attendance\ExcuseRequestStaffOwner;
-use OCA\Learniq\Service\LearnerRefResolver;
-use OCA\Learniq\Service\Portal\PortalWriteSubject;
-use OCA\Learniq\Service\ListenerSchemaResolver;
-use OCA\Learniq\Service\PupilGroupTeachers;
+use OCA\Learniq\Kernel\Contracts\ExcuseRequestStaffOwnerInterface;
+use OCA\Learniq\Kernel\Contracts\LearnerRefResolverInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Kernel\Contracts\PortalWriteSubjectInterface;
+use OCA\Learniq\Kernel\Contracts\PupilGroupTeachersInterface;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
@@ -104,22 +104,22 @@ class ExcuseRequestOwnerStamp implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param ListenerSchemaResolver $schemaResolver Entity schema id to slug.
-	 * @param LearnerRefResolver $profiles LearnerProfile by uuid, uuid by user.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Entity schema id to slug.
+	 * @param LearnerRefResolverInterface $profiles LearnerProfile by uuid, uuid by user.
 	 * @param LoggerInterface $logger PSR logger.
-	 * @param PupilGroupTeachers $groupTeachers The teachers of a pupil's current groups.
-	 * @param PortalWriteSubject $writers Whether the portal's own subject is writing.
-	 * @param ExcuseRequestStaffOwner $staffOwner The submitter, pupil and school of a staff write.
+	 * @param PupilGroupTeachersInterface $groupTeachers The teachers of a pupil's current groups.
+	 * @param PortalWriteSubjectInterface $writers Whether the portal's own subject is writing.
+	 * @param ExcuseRequestStaffOwnerInterface $staffOwner The submitter, pupil and school of a staff write.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ListenerSchemaResolver $schemaResolver,
-		private readonly LearnerRefResolver $profiles,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
+		private readonly LearnerRefResolverInterface $profiles,
 		private readonly LoggerInterface $logger,
-		private readonly PupilGroupTeachers $groupTeachers,
-		private readonly PortalWriteSubject $writers,
-		private readonly ExcuseRequestStaffOwner $staffOwner,
+		private readonly PupilGroupTeachersInterface $groupTeachers,
+		private readonly PortalWriteSubjectInterface $writers,
+		private readonly ExcuseRequestStaffOwnerInterface $staffOwner,
 	) {
 	}//end __construct()
 

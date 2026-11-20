@@ -22,6 +22,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\ExampleSetSizesInterface;
 use RuntimeException;
 
 /**
@@ -29,7 +30,7 @@ use RuntimeException;
  *
  * @spec openspec/specs/example-sets/spec.md#requirement-an-administrator-removes-a-loaded-example-set-on-the-admin-page
  */
-class ExampleSetSizes {
+class ExampleSetSizes implements ExampleSetSizesInterface {
 	/**
 	 * Constructor.
 	 *

@@ -44,8 +44,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Portal;
 
-use OCA\Learniq\Service\Portal\BpvPlacementSteps;
-use OCA\Learniq\Service\Portal\EmployerBookingSteps;
+use OCA\Learniq\Kernel\Contracts\BpvPlacementStepsInterface;
+use OCA\Learniq\Kernel\Contracts\EmployerBookingStepsInterface;
 use OCP\L10N\IFactory;
 
 /**
@@ -116,17 +116,23 @@ class PortalContributionProvider {
 	private const STUDENT_EXCUSE_REQUEST_FIELDS = [
 		'dateFrom',
 		'dateTo',
+		// Part of a day (absence-reports-seen-and-ended T3): the lesson hours.
+		'fromLessonHour',
+		'toLessonHour',
 		'reason',
 		'reasonKind',
 		'attachmentRef',
 	];
 
+	// An illness may stay open until she reports better (absence-reports-
+	// seen-and-ended); the register still requires a last day for every
+	// other reason.
 	private const STUDENT_EXCUSE_REQUEST_DATE_TO = [
 		'label' => 'Last day you are absent',
-		'required' => true,
+		'required' => false,
 		'widget' => 'dateChoices',
 		'dateChoices' => 2,
-		'requiredMessage' => 'Choose the last day you are absent.',
+		'help' => 'Ill and not better yet? Leave it empty and report better later.',
 	];
 
 	private const PARENT_CONTRIBUTION_GUARDIAN_AUDIENCE = [
@@ -157,17 +163,23 @@ class PortalContributionProvider {
 		'learnerRef',
 		'dateFrom',
 		'dateTo',
+		// Part of a day (absence-reports-seen-and-ended T3): the lesson hours.
+		'fromLessonHour',
+		'toLessonHour',
 		'reason',
 		'reasonKind',
 		'attachmentRef',
 	];
 
+	// An illness may stay open until the child is better (absence-reports-
+	// seen-and-ended); the register still requires a last day for every
+	// other reason.
 	private const PARENT_EXCUSE_REQUEST_DATE_TO = [
 		'label' => 'Last day absent',
-		'required' => true,
+		'required' => false,
 		'widget' => 'dateChoices',
 		'dateChoices' => 2,
-		'requiredMessage' => 'Choose the last day your child is absent.',
+		'help' => 'Ill and not better yet? Leave it empty and report better later.',
 	];
 
 	private const PARENT_EXCUSE_REQUEST_CONFIRMATION = [
@@ -197,7 +209,9 @@ class PortalContributionProvider {
 		'sessionId',
 		'cohortId',
 		'status',
-		'minutesAttended',
+		// Minutes late, not minutes present: a late row read "330 minutes
+		// present", the day minus the minutes late (portal proof run 3).
+		'lateMinutes',
 		'markedAt',
 	];
 
@@ -208,9 +222,9 @@ class PortalContributionProvider {
 	];
 
 	private const PARENT_ATTENDANCE_COLUMNS = [
-		['field' => 'markedAt', 'label' => 'Date'],
+		['field' => 'markedAt', 'label' => 'Date', 'render' => 'date'],
 		['field' => 'status', 'label' => 'Attendance', 'valueLabels' => PortalValueLabels::ATTENDANCE_STATUS],
-		['field' => 'minutesAttended', 'label' => 'Minutes present'],
+		['field' => 'lateMinutes', 'label' => 'Minutes late'],
 	];
 
 	private const PARENT_EXCUSE_REQUESTS_FIELDS = [
@@ -224,6 +238,11 @@ class PortalContributionProvider {
 		'decidedAt',
 		// Read only as a name (render: user), never as the user id.
 		'decidedBy',
+		// The school's first look (absence-reports-seen-and-ended T5), read as a name too.
+		'seenBy',
+		'seenAt',
+		'fromLessonHour',
+		'toLessonHour',
 	];
 
 	private const PARENT_REPORT_CARDS_FIELDS = [
@@ -243,6 +262,8 @@ class PortalContributionProvider {
 		['field' => 'lifecycle', 'label' => 'Status', 'valueLabels' => PortalValueLabels::EXCUSE_STATUS],
 		['field' => 'decidedAt', 'label' => 'Decided on'],
 		['field' => 'decidedBy', 'label' => 'Decided by', 'render' => 'user'],
+		['field' => 'seenBy', 'label' => 'Seen by', 'render' => 'user'],
+		['field' => 'seenAt', 'label' => 'Seen at', 'render' => 'datetime'],
 	];
 
 	private const PARENT_REPORT_CARDS_COLUMNS = [
@@ -255,15 +276,15 @@ class PortalContributionProvider {
 	 * Constructor; the container hands in the factory, `new` with no arguments answers in English.
 	 *
 	 * @param IFactory|null             $l10nFactory    Puts parent labels in the request's language (PortalLabelTranslator).
-	 * @param EmployerBookingSteps|null $bookingSteps   Answers a company booking's steps (employer-portal-audience).
-	 * @param BpvPlacementSteps|null    $placementSteps Answers a work placement's steps (site-workplace-trainer-portal-design).
+	 * @param EmployerBookingStepsInterface|null $bookingSteps   Answers a company booking's steps (employer-portal-audience).
+	 * @param BpvPlacementStepsInterface|null    $placementSteps Answers a work placement's steps (site-workplace-trainer-portal-design).
 	 * @param PortalRecordProviders|null $records        Who a resident may write to and what a guardian may download, per row.
 	 * @param PortalPublicIndex|null     $publicIndex     What a visitor may find (portal-public-index).
 	 */
 	public function __construct(
 		private readonly ?IFactory $l10nFactory=null,
-		private readonly ?EmployerBookingSteps $bookingSteps=null,
-		private readonly ?BpvPlacementSteps $placementSteps=null,
+		private readonly ?EmployerBookingStepsInterface $bookingSteps=null,
+		private readonly ?BpvPlacementStepsInterface $placementSteps=null,
 		private readonly ?PortalRecordProviders $records=null,
 		private readonly ?PortalPublicIndex $publicIndex=null,
 	) {
@@ -401,40 +422,43 @@ class PortalContributionProvider {
 	 * @spec openspec/specs/portal-contribution/spec.md
 	 */
 	public function getContribution(array $subject): ?array {
-		$audience = $subject['audience'] ?? '';
-
-		if ($audience === 'student') {
-			// The pupil reads her labels in her language too (site-pupil-portal-design).
-			return (new PortalLabelTranslator(l10n: $this->l10nFactory?->get('learniq')))->translate(manifest: $this->studentContribution());
+		$manifest = $this->englishContribution(audience: (string)($subject['audience'] ?? ''));
+		if ($manifest === null) {
+			// Any audience Learniq does not serve → null (fail-closed; ADR-005).
+			return null;
 		}
 
-		if ($audience === 'parent') {
-			return (new PortalLabelTranslator(l10n: $this->l10nFactory?->get('learniq')))->translate(manifest: $this->parentContribution());
-		}
-
-		if ($audience === 'praktijkopleider') {
-			// The trainer and the assessor read their labels in their language too.
-			return (new PortalLabelTranslator(l10n: $this->l10nFactory?->get('learniq')))->translate(manifest: (new TrainerSitePages())->contribution());
-		}
-
-		if ($audience === 'external-assessor') {
-			// The trainer and the assessor read their labels in their language too.
-			return (new PortalLabelTranslator(l10n: $this->l10nFactory?->get('learniq')))->translate(manifest: (new AssessorSitePages())->contribution());
-		}
-
-		if ($audience === EmployerSitePages::AUDIENCE) {
-			// A company that sends its people to the courses (employer-portal-audience).
-			return (new PortalLabelTranslator(l10n: $this->l10nFactory?->get('learniq')))->translate(manifest: (new EmployerSitePages())->contribution());
-		}
-
-		if ($audience === ParticipantSitePages::AUDIENCE) {
-			// A course participant at a training institute (participant-portal).
-			return (new PortalLabelTranslator(l10n: $this->l10nFactory?->get('learniq')))->translate(manifest: (new ParticipantSitePages())->contribution());
-		}
-
-		// Any audience Learniq does not serve → null (fail-closed; ADR-005).
-		return null;
+		// Every read field gets a label and its values words (portal-fields-read-in-words),
+		// and every reader reads them in her own language.
+		return (new PortalLabelTranslator(l10n: $this->l10nFactory?->get('learniq')))
+			->translate(manifest: (new PortalFieldWords())->apply(manifest: $manifest));
 	}//end getContribution()
+
+	/**
+	 * An audience's manifest in English, before its words are filled in and
+	 * translated, or null for an audience Learniq does not serve.
+	 *
+	 * @param string $audience The audience.
+	 *
+	 * @return array<string, mixed>|null
+	 *
+	 * @spec openspec/specs/portal-contribution/spec.md
+	 */
+	private function englishContribution(string $audience): ?array {
+		return match ($audience) {
+			// The pupil and the guardian (site-pupil-portal-design, site-guardian-portal-design).
+			'student' => $this->studentContribution(),
+			'parent' => $this->parentContribution(),
+			// The workplace trainer and the external assessor.
+			'praktijkopleider' => (new TrainerSitePages())->contribution(),
+			'external-assessor' => (new AssessorSitePages())->contribution(),
+			// A company that sends its people to the courses (employer-portal-audience).
+			EmployerSitePages::AUDIENCE => (new EmployerSitePages())->contribution(),
+			// A course participant at a training institute (participant-portal).
+			ParticipantSitePages::AUDIENCE => (new ParticipantSitePages())->contribution(),
+			default => null,
+		};
+	}//end englishContribution()
 
 	/**
 	 * The steps of a company booking, for the employer's booking page.
@@ -596,9 +620,13 @@ class PortalContributionProvider {
 			$this->submissionAction(),
 			// Between them, in the order her pages read (internship-hours).
 			$site->hourWeekAction(),
+			// One day at a time from her phone (bpv-hours-per-day).
+			$site->hourDayAction(),
 			// "Nu invullen" on her work processes (guardian-tasks-per-child-and-self-assessment).
 			(new StudentSelfAssessment())->action(),
 			$this->absenceAction(),
+			// She ends her own open illness (absence-reports-seen-and-ended T4).
+			(new ExcuseRecoveryAction())->forPupil(),
 		];
 
 	}//end studentActions()
@@ -657,6 +685,8 @@ class PortalContributionProvider {
 			'reason' => ['label' => 'Reason', 'required' => true],
 			'reasonKind' => self::EXCUSE_REQUEST_REASON_KIND,
 			'attachmentRef' => (new ExcuseAttachmentField())->config(),
+			'fromLessonHour' => ['label' => 'From lesson hour', 'required' => false],
+			'toLessonHour' => ['label' => 'To lesson hour', 'required' => false],
 		],
 		'submitLabel' => 'Report your absence',
 		'successMessage' => 'The school has your report. You see the decision in the list of absence reports.',
@@ -715,6 +745,7 @@ class PortalContributionProvider {
 		];
 		$extras = new ParentPortalCollections();
 		$record = new ParentRecordPage();
+		$leave  = new ParentLeaveRequests();
 		$collections = array_merge(
 			[$record->childrenCollection()],
 			$this->parentResultCollections(childJoin: $childJoin),
@@ -724,11 +755,16 @@ class PortalContributionProvider {
 			[$extras->groupMembershipsCollection(childJoin: $childJoin)],
 			[$extras->reportSubjectGradesCollection(childJoin: $childJoin)],
 			$record->collections(childJoin: $childJoin),
-			[(new ParentDocumentsPage())->schoolsCollection(childJoin: $childJoin)]
+			[(new ParentDocumentsPage())->schoolsCollection(childJoin: $childJoin)],
+			(new ParentPermissionSlips())->collections(childJoin: $childJoin),
+			// Leave asked in advance (leave-requests-decided-by-the-school).
+			$leave->collections(childJoin: $childJoin)
 		);
 		$actions = array_merge(
 			$this->parentActions(childJoin: $childJoin),
-			$extras->conferenceActions()
+			$extras->conferenceActions(),
+			(new ParentPermissionSlips())->actions(),
+			[$leave->action(childJoin: $childJoin)]
 		);
 
 		return [
@@ -797,6 +833,8 @@ class PortalContributionProvider {
 					// approved mockup shows.
 					'reasonKind' => self::EXCUSE_REQUEST_REASON_KIND,
 					'attachmentRef' => (new ExcuseAttachmentField())->config(),
+					'fromLessonHour' => ['label' => 'From lesson hour', 'required' => false],
+					'toLessonHour' => ['label' => 'To lesson hour', 'required' => false],
 				],
 				'submitLabel' => 'Report the absence',
 				'successMessage' => "The school has your report. You see the teacher's decision in the list of absence reports.",
@@ -807,6 +845,8 @@ class PortalContributionProvider {
 				// What she reads after sending (site-guardian-portal-design T6b, REQ-SMF-022).
 				'confirmation' => self::PARENT_EXCUSE_REQUEST_CONFIRMATION,
 			],
+			// Ends an open illness (absence-reports-seen-and-ended T4).
+			(new ExcuseRecoveryAction())->forGuardian(childJoin: $childJoin),
 		];
 
 	}//end parentActions()
@@ -890,6 +930,7 @@ class PortalContributionProvider {
 				'minTrust' => 'substantial',
 				'fields' => self::PARENT_EXCUSE_REQUESTS_FIELDS,
 				'columns' => self::PARENT_EXCUSE_REQUESTS_COLUMNS,
+				'rowActions' => [ExcuseRecoveryAction::ID],
 			],
 			[
 				'id' => 'parentReportCards',
@@ -917,6 +958,10 @@ class PortalContributionProvider {
 				// subject or a period (portal-parent-report-card-grades).
 				'fields' => self::PARENT_REPORT_CARDS_FIELDS,
 				'columns' => self::PARENT_REPORT_CARDS_COLUMNS,
+				// The rendered PDF is a file on the published card, so the guardian
+				// downloads it through portaliq's opt-in, scoped by the same join
+				// and filter as the read (report-card-pdf-to-guardians D2).
+				'filesDownload' => true,
 			],
 		];
 

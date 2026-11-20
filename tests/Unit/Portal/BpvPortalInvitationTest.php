@@ -427,4 +427,68 @@ class BpvPortalInvitationTest extends TestCase {
 
 		self::assertSame('person-unknown', $result['reason']);
 	}//end testARowThatIsNotTheOneAskedForIsSkipped()
+	/**
+	 * The person read is the first row whose id (or uuid) is the trimmed uuid
+	 * asked for, read without RBAC or tenancy; serialisable objects are read
+	 * as their rows, other answers are skipped, and a switched-off match is
+	 * not invitable even when a later row would be.
+	 *
+	 * @return void
+	 */
+	public function testThePersonIsTheFirstRowOfThatUuid(): void {
+		$serialised = new class (self::TRAINER) implements \JsonSerializable {
+			public function __construct(private readonly string $uuid) {
+			}
+
+			public function jsonSerialize(): array {
+				return ['id' => $this->uuid, 'givenName' => 'Karin', 'familyName' => 'Smit', 'email' => 'karin.smit@vandam.example'];
+			}
+		};
+		$neighbour = ['id' => 'ee030010-0000-4000-8000-000000000099', 'email' => 'iemand.anders@vandam.example', 'active' => true];
+
+		$cases = [
+			'serialised row after a neighbour' => [['not a row', $neighbour, $serialised], 'invited'],
+			'switched-off match first' => [[['id' => self::TRAINER, 'email' => 'a@b.example', 'active' => false], ['id' => self::TRAINER, 'email' => 'a@b.example']], 'person-unknown'],
+			'switched-off uuid match first' => [[['uuid' => self::TRAINER, 'email' => 'a@b.example', 'active' => false], ['id' => self::TRAINER, 'email' => 'a@b.example']], 'person-unknown'],
+			'no row' => [[], 'person-unknown'],
+		];
+
+		foreach ($cases as $label => [$rows, $expected]) {
+			$calls = [];
+			$objectService = $this->createMock(ObjectService::class);
+			$objectService->method('findAll')->willReturnCallback(
+				function (array $config = [], bool $_rbac = true, bool $_multitenancy = true) use (&$calls, $rows): array {
+					$calls[] = [$config, $_rbac, $_multitenancy];
+					return $rows;
+				}
+			);
+			$dispatcher = $this->createMock(IEventDispatcher::class);
+			$dispatcher->method('dispatchTyped')->willReturnCallback(
+				static function (object $event): void {
+					if ($event instanceof FakeBpvProvisionEvent) {
+						$event->subjectRef = 'subject-1';
+					}
+
+					if ($event instanceof FakeBpvClaimEvent) {
+						$event->result = 'ok';
+					}
+				}
+			);
+
+			$result = (new BpvPortalInvitation(
+				objectService: $objectService,
+				dispatcher: $dispatcher,
+				logger: new NullLogger(),
+				provisionEventClass: FakeBpvProvisionEvent::class,
+				claimEventClass: FakeBpvClaimEvent::class,
+			))->invite(role: 'trainer', personRef: ' ' . self::TRAINER . ' ', organisation: 'esdoorn');
+
+			self::assertSame($expected, ($result['reason'] ?? $result['status']), $label);
+			self::assertSame(
+				[[['filters' => ['register' => 'learniq', 'schema' => 'praktijkopleider'], 'ids' => [self::TRAINER], 'limit' => 1], false, false]],
+				$calls,
+				$label
+			);
+		}
+	}//end testThePersonIsTheFirstRowOfThatUuid()
 }//end class

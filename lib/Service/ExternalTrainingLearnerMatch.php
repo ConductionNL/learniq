@@ -30,6 +30,9 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Support\FindOrNull;
+use OCA\Learniq\Support\ResultArrays;
+use OCA\Learniq\Support\RowId;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IUserManager;
 
@@ -146,7 +149,7 @@ class ExternalTrainingLearnerMatch {
 		}
 
 		$find = fn () => $this->objectService
-			->find(id: $id, register: self::REGISTER, schema: self::PROFILE_SCHEMA, _rbac: false, _multitenancy: false);
+			->find(id: $id, options: new ObjectFindOptions(register: self::REGISTER, schema: self::PROFILE_SCHEMA), _rbac: false, _multitenancy: false);
 		$object = $this->findOrNull(find: $find);
 
 		$rows = self::rows(objects: [$object]);
@@ -204,16 +207,7 @@ class ExternalTrainingLearnerMatch {
 	 * @return string The uuid, or ''.
 	 */
 	private static function idOf(array $row): string {
-		$id = $row['id'] ?? $row['uuid'] ?? null;
-		if ($id === null && is_array($row['@self'] ?? null) === true) {
-			$id = $row['@self']['id'] ?? null;
-		}
-
-		if (is_string($id) === false) {
-			return '';
-		}
-
-		return $id;
+		return (new RowId())->idOf(row: $row);
 	}//end idOf()
 
 	/**
@@ -224,18 +218,6 @@ class ExternalTrainingLearnerMatch {
 	 * @return array<int,array<string,mixed>> The rows.
 	 */
 	private static function rows(array $objects): array {
-		$rows = [];
-		foreach ($objects as $object) {
-			if (is_array($object) === true) {
-				$rows[] = $object;
-				continue;
-			}
-
-			if (is_object($object) === true && method_exists($object, 'jsonSerialize') === true) {
-				$rows[] = (array)$object->jsonSerialize();
-			}
-		}
-
-		return $rows;
+		return (new ResultArrays())->arraysOf(objects: $objects);
 	}//end rows()
 }//end class

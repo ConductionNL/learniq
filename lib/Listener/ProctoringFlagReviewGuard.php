@@ -30,7 +30,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/proctoring-flag-review-page/specs/assessment/spec.md#requirement-only-staff-decide-a-flag-and-the-server-records-who-did
+ * @spec openspec/specs/assessment/spec.md#requirement-only-staff-decide-a-flag-and-the-server-records-who-did
  */
 
 declare(strict_types=1);
@@ -39,8 +39,8 @@ namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
 use DateTimeZone;
-use OCA\Learniq\Proctoring\FlagReview;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\FlagReviewInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
@@ -55,7 +55,7 @@ use Throwable;
  *
  * @template-implements IEventListener<Event>
  *
- * @spec openspec/changes/proctoring-flag-review-page/specs/assessment/spec.md#requirement-only-staff-decide-a-flag-and-the-server-records-who-did
+ * @spec openspec/specs/assessment/spec.md#requirement-only-staff-decide-a-flag-and-the-server-records-who-did
  */
 class ProctoringFlagReviewGuard implements IEventListener {
 
@@ -72,14 +72,14 @@ class ProctoringFlagReviewGuard implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param FlagReview             $rules          The flag rules.
-	 * @param ListenerSchemaResolver $schemaResolver Which schema an event is about.
+	 * @param FlagReviewInterface             $rules          The flag rules.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Which schema an event is about.
 	 * @param IUserSession           $userSession    The writer.
 	 * @param IGroupManager          $groupManager   Admin and staff checks.
 	 */
 	public function __construct(
-		private readonly FlagReview $rules,
-		private readonly ListenerSchemaResolver $schemaResolver,
+		private readonly FlagReviewInterface $rules,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
 		private readonly IUserSession $userSession,
 		private readonly IGroupManager $groupManager,
 	) {
@@ -92,7 +92,7 @@ class ProctoringFlagReviewGuard implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/proctoring-flag-review-page/specs/assessment/spec.md#requirement-only-staff-decide-a-flag-and-the-server-records-who-did
+	 * @spec openspec/specs/assessment/spec.md#requirement-only-staff-decide-a-flag-and-the-server-records-who-did
 	 */
 	public function handle(Event $event): void {
 		if ($event instanceof ObjectCreatingEvent === false && $event instanceof ObjectUpdatingEvent === false) {
@@ -200,10 +200,6 @@ class ProctoringFlagReviewGuard implements IEventListener {
 	 * @return ObjectEntity
 	 */
 	private function entityOf(ObjectCreatingEvent|ObjectUpdatingEvent $event): ObjectEntity {
-		if ($event instanceof ObjectUpdatingEvent) {
-			return $event->getNewObject();
-		}
-
-		return $event->getObject();
+		return (new WrittenObject())->entityOf(event: $event);
 	}//end entityOf()
 }//end class

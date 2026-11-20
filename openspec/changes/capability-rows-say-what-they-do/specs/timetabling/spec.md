@@ -73,3 +73,54 @@ When a lesson moves to another room or another time, learniq MUST notify every l
 - **GIVEN** next Tuesday's lesson at 10:15
 - **WHEN** a coordinator moves it to 13:00 the same day
 - **THEN** each learner of the group and each listed parent gets a message naming the new time
+
+## MODIFIED Requirements
+
+### Requirement: Conflict detection flags double-bookings and capacity overruns without resolving them
+
+The system MUST detect, and MUST NOT automatically resolve, scheduling conflicts among `Session` objects
+within an affected time window: a teacher (or, once substituted, the assigned `substituteTeacherId`)
+double-booked across overlapping Sessions; the same `Room` double-booked; the same `Cohort` scheduled twice
+at once; a learner (resolved via their cohorts' `learnerIds`) double-booked across Sessions in different
+cohorts; a `Room`'s `capacity` exceeded by the learner count of any Session, an ordinary lesson as much as one
+linked to an `Assessment` (`room-capacity-exceeded`); and any of the above overlap kinds where at least one Session is linked to an
+`Assessment` (`exam-clash`). Detection MUST run as an OR-event-driven scan (on `Session` create/update, and
+once in batch after a `timetable-import` `DataExchangeJob` reaches `succeeded`), scoped to the affected date
+window — never a full-register scan. Each finding MUST be persisted as a `TimetableConflict` object; the
+detector MUST NOT edit, cancel, or reassign any `Session` itself.
+
+#### Scenario: Two Sessions imported for the same room at overlapping times are flagged, not auto-moved
+
+<!-- @e2e exclude Cross-object conflict-scan logic is backend-only (TimetableConflictDetector), PHPUnit-verified; no DOM surface for the scan itself — the resulting queue view is covered by a separate scenario below. -->
+
+- **GIVEN** two `Session` objects with the same `roomId` and overlapping `[startsAt, endsAt)` intervals
+- **WHEN** the conflict detector scans the affected window
+- **THEN** a `TimetableConflict` with `kind: room-double-booking` is created referencing both `sessionIds`
+- **AND** neither `Session`'s `roomId`, `startsAt`, or `endsAt` is modified by the detector
+
+#### Scenario: Re-scanning an unchanged window does not create duplicate conflicts
+
+<!-- @e2e exclude Idempotent conflict-row matching is backend PHPUnit-verified logic; no DOM surface. -->
+
+- **GIVEN** an `open` `TimetableConflict` already exists for a given `sessionIds` pair and `kind`
+- **WHEN** the same window is re-scanned without the underlying Sessions changing
+- **THEN** no second `TimetableConflict` row is created for that pair and kind
+
+#### Scenario: An exam Session exceeding room capacity is flagged as room-capacity-exceeded
+
+<!-- @e2e exclude Backend capacity comparison (Cohort.learnerIds length vs Room.capacity); PHPUnit-verified; no DOM surface for the comparison itself. -->
+
+- **GIVEN** a `Session` linked to an `Assessment`, assigned a `Room` with `capacity: 30`, whose cohort has 34
+  `learnerIds`
+- **WHEN** the conflict detector scans the Session
+- **THEN** a `TimetableConflict` with `kind: room-capacity-exceeded` is created referencing the Session and
+  the Room
+
+#### Scenario: An ordinary lesson exceeding room capacity is flagged as room-capacity-exceeded
+
+- **GIVEN** a `Session` linked to no `Assessment`, assigned a `Room` with `capacity: 24`, whose cohort has 28
+  `learnerIds`
+- **WHEN** the conflict detector scans the Session
+- **THEN** a `TimetableConflict` with `kind: room-capacity-exceeded` is created referencing the Session and
+  the Room
+- **AND** the Session keeps its `roomId`, `startsAt`, `endsAt` and teacher

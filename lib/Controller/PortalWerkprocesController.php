@@ -30,9 +30,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Portal\PortalAssertionVerifier;
-use OCA\Learniq\Service\Portal\PortalWerkprocesAssessment;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\PortalAssertionVerifierInterface;
+use OCA\Learniq\Kernel\Contracts\PortalWerkprocesAssessmentInterface;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\AnonRateLimit;
@@ -50,6 +50,8 @@ use Throwable;
  * @spec openspec/changes/an-invited-trainer-may-assess/specs/bpv/spec.md#requirement-an-invited-trainer-may-submit-a-werkproces-assessment
  */
 class PortalWerkprocesController extends Controller {
+
+	use PortalFormFields;
 
 	/**
 	 * The only audience this endpoint serves.
@@ -84,19 +86,19 @@ class PortalWerkprocesController extends Controller {
 	 * Constructor.
 	 *
 	 * @param IRequest                   $request     The request.
-	 * @param PortalAssertionVerifier    $verifier    Verifies X-Portal-Subject.
-	 * @param PortalWerkprocesAssessment $assessments Checks, stamps and stores the assessment.
+	 * @param PortalAssertionVerifierInterface    $verifier    Verifies X-Portal-Subject.
+	 * @param PortalWerkprocesAssessmentInterface $assessments Checks, stamps and stores the assessment.
 	 * @param LoggerInterface            $logger      PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		IRequest $request,
-		private readonly PortalAssertionVerifier $verifier,
-		private readonly PortalWerkprocesAssessment $assessments,
+		private readonly PortalAssertionVerifierInterface $verifier,
+		private readonly PortalWerkprocesAssessmentInterface $assessments,
 		private readonly LoggerInterface $logger,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -111,7 +113,7 @@ class PortalWerkprocesController extends Controller {
 	#[AnonRateLimit(limit: 600, period: 60)]
 	#[BruteForceProtection(action: self::THROTTLE_ACTION)]
 	public function submit(): JSONResponse {
-		$claims = $this->verifier->verify(jwt: (string)$this->request->getHeader(PortalAssertionVerifier::HEADER));
+		$claims = $this->verifier->verify(jwt: (string)$this->request->getHeader(PortalAssertionVerifierInterface::HEADER));
 		if ($claims === null) {
 			$response = new JSONResponse(data: ['error' => 'unauthorized'], statusCode: Http::STATUS_UNAUTHORIZED);
 			$response->throttle(['action' => self::THROTTLE_ACTION]);
@@ -142,37 +144,4 @@ class PortalWerkprocesController extends Controller {
 
 		return new JSONResponse(data: $outcome->body, statusCode: $outcome->status);
 	}//end submit()
-
-	/**
-	 * The whitelisted fields the form sent.
-	 *
-	 * @return array<string, mixed>
-	 */
-	private function body(): array {
-		$body = [];
-		foreach (self::FIELDS as $field) {
-			$value = $this->request->getParam($field);
-			if ($value !== null) {
-				$body[$field] = $value;
-			}
-		}
-
-		return $body;
-	}//end body()
-
-	/**
-	 * A request parameter as a trimmed string, '' when absent or not a string.
-	 *
-	 * @param string $name The parameter.
-	 *
-	 * @return string
-	 */
-	private function stringParam(string $name): string {
-		$value = $this->request->getParam($name);
-		if (is_string($value) === false) {
-			return '';
-		}
-
-		return trim($value);
-	}//end stringParam()
 }//end class

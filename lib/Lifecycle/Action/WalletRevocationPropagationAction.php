@@ -36,26 +36,26 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle\Action;
 
-use OCA\Learniq\Service\WalletRevocationPropagationService;
+use OCA\Learniq\Kernel\Contracts\WalletRevocationPropagationServiceInterface;
 use OCA\OpenRegister\Lifecycle\LifecycleActionContext;
-use OCA\OpenRegister\Lifecycle\LifecycleActionInterface;
+use OCA\OpenRegister\Lifecycle\ContextLifecycleActionInterface;
 
 /**
  * Records the wallet revocation outcome on a revoked Credential.
  *
  * @spec openspec/specs/certification/spec.md#requirement-revoking-a-credential-propagates-to-any-outstanding-wallet-offer-fail-soft
  */
-class WalletRevocationPropagationAction implements LifecycleActionInterface {
+class WalletRevocationPropagationAction implements ContextLifecycleActionInterface {
 
 	/**
 	 * Constructor.
 	 *
-	 * @param WalletRevocationPropagationService $propagationService The wallet revocation bridge.
+	 * @param WalletRevocationPropagationServiceInterface $propagationService The wallet revocation bridge.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly WalletRevocationPropagationService $propagationService,
+		private readonly WalletRevocationPropagationServiceInterface $propagationService,
 	) {
 	}//end __construct()
 

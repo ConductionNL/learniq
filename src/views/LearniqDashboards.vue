@@ -77,6 +77,14 @@
 					:footerRoute="rollCallPath"
 					:limit="6" />
 			</template>
+			<template #widget-teacher-course-day-parts>
+				<CourseDayPartsWidget
+					:filter="sessionsToMark"
+					:pending="scopePending" />
+			</template>
+			<template #widget-planner-today>
+				<PlannerTodayWidget :today="plannerToday" />
+			</template>
 			<template #widget-teacher-cohorts>
 				<ManageListWidget
 					schema="Cohort"
@@ -102,17 +110,20 @@ import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
 import { loadState } from '@nextcloud/initial-state'
 import { generateUrl } from '@nextcloud/router'
+import CourseDayPartsWidget from './widgets/CourseDayPartsWidget.vue'
 import ManageCohortsWidget from './widgets/ManageCohortsWidget.vue'
 import ManageCoursesWidget from './widgets/ManageCoursesWidget.vue'
 import ManageListWidget from './widgets/ManageListWidget.vue'
 import ManageProgrammesWidget from './widgets/ManageProgrammesWidget.vue'
 import MyMandatoryTrainingWidget from './widgets/MyMandatoryTrainingWidget.vue'
+import PlannerTodayWidget from './widgets/PlannerTodayWidget.vue'
 import {
 	countTile,
 	customTile,
 	freshLayout,
 	statTile,
 } from '../utils/dashboardTiles.js'
+import { withTileBelow } from '../utils/plannerToday.js'
 import {
 	ROLL_CALL_PATH,
 	rollCallRoute,
@@ -268,6 +279,15 @@ const TEACHER_LAYOUT = [
 		gridY: 6,
 		gridWidth: 6,
 		gridHeight: 4,
+	},	// training-provider-course-days T5: the part of a course day that waits
+	// for its attendance.
+	{
+		id: 7,
+		widgetId: 'teacher-course-day-parts',
+		gridX: 0,
+		gridY: 10,
+		gridWidth: 12,
+		gridHeight: 3,
 	},
 ]
 
@@ -300,11 +320,13 @@ export default {
 
 	components: {
 		CnDashboardPage,
+		CourseDayPartsWidget,
 		ManageCoursesWidget,
 		ManageCohortsWidget,
 		ManageProgrammesWidget,
 		ManageListWidget,
 		MyMandatoryTrainingWidget,
+		PlannerTodayWidget,
 	},
 
 	props: {
@@ -388,6 +410,9 @@ export default {
 			scopePending: false,
 			// The name of the instance's one school; '' when not known.
 			schoolName: '',
+			// The planner's Today (GET /api/course-days/today); null for
+			// anyone the endpoint refuses, who then sees no planner card.
+			plannerToday: null,
 		}
 	},
 
@@ -481,10 +506,10 @@ export default {
 		 */
 		viewConfig() {
 			if (this.activeRole === 'admin') {
-				return this.adminConfig
+				return this.withPlannerToday(this.adminConfig)
 			}
 			if (this.activeRole === 'teacher') {
-				return this.teacherConfig
+				return this.withPlannerToday(this.teacherConfig)
 			}
 			return this.studentConfig
 		},
@@ -615,6 +640,7 @@ export default {
 	created() {
 		this.loadTeacherScope()
 		this.loadSchoolName()
+		this.loadPlannerToday()
 	},
 
 	methods: {
@@ -635,7 +661,7 @@ export default {
 		},
 
 		/**
-		 * The teacher dashboard's four lists.
+		 * The teacher dashboard's four lists and the course day parts card.
 		 *
 		 * @return {Array<object>} The list tiles.
 		 * @spec openspec/specs/dashboard/spec.md#requirement-per-role-group-gated-dashboard-menu-items
@@ -646,6 +672,7 @@ export default {
 				customTile('teacher-assignments', this.t('learniq', 'Assignments to grade')),
 				customTile('teacher-sessions', this.t('learniq', 'Sessions to mark')),
 				customTile('teacher-cohorts', this.t('learniq', 'My cohorts')),
+				customTile('teacher-course-day-parts', this.t('learniq', 'Attendance per part of the day')),
 			]
 		},
 
@@ -770,6 +797,38 @@ export default {
 				? await this.listObjects('Programme', { _ids: programmeIds })
 				: []
 			return teacherScope({ userId, cohorts, programmes })
+		},
+
+		/**
+		 * Read the planner's Today once. The endpoint answers only a holder of
+		 * the course-day.plan action; anyone else keeps no planner card.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/course-management/spec.md#scenario-four-of-six
+		 */
+		async loadPlannerToday() {
+			try {
+				const response = await axios.get(generateUrl('/apps/learniq/api/course-days/today'))
+				this.plannerToday = response.data && typeof response.data === 'object' ? response.data : null
+			} catch {
+				// Refused (no course-day.plan) or unreadable: no planner card.
+				this.plannerToday = null
+			}
+		},
+
+		/**
+		 * A dashboard declaration with the planner's Today card under the
+		 * other tiles, for a reader the course days endpoint answered.
+		 *
+		 * @param {{widgets: Array<object>, layout: Array<object>}} config The declaration.
+		 * @return {{widgets: Array<object>, layout: Array<object>}} The declaration to render.
+		 * @spec openspec/specs/course-management/spec.md#scenario-four-of-six
+		 */
+		withPlannerToday(config) {
+			if (this.plannerToday === null) {
+				return config
+			}
+			return withTileBelow(config, customTile('planner-today', this.t('learniq', 'Course days today')), 6)
 		},
 
 		/**

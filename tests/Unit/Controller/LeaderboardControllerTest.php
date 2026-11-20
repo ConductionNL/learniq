@@ -35,6 +35,7 @@ use OCP\IRequest;
 use OCP\IUser;
 use OCP\IUserSession;
 use PHPUnit\Framework\TestCase;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 
 /**
  * Tests for LeaderboardController::getRankings().
@@ -78,7 +79,11 @@ class LeaderboardControllerTest extends TestCase {
 		// and returns ?ObjectEntity. willReturnCallback() hands the closure the
 		// mock's arguments POSITIONALLY, so the closure must mirror that order.
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($cohort) {
+			function (int|string $id, ?ObjectFindOptions $options = null) use ($cohort) {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				if ($schema === 'cohort' && $cohort !== null) {
 					return OrEntityFactory::make($cohort, 'cohort');
 				}
@@ -368,4 +373,68 @@ class LeaderboardControllerTest extends TestCase {
 		self::assertSame(Http::STATUS_NOT_FOUND, $response->getStatus());
 		self::assertSame('Cohort not found', $this->body($response)['error'] ?? null);
 	}//end testUnknownCohortThrowingFromObjectServiceReturns404()
+
+	/**
+	 * Allowed and refused callers: a learner or teacher of the cohort is let
+	 * in, anyone else is refused, also when the member lists are not lists;
+	 * a non-list learnerIds gives an empty ranking.
+	 *
+	 * @return void
+	 */
+	public function testWhoMaySeeTheRanking(): void {
+		$cases = [
+			'learner'           => [['learnerIds' => ['u'], 'teacherIds' => []], Http::STATUS_OK],
+			'teacher'           => [['learnerIds' => [], 'teacherIds' => ['u']], Http::STATUS_OK],
+			'teacher only list' => [['teacherIds' => ['x', 'u']], Http::STATUS_OK],
+			'neither'           => [['learnerIds' => ['x'], 'teacherIds' => ['y']], Http::STATUS_FORBIDDEN],
+			'lists not lists'   => [['learnerIds' => 'u', 'teacherIds' => 'u'], Http::STATUS_FORBIDDEN],
+			'no lists'          => [[], Http::STATUS_FORBIDDEN],
+		];
+
+		foreach ($cases as $name => [$members, $status]) {
+			$controller = $this->makeController(
+				cohort: array_merge(['id' => self::COHORT_ID, 'tenant_id' => 'tenant-a'], $members),
+				leaderboardActive: true,
+				engagementRows: [],
+				levels: [],
+				isAdmin: false,
+				uid: 'u',
+			);
+
+			self::assertSame($status, $controller->getRankings(self::COHORT_ID)->getStatus(), $name);
+		}
+
+		$admin = $this->makeController(
+			cohort: ['id' => self::COHORT_ID, 'learnerIds' => 'not a list', 'tenant_id' => 'tenant-a'],
+			leaderboardActive: true,
+			engagementRows: [],
+			levels: [],
+			isAdmin: true,
+		);
+		self::assertSame(['results' => []], $this->body($admin->getRankings(self::COHORT_ID)));
+	}//end testWhoMaySeeTheRanking()
+
+	/**
+	 * Without a signed-in user nothing is read.
+	 *
+	 * @return void
+	 */
+	public function testAnAnonymousCallerIsRefusedBeforeAnyRead(): void {
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->expects(self::never())->method('find');
+		$objectService->expects(self::never())->method('findAll');
+		$userSession = $this->createMock(IUserSession::class);
+		$userSession->method('getUser')->willReturn(null);
+		$controller = new LeaderboardController(
+			request: $this->createMock(IRequest::class),
+			caller: new CallerGroups(userSession: $userSession, groupManager: $this->createMock(IGroupManager::class)),
+			objectService: $objectService,
+			config: $this->createMock(IConfig::class)
+		);
+
+		$response = $controller->getRankings(self::COHORT_ID);
+
+		self::assertSame(Http::STATUS_UNAUTHORIZED, $response->getStatus());
+		self::assertSame(['error' => 'Not authenticated'], $this->body($response));
+	}//end testAnAnonymousCallerIsRefusedBeforeAnyRead()
 }//end class

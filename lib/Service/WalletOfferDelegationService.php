@@ -70,6 +70,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\WalletOfferDelegationServiceInterface;
 use OCA\Learniq\Support\FleetAppId;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
@@ -90,7 +91,7 @@ use Throwable;
  * (missing config, HTTP error, malformed response) sets `walletOfferError`
  * and leaves no partial wallet-offer state.
  */
-class WalletOfferDelegationService implements LifecycleGuardInterface {
+class WalletOfferDelegationService implements LifecycleGuardInterface, WalletOfferDelegationServiceInterface {
 
 	/**
 	 * OpenConnector REST endpoint for app-facing, consumer-gated offer

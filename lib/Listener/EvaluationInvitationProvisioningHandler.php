@@ -37,8 +37,11 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -61,14 +64,14 @@ class EvaluationInvitationProvisioningHandler implements IEventListener {
 	 *
 	 * @param ObjectService $objectService OpenRegister object access.
 	 * @param LoggerInterface $logger PSR logger.
-	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
-		private readonly ListenerSchemaResolver $schemas,
+		private readonly ListenerSchemaResolverInterface $schemas,
 	) {
 	}//end __construct()
 
@@ -205,8 +208,6 @@ class EvaluationInvitationProvisioningHandler implements IEventListener {
 			$provisioned[(string)$learnerId] = true;
 
 			$this->objectService->saveObject(
-				register: self::LEARNIQ_REGISTER,
-				schema: self::EVALUATION_INVITATION_SCHEMA,
 				object: [
 					'campaignId' => $stamp['campaignId'],
 					'courseId' => $cohort['courseId'],
@@ -218,7 +219,11 @@ class EvaluationInvitationProvisioningHandler implements IEventListener {
 					'academicYear' => $stamp['academicYear'],
 					'period' => $stamp['period'],
 					'tenant_id' => $stamp['tenant_id'],
-				]
+				],
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(
+						register: self::LEARNIQ_REGISTER,
+						schema: self::EVALUATION_INVITATION_SCHEMA
+					))
 			);
 		}//end foreach
 
@@ -261,8 +266,7 @@ class EvaluationInvitationProvisioningHandler implements IEventListener {
 
 			$cohort = $this->objectService->find(
 				id: $cohortId,
-				register: self::LEARNIQ_REGISTER,
-				schema: self::COHORT_SCHEMA
+				options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::COHORT_SCHEMA)
 			);
 
 			if ($cohort === null) {

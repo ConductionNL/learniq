@@ -37,11 +37,14 @@ use OCP\IUserManager;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use RuntimeException;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * @covers \OCA\Learniq\Service\ExternalTrainingImport
  * @covers \OCA\Learniq\Service\ExternalTrainingLearnerMatch
  * @covers \OCA\Learniq\Service\ExternalTrainingRowCheck
+ * @uses \OCA\Learniq\Support\ResultArrays
+ * @uses \OCA\Learniq\Support\RowId
  */
 class ExternalTrainingImportTest extends TestCase {
 	use RegisterSchemaPayloads;
@@ -110,7 +113,10 @@ class ExternalTrainingImportTest extends TestCase {
 			}
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null) use ($saveFails) {
+			function (array|ObjectEntity $object, ObjectSaveOptions $options = new ObjectSaveOptions()) use ($saveFails) {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
 				if ($saveFails === true) {
 					throw new RuntimeException('store down');
 				}

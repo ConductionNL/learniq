@@ -135,6 +135,18 @@ SCHEMAS = [
     # (hours and his estimate, board Detail). Appended for the same reason;
     # its parent, bpv-placement, sits above it.
     "werkproces-progress",
+    # attendance-warns-before-the-threshold: Sem Visser's count against the
+    # leerplicht limit. Appended for the same reason; its parent,
+    # learner-profile, sits above it.
+    "attendance-summary",
+    # practical-exam-assessment: the proeve's two assessors and the candidates
+    # each of them assesses. Appended for the same reason; its parents,
+    # external-assessor, learner-profile and exam-sitting, sit above it.
+    "exam-assessor-assignment",
+    # bpv-coach-today-and-placement-board: the planned company visits of the
+    # BPV-begeleider. Appended for the same reason; its parent, bpv-placement,
+    # sits above it.
+    "bpv-visit",
 ]
 IDENTITY = SetIdentity(SET, SET_NUMBER, SCHEMAS)
 
@@ -494,6 +506,8 @@ LEERPLICHT_THRESHOLD = {
     "name": "Leerplicht en kwalificatieplicht: 16 uur ongeoorloofd verzuim in 4 weken", "kind": "leerplicht-16uur",
     "scope": "per-learner", "window": {"type": "rolling-weeks", "weeks": 4, "termId": None}, "metric": "unexcused-lesuren",
     "limit": 16, "lessonHourMinutes": 60,
+    # attendance-warns-before-the-threshold: staff see a student from 12 hours, before a report is due.
+    "warnAtHours": 12,
     "onCross": {"notify": True, "notifyRoles": ["mentor", "coordinator"], "createFlag": True, "dataExchangeTarget": None},
     "active": True, "lifecycle": "active",
 }
@@ -609,7 +623,7 @@ STEPS = (
     "add_accommodations", "add_exemption_cases", "pick_result_cases", "add_unit_results", "add_pvb_entries",
     "add_fraud_case", "add_dismissed_fraud_case", "add_final_grades", "add_trajectories", "add_progress_flags",
     "add_warnings", "add_bsa_decisions", "settle_diplomas", "add_support_requests", "add_dossier_notes",
-    "add_hour_plans", "add_assessor_shares", "add_hour_weeks", "add_story_and_stamps",
+    "add_hour_plans", "add_assessor_shares", "add_hour_weeks", "add_story_and_stamps", "add_practical_exam",
 )
 
 
@@ -1677,6 +1691,7 @@ class SchoolYear:
             "email": "ruud.jansen@examinering-zuiddrecht.example",
             "organisationName": "Examinering Zuiddrecht", "active": True,
         })
+        self.assessor = assessor
         # Two students who are actually on a placement, so the portfolios belong to
         # people the rest of the set knows.
         for index, s in enumerate([p["student"] for p in self.placements][:2], start=1):
@@ -1695,7 +1710,8 @@ class SchoolYear:
         self.b.add("portfolio-share", {
             # The readable copies ReadableCopyStamp writes on a live save.
             "portfolioId": portfolio["uuid"], "portfolioTitle": portfolio["title"], "learnerName": f"{s['given']} {s['surname']}",
-            "entryIds": [], "sharedWithKind": "external-assessor", "sharedWithExternalAssessorId": assessor["uuid"],
+            # No selection: the whole portfolio, which the assessor portal joins on.
+            "entryIds": [], "wholePortfolioId": portfolio["uuid"], "sharedWithKind": "external-assessor", "sharedWithExternalAssessorId": assessor["uuid"],
             "sharedBy": EXAM_SECRETARY, "expiresAt": stamp(dt.date(2026, 10, 16), 23, 59), "lifecycle": "active",
         })
 
@@ -1732,6 +1748,40 @@ class SchoolYear:
         add_story(self)
         stamp_hour_totals(self.b)
         stamp_group_labels(self.b)
+
+    # --- practical-exam-assessment: a proeve with two assessors -------------
+    # Added last, so no earlier uuid moves, and with no random draws. Ruud Jansen
+    # assesses first and Sanne Bakker second, each for the same three candidates,
+    # the first three students on a placement, in one sitting.
+    def add_practical_exam(self) -> None:
+        second = self.b.add("external-assessor", {
+            "givenName": "Sanne", "familyName": "Bakker",
+            "email": "sanne.bakker@examinering-zuiddrecht.example",
+            "organisationName": "Examinering Zuiddrecht", "active": True,
+        })
+        candidates = [p["student"] for p in self.placements][:3]
+        period = self.b.add("exam-period", {
+            "name": "Proeven van bekwaamheid november 2026", "startsOn": "2026-11-16", "endsOn": "2026-11-20",
+            "cohortIds": sorted({self.cohorts[s["class"]]["uuid"] for s in candidates}), "lifecycle": "published",
+        })
+        exam = self.b.add("exam", {
+            "title": "Proeve van bekwaamheid installeren", "description": "Praktijkexamen: de kandidaat installeert en meet na, twee beoordelaars kijken mee.",
+            "scoringScheme": "passMark", "passMark": 5.5, "timeLimitMinutes": 180, "maxAttempts": 1, "lifecycle": "published",
+        })
+        starts = stamp(dt.date(2026, 11, 16), 9, 0)
+        sitting = self.b.add("exam-sitting", {
+            "examPeriodId": period["uuid"], "assessmentId": exam["uuid"], "cohortIds": period["cohortIds"],
+            "startsAt": starts, "endsAt": stamp(dt.date(2026, 11, 16), 12, 0),
+            "roomIds": [self.rooms[candidates[0]["class"]]["uuid"]], "headcount": len(candidates), "invigilatorsNeeded": 0,
+            "lifecycle": "planned",
+        })
+        for s in candidates:
+            for role, assessor in (("first", self.assessor), ("second", second)):
+                self.b.add("exam-assessor-assignment", {
+                    "examSittingId": sitting["uuid"], "externalAssessorId": assessor["uuid"], "learnerRef": s["profile"]["uuid"],
+                    "role": role, "lifecycle": "assigned", "learnerName": f"{s['given']} {s['surname']}",
+                    "sittingStartsAt": starts, "examTitle": exam["title"],
+                })
 
 
 def programme_unit_codes(key: str) -> list[str]:
@@ -2048,6 +2098,20 @@ STORY_UNITS = [
 ]
 
 
+def story_days(monday: dt.date, count: int, questions: dict) -> list[dict]:
+    """`count` day lines from `monday`, each 08.00 to 16.30 with 30 minutes break (8 hours) on the
+    placement's first work processes; `questions` puts the trainer's question on a day by its index."""
+    lines = []
+    for i in range(count):
+        line = {"date": (monday + dt.timedelta(days=i)).isoformat(), "startTime": "08:00", "endTime": "16:30",
+                "breakMinutes": 30, "hours": 8, "werkprocesCodes": [STORY_PROGRESS[2][0]],
+                "description": "Aan de transportbandopstelling gewerkt."}
+        if i in questions:
+            line["returnedQuestion"] = questions[i]
+        lines.append(line)
+    return lines
+
+
 def stamp_hour_totals(b: Builder) -> None:
     """Every placement's waiting and returned hours, as HourWeekTotalRollup keeps them on a live save
     (bpv-hours-match-the-board): waiting is the hours submitted on a week still `submitted`, returned the
@@ -2124,7 +2188,61 @@ STORY_LESSONS = [
     (dt.date(2026, 10, 9), (10, 0), (11, 0), "MT-2.6", "B1.08", "cancelled"),
     (dt.date(2026, 10, 9), (11, 15), (12, 15), "MT-2.7", "B1.08", None),
 ]
+# attendance-warns-before-the-threshold (board esdoornveen/LqVandaag): Sem Visser, 17, in MT4-2A, missed 14
+# lesuren without permission in the four weeks up to Monday 5 October 2026. The class's past lessons follow the
+# timetable above (Thursday and Friday); per day, the units he was not there for.
+SEM = "mbo-student-253"
+SEM_PERSON = ("Sem", "Visser", "2009-02-11",
+              {"street": "Esdoornlaan", "houseNumber": "38", "postalCode": "0511 KP", "city": "Zuiddrecht", "country": "NL"},
+              [{"name": "Monique Visser", "relationship": "ouder", "phone": "06-00007734", "priority": 1}])
+SEM_PAST_DAYS = [dt.date(2026, 9, 10), dt.date(2026, 9, 11), dt.date(2026, 9, 17), dt.date(2026, 9, 18),
+                 dt.date(2026, 9, 24), dt.date(2026, 9, 25), dt.date(2026, 10, 1), dt.date(2026, 10, 2)]
+SEM_MISSED = {
+    dt.date(2026, 9, 17): ("MT-2.1", "MT-2.2", "MT-2.3", "MT-2.4"),
+    dt.date(2026, 9, 18): ("MT-2.5", "MT-2.6"),
+    dt.date(2026, 9, 25): ("MT-2.5",),
+    dt.date(2026, 10, 1): ("MT-2.1", "MT-2.2", "MT-2.3", "MT-2.4"),
+}
+LEERPLICHT_WARN_AT = 12
 STORY_UNIT_NAMES = {c[0]: c[1] for c in STORY_UNITS}
+
+
+# The placement board of MT4-2A on Monday 5 October 2026 (esdoornveen/LqBord,
+# bpv-coach-today-and-placement-board T6): a placement in every phase. Daan
+# Smits has no company five weeks into the period; Jesse Kok's tussentijdse
+# beoordeling has no date yet. Student, given name, family name, birth date.
+BOARD_DAY = dt.date(2026, 10, 5)
+BOARD_PEOPLE = [
+    ("mbo-student-254", "Daan", "Smits", "2008-01-22"),
+    ("mbo-student-255", "Jesse", "Kok", "2007-11-09"),
+    ("mbo-student-256", "Sanne", "de Wit", "2008-05-30"),
+    ("mbo-student-257", "Thijs", "Visser", "2007-09-17"),
+    ("mbo-student-258", "Bram", "Jansen", "2007-12-03"),
+]
+BOARD_COMPANY, BOARD_KVK = "Van Dijk Machinebouw", "00000020"
+# Placements: student, company, start, end, lifecycle, POK lifecycle (None: no agreement yet),
+# the parties that signed it, and what the board shows on Monday 5 October.
+BOARD_PLACEMENTS = [
+    ("mbo-student-254", "", dt.date(2026, 8, 31), dt.date(2027, 1, 29), "proposed", None, [],
+     ("searching", "2026-08-31", "5 weken te laat")),
+    ("mbo-student-255", BOARD_COMPANY, dt.date(2026, 8, 31), dt.date(2027, 1, 29), "active", "active",
+     ["student", "school", "praktijkopleider"], ("running", None, "")),
+    ("mbo-student-256", BOARD_COMPANY, dt.date(2026, 10, 19), dt.date(2027, 1, 29), "confirmed", "draft",
+     ["student"], ("agreement", "2026-10-19", "")),
+    ("mbo-student-257", BOARD_COMPANY, dt.date(2026, 2, 2), dt.date(2026, 7, 3), "active", "active",
+     ["student", "school", "praktijkopleider"], ("rounding-off", "2026-07-03", "13 weken te laat")),
+    ("mbo-student-258", BOARD_COMPANY, dt.date(2026, 2, 2), dt.date(2026, 7, 3), "completed", "active",
+     ["student", "school", "praktijkopleider"], ("done", None, "")),
+]
+# The visits on the board: student, kind, lifecycle, the agreed moment (None: no date yet).
+BOARD_VISITS = [
+    (MILAN, "tussentijds-gesprek", "planned", stamp(dt.date(2026, 10, 13), 10, 0)),
+    ("mbo-student-255", "tussentijds-gesprek", "unplanned", None),
+    ("mbo-student-257", "eindgesprek", "unplanned", None),
+    ("mbo-student-258", "eindgesprek", "done", stamp(dt.date(2026, 6, 24), 13, 0)),
+]
+# What the board shows for the two story placements on that Monday.
+BOARD_STORY_PHASES = {MILAN: ("assessment", "2026-10-13", ""), AYLIN: ("running", None, "")}
 
 
 def add_story(year: SchoolYear) -> dict:
@@ -2146,7 +2264,7 @@ class StoryAutumn:
         for step in (self.add_staff_and_rooms, self.add_framework, self.add_competencies, self.add_programme,
                      self.add_unit_courses, self.add_plans, self.add_class, self.add_students, self.add_teachers,
                      self.add_placements, self.add_visits, self.add_progress, self.add_hour_weeks, self.add_lessons,
-                     self.add_conference, self.add_exam):
+                     self.add_conference, self.add_exam, self.add_nearing_student, self.add_placement_board):
             step()
         return {"milan": self.profiles[MILAN], "aylin": self.profiles[AYLIN], "petra": self.petra, "cohort": self.cohort,
                 "milan_placement": self.placements[MILAN], "aylin_placement": self.placements[AYLIN]}
@@ -2378,19 +2496,25 @@ class StoryAutumn:
             self.b.add("werkproces-progress", row)
 
     # Weeks of BPV hours. Milan: weeks 36 to 39 approved (4 x 24 = 96). Week
-    # 40 is two records, because a week record has no per-day lines (D-7):
-    # Monday and Wednesday (16 hours) still wait for Petra, and the Tuesday
-    # (8 hours) she sent back with her question. Approving none of a record is
-    # `rejected`; her note names the day. Aylin: weeks 35 to 39 approved
-    # (5 x 32 = 160) and week 40 waiting.
+    # 40 holds its days (bpv-hours-per-day): Monday 28, Tuesday 29 and
+    # Wednesday 30 September, each 08.00 to 16.30 with 30 minutes break (24
+    # hours). Petra sent the week back about the Tuesday with her question, so
+    # nothing of it is approved yet (D-7: she approves the week, a return names
+    # the day). Week 41 is a draft he keeps for later with Monday 5 October.
+    # Aylin: weeks 35 to 39 approved (5 x 32 = 160) and week 40 waiting.
     def add_hour_weeks(self) -> None:
         self.add_approved_weeks(MILAN, (dt.date(2026, 8, 31), 4, 24, 2, (9, 20)))
-        self.week(MILAN, (dt.date(2026, 9, 28), 16, 2, None))
-        self.week(MILAN, (dt.date(2026, 9, 28), 8, 1, {
-            "approved": 0, "at": stamp(dt.date(2026, 10, 2), 16, 42), "lifecycle": "rejected",
-            "note": ("Dinsdag 29 september: je schreef 8 uur. Volgens mij ging je om 14.00 uur naar de tandarts. "
-                     "Wil je de uren aanpassen? Dan keur ik de hele week goed."),
+        question = ("Je schreef 8 uur op dinsdag 29 september. Volgens mij ging je om 14.00 uur naar de tandarts. "
+                    "Wil je de uren aanpassen? Dan keur ik de hele week goed.")
+        returned = self.week(MILAN, (dt.date(2026, 9, 28), 24, 2, {
+            "approved": 0, "at": stamp(dt.date(2026, 10, 2), 16, 42), "lifecycle": "rejected", "note": question,
         }))
+        returned["days"] = story_days(dt.date(2026, 9, 28), 3, {1: question})
+        returned["returnSubject"] = "Vraag over je uren van dinsdag 29 september"
+        draft = self.week(MILAN, (dt.date(2026, 10, 5), 8, 0, None))
+        draft["days"] = story_days(dt.date(2026, 10, 5), 1, {})
+        draft["lifecycle"] = "draft"
+        del draft["submittedAt"]
         self.add_approved_weeks(AYLIN, (dt.date(2026, 8, 24), 5, 32, 3, (9, 30)))
         self.week(AYLIN, (dt.date(2026, 9, 28), 32, 3, None))
 
@@ -2479,6 +2603,101 @@ class StoryAutumn:
             "roomIds": [self.rooms["B1.08"]["uuid"]], "headcount": 2, "invigilatorsNeeded": 1, "lifecycle": "planned",
         })
 
+    # attendance-warns-before-the-threshold: Sem Visser and the class's past lessons he missed. Added last, so no
+    # earlier uuid moves; the summary carries what UnauthorisedHoursWindow computes from his records.
+    def add_nearing_student(self) -> None:
+        self.add_student(253, (SEM, SEM_PERSON))
+        self.cohort["learnerIds"].append(SEM)
+        hours, days = 0.0, set()
+        for day in SEM_PAST_DAYS:
+            for when, start, end, unit, room, _state in STORY_LESSONS:
+                if when.weekday() != day.weekday():
+                    continue
+                lesson = self.b.add("session", {
+                    "cohortId": self.cohort["uuid"], "courseId": self.courses[unit]["uuid"],
+                    "title": f"MT4-2A, {STORY_UNIT_NAMES[unit]}, {dutch_date(day)}", "startsAt": stamp(day, *start),
+                    "endsAt": stamp(day, *end), "location": self.rooms[room]["name"], "roomId": self.rooms[room]["uuid"],
+                    "lifecycle": "completed",
+                })
+                if unit not in SEM_MISSED.get(day, ()):
+                    continue
+                teacher = next(c[3][0] for c in STORY_UNITS if c[0] == unit)
+                self.b.add("attendance-record", {
+                    "sessionId": lesson["uuid"], "learnerId": SEM, "learnerRef": self.profiles[SEM]["uuid"],
+                    "cohortId": self.cohort["uuid"], "status": "absent-unexcused", "minutesAttended": 0, "markedBy": teacher,
+                    "markedAt": stamp(day, start[0], start[1] + 10), "reason": "Niet aanwezig, niet afgemeld", "excuseRequestId": None,
+                })
+                hours += ((end[0] - start[0]) * 60 + end[1] - start[1]) / 60
+                days.add(day)
+        limit = LEERPLICHT_THRESHOLD["limit"]
+        shown = str(int(hours)) if hours == int(hours) else str(round(hours, 1)).replace(".", ",")
+        self.b.add("attendance-summary", {
+            "learnerId": SEM, "learnerRef": self.profiles[SEM]["uuid"], "schoolYear": STORY_YEAR,
+            "absentDays": len(days), "absentAuthorisedDays": 0, "absentUnauthorisedDays": len(days), "lateCount": 0,
+            "lateMinutes": 0, "updatedAt": stamp(dt.date(2026, 10, 5), 6, 0),
+            "unauthorisedHoursWindow": round(hours, 1), "thresholdHours": limit, "windowLabel": f"{shown} van {limit} uur",
+            "thresholdNearing": LEERPLICHT_WARN_AT <= hours < limit,
+            "teacherIds": sorted(set(self.cohort["teacherIds"]) | {a["teacherId"] for a in self.cohort["teacherAssignments"]}),
+            "mentorId": STORY_SLB,
+        })
+
+
+    # The placement board (bpv-coach-today-and-placement-board T6): five more
+    # students of MT4-2A (254-258, after Sem Visser), one placement in every phase, and the visits the
+    # BPV-begeleider plans. The phase each placement shows on Monday 5 October
+    # is written as BpvPlacementPhaseStamp writes it on a live save.
+    def add_placement_board(self) -> None:
+        for volgnummer, (nc, given, family, birth) in enumerate(BOARD_PEOPLE, start=254):
+            address = {"street": "Lindehof", "houseNumber": str(volgnummer - 230), "postalCode": "0512 AD", "city": "Zuiddrecht", "country": "NL"}
+            contacts = [{"name": f"Ouder van {given} {family}", "relationship": "ouder", "phone": f"06-0000{volgnummer + 4000}", "priority": 1}]
+            self.add_student(volgnummer, (nc, (given, family, birth, address, contacts)))
+            self.cohort["learnerIds"].append(nc)
+        self.ilse = self.b.add("praktijkopleider", {
+            "givenName": "Ilse", "familyName": "van Dijk", "email": "ilse.vandijk@vandijk-machinebouw.example", "phone": "06-00003172",
+            "trainingCompanyName": BOARD_COMPANY, "trainingCompanyKvkNumber": BOARD_KVK, "active": True,
+        })
+        for spec in BOARD_PLACEMENTS:
+            self.placements[spec[0]] = self.board_placement(spec)
+        for nc, shown in BOARD_STORY_PHASES.items():
+            self.placements[nc].update(dict(zip(("phase", "phaseDueAt", "lateLabel"), shown)))
+        for nc, kind, lifecycle, planned in BOARD_VISITS:
+            visit = {"bpvPlacementId": self.placements[nc]["uuid"], "learnerRef": self.profiles[nc]["uuid"], "visitKind": kind,
+                     "schoolCoachId": STORY_COACH, "practicalTrainerId": self.placements[nc]["practicalTrainerId"], "lifecycle": lifecycle}
+            if planned is not None:
+                visit.update({"proposedAt": planned, "plannedAt": planned})
+            self.b.add("bpv-visit", visit)
+
+    def board_placement(self, spec: tuple) -> dict:
+        nc, company, start, end, lifecycle, pok_state, signers, shown = spec
+        fields = {
+            "learnerId": nc, "learnerRef": self.profiles[nc]["uuid"], "programmeId": self.programme["uuid"],
+            "curriculumPlanId": self.plans["MT-BPV2"]["uuid"], "schoolCoachId": STORY_COACH,
+            "periodFrom": start.isoformat(), "periodTo": end.isoformat(), "agreedHours": 480, "hoursApprovedTotal": 0,
+            "lifecycle": lifecycle, "phase": shown[0], "phaseDueAt": shown[1], "lateLabel": shown[2],
+        }
+        if company:
+            fields.update({"practicalTrainerId": self.ilse["uuid"], "trainingCompanyName": company, "trainingCompanyKvkNumber": BOARD_KVK})
+        placement = self.b.add("bpv-placement", fields)
+        if pok_state is not None:
+            self.board_agreement(placement, (nc, start, end, pok_state, signers))
+        return placement
+
+    def board_agreement(self, placement: dict, agreed: tuple) -> None:
+        nc, start, end, pok_state, signers = agreed
+        pok = self.b.add("praktijkovereenkomst", {
+            "bpvPlacementId": placement["uuid"], "periodFrom": start.isoformat(), "periodTo": end.isoformat(),
+            "terms": (f"Beroepspraktijkvorming bij {BOARD_COMPANY} van {dutch_date(start)} tot en met {dutch_date(end)}, "
+                      "op maandag, dinsdag en woensdag van 08.00 tot 16.30 uur, samen 480 uur. Praktijkopleider Ilse van Dijk, "
+                      "BPV-begeleider Ruud Hermans."),
+            "version": 1, "parentSignatureRequired": False, "lifecycle": pok_state,
+        })
+        signer_of = {"student": (nc, 10, "basic", "Nextcloud-account"),
+                     "school": (STORY_COACH, 11, "substantial", "Nextcloud-account met tweestapsverificatie"),
+                     "praktijkopleider": (self.ilse["uuid"], 14, "basic", "Ondertekenlink per e-mail")}
+        for role in signers:
+            signer, hour, level, method = signer_of[role]
+            self.b.add("pok-signature", {"subjectId": pok["uuid"], "subjectVersion": 1, "signerId": signer, "signerRole": role,
+                                         "signedAt": stamp(start - dt.timedelta(days=7), hour, 5), "assuranceLevel": level, "method": method})
 
 def story_unit_components(unit: tuple) -> list[dict]:
     """A story unit's components: its named parts, or one final assessment."""

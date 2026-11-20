@@ -55,12 +55,16 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\AttendanceWindowAggregatorInterface;
+use OCA\Learniq\Kernel\Contracts\LearnerRefResolverInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Kernel\Contracts\ReportCardTemplateSectionResolverInterface;
+use OCA\Learniq\Support\EntityRow;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\Service\AttendanceWindowAggregator;
-use OCA\Learniq\Service\LearnerRefResolver;
-use OCA\Learniq\Service\ReportCardTemplateSectionResolver;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -95,12 +99,12 @@ class ReportCardComposer implements IEventListener {
 	 * @param ObjectService $objectService OR object access service.
 	 * @param ITimeFactory $timeFactory NC time source (injectable "now" for tests).
 	 * @param LoggerInterface $logger PSR logger.
-	 * @param AttendanceWindowAggregator $attendance Resolves window Sessions and aggregates attendance.
-	 * @param ReportCardTemplateSectionResolver $templateSections Resolves a template's declared
+	 * @param AttendanceWindowAggregatorInterface $attendance Resolves window Sessions and aggregates attendance.
+	 * @param ReportCardTemplateSectionResolverInterface $templateSections Resolves a template's declared
 	 *                                                            sections and gates population by
 	 *                                                            them (report-card-templates change).
-	 * @param LearnerRefResolver $learnerRefs Nextcloud user id to LearnerProfile UUID, the card's learnerRef.
-	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param LearnerRefResolverInterface $learnerRefs Nextcloud user id to LearnerProfile UUID, the card's learnerRef.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
@@ -108,10 +112,10 @@ class ReportCardComposer implements IEventListener {
 		private readonly ObjectService $objectService,
 		private readonly ITimeFactory $timeFactory,
 		private readonly LoggerInterface $logger,
-		private readonly AttendanceWindowAggregator $attendance,
-		private readonly ReportCardTemplateSectionResolver $templateSections,
-		private readonly LearnerRefResolver $learnerRefs,
-		private readonly ListenerSchemaResolver $schemas,
+		private readonly AttendanceWindowAggregatorInterface $attendance,
+		private readonly ReportCardTemplateSectionResolverInterface $templateSections,
+		private readonly LearnerRefResolverInterface $learnerRefs,
+		private readonly ListenerSchemaResolverInterface $schemas,
 	) {
 	}//end __construct()
 
@@ -182,47 +186,27 @@ class ReportCardComposer implements IEventListener {
 
 		$createdCount = 0;
 
+		$context = [
+			'periodId' => $periodId,
+			'periodCode' => $periodCode,
+			'qualifyingPlanIds' => $qualifyingPlanIds,
+			'attendanceIncluded' => $attendanceIncluded,
+			'sessionIds' => $sessionIds,
+			'tenantId' => $tenantId,
+		];
 		foreach ($learnerIds as $learnerId) {
 			$cohortId = $learnerCohortMap[$learnerId] ?? null;
-			$templateId = $cohortTemplateMap[$cohortId] ?? null;
-			$sectionKinds = $this->templateSections->resolveSectionKinds(rawTemplateId: $templateId);
+			$reportCard = $this->composeCard(
+				learnerId: $learnerId,
+				context: $context + ['cohortId' => $cohortId, 'templateId' => $cohortTemplateMap[$cohortId] ?? null]
+			);
 
-			$subjectGrades = [];
-			if ($this->templateSections->sectionEnabled(kind: 'grades', sectionKinds: $sectionKinds) === true) {
-				$subjectGrades = $this->buildSubjectGrades(
-					learnerId: $learnerId,
-					curriculumPlanIds: $qualifyingPlanIds,
-					periodCode: $periodCode
-				);
-			}
-
-			$attendanceSummary = null;
-			if ($this->templateSections->attendanceSectionEnabled(attendanceIncluded: $attendanceIncluded, sectionKinds: $sectionKinds) === true) {
-				$attendanceSummary = $this->attendance->buildAttendanceSummary(learnerId: $learnerId, sessionIds: $sessionIds);
-			}
-
-			$reportCard = [
-				'learnerId' => $learnerId,
-				'learnerRef' => $this->learnerRefs->resolve(learnerId: $learnerId),
-				'reportPeriodId' => $periodId,
-				'cohortId' => $cohortId,
-				'templateId' => $templateId,
-				'subjectGrades' => $subjectGrades,
-				'attendanceSummary' => $attendanceSummary,
-				'mentorComment' => null,
-				'competencyAttainment' => null,
-				'composedAt' => $this->now(),
-				'docudeskRenderStatus' => null,
-				'docudeskRequestedAt' => null,
-				'docudeskDocumentRef' => null,
-				'docudeskRenderError' => null,
-				'tenant_id' => $tenantId,
-				'lifecycle' => 'draft',
-			];
-
-			$this->objectService->saveObject(register: self::LEARNIQ_REGISTER, schema: self::REPORT_CARD_SCHEMA, object: $reportCard);
+			$this->objectService->saveObject(
+				object: $reportCard,
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::REPORT_CARD_SCHEMA))
+			);
 			$createdCount++;
-		}//end foreach
+		}
 
 		$this->logger->info(
 			'[ReportCardComposer] ReportPeriod {period}: {count} ReportCard(s) composed.',
@@ -230,6 +214,54 @@ class ReportCardComposer implements IEventListener {
 		);
 
 	}//end composeForPeriod()
+
+	/**
+	 * The draft ReportCard of one learner in the period being composed.
+	 *
+	 * @param string               $learnerId The learner.
+	 * @param array<string, mixed> $context   periodId, periodCode, qualifyingPlanIds, attendanceIncluded,
+	 *                                        sessionIds, tenantId, and the learner's cohortId and templateId.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/specs/report-card/spec.md#scenario-composing-a-period-creates-one-reportcard-per-cohort-learner
+	 */
+	private function composeCard(string $learnerId, array $context): array {
+		$sectionKinds = $this->templateSections->resolveSectionKinds(rawTemplateId: $context['templateId']);
+
+		$subjectGrades = [];
+		if ($this->templateSections->sectionEnabled(kind: 'grades', sectionKinds: $sectionKinds) === true) {
+			$subjectGrades = $this->buildSubjectGrades(
+				learnerId: $learnerId,
+				curriculumPlanIds: $context['qualifyingPlanIds'],
+				periodCode: $context['periodCode']
+			);
+		}
+
+		$attendanceSummary = null;
+		if ($this->templateSections->attendanceSectionEnabled(attendanceIncluded: $context['attendanceIncluded'], sectionKinds: $sectionKinds) === true) {
+			$attendanceSummary = $this->attendance->buildAttendanceSummary(learnerId: $learnerId, sessionIds: $context['sessionIds']);
+		}
+
+		return [
+			'learnerId' => $learnerId,
+			'learnerRef' => $this->learnerRefs->resolve(learnerId: $learnerId),
+			'reportPeriodId' => $context['periodId'],
+			'cohortId' => $context['cohortId'],
+			'templateId' => $context['templateId'],
+			'subjectGrades' => $subjectGrades,
+			'attendanceSummary' => $attendanceSummary,
+			'mentorComment' => null,
+			'competencyAttainment' => null,
+			'composedAt' => $this->now(),
+			'docudeskRenderStatus' => null,
+			'docudeskRequestedAt' => null,
+			'docudeskDocumentRef' => null,
+			'docudeskRenderError' => null,
+			'tenant_id' => $context['tenantId'],
+			'lifecycle' => 'draft',
+		];
+	}//end composeCard()
 
 	/**
 	 * Re-run composition for a single, already-existing `draft` ReportCard
@@ -255,7 +287,10 @@ class ReportCardComposer implements IEventListener {
 			return;
 		}
 
-		$period = $this->objectService->find(id: $reportPeriodId, register: self::LEARNIQ_REGISTER, schema: self::REPORT_PERIOD_SCHEMA);
+		$period = $this->objectService->find(
+			id: $reportPeriodId,
+			options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::REPORT_PERIOD_SCHEMA)
+		);
 		if ($period === null) {
 			$this->logger->warning(
 				'[ReportCardComposer] ReportCard {id} recompose: governing ReportPeriod {period} not found.',
@@ -266,6 +301,34 @@ class ReportCardComposer implements IEventListener {
 
 		$periodData = $this->normalise(row: $period);
 
+		[$subjectGrades, $attendanceSummary] = $this->recomposedSections(card: $card, periodData: $periodData);
+
+		$updated = $card;
+		$updated['subjectGrades'] = $subjectGrades;
+		$updated['attendanceSummary'] = $attendanceSummary;
+		$updated['composedAt'] = $this->now();
+
+		$this->objectService->saveObject(
+			object: $updated,
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::REPORT_CARD_SCHEMA))
+		);
+
+		$this->logger->info('[ReportCardComposer] ReportCard {id} recomposed.', ['id' => $cardId]);
+
+	}//end recomposeCard()
+
+	/**
+	 * The grade and attendance sections of a card, recomputed against its period.
+	 *
+	 * @param array<string, mixed> $card       The ReportCard.
+	 * @param array<string, mixed> $periodData Its governing ReportPeriod.
+	 *
+	 * @return array{0: array<int, mixed>, 1: mixed} subjectGrades and attendanceSummary.
+	 *
+	 * @spec openspec/specs/report-card/spec.md#requirement-composition-is-a-declared-transition-triggered-php-composer-not-a-dataexchangejob-and-not-a-timedjob
+	 */
+	private function recomposedSections(array $card, array $periodData): array {
+		$learnerId = (string)($card['learnerId'] ?? '');
 		$periodCode = (string)($periodData['periodCode'] ?? '');
 		$curriculumPlanIds = $this->stringList(value: $periodData['curriculumPlanIds'] ?? []);
 		$attendanceIncluded = ($periodData['attendanceIncluded'] ?? true) === true;
@@ -288,16 +351,8 @@ class ReportCardComposer implements IEventListener {
 			$attendanceSummary = $this->attendance->buildAttendanceSummary(learnerId: $learnerId, sessionIds: $sessionIds);
 		}
 
-		$updated = $card;
-		$updated['subjectGrades'] = $subjectGrades;
-		$updated['attendanceSummary'] = $attendanceSummary;
-		$updated['composedAt'] = $this->now();
-
-		$this->objectService->saveObject(register: self::LEARNIQ_REGISTER, schema: self::REPORT_CARD_SCHEMA, object: $updated);
-
-		$this->logger->info('[ReportCardComposer] ReportCard {id} recomposed.', ['id' => $cardId]);
-
-	}//end recomposeCard()
+		return [$subjectGrades, $attendanceSummary];
+	}//end recomposedSections()
 
 	/**
 	 * Filter `curriculumPlanIds` down to those whose `CurriculumPlan.components[]`
@@ -314,7 +369,10 @@ class ReportCardComposer implements IEventListener {
 		$qualifying = [];
 
 		foreach ($curriculumPlanIds as $curriculumPlanId) {
-			$plan = $this->objectService->find(id: $curriculumPlanId, register: self::LEARNIQ_REGISTER, schema: self::CURRICULUM_PLAN_SCHEMA);
+			$plan = $this->objectService->find(
+				id: $curriculumPlanId,
+				options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::CURRICULUM_PLAN_SCHEMA)
+			);
 			if ($plan === null) {
 				continue;
 			}
@@ -358,7 +416,10 @@ class ReportCardComposer implements IEventListener {
 		$cohortTemplateMap = [];
 
 		foreach ($cohortIds as $cohortId) {
-			$cohort = $this->objectService->find(id: $cohortId, register: self::LEARNIQ_REGISTER, schema: self::COHORT_SCHEMA);
+			$cohort = $this->objectService->find(
+				id: $cohortId,
+				options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::COHORT_SCHEMA)
+			);
 			if ($cohort === null) {
 				continue;
 			}
@@ -391,77 +452,116 @@ class ReportCardComposer implements IEventListener {
 	 * @return array<int,array<string,mixed>>
 	 */
 	private function buildSubjectGrades(string $learnerId, array $curriculumPlanIds, string $periodCode): array {
-		$rows = [];
+		$scope = ['learnerId' => $learnerId, 'periodCode' => $periodCode];
 
-		foreach ($curriculumPlanIds as $curriculumPlanId) {
-			$finalGrades = $this->objectService->findAll(
-				[
-					'filters' => [
-						'register' => self::LEARNIQ_REGISTER,
-						'schema' => self::FINAL_GRADE_SCHEMA,
-						'learnerId' => $learnerId,
-						'curriculumPlanId' => $curriculumPlanId,
-					],
-					'limit' => 1,
-				]
-			);
-
-			$finalGrade = [];
-			if (empty($finalGrades) === false) {
-				$finalGrade = $this->normalise(row: $finalGrades[0]);
-			}
-
-			$breakdown = $finalGrade['breakdown'] ?? [];
-
-			$periods = [];
-			if (is_array($breakdown) === true) {
-				$periods = $breakdown['periods'] ?? [];
-			}
-
-			$periodAverage = null;
-			if (is_array($periods) === true) {
-				$periodAverage = $periods[$periodCode] ?? null;
-			}
-
-			$sourceGradeEntries = $this->objectService->findAll(
-				[
-					'filters' => [
-						'register' => self::LEARNIQ_REGISTER,
-						'schema' => self::GRADE_ENTRY_SCHEMA,
-						'learnerId' => $learnerId,
-						'curriculumPlanId' => $curriculumPlanId,
-						'period' => $periodCode,
-						'lifecycle' => 'published',
-					],
-					'limit' => 500,
-				]
-			);
-
-			$sourceGradeEntryIds = array_values(
-				array_filter(
-					array_map(
-						function ($entry): string {
-							$entry = $this->normalise(row: $entry);
-							return (string)($entry['id'] ?? ($entry['uuid'] ?? ''));
-						},
-						$sourceGradeEntries
-					),
-					static fn (string $id): bool => $id !== ''
-				)
-			);
-
-			$rows[] = [
-				'curriculumPlanId' => $curriculumPlanId,
-				'courseId' => $finalGrade['courseId'] ?? null,
-				'periodAverage' => $this->toNullableFloat(value: $periodAverage),
-				'passed' => $finalGrade['passed'] ?? null,
-				'teacherComment' => null,
-				'sourceGradeEntryIds' => $sourceGradeEntryIds,
-			];
-		}//end foreach
-
-		return $rows;
+		return array_map(
+			fn ($curriculumPlanId): array => $this->subjectGrade(scope: $scope, curriculumPlanId: $curriculumPlanId),
+			array_values($curriculumPlanIds)
+		);
 	}//end buildSubjectGrades()
+
+	/**
+	 * One `subjectGrades[]` row: the learner's period average from the
+	 * plan's FinalGrade and the contributing published GradeEntry ids.
+	 *
+	 * @param array{learnerId: string, periodCode: string} $scope            The learner's NC user ID and the ReportPeriod's periodCode.
+	 * @param mixed                                        $curriculumPlanId The qualifying CurriculumPlan UUID.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private function subjectGrade(array $scope, mixed $curriculumPlanId): array {
+		$periodCode = $scope['periodCode'];
+		$finalGrade = $this->planFinalGrade(learnerId: $scope['learnerId'], curriculumPlanId: $curriculumPlanId);
+
+		$breakdown = $finalGrade['breakdown'] ?? [];
+
+		$periods = [];
+		if (is_array($breakdown) === true) {
+			$periods = $breakdown['periods'] ?? [];
+		}
+
+		$periodAverage = null;
+		if (is_array($periods) === true) {
+			$periodAverage = $periods[$periodCode] ?? null;
+		}
+
+		return [
+			'curriculumPlanId' => $curriculumPlanId,
+			'courseId' => $finalGrade['courseId'] ?? null,
+			'periodAverage' => $this->toNullableFloat(value: $periodAverage),
+			'passed' => $finalGrade['passed'] ?? null,
+			'teacherComment' => null,
+			'sourceGradeEntryIds' => $this->sourceGradeEntryIds(scope: $scope, curriculumPlanId: $curriculumPlanId),
+		];
+	}//end subjectGrade()
+
+	/**
+	 * The learner's FinalGrade for a plan, normalised, or [] when there is none.
+	 *
+	 * @param string $learnerId        NC user ID.
+	 * @param mixed  $curriculumPlanId The CurriculumPlan UUID.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private function planFinalGrade(string $learnerId, mixed $curriculumPlanId): array {
+		$finalGrades = $this->objectService->findAll(
+			[
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::FINAL_GRADE_SCHEMA,
+					'learnerId' => $learnerId,
+					'curriculumPlanId' => $curriculumPlanId,
+				],
+				'limit' => 1,
+			]
+		);
+
+		$finalGrade = [];
+		if (empty($finalGrades) === false) {
+			$finalGrade = $this->normalise(row: $finalGrades[0]);
+		}
+
+		return $finalGrade;
+	}//end planFinalGrade()
+
+	/**
+	 * The ids of the published GradeEntries for (learner, plan, period).
+	 *
+	 * @param array{learnerId: string, periodCode: string} $scope            The learner's NC user ID and the ReportPeriod's periodCode.
+	 * @param mixed                                        $curriculumPlanId The CurriculumPlan UUID.
+	 *
+	 * @return array<int,string>
+	 */
+	private function sourceGradeEntryIds(array $scope, mixed $curriculumPlanId): array {
+		$learnerId = $scope['learnerId'];
+		$periodCode = $scope['periodCode'];
+		$sourceGradeEntries = $this->objectService->findAll(
+			[
+				'filters' => [
+					'register' => self::LEARNIQ_REGISTER,
+					'schema' => self::GRADE_ENTRY_SCHEMA,
+					'learnerId' => $learnerId,
+					'curriculumPlanId' => $curriculumPlanId,
+					'period' => $periodCode,
+					'lifecycle' => 'published',
+				],
+				'limit' => 500,
+			]
+		);
+
+		return array_values(
+			array_filter(
+				array_map(
+					function ($entry): string {
+						$entry = $this->normalise(row: $entry);
+						return (string)($entry['id'] ?? ($entry['uuid'] ?? ''));
+					},
+					$sourceGradeEntries
+				),
+				static fn (string $id): bool => $id !== ''
+			)
+		);
+	}//end sourceGradeEntryIds()
 
 	/**
 	 * Current moment as an ISO-8601 string, via the injected time source.
@@ -516,10 +616,6 @@ class ReportCardComposer implements IEventListener {
 	 * @return array<string,mixed>
 	 */
 	private function normalise(mixed $row): array {
-		if (is_array($row) === true) {
-			return $row;
-		}
-
-		return $row->jsonSerialize();
+		return (new EntityRow())->asArray(row: $row);
 	}//end normalise()
 }//end class

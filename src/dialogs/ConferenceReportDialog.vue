@@ -222,27 +222,47 @@ export default {
 			this.busy = true
 			this.notice = null
 			try {
-				if (!this.savedId) {
-					const report = await createObject('conference-report', conferenceReportBody({
-						slot: this.slot,
-						slotId: this.slotId,
-						narrative: this.narrative,
-						attendees: this.attendees,
-						recordedBy: currentUserId(),
-						recordedAt: this.recordedAt,
-						tenant: callerTenant(),
-					}))
-					this.savedId = report?.id ?? ''
-				}
-				if (record && this.savedId) {
-					await runTransition(this.savedId, 'record')
-				}
+				await this.createReportOnce()
+				await this.recordReport(record)
 				announceSaved('learniq:conference-report:saved', { reportId: this.savedId, recorded: record })
 				this.$emit('close')
 			} catch (error) {
 				this.notice = requestRefusal(error, this.t('learniq', 'Not saved.'), this.t('learniq', 'The report could not be saved.'))
 			} finally {
 				this.busy = false
+			}
+		},
+
+		/**
+		 * Create the report from the form, unless it was created before.
+		 *
+		 * @return {Promise<void>}
+		 */
+		async createReportOnce() {
+			if (this.savedId) {
+				return
+			}
+			const report = await createObject('conference-report', conferenceReportBody({
+				slot: this.slot,
+				slotId: this.slotId,
+				narrative: this.narrative,
+				attendees: this.attendees,
+				recordedBy: currentUserId(),
+				recordedAt: this.recordedAt,
+				tenant: callerTenant(),
+			}))
+			this.savedId = report?.id ?? ''
+		},
+
+		/**
+		 * Run `record` on the saved report when asked.
+		 *
+		 * @param {boolean} record Whether to record it.
+		 * @return {Promise<void>}
+		 */
+		async recordReport(record) {
+			if (record && this.savedId) {
+				await runTransition(this.savedId, 'record')
 			}
 		},
 	},

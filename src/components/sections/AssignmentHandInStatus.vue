@@ -66,6 +66,7 @@ import {
 	handInSummary,
 	rosterFor,
 } from '../../utils/handInStatus.js'
+import { fetchNamesByUser } from '../../utils/learnerName.js'
 
 export default {
 	name: 'AssignmentHandInStatus',
@@ -206,21 +207,10 @@ export default {
 		async loadNames() {
 			if (this.missing.length === 0) return
 			try {
-				const profiles = listRows(
-					(
-						await axios.get(generateUrl(objectsUrl('learner-profile')), {
-							params: { _limit: 1000 },
-						})
-					).data,
-				)
-				const names = {}
-				for (const p of profiles) {
-					const name = [p.givenName, p.familyName]
-						.filter(Boolean)
-						.join(' ')
-					if (p.ncUserId && name) names[p.ncUserId] = name
-				}
-				this.names = names
+				this.names = await fetchNamesByUser({
+					get: (url, config) => axios.get(url, config),
+					urlFor: generateUrl,
+				})
 			} catch {
 				this.names = {}
 			}

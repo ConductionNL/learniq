@@ -121,18 +121,11 @@ export default {
 		 * @spec openspec/specs/exam-board/spec.md
 		 */
 		facts() {
-			const grounds = {
-				'prior-diploma': this.t('learniq', 'Prior diploma'),
-				certificate: this.t('learniq', 'Certificate'),
-				'work-experience': this.t('learniq', 'Work experience'),
-				other: this.t('learniq', 'Other'),
-			}
-			const kind = grounds[this.exemption.groundsKind] ?? ''
-			const description = this.exemption.groundsDescription ?? ''
+			const grounds = this.groundsText()
 			return [
 				{ label: this.t('learniq', 'Pupil'), value: [this.learnerName, this.learner.groupLabel].filter(Boolean).join(', ') },
 				{ label: this.t('learniq', 'Part'), value: this.componentLabel },
-				{ label: this.t('learniq', 'Grounds'), value: kind && description ? `${kind}: ${description}` : kind || description },
+				{ label: this.t('learniq', 'Grounds'), value: grounds },
 				{ label: this.t('learniq', 'Submitted'), value: dayLabel(this.exemption.submittedAt, getLanguage()) },
 			]
 		},
@@ -189,15 +182,47 @@ export default {
 			this.notice = requestRefusal(error, this.t('learniq', 'Not found.'), this.t('learniq', 'The request could not be read.'))
 			return
 		}
-		const [learner, plan] = await Promise.allSettled([
-			this.exemption.learnerId ? readObject('learner-profile', this.exemption.learnerId) : Promise.resolve({}),
-			this.exemption.curriculumPlanId ? readObject('curriculum-plan', this.exemption.curriculumPlanId) : Promise.resolve({}),
-		])
-		this.learner = learner.value ?? {}
-		this.plan = plan.value ?? {}
+		await this.readLearnerAndPlan()
 	},
 
 	methods: {
+		/**
+		 * Read the case's pupil and plan; one that is not named or cannot be
+		 * read stays empty.
+		 *
+		 * @return {Promise<void>}
+		 */
+		async readLearnerAndPlan() {
+			const [learner, plan] = await Promise.allSettled([
+				this.exemption.learnerId ? readObject('learner-profile', this.exemption.learnerId) : Promise.resolve({}),
+				this.exemption.curriculumPlanId ? readObject('curriculum-plan', this.exemption.curriculumPlanId) : Promise.resolve({}),
+			])
+			this.learner = learner.value ?? {}
+			this.plan = plan.value ?? {}
+		},
+
+		/**
+		 * @return {string} The grounds in words: "kind: description", or whichever is there.
+		 */
+		groundsText() {
+			const kind = this.groundsKindLabel()
+			const description = this.exemption.groundsDescription ?? ''
+			return kind && description ? `${kind}: ${description}` : kind || description
+		},
+
+		/**
+		 * @return {string} The kind of grounds in words, '' when unknown.
+		 */
+		groundsKindLabel() {
+			const grounds = {
+				'prior-diploma': this.t('learniq', 'Prior diploma'),
+				certificate: this.t('learniq', 'Certificate'),
+				'work-experience': this.t('learniq', 'Work experience'),
+				other: this.t('learniq', 'Other'),
+			}
+			return grounds[this.exemption.groundsKind] ?? ''
+		},
+
 		/**
 		 * Run the decision (after startAssessment when the case still waits) and close.
 		 *

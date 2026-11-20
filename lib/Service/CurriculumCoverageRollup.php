@@ -40,6 +40,11 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
+use OCA\Learniq\Kernel\Contracts\CurriculumCoverageRollupInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectDeletion;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -49,7 +54,7 @@ use Throwable;
  *
  * @spec openspec/specs/competency/spec.md#requirement-coverage-is-recomputed-on-save-for-the-touched-frameworks-only-never-by-a-timedjob
  */
-class CurriculumCoverageRollup {
+class CurriculumCoverageRollup implements CurriculumCoverageRollupInterface {
 
 	private const REGISTER          = 'learniq';
 	private const COVERAGE_SCHEMA   = 'curriculum-coverage';
@@ -131,13 +136,27 @@ class CurriculumCoverageRollup {
 			$result['saved']++;
 		}
 
+		return $this->deleteStale(existing: $existing, result: $result);
+	}//end recompute()
+
+	/**
+	 * Delete the stored rows no computed bucket matched, and count them.
+	 *
+	 * @param array<string,array<string,mixed>> $existing The stored rows no computed bucket matched.
+	 * @param array<string,int>                 $result   The counts so far.
+	 *
+	 * @return array{saved: int, deleted: int, unchanged: int}
+	 *
+	 * @spec openspec/specs/competency/spec.md#requirement-coverage-is-recomputed-on-save-for-the-touched-frameworks-only-never-by-a-timedjob
+	 */
+	private function deleteStale(array $existing, array $result): array {
 		foreach ($existing as $stale) {
 			$this->delete(id: $this->idOf(row: $stale));
 			$result['deleted']++;
 		}
 
 		return $result;
-	}//end recompute()
+	}//end deleteStale()
 
 	/**
 	 * The distinct framework ids of a set of goals; unknown goals are skipped.
@@ -286,9 +305,10 @@ class CurriculumCoverageRollup {
 
 		$this->objectService->saveObject(
 			object: $row,
-			register: self::REGISTER,
-			schema: self::COVERAGE_SCHEMA,
-			uuid: $uuid,
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::REGISTER, schema: self::COVERAGE_SCHEMA),
+				uuid: $uuid
+			),
 			_rbac: false,
 			_multitenancy: false
 		);
@@ -307,9 +327,10 @@ class CurriculumCoverageRollup {
 		}
 
 		$this->objectService->deleteObject(
-			uuid: $id,
-			register: self::REGISTER,
-			schema: self::COVERAGE_SCHEMA,
+			new ObjectDeletion(
+				uuid: $id,
+				target: new ObjectFindTarget(register: self::REGISTER, schema: self::COVERAGE_SCHEMA)
+			),
 			_rbac: false,
 			_multitenancy: false
 		);
@@ -331,8 +352,7 @@ class CurriculumCoverageRollup {
 		try {
 			$object = $this->objectService->find(
 				id: $id,
-				register: self::REGISTER,
-				schema: $schema,
+				options: new ObjectFindOptions(register: self::REGISTER, schema: $schema),
 				_rbac: false,
 				_multitenancy: false
 			);

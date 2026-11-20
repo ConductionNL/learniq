@@ -4,7 +4,9 @@ Built in waves. A key is declared only once portaliq development keeps it; porta
 
 **Trust:** her reads are `minTrust: low`. Her assessment is `low` too since `an-invited-trainer-may-assess` (Ruben, 4 October 2026): an invited trainer may assess, the row records who assessed and at what assurance, and a school may demand eHerkenning through `bpv_assessment_min_assurance`. Her POK signature still asks for `substantial`, which is a separate decision.
 
-- [ ] **T1** (waits for portaliq `via.when`): `poLearners` over `learner-profile`, forward join on her placements with `via.when` (every state but `terminated`), names only. Without the filter a terminated placement would still reveal a name, which this change refuses; until then the trainer reads her placements without the pupils' names.
+- [x] **T1** (waits for portaliq `via.when`): `poLearners` over `learner-profile`, forward join on her placements with `via.when` (every state but `terminated`), names only. Without the filter a terminated placement would still reveal a name, which this change refuses; until then the trainer reads her placements without the pupils' names.
+  - Built now that portaliq development keeps `via.when` (`ViaJoinRowFilter`, REQ-SMO-023): `poLearners` in `TrainerSitePages`, `match: id`, `when` on the placement `lifecycle` listing every state but `terminated`, projecting `givenName` and `familyName`. The overview shows them as "Mijn studenten" cards after the hours to approve, with the placement period looked up on `poBpvPlacements`.
+  - PHPUnit `GuardianSitePagesTest::testTheTrainerReadsHerStudentsByNameOnly`, `testTheJoinStatesAreThePlacementStatesButTerminated`, `PortalContributionProviderTest`, `PortalManifestGoldenTest`
 - [x] **T2**: `poWerkprocesAssessments`, direct scope on `assessorId`, with the judgement in words
   - PHPUnit `PortalContributionProviderTest`, `GuardianSitePagesTest`, `PortalLabelTranslatorTest`
 - [x] **T3**: the assessment form in steps (which work process, your judgement, a review step), `draft: {retentionDays: 30}`, a confirmation, the judgement as choice cards (`placement-steps-and-assessment-draft`, W2-8). Step titles and descriptions read in Dutch (PortalLabelTranslator reaches `steps`). The draft is saved by portaliq once portaliq #1152 (drafts) lands; the server keeps the key today. The werkproces is still picked by code, not by label (needs a werkproces list per placement; follow-up).
@@ -20,7 +22,7 @@ Built in waves. A key is declared only once portaliq development keeps it; porta
   - PHPUnit `GuardianSitePagesTest`; run through portaliq's own resolvers (development 29a17ba): nothing dropped
 - [x] **T6b**: the placement cards carry their heading ("Mijn stageplaatsen") and project the waiting and returned hours; the overview opens with the greeting and the hours to approve as a highlight (lane L2's block contract)
   - PHPUnit `GuardianSitePagesTest`
-  - the cards still name the company, not the student: a student's name waits for T1 (`via.when`), so two students at one company read alike
+  - the placement cards still name the company; the student names stand on their own cards since T1
 - [x] **T7**: the manifest through `PortalLabelTranslator`; Dutch "u" entries
   - PHPUnit `PortalLabelTranslatorTest`; `npm run check:l10n`
 - [ ] **T7b**: a one-line explanation beside each school term (praktijkovereenkomst, werkproces, BPV) on first use

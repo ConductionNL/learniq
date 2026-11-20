@@ -127,7 +127,7 @@ class MoodleQuizQuestionMapper {
 	private function itemData(DOMElement $questionEl, array $item): array {
 		$answers = $this->answers(questionEl: $questionEl);
 		$type = $questionEl->getAttribute('type');
-		[$interactionType, $correctResponse] = $this->deriveInteraction(type: $type, questionEl: $questionEl, answers: $answers);
+		[$interactionType, $correctResponse] = $this->deriveInteraction(type: $type, args: ['questionEl' => $questionEl, 'answers' => $answers]);
 
 		return [
 			'itemBankId' => $item['itemBankId'],
@@ -170,14 +170,16 @@ class MoodleQuizQuestionMapper {
 	 * Derive the learniq `interactionType` + `correctResponse` for a supported Moodle question type.
 	 *
 	 * @param string $type Moodle question `type` attribute.
-	 * @param \DOMElement $questionEl The `<question>` element (for `<single>`).
-	 * @param array<int, array{fraction: float, text: string}> $answers Parsed `<answer>` rows.
+	 * @param array{questionEl: \DOMElement, answers: array<int, array{fraction: float, text: string}>} $args The questionEl, answers.
 	 *
 	 * @return array{0: string, 1: mixed} [interactionType, correctResponse].
 	 *
 	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#fidelity--loss-table
 	 */
-	private function deriveInteraction(string $type, DOMElement $questionEl, array $answers): array {
+	private function deriveInteraction(string $type, array $args): array {
+		$questionEl = $args['questionEl'];
+		$answers = $args['answers'];
+
 		if ($type === 'essay') {
 			return ['extendedText', null];
 		}
@@ -256,17 +258,6 @@ class MoodleQuizQuestionMapper {
 	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#fidelity--loss-table
 	 */
 	private function childText(DOMElement $element, string $tagName): ?string {
-		foreach ($element->childNodes as $child) {
-			if ($child instanceof DOMElement && $child->tagName === $tagName) {
-				$text = trim((string)$child->textContent);
-				if ($text !== '') {
-					return $text;
-				}
-
-				return null;
-			}
-		}
-
-		return null;
+		return (new XmlChildText())->firstOf(element: $element, tagName: $tagName);
 	}//end childText()
 }//end class

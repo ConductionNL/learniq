@@ -31,6 +31,9 @@ namespace OCA\Learniq\Timetabling;
 
 use DateTimeImmutable;
 use DateTimeZone;
+use OCA\Learniq\Kernel\Contracts\SessionSeriesInterface;
+use OCA\Learniq\Support\ObjectRow;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Throwable;
 
@@ -39,12 +42,17 @@ use Throwable;
  *
  * @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-applies-one-change-to-several-weeks
  */
-class SessionSeries {
+class SessionSeries implements SessionSeriesInterface {
 
 	private const REGISTER = 'learniq';
 	private const SESSION_SCHEMA = 'session';
-	public const TIMEZONE = 'Europe/Amsterdam';
-	public const OPEN_STATES = ['scheduled', 'in-progress'];
+
+	/**
+	 * Turns one OpenRegister result into a plain array.
+	 *
+	 * @var ObjectRow
+	 */
+	private readonly ObjectRow $objectRow;
 
 	/**
 	 * Constructor.
@@ -54,6 +62,7 @@ class SessionSeries {
 	public function __construct(
 		private readonly ObjectService $objectService,
 	) {
+		$this->objectRow = new ObjectRow();
 	}//end __construct()
 
 	/**
@@ -237,7 +246,7 @@ class SessionSeries {
 	 */
 	public function loadSession(string $sessionId): ?array {
 		try {
-			$row = $this->objectService->find(id: $sessionId, register: self::REGISTER, schema: self::SESSION_SCHEMA);
+			$row = $this->objectService->find(id: $sessionId, options: new ObjectFindOptions(register: self::REGISTER, schema: self::SESSION_SCHEMA));
 		} catch (Throwable $exception) {
 			unset($exception);
 			return null;
@@ -265,14 +274,6 @@ class SessionSeries {
 	 * @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-applies-one-change-to-several-weeks
 	 */
 	public function toArray(mixed $row): array {
-		if (is_array($row) === true) {
-			return $row;
-		}
-
-		if (is_object($row) === true && method_exists($row, 'jsonSerialize') === true) {
-			return (array)$row->jsonSerialize();
-		}
-
-		return [];
+		return $this->objectRow->asArray(object: $row);
 	}//end toArray()
 }//end class

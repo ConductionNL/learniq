@@ -20,6 +20,7 @@ use OCP\IUserManager;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use ReflectionMethod;
+use OCA\Learniq\Tests\Support\LegacyObjectArgs;
 
 /**
  * What the generator asks OpenRegister (the cohort read and the slot write run
@@ -27,6 +28,7 @@ use ReflectionMethod;
  *
  * @covers \OCA\Learniq\Listener\ConferenceFreeSlotGenerator
  * @uses   \OCA\Learniq\Service\ConferenceSlotSlicer
+ * @uses   \OCA\Learniq\Service\ConferenceSlotPattern
  */
 class ConferenceFreeSlotFlagsTest extends TestCase {
 
@@ -122,12 +124,14 @@ class ConferenceFreeSlotFlagsTest extends TestCase {
 		);
 		$objects->method('find')->willReturnCallback(
 			function (...$args) {
+				$args = LegacyObjectArgs::positional(method: 'find', args: $args);
 				$this->reads[] = $this->byName(method: 'find', args: $args);
 				return OrEntityFactory::make(['teacherIds' => ['jan'], 'learnerIds' => ['a']], 'cohort');
 			}
 		);
 		$objects->method('saveObject')->willReturnCallback(
 			function (...$args) {
+				$args = LegacyObjectArgs::positional(method: 'saveObject', args: $args);
 				$this->writes[] = $this->byName(method: 'saveObject', args: $args);
 				return OrEntityFactory::make(['id' => 'saved'], 'conference-slot');
 			}
@@ -152,7 +156,7 @@ class ConferenceFreeSlotFlagsTest extends TestCase {
 	 */
 	private function byName(string $method, array $args): array {
 		$named = [];
-		foreach ((new ReflectionMethod(ObjectService::class, $method))->getParameters() as $index => $parameter) {
+		foreach (LegacyObjectArgs::parameters(ObjectService::class, $method) as $index => $parameter) {
 			if (array_key_exists($index, $args) === true) {
 				$named[$parameter->getName()] = $args[$index];
 			}

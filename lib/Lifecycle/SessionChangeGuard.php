@@ -44,6 +44,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\Learniq\Kernel\Contracts\SessionChangeGuardInterface;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
@@ -56,7 +57,7 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/specs/timetabling/spec.md#requirement-substitution-and-cancellation-require-a-reason-and-are-gated-by-sessionchangeguard
  */
-class SessionChangeGuard implements LifecycleGuardInterface {
+class SessionChangeGuard implements LifecycleGuardInterface, SessionChangeGuardInterface {
 
 	/**
 	 * Reason shown to the caller when the transition is refused.

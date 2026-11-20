@@ -23,8 +23,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
-use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Listener\SupportRequestSubmitHandler;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\SupportRequestSubmitHandlerInterface;
+use OCA\Learniq\Kernel\Contracts\TimetableExchangeSettingsInterface;
 use OCP\IAppConfig;
 
 /**
@@ -32,21 +33,13 @@ use OCP\IAppConfig;
  *
  * @spec openspec/specs/timetabling/spec.md#requirement-an-administrator-keeps-the-group-code-maps-and-the-swv-receiver-on-the-admin-page
  */
-class TimetableExchangeSettings {
+class TimetableExchangeSettings implements TimetableExchangeSettingsInterface {
 	/**
 	 * App-config key holding `{rosterSource: {groupCode: cohortId}}` as JSON.
 	 *
 	 * @var string
 	 */
 	public const GROUP_MAPS_KEY = 'timetable_group_maps';
-
-	/**
-	 * The rostering systems integriq delivers from: its Source row ids, as
-	 * PlanninqTimetableImport posts them (`roster-zermelo`, ...).
-	 *
-	 * @var array<int, string>
-	 */
-	public const ROSTER_SOURCES = ['roster-zermelo', 'roster-untis-oneroster', 'roster-xedule', 'roster-timeedit'];
 
 	/**
 	 * A receiver id: lowercase words joined by hyphens, as integriq names them.
@@ -75,7 +68,7 @@ class TimetableExchangeSettings {
 	 * @spec openspec/specs/timetabling/spec.md#requirement-an-administrator-keeps-the-group-code-maps-and-the-swv-receiver-on-the-admin-page
 	 */
 	public function groupMaps(): array {
-		$decoded = json_decode($this->appConfig->getValueString(Application::APP_ID, self::GROUP_MAPS_KEY, ''), true);
+		$decoded = json_decode($this->appConfig->getValueString(AppIdentity::APP_ID, self::GROUP_MAPS_KEY, ''), true);
 		$maps    = [];
 		foreach (self::ROSTER_SOURCES as $source) {
 			$maps[$source] = $this->cleanMap(value: ($decoded[$source] ?? null));
@@ -105,7 +98,7 @@ class TimetableExchangeSettings {
 	 * @spec openspec/specs/timetabling/spec.md#requirement-an-administrator-keeps-the-group-code-maps-and-the-swv-receiver-on-the-admin-page
 	 */
 	public function swvReceiverId(): string {
-		return $this->appConfig->getValueString(Application::APP_ID, SupportRequestSubmitHandler::RECEIVER_CONFIG_KEY, '');
+		return $this->appConfig->getValueString(AppIdentity::APP_ID, SupportRequestSubmitHandlerInterface::RECEIVER_CONFIG_KEY, '');
 	}//end swvReceiverId()
 
 	/**
@@ -155,8 +148,8 @@ class TimetableExchangeSettings {
 			}
 		}
 
-		$this->appConfig->setValueString(Application::APP_ID, self::GROUP_MAPS_KEY, (string)json_encode($clean));
-		$this->appConfig->setValueString(Application::APP_ID, SupportRequestSubmitHandler::RECEIVER_CONFIG_KEY, $receiverId);
+		$this->appConfig->setValueString(AppIdentity::APP_ID, self::GROUP_MAPS_KEY, (string)json_encode($clean));
+		$this->appConfig->setValueString(AppIdentity::APP_ID, SupportRequestSubmitHandlerInterface::RECEIVER_CONFIG_KEY, $receiverId);
 	}//end save()
 
 	/**

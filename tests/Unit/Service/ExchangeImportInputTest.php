@@ -200,4 +200,100 @@ class ExchangeImportInputTest extends TestCase {
 		$this->assertSame('import-input-unparseable', $this->input->read('oso', ['fileId' => 12], 'teacher')['refusal']);
 		$this->assertSame('import-input-unparseable', $this->input->read('lvs-results', ['fileId' => 13], 'teacher')['refusal']);
 	}//end testTooManyRowsOrUnreadableContent()
+	/**
+	 * Only a positive whole number, or a string of digits, names the file.
+	 *
+	 * @return void
+	 */
+	public function testOnlyAPositiveFileIdNamesTheFile(): void {
+		$this->file(4, 'a.csv', "a\n1\n");
+
+		foreach ([0, -4, '0', '-4', 4.0, '4.0', ' 4', null, true] as $fileId) {
+			$this->assertSame('import-input-missing', $this->input->read('lvs-results', ['fileId' => $fileId], 'teacher')['refusal'], var_export($fileId, true));
+		}
+
+		$this->assertSame(['4:1'], array_column($this->input->read('lvs-results', ['fileId' => '4'], 'teacher')['records'], 'recordId'));
+		$this->assertSame(['teacher'], $this->openedFolders);
+	}//end testOnlyAPositiveFileIdNamesTheFile()
+
+	/**
+	 * A folder, a requester whose files cannot be opened, and content that
+	 * cannot be read are each unreadable.
+	 *
+	 * @return void
+	 */
+	public function testWhatCannotBeOpenedIsUnreadable(): void {
+		$folderNode = $this->createMock(Folder::class);
+		$broken = $this->createMock(File::class);
+		$broken->method('getSize')->willReturn(10);
+		$broken->method('getName')->willReturn('a.csv');
+		$broken->method('getContent')->willThrowException(new \RuntimeException('locked'));
+		$folder = $this->createMock(Folder::class);
+		$folder->method('getFirstNodeById')->willReturnCallback(fn (int $id): ?object => [1 => $folderNode, 2 => $broken][$id] ?? null);
+		$root = $this->createMock(IRootFolder::class);
+		$root->method('getUserFolder')->willReturnCallback(
+			function (string $uid) use ($folder): Folder {
+				if ($uid === 'gone') {
+					throw new \RuntimeException('no such user');
+				}
+
+				return $folder;
+			}
+		);
+		$l10n = $this->createMock(IL10N::class);
+		$l10n->method('t')->willReturnArgument(0);
+		$input = new ExchangeImportInput($root, $l10n);
+
+		$this->assertSame('import-input-unreadable', $input->read('oso', ['fileId' => 1], 'teacher')['refusal']);
+		$this->assertSame('import-input-unreadable', $input->read('oso', ['fileId' => 2], 'teacher')['refusal']);
+		$this->assertSame('import-input-unreadable', $input->read('oso', ['fileId' => 2], 'gone')['refusal']);
+	}//end testWhatCannotBeOpenedIsUnreadable()
+
+	/**
+	 * JSON: one object, a `records` list, or a list; items that are not
+	 * objects are dropped, and nothing left is unparseable.
+	 *
+	 * @return void
+	 */
+	public function testEveryShapeOfJson(): void {
+		$cases = [
+			'one object' => ['{"ncUserId": "p-1"}', [['ncUserId' => 'p-1']]],
+			'records not a list' => ['{"records": "none", "ncUserId": "p-2"}', [['records' => 'none', 'ncUserId' => 'p-2']]],
+			'list with scalars' => ['[{"a": 1}, 2, "x", {"b": 2}]', [['a' => 1], ['b' => 2]]],
+			'records object' => ['{"records": {"a": 1}}', [['a' => 1]]],
+			'only scalars' => ['[1, 2]', null],
+			'a scalar' => ['"text"', null],
+			'empty list' => ['[]', null],
+		];
+		$id = 100;
+		foreach ($cases as $label => [$content, $rows]) {
+			$id++;
+			$this->file($id, 'x.JSON', $content);
+			$result = $this->input->read('migration-import', ['fileId' => $id], 'teacher');
+			if ($rows === null) {
+				$this->assertSame('import-input-unparseable', $result['refusal'], $label);
+				continue;
+			}
+
+			$this->assertNull($result['refusal'], $label);
+			$this->assertSame($rows, array_column($result['records'], 'data'), $label);
+		}
+	}//end testEveryShapeOfJson()
+
+	/**
+	 * CSV: a byte-order mark and blank lines are ignored, the delimiter is
+	 * the header's most used one, a blank header column is dropped, a short
+	 * row fills with '', and a header without rows is unparseable.
+	 *
+	 * @return void
+	 */
+	public function testEveryShapeOfCsv(): void {
+		$this->file(201, 'a.txt', "\xEF\xBB\xBFname, ,group\r\n\r\n Ann , x ,3a\r\nBob\r\n");
+		$this->file(202, 'b.csv', "a\tb\n1\t2\t3\n");
+		$this->file(203, 'c.csv', "a;b\n   \n");
+
+		$this->assertSame([['name' => 'Ann', 'group' => '3a'], ['name' => 'Bob', 'group' => '']], array_column($this->input->read('lvs-results', ['fileId' => 201], 'teacher')['records'], 'data'));
+		$this->assertSame([['a' => '1', 'b' => '2']], array_column($this->input->read('lvs-results', ['fileId' => 202], 'teacher')['records'], 'data'));
+		$this->assertSame('import-input-unparseable', $this->input->read('lvs-results', ['fileId' => 203], 'teacher')['refusal']);
+	}//end testEveryShapeOfCsv()
 }//end class

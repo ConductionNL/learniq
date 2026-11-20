@@ -297,6 +297,10 @@ class RollCallMarks {
 			'reason' => (string)($report['reason'] ?? ''),
 			'dateFrom' => substr((string)($report['dateFrom'] ?? ''), 0, 10),
 			'dateTo' => substr((string)($report['dateTo'] ?? ''), 0, 10),
+			// Who of the group's teachers first saw it, and when
+			// (absence-reports-seen-and-ended).
+			'seenBy' => (string)($report['seenBy'] ?? ''),
+			'seenAt' => (string)($report['seenAt'] ?? ''),
 		];
 	}//end reportSummary()
 

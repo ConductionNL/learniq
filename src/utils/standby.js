@@ -23,24 +23,55 @@ export const WEEKDAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']
 export function planningGrid(slots) {
 	const rows = new Map()
 	for (const slot of slots || []) {
-		if (!slot.weekday || slot.date) {
-			continue
-		}
-		const key = `${slot.startsAt}-${slot.endsAt}`
-		if (!rows.has(key)) {
-			rows.set(key, {
-				startsAt: slot.startsAt,
-				endsAt: slot.endsAt,
-				cells: Object.fromEntries(WEEKDAYS.map((d) => [d, []])),
-			})
-		}
-		if (rows.get(key).cells[slot.weekday]) {
-			rows.get(key).cells[slot.weekday].push(slot)
+		if (isWeeklySlot(slot)) {
+			placeSlot(gridRowFor(rows, slot), slot)
 		}
 	}
 	return [...rows.values()].sort((a, b) =>
 		(a.startsAt + a.endsAt).localeCompare(b.startsAt + b.endsAt),
 	)
+}
+
+/**
+ * Whether a slot repeats weekly: it has a weekday and no date.
+ *
+ * @param {object} slot A standby slot.
+ * @return {boolean}
+ */
+function isWeeklySlot(slot) {
+	return !(!slot.weekday || slot.date)
+}
+
+/**
+ * The grid row of a slot's time window, added with an empty cell per weekday
+ * when it is the first slot in that window.
+ *
+ * @param {Map<string, object>} rows The rows so far, by window.
+ * @param {object} slot A weekly slot.
+ * @return {{startsAt: string, endsAt: string, cells: object}} The row.
+ */
+function gridRowFor(rows, slot) {
+	const key = `${slot.startsAt}-${slot.endsAt}`
+	if (!rows.has(key)) {
+		rows.set(key, {
+			startsAt: slot.startsAt,
+			endsAt: slot.endsAt,
+			cells: Object.fromEntries(WEEKDAYS.map((d) => [d, []])),
+		})
+	}
+	return rows.get(key)
+}
+
+/**
+ * Put a slot in its weekday cell; a weekday without a column is left out.
+ *
+ * @param {{cells: object}} row The slot's grid row.
+ * @param {object} slot A weekly slot.
+ */
+function placeSlot(row, slot) {
+	if (row.cells[slot.weekday]) {
+		row.cells[slot.weekday].push(slot)
+	}
 }
 
 /**

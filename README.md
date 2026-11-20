@@ -4,7 +4,7 @@
 
 **Open-source leerlingvolgsysteem (LVS) + leeromgeving (LMS) for Nextcloud**
 
-Scholiq is a compliance-training and learning management app for organisations and schools. It ships as a Nextcloud app built manifest-first on OpenRegister — every entity, lifecycle, notification, and dashboard widget is declared in a JSON schema register, not hand-coded in PHP services.
+Scholiq is a compliance-training and learning management app for organisations and schools. It ships as a Nextcloud app built manifest-first on OpenRegister — every entity, lifecycle, notification, and dashboard widget is declared in a JSON schema register, not hand-coded in PHP services. Install it from the [Nextcloud App Store](https://apps.nextcloud.com/apps/learniq).
 
 [![Latest release](https://img.shields.io/github/v/release/ConductionNL/learniq)](https://github.com/ConductionNL/learniq/releases)
 [![License](https://img.shields.io/badge/license-EUPL--1.2-blue)](LICENSE)
@@ -119,7 +119,7 @@ npm run check:manifest  # validates src/manifest.json against nc-vue schema
 ### Test coverage
 
 <!-- coverage:start -->
-Measured test coverage: 91.3% of statements (PHP 91.3% of 37,672 statements), at commit `5c3979a` on 2026-11-12. The JavaScript frontend is not in this figure, because it has no coverage measurement yet. The figures come from [`coverage-summary.json`](coverage-summary.json); refresh them with `composer coverage:publish`.
+Measured test coverage: 90.2% of statements (PHP 90.6% of 37,601 statements, JavaScript 89.0% of 13,690 statements), at commit `ca0282cf` on 2026-11-13. The figures come from [`coverage-summary.json`](coverage-summary.json); refresh them with `composer coverage:publish`.
 <!-- coverage:end -->
 
 ### Frontend development

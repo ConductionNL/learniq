@@ -48,7 +48,11 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use InvalidArgumentException;
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\ContributionRaiserInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IAppConfig;
 use OCP\IUserManager;
@@ -58,7 +62,7 @@ use OCP\IUserManager;
  *
  * @spec openspec/specs/payments/spec.md#requirement-a-school-raises-a-fees-contributions-in-shillinq-from-learniq
  */
-class ContributionRaiser {
+class ContributionRaiser implements ContributionRaiserInterface {
 
 	private const REGISTER = 'learniq';
 	private const MAX_ROWS = 1000;
@@ -124,7 +128,7 @@ class ContributionRaiser {
 			return null;
 		}
 
-		$found = $this->objectService->find(id: $id, register: self::REGISTER, schema: 'fee-item');
+		$found = $this->objectService->find(id: $id, options: new ObjectFindOptions(register: self::REGISTER, schema: 'fee-item'));
 		$feeItem = $found?->jsonSerialize();
 		if (is_array($feeItem) === false || ($feeItem['lifecycle'] ?? '') !== 'active') {
 			return null;
@@ -150,7 +154,7 @@ class ContributionRaiser {
 			return $given;
 		}
 
-		return $this->appConfig->getValueString(Application::APP_ID, self::ADMINISTRATION_KEY, '');
+		return $this->appConfig->getValueString(AppIdentity::APP_ID, self::ADMINISTRATION_KEY, '');
 	}//end administrationId()
 
 	/**
@@ -302,7 +306,12 @@ class ContributionRaiser {
 
 		$ids = $this->courseLearners(courseId: $courseId);
 		if ($cohortId !== '') {
-			$cohort = $this->objectService->find(id: $cohortId, register: self::REGISTER, schema: 'cohort', _rbac: false, _multitenancy: false);
+			$cohort = $this->objectService->find(
+				id: $cohortId,
+				options: new ObjectFindOptions(register: self::REGISTER, schema: 'cohort'),
+				_rbac: false,
+				_multitenancy: false
+			);
 			$ids = (array)($cohort?->jsonSerialize()['learnerIds'] ?? []);
 		}
 
@@ -343,28 +352,50 @@ class ContributionRaiser {
 			$payers = [$learnerId];
 		}
 
-		$debtor = null;
-		foreach ($payers as $uid) {
-			$user = $this->userManager->get($uid);
-			$email = (string)($user?->getEMailAddress() ?? '');
-			if ($email !== '') {
-				$debtor = ['name' => (string)$user->getDisplayName(), 'email' => $email];
-				break;
-			}
-		}
-
+		$debtor = $this->firstDebtor(payers: $payers);
 		if ($debtor === null) {
 			return null;
 		}
 
-		$beneficiary = ['type' => 'learner', 'id' => $learnerId];
-		$profileId = (string)($profile['id'] ?? ($profile['uuid'] ?? ''));
-		if ($profileId !== '') {
-			$beneficiary = ['type' => 'learner', 'register' => self::REGISTER, 'schema' => 'learner-profile', 'id' => $profileId];
+		return ['debtor' => $debtor, 'beneficiary' => self::beneficiaryOf(learnerId: $learnerId, profile: $profile)];
+	}//end recipientFor()
+
+	/**
+	 * The first payer with an e-mail address, as the debtor shillinq bills.
+	 *
+	 * @param array<int, string> $payers The candidate payers' user ids, in order.
+	 *
+	 * @return array{name: string, email: string}|null
+	 */
+	private function firstDebtor(array $payers): ?array {
+		foreach ($payers as $uid) {
+			$user = $this->userManager->get($uid);
+			$email = (string)($user?->getEMailAddress() ?? '');
+			if ($email !== '') {
+				return ['name' => (string)$user->getDisplayName(), 'email' => $email];
+			}
 		}
 
-		return ['debtor' => $debtor, 'beneficiary' => $beneficiary];
-	}//end recipientFor()
+		return null;
+	}//end firstDebtor()
+
+	/**
+	 * The learner the fee is for: their profile object when they have one,
+	 * else the bare learner id.
+	 *
+	 * @param string                    $learnerId The learner's Nextcloud uid.
+	 * @param array<string, mixed>|null $profile   Their learner profile, if any.
+	 *
+	 * @return array<string, string>
+	 */
+	private static function beneficiaryOf(string $learnerId, ?array $profile): array {
+		$profileId = (string)($profile['id'] ?? ($profile['uuid'] ?? ''));
+		if ($profileId === '') {
+			return ['type' => 'learner', 'id' => $learnerId];
+		}
+
+		return ['type' => 'learner', 'register' => self::REGISTER, 'schema' => 'learner-profile', 'id' => $profileId];
+	}//end beneficiaryOf()
 
 	/**
 	 * For a fee that unlocks something: a pending Entitlement per learner, linked to its request.
@@ -401,9 +432,10 @@ class ContributionRaiser {
 
 			$this->objectService->saveObject(
 				object: array_merge($entitlement, ['paymentRequestRef' => $requestId]),
-				register: self::REGISTER,
-				schema: 'entitlement',
-				uuid: ($entitlement['id'] ?? null),
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::REGISTER, schema: 'entitlement'),
+					uuid: $entitlement['id'] ?? null
+				),
 				_rbac: false,
 				_multitenancy: false
 			);

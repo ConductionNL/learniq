@@ -20,7 +20,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\BackgroundJob;
 
-use OCA\Learniq\Service\Attendance\AttendanceSummaryService;
+use OCA\Learniq\Kernel\Contracts\AttendanceSummaryServiceInterface;
 use OCA\OpenRegister\Service\Deferral\DeferredListenerContext;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -44,12 +44,12 @@ class AttendanceSummaryRecomputeJob extends ForwardedJob {
 	 *
 	 * @param ActorForwarding $forwarding Clock, session, user manager and tenant context.
 	 * @param LoggerInterface          $logger       Logger; the base declares it protected.
-	 * @param AttendanceSummaryService $summaries    The recount.
+	 * @param AttendanceSummaryServiceInterface $summaries    The recount.
 	 */
 	public function __construct(
 		ActorForwarding $forwarding,
 		LoggerInterface $logger,
-		private readonly AttendanceSummaryService $summaries,
+		private readonly AttendanceSummaryServiceInterface $summaries,
 	) {
 		parent::__construct(forwarding: $forwarding, logger: $logger);
 	}//end __construct()
@@ -82,6 +82,21 @@ class AttendanceSummaryRecomputeJob extends ForwardedJob {
 			}
 		}
 
+		$this->recountLearners(learners: $learners);
+	}//end runDeferred()
+
+	/**
+	 * Recount the attendance summaries of each learner for the school years of
+	 * their marked sessions; a failed recount is logged and the rest go on.
+	 *
+	 * @param array<string,array<string,mixed>> $learners Per learner id: the sessions marked (sessionIds), the tenant (tenantId)
+	 *                                                   and the learner ref (learnerRef).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-the-summary-follows-every-attendance-write
+	 */
+	private function recountLearners(array $learners): void {
 		foreach ($learners as $learnerId => $learner) {
 			try {
 				$this->summaries->recompute(
@@ -97,5 +112,5 @@ class AttendanceSummaryRecomputeJob extends ForwardedJob {
 				);
 			}
 		}
-	}//end runDeferred()
+	}//end recountLearners()
 }//end class

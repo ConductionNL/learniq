@@ -37,6 +37,7 @@ use OCP\IGroupManager;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Tests for RolloverService.
@@ -198,7 +199,10 @@ class RolloverServiceTest extends TestCase {
 		// No existing to-year cohort, no enrolments.
 		$objectService->method('findAll')->willReturn([]);
 		$objectService->method('saveObject')->willReturnCallback(
-			static function (array $object, ?array $extend = [], $register = null, $schema = null) use (&$saved) {
+			static function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) use (&$saved) {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
 				$saved[] = ['schema' => (string)$schema, 'object' => $object];
 				return OrEntityFactory::make($object, (string)$schema, (string)$register);
 			}
@@ -240,7 +244,10 @@ class RolloverServiceTest extends TestCase {
 		);
 		$objectService->method('findAll')->willReturn([]);
 		$objectService->method('saveObject')->willReturnCallback(
-			static function (array $object, ?array $extend = [], $register = null, $schema = null) use (&$saved) {
+			static function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) use (&$saved) {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
 				$saved[] = $object;
 				return OrEntityFactory::make($object, (string)$schema, (string)$register);
 			}
@@ -271,6 +278,11 @@ class RolloverServiceTest extends TestCase {
 		$this->assertNull($svc->nextProgrammeYear(fromCohort: ['programmeId' => 'p'], mapping: []));
 		$this->assertNull($svc->nextProgrammeYear(fromCohort: ['programmeId' => 'p', 'programmeYear' => 2], mapping: ['toProgrammeId' => 'q']));
 		$this->assertSame(3, $svc->nextProgrammeYear(fromCohort: ['programmeId' => 'p', 'programmeYear' => 2], mapping: ['toProgrammeId' => 'p']));
+		$this->assertSame(5, $svc->nextProgrammeYear(fromCohort: ['programmeId' => 'p', 'programmeYear' => '4'], mapping: ['toProgrammeId' => '']));
+		$this->assertSame(0, $svc->nextProgrammeYear(fromCohort: ['programmeYear' => -1], mapping: []));
+		$this->assertNull($svc->nextProgrammeYear(fromCohort: ['programmeId' => 'p', 'programmeYear' => '4a'], mapping: []));
+		$this->assertNull($svc->nextProgrammeYear(fromCohort: ['programmeId' => 'p', 'programmeYear' => 2.0], mapping: []));
+		$this->assertNull($svc->nextProgrammeYear(fromCohort: ['programmeYear' => 2], mapping: ['toProgrammeId' => 'p']));
 	}//end testNextProgrammeYearNeedsTheSameProgramme()
 
 	/**
@@ -319,7 +331,10 @@ class RolloverServiceTest extends TestCase {
 		);
 		$objectService->method('findAll')->willReturn([]);
 		$objectService->method('saveObject')->willReturnCallback(
-			static function (array $object, ?array $extend = [], $register = null, $schema = null) use (&$saved) {
+			static function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) use (&$saved) {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
 				$saved[] = $object;
 				return OrEntityFactory::make($object, (string)$schema, (string)$register);
 			}
@@ -359,7 +374,10 @@ class RolloverServiceTest extends TestCase {
 		);
 		$objectService->method('findAll')->willReturn([]);
 		$objectService->method('saveObject')->willReturnCallback(
-			static function (array $object, ?array $extend = [], $register = null, $schema = null) {
+			static function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
 				if (($object['id'] ?? '') === 'c3') {
 					throw new RuntimeException('database gone');
 				}

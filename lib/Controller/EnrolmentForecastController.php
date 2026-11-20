@@ -29,10 +29,13 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use InvalidArgumentException;
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\EnrolmentForecastServiceInterface;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\CallerActions;
-use OCA\Learniq\Service\EnrolmentForecastService;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -73,18 +76,18 @@ class EnrolmentForecastController extends Controller {
 	 *
 	 * @param IRequest                 $request       HTTP request.
 	 * @param CallerActions $caller The user session and the ADR-023 action matrix.
-	 * @param EnrolmentForecastService $forecasts     Computes the forecast.
+	 * @param EnrolmentForecastServiceInterface $forecasts     Computes the forecast.
 	 * @param ObjectService            $objectService Reads and writes the scenario as the caller.
 	 */
 	public function __construct(
 		IRequest $request,
 		CallerActions $caller,
-		private readonly EnrolmentForecastService $forecasts,
+		private readonly EnrolmentForecastServiceInterface $forecasts,
 		private readonly ObjectService $objectService,
 	) {
 		$this->userSession = $caller->userSession;
 		$this->actionAuth = $caller->actionAuth;
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -121,7 +124,10 @@ class EnrolmentForecastController extends Controller {
 		}
 
 		$forecast['result'] = $result;
-		$this->objectService->saveObject(object: $forecast, register: self::REGISTER, schema: self::SCHEMA);
+		$this->objectService->saveObject(
+			object: $forecast,
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: self::SCHEMA))
+		);
 
 		return new JSONResponse(data: $result);
 	}//end compute()
@@ -135,7 +141,7 @@ class EnrolmentForecastController extends Controller {
 	 */
 	private function load(string $id): ?array {
 		try {
-			$row = $this->objectService->find(id: $id, register: self::REGISTER, schema: self::SCHEMA);
+			$row = $this->objectService->find(id: $id, options: new ObjectFindOptions(register: self::REGISTER, schema: self::SCHEMA));
 		} catch (Throwable $exception) {
 			unset($exception);
 			return null;

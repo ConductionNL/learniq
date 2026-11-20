@@ -31,7 +31,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\ExchangeImportLanding;
+use OCA\Learniq\Kernel\Contracts\ExchangeImportLandingInterface;
+use OCA\Learniq\Support\EventGetter;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use Psr\Log\LoggerInterface;
@@ -56,11 +57,11 @@ class ExchangeImportLandingListener implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param ExchangeImportLanding $landing Writes the records.
+	 * @param ExchangeImportLandingInterface $landing Writes the records.
 	 * @param LoggerInterface $logger Logger (never record content).
 	 */
 	public function __construct(
-		private readonly ExchangeImportLanding $landing,
+		private readonly ExchangeImportLandingInterface $landing,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
@@ -77,7 +78,7 @@ class ExchangeImportLandingListener implements IEventListener {
 	public function handle(Event $event): void {
 		if (is_a($event, self::RECEIVED_EVENT) === false
 			|| (string)$this->read(event: $event, getter: 'getOwnerApp') !== self::OWNER_APP
-			|| in_array((string)$this->read(event: $event, getter: 'getTarget'), ExchangeImportLanding::TARGETS, true) === false
+			|| in_array((string)$this->read(event: $event, getter: 'getTarget'), ExchangeImportLandingInterface::TARGETS, true) === false
 		) {
 			return;
 		}
@@ -87,6 +88,21 @@ class ExchangeImportLandingListener implements IEventListener {
 			$records = [];
 		}
 
+		$this->landRecords(event: $event, records: $records);
+	}//end handle()
+
+	/**
+	 * Land the records and answer the event with what was accepted and rejected;
+	 * a failed landing rejects every record.
+	 *
+	 * @param Event                          $event   The import event to answer.
+	 * @param array<int,array<string,mixed>> $records The records it carries.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-records-integriq-hands-back-for-an-import-land-in-learniq
+	 */
+	private function landRecords(Event $event, array $records): void {
 		$scope = $this->read(event: $event, getter: 'getScope');
 		if (is_array($scope) === false) {
 			$scope = [];
@@ -112,7 +128,7 @@ class ExchangeImportLandingListener implements IEventListener {
 		}
 
 		$this->answer(event: $event, accepted: (int)($outcome['accepted'] ?? 0), rejected: (array)($outcome['rejected'] ?? []));
-	}//end handle()
+	}//end landRecords()
 
 	/**
 	 * Answer through the event's accept(), when it has one.
@@ -141,10 +157,6 @@ class ExchangeImportLandingListener implements IEventListener {
 	 * @return mixed
 	 */
 	private function read(Event $event, string $getter): mixed {
-		if (method_exists($event, $getter) === false) {
-			return null;
-		}
-
-		return $event->$getter();
+		return (new EventGetter())->value(event: $event, getter: $getter);
 	}//end read()
 }//end class

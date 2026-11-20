@@ -19,49 +19,20 @@
  */
 import type { Page } from '@playwright/test'
 
+import { SEED_TENANT } from './seed-tenant.mjs'
+
 /** The learniq register slug, as imported by `ci-seed.sh` / `seed-example-data.mjs`. */
 export const REGISTER_SLUG = 'learniq'
 
 /**
- * The tenant UUID `seed-example-data.mjs` stamps on every row it creates, used
- * as the fallback when the active organisation cannot be discovered. Kept
- * byte-identical to the seeder's constant so fixtures created here are
- * coherent with the seeded dataset.
- */
-const FALLBACK_TENANT = '00000000-0000-0000-0000-00000000d3a0'
-
-let cachedTenant: string | null = null
-
-/**
- * The tenant UUID to stamp on a fixture row.
+ * The tenant UUID to stamp on a fixture row: the one `seed-example-data.mjs`
+ * stamps on every seeded row (seed-tenant.mjs), so fixtures and seed agree.
  *
- * Mirrors `seed-example-data.mjs`: prefer OpenRegister's active organisation,
- * fall back to the seeder's fixed demo UUID.
- *
- * @param page An authenticated Playwright page.
+ * @param _page An authenticated Playwright page (kept for the callers).
  * @return A UUID string.
  */
-export async function seededTenantId(page: Page): Promise<string> {
-	if (cachedTenant) return cachedTenant
-	try {
-		const resp = await page.request.get(
-			'/index.php/apps/openregister/api/registers?limit=1',
-		)
-		if (resp.ok()) {
-			const body = await resp.json()
-			const items =
-				body?.results ?? body?.data ?? (Array.isArray(body) ? body : [])
-			const org = items?.[0]?.organisation
-			if (typeof org === 'string' && /^[0-9a-f-]{36}$/i.test(org)) {
-				cachedTenant = org
-				return cachedTenant
-			}
-		}
-	} catch {
-		// fall through to the seeder's fixed demo tenant
-	}
-	cachedTenant = FALLBACK_TENANT
-	return cachedTenant
+export async function seededTenantId(_page: Page): Promise<string> {
+	return SEED_TENANT
 }
 
 /**

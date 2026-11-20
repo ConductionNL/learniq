@@ -22,6 +22,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Support\SerialisedRow;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -157,14 +158,6 @@ class SharedCodeFilter {
 	 * @return array<string, mixed> The fields, empty when unreadable.
 	 */
 	private function toArray(mixed $row): array {
-		if (is_object($row) === true && method_exists($row, 'jsonSerialize') === true) {
-			$row = $row->jsonSerialize();
-		}
-
-		if (is_array($row) === false) {
-			return [];
-		}
-
-		return $row;
+		return (new SerialisedRow())->asArray(object: $row);
 	}//end toArray()
 }//end class

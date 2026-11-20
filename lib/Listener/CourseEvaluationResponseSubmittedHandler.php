@@ -44,8 +44,10 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -69,7 +71,7 @@ class CourseEvaluationResponseSubmittedHandler implements IEventListener {
 	 * @param IUserSession $userSession Current NC user session (server-resolved caller identity).
 	 * @param ObjectService $objectService OpenRegister object access.
 	 * @param LoggerInterface $logger PSR logger.
-	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
@@ -77,7 +79,7 @@ class CourseEvaluationResponseSubmittedHandler implements IEventListener {
 		private readonly IUserSession $userSession,
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
-		private readonly ListenerSchemaResolver $schemas,
+		private readonly ListenerSchemaResolverInterface $schemas,
 	) {
 	}//end __construct()
 
@@ -99,6 +101,45 @@ class CourseEvaluationResponseSubmittedHandler implements IEventListener {
 			return;
 		}
 
+		$invitation = $this->invitationFor(event: $event);
+		if ($invitation === null) {
+			return;
+		}
+
+		// Only hasResponded/respondedAt change — no field referencing the
+		// response's identity or content is ever added. Written as the system
+		// (live pass D12): the learner reads their own invitation but holds no
+		// update right on it, and must not, or they could set hasResponded
+		// back to false and answer again. The invitation was found with the
+		// caller's own rights, filtered on the session uid, so this write
+		// only ever touches the caller's invitation.
+		$this->objectService->saveObject(
+			object: array_merge(
+				$invitation,
+				[
+					'hasResponded' => true,
+					'respondedAt' => (new DateTimeImmutable())->format(\DATE_ATOM),
+				]
+			),
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(
+					register: self::LEARNIQ_REGISTER,
+					schema: self::EVALUATION_INVITATION_SCHEMA
+				)),
+			_rbac: false
+		);
+
+	}//end handle()
+
+	/**
+	 * The submitting caller's EvaluationInvitation for the response's campaign, or null (logged).
+	 *
+	 * @param ObjectTransitionedEvent $event The response's submit transition.
+	 *
+	 * @return array<string, mixed>|null
+	 *
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-a-successful-submission-flips-the-invitation-without-linking-to-the-response
+	 */
+	private function invitationFor(ObjectTransitionedEvent $event): ?array {
 		// The response itself carries no identity field to read — the caller
 		// is re-resolved from the session, exactly as CourseEvaluationEligibilityGuard
 		// did moments earlier for the same request.
@@ -108,7 +149,7 @@ class CourseEvaluationResponseSubmittedHandler implements IEventListener {
 				'[CourseEvaluationResponseSubmittedHandler] No authenticated user in session after a '
 				. 'CourseEvaluationResponse submit; cannot flip any EvaluationInvitation.'
 			);
-			return;
+			return null;
 		}
 
 		$callerUid = $user->getUID();
@@ -121,13 +162,15 @@ class CourseEvaluationResponseSubmittedHandler implements IEventListener {
 				'[CourseEvaluationResponseSubmittedHandler] Submitted CourseEvaluationResponse has no '
 				. 'campaignId; cannot resolve which EvaluationInvitation to flip.'
 			);
-			return;
+			return null;
 		}
 
 		$invitation = $this->findInvitation(
 			campaignId: (string)$campaignId,
-			callerUid: $callerUid,
-			tenantId: (string)($response['tenant_id'] ?? '')
+			args: [
+				'callerUid' => $callerUid,
+				'tenantId' => (string)($response['tenant_id'] ?? ''),
+			]
 		);
 
 		if ($invitation === null) {
@@ -139,30 +182,11 @@ class CourseEvaluationResponseSubmittedHandler implements IEventListener {
 				. '{caller} / campaign {campaignId} at submit-handling time.',
 				['caller' => $callerUid, 'campaignId' => $campaignId]
 			);
-			return;
+			return null;
 		}
 
-		// Only hasResponded/respondedAt change — no field referencing the
-		// response's identity or content is ever added. Written as the system
-		// (live pass D12): the learner reads their own invitation but holds no
-		// update right on it, and must not, or they could set hasResponded
-		// back to false and answer again. The invitation was found with the
-		// caller's own rights, filtered on the session uid, so this write
-		// only ever touches the caller's invitation.
-		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::EVALUATION_INVITATION_SCHEMA,
-			object: array_merge(
-				$invitation,
-				[
-					'hasResponded' => true,
-					'respondedAt' => (new DateTimeImmutable())->format(\DATE_ATOM),
-				]
-			),
-			_rbac: false
-		);
-
-	}//end handle()
+		return $invitation;
+	}//end invitationFor()
 
 	/**
 	 * Whether this transition is a CourseEvaluationResponse entering `submitted`.
@@ -189,14 +213,16 @@ class CourseEvaluationResponseSubmittedHandler implements IEventListener {
 	 * Find the caller's EvaluationInvitation for a campaign.
 	 *
 	 * @param string $campaignId The campaign the response belongs to.
-	 * @param string $callerUid The authenticated caller's NC user id.
-	 * @param string $tenantId Tenant UUID, or '' when unknown.
+	 * @param array{callerUid: string, tenantId: string} $args The callerUid, tenantId.
 	 *
 	 * @return array<string,mixed>|null The invitation, or null when there is none.
 	 *
 	 * @spec openspec/specs/course-evaluation/spec.md#requirement-a-successful-submission-flips-the-invitation-without-linking-to-the-response
 	 */
-	private function findInvitation(string $campaignId, string $callerUid, string $tenantId): ?array {
+	private function findInvitation(string $campaignId, array $args): ?array {
+		$callerUid = $args['callerUid'];
+		$tenantId = $args['tenantId'];
+
 		$filters = [
 			'campaignId' => $campaignId,
 			'learnerId' => $callerUid,
@@ -218,6 +244,20 @@ class CourseEvaluationResponseSubmittedHandler implements IEventListener {
 			]
 		);
 
+		return $this->callersInvitation(invitations: $invitations, callerUid: $callerUid);
+	}//end findInvitation()
+
+	/**
+	 * The first invitation found, when it names the caller as its learner.
+	 *
+	 * @param array<int,mixed> $invitations The invitations the query found.
+	 * @param string           $callerUid   The submitting user.
+	 *
+	 * @return array<string,mixed>|null The invitation, or null when there is none.
+	 *
+	 * @spec openspec/specs/course-evaluation/spec.md#requirement-a-successful-submission-flips-the-invitation-without-linking-to-the-response
+	 */
+	private function callersInvitation(array $invitations, string $callerUid): ?array {
 		if (empty($invitations) === true) {
 			return null;
 		}
@@ -234,5 +274,5 @@ class CourseEvaluationResponseSubmittedHandler implements IEventListener {
 		}
 
 		return (array)$invitation;
-	}//end findInvitation()
+	}//end callersInvitation()
 }//end class

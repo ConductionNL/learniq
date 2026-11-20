@@ -42,10 +42,12 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\ExchangeDisclosure;
-use OCA\Learniq\Service\IntegriqExchangeClient;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\ExchangeDisclosureInterface;
+use OCA\Learniq\Kernel\Contracts\IntegriqExchangeClientInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -67,17 +69,17 @@ class SchoolAdviesSendToRodHandler implements IEventListener {
 	 * Constructor.
 	 *
 	 * @param ObjectService          $objectService OR object access service.
-	 * @param IntegriqExchangeClient $integriq      Asks integriq for the job.
+	 * @param IntegriqExchangeClientInterface $integriq      Asks integriq for the job.
 	 * @param LoggerInterface        $logger        PSR logger.
-	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly IntegriqExchangeClient $integriq,
+		private readonly IntegriqExchangeClientInterface $integriq,
 		private readonly LoggerInterface $logger,
-		private readonly ListenerSchemaResolver $schemas,
+		private readonly ListenerSchemaResolverInterface $schemas,
 	) {
 	}//end __construct()
 
@@ -137,7 +139,7 @@ class SchoolAdviesSendToRodHandler implements IEventListener {
 					'tenantId' => (string)($schoolAdvies['tenant_id'] ?? ''),
 					'berichtsoort' => 'schooladvies',
 				],
-				mappingSlug: ExchangeDisclosure::ROD_SCHOOL_ADVICE_MAPPING,
+				mappingSlug: ExchangeDisclosureInterface::ROD_SCHOOL_ADVICE_MAPPING,
 				requestedBy: 'system',
 				name: 'ROD schooladvies'
 			);
@@ -150,10 +152,11 @@ class SchoolAdviesSendToRodHandler implements IEventListener {
 		}
 
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::SCHOOL_ADVIES_SCHEMA,
 			object: array_merge($schoolAdvies, ['dataExchangeJobId' => $jobId]),
-			uuid: $schoolAdviesId
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::SCHOOL_ADVIES_SCHEMA),
+				uuid: $schoolAdviesId
+			)
 		);
 
 	}//end requestRodJob()

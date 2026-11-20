@@ -95,3 +95,20 @@ test('a slot reads as the day and its times, in the reader language', () => {
 	assert.equal(slotLabel(TUE_10, 'en'), 'Tuesday 10:00–11:00')
 	assert.equal(slotLabel(TUE_10, 'nl'), 'dinsdag 10:00–11:00')
 })
+
+test('weekdays compare as numbers, a missing slot never overlaps, and the first clashing slot is named', () => {
+	assert.equal(slotsOverlap(TUE_10, { weekday: '2', start: '10:30', end: '10:45' }), true)
+	assert.equal(slotsOverlap(null, TUE_10), false)
+	assert.equal(slotsOverlap(TUE_10, undefined), false)
+	assert.equal(slotsOverlap(TUE_10, { weekday: 2, start: '10:30' }), false)
+	const mon = { weekday: 1, start: '08:00', end: '09:00' }
+	const found = clashes(
+		[
+			{ id: 'a', label: 'A', slots: [mon, TUE_10] },
+			{ id: 'b', label: 'B', slots: 'tuesday' },
+			{ id: 'c', label: 'C', slots: [{ weekday: 2, start: '10:30', end: '12:00' }, mon] },
+		],
+		[],
+	)
+	assert.deepEqual(found, [{ first: 'A', second: 'C', slot: mon }])
+})

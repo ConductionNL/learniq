@@ -33,11 +33,12 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\Support\FindOrNull;
-use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\PeerReviewAllocationServiceInterface;
 use OCA\Learniq\Service\CallerGroups;
-use OCA\Learniq\Service\PeerReviewAllocationService;
+use OCA\Learniq\Support\FindOrNull;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -80,17 +81,17 @@ class PeerReviewController extends Controller {
 	 * @param IRequest $request HTTP request.
 	 * @param CallerGroups $caller      The user session and the group manager.
 	 * @param ObjectService $objectService OR object query/persistence.
-	 * @param PeerReviewAllocationService $allocationService Reviewer allocation logic.
+	 * @param PeerReviewAllocationServiceInterface $allocationService Reviewer allocation logic.
 	 */
 	public function __construct(
 		IRequest $request,
 		CallerGroups $caller,
 		private readonly ObjectService $objectService,
-		private readonly PeerReviewAllocationService $allocationService,
+		private readonly PeerReviewAllocationServiceInterface $allocationService,
 	) {
 		$this->userSession = $caller->userSession;
 		$this->groupManager = $caller->groupManager;
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -204,7 +205,7 @@ class PeerReviewController extends Controller {
 	 * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException When the id matches more than one object; LookupIntegrityMiddleware answers it.
 	 */
 	private function fetchObject(string $id, string $schema): ?array {
-		$find = fn () => $this->objectService->find(id: $id, register: self::LEARNIQ_REGISTER, schema: $schema);
+		$find = fn () => $this->objectService->find(id: $id, options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: $schema));
 		return $this->findOrNull(find: $find)?->jsonSerialize();
 	}//end fetchObject()
 }//end class

@@ -33,7 +33,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use DateTimeZone;
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\ConnectionReportServiceInterface;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
@@ -47,7 +48,7 @@ use Throwable;
  *
  * @spec openspec/specs/integrations/spec.md#requirement-req-int-conn-002-learniq-reports-what-the-last-wallet-offer-met
  */
-class ConnectionReportService {
+class ConnectionReportService implements ConnectionReportServiceInterface {
 
 	/**
 	 * Integriq's report event (ADR-041). Named by string so learniq stays
@@ -56,13 +57,6 @@ class ConnectionReportService {
 	 * @var string
 	 */
 	public const STATUS_EVENT = 'OCA\Integriq\Event\ConnectionStatusReportedEvent';
-
-	/**
-	 * The connection key of the EUDI wallet row in lib/Settings/connections.json.
-	 *
-	 * @var string
-	 */
-	public const WALLET_KEY = 'eudi-wallet';
 
 	/**
 	 * The connection key of the timetable row. Learniq reports it from whether
@@ -180,7 +174,7 @@ class ConnectionReportService {
 			}
 
 			$this->appConfig->setValueString(
-				app: Application::APP_ID,
+				app: AppIdentity::APP_ID,
 				key: self::OBSERVATION_KEY_PREFIX . $key,
 				value: json_encode(
 					[
@@ -221,30 +215,52 @@ class ConnectionReportService {
 
 		foreach (self::REPORTED_KEYS as $key) {
 			try {
-				$stored = $this->readObservation(key: $key);
-				if ($stored === null) {
-					continue;
-				}
-
-				$event = new $eventClass(
-					app: Application::APP_ID,
-					key: $key,
-					status: $stored['status'],
-					message: $stored['reason'] . ' Unchanged since ' . $stored['since'] . ' UTC.',
-				);
-				if (($event instanceof Event) === false) {
-					continue;
-				}
-
-				$this->eventDispatcher->dispatchTyped($event);
+				$this->reportObservation(eventClass: $eventClass, key: $key);
 			} catch (Throwable $e) {
-				$this->logger->warning(
-					'Learniq: could not send a connection report to integriq',
-					['key' => $key, 'exception' => $e->getMessage()]
-				);
-			}//end try
-		}//end foreach
+				$this->reportFailed(key: $key, exception: $e);
+			}
+		}
 	}//end reportObservations()
+
+	/**
+	 * Log a connection report that could not be sent; the next key is still reported.
+	 *
+	 * @param string    $key       The connection key.
+	 * @param Throwable $exception Why it failed.
+	 *
+	 * @return void
+	 */
+	private function reportFailed(string $key, Throwable $exception): void {
+		$this->logger->warning(
+			'Learniq: could not send a connection report to integriq',
+			['key' => $key, 'exception' => $exception->getMessage()]
+		);
+	}//end reportFailed()
+
+	/**
+	 * Send one key's stored observation to integriq, if one is stored.
+	 *
+	 * @param string $eventClass The status event class integriq listens for.
+	 * @param string $key        The connection key.
+	 *
+	 * @return void
+	 */
+	private function reportObservation(string $eventClass, string $key): void {
+		$stored = $this->readObservation(key: $key);
+		if ($stored === null) {
+			return;
+		}
+
+		$event = new $eventClass(
+			app: AppIdentity::APP_ID,
+			key: $key,
+			status: $stored['status'],
+			message: $stored['reason'] . ' Unchanged since ' . $stored['since'] . ' UTC.',
+		);
+		if (($event instanceof Event) === true) {
+			$this->eventDispatcher->dispatchTyped($event);
+		}
+	}//end reportObservation()
 
 	/**
 	 * Record whether the timetable connection can work: integriq delivers the
@@ -317,7 +333,7 @@ class ConnectionReportService {
 	 */
 	private function readObservation(string $key): ?array {
 		$raw = $this->appConfig->getValueString(
-			app: Application::APP_ID,
+			app: AppIdentity::APP_ID,
 			key: self::OBSERVATION_KEY_PREFIX . $key,
 			default: '',
 			lazy: true
@@ -326,12 +342,18 @@ class ConnectionReportService {
 			return null;
 		}
 
-		$decoded = json_decode($raw, true);
-		if (is_array($decoded) === false
-			|| is_string($decoded['status'] ?? null) === false
-			|| is_string($decoded['reason'] ?? null) === false
-			|| is_string($decoded['since'] ?? null) === false
-		) {
+		return $this->observationOf(decoded: json_decode($raw, true));
+	}//end readObservation()
+
+	/**
+	 * A decoded stored value as an observation, or null when it is not one.
+	 *
+	 * @param mixed $decoded The decoded value.
+	 *
+	 * @return array{status: string, reason: string, since: string}|null
+	 */
+	private function observationOf(mixed $decoded): ?array {
+		if ($this->isObservation(decoded: $decoded) === false) {
 			return null;
 		}
 
@@ -340,7 +362,23 @@ class ConnectionReportService {
 			'reason' => $decoded['reason'],
 			'since' => $decoded['since'],
 		];
-	}//end readObservation()
+	}//end observationOf()
+
+	/**
+	 * Whether a decoded stored value is an object with string status, reason and since.
+	 *
+	 * @param mixed $decoded The decoded value.
+	 *
+	 * @return bool
+	 *
+	 * @phpstan-assert-if-true array{status: string, reason: string, since: string} $decoded
+	 */
+	private function isObservation(mixed $decoded): bool {
+		return is_array($decoded) === true
+			&& is_string($decoded['status'] ?? null) === true
+			&& is_string($decoded['reason'] ?? null) === true
+			&& is_string($decoded['since'] ?? null) === true;
+	}//end isObservation()
 
 	/**
 	 * The event class to instantiate, or null when integriq does not ship it.

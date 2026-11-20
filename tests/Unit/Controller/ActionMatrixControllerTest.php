@@ -27,11 +27,15 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Controller;
 
 use OCA\Learniq\Controller\ActionMatrixController;
+use OCA\Learniq\Controller\CallerActionCheck;
 use OCA\Learniq\Service\ActionAuthService;
 use OCP\AppFramework\Http;
+use OCP\AppFramework\OCS\OCSForbiddenException;
 use OCP\IGroup;
 use OCP\IGroupManager;
 use OCP\IRequest;
+use OCP\IUser;
+use OCP\IUserSession;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -51,6 +55,20 @@ class ActionMatrixControllerTest extends TestCase {
 	 * @var int
 	 */
 	private int $writes = 0;
+
+	/**
+	 * Whether the matrix store fails to encode what it is given.
+	 *
+	 * @var bool
+	 */
+	private bool $failEncode = false;
+
+	/**
+	 * The ActionAuthService double of the last controller built, shared with the guards.
+	 *
+	 * @var ActionAuthService|null
+	 */
+	private ?ActionAuthService $actionAuth = null;
 
 	/**
 	 * With nothing stored, every action the seed declares is listed.
@@ -181,6 +199,56 @@ class ActionMatrixControllerTest extends TestCase {
 	}//end testACompleteMatrixWithExtrasIsAllowed()
 
 	/**
+	 * A matrix the store cannot encode answers 400 with the reason, not a 500.
+	 *
+	 * @return void
+	 */
+	public function testAnUnencodableMatrixIsRefused(): void {
+		$this->stored = ['rollover.plan' => ['admin']];
+		$this->failEncode = true;
+
+		$response = $this->controller(params: ['matrix' => $this->completeMatrix()])->setMatrix();
+
+		self::assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+		self::assertSame(
+			'Could not encode the action matrix: Malformed UTF-8 characters',
+			((array)$response->getData())['error']
+		);
+		self::assertSame(0, $this->writes);
+		self::assertSame(['rollover.plan' => ['admin']], $this->stored);
+	}//end testAnUnencodableMatrixIsRefused()
+
+	/**
+	 * A saved matrix takes effect on the very next guarded call, without a restart:
+	 * the admin API writes through the same service the guards ask.
+	 *
+	 * @spec openspec/specs/action-authorization/spec.md#requirement-an-administrator-changes-the-matrix-without-a-developer
+	 *
+	 * @return void
+	 */
+	public function testASavedMatrixTakesEffectOnTheNextGuardedCall(): void {
+		$this->stored = $this->completeMatrix();
+		$matrix = $this->completeMatrix();
+		$matrix['qti.import'] = ['admin', 'coordinators'];
+		$controller = $this->controller(params: ['matrix' => $matrix]);
+
+		$coordinator = $this->createMock(IUser::class);
+		$coordinator->method('getUID')->willReturn('cora');
+		$session = $this->createMock(IUserSession::class);
+		$session->method('getUser')->willReturn($coordinator);
+		$guard = new CallerActionCheck(userSession: $session, actionAuth: $this->actionAuth);
+
+		$before = $guard->refusal(action: 'qti.import');
+		self::assertNotNull($before);
+		self::assertSame(Http::STATUS_FORBIDDEN, $before->getStatus());
+
+		self::assertSame(Http::STATUS_OK, $controller->setMatrix()->getStatus());
+
+		self::assertNull($guard->refusal(action: 'qti.import'));
+		self::assertNotNull($guard->refusal(action: 'qti.export'), 'only the action that was granted opens');
+	}//end testASavedMatrixTakesEffectOnTheNextGuardedCall()
+
+	/**
 	 * A matrix naming every seeded action, admin-only.
 	 *
 	 * @return array<string, array<int, string>>
@@ -224,10 +292,25 @@ class ActionMatrixControllerTest extends TestCase {
 		$actionAuth->method('getMatrix')->willReturnCallback(fn (): array => $this->stored);
 		$actionAuth->method('setMatrix')->willReturnCallback(
 			function (array $matrix): void {
+				if ($this->failEncode === true) {
+					throw new \JsonException('Malformed UTF-8 characters');
+				}
+
 				$this->writes++;
 				$this->stored = $matrix;
 			}
 		);
+
+		// As the real service: the matrix is read on every call, so a write is seen by the next check.
+		$actionAuth->method('requireAction')->willReturnCallback(
+			function (IUser $user, string $action): void {
+				$allowed = ($this->stored[$action] ?? ['admin']);
+				if (in_array($user->getUID(), $allowed, true) === false && in_array('coordinators', $allowed, true) === false) {
+					throw new OCSForbiddenException('You may not run ' . $action);
+				}
+			}
+		);
+		$this->actionAuth = $actionAuth;
 
 		$groups = [];
 		foreach (['admin', 'coordinators'] as $gid) {

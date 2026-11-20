@@ -30,6 +30,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\CohortNameRestampInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -39,7 +42,7 @@ use Throwable;
  *
  * @spec openspec/specs/portal-contribution/spec.md#requirement-new-the-child-switcher-shows-the-childs-group
  */
-class CohortNameRestamp {
+class CohortNameRestamp implements CohortNameRestampInterface {
 
 	private const REGISTER = 'learniq';
 
@@ -96,6 +99,20 @@ class CohortNameRestamp {
 			return;
 		}
 
+		$this->restampAll(enrolments: $enrolments, name: $name);
+	}//end restamp()
+
+	/**
+	 * Restamp the cohort name on each enrolment row.
+	 *
+	 * @param array<int,mixed> $enrolments The cohort's enrolments, as rows or entities.
+	 * @param string           $name       The cohort's new name.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-new-the-child-switcher-shows-the-childs-group
+	 */
+	private function restampAll(array $enrolments, string $name): void {
 		foreach ($enrolments as $enrolment) {
 			$row = $enrolment;
 			if (is_object($enrolment) === true && method_exists($enrolment, 'jsonSerialize') === true) {
@@ -106,7 +123,7 @@ class CohortNameRestamp {
 				$this->restampOne(row: $row, name: $name);
 			}
 		}
-	}//end restamp()
+	}//end restampAll()
 
 	/**
 	 * Save one enrolment with the new name, unless it already has it.
@@ -130,9 +147,10 @@ class CohortNameRestamp {
 		try {
 			$this->objectService->saveObject(
 				object: $object,
-				register: self::REGISTER,
-				schema: self::ENROLMENT_SCHEMA,
-				uuid: $uuid,
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::REGISTER, schema: self::ENROLMENT_SCHEMA),
+					uuid: $uuid
+				),
 				_rbac: false,
 				_multitenancy: false
 			);

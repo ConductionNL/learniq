@@ -39,6 +39,8 @@ use OCP\IAppConfig;
 use OCP\IUser;
 use OCP\IUserManager;
 use PHPUnit\Framework\TestCase;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Tests for ContributionRaiser::raise().
@@ -98,7 +100,11 @@ class ContributionRaiserTest extends TestCase {
 			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $this->store->findAll($config, $_rbac, $_multitenancy)
 		);
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null): ?ObjectEntity {
+			function (int|string $id, ?ObjectFindOptions $options = null): ?ObjectEntity {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				foreach (($this->store->rows[(string)$schema] ?? []) as $row) {
 					if ($row['id'] === $id) {
 						return OrEntityFactory::make($row, (string)$schema);
@@ -109,7 +115,7 @@ class ContributionRaiserTest extends TestCase {
 			}
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			fn (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null): ObjectEntity => $this->store->save((string)$schema, $object, $uuid)
+			fn (array|ObjectEntity $object, ObjectSaveOptions $options = new ObjectSaveOptions()): ObjectEntity => $this->store->save((string)($options->target->schema), $object, ($options->uuid))
 		);
 
 		$shillinq = $this->createMock(ShillinqContributionClient::class);
@@ -301,4 +307,31 @@ class ContributionRaiserTest extends TestCase {
 		$this->expectException(InvalidArgumentException::class);
 		$this->makeRaiser()->raise(feeItem: array_merge($this->paidCourse(), ['linkedCourseId' => 'course-leeg']), administrationId: 'adm');
 	}//end testAFeeWithoutLearnersIsRefused()
+
+	/**
+	 * The payer is the first guardian (string ids only, unknown users
+	 * skipped) with an e-mail, else the learner; the beneficiary is the
+	 * profile by id or uuid, else the bare learner.
+	 *
+	 * @return void
+	 */
+	public function testThePayerAndTheBeneficiaryOfEachLearner(): void {
+		$this->store->rows['cohort'] = [['id' => 'groep-8', 'learnerIds' => ['leerling-010', 'ouder-002', 'leerling-012']]];
+		$this->store->rows['learner-profile'] = [
+			['id' => 'lp-10', 'ncUserId' => 'leerling-010', 'parentIds' => [5, 'ghost', 'ouder-zonder-mail', 'ouder-002', 'ouder-001']],
+			['uuid' => 'lp-12-uuid', 'ncUserId' => 'leerling-012', 'parentIds' => ['ouder-001']],
+		];
+		$fee = array_merge($this->schoolkassa(), ['linkedCohortId' => 'groep-8']);
+
+		$this->makeRaiser()->raise(feeItem: $fee, administrationId: 'adm-school-1');
+
+		self::assertSame(
+			[
+				['debtor' => ['name' => 'Naam van ouder-002', 'email' => 'ouder002@example.nl'], 'beneficiary' => ['type' => 'learner', 'register' => 'learniq', 'schema' => 'learner-profile', 'id' => 'lp-10']],
+				['debtor' => ['name' => 'Naam van ouder-002', 'email' => 'ouder002@example.nl'], 'beneficiary' => ['type' => 'learner', 'id' => 'ouder-002']],
+				['debtor' => ['name' => 'Naam van ouder-001', 'email' => 'ouder001@example.nl'], 'beneficiary' => ['type' => 'learner', 'register' => 'learniq', 'schema' => 'learner-profile', 'id' => 'lp-12-uuid']],
+			],
+			array_map(static fn (array $r): array => ['debtor' => $r['debtor'], 'beneficiary' => $r['beneficiary']], $this->sent[0]['recipients'])
+		);
+	}//end testThePayerAndTheBeneficiaryOfEachLearner()
 }//end class

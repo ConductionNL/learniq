@@ -31,6 +31,8 @@ require_once __DIR__ . '/../../../Support/GoldenFile.php';
  * appends, every call on its collaborators in order, and what was logged.
  *
  * @covers \OCA\Learniq\Service\CoursePackage\MoodleActivityRouter
+ * @uses \OCA\Learniq\Service\CoursePackage\CoursePackageOutput
+ * @uses \OCA\Learniq\Service\CoursePackage\PackageContext
  */
 class MoodleActivityRouterGoldenTest extends TestCase {
 	use GoldenFile;

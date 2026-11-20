@@ -31,6 +31,8 @@ use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCP\EventDispatcher\Event;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Tests for SubjectChoiceValidator::handle() on SubjectChoice -> submitted.
@@ -81,7 +83,11 @@ class SubjectChoiceValidatorTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($plan): ?ObjectEntity {
+			function (int|string $id, ?ObjectFindOptions $options = null) use ($plan): ?ObjectEntity {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				if ($schema === 'curriculum-plan' && $plan !== null) {
 					return OrEntityFactory::make($plan, 'curriculum-plan');
 				}
@@ -102,7 +108,10 @@ class SubjectChoiceValidatorTest extends TestCase {
 		);
 
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
+			function (array|ObjectEntity $object, ObjectSaveOptions $options = new ObjectSaveOptions()): ObjectEntity {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
 				$data = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
 				$this->savedObjects[] = [
 					'register' => (string)$register,
@@ -419,4 +428,38 @@ class SubjectChoiceValidatorTest extends TestCase {
 			self::assertSame($expected, $actual[$name], $name);
 		}
 	}//end testCapacityMatchesGolden()
+	/**
+	 * Each mandatory combination not fully selected names what it misses, in
+	 * the combination's order; empty or malformed combinations are skipped.
+	 *
+	 * @return void
+	 */
+	public function testEveryMandatoryCombinationNamesWhatItMisses(): void {
+		$cases = [
+			'two missing, one complete, malformed skipped' => [
+				[['course-x', 'course-y', 'course-z'], 'not-a-list', [], ['course-a'], ['course-q', 'course-a']],
+				[
+					'Mandatory combination not fully selected: missing course-y, course-z.',
+					'Mandatory combination not fully selected: missing course-q.',
+				],
+			],
+			'combinations not a list' => ['course-x', null],
+		];
+
+		foreach ($cases as $label => [$combinations, $errors]) {
+			$this->savedObjects = [];
+			$plan = ['id' => 'plan-1', 'electiveRules' => ['mandatoryCombinations' => $combinations]];
+			$choice = ['id' => 'choice-2', 'curriculumPlanId' => 'plan-1', 'selectedElectiveCourseIds' => ['course-x', 'course-a'], 'tenant_id' => 'tenant-a'];
+
+			$this->makeHandler(plan: $plan)->handle($this->makeEvent($choice));
+
+			if ($errors === null) {
+				self::assertSame('validated', $this->savedObjects[0]['object']['lifecycle'], $label);
+				continue;
+			}
+
+			self::assertSame('needs-revision', $this->savedObjects[0]['object']['lifecycle'], $label);
+			self::assertSame($errors, $this->savedObjects[0]['object']['validationErrors'], $label);
+		}
+	}//end testEveryMandatoryCombinationNamesWhatItMisses()
 }//end class

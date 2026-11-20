@@ -32,8 +32,12 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\LessonOnboarding;
 
+use OCA\Learniq\Kernel\Contracts\LessonOnboardingImporterInterface;
 use OCA\Learniq\Service\CoursePackage\CoursePackageFileWriter;
 use OCA\Learniq\Service\CoursePackage\CoursePackageObjectWriter;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Files\File;
@@ -47,7 +51,7 @@ use Throwable;
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects) The import touches the row, the course, the
  * file, the readers and two writers by design; each collaborator is already its own class.
  */
-class LessonOnboardingImporter {
+class LessonOnboardingImporter implements LessonOnboardingImporterInterface {
 
 	private const REGISTER = 'learniq';
 
@@ -277,7 +281,10 @@ class LessonOnboardingImporter {
 		$draft = $this->noteSplitter->split(blocks: $this->draftBuilder->build(sections: $run['lesson']['sections'], materialIds: $run['materialIds']));
 		$run['payload']['blocks'] = $draft['blocks'];
 		$run['notes'] = $draft['notes'];
-		$this->objectService->saveObject(object: $run['payload'], register: self::REGISTER, schema: 'lesson', uuid: $run['lessonId']);
+		$this->objectService->saveObject(
+			object: $run['payload'],
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: 'lesson'), uuid: $run['lessonId'])
+		);
 
 		return $run;
 	}//end attachImages()
@@ -292,7 +299,7 @@ class LessonOnboardingImporter {
 	 * @return array{lessonId: string, lessonName: string, courseId: string, blocks: int, materials: int, notes: list<string>}
 	 */
 	private function finishImport(array $run, File $file): array {
-		$notesLost = $this->writeTeacherNotes(notes: $run['notes'], lessonId: $run['lessonId'], tenantId: $run['tenantId']);
+		$notesLost = $this->writeTeacherNotes(run: $run);
 		$run['materials'] = $this->materialCount(run: $run, file: $file);
 		$notes = self::importNotes(notes: $run['lesson']['notes'], notesLost: $notesLost);
 		$notes = $this->markImported(rowId: $run['rowId'], context: self::context(run: $run), notes: $notes);
@@ -373,17 +380,17 @@ class LessonOnboardingImporter {
 	 * confirming teacher. A note that fails is counted, not fatal: the lesson
 	 * is already there, and the import report says a note is missing.
 	 *
-	 * @param list<array{blockId: string, afterBlockId: string, position: int, text: string}> $notes The split notes.
-	 * @param string $lessonId The created lesson.
-	 * @param string $tenantId The lesson's tenant.
+	 * @param array<string, mixed> $run The import run: its split `notes`, the created `lessonId` and the lesson's `tenantId`.
 	 *
 	 * @return int How many notes could not be saved.
 	 *
 	 * @spec openspec/specs/course-management/spec.md#requirement-imported-slide-notes-land-in-the-staff-store
 	 */
-	private function writeTeacherNotes(array $notes, string $lessonId, string $tenantId): int {
+	private function writeTeacherNotes(array $run): int {
+		$lessonId = $run['lessonId'];
+		$tenantId = $run['tenantId'];
 		$lost = 0;
-		foreach ($notes as $note) {
+		foreach ($run['notes'] as $note) {
 			try {
 				$noteId = $this->objectWriter->create(schema: self::NOTE_SCHEMA, object: [...$note, 'lessonId' => $lessonId, 'tenant_id' => $tenantId]);
 			} catch (Throwable $e) {
@@ -477,7 +484,7 @@ class LessonOnboardingImporter {
 	 */
 	private function findArray(string $id, string $schema): ?array {
 		try {
-			$entity = $this->objectService->find(id: $id, register: self::REGISTER, schema: $schema);
+			$entity = $this->objectService->find(id: $id, options: new ObjectFindOptions(register: self::REGISTER, schema: $schema));
 		} catch (Throwable $e) {
 			return null;
 		}

@@ -35,8 +35,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\BackgroundJob\SchoolAdviesVoorlopigRodJob;
-use OCA\Learniq\Service\ListenerSchemaResolver;
-use OCA\Learniq\Service\SchoolAdviesRodTiming;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Kernel\Contracts\SchoolAdviesRodTimingInterface;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatedEvent;
 use OCA\OpenRegister\Service\Deferral\ListenerDeferralService;
@@ -59,13 +59,13 @@ class SchoolAdviesVoorlopigRodHandler implements IEventListener {
 	 * Constructor.
 	 *
 	 * @param ListenerDeferralService $deferral Queues the request with the acting user.
-	 * @param ListenerSchemaResolver $schemaResolver Resolves the saved object's register and schema.
-	 * @param SchoolAdviesRodTiming $timing Whether the advice is due for ROD.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Resolves the saved object's register and schema.
+	 * @param SchoolAdviesRodTimingInterface $timing Whether the advice is due for ROD.
 	 */
 	public function __construct(
 		private readonly ListenerDeferralService $deferral,
-		private readonly ListenerSchemaResolver $schemaResolver,
-		private readonly SchoolAdviesRodTiming $timing,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
+		private readonly SchoolAdviesRodTimingInterface $timing,
 	) {
 	}//end __construct()
 
@@ -91,6 +91,20 @@ class SchoolAdviesVoorlopigRodHandler implements IEventListener {
 		}
 
 		$advies = $entity->jsonSerialize();
+		$this->deferVoorlopig(advies: $advies);
+	}//end handle()
+
+	/**
+	 * Defer sending the voorlopig advies to the ROD when it is due, deduped per
+	 * advies.
+	 *
+	 * @param array<string,mixed> $advies The SchoolAdvies written.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/data-exchange/spec.md#requirement-the-voorlopig-school-advice-goes-to-rod-when-it-is-given
+	 */
+	private function deferVoorlopig(array $advies): void {
 		$id = (string)($advies['id'] ?? ($advies['uuid'] ?? ''));
 		if ($id === '' || $this->timing->voorlopigDue(advies: $advies) === false) {
 			return;
@@ -101,5 +115,5 @@ class SchoolAdviesVoorlopigRodHandler implements IEventListener {
 			entry: ['schoolAdviesId' => $id],
 			dedupeKey: 'voorlopig|' . $id
 		);
-	}//end handle()
+	}//end deferVoorlopig()
 }//end class

@@ -32,6 +32,7 @@ use OCP\IUserManager;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use RuntimeException;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * @covers \OCA\Learniq\Service\Portal\PortalEmployerBookings
@@ -39,6 +40,8 @@ use RuntimeException;
  * @uses   \OCA\Learniq\Service\Portal\EmployerBookingFacts
  * @uses   \OCA\Learniq\Service\Portal\PortalOutcome
  * @uses   \OCA\Learniq\Service\Portal\CourseDayLines
+ * @uses   \OCA\Learniq\Support\SerialisedRow
+ * @uses   \OCA\Learniq\Support\TextValue
  */
 class EmployerBookingOrganisationTest extends TestCase {
 
@@ -159,7 +162,11 @@ class EmployerBookingOrganisationTest extends TestCase {
 			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $this->store->findAll($config, false, false)
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null): object {
+			function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()): object {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
+				$uuid = $options->uuid;
 				$this->saves[] = [(string)$schema, $this->actingFor];
 				return $this->store->save((string)$schema, $object, $uuid, false);
 			}

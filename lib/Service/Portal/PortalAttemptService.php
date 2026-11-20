@@ -45,6 +45,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service\Portal;
 
 use DateTimeInterface;
+use OCA\Learniq\Kernel\Contracts\PortalAttemptServiceInterface;
 use OCA\Learniq\Service\AssessmentAccessPolicy;
 
 /**
@@ -52,7 +53,7 @@ use OCA\Learniq\Service\AssessmentAccessPolicy;
  *
  * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
  */
-class PortalAttemptService {
+class PortalAttemptService implements PortalAttemptServiceInterface {
 
 	/**
 	 * Constructor.

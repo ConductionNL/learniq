@@ -27,8 +27,10 @@ namespace OCA\Learniq\Listener;
 use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -67,11 +69,11 @@ class MunicipalityFeedbackStampListener implements IEventListener {
 	 * Constructor.
 	 *
 	 * @param ObjectService          $objectService  OR object access service.
-	 * @param ListenerSchemaResolver $schemaResolver Resolves the entity's schema id to its slug.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Resolves the entity's schema id to its slug.
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly ListenerSchemaResolver $schemaResolver,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
 	) {
 	}//end __construct()
 
@@ -119,9 +121,10 @@ class MunicipalityFeedbackStampListener implements IEventListener {
 
 		$this->objectService->saveObject(
 			object: $data,
-			register: self::LEARNIQ_REGISTER,
-			schema: self::FLAG_SCHEMA,
-			uuid: $entity->getUuid()
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::FLAG_SCHEMA),
+				uuid: $entity->getUuid()
+			)
 		);
 	}//end handle()
 }//end class

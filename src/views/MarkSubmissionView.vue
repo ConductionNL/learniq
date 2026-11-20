@@ -437,8 +437,10 @@ import { resolveGradePlan } from '../utils/assignmentGradePlan.js'
 import { transitionUrl as objectTransitionUrl } from '../utils/customPages.js'
 import { markingMode, prefillFinalGrade } from '../utils/doubleMarking.js'
 import {
+	readFirstRow,
 	readObject,
 	readRequiredObject,
+	restoreLevels,
 	rubricPoints,
 	rubricScoresOf,
 	sendJson,
@@ -646,13 +648,7 @@ export default {
 				// a marker starts from their own mark, never from the Submission.
 				const source =
 					this.mode === 'marker' ? this.marksView.ownMark : this.submission
-				const existingScores = source.rubricScores ?? []
-				for (const score of existingScores) {
-					this.selectedLevels[score.criterionId] = {
-						levelId: score.levelId,
-						points: score.points,
-					}
-				}
+				restoreLevels(this.selectedLevels, source.rubricScores ?? [])
 				this.feedbackText = source.feedbackText ?? ''
 				if (source.proposedGrade != null) {
 					this.manualGrade = source.proposedGrade
@@ -750,17 +746,11 @@ export default {
 			const url = generateUrl(
 				`/apps/openregister/api/objects/learniq/peer-feedback-summary?submissionId=${submissionId}&_limit=1`,
 			)
-			const resp = await fetch(url, {
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-			})
-			if (!resp.ok) {
-				// Non-fatal — the panel simply doesn't render this section.
-				return
+			const read = await readFirstRow(url)
+			// Non-fatal — the panel simply doesn't render this section.
+			if (read.ok) {
+				this.peerFeedbackSummary = read.row
 			}
-			const json = await resp.json()
-			const results =
-				json.results ?? json.objects ?? (Array.isArray(json) ? json : [])
-			this.peerFeedbackSummary = results.length > 0 ? results[0] : null
 		},
 
 		/**
@@ -775,17 +765,11 @@ export default {
 			const url = generateUrl(
 				`/apps/openregister/api/objects/learniq/self-assessment?submissionId=${submissionId}&_limit=1`,
 			)
-			const resp = await fetch(url, {
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-			})
-			if (!resp.ok) {
-				// Non-fatal — the panel simply doesn't render this section.
-				return
+			const read = await readFirstRow(url)
+			// Non-fatal — the panel simply doesn't render this section.
+			if (read.ok) {
+				this.selfAssessment = read.row
 			}
-			const json = await resp.json()
-			const results =
-				json.results ?? json.objects ?? (Array.isArray(json) ? json : [])
-			this.selfAssessment = results.length > 0 ? results[0] : null
 		},
 
 		/**
