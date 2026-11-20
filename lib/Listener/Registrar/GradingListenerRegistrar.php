@@ -32,10 +32,16 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener\Registrar;
 
+use OCA\OpenRegister\Event\ObjectCreatedEvent;
+use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\Learniq\Lifecycle\AttendanceFlagCreationHandler;
 use OCA\Learniq\Lifecycle\ExcuseApprovalHandler;
 use OCA\Learniq\Listener\CredentialIssuanceHandler;
+use OCA\Learniq\Listener\ExamObjectionDeadlineStamp;
+use OCA\Learniq\Listener\ExamProgressCascade;
+use OCA\Learniq\Listener\ExamSittingEstablishHandler;
+use OCA\Learniq\Listener\ExamObjectionDecisionHandler;
 use OCA\Learniq\Listener\ExemptionGrantHandler;
 use OCA\Learniq\Listener\GradeRollupHandler;
 use OCA\Learniq\Listener\ItemAnalysisRecomputeHandler;
@@ -104,6 +110,24 @@ class GradingListenerRegistrar {
 		// so the standard audit trail and gradePublished notification fire
 		// unchanged, per exam-board-case-handling design §4.
 		[ObjectTransitionedEvent::class, ExemptionGrantHandler::class],
+		// ADR-031 legitimate exception (exam-committee-today-and-keuzedelen):
+		// ExamObjection `decided` with a changed result -> the contested
+		// GradeEntry gets the new value through its own revise and republish,
+		// so the publish guards run and the audit trail keeps the old value.
+		[ObjectTransitionedEvent::class, ExamObjectionDecisionHandler::class],
+		// A new ExamObjection gets its decision deadline from the exam
+		// regulation's term in working days (server-written, never the creator's).
+		[ObjectCreatingEvent::class, ExamObjectionDeadlineStamp::class],
+		// ADR-031 legitimate exception (exam-committee-today-and-keuzedelen):
+		// ExamSitting `established` -> every result of the sitting that is not
+		// yet established gets the sitting's establishedAt and establishedBy, so
+		// the committee establishes them all at once.
+		[ObjectTransitionedEvent::class, ExamSittingEstablishHandler::class],
+		// Exam-committee-today-and-keuzedelen: a published result, a new sitting, or an
+		// established or cancelled sitting re-derives the exam progress line and the
+		// next sitting on the students it touches (server-written copies).
+		[ObjectTransitionedEvent::class, ExamProgressCascade::class],
+		[ObjectCreatedEvent::class, ExamProgressCascade::class],
 		// ADR-031 legitimate exception (assessment-item-pools-and-analysis):
 		// AssessmentResult.graded -> ItemStatistics/AssessmentReliability
 		// recompute + ItemRevisionFlag creation bridge. Listens for the SAME
