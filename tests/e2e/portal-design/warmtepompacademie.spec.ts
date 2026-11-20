@@ -22,12 +22,13 @@
  * @spec openspec/changes/employer-signs-in-with-eherkenning/specs/portal-identity/spec.md
  * @spec openspec/changes/portal-board-checks-run-on-a-real-instance/specs/example-sets/spec.md#requirement-the-board-checks-run-against-any-instance-that-loaded-the-sets
  * @spec openspec/changes/school-portals-match-their-boards/specs/example-sets/spec.md#requirement-the-portal-declarations-follow-their-boards
+ * @spec openspec/changes/employer-substitutes-a-colleague/specs/portal-contribution/spec.md#requirement-an-employer-sends-a-colleague-in-place-of-a-participant-before-the-deadline
  */
 
 import { expect, request, test } from '@playwright/test'
 import path from 'node:path'
 import { baseUrl } from '../base-url.ts'
-import { siteUrl } from '../helpers/portal-fixture.ts'
+import { SITE_TOKEN_KEY, siteUrl } from '../helpers/portal-fixture.ts'
 import { ACR_SUBSTANTIAL } from '../helpers/stub-digid.ts'
 import {
 	ADMIN_CREDENTIALS,
@@ -416,5 +417,130 @@ test.describe('warmtepompacademie: Linda signs in with eHerkenning', () => {
 		} finally {
 			await stub.close()
 		}
+	})
+})
+
+/**
+ * employer-substitutes-a-colleague: Linda sends a colleague in place of a
+ * participant. The story booking I-2026-0412 is read only (its course day
+ * moves with the load week and may be past its deadline), so the run books
+ * one place of its own on a coming course date, names one of her people,
+ * sees "Collega in zijn plaats" on that participant, sends another colleague
+ * in his place, and removes the booking and its enrolments afterwards.
+ * Desktop only: the two projects would book twice.
+ */
+test.describe.serial('warmtepompacademie: Linda sends a colleague instead', () => {
+	let bookingId = ''
+
+	const admin = async () =>
+		await request.newContext({
+			baseURL: baseUrl(),
+			httpCredentials: ADMIN_CREDENTIALS,
+			extraHTTPHeaders: { 'OCS-APIRequest': 'true' },
+		})
+
+	test.afterAll(async () => {
+		if (bookingId === '') {
+			return
+		}
+		const api = await admin()
+		const list = await api.get(
+			`/apps/openregister/api/objects/learniq/enrolment?bookingRef=${bookingId}&_limit=50`,
+		)
+		const rows = list.ok() ? ((await list.json()).results ?? []) : []
+		for (const row of rows) {
+			await api.delete(`/apps/openregister/api/objects/learniq/enrolment/${row.id}`).catch(() => null)
+		}
+		await api.delete(`/apps/openregister/api/objects/learniq/course-booking/${bookingId}`).catch(() => null)
+		await api.dispose()
+	})
+
+	// @e2e openspec/changes/employer-substitutes-a-colleague/specs/portal-contribution/spec.md#requirement-an-employer-sends-a-colleague-in-place-of-a-participant-before-the-deadline
+	test('Collega in zijn plaats: the place stays, the participant is replaced', async ({
+		browser,
+	}, info) => {
+		test.skip(info.project.name === 'phone', 'the flow books once; the desktop project runs it')
+		await ensurePortalAccount(LINDA.user, 'employer', LINDA.claims, LINDA.name)
+		const page = await signInAs(browser, PORTAL, LINDA.user, { width: 1440, height: 1000 })
+		const token =
+			(await page.evaluate((key) => sessionStorage.getItem(key), SITE_TOKEN_KEY)) ?? ''
+		expect(token, "Linda's bearer").not.toBe('')
+		const auth = { Authorization: `Bearer ${token}` }
+		const rows = async (schema: string, collection: string) => {
+			const res = await page.request.get(
+				`/apps/portaliq/portal/api/collections/learniq/${schema}?collection=${collection}`,
+				{ headers: auth },
+			)
+			expect(res.status(), await res.text()).toBe(200)
+			return ((await res.json()).objects ?? []) as Array<Record<string, any>>
+		}
+		const act = async (action: string, data: Record<string, unknown>) =>
+			await page.request.post(`/apps/portaliq/portal/api/actions/learniq/${action}`, {
+				headers: auth,
+				data,
+			})
+
+		const employees = await rows('learner-profile', 'employerEmployees')
+		test.skip(employees.length < 2, 'Jansen has fewer than two employees on this instance')
+		const [first, colleague] = employees
+		const editions = await rows('cohort', 'employerEditions')
+		test.skip(editions.length === 0, 'no course date of the academy is open for booking')
+
+		// The first coming course date whose substitution deadline has not passed.
+		let enrolmentId = ''
+		for (const edition of editions.slice(0, 4)) {
+			const booked = await act('enrolEmployees', { cohortId: edition.id, participantCount: 1 })
+			if (booked.status() >= 300) {
+				continue
+			}
+			const body = await booked.json()
+			const id = String(body.bookingRef ?? body.result?.bookingRef ?? body.data?.bookingRef ?? '')
+			if (id === '') {
+				continue
+			}
+			bookingId = id
+			const named = await act('addBookingParticipant', { bookingRef: id, learnerRef: first.id })
+			expect(named.status(), await named.text()).toBeLessThan(300)
+			const mine = (await rows('enrolment', 'employerParticipants')).find(
+				(row) => row.bookingRef === id && row.learnerRef === first.id,
+			)
+			expect(mine, 'her participant on the new booking').toBeTruthy()
+			enrolmentId = String(mine!.id)
+			break
+		}
+		expect(enrolmentId, 'a booking with her participant').not.toBe('')
+
+		// The row link on the opened booking.
+		await page.goto(
+			`${siteUrl(PORTAL)}&route=${encodeURIComponent(`/mijn/learniq/employerBookings/${bookingId}`)}`,
+		)
+		await expectTexts(page, [String(first.fullName ?? ''), 'Collega in zijn plaats'])
+
+		// What the row action posts: the row's enrolment and the colleague she picks.
+		const sent = await act('substituteParticipant', { enrolmentId, substituteRef: colleague.id })
+		test.skip(
+			sent.status() === 409 && /Vervangen kan tot/.test(await sent.text()),
+			'every bookable course date is past its substitution deadline',
+		)
+		expect(sent.status(), await sent.text()).toBeLessThan(300)
+
+		const api = await admin()
+		const enrolments = (
+			await (
+				await api.get(`/apps/openregister/api/objects/learniq/enrolment?bookingRef=${bookingId}&_limit=50`)
+			).json()
+		).results as Array<Record<string, any>>
+		const replaced = enrolments.find((row) => row.learnerRef === first.id)
+		const substitute = enrolments.find((row) => row.learnerRef === colleague.id)
+		expect(replaced?.lifecycle).toBe('withdrawn')
+		expect(replaced?.withdrawReason).toBe('vervangen door collega')
+		expect(substitute, 'the colleague is enrolled on the same booking').toBeTruthy()
+		expect(substitute?.lifecycle).not.toBe('withdrawn')
+		const booking = await (
+			await api.get(`/apps/openregister/api/objects/learniq/course-booking/${bookingId}`)
+		).json()
+		expect(Number(booking.participantCount)).toBe(1)
+		await api.dispose()
+		await page.context().close()
 	})
 })

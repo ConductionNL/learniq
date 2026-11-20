@@ -20,7 +20,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/compliance-attestation-locked-after-signing/specs/compliance-audit/spec.md#requirement-the-audit-pack-states-the-freeze
+ * @spec openspec/specs/compliance-audit/spec.md#requirement-the-audit-pack-states-the-freeze
  */
 
 declare(strict_types=1);
@@ -38,7 +38,7 @@ use OCA\OpenRegister\Service\ObjectService;
  *
  * @psalm-api
  *
- * @spec openspec/changes/compliance-attestation-locked-after-signing/specs/compliance-audit/spec.md#requirement-the-audit-pack-states-the-freeze
+ * @spec openspec/specs/compliance-audit/spec.md#requirement-the-audit-pack-states-the-freeze
  */
 class FrozenAttestationLines {
 
@@ -68,7 +68,7 @@ class FrozenAttestationLines {
 	 *
 	 * @return array<int,string> One line per signed or revoked attestation.
 	 *
-	 * @spec openspec/changes/compliance-attestation-locked-after-signing/specs/compliance-audit/spec.md#scenario-an-auditor-opens-the-pack
+	 * @spec openspec/specs/compliance-audit/spec.md#scenario-an-auditor-opens-the-pack
 	 */
 	public function lines(string $regulationSlug, string $tenantId): array {
 		$frozen = [];

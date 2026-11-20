@@ -81,6 +81,7 @@ class PupilListTest extends TestCase {
 				'profileId' => 'p-vera',
 				'name' => 'Vera Hulstkamp',
 				'todayState' => TodayState::IN_CLASS,
+				'todayUntil' => null,
 				'absentDays' => 2,
 				'lateCount' => 1,
 				'conferenceAt' => '2026-10-29T18:10:00+01:00',
@@ -96,6 +97,26 @@ class PupilListTest extends TestCase {
 			$row
 		);
 	}//end testVerasRowCarriesWhatThePrimaryListShows()
+
+	/**
+	 * Lina's row carries until when her appointment keeps her away; a value
+	 * that is no time string reads as no time.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/learner-list-and-page-follow-the-boards/tasks.md#T1
+	 */
+	public function testARowCarriesUntilWhenThePupilIsAway(): void {
+		$pupil = ['learnerId' => 'lina', 'profile' => null, 'todayState' => TodayState::APPOINTMENT, 'summary' => null, 'records' => []];
+
+		$row = PupilList::row(pupil: $pupil + ['todayUntil' => '11:30'], now: self::now());
+		$this->assertSame(TodayState::APPOINTMENT, $row['todayState']);
+		$this->assertSame('11:30', $row['todayUntil']);
+
+		$this->assertNull(PupilList::row(pupil: $pupil + ['todayUntil' => ''], now: self::now())['todayUntil']);
+		$this->assertNull(PupilList::row(pupil: $pupil + ['todayUntil' => 1130], now: self::now())['todayUntil']);
+		$this->assertNull(PupilList::row(pupil: $pupil, now: self::now())['todayUntil']);
+	}//end testARowCarriesUntilWhenThePupilIsAway()
 
 	/**
 	 * Noor's row: a weighted average of the counting grades only, three

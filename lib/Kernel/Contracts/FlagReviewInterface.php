@@ -50,7 +50,7 @@ interface FlagReviewInterface {
 	 *
 	 * @return array<int, array<string, mixed>>|string
 	 *
-	 * @spec openspec/changes/proctoring-flag-review-page/specs/assessment/spec.md#requirement-only-staff-decide-a-flag-and-the-server-records-who-did
+	 * @spec openspec/specs/assessment/spec.md#requirement-only-staff-decide-a-flag-and-the-server-records-who-did
 	 */
 	public function review(array $stored, array $incoming, string $uid, bool $staff, DateTimeImmutable $now): array|string;
 }//end interface
