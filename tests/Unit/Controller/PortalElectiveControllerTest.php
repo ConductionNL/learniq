@@ -76,17 +76,22 @@ class PortalElectiveControllerTest extends TestCase {
 	 * @return PortalElectiveController
 	 */
 	private function controller(?array $claims, array $params, bool $throws=false, bool $account=true): PortalElectiveController {
-		$request = $this->createMock(IRequest::class);
+		$request = $this->createMock(originalClassName: IRequest::class);
 		$request->method('getHeader')->willReturn('token');
 		$request->method('getParam')->willReturnCallback(static fn (string $key, $default=null) => ($params[$key] ?? $default));
-		$verifier = $this->createMock(PortalAssertionVerifierInterface::class);
+		$verifier = $this->createMock(originalClassName: PortalAssertionVerifierInterface::class);
 		$verifier->method('verify')->willReturn($claims);
-		$user = $this->createMock(IUser::class);
-		$learners = $this->createMock(PortalLearnerResolverInterface::class);
+		$user = $this->createMock(originalClassName: IUser::class);
+		$learners = $this->createMock(originalClassName: PortalLearnerResolverInterface::class);
 		$learners->method('resolve')->willReturnCallback(
-			static fn (string $learnerRef): ?PortalLearner => ($account === true) ? new PortalLearner(profileRef: $learnerRef, ncUserId: 'noor', tenantId: '', user: $user) : null
+			static fn (string $learnerRef): ?PortalLearner => ($account === true) ? new PortalLearner(
+				profileRef: $learnerRef,
+				ncUserId: 'noor',
+				tenantId: '',
+				user: $user
+			) : null
 		);
-		$signUps = $this->createMock(PortalElectiveSignUpInterface::class);
+		$signUps = $this->createMock(originalClassName: PortalElectiveSignUpInterface::class);
 		$signUps->method('signUp')->willReturnCallback(
 			function (PortalLearner $learner, string $offerId) use ($throws): PortalOutcome {
 				$this->calls[] = $learner->profileRef . ':' . $offerId;
@@ -108,7 +113,7 @@ class PortalElectiveControllerTest extends TestCase {
 	 * @return void
 	 */
 	public function testTheReceiverIsAPublicPage(): void {
-		self::assertNotEmpty((new ReflectionMethod(PortalElectiveController::class, 'signUp'))->getAttributes(PublicPage::class));
+		self::assertNotEmpty(actual: (new ReflectionMethod(PortalElectiveController::class, 'signUp'))->getAttributes(PublicPage::class));
 	}//end testTheReceiverIsAPublicPage()
 
 	/**
@@ -118,12 +123,31 @@ class PortalElectiveControllerTest extends TestCase {
 	 * @return void
 	 */
 	public function testOnlyAStudentForwardReachesTheSignUp(): void {
-		self::assertSame(401, $this->controller(claims: null, params: ['learnerRef' => 'lp-noor', 'offerId' => 'offer-1'])->signUp()->getStatus());
-		self::assertSame(403, $this->controller(claims: ['audience' => 'parent'], params: ['learnerRef' => 'lp-noor', 'offerId' => 'offer-1'])->signUp()->getStatus());
-		self::assertSame(403, $this->controller(claims: ['audience' => 'student'], params: ['offerId' => 'offer-1'])->signUp()->getStatus());
-		$missing = $this->controller(claims: ['audience' => 'student'], params: ['learnerRef' => 'lp-noor', 'offerId' => 'offer-1'], account: false)->signUp();
-		self::assertSame([403, 'not_available', 'msg:no-account'], [$missing->getStatus(), $missing->getData()['error'], $missing->getData()['message']]);
-		self::assertSame([], $this->calls);
+		self::assertSame(
+			expected: 401,
+			actual: $this->controller(claims: null, params: ['learnerRef' => 'lp-noor', 'offerId' => 'offer-1'])->signUp()->getStatus()
+		);
+		self::assertSame(
+			expected: 403,
+			actual: $this->controller(
+				claims: ['audience' => 'parent'],
+				params: ['learnerRef' => 'lp-noor', 'offerId' => 'offer-1']
+			)->signUp()->getStatus()
+		);
+		self::assertSame(
+			expected: 403,
+			actual: $this->controller(claims: ['audience' => 'student'], params: ['offerId' => 'offer-1'])->signUp()->getStatus()
+		);
+		$missing = $this->controller(
+			claims: ['audience' => 'student'],
+			params: ['learnerRef' => 'lp-noor', 'offerId' => 'offer-1'],
+			account: false
+		)->signUp();
+		self::assertSame(
+			expected: [403, 'not_available', 'msg:no-account'],
+			actual: [$missing->getStatus(), $missing->getData()['error'], $missing->getData()['message']]
+		);
+		self::assertSame(expected: [], actual: $this->calls);
 	}//end testOnlyAStudentForwardReachesTheSignUp()
 
 	/**
@@ -134,12 +158,16 @@ class PortalElectiveControllerTest extends TestCase {
 	 */
 	public function testTheForwardedPupilIsSignedUpAndARefusalIsWorded(): void {
 		$response = $this->controller(claims: ['audience' => 'student'], params: ['learnerRef' => 'lp-noor', 'offerId' => 'offer-1'])->signUp();
-		self::assertSame(422, $response->getStatus());
-		self::assertSame(['error' => 'full', 'message' => 'msg:full'], $response->getData());
-		self::assertSame(['lp-noor:offer-1'], $this->calls);
+		self::assertSame(expected: 422, actual: $response->getStatus());
+		self::assertSame(expected: ['error' => 'full', 'message' => 'msg:full'], actual: $response->getData());
+		self::assertSame(expected: ['lp-noor:offer-1'], actual: $this->calls);
 
-		$failed = $this->controller(claims: ['audience' => 'student'], params: ['learnerRef' => 'lp-noor', 'offerId' => 'offer-1'], throws: true)->signUp();
-		self::assertSame(502, $failed->getStatus());
-		self::assertStringNotContainsString('SQLSTATE', json_encode($failed->getData()));
+		$failed = $this->controller(
+			claims: ['audience' => 'student'],
+			params: ['learnerRef' => 'lp-noor', 'offerId' => 'offer-1'],
+			throws: true
+		)->signUp();
+		self::assertSame(expected: 502, actual: $failed->getStatus());
+		self::assertStringNotContainsString(needle: 'SQLSTATE', haystack: json_encode($failed->getData()));
 	}//end testTheForwardedPupilIsSignedUpAndARefusalIsWorded()
 }//end class

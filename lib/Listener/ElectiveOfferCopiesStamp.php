@@ -134,7 +134,10 @@ class ElectiveOfferCopiesStamp implements IEventListener {
 		try {
 			$copies = $this->copies->copies(offer: $offer, now: new DateTimeImmutable());
 		} catch (Throwable $exception) {
-			$this->logger->warning('[ElectiveOfferCopiesStamp] The next lesson of an offer could not be read: {msg}', ['msg' => $exception->getMessage()]);
+			$this->logger->warning(
+				'[ElectiveOfferCopiesStamp] The next lesson of an offer could not be read: {msg}',
+				['msg' => $exception->getMessage()]
+			);
 			return;
 		}
 

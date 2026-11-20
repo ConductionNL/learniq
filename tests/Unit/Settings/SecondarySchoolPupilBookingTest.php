@@ -54,21 +54,24 @@ class SecondarySchoolPupilBookingTest extends TestCase {
 	public function testTheSupportLessonHasSixPlacesLeft(): void {
 		$objects = self::objects();
 		$offers = array_values(array_filter($objects['elective-offer'], static fn (array $o): bool => $o['name'] === 'Steunles wiskunde'));
-		self::assertCount(1, $offers);
+		self::assertCount(expectedCount: 1, haystack: $offers);
 		$offer = $offers[0];
 
-		self::assertSame(['open', 12, 'Meneer Bos'], [$offer['lifecycle'], $offer['capacityPerLesson'], $offer['teacherName']]);
-		self::assertNotEmpty($offer['eligibleCohortIds']);
+		self::assertSame(expected: ['open', 12, 'Meneer Bos'], actual: [$offer['lifecycle'], $offer['capacityPerLesson'], $offer['teacherName']]);
+		self::assertNotEmpty(actual: $offer['eligibleCohortIds']);
 		$taken = array_filter(
 			$objects['elective-sign-up'],
 			static fn (array $s): bool => $s['offerId'] === $offer['uuid'] && $s['status'] !== 'withdrawn'
 		);
-		self::assertCount(6, $taken);
-		self::assertSame([6, 'Nog 6 plekken', 'Lokaal 2.14'], [$offer['placesLeft'], $offer['placesLeftLine'], $offer['nextLessonLocation']]);
+		self::assertCount(expectedCount: 6, haystack: $taken);
+		self::assertSame(
+			expected: [6, 'Nog 6 plekken', 'Lokaal 2.14'],
+			actual: [$offer['placesLeft'], $offer['placesLeftLine'], $offer['nextLessonLocation']]
+		);
 
 		$lesson = array_values(array_filter($objects['session'], static fn (array $s): bool => $s['uuid'] === $offer['sessionIds'][0]))[0];
-		self::assertSame([$lesson['startsAt'], $lesson['endsAt']], [$offer['nextLessonStartsAt'], $offer['nextLessonEndsAt']]);
-		self::assertSame('2026-10-06T15:20:00+02:00', $lesson['startsAt']);
+		self::assertSame(expected: [$lesson['startsAt'], $lesson['endsAt']], actual: [$offer['nextLessonStartsAt'], $offer['nextLessonEndsAt']]);
+		self::assertSame(expected: '2026-10-06T15:20:00+02:00', actual: $lesson['startsAt']);
 	}//end testTheSupportLessonHasSixPlacesLeft()
 
 	/**
@@ -79,18 +82,22 @@ class SecondarySchoolPupilBookingTest extends TestCase {
 	 */
 	public function testTheMentorTalksLetThePupilBook(): void {
 		$objects = self::objects();
-		$rounds = array_values(array_filter($objects['conference-round'], static fn (array $r): bool => str_starts_with($r['name'], 'Mentorgesprekken')));
-		self::assertCount(1, $rounds);
-		self::assertTrue($rounds[0]['pupilMayBook']);
-		self::assertSame('booking-open', $rounds[0]['lifecycle']);
+		$rounds = array_values(
+			array_filter($objects['conference-round'], static fn (array $r): bool => str_starts_with($r['name'], 'Mentorgesprekken'))
+		);
+		self::assertCount(expectedCount: 1, haystack: $rounds);
+		self::assertTrue(condition: $rounds[0]['pupilMayBook']);
+		self::assertSame(expected: 'booking-open', actual: $rounds[0]['lifecycle']);
 
-		$times = array_values(array_filter($objects['conference-slot'], static fn (array $s): bool => $s['conferenceRoundId'] === $rounds[0]['uuid']));
-		self::assertNotEmpty($times);
-		self::assertSame(array_fill(0, count($times), true), array_column($times, 'pupilMayBook'));
+		$times = array_values(
+			array_filter($objects['conference-slot'], static fn (array $s): bool => $s['conferenceRoundId'] === $rounds[0]['uuid'])
+		);
+		self::assertNotEmpty(actual: $times);
+		self::assertSame(expected: array_fill(0, count($times), true), actual: array_column($times, 'pupilMayBook'));
 		$tuesday = array_values(array_filter($times, static fn (array $s): bool => $s['startsAt'] === '2026-10-13T16:30:00+02:00'));
-		self::assertSame('free', $tuesday[0]['lifecycle']);
+		self::assertSame(expected: 'free', actual: $tuesday[0]['lifecycle']);
 
 		$others = array_filter($objects['conference-round'], static fn (array $r): bool => $r['uuid'] !== $rounds[0]['uuid']);
-		self::assertSame([], array_filter(array_column($others, 'pupilMayBook')), 'no other round lets pupils book');
+		self::assertSame(expected: [], actual: array_filter(array_column($others, 'pupilMayBook')), message: 'no other round lets pupils book');
 	}//end testTheMentorTalksLetThePupilBook()
 }//end class

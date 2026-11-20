@@ -148,15 +148,15 @@ class ConferenceFreeSlotGeneratorTest extends TestCase {
 	public function testAFreeTimeCopiesWhetherThePupilMayBook(): void {
 		$this->generator()->handle($this->opened(round: array_merge($this->round(), ['pupilMayBook' => true])));
 		$slots = $this->store->rows['conference-slot'];
-		self::assertNotEmpty($slots);
-		self::assertSame(array_fill(0, count($slots), true), array_column($slots, 'pupilMayBook'));
+		self::assertNotEmpty(actual: $slots);
+		self::assertSame(expected: array_fill(0, count($slots), true), actual: array_column($slots, 'pupilMayBook'));
 		foreach ($this->store->saves as $save) {
-			$this->assertNull(self::schemaError($save['schema'], $save['object']), 'the real fragment accepts the copy');
+			$this->assertNull(actual: self::schemaError($save['schema'], $save['object']), message: 'the real fragment accepts the copy');
 		}
 
 		$this->store->rows['conference-slot'] = [];
 		$this->generator()->handle($this->opened(round: $this->round()));
-		self::assertSame([], array_column($this->store->rows['conference-slot'], 'pupilMayBook'));
+		self::assertSame(expected: [], actual: array_column($this->store->rows['conference-slot'], 'pupilMayBook'));
 	}//end testAFreeTimeCopiesWhetherThePupilMayBook()
 
 	/**

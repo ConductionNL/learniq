@@ -61,7 +61,7 @@ class ElectiveOfferCopiesTest extends TestCase {
 	 * @return ElectiveOfferCopies
 	 */
 	private function copies(): ElectiveOfferCopies {
-		$objects = $this->createMock(ObjectService::class);
+		$objects = $this->createMock(originalClassName: ObjectService::class);
 		$objects->method('findAll')->willReturnCallback(
 			fn (array $config): array => match ($config['filters']['schema'] ?? '') {
 				'session' => $this->sessions,
@@ -69,15 +69,15 @@ class ElectiveOfferCopiesTest extends TestCase {
 				default => [],
 			}
 		);
-		$l10n = $this->createMock(IL10N::class);
+		$l10n = $this->createMock(originalClassName: IL10N::class);
 		$l10n->method('t')->willReturnCallback(static fn (string $text): string => 'nl:' . $text);
 		$l10n->method('n')->willReturnCallback(
 			static fn (string $one, string $many, int $count): string => str_replace('%n', (string)$count, ($count === 1) ? $one : $many)
 		);
-		$factory = $this->createMock(IFactory::class);
+		$factory = $this->createMock(originalClassName: IFactory::class);
 		$factory->method('get')->willReturn($l10n);
 
-		return new ElectiveOfferCopies(electives: new ElectiveService($objects), l10nFactory: $factory);
+		return new ElectiveOfferCopies(electives: new ElectiveService(objectService: $objects), l10nFactory: $factory);
 	}//end copies()
 
 	/**
@@ -120,14 +120,14 @@ class ElectiveOfferCopiesTest extends TestCase {
 		$copies = $this->copies()->copies(offer: $this->offer(), now: new DateTimeImmutable('2026-10-05T12:00:00+02:00'));
 
 		self::assertSame(
-			[
+			expected: [
 				'nextLessonStartsAt' => '2026-10-06T15:20:00+02:00',
 				'nextLessonEndsAt' => '2026-10-06T16:10:00+02:00',
 				'nextLessonLocation' => '2.14',
 				'placesLeft' => 6,
 				'placesLeftLine' => '6 places left',
 			],
-			$copies
+			actual: $copies
 		);
 	}//end testTheNextLessonAndItsPlacesLeft()
 
@@ -147,13 +147,16 @@ class ElectiveOfferCopiesTest extends TestCase {
 
 		// One hour before Tuesday the 6th its window (two hours before) has closed.
 		$copies = $this->copies()->copies(offer: $offer, now: new DateTimeImmutable('2026-10-06T14:20:00+02:00'));
-		self::assertSame('2026-10-13T15:20:00+02:00', $copies['nextLessonStartsAt']);
-		self::assertNull($copies['nextLessonLocation'], 'an empty room is no room');
-		self::assertSame(0, $copies['placesLeft']);
-		self::assertSame('nl:No places left', $copies['placesLeftLine']);
+		self::assertSame(expected: '2026-10-13T15:20:00+02:00', actual: $copies['nextLessonStartsAt']);
+		self::assertNull(actual: $copies['nextLessonLocation'], message: 'an empty room is no room');
+		self::assertSame(expected: 0, actual: $copies['placesLeft']);
+		self::assertSame(expected: 'nl:No places left', actual: $copies['placesLeftLine']);
 
 		$this->signUps = [];
-		self::assertSame('1 place left', $this->copies()->copies(offer: $offer, now: new DateTimeImmutable('2026-10-06T14:20:00+02:00'))['placesLeftLine']);
+		self::assertSame(
+			expected: '1 place left',
+			actual: $this->copies()->copies(offer: $offer, now: new DateTimeImmutable('2026-10-06T14:20:00+02:00'))['placesLeftLine']
+		);
 	}//end testAClosedWindowIsSkippedAndTheLineFollowsTheCount()
 
 	/**
@@ -165,17 +168,17 @@ class ElectiveOfferCopiesTest extends TestCase {
 	public function testNoLessonLeftEmptiesTheCopiesAndDifferComparesThem(): void {
 		$this->sessions = [['id' => 'past', 'startsAt' => '2026-09-29T15:20:00+02:00', 'endsAt' => '2026-09-29T16:10:00+02:00']];
 		$copies = $this->copies()->copies(offer: $this->offer(), now: new DateTimeImmutable('2026-10-05T12:00:00+02:00'));
-		self::assertSame(array_fill_keys(ElectiveOfferCopies::FIELDS, null), $copies);
+		self::assertSame(expected: array_fill_keys(ElectiveOfferCopies::FIELDS, null), actual: $copies);
 
 		$this->sessions = [['id' => 'tue-6', 'startsAt' => '2026-10-06T15:20:00+02:00', 'endsAt' => '2026-10-06T16:10:00+02:00']];
 		$this->signUps = [['offerId' => '', 'sessionId' => 'tue-6', 'status' => 'signed-up']];
 		$unsaved = array_merge($this->offer(), ['id' => '']);
 		$fresh = $this->copies()->copies(offer: $unsaved, now: new DateTimeImmutable('2026-10-05T12:00:00+02:00'));
-		self::assertSame(12, $fresh['placesLeft'], 'an offer without an id has no sign-ups yet');
+		self::assertSame(expected: 12, actual: $fresh['placesLeft'], message: 'an offer without an id has no sign-ups yet');
 
 		$service = $this->copies();
-		self::assertFalse($service->differ(offer: array_merge($this->offer(), $fresh), copies: $fresh));
-		self::assertTrue($service->differ(offer: array_merge($this->offer(), $fresh, ['placesLeft' => 11]), copies: $fresh));
-		self::assertTrue($service->differ(offer: $this->offer(), copies: $fresh), 'an offer without copies differs');
+		self::assertFalse(condition: $service->differ(offer: array_merge($this->offer(), $fresh), copies: $fresh));
+		self::assertTrue(condition: $service->differ(offer: array_merge($this->offer(), $fresh, ['placesLeft' => 11]), copies: $fresh));
+		self::assertTrue(condition: $service->differ(offer: $this->offer(), copies: $fresh), message: 'an offer without copies differs');
 	}//end testNoLessonLeftEmptiesTheCopiesAndDifferComparesThem()
 }//end class

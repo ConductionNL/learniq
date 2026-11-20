@@ -124,7 +124,7 @@ class RequiredLearnerRefRegisterTest extends TestCase {
 
 		// The pupil's absence report and her own mentor-talk booking, the
 		// guardian's absence report, booking and request.
-		self::assertSame(5, $checked);
+		self::assertSame(expected: 5, actual: $checked);
 	}//end testEveryPortalCreateCarriesThePupil()
 
 	/**

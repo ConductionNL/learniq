@@ -78,11 +78,11 @@ class ElectiveOfferCopiesStampTest extends TestCase {
 	 * @return ElectiveOfferCopiesStamp
 	 */
 	private function stamp(?array $stored=null, bool $differ=true, bool $throws=false): ElectiveOfferCopiesStamp {
-		$resolver = $this->createMock(ListenerSchemaResolver::class);
+		$resolver = $this->createMock(originalClassName: ListenerSchemaResolver::class);
 		$resolver->method('guardSchemaSlug')->willReturnCallback(static fn ($entity) => $entity->getSchema());
-		$electives = $this->createMock(ElectiveServiceInterface::class);
+		$electives = $this->createMock(originalClassName: ElectiveServiceInterface::class);
 		$electives->method('offer')->willReturnCallback(static fn (string $id): ?array => ($id === 'offer-1') ? $stored : null);
-		$copies = $this->createMock(ElectiveOfferCopies::class);
+		$copies = $this->createMock(originalClassName: ElectiveOfferCopies::class);
 		$copies->method('copies')->willReturnCallback(
 			function (array $offer): array {
 				$this->asked[] = $offer;
@@ -90,7 +90,7 @@ class ElectiveOfferCopiesStampTest extends TestCase {
 			}
 		);
 		$copies->method('differ')->willReturn($differ);
-		$objects = $this->createMock(ObjectService::class);
+		$objects = $this->createMock(originalClassName: ObjectService::class);
 		$objects->method('saveObject')->willReturnCallback(
 			function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions(), bool $_rbac = true) use ($throws) {
 				$register = $options->target->register;
@@ -115,26 +115,28 @@ class ElectiveOfferCopiesStampTest extends TestCase {
 	 * @return void
 	 */
 	public function testAnOfferWriteCarriesTheCopies(): void {
-		$create = new ObjectCreatingEvent(OrEntityFactory::make(['name' => 'Steunles', 'capacityPerLesson' => 12], 'elective-offer', uuid: 'offer-1'));
+		$create = new ObjectCreatingEvent(
+			OrEntityFactory::make(['name' => 'Steunles', 'capacityPerLesson' => 12], 'elective-offer', uuid: 'offer-1')
+		);
 		$this->stamp()->handle($create);
-		self::assertSame(self::COPIES, $create->getModifiedData());
-		self::assertSame('offer-1', $this->asked[0]['id']);
-		self::assertSame(12, $this->asked[0]['capacityPerLesson']);
+		self::assertSame(expected: self::COPIES, actual: $create->getModifiedData());
+		self::assertSame(expected: 'offer-1', actual: $this->asked[0]['id']);
+		self::assertSame(expected: 12, actual: $this->asked[0]['capacityPerLesson']);
 
 		$old = OrEntityFactory::make(['capacityPerLesson' => 12], 'elective-offer', uuid: 'offer-1');
 		$update = new ObjectUpdatingEvent(OrEntityFactory::make(['capacityPerLesson' => 14], 'elective-offer', uuid: 'offer-1'), $old);
 		$this->stamp()->handle($update);
-		self::assertSame(self::COPIES, $update->getModifiedData());
-		self::assertSame(14, $this->asked[1]['capacityPerLesson'], 'the copies follow the new capacity');
+		self::assertSame(expected: self::COPIES, actual: $update->getModifiedData());
+		self::assertSame(expected: 14, actual: $this->asked[1]['capacityPerLesson'], message: 'the copies follow the new capacity');
 
 		$other = new ObjectCreatingEvent(OrEntityFactory::make(['name' => 'x'], 'session'));
 		$this->stamp()->handle($other);
-		self::assertSame([], $other->getModifiedData());
+		self::assertSame(expected: [], actual: $other->getModifiedData());
 
 		$stopped = new ObjectCreatingEvent(OrEntityFactory::make(['name' => 'x'], 'elective-offer'));
 		$stopped->stopPropagation();
 		$this->stamp()->handle($stopped);
-		self::assertSame([], $stopped->getModifiedData(), 'a refused write is left alone');
+		self::assertSame(expected: [], actual: $stopped->getModifiedData(), message: 'a refused write is left alone');
 	}//end testAnOfferWriteCarriesTheCopies()
 
 	/**
@@ -148,21 +150,21 @@ class ElectiveOfferCopiesStampTest extends TestCase {
 		$signUp = OrEntityFactory::make(['offerId' => 'offer-1', 'status' => 'signed-up'], 'elective-sign-up');
 		$this->stamp(stored: $stored)->handle(new ObjectCreatedEvent($signUp));
 
-		self::assertCount(1, $this->saved);
-		self::assertSame(array_merge($stored, self::COPIES), $this->saved[0]['object']);
-		self::assertSame('offer-1', $this->saved[0]['uuid']);
-		self::assertSame('elective-offer', $this->saved[0]['schema']);
-		self::assertFalse($this->saved[0]['_rbac']);
+		self::assertCount(expectedCount: 1, haystack: $this->saved);
+		self::assertSame(expected: array_merge($stored, self::COPIES), actual: $this->saved[0]['object']);
+		self::assertSame(expected: 'offer-1', actual: $this->saved[0]['uuid']);
+		self::assertSame(expected: 'elective-offer', actual: $this->saved[0]['schema']);
+		self::assertFalse(condition: $this->saved[0]['_rbac']);
 
 		$withdrawn = OrEntityFactory::make(['offerId' => 'offer-1', 'status' => 'withdrawn'], 'elective-sign-up');
 		$this->stamp(stored: $stored)->handle(new ObjectUpdatedEvent($withdrawn, $signUp));
-		self::assertCount(2, $this->saved, 'a withdrawal refreshes the offer too');
+		self::assertCount(expectedCount: 2, haystack: $this->saved, message: 'a withdrawal refreshes the offer too');
 
 		$this->stamp(stored: $stored, differ: false)->handle(new ObjectCreatedEvent($signUp));
 		$this->stamp(stored: null)->handle(new ObjectCreatedEvent($signUp));
 		$this->stamp(stored: $stored)->handle(new ObjectCreatedEvent(OrEntityFactory::make(['status' => 'signed-up'], 'elective-sign-up')));
 		$this->stamp(stored: $stored)->handle(new ObjectCreatedEvent(OrEntityFactory::make(['offerId' => 'offer-1'], 'session')));
-		self::assertCount(2, $this->saved);
+		self::assertCount(expectedCount: 2, haystack: $this->saved);
 	}//end testASignUpRefreshesItsOffer()
 
 	/**
@@ -174,6 +176,6 @@ class ElectiveOfferCopiesStampTest extends TestCase {
 		$signUp = OrEntityFactory::make(['offerId' => 'offer-1'], 'elective-sign-up');
 		$this->stamp(stored: ['id' => 'offer-1'], throws: true)->handle(new ObjectCreatedEvent($signUp));
 
-		self::assertSame([], $this->saved);
+		self::assertSame(expected: [], actual: $this->saved);
 	}//end testAFailingRefreshNeverBlocksTheSignUp()
 }//end class

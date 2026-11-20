@@ -98,7 +98,7 @@ class PortalElectiveSignUpTest extends TestCase {
 			'eligibleCohortIds' => [],
 			'tenant_id' => 'vaartveld',
 		];
-		$this->user = $this->createMock(IUser::class);
+		$this->user = $this->createMock(originalClassName: IUser::class);
 		$this->user->method('getUID')->willReturn('noor');
 	}//end setUp()
 
@@ -108,7 +108,7 @@ class PortalElectiveSignUpTest extends TestCase {
 	 * @return PortalElectiveSignUp
 	 */
 	private function service(): PortalElectiveSignUp {
-		$objects = $this->createMock(ObjectService::class);
+		$objects = $this->createMock(originalClassName: ObjectService::class);
 		$objects->method('find')->willReturnCallback(fn ($id) => ($id === 'offer-1') ? OrEntityFactory::make($this->offer, 'elective-offer') : null);
 		$objects->method('findAll')->willReturnCallback(
 			static fn (array $config): array => match ($config['filters']['schema'] ?? '') {
@@ -140,12 +140,12 @@ class PortalElectiveSignUpTest extends TestCase {
 				return OrEntityFactory::make($object, 'elective-sign-up', uuid: 'su-1');
 			}
 		);
-		$l10n = $this->createMock(IL10N::class);
+		$l10n = $this->createMock(originalClassName: IL10N::class);
 		$l10n->method('t')->willReturnCallback(static fn (string $text): string => 'nl:' . $text);
-		$factory = $this->createMock(IFactory::class);
+		$factory = $this->createMock(originalClassName: IFactory::class);
 		$factory->method('get')->willReturn($l10n);
 
-		return new PortalElectiveSignUp(electives: new ElectiveService($objects), objects: $objects, l10nFactory: $factory);
+		return new PortalElectiveSignUp(electives: new ElectiveService(objectService: $objects), objects: $objects, l10nFactory: $factory);
 	}//end service()
 
 	/**
@@ -172,7 +172,7 @@ class PortalElectiveSignUpTest extends TestCase {
 			 * @param string $veto The message.
 			 */
 			public function __construct(private readonly string $veto) {
-				parent::__construct('stopped');
+				parent::__construct(veto: 'stopped');
 			}//end __construct()
 
 			/**
@@ -196,12 +196,12 @@ class PortalElectiveSignUpTest extends TestCase {
 	public function testSheSignsUpForTheNextOpenLessonAsHerself(): void {
 		$outcome = $this->service()->signUp(learner: $this->noor(), offerId: 'offer-1', now: new DateTimeImmutable('2026-10-05T12:00:00+02:00'));
 
-		self::assertSame(200, $outcome->status);
-		self::assertSame(['signUpId' => 'su-1', 'offerId' => 'offer-1', 'startsAt' => '2026-10-06T15:20:00+02:00'], $outcome->body);
-		self::assertNull($outcome->reason);
-		self::assertCount(1, $this->saved);
+		self::assertSame(expected: 200, actual: $outcome->status);
+		self::assertSame(expected: ['signUpId' => 'su-1', 'offerId' => 'offer-1', 'startsAt' => '2026-10-06T15:20:00+02:00'], actual: $outcome->body);
+		self::assertNull(actual: $outcome->reason);
+		self::assertCount(expectedCount: 1, haystack: $this->saved);
 		self::assertSame(
-			[
+			expected: [
 				'offerId' => 'offer-1',
 				'learnerId' => 'noor',
 				'learnerRef' => 'lp-noor',
@@ -211,11 +211,11 @@ class PortalElectiveSignUpTest extends TestCase {
 				'tenant_id' => 'vaartveld',
 				'sessionId' => 'tue-6',
 			],
-			$this->saved[0]['object']
+			actual: $this->saved[0]['object']
 		);
-		self::assertSame('elective-sign-up', $this->saved[0]['schema']);
-		self::assertSame('noor', $this->saved[0]['as']);
-		self::assertFalse($this->saved[0]['_rbac']);
+		self::assertSame(expected: 'elective-sign-up', actual: $this->saved[0]['schema']);
+		self::assertSame(expected: 'noor', actual: $this->saved[0]['as']);
+		self::assertFalse(condition: $this->saved[0]['_rbac']);
 	}//end testSheSignsUpForTheNextOpenLessonAsHerself()
 
 	/**
@@ -226,11 +226,11 @@ class PortalElectiveSignUpTest extends TestCase {
 	 */
 	public function testAClosedWindowMovesToTheNextLessonOrIsRefused(): void {
 		$outcome = $this->service()->signUp(learner: $this->noor(), offerId: 'offer-1', now: new DateTimeImmutable('2026-10-06T16:00:00+02:00'));
-		self::assertSame('2026-10-13T15:20:00+02:00', $outcome->body['startsAt']);
+		self::assertSame(expected: '2026-10-13T15:20:00+02:00', actual: $outcome->body['startsAt']);
 
 		$closed = $this->service()->signUp(learner: $this->noor(), offerId: 'offer-1', now: new DateTimeImmutable('2026-10-13T14:00:00+02:00'));
-		self::assertSame([422, 'closed'], [$closed->status, $closed->reason]);
-		self::assertCount(1, $this->saved);
+		self::assertSame(expected: [422, 'closed'], actual: [$closed->status, $closed->reason]);
+		self::assertCount(expectedCount: 1, haystack: $this->saved);
 	}//end testAClosedWindowMovesToTheNextLessonOrIsRefused()
 
 	/**
@@ -241,19 +241,23 @@ class PortalElectiveSignUpTest extends TestCase {
 	 */
 	public function testAnOfferSheMayNotSeeIsNotFound(): void {
 		$now = new DateTimeImmutable('2026-10-05T12:00:00+02:00');
-		self::assertSame('not-found', $this->service()->signUp(learner: $this->noor(), offerId: 'nope', now: $now)->reason);
-		self::assertSame('not-found', $this->service()->signUp(learner: $this->noor(), offerId: '', now: $now)->reason);
+		self::assertSame(expected: 'not-found', actual: $this->service()->signUp(learner: $this->noor(), offerId: 'nope', now: $now)->reason);
+		self::assertSame(expected: 'not-found', actual: $this->service()->signUp(learner: $this->noor(), offerId: '', now: $now)->reason);
 
 		$this->offer['lifecycle'] = 'draft';
-		self::assertSame(404, $this->service()->signUp(learner: $this->noor(), offerId: 'offer-1', now: $now)->status);
+		self::assertSame(expected: 404, actual: $this->service()->signUp(learner: $this->noor(), offerId: 'offer-1', now: $now)->status);
 
 		$this->offer['lifecycle'] = 'open';
 		$this->offer['eligibleCohortIds'] = ['h4b'];
-		self::assertSame(200, $this->service()->signUp(learner: $this->noor(), offerId: 'offer-1', now: $now)->status, 'her own group');
+		self::assertSame(
+			expected: 200,
+			actual: $this->service()->signUp(learner: $this->noor(), offerId: 'offer-1', now: $now)->status,
+			message: 'her own group'
+		);
 
 		$other = new PortalLearner(profileRef: 'lp-sem', ncUserId: 'sem', tenantId: '', user: $this->user);
-		self::assertSame('not-found', $this->service()->signUp(learner: $other, offerId: 'offer-1', now: $now)->reason);
-		self::assertCount(1, $this->saved);
+		self::assertSame(expected: 'not-found', actual: $this->service()->signUp(learner: $other, offerId: 'offer-1', now: $now)->reason);
+		self::assertCount(expectedCount: 1, haystack: $this->saved);
 	}//end testAnOfferSheMayNotSeeIsNotFound()
 
 	/**
@@ -273,11 +277,15 @@ class PortalElectiveSignUpTest extends TestCase {
 		foreach ($cases as $message => $reason) {
 			$this->throws = $this->veto(message: $message);
 			$outcome = $this->service()->signUp(learner: $this->noor(), offerId: 'offer-1', now: $now);
-			self::assertSame([422, $reason, ['error' => $reason]], [$outcome->status, $outcome->reason, $outcome->body], $message);
+			self::assertSame(
+				expected: [422, $reason, ['error' => $reason]],
+				actual: [$outcome->status, $outcome->reason, $outcome->body],
+				message: $message
+			);
 		}
 
 		$this->throws = new RuntimeException('database gone');
-		$this->expectException(RuntimeException::class);
+		$this->expectException(exception: RuntimeException::class);
 		$this->service()->signUp(learner: $this->noor(), offerId: 'offer-1', now: $now);
 	}//end testTheRulesRefusalsBecomeReasons()
 
@@ -288,7 +296,7 @@ class PortalElectiveSignUpTest extends TestCase {
 	 * @return void
 	 */
 	public function testTheMessagesAreTranslated(): void {
-		self::assertSame('nl:This support lesson is full.', $this->service()->message(reason: 'full', user: $this->user));
-		self::assertSame('nl:This support lesson could not be found.', $this->service()->message(reason: 'whatever', user: null));
+		self::assertSame(expected: 'nl:This support lesson is full.', actual: $this->service()->message(reason: 'full', user: $this->user));
+		self::assertSame(expected: 'nl:This support lesson could not be found.', actual: $this->service()->message(reason: 'whatever', user: null));
 	}//end testTheMessagesAreTranslated()
 }//end class

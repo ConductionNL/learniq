@@ -105,7 +105,10 @@ class PortalElectiveController extends Controller {
 	#[BruteForceProtection(action: self::THROTTLE_ACTION)]
 	public function signUp(): JSONResponse {
 		$failure = new PortalForwardFailure(logger: $this->logger, message: '[PortalElectiveController] A portal sign-up for a lesson failed: {msg}');
-		$forward = new PortalLearnerForward(gate: new PortalForwardGate(verifier: $this->verifier, request: $this->request), learners: $this->learners);
+		$forward = new PortalLearnerForward(
+			gate: new PortalForwardGate(verifier: $this->verifier, request: $this->request),
+			learners: $this->learners
+		);
 		$offerId = PortalForwardGate::stringParam(request: $this->request, name: 'offerId');
 		$step = new PortalLearnerStep(
 			run: fn (PortalLearner $learner): PortalOutcome => $this->signUps->signUp(learner: $learner, offerId: $offerId),

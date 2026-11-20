@@ -45,20 +45,36 @@ class StudentSelfBookingTest extends TestCase {
 		$collections = array_column((new StudentSelfBooking())->electiveCollections(), null, 'id');
 		$offers = $collections['studentElectiveOffers'];
 
-		self::assertSame(['elective-offer', 'eligibleCohortIds', 'learnerRef'], [$offers['schema'], $offers['scopeField'], $offers['scopeClaim']]);
 		self::assertSame(
-			['register' => 'learniq', 'schema' => 'enrolment', 'scopeField' => 'learnerRef', 'targetField' => 'cohortId', 'match' => 'scopeField', 'when' => ['field' => 'lifecycle', 'in' => ['active']]],
-			$offers['via']
+			expected: ['elective-offer', 'eligibleCohortIds', 'learnerRef'],
+			actual: [$offers['schema'], $offers['scopeField'], $offers['scopeClaim']]
 		);
-		self::assertSame(['lifecycle' => 'open'], $offers['filter']);
-		self::assertSame([], array_intersect(['sessionIds', 'timetableSessionRefs', 'eligibleCohortIds', 'tenant_id'], $offers['fields']));
-		self::assertContains('placesLeftLine', $offers['fields']);
-		self::assertSame(['signUpForElective'], $offers['rowActions']);
+		self::assertSame(
+			expected: [
+				'register' => 'learniq',
+				'schema' => 'enrolment',
+				'scopeField' => 'learnerRef',
+				'targetField' => 'cohortId',
+				'match' => 'scopeField',
+				'when' => ['field' => 'lifecycle', 'in' => ['active']]
+			],
+			actual: $offers['via']
+		);
+		self::assertSame(expected: ['lifecycle' => 'open'], actual: $offers['filter']);
+		self::assertSame(
+			expected: [],
+			actual: array_intersect(['sessionIds', 'timetableSessionRefs', 'eligibleCohortIds', 'tenant_id'], $offers['fields'])
+		);
+		self::assertContains(needle: 'placesLeftLine', haystack: $offers['fields']);
+		self::assertSame(expected: ['signUpForElective'], actual: $offers['rowActions']);
 
 		$mine = $collections['studentElectiveSignUps'];
-		self::assertSame(['elective-sign-up', 'learnerRef', 'learnerRef'], [$mine['schema'], $mine['scopeField'], $mine['scopeClaim']]);
-		self::assertNotContains('learnerId', $mine['fields']);
-		self::assertNotContains('madeBy', $mine['fields']);
+		self::assertSame(
+			expected: ['elective-sign-up', 'learnerRef', 'learnerRef'],
+			actual: [$mine['schema'], $mine['scopeField'], $mine['scopeClaim']]
+		);
+		self::assertNotContains(needle: 'learnerId', haystack: $mine['fields']);
+		self::assertNotContains(needle: 'madeBy', haystack: $mine['fields']);
 	}//end testTheOffersAreHerGroupsOpenOffers()
 
 	/**
@@ -70,11 +86,14 @@ class StudentSelfBookingTest extends TestCase {
 	public function testTheSignUpForwardsTheRowsOffer(): void {
 		$action = (new StudentSelfBooking())->signUpForElectiveAction();
 
-		self::assertSame('endpoint-forward', $action['type']);
-		self::assertSame('/apps/learniq/api/portal/electives/sign-up', $action['endpoint']);
-		self::assertSame(['offerId'], $action['fields']);
-		self::assertSame(['learnerRef', 'learnerRef', 'offerId'], [$action['subjectField'], $action['scopeClaim'], $action['rowField']]);
-		self::assertSame(['field' => 'lifecycle', 'in' => ['open']], $action['rowWhen']);
+		self::assertSame(expected: 'endpoint-forward', actual: $action['type']);
+		self::assertSame(expected: '/apps/learniq/api/portal/electives/sign-up', actual: $action['endpoint']);
+		self::assertSame(expected: ['offerId'], actual: $action['fields']);
+		self::assertSame(
+			expected: ['learnerRef', 'learnerRef', 'offerId'],
+			actual: [$action['subjectField'], $action['scopeClaim'], $action['rowField']]
+		);
+		self::assertSame(expected: ['field' => 'lifecycle', 'in' => ['open']], actual: $action['rowWhen']);
 	}//end testTheSignUpForwardsTheRowsOffer()
 
 	/**
@@ -87,22 +106,34 @@ class StudentSelfBookingTest extends TestCase {
 	public function testSheBooksHerOwnTimeFromTheTimesSheMayBook(): void {
 		$booking = new StudentSelfBooking();
 		[$invitations, $times, $talks] = $booking->conferenceCollections();
-		self::assertSame(['studentConferenceInvitations', 'conference-invitation', 'learnerRef'], [$invitations['id'], $invitations['schema'], $invitations['scopeField']]);
-		self::assertSame(['status' => 'open', 'pupilMayBook' => true], $invitations['filter']);
-		self::assertFalse($invitations['listable']);
+		self::assertSame(
+			expected: ['studentConferenceInvitations', 'conference-invitation', 'learnerRef'],
+			actual: [$invitations['id'], $invitations['schema'], $invitations['scopeField']]
+		);
+		self::assertSame(expected: ['status' => 'open', 'pupilMayBook' => true], actual: $invitations['filter']);
+		self::assertFalse(condition: $invitations['listable']);
 
-		self::assertSame(['studentConferenceTimes', 'conference-slot', 'eligibleLearnerRefs', 'learnerRef'], [$times['id'], $times['schema'], $times['scopeField'], $times['scopeClaim']]);
-		self::assertSame(['lifecycle' => 'free', 'pupilMayBook' => true], $times['filter']);
-		self::assertNotContains('eligibleLearnerRefs', $times['fields']);
-		self::assertNotContains('teacherId', $times['fields']);
-		self::assertSame(['studentConferenceSignups', 'conference-signup', 'learnerRef'], [$talks['id'], $talks['schema'], $talks['scopeField']]);
-		self::assertNotContains('guardianRef', $talks['fields']);
+		self::assertSame(
+			expected: ['studentConferenceTimes', 'conference-slot', 'eligibleLearnerRefs', 'learnerRef'],
+			actual: [$times['id'], $times['schema'], $times['scopeField'], $times['scopeClaim']]
+		);
+		self::assertSame(expected: ['lifecycle' => 'free', 'pupilMayBook' => true], actual: $times['filter']);
+		self::assertNotContains(needle: 'eligibleLearnerRefs', haystack: $times['fields']);
+		self::assertNotContains(needle: 'teacherId', haystack: $times['fields']);
+		self::assertSame(
+			expected: ['studentConferenceSignups', 'conference-signup', 'learnerRef'],
+			actual: [$talks['id'], $talks['schema'], $talks['scopeField']]
+		);
+		self::assertNotContains(needle: 'guardianRef', haystack: $talks['fields']);
 
 		$action = $booking->bookConferenceSlotAction();
-		self::assertSame(['create', 'conference-signup', 'learnerRef', 'learnerRef'], [$action['type'], $action['schema'], $action['scopeField'], $action['scopeClaim']]);
-		self::assertSame(['slotId', 'notes'], $action['fields']);
-		self::assertSame(['slotId'], $action['requiredFields']);
-		self::assertSame('conference-slot', $action['optionsProviders']['slotId']['schema']);
+		self::assertSame(
+			expected: ['create', 'conference-signup', 'learnerRef', 'learnerRef'],
+			actual: [$action['type'], $action['schema'], $action['scopeField'], $action['scopeClaim']]
+		);
+		self::assertSame(expected: ['slotId', 'notes'], actual: $action['fields']);
+		self::assertSame(expected: ['slotId'], actual: $action['requiredFields']);
+		self::assertSame(expected: 'conference-slot', actual: $action['optionsProviders']['slotId']['schema']);
 	}//end testSheBooksHerOwnTimeFromTheTimesSheMayBook()
 
 	/**
@@ -115,18 +146,21 @@ class StudentSelfBookingTest extends TestCase {
 	public function testTheInvitationLinksToTheBookingPage(): void {
 		$booking = new StudentSelfBooking();
 		$task = $booking->invitationTasksBlock();
-		self::assertSame(['tasks', 'studentConferenceInvitations', 'Choose a time'], [$task['type'], $task['collection'], $task['buttonLabel']]);
-		self::assertSame(['roundName'], $task['titleFields']);
+		self::assertSame(
+			expected: ['tasks', 'studentConferenceInvitations', 'Choose a time'],
+			actual: [$task['type'], $task['collection'], $task['buttonLabel']]
+		);
+		self::assertSame(expected: ['roundName'], actual: $task['titleFields']);
 
 		$page = $booking->pickATimePage();
-		self::assertSame([StudentSelfBooking::PICK_A_TIME_PAGE, false], [$page['id'], $page['menu']]);
+		self::assertSame(expected: [StudentSelfBooking::PICK_A_TIME_PAGE, false], actual: [$page['id'], $page['menu']]);
 		self::assertSame(
-			[
+			expected: [
 				['type' => 'detail', 'collection' => 'studentConferenceInvitations'],
 				['type' => 'action', 'action' => 'bookConferenceSlotAsPupil'],
 				['type' => 'collection', 'collection' => 'studentConferenceTimes'],
 			],
-			$page['blocks']
+			actual: $page['blocks']
 		);
 	}//end testTheInvitationLinksToTheBookingPage()
 }//end class

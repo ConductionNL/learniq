@@ -93,18 +93,22 @@ class ConferenceInvitationsTest extends TestCase {
 	public function testARoundThatLetsPupilsBookMarksItsInvitations(): void {
 		$round = array_merge($this->round(), ['pupilMayBook' => true]);
 		$writes = ConferenceInvitations::writesFor(round: $round, takenRefs: [], existing: []);
-		self::assertSame([true, true], array_column(array_column($writes, 'object'), 'pupilMayBook'));
+		self::assertSame(expected: [true, true], actual: array_column(array_column($writes, 'object'), 'pupilMayBook'));
 		foreach ($writes as $write) {
-			self::assertNull(self::schemaError('conference-invitation', $write['object']), 'the real fragment accepts the mark');
+			self::assertNull(actual: self::schemaError('conference-invitation', $write['object']), message: 'the real fragment accepts the mark');
 		}
 
 		$marked = array_merge($this->row(id: 'inv-2', child: self::SAMI, status: 'open'), ['pupilMayBook' => true]);
-		$off = ConferenceInvitations::writesFor(round: $this->round(), takenRefs: [self::VERA], existing: [$this->row(id: 'inv-1', child: self::VERA, status: 'booked'), $marked]);
-		self::assertSame(['inv-2'], array_column($off, 'uuid'));
-		self::assertFalse($off[0]['object']['pupilMayBook']);
+		$off = ConferenceInvitations::writesFor(
+			round: $this->round(),
+			takenRefs: [self::VERA],
+			existing: [$this->row(id: 'inv-1', child: self::VERA, status: 'booked'), $marked]
+		);
+		self::assertSame(expected: ['inv-2'], actual: array_column($off, 'uuid'));
+		self::assertFalse(condition: $off[0]['object']['pupilMayBook']);
 
 		foreach (ConferenceInvitations::writesFor(round: $this->round(), takenRefs: [], existing: []) as $write) {
-			self::assertArrayNotHasKey('pupilMayBook', $write['object']);
+			self::assertArrayNotHasKey(key: 'pupilMayBook', array: $write['object']);
 		}
 	}//end testARoundThatLetsPupilsBookMarksItsInvitations()
 

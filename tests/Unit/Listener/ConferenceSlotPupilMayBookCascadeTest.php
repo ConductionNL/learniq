@@ -58,9 +58,9 @@ class ConferenceSlotPupilMayBookCascadeTest extends TestCase {
 	 * @return ConferenceSlotPupilMayBookCascade
 	 */
 	private function cascade(array $slots, bool $throws=false): ConferenceSlotPupilMayBookCascade {
-		$resolver = $this->createMock(ListenerSchemaResolver::class);
+		$resolver = $this->createMock(originalClassName: ListenerSchemaResolver::class);
 		$resolver->method('guardSchemaSlug')->willReturnCallback(static fn ($entity) => $entity->getSchema());
-		$objects = $this->createMock(ObjectService::class);
+		$objects = $this->createMock(originalClassName: ObjectService::class);
 		$objects->method('findAll')->willReturnCallback(
 			static function (array $config) use ($slots, $throws): array {
 				if ($throws === true) {
@@ -115,9 +115,15 @@ class ConferenceSlotPupilMayBookCascadeTest extends TestCase {
 		];
 		$this->cascade(slots: $slots)->handle($this->update(before: null, after: true));
 
-		self::assertCount(1, $this->saved);
-		self::assertSame(['id' => 's1', 'conferenceRoundId' => 'round-1', 'lifecycle' => 'free', 'pupilMayBook' => true], $this->saved[0]['object']);
-		self::assertSame(['conference-slot', 's1', false], [$this->saved[0]['schema'], $this->saved[0]['uuid'], $this->saved[0]['_rbac']]);
+		self::assertCount(expectedCount: 1, haystack: $this->saved);
+		self::assertSame(
+			expected: ['id' => 's1', 'conferenceRoundId' => 'round-1', 'lifecycle' => 'free', 'pupilMayBook' => true],
+			actual: $this->saved[0]['object']
+		);
+		self::assertSame(
+			expected: ['conference-slot', 's1', false],
+			actual: [$this->saved[0]['schema'], $this->saved[0]['uuid'], $this->saved[0]['_rbac']]
+		);
 	}//end testSwitchingOnMarksTheRoundsTimes()
 
 	/**
@@ -129,16 +135,21 @@ class ConferenceSlotPupilMayBookCascadeTest extends TestCase {
 	public function testSwitchingOffUnmarksAndNothingElseMovesTheTimes(): void {
 		$marked = [['id' => 's1', 'conferenceRoundId' => 'round-1', 'pupilMayBook' => true]];
 		$this->cascade(slots: $marked)->handle($this->update(before: true, after: false));
-		self::assertCount(1, $this->saved);
-		self::assertFalse($this->saved[0]['object']['pupilMayBook']);
+		self::assertCount(expectedCount: 1, haystack: $this->saved);
+		self::assertFalse(condition: $this->saved[0]['object']['pupilMayBook']);
 
 		$this->cascade(slots: $marked)->handle($this->update(before: true, after: true));
 		$this->cascade(slots: $marked)->handle($this->update(before: null, after: false));
-		$this->cascade(slots: $marked)->handle(new ObjectCreatedEvent(OrEntityFactory::make(['pupilMayBook' => true], 'conference-round', uuid: 'round-1')));
 		$this->cascade(slots: $marked)->handle(
-			new ObjectUpdatedEvent(OrEntityFactory::make(['pupilMayBook' => false], 'conference-slot', uuid: 's1'), OrEntityFactory::make(['pupilMayBook' => true], 'conference-slot', uuid: 's1'))
+			new ObjectCreatedEvent(OrEntityFactory::make(['pupilMayBook' => true], 'conference-round', uuid: 'round-1'))
+		);
+		$this->cascade(slots: $marked)->handle(
+			new ObjectUpdatedEvent(
+				OrEntityFactory::make(['pupilMayBook' => false], 'conference-slot', uuid: 's1'),
+				OrEntityFactory::make(['pupilMayBook' => true], 'conference-slot', uuid: 's1')
+			)
 		);
 		$this->cascade(slots: $marked, throws: true)->handle($this->update(before: false, after: true));
-		self::assertCount(1, $this->saved);
+		self::assertCount(expectedCount: 1, haystack: $this->saved);
 	}//end testSwitchingOffUnmarksAndNothingElseMovesTheTimes()
 }//end class

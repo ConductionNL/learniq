@@ -296,7 +296,7 @@ class ConferenceSlotBookingStampTest extends TestCase {
 		$this->assertSame(self::VERA, $data['learnerRef']);
 		$this->assertSame('po-leerling-147', $data['learnerId']);
 		$this->assertSame('', $data['guardianId']);
-		$this->assertSame('pupil', $data['bookedBy']);
+		$this->assertSame(expected: 'pupil', actual: $data['bookedBy']);
 		$slot = $this->slot(id: self::SLOT_1);
 		$this->assertSame('booked', $slot['lifecycle']);
 		$this->assertSame(self::VERA, $slot['learnerRef']);
@@ -316,18 +316,18 @@ class ConferenceSlotBookingStampTest extends TestCase {
 		$this->store->rows['conference-round'][0]['pupilMayBook'] = true;
 		$teacher = $this->pupilBooking(child: self::VERA, slot: self::SLOT_1);
 		$this->stamp(signedIn: true, uid: 'teacher-1')->handle($teacher);
-		$this->assertSame([], $teacher->getModifiedData());
-		$this->assertSame([], $this->store->saves);
+		$this->assertSame(expected: [], actual: $teacher->getModifiedData());
+		$this->assertSame(expected: [], actual: $this->store->saves);
 
 		$own = $this->pupilBooking(child: self::VERA, slot: self::SLOT_1);
 		$this->stamp(signedIn: true, uid: 'po-leerling-147')->handle($own);
-		$this->assertFalse($own->isPropagationStopped(), json_encode($own->getErrors()));
-		$this->assertSame(['booked', 'pupil'], [$own->getModifiedData()['lifecycle'], $own->getModifiedData()['bookedBy']]);
-		$this->assertSame('booked', $this->slot(id: self::SLOT_1)['lifecycle']);
+		$this->assertFalse(condition: $own->isPropagationStopped(), message: json_encode($own->getErrors()));
+		$this->assertSame(expected: ['booked', 'pupil'], actual: [$own->getModifiedData()['lifecycle'], $own->getModifiedData()['bookedBy']]);
+		$this->assertSame(expected: 'booked', actual: $this->slot(id: self::SLOT_1)['lifecycle']);
 
 		$guardianShaped = $this->booking(child: self::DAAN, guardian: self::MARK, slot: self::SLOT_2);
 		$this->stamp(signedIn: true, uid: 'po-leerling-143')->handle($guardianShaped);
-		$this->assertSame([], $guardianShaped->getModifiedData(), 'a signed-in write naming a guardian is the app\'s');
+		$this->assertSame(expected: [], actual: $guardianShaped->getModifiedData(), message: 'a signed-in write naming a guardian is the app\'s');
 	}//end testAPupilsOwnSessionBooksAndAnotherSessionIsLeftAlone()
 
 	/**
@@ -510,7 +510,7 @@ class ConferenceSlotBookingStampTest extends TestCase {
 			fn (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) => $this->store->save((string)($options->target->schema), $object, ($options->uuid))
 		);
 
-		$user = $this->createMock(IUser::class);
+		$user = $this->createMock(originalClassName: IUser::class);
 		$user->method('getUID')->willReturn($uid);
 		$session = $this->createMock(IUserSession::class);
 		$session->method('getUser')->willReturn($signedIn === true ? $user : null);

@@ -201,7 +201,7 @@ class ConferenceSlotBookingStampOutcomeTest extends TestCase {
 
 		self::assertFalse($event->isPropagationStopped());
 		$data = $event->getModifiedData();
-		self::assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}$/', $data['bookedAt']);
+		self::assertMatchesRegularExpression(pattern: '/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}$/', string: $data['bookedAt']);
 		unset($data['bookedAt']);
 		self::assertSame(
 			[
