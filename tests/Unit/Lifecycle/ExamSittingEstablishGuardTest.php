@@ -38,8 +38,8 @@ class ExamSittingEstablishGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testTheCommitteeMayEstablish(): void {
-		self::assertAllowed($this->guard(groups: ['compliance-officers'])->check(['id' => 's-1'], 'establish', 'actor-1'));
-		self::assertAllowed($this->guard(groups: ['admin'])->check(['id' => 's-1'], 'establish', 'actor-1'));
+		self::assertAllowed(verdict: $this->guard(groups: ['compliance-officers'])->check(['id' => 's-1'], 'establish', 'actor-1'));
+		self::assertAllowed(verdict: $this->guard(groups: ['admin'])->check(['id' => 's-1'], 'establish', 'actor-1'));
 	}//end testTheCommitteeMayEstablish()
 
 	/**
@@ -50,7 +50,7 @@ class ExamSittingEstablishGuardTest extends TestCase {
 	public function testATeacherIsRefused(): void {
 		$result = $this->guard(groups: ['instructors'])->check(['id' => 's-1'], 'establish', 'actor-1');
 
-		self::assertDenied($result);
+		self::assertDenied(verdict: $result);
 		self::assertSame(expected: 'Only the exam committee can establish the results of a sitting.', actual: $result->getMessage());
 	}//end testATeacherIsRefused()
 
@@ -60,8 +60,8 @@ class ExamSittingEstablishGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testNoOrAnUnknownActorIsRefused(): void {
-		self::assertDenied($this->guard(groups: ['compliance-officers'])->check(['id' => 's-1'], 'establish', ''));
-		self::assertDenied($this->guard(groups: ['compliance-officers'])->check(['id' => 's-1'], 'establish', 'someone-else'));
+		self::assertDenied(verdict: $this->guard(groups: ['compliance-officers'])->check(['id' => 's-1'], 'establish', ''));
+		self::assertDenied(verdict: $this->guard(groups: ['compliance-officers'])->check(['id' => 's-1'], 'establish', 'someone-else'));
 	}//end testNoOrAnUnknownActorIsRefused()
 
 	/**
