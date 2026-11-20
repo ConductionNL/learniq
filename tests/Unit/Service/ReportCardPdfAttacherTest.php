@@ -79,18 +79,18 @@ class ReportCardPdfAttacherTest extends TestCase {
 	 */
 	protected function setUp(): void {
 		parent::setUp();
-		$this->fileService = $this->createMock(FileService::class);
-		$this->storage     = $this->createMock(Folder::class);
-		$this->rootFolder  = $this->createMock(IRootFolder::class);
-		$this->appConfig   = $this->createMock(IAppConfig::class);
-		$this->userManager = $this->createMock(IUserManager::class);
-		$this->logger      = $this->createMock(LoggerInterface::class);
+		$this->fileService = $this->createMock(originalClassName: FileService::class);
+		$this->storage     = $this->createMock(originalClassName: Folder::class);
+		$this->rootFolder  = $this->createMock(originalClassName: IRootFolder::class);
+		$this->appConfig   = $this->createMock(originalClassName: IAppConfig::class);
+		$this->userManager = $this->createMock(originalClassName: IUserManager::class);
+		$this->logger      = $this->createMock(originalClassName: LoggerInterface::class);
 
 		$this->appConfig->method('getValueString')->willReturnMap([
 			['filinq', 'report_render_storage_user', '', false, 'filinq-reports'],
 		]);
 		$this->rootFolder->method('getUserFolder')->willReturnMap([['filinq-reports', $this->storage]]);
-		$learner = $this->createMock(IUser::class);
+		$learner = $this->createMock(originalClassName: IUser::class);
 		$learner->method('getDisplayName')->willReturn('Sam de Vries');
 		$this->userManager->method('get')->willReturnMap([['sam', $learner]]);
 	}//end setUp()
@@ -142,7 +142,7 @@ class ReportCardPdfAttacherTest extends TestCase {
 	 * @return File&MockObject
 	 */
 	private function file(string $name, string $content = ''): File&MockObject {
-		$file = $this->createMock(File::class);
+		$file = $this->createMock(originalClassName: File::class);
 		$file->method('getName')->willReturn($name);
 		$file->method('getContent')->willReturn($content);
 
@@ -156,7 +156,9 @@ class ReportCardPdfAttacherTest extends TestCase {
 	 */
 	public function testFirstRenderWritesThePdfOnTheCard(): void {
 		$card = $this->card();
-		$this->storage->expects($this->once())->method('getById')->with(417)->willReturn([$this->file('rapport.pdf', '%PDF-1.7 body')]);
+		$this->storage->expects($this->once())->method('getById')->with(417)->willReturn(
+			[$this->file(name: 'rapport.pdf', content: '%PDF-1.7 body')]
+		);
 		$this->fileService->method('getFiles')->willReturn([]);
 		$this->fileService->expects($this->once())->method('saveFile')->with(
 			$card,
@@ -165,10 +167,10 @@ class ReportCardPdfAttacherTest extends TestCase {
 			false,
 			['report-card-pdf'],
 			'Rapport Periode 1 Sam de Vries.pdf'
-		)->willReturn($this->file('Rapport Periode 1 Sam de Vries.pdf'));
+		)->willReturn($this->file(name: 'Rapport Periode 1 Sam de Vries.pdf'));
 		$this->fileService->expects($this->never())->method('deleteFile');
 
-		self::assertSame('Rapport Periode 1 Sam de Vries.pdf', $this->attacher()->attach(reportCard: $card));
+		self::assertSame(expected: 'Rapport Periode 1 Sam de Vries.pdf', actual: $this->attacher()->attach(reportCard: $card));
 	}//end testFirstRenderWritesThePdfOnTheCard()
 
 	/**
@@ -177,13 +179,13 @@ class ReportCardPdfAttacherTest extends TestCase {
 	 * @return void
 	 */
 	public function testAPeriodNamedRapportIsNotPrefixedTwice(): void {
-		$this->storage->method('getById')->willReturn([$this->file('x.pdf')]);
+		$this->storage->method('getById')->willReturn([$this->file(name: 'x.pdf')]);
 		$this->fileService->method('getFiles')->willReturn([]);
 		$this->fileService->expects($this->once())->method('saveFile');
 
-		$name = $this->attacher()->attach(reportCard: $this->card(['periodName' => 'Rapport 2', 'learnerId' => 'kim/2']));
+		$name = $this->attacher()->attach(reportCard: $this->card(extra: ['periodName' => 'Rapport 2', 'learnerId' => 'kim/2']));
 
-		self::assertSame('Rapport 2 kim-2.pdf', $name);
+		self::assertSame(expected: 'Rapport 2 kim-2.pdf', actual: $name);
 	}//end testAPeriodNamedRapportIsNotPrefixedTwice()
 
 	/**
@@ -193,16 +195,16 @@ class ReportCardPdfAttacherTest extends TestCase {
 	 */
 	public function testAReRenderRemovesTheEarlierPdfOnly(): void {
 		$card    = $this->card();
-		$current = $this->file('Rapport Periode 1 Sam de Vries.pdf');
-		$earlier = $this->file('Rapport Periode 1 sam.pdf');
-		$other   = $this->file('Verslag mentorgesprek.pdf');
-		$image   = $this->file('Rapport foto.png');
-		$this->storage->method('getById')->willReturn([$this->file('r.pdf', '%PDF')]);
+		$current = $this->file(name: 'Rapport Periode 1 Sam de Vries.pdf');
+		$earlier = $this->file(name: 'Rapport Periode 1 sam.pdf');
+		$other   = $this->file(name: 'Verslag mentorgesprek.pdf');
+		$image   = $this->file(name: 'Rapport foto.png');
+		$this->storage->method('getById')->willReturn([$this->file(name: 'r.pdf', content: '%PDF')]);
 		$this->fileService->expects($this->once())->method('saveFile')->willReturn($current);
 		$this->fileService->method('getFiles')->willReturn([$current, $earlier, $other, $image]);
 		$this->fileService->expects($this->once())->method('deleteFile')->with($earlier, $card)->willReturn(true);
 
-		self::assertSame('Rapport Periode 1 Sam de Vries.pdf', $this->attacher()->attach(reportCard: $card));
+		self::assertSame(expected: 'Rapport Periode 1 Sam de Vries.pdf', actual: $this->attacher()->attach(reportCard: $card));
 	}//end testAReRenderRemovesTheEarlierPdfOnly()
 
 	/**
@@ -214,9 +216,9 @@ class ReportCardPdfAttacherTest extends TestCase {
 		$this->rootFolder->expects($this->never())->method('getUserFolder');
 		$this->fileService->expects($this->never())->method('saveFile');
 
-		self::assertNull($this->attacher()->attach(reportCard: $this->card(['docudeskRenderStatus' => 'failed'])));
-		self::assertNull($this->attacher()->attach(reportCard: $this->card(['docudeskDocumentRef' => 'doc-1'])));
-		self::assertNull($this->attacher()->attach(reportCard: $this->card(['docudeskDocumentRef' => null])));
+		self::assertNull(actual: $this->attacher()->attach(reportCard: $this->card(extra: ['docudeskRenderStatus' => 'failed'])));
+		self::assertNull(actual: $this->attacher()->attach(reportCard: $this->card(extra: ['docudeskDocumentRef' => 'doc-1'])));
+		self::assertNull(actual: $this->attacher()->attach(reportCard: $this->card(extra: ['docudeskDocumentRef' => null])));
 	}//end testANotRenderedCardAttachesNothing()
 
 	/**
@@ -225,11 +227,11 @@ class ReportCardPdfAttacherTest extends TestCase {
 	 * @return void
 	 */
 	public function testAMissingRenderedPdfIsLogged(): void {
-		$this->storage->method('getById')->willReturn([$this->createMock(Folder::class)]);
+		$this->storage->method('getById')->willReturn([$this->createMock(originalClassName: Folder::class)]);
 		$this->fileService->expects($this->never())->method('saveFile');
 		$this->logger->expects($this->once())->method('warning');
 
-		self::assertNull($this->attacher()->attach(reportCard: $this->card()));
+		self::assertNull(actual: $this->attacher()->attach(reportCard: $this->card()));
 	}//end testAMissingRenderedPdfIsLogged()
 
 	/**
@@ -238,7 +240,7 @@ class ReportCardPdfAttacherTest extends TestCase {
 	 * @return void
 	 */
 	public function testNoStorageUserAttachesNothing(): void {
-		$appConfig = $this->createMock(IAppConfig::class);
+		$appConfig = $this->createMock(originalClassName: IAppConfig::class);
 		$appConfig->method('getValueString')->willReturn('');
 		$this->rootFolder->expects($this->never())->method('getUserFolder');
 		$this->fileService->expects($this->never())->method('saveFile');
@@ -251,7 +253,7 @@ class ReportCardPdfAttacherTest extends TestCase {
 			logger: $this->logger
 		);
 
-		self::assertNull($attacher->attach(reportCard: $this->card()));
+		self::assertNull(actual: $attacher->attach(reportCard: $this->card()));
 	}//end testNoStorageUserAttachesNothing()
 
 	/**
@@ -260,14 +262,14 @@ class ReportCardPdfAttacherTest extends TestCase {
 	 * @return void
 	 */
 	public function testAFailingWriteIsLoggedNotThrown(): void {
-		$this->storage->method('getById')->willReturn([$this->file('r.pdf', '%PDF')]);
+		$this->storage->method('getById')->willReturn([$this->file(name: 'r.pdf', content: '%PDF')]);
 		$this->fileService->method('saveFile')->willThrowException(new RuntimeException('not permitted'));
 		$this->fileService->expects($this->never())->method('deleteFile');
 		$this->logger->expects($this->once())->method('error')->with(
-			$this->stringContains('failed'),
-			$this->callback(static fn (array $context): bool => $context['message'] === 'not permitted' && $context['id'] === 'card-1')
+			$this->stringContains(string: 'failed'),
+			$this->callback(callback: static fn (array $context): bool => $context['message'] === 'not permitted' && $context['id'] === 'card-1')
 		);
 
-		self::assertNull($this->attacher()->attach(reportCard: $this->card()));
+		self::assertNull(actual: $this->attacher()->attach(reportCard: $this->card()));
 	}//end testAFailingWriteIsLoggedNotThrown()
 }//end class
