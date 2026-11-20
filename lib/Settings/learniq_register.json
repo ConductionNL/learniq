@@ -11505,7 +11505,7 @@
                     }
                 },
                 "x-property-rbac": {
-                    "_comment": "Anonymity Enforcement (design.md): this rule is FIXED and independent of Assignment.peerReviewAnonymity — the submission's author can never read a raw PeerReview row, regardless of anonymity mode. The author instead reads PeerFeedbackSummary, whose feedbackItems[].reviewerId is server-computed as null when blind/double-blind.",
+                    "_comment": "Anonymity Enforcement (design.md): this rule is FIXED and independent of Assignment.peerReviewAnonymity — the submission's author can never read a raw PeerReview row, regardless of anonymity mode. The author instead reads PeerFeedbackSummary, which carries no reviewer identity in any anonymity mode.",
                     "read": {
                         "anyOf": [
                             {
@@ -11738,9 +11738,9 @@
             "PeerFeedbackSummary": {
                 "slug": "peer-feedback-summary",
                 "icon": "MessageTextOutline",
-                "version": "0.1.0",
+                "version": "0.2.0",
                 "title": "PeerFeedbackSummary",
-                "description": "Computed, read-only aggregate of a Submission's released PeerReviews — one row per Submission. The only surface a submission's author reads peer feedback through (Anonymity Enforcement, design.md): feedbackItems[].reviewerId is computed as null when Assignment.peerReviewAnonymity is blind/double-blind, populated when open. Recomputed by PeerFeedbackAggregator whenever a linked PeerReview transitions to released. No lifecycle — fully derived, mirrors FinalGrade.",
+                "description": "Computed, read-only aggregate of a Submission's released PeerReviews — one row per Submission. The only surface a submission's author reads peer feedback through (Anonymity Enforcement, design.md): it carries the comments and rubric scores but no reviewer name, user id or PeerReview id, in every anonymity mode. Recomputed by PeerFeedbackAggregator whenever a linked PeerReview transitions to released, which is also when it is first written. No lifecycle — fully derived, mirrors FinalGrade. Read: the register's staff groups, as before, and the Submission's own learner once a PeerReview on it is released (reviewCount >= 1); another learner reads none.",
                 "type": "object",
                 "x-openregister": {
                     "active": true,
@@ -11748,11 +11748,65 @@
                     "searchable": true,
                     "readOnly": true
                 },
+                "authorization": {
+                    "read": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads",
+                        {
+                            "group": "authenticated",
+                            "match": {
+                                "learnerIds": {
+                                    "$contains": "$userId"
+                                },
+                                "reviewCount": {
+                                    "$gte": 1
+                                }
+                            }
+                        }
+                    ],
+                    "create": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ],
+                    "update": [
+                        "instructors",
+                        "hr",
+                        "compliance-officers",
+                        "team-leads"
+                    ]
+                },
                 "required": [
                     "submissionId",
                     "assignmentId",
                     "tenant_id"
                 ],
+                "x-openregister-processing": {
+                    "code": "learniq-assessment-and-results",
+                    "naam": "Assessment and results",
+                    "doelbinding": "Assess learners and record their results: submissions and marks, grades, report cards, competencies, study-progress advice and the school advice.",
+                    "rechtsgrond": "public-task",
+                    "grondslagSource": "Regulation.slug",
+                    "dataCategories": [
+                        "learnerIds"
+                    ],
+                    "backend": "learniq.assessment",
+                    "retentionReference": "not declared (PeerFeedbackSummary carries no x-openregister-archival annotation; align with the school's selectielijst)",
+                    "lifecycle": "draft",
+                    "logReads": true,
+                    "attribution": {
+                        "default": "learniq-assessment-and-results"
+                    },
+                    "subjectIdFields": {
+                        "learnerIds": "learnerIds"
+                    },
+                    "ownerUserId": "admin",
+                    "reviewIntervalMonths": 12,
+                    "nextReviewAt": "2027-11-13"
+                },
                 "properties": {
                     "submissionId": {
                         "type": "string",
@@ -11768,6 +11822,15 @@
                         "description": "UUID of the governing Assignment (source of peerReviewAnonymity).",
                         "title": "Assignment ID"
                     },
+                    "learnerIds": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "Nextcloud user ids of the Submission's own learners, copied from Submission.learnerIds by PeerFeedbackAggregator so the read rule can let them in. Derived — do not set manually.",
+                        "title": "Learner IDs",
+                        "visible": false
+                    },
                     "reviewCount": {
                         "type": "integer",
                         "nullable": true,
@@ -11782,7 +11845,7 @@
                     },
                     "feedbackItems": {
                         "type": "array",
-                        "description": "One entry per released PeerReview. reviewerId is null when Assignment.peerReviewAnonymity is blind/double-blind — the server-enforced anonymity guarantee (design.md 'Anonymity Enforcement'). Derived — do not set manually.",
+                        "description": "One entry per released PeerReview: what the reviewer said, never who said it. No reviewer or PeerReview id is written, whatever Assignment.peerReviewAnonymity is — the server-enforced anonymity guarantee (design.md 'Anonymity Enforcement'). Derived — do not set manually.",
                         "items": {
                             "type": "object",
                             "properties": {
@@ -11816,12 +11879,6 @@
                                         }
                                     },
                                     "title": "Rubric Scores"
-                                },
-                                "reviewerId": {
-                                    "type": "string",
-                                    "nullable": true,
-                                    "description": "Reviewer's Nextcloud user ID. Null when peerReviewAnonymity is blind/double-blind; populated when open.",
-                                    "title": "Reviewer ID"
                                 }
                             }
                         },
