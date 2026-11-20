@@ -75,7 +75,7 @@ class ExamSittingEstablishGuardTest extends TestCase {
 		$user        = $this->createMock(originalClassName: IUser::class);
 		$userManager = $this->createMock(originalClassName: IUserManager::class);
 		$userManager->method('get')->willReturnCallback(
-			static fn (string $uid): ?IUser => $uid === 'actor-1' ? $user : null
+			static fn (string $uid): ?IUser => ['actor-1' => $user][$uid] ?? null
 		);
 		$groupManager = $this->createMock(originalClassName: IGroupManager::class);
 		$groupManager->method('getUserGroupIds')->willReturn($groups);

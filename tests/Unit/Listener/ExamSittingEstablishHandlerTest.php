@@ -110,8 +110,8 @@ class ExamSittingEstablishHandlerTest extends TestCase {
 	public function testOtherEventsAreIgnored(): void {
 		$handler = $this->handler(entries: [['id' => 'ge-1', 'examSittingId' => 's-1']]);
 
-		$handler->handle($this->established(['establishedAt' => 'x', 'establishedBy' => 'y'], to: 'cancelled'));
-		$handler->handle($this->established(['establishedAt' => 'x', 'establishedBy' => 'y'], schema: 'exam-period'));
+		$handler->handle($this->established(fields: ['establishedAt' => 'x', 'establishedBy' => 'y'], to: 'cancelled'));
+		$handler->handle($this->established(fields: ['establishedAt' => 'x', 'establishedBy' => 'y'], schema: 'exam-period'));
 
 		self::assertSame(expected: [], actual: $this->saved);
 	}//end testOtherEventsAreIgnored()

@@ -133,7 +133,11 @@ class ExamObjectionDecisionHandlerTest extends TestCase {
 		$objects->method('find')->willReturnCallback(
 			function (int|string $id, ?ObjectFindOptions $options = null) use (&$state): ?ObjectEntity {
 				self::assertSame(expected: 'grade-entry', actual: $options?->schema);
-				return ($state === null) ? null : OrEntityFactory::make(['id' => (string) $id, 'value' => 5.0, 'lifecycle' => $state], 'grade-entry');
+				if ($state === null) {
+					return null;
+				}
+
+				return OrEntityFactory::make(['id' => (string) $id, 'value' => 5.0, 'lifecycle' => $state], 'grade-entry');
 			}
 		);
 		$objects->method('saveObject')->willReturnCallback(
@@ -148,7 +152,7 @@ class ExamObjectionDecisionHandlerTest extends TestCase {
 		$engine->method('transition')->willReturnCallback(
 			function (string $objectId, string $action) use (&$state): ObjectEntity {
 				$this->steps[] = 'transition ' . $objectId . ' ' . $action;
-				$state         = ($action === 'revise') ? 'revised' : 'published';
+				$state         = ['revise' => 'revised'][$action] ?? 'published';
 				return OrEntityFactory::make(['id' => $objectId, 'lifecycle' => $state], 'grade-entry');
 			}
 		);
