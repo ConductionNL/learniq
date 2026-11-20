@@ -15,11 +15,12 @@ declare(strict_types=1);
 namespace OCA\OpenRegister\Service;
 
 /**
- * Minimal TalkLinkService stub for Learniq unit tests (CohortTalkMembershipHandler).
+ * Minimal TalkLinkService stub for Learniq unit tests (CohortTalkMembershipHandler,
+ * CohortTalkRoomProvisioner).
  *
- * Declares only the two methods CohortTalkMembershipHandler consumes:
- * `isTalkAvailable()` and `getLinkedRooms()`. The real class exposes a much
- * larger Tier-2 REST surface (linkRoom, createAndLinkRoom, unlinkRoom,
+ * Declares only the methods learniq consumes: `isTalkAvailable()`,
+ * `getLinkedRooms()` and `createAndLinkRoom()`. The real class exposes a
+ * larger Tier-2 REST surface (linkRoom, unlinkRoom,
  * getAvailableRoomsForUser) that learniq does not call directly — it is
  * reached only via OpenRegister's own `TalkLinksController` from the
  * frontend `integration`/`talk` manifest widgets.
@@ -44,4 +45,13 @@ abstract class TalkLinkService {
 	 * @return array<int,array<string,mixed>>
 	 */
 	abstract public function getLinkedRooms(string $objectUuid): array;
+
+	/**
+	 * Create a Talk room and link it to an object.
+	 *
+	 * @param \OCA\OpenRegister\Service\TalkLink\RoomCreation $creation The object, room name, description and room type.
+	 *
+	 * @return \OCA\OpenRegister\Db\TalkLink The inserted link row.
+	 */
+	abstract public function createAndLinkRoom(\OCA\OpenRegister\Service\TalkLink\RoomCreation $creation): \OCA\OpenRegister\Db\TalkLink;
 }//end class
