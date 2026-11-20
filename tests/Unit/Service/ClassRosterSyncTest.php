@@ -67,7 +67,7 @@ class ClassRosterSyncTest extends TestCase {
 	 * @return ObjectService
 	 */
 	private function objects(): ObjectService {
-		$objects = $this->createMock(ObjectService::class);
+		$objects = $this->createMock(originalClassName: ObjectService::class);
 		$objects->method('findAll')->willReturnCallback(
 			function (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array {
 				$filters = $config['filters'];
@@ -97,7 +97,9 @@ class ClassRosterSyncTest extends TestCase {
 				$uuid   = $options->uuid;
 				$this->writes[] = ['schema' => (string)$schema, 'row' => $object, 'uuid' => $uuid, 'rbac' => $_rbac];
 				$object['id'] = $uuid ?? sprintf('00000000-0000-4000-8000-%012d', count($this->writes));
-				$this->db[(string)$schema] = array_values(array_filter($this->db[(string)$schema] ?? [], static fn (array $r): bool => ($r['id'] ?? null) !== $object['id']));
+				$this->db[(string)$schema] = array_values(
+					array_filter($this->db[(string)$schema] ?? [], static fn (array $r): bool => ($r['id'] ?? null) !== $object['id'])
+				);
 				$this->db[(string)$schema][] = $object;
 				return OrEntityFactory::make($object, (string)$schema);
 			}
@@ -112,7 +114,7 @@ class ClassRosterSyncTest extends TestCase {
 	 * @return ITimeFactory
 	 */
 	private function time(): ITimeFactory {
-		$time = $this->createMock(ITimeFactory::class);
+		$time = $this->createMock(originalClassName: ITimeFactory::class);
 		$time->method('getDateTime')->willReturn(new DateTime('2026-11-02T07:00:00+00:00'));
 
 		return $time;
@@ -181,7 +183,9 @@ class ClassRosterSyncTest extends TestCase {
 	 * @return array<int, array<string, mixed>>
 	 */
 	private function writesTo(string $schema): array {
-		return array_values(array_map(static fn (array $w): array => $w['row'], array_filter($this->writes, static fn (array $w): bool => $w['schema'] === $schema)));
+		return array_values(
+			array_map(static fn (array $w): array => $w['row'], array_filter($this->writes, static fn (array $w): bool => $w['schema'] === $schema))
+		);
 	}//end writesTo()
 
 	/**
@@ -190,8 +194,8 @@ class ClassRosterSyncTest extends TestCase {
 	 * @return void
 	 */
 	public function testClassRosterIsALandedTarget(): void {
-		self::assertContains('class-roster', ExchangeImportLandingInterface::TARGETS);
-		self::assertTrue($this->receive([])->isAnswered());
+		self::assertContains(needle: 'class-roster', haystack: ExchangeImportLandingInterface::TARGETS);
+		self::assertTrue(condition: $this->receive(records: [])->isAnswered());
 	}//end testClassRosterIsALandedTarget()
 
 	/**
@@ -202,16 +206,16 @@ class ClassRosterSyncTest extends TestCase {
 	 * @spec openspec/changes/enrolment-sync-classes-from-student-administration/specs/enrolment/spec.md#scenario-a-new-class-arrives
 	 */
 	public function testANewClassArrives(): void {
-		$this->pupils(['anna', 'bram']);
+		$this->pupils(ids: ['anna', 'bram']);
 
-		$event = $this->receive([self::klass(['anna', 'eck-bram'])]);
+		$event = $this->receive(records: [self::klass(learners: ['anna', 'eck-bram'])]);
 
-		self::assertSame(1, $event->getAcceptedCount());
-		self::assertSame([], $event->getRejected());
-		$cohorts = $this->writesTo('cohort');
-		self::assertCount(1, $cohorts);
+		self::assertSame(expected: 1, actual: $event->getAcceptedCount());
+		self::assertSame(expected: [], actual: $event->getRejected());
+		$cohorts = $this->writesTo(schema: 'cohort');
+		self::assertCount(expectedCount: 1, haystack: $cohorts);
 		self::assertSame(
-			[
+			expected: [
 				'lifecycle'      => 'planned',
 				'period'         => '2026-2027',
 				'externalId'     => 'mag-3hvb-2026',
@@ -225,10 +229,10 @@ class ClassRosterSyncTest extends TestCase {
 				'syncedAt'       => '2026-11-02T07:00:00+00:00',
 				'syncChanges'    => 2,
 			],
-			$cohorts[0]
+			actual: $cohorts[0]
 		);
-		self::assertSame([], $this->writesTo('enrolment'), 'a new class runs no course yet');
-		self::assertFalse($this->writes[0]['rbac'], 'a background job has no session: the write is system-level');
+		self::assertSame(expected: [], actual: $this->writesTo(schema: 'enrolment'), message: 'a new class runs no course yet');
+		self::assertFalse(condition: $this->writes[0]['rbac'], message: 'a background job has no session: the write is system-level');
 	}//end testANewClassArrives()
 
 	/**
@@ -239,27 +243,43 @@ class ClassRosterSyncTest extends TestCase {
 	 * @spec openspec/changes/enrolment-sync-classes-from-student-administration/specs/enrolment/spec.md#scenario-a-pupil-learniq-does-not-know
 	 */
 	public function testRefusalsNameTheFieldNotTheValue(): void {
-		$this->pupils(['anna']);
+		$this->pupils(ids: ['anna']);
 
 		$event = $this->receive(
-			[
-				self::klass(['anna', 'eck-stranger']),
+			records: [
+				self::klass(learners: ['anna', 'eck-stranger']),
 				['recordId' => 'c2', 'data' => ['externalSource' => 'magister', 'name' => '3HV-C', 'academicYear' => '2026-2027']],
-				['recordId' => 'c3', 'data' => ['externalId' => 'x', 'externalSource' => 'magister', 'name' => '3HV-D', 'academicYear' => '2026-2027', 'learnerIds' => 'anna']],
+				[
+					'recordId' => 'c3',
+					'data' => [
+						'externalId' => 'x',
+						'externalSource' => 'magister',
+						'name' => '3HV-D',
+						'academicYear' => '2026-2027',
+						'learnerIds' => 'anna'
+					]
+				],
 			]
 		);
 
-		self::assertSame(0, $event->getAcceptedCount());
+		self::assertSame(expected: 0, actual: $event->getAcceptedCount());
 		self::assertSame(
-			[
+			expected: [
 				['recordId' => 'c1', 'errorCode' => 'ROSTER-UNKNOWN-PUPIL', 'offendingFields' => ['learnerIds']],
 				['recordId' => 'c2', 'errorCode' => 'ROSTER-MISSING-FIELD', 'offendingFields' => ['externalId']],
 				['recordId' => 'c3', 'errorCode' => 'ROSTER-MISSING-FIELD', 'offendingFields' => ['learnerIds']],
 			],
-			array_map(static fn (array $r): array => ['recordId' => $r['recordId'], 'errorCode' => $r['errorCode'], 'offendingFields' => $r['offendingFields']], $event->getRejected())
+			actual: array_map(
+				static fn (array $r): array => [
+					'recordId' => $r['recordId'],
+					'errorCode' => $r['errorCode'],
+					'offendingFields' => $r['offendingFields']
+				],
+				$event->getRejected()
+			)
 		);
-		self::assertSame([], $this->writes);
-		self::assertStringNotContainsString('stranger', (string)json_encode($event->getRejected()));
+		self::assertSame(expected: [], actual: $this->writes);
+		self::assertStringNotContainsString(needle: 'stranger', haystack: (string)json_encode($event->getRejected()));
 	}//end testRefusalsNameTheFieldNotTheValue()
 
 	/**
@@ -270,19 +290,52 @@ class ClassRosterSyncTest extends TestCase {
 	 * @spec openspec/changes/enrolment-sync-classes-from-student-administration/specs/enrolment/spec.md#scenario-a-pupil-joins-in-november
 	 */
 	public function testAPupilJoinsInNovember(): void {
-		$this->pupils(['anna', 'daan']);
-		$this->db['cohort'] = [['id' => 'cohort-1', 'externalId' => 'mag-3hvb-2026', 'externalSource' => 'magister', 'name' => '3HV-B', 'learnerIds' => ['anna'], 'notes' => 'kept', 'tenant_id' => self::TENANT, 'lifecycle' => 'active', 'period' => 'Jaar']];
-		$this->db['enrolment'] = [['id' => 'e-anna', 'learnerId' => 'anna', 'courseId' => self::COURSE, 'cohortId' => 'cohort-1', 'lifecycle' => 'active', 'source' => 'bulk']];
+		$this->pupils(ids: ['anna', 'daan']);
+		$this->db['cohort'] = [
+			[
+				'id' => 'cohort-1',
+				'externalId' => 'mag-3hvb-2026',
+				'externalSource' => 'magister',
+				'name' => '3HV-B',
+				'learnerIds' => ['anna'],
+				'notes' => 'kept',
+				'tenant_id' => self::TENANT,
+				'lifecycle' => 'active',
+				'period' => 'Jaar'
+			]
+		];
+		$this->db['enrolment'] = [
+			[
+				'id' => 'e-anna',
+				'learnerId' => 'anna',
+				'courseId' => self::COURSE,
+				'cohortId' => 'cohort-1',
+				'lifecycle' => 'active',
+				'source' => 'bulk'
+			]
+		];
 
-		$this->receive([self::klass(['anna', 'daan'])]);
+		$this->receive(records: [self::klass(learners: ['anna', 'daan'])]);
 
-		$cohort = $this->writesTo('cohort')[0];
-		self::assertSame('cohort-1', $this->writes[0]['uuid'], 'matched on the external id, updated in place');
-		self::assertArrayNotHasKey('@self', $cohort);
-		self::assertSame(['kept', 'active', 'Jaar', 1], [$cohort['notes'], $cohort['lifecycle'], $cohort['period'], $cohort['syncChanges']]);
+		$cohort = $this->writesTo(schema: 'cohort')[0];
+		self::assertSame(expected: 'cohort-1', actual: $this->writes[0]['uuid'], message: 'matched on the external id, updated in place');
+		self::assertArrayNotHasKey(key: '@self', array: $cohort);
 		self::assertSame(
-			[['learnerId' => 'daan', 'courseId' => self::COURSE, 'cohortId' => 'cohort-1', 'source' => 'roster-sync', 'lifecycle' => 'active', 'tenant_id' => self::TENANT]],
-			$this->writesTo('enrolment')
+			expected: ['kept', 'active', 'Jaar', 1],
+			actual: [$cohort['notes'], $cohort['lifecycle'], $cohort['period'], $cohort['syncChanges']]
+		);
+		self::assertSame(
+			expected: [
+				[
+					'learnerId' => 'daan',
+					'courseId' => self::COURSE,
+					'cohortId' => 'cohort-1',
+					'source' => 'roster-sync',
+					'lifecycle' => 'active',
+					'tenant_id' => self::TENANT
+				]
+			],
+			actual: $this->writesTo(schema: 'enrolment')
 		);
 	}//end testAPupilJoinsInNovember()
 
@@ -294,25 +347,69 @@ class ClassRosterSyncTest extends TestCase {
 	 * @spec openspec/changes/enrolment-sync-classes-from-student-administration/specs/enrolment/spec.md#scenario-a-pupil-moves-to-another-class
 	 */
 	public function testAPupilMovesToAnotherClass(): void {
-		$this->pupils(['anna', 'yara']);
-		$this->db['cohort'] = [['id' => 'cohort-1', 'externalId' => 'mag-3hvb-2026', 'externalSource' => 'magister', 'learnerIds' => ['anna', 'yara'], 'tenant_id' => self::TENANT]];
+		$this->pupils(ids: ['anna', 'yara']);
+		$this->db['cohort'] = [
+			[
+				'id' => 'cohort-1',
+				'externalId' => 'mag-3hvb-2026',
+				'externalSource' => 'magister',
+				'learnerIds' => ['anna', 'yara'],
+				'tenant_id' => self::TENANT
+			]
+		];
 		$this->db['enrolment'] = [
-			['id' => 'e-yara', 'learnerId' => 'yara', 'courseId' => self::COURSE, 'cohortId' => 'cohort-1', 'lifecycle' => 'active', 'source' => 'bulk', 'progressPercent' => 40],
-			['id' => 'e-yara-old', 'learnerId' => 'yara', 'courseId' => 'old', 'cohortId' => 'cohort-1', 'lifecycle' => 'completed', 'source' => 'bulk'],
-			['id' => 'e-anna', 'learnerId' => 'anna', 'courseId' => self::COURSE, 'cohortId' => 'cohort-1', 'lifecycle' => 'active', 'source' => 'bulk'],
+			[
+				'id' => 'e-yara',
+				'learnerId' => 'yara',
+				'courseId' => self::COURSE,
+				'cohortId' => 'cohort-1',
+				'lifecycle' => 'active',
+				'source' => 'bulk',
+				'progressPercent' => 40
+			],
+			[
+				'id' => 'e-yara-old',
+				'learnerId' => 'yara',
+				'courseId' => 'old',
+				'cohortId' => 'cohort-1',
+				'lifecycle' => 'completed',
+				'source' => 'bulk'
+			],
+			[
+				'id' => 'e-anna',
+				'learnerId' => 'anna',
+				'courseId' => self::COURSE,
+				'cohortId' => 'cohort-1',
+				'lifecycle' => 'active',
+				'source' => 'bulk'
+			],
 		];
 
-		$this->receive([self::klass(['anna'])]);
+		$this->receive(records: [self::klass(learners: ['anna'])]);
 
 		self::assertSame(
-			[['learnerId' => 'yara', 'courseId' => self::COURSE, 'cohortId' => 'cohort-1', 'lifecycle' => 'withdrawn', 'source' => 'bulk', 'progressPercent' => 40, 'reason' => ClassRosterSync::LEAVER_REASON]],
-			$this->writesTo('enrolment')
+			expected: [
+				[
+					'learnerId' => 'yara',
+					'courseId' => self::COURSE,
+					'cohortId' => 'cohort-1',
+					'lifecycle' => 'withdrawn',
+					'source' => 'bulk',
+					'progressPercent' => 40,
+					'reason' => ClassRosterSync::LEAVER_REASON
+				]
+			],
+			actual: $this->writesTo(schema: 'enrolment')
 		);
-		self::assertSame('Left the class in the student administration', ClassRosterSync::LEAVER_REASON);
-		self::assertCount(3, $this->db['enrolment'], 'nothing is deleted');
-		self::assertSame(['cohort-1', 'e-yara'], array_column($this->writes, 'uuid'), 'the cohort and the enrolment are updated in place');
-		self::assertSame(['anna'], $this->writesTo('cohort')[0]['learnerIds']);
-		self::assertSame(1, $this->writesTo('cohort')[0]['syncChanges']);
+		self::assertSame(expected: 'Left the class in the student administration', actual: ClassRosterSync::LEAVER_REASON);
+		self::assertCount(expectedCount: 3, haystack: $this->db['enrolment'], message: 'nothing is deleted');
+		self::assertSame(
+			expected: ['cohort-1', 'e-yara'],
+			actual: array_column($this->writes, 'uuid'),
+			message: 'the cohort and the enrolment are updated in place'
+		);
+		self::assertSame(expected: ['anna'], actual: $this->writesTo(schema: 'cohort')[0]['learnerIds']);
+		self::assertSame(expected: 1, actual: $this->writesTo(schema: 'cohort')[0]['syncChanges']);
 	}//end testAPupilMovesToAnotherClass()
 
 	/**
@@ -321,24 +418,38 @@ class ClassRosterSyncTest extends TestCase {
 	 * @return void
 	 */
 	public function testAReplayChangesNothing(): void {
-		$this->pupils(['anna', 'bram']);
+		$this->pupils(ids: ['anna', 'bram']);
 		$this->db['enrolment'] = [];
 
-		$this->receive([self::klass(['anna', 'bram'])]);
+		$this->receive(records: [self::klass(learners: ['anna', 'bram'])]);
 		$cohortId = $this->db['cohort'][0]['id'];
-		$this->db['enrolment'][] = ['id' => 'e1', 'learnerId' => 'anna', 'courseId' => self::COURSE, 'cohortId' => $cohortId, 'lifecycle' => 'active', 'source' => 'bulk'];
-		$this->db['enrolment'][] = ['id' => 'e2', 'learnerId' => 'bram', 'courseId' => self::COURSE, 'cohortId' => $cohortId, 'lifecycle' => 'active', 'source' => 'bulk'];
+		$this->db['enrolment'][] = [
+			'id' => 'e1',
+			'learnerId' => 'anna',
+			'courseId' => self::COURSE,
+			'cohortId' => $cohortId,
+			'lifecycle' => 'active',
+			'source' => 'bulk'
+		];
+		$this->db['enrolment'][] = [
+			'id' => 'e2',
+			'learnerId' => 'bram',
+			'courseId' => self::COURSE,
+			'cohortId' => $cohortId,
+			'lifecycle' => 'active',
+			'source' => 'bulk'
+		];
 		$this->writes = [];
 
-		$event = $this->receive([self::klass(['bram', 'anna'])]);
+		$event = $this->receive(records: [self::klass(learners: ['bram', 'anna'])]);
 
-		self::assertSame(1, $event->getAcceptedCount());
-		self::assertCount(1, $this->db['cohort'], 'not a second cohort');
-		self::assertSame($cohortId, $this->writes[0]['uuid']);
-		self::assertSame([], $this->writesTo('enrolment'));
-		$cohort = $this->writesTo('cohort')[0];
-		self::assertSame(0, $cohort['syncChanges']);
-		self::assertSame(['bram', 'anna'], $cohort['learnerIds']);
+		self::assertSame(expected: 1, actual: $event->getAcceptedCount());
+		self::assertCount(expectedCount: 1, haystack: $this->db['cohort'], message: 'not a second cohort');
+		self::assertSame(expected: $cohortId, actual: $this->writes[0]['uuid']);
+		self::assertSame(expected: [], actual: $this->writesTo(schema: 'enrolment'));
+		$cohort = $this->writesTo(schema: 'cohort')[0];
+		self::assertSame(expected: 0, actual: $cohort['syncChanges']);
+		self::assertSame(expected: ['bram', 'anna'], actual: $cohort['learnerIds']);
 	}//end testAReplayChangesNothing()
 
 	/**
@@ -347,8 +458,17 @@ class ClassRosterSyncTest extends TestCase {
 	 * @return void
 	 */
 	public function testAJoinerIsEnrolledOncePerCourse(): void {
-		$this->pupils(['anna', 'daan', 'eva']);
-		$this->db['cohort'] = [['id' => 'cohort-1', 'externalId' => 'mag-3hvb-2026', 'externalSource' => 'magister', 'learnerIds' => ['anna'], 'courseId' => 'course-own', 'tenant_id' => self::TENANT]];
+		$this->pupils(ids: ['anna', 'daan', 'eva']);
+		$this->db['cohort'] = [
+			[
+				'id' => 'cohort-1',
+				'externalId' => 'mag-3hvb-2026',
+				'externalSource' => 'magister',
+				'learnerIds' => ['anna'],
+				'courseId' => 'course-own',
+				'tenant_id' => self::TENANT
+			]
+		];
 		$this->db['enrolment'] = [
 			['id' => 'e-anna', 'learnerId' => 'anna', 'courseId' => self::COURSE, 'cohortId' => 'cohort-1', 'lifecycle' => 'active'],
 			['id' => 'e-daan', 'learnerId' => 'daan', 'courseId' => self::COURSE, 'cohortId' => 'cohort-1', 'lifecycle' => 'pending'],
@@ -356,10 +476,10 @@ class ClassRosterSyncTest extends TestCase {
 			['id' => 'e-gone', 'learnerId' => 'anna', 'courseId' => 'course-dropped', 'cohortId' => 'cohort-1', 'lifecycle' => 'withdrawn'],
 		];
 
-		$this->receive([self::klass(['anna', 'daan', 'eva'])]);
+		$this->receive(records: [self::klass(learners: ['anna', 'daan', 'eva'])]);
 
-		$made = array_map(static fn (array $row): string => $row['learnerId'].'@'.$row['courseId'], $this->writesTo('enrolment'));
-		self::assertSame(['daan@course-own', 'eva@course-own', 'eva@'.self::COURSE], $made);
+		$made = array_map(static fn (array $row): string => $row['learnerId'].'@'.$row['courseId'], $this->writesTo(schema: 'enrolment'));
+		self::assertSame(expected: ['daan@course-own', 'eva@course-own', 'eva@'.self::COURSE], actual: $made);
 	}//end testAJoinerIsEnrolledOncePerCourse()
 
 	/**
@@ -368,15 +488,43 @@ class ClassRosterSyncTest extends TestCase {
 	 * @return void
 	 */
 	public function testTheWrittenPayloadsPassTheRealSchema(): void {
-		$this->pupils(['anna', 'daan', 'yara']);
+		$this->pupils(ids: ['anna', 'daan', 'yara']);
 		$cohortId = '00000000-0000-4000-8000-0000000000aa';
-		$this->db['cohort'] = [['id' => $cohortId, 'externalId' => 'mag-3hvb-2026', 'externalSource' => 'magister', 'name' => '3HV-B', 'period' => '2026-2027', 'academicYear' => '2026-2027', 'learnerIds' => ['anna', 'yara'], 'tenant_id' => self::TENANT, 'lifecycle' => 'active']];
+		$this->db['cohort'] = [
+			[
+				'id' => $cohortId,
+				'externalId' => 'mag-3hvb-2026',
+				'externalSource' => 'magister',
+				'name' => '3HV-B',
+				'period' => '2026-2027',
+				'academicYear' => '2026-2027',
+				'learnerIds' => ['anna', 'yara'],
+				'tenant_id' => self::TENANT,
+				'lifecycle' => 'active'
+			]
+		];
 		$this->db['enrolment'] = [
-			['id' => 'e-anna', 'learnerId' => 'anna', 'courseId' => self::COURSE, 'cohortId' => $cohortId, 'lifecycle' => 'active', 'source' => 'bulk', 'tenant_id' => self::TENANT],
-			['id' => 'e-yara', 'learnerId' => 'yara', 'courseId' => self::COURSE, 'cohortId' => $cohortId, 'lifecycle' => 'active', 'source' => 'bulk', 'tenant_id' => self::TENANT],
+			[
+				'id' => 'e-anna',
+				'learnerId' => 'anna',
+				'courseId' => self::COURSE,
+				'cohortId' => $cohortId,
+				'lifecycle' => 'active',
+				'source' => 'bulk',
+				'tenant_id' => self::TENANT
+			],
+			[
+				'id' => 'e-yara',
+				'learnerId' => 'yara',
+				'courseId' => self::COURSE,
+				'cohortId' => $cohortId,
+				'lifecycle' => 'active',
+				'source' => 'bulk',
+				'tenant_id' => self::TENANT
+			],
 		];
 
-		$this->receive([self::klass(['anna', 'daan'])]);
+		$this->receive(records: [self::klass(learners: ['anna', 'daan'])]);
 
 		$schemas = json_decode((string)file_get_contents(__DIR__.'/../../../lib/Settings/learniq_register.json'), true)['components']['schemas'];
 		$validator = new Validator();
@@ -386,14 +534,14 @@ class ClassRosterSyncTest extends TestCase {
 			$row = $write['row'];
 			unset($row['id']);
 			$result = $validator->validate(json_decode((string)json_encode($row)), (string)json_encode($this->validatable(schema: $schemas[$name])));
-			self::assertTrue($result->isValid(), $name.': '.json_encode($result->error()?->message()));
+			self::assertTrue(condition: $result->isValid(), message: $name.': '.json_encode($result->error()?->message()));
 			$checked++;
 		}
 
-		self::assertSame(3, $checked, 'the cohort, a withdrawal and a new enrolment');
-		self::assertContains(ClassRosterSync::ENROLMENT_SOURCE, $schemas['Enrolment']['properties']['source']['enum']);
+		self::assertSame(expected: 3, actual: $checked, message: 'the cohort, a withdrawal and a new enrolment');
+		self::assertContains(needle: ClassRosterSync::ENROLMENT_SOURCE, haystack: $schemas['Enrolment']['properties']['source']['enum']);
 		foreach (['externalId', 'externalSource', 'syncedAt', 'syncChanges'] as $field) {
-			self::assertArrayHasKey($field, $schemas['Cohort']['properties']);
+			self::assertArrayHasKey(key: $field, array: $schemas['Cohort']['properties']);
 		}
 	}//end testTheWrittenPayloadsPassTheRealSchema()
 
@@ -407,7 +555,13 @@ class ClassRosterSyncTest extends TestCase {
 	private function validatable(array $schema): array {
 		$clean = [];
 		foreach ($schema as $key => $value) {
-			if ($key === '$ref' || $key === 'authorization' || str_starts_with((string)$key, 'x-') === true || in_array($key, ['slug', 'icon', 'version', 'linkedTypes'], true) === true) {
+			if (
+				$key === '$ref' || $key === 'authorization' || str_starts_with((string)$key, 'x-') === true || in_array(
+					$key,
+					['slug', 'icon', 'version', 'linkedTypes'],
+					true
+				) === true
+			) {
 				continue;
 			}
 
