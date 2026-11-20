@@ -124,6 +124,40 @@ class PupilPageReaderTest extends TestCase {
 	}//end testVisitsOfThePlacements()
 
 	/**
+	 * A group's rows come keyed by pupil, through one IN query with the
+	 * group's bound; a profile is matched on its user id, and rows of other
+	 * pupils or without a pupil are dropped.
+	 *
+	 * @return void
+	 */
+	public function testOfPupilsKeysTheRowsByPupil(): void {
+		$reader = $this->reader([
+			['id' => 's1', 'learnerId' => 'vera'],
+			['id' => 's2', 'learnerId' => 'sem'],
+			['id' => 's3', 'learnerId' => 'lina'],
+			['id' => 's4', 'learnerId' => 'vera'],
+			['id' => 's5'],
+		]);
+
+		$this->assertSame(
+			['vera' => [['id' => 's1', 'learnerId' => 'vera'], ['id' => 's4', 'learnerId' => 'vera']], 'lina' => [['id' => 's3', 'learnerId' => 'lina']]],
+			$reader->ofPupils(schema: 'attendance-summary', learnerIds: ['vera', 'lina', ''])
+		);
+		$this->assertSame(
+			[[['filters' => ['register' => 'learniq', 'schema' => 'attendance-summary', 'learnerId' => ['vera', 'lina']], 'limit' => 5000], false, false]],
+			$this->queries
+		);
+
+		$profiles = $this->reader([['id' => 'p1', 'ncUserId' => 'vera'], ['id' => 'p2', 'learnerId' => 'vera']]);
+		$this->assertSame(['vera' => [['id' => 'p1', 'ncUserId' => 'vera']]], $profiles->ofPupils(schema: 'learner-profile', learnerIds: ['vera'], field: 'ncUserId'));
+		$this->assertSame('ncUserId', array_key_last($this->queries[0][0]['filters']));
+
+		$this->queries = [];
+		$this->assertSame([], $profiles->ofPupils(schema: 'learner-profile', learnerIds: ['']));
+		$this->assertSame([], $this->queries);
+	}//end testOfPupilsKeysTheRowsByPupil()
+
+	/**
 	 * A row's id is its id, else its uuid, else ''.
 	 *
 	 * @return void

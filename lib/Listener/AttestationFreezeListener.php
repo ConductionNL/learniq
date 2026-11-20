@@ -36,7 +36,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/compliance-attestation-locked-after-signing/specs/compliance-audit/spec.md#requirement-a-signed-attestation-cannot-be-edited
+ * @spec openspec/specs/compliance-audit/spec.md#requirement-a-signed-attestation-cannot-be-edited
  */
 
 declare(strict_types=1);
@@ -54,7 +54,7 @@ use Throwable;
 /**
  * Refuses any change to a signed or revoked attestation's evidence.
  *
- * @spec openspec/changes/compliance-attestation-locked-after-signing/specs/compliance-audit/spec.md#requirement-a-signed-attestation-cannot-be-edited
+ * @spec openspec/specs/compliance-audit/spec.md#requirement-a-signed-attestation-cannot-be-edited
  *
  * @template-implements IEventListener<Event>
  */
@@ -91,6 +91,7 @@ class AttestationFreezeListener implements IEventListener {
 		'signingKeyId',
 		'signedAt',
 		'tenant_id',
+		'readAndUnderstood',
 	];
 
 	/**
@@ -114,7 +115,7 @@ class AttestationFreezeListener implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/compliance-attestation-locked-after-signing/specs/compliance-audit/spec.md#requirement-a-signed-attestation-cannot-be-edited
+	 * @spec openspec/specs/compliance-audit/spec.md#requirement-a-signed-attestation-cannot-be-edited
 	 */
 	public function handle(Event $event): void {
 		if ($event instanceof ObjectLeavingEvent === true) {
@@ -134,7 +135,7 @@ class AttestationFreezeListener implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/compliance-attestation-locked-after-signing/specs/compliance-audit/spec.md#requirement-a-signed-attestation-cannot-be-edited
+	 * @spec openspec/specs/compliance-audit/spec.md#requirement-a-signed-attestation-cannot-be-edited
 	 */
 	private function refuseFrozenUpdate(ObjectUpdatingEvent $event): void {
 		$old = $event->getOldObject();
@@ -159,7 +160,7 @@ class AttestationFreezeListener implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/compliance-attestation-locked-after-signing/specs/compliance-audit/spec.md#requirement-a-signed-attestation-cannot-be-edited
+	 * @spec openspec/specs/compliance-audit/spec.md#requirement-a-signed-attestation-cannot-be-edited
 	 */
 	private function refuseFrozenMove(ObjectLeavingEvent $event): void {
 		$entity = $event->getObject();
@@ -202,7 +203,7 @@ class AttestationFreezeListener implements IEventListener {
 	 *
 	 * @return array{reason: string, message: string}|null The refusal, or null to allow.
 	 *
-	 * @spec openspec/changes/compliance-attestation-locked-after-signing/specs/compliance-audit/spec.md#requirement-a-signed-attestation-cannot-be-edited
+	 * @spec openspec/specs/compliance-audit/spec.md#requirement-a-signed-attestation-cannot-be-edited
 	 */
 	public static function refusal(array $old, array $new): ?array {
 		$state = (string)($old['lifecycle'] ?? '');
@@ -211,7 +212,10 @@ class AttestationFreezeListener implements IEventListener {
 		}
 
 		if (self::changed(old: $old, new: $new, fields: self::EVIDENCE_FIELDS) === true) {
-			return ['reason' => 'attestation-signed', 'message' => 'A signed attestation cannot be changed. Revoke it with a reason and sign a new one.'];
+			return [
+				'reason' => 'attestation-signed',
+				'message' => 'A signed attestation cannot be changed. Revoke it with a reason and sign a new one.'
+			];
 		}
 
 		$newState = (string)($new['lifecycle'] ?? $state);

@@ -2837,6 +2837,27 @@
 									}
 								},
 								{
+									"id": "BpvVisitsMenu",
+									"label": "Company visits",
+									"route": "BpvVisits",
+									"order": 45,
+									"icon": "CalendarClockOutline",
+									"description": "Planned company visits and the training company's answer",
+									"visibleIf": {
+										"workspace.segment": {
+											"in": [
+												"mbo",
+												"corporate"
+											]
+										},
+										"workspace.chosenSegment": {
+											"notIn": [
+												"corporate"
+											]
+										}
+									}
+								},
+								{
 									"id": "PraktijkopleidersMenu",
 									"label": "Praktijkopleiders",
 									"route": "Praktijkopleiders",

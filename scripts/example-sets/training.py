@@ -806,6 +806,7 @@ def employer_booking_facts(order: Booking, context: BookingContext) -> dict:
     for e, p in participants:
         name = f"{p.get('givenName', '')} {p.get('familyName', '')}".strip()
         fields = participant_facts(p, name, context.renewed.get(e["uuid"]), needs, first)
+        fields["step"] = participant_step(lifecycle, fields["detailsStatus"])
         missing += fields["detailsStatus"] == "birth-date-missing"
         enrolments[e["uuid"]] = fields
         names.append(name)
@@ -821,7 +822,8 @@ def employer_booking_facts(order: Booking, context: BookingContext) -> dict:
     time_label = first_day_times(sessions, first)
     course_name = (course.get("name") or "").strip() or None
     day = {"firstDay": first.isoformat() if first else None, "dayLabel": label, "timeLabel": time_label, "placeLabel": context.place,
-           "trainerName": context.trainer, "upcoming": lifecycle in ("received", "confirmed")}
+           "trainerName": context.trainer, "upcoming": lifecycle in ("received", "confirmed"),
+           "bringList": [x.strip() for x in course.get("bringList") or [] if isinstance(x, str) and x.strip()]}
     for key in enrolments:
         enrolments[key].update(day)
     return {
@@ -869,13 +871,24 @@ def booking_lifecycle(booking: dict, states: list[str]) -> str:
     return "confirmed" if "active" in states else "received"
 
 
+def participant_step(lifecycle: str, details_status: str) -> str | None:
+    """A port of EmployerBookingFacts::participantStep(): the participant's current step of his booking."""
+    if lifecycle == "completed":
+        return "result"
+    if lifecycle == "confirmed":
+        return "details" if details_status != "complete" else "course-day"
+    return "confirmed" if lifecycle == "received" else None
+
+
 def participant_facts(p: dict, name: str, credential: dict | None, needs: bool, first: dt.date | None) -> dict:
     """One participant's facts: the certificate line, and the open task when an exam needs a missing birth date."""
-    line = None
+    line, valid_until = None, None
     if credential and credential.get("expiresAt"):
         x = parse_moment(credential["expiresAt"])
         line = f"Certificaat geldig tot {x.day} {MAAND[x.month - 1]} {x.year}"
-    fields = {"detailsStatus": "complete", "openTask": None, "openTaskNote": None, "openTaskDueAt": None, "certificateLine": line}
+        valid_until = x.date().isoformat()
+    fields = {"detailsStatus": "complete", "openTask": None, "openTaskNote": None, "openTaskDueAt": None, "certificateLine": line,
+              "certificateValidUntil": valid_until}
     if needs and not p.get("birthDate"):
         given = p.get("givenName", "").strip()
         weekday = f" {NL_WEEKDAYS[first.weekday()]}" if first else ""

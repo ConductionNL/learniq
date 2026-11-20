@@ -18,7 +18,7 @@ import { baseUrl } from './base-url.ts'
 
 export default defineConfig({
 	testDir: __dirname,
-	testMatch: /po-parent-flows\.spec\.ts$/,
+	testMatch: /(po-parent-flows|report-card-pdf)\.spec\.ts$/,
 	timeout: 180_000,
 	workers: 1,
 	reporter: [['list']],

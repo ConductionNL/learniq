@@ -186,7 +186,7 @@ class GradeRollupHandler implements IEventListener {
 
 		$visibleFrom = $this->resolveAndPersistVisibleFrom(curriculumPlanId: $curriculumPlanId, entry: $entry);
 
-		$this->fanOutParentNotifications(learnerId: $learnerId, gradeEntry: $entry, visibleFrom: $visibleFrom);
+		$this->fanOutParentNotifications(gradeEntry: $entry, release: ['learnerId' => $learnerId, 'visibleFrom' => $visibleFrom]);
 
 	}//end handleGradeEntryPublished()
 
@@ -441,18 +441,20 @@ class GradeRollupHandler implements IEventListener {
 	 * Parents require an explicit PHP bridge per the design doc (§3.2).
 	 * Notification is best-effort — a failure here does not roll back the FinalGrade recompute.
 	 *
-	 * @param string $learnerId NC user ID.
-	 * @param array $gradeEntry Published GradeEntry data.
-	 * @param string $visibleFrom ISO-8601 resolved visibleFrom, stamped onto every fanned-out
-	 *                            GradeNotification so parent notifications fire on the same
-	 *                            schedule as the learner's.
+	 * @param array                                         $gradeEntry Published GradeEntry data.
+	 * @param array{learnerId: string, visibleFrom: string} $release    The pupil's NC user ID and the ISO-8601 resolved
+	 *                                                                  visibleFrom, stamped onto every fanned-out
+	 *                                                                  GradeNotification so parent notifications fire
+	 *                                                                  on the same schedule as the learner's.
 	 *
 	 * @return void
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-22
 	 * @spec openspec/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
 	 */
-	private function fanOutParentNotifications(string $learnerId, array $gradeEntry, string $visibleFrom): void {
+	private function fanOutParentNotifications(array $gradeEntry, array $release): void {
+		$learnerId = $release['learnerId'];
+		$visibleFrom = $release['visibleFrom'];
 		// LearnerProfile keys the pupil on ncUserId; it has no learnerId, and a
 		// filter on an undeclared property matches nothing. Read without RBAC:
 		// the publisher may not read LearnerProfile, and only parentIds is used.

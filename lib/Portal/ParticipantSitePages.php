@@ -38,6 +38,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Portal;
 
+use OCA\Learniq\Service\Portal\PortalEmployerBookings;
+
 /**
  * Builds the participant's collections and pages.
  *
@@ -172,9 +174,43 @@ class ParticipantSitePages {
 			'collections' => $this->collections(),
 			'actions' => [],
 			'pages' => $this->pages(),
-			'notifications' => [],
+			'notifications' => [$this->substitutedRule()],
 		];
 	}//end contribution()
+
+	/**
+	 * The notice on his portal when his employer sent a colleague in his place.
+	 *
+	 * Fires when his enrolment's withdrawal reason becomes the one
+	 * {@see PortalEmployerBookings::substituteParticipant()} writes; any other
+	 * reason has no message here and so sends none. The colleague's own
+	 * enrolment is created like any participant's.
+	 *
+	 * @return array<string, mixed> The rule.
+	 *
+	 * @spec openspec/changes/employer-substitutes-a-colleague/specs/portal-contribution/spec.md#requirement-an-employer-sends-a-colleague-in-place-of-a-participant-before-the-deadline
+	 */
+	public function substitutedRule(): array {
+		return [
+			'ruleKey' => 'enrolment.substituted',
+			'collection' => 'participantCourseDays',
+			'on' => ['field' => 'withdrawReason', 'operator' => 'changed'],
+			'titleField' => 'courseName',
+			'recipients' => ['field' => self::CLAIM, 'claim' => self::CLAIM],
+			'messages' => [
+				PortalEmployerBookings::SUBSTITUTED => [
+					'subject' => [
+						'nl' => 'Een collega gaat in uw plaats',
+						'en' => 'A colleague goes in your place',
+					],
+					'body' => [
+						'nl' => 'Uw werkgever stuurt een collega in uw plaats naar {courseName} ({dayLabel}). U staat niet meer ingeschreven.',
+						'en' => 'Your employer sends a colleague in your place to {courseName} ({dayLabel}). You are no longer enrolled.',
+					],
+				],
+			],
+		];
+	}//end substitutedRule()
 
 	/**
 	 * His coming course days, all his course days, and his certificates.
@@ -184,7 +220,9 @@ class ParticipantSitePages {
 	 * @spec openspec/changes/participant-portal/specs/portal-contribution/spec.md#requirement-a-participant-lands-on-his-next-course-day
 	 */
 	public function collections(): array {
-		$dayFields = ['learnerRef', 'courseName', 'firstDay', 'dayLabel', 'timeLabel', 'placeLabel', 'trainerName', 'upcoming', 'lifecycle'];
+		$dayFields = ['learnerRef', 'courseName', 'firstDay', 'dayLabel', 'timeLabel', 'placeLabel', 'trainerName', 'bringList', 'upcoming', 'lifecycle'];
+		// "Meenemen" on his course day: the course's bring list, one line each (training-provider-course-days).
+		$dayConfigs = ['bringList' => ['label' => 'What to bring']];
 		$dayColumns = [
 			['field' => 'firstDay', 'label' => 'First day', 'render' => 'date'],
 			['field' => 'courseName', 'label' => 'Course name'],
@@ -204,6 +242,7 @@ class ParticipantSitePages {
 					'filter' => ['upcoming' => true],
 					'defaultSort' => ['field' => 'firstDay', 'direction' => 'asc'],
 					'columns' => $dayColumns,
+					'fieldConfigs' => $dayConfigs,
 				]
 			),
 			$this->direct(
@@ -211,7 +250,7 @@ class ParticipantSitePages {
 				schema: 'enrolment',
 				label: 'My course days',
 				fields: $dayFields,
-				extra: ['defaultSort' => ['field' => 'firstDay', 'direction' => 'desc'], 'columns' => $dayColumns]
+				extra: ['defaultSort' => ['field' => 'firstDay', 'direction' => 'desc'], 'columns' => $dayColumns, 'fieldConfigs' => $dayConfigs]
 			),
 			$this->direct(
 				id: 'participantCertificates',

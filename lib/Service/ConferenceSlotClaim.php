@@ -105,7 +105,7 @@ class ConferenceSlotClaim implements ConferenceSlotClaimInterface {
 				$held[] = $path;
 			}
 
-			return $this->claimLocked(slotId: $slotId, round: $round, booking: $booking);
+			return $this->claimLocked(slotId: $slotId, request: ['round' => $round, 'booking' => $booking]);
 		} catch (LockedException $exception) {
 			return ['refuse' => 'slot-taken'];
 		} finally {
@@ -134,13 +134,12 @@ class ConferenceSlotClaim implements ConferenceSlotClaimInterface {
 	/**
 	 * The check and the write, with both locks held.
 	 *
-	 * @param string $slotId The slot uuid.
-	 * @param array<string, mixed> $round The round.
-	 * @param array<string, string> $booking What to stamp.
+	 * @param string               $slotId  The slot uuid.
+	 * @param array<string, mixed> $request The `round` and the `booking` (what to stamp).
 	 *
 	 * @return array{slot?: array<string, mixed>, refuse?: string}
 	 */
-	private function claimLocked(string $slotId, array $round, array $booking): array {
+	private function claimLocked(string $slotId, array $request): array {
 		$found = $this->objectService->find(
 			id: $slotId,
 			options: new ObjectFindOptions(register: self::REGISTER, schema: self::SLOT_SCHEMA),
@@ -152,11 +151,34 @@ class ConferenceSlotClaim implements ConferenceSlotClaimInterface {
 		}
 
 		$slot = $found->jsonSerialize();
-		$refusal = $this->refusalFor(slot: $slot, round: $round, booking: $booking);
+		$refusal = $this->refusalFor(slot: $slot, request: $request);
 		if ($refusal !== '') {
 			return ['refuse' => $refusal];
 		}
 
+		$booked = $this->bookedSlot(slot: $slot, booking: $request['booking']);
+		$saved = $this->objectService->saveObject(
+			object: $booked,
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::REGISTER, schema: self::SLOT_SCHEMA),
+				uuid: $slotId
+			),
+			_rbac: false,
+			_multitenancy: false
+		);
+
+		return ['slot' => array_merge($booked, $saved->jsonSerialize())];
+	}//end claimLocked()
+
+	/**
+	 * The slot as it is written once booked: stamped with the booking, without its id.
+	 *
+	 * @param array<string, mixed>  $slot    The free slot.
+	 * @param array<string, string> $booking What to stamp.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function bookedSlot(array $slot, array $booking): array {
 		// A pupil's own booking names no guardian (pupil-books-support-lessons-and-mentor-talks).
 		$guardianRef = null;
 		if ($booking['guardianRef'] !== '') {
@@ -175,29 +197,21 @@ class ConferenceSlotClaim implements ConferenceSlotClaimInterface {
 			]
 		);
 		unset($booked['@self'], $booked['id']);
-		$saved = $this->objectService->saveObject(
-			object: $booked,
-			options: new ObjectSaveOptions(
-				target: new ObjectFindTarget(register: self::REGISTER, schema: self::SLOT_SCHEMA),
-				uuid: $slotId
-			),
-			_rbac: false,
-			_multitenancy: false
-		);
 
-		return ['slot' => array_merge($booked, $saved->jsonSerialize())];
-	}//end claimLocked()
+		return $booked;
+	}//end bookedSlot()
 
 	/**
 	 * Why a found slot cannot be booked for this booking, or '' when it can.
 	 *
-	 * @param array<string, mixed>  $slot    The slot.
-	 * @param array<string, mixed>  $round   The round.
-	 * @param array<string, string> $booking What to stamp.
+	 * @param array<string, mixed> $slot    The slot.
+	 * @param array<string, mixed> $request The `round` and the `booking` (what to stamp).
 	 *
 	 * @return string slot-unknown, slot-taken, child-already-booked or ''.
 	 */
-	private function refusalFor(array $slot, array $round, array $booking): string {
+	private function refusalFor(array $slot, array $request): string {
+		$round = $request['round'];
+		$booking = $request['booking'];
 		$roundId = (string)($round['id'] ?? '');
 		if ((string)($slot['conferenceRoundId'] ?? '') !== $roundId
 			|| in_array($booking['learnerRef'], (array)($slot['eligibleLearnerRefs'] ?? []), true) === false

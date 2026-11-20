@@ -19,7 +19,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
+ * @spec openspec/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
  */
 
 declare(strict_types=1);
@@ -34,7 +34,7 @@ use OCP\AppFramework\Utility\ITimeFactory;
 /**
  * The planner's Today.
  *
- * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
+ * @spec openspec/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
  */
 class PlannerTodayService implements PlannerTodayServiceInterface {
 	use CourseDayRows;
@@ -53,7 +53,7 @@ class PlannerTodayService implements PlannerTodayServiceInterface {
 	 * @param CourseDayStatusServiceInterface $days          The course day rules (alternatives).
 	 * @param ITimeFactory                    $time          The clock.
 	 *
-	 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-course-day-has-a-minimum-a-decision-date-and-a-status-that-moves-by-itself
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
@@ -70,7 +70,7 @@ class PlannerTodayService implements PlannerTodayServiceInterface {
 	 *
 	 * @throws \Throwable When OpenRegister cannot be read.
 	 *
-	 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#scenario-four-of-six
+	 * @spec openspec/specs/course-management/spec.md#scenario-four-of-six
 	 */
 	public function today(): array {
 		$today   = $this->time->getDateTime()->format('Y-m-d');
@@ -162,7 +162,7 @@ class PlannerTodayService implements PlannerTodayServiceInterface {
 	 *
 	 * @return list<array<string, mixed>>
 	 *
-	 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#scenario-four-of-six
+	 * @spec openspec/specs/course-management/spec.md#scenario-four-of-six
 	 */
 	private function decisions(array $coming, array $facts, string $today): array {
 		$rows = [];

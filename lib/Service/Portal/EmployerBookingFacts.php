@@ -105,68 +105,174 @@ class EmployerBookingFacts {
 		?DateTimeImmutable $today=null
 	): array {
 		$days = $this->lines->days(sessions: $sessions);
-		$firstDay = ($days[0] ?? null);
 		$participants = $this->present(participants: $participants);
 		$lifecycle = $this->lifecycle(participants: $participants, current: (string)($booking['lifecycle'] ?? 'received'));
-		$needsBirthDate = $this->needsBirthDate(course: $course) && in_array($lifecycle, self::OPEN, true) === true;
-
-		$enrolments = [];
-		$names = [];
-		$refs = [];
-		$missing = 0;
-		foreach ($participants as $row) {
-			$fields = $this->participant(row: $row, needsBirthDate: $needsBirthDate, firstDay: $firstDay, renewed: $renewed);
-			$enrolments[(string)($row['enrolment']['id'] ?? '')] = $fields;
-			$names[] = $this->fullName(profile: $row['profile']);
-			$refs[] = (string)($row['profile']['id'] ?? ($row['enrolment']['learnerRef'] ?? ''));
-			$missing += (int)($fields['detailsStatus'] === 'birth-date-missing');
-		}
-
-		$places = max(1, (int)($booking['participantCount'] ?? count($participants)));
-		$open = max(0, ($places - count($participants)));
-		$status = $this->employerStatus(lifecycle: $lifecycle, openPlaces: $open, missing: $missing);
-		$dayLabel = $this->lines->dayLabel(days: $days);
-		$upcoming = $this->upcoming(lifecycle: $lifecycle, days: $days, today: $today);
-		$courseName = trim((string)($course['name'] ?? ''));
-		// The participant reads his own course day on his enrolment (participant-portal).
-		$day = [
-			'firstDay' => $firstDay?->format('Y-m-d'),
-			'dayLabel' => $dayLabel,
-			'timeLabel' => $this->lines->timeLabel(sessions: $sessions, firstDay: $firstDay),
-			'placeLabel' => ($context['placeLabel'] ?? null),
-			'trainerName' => ($context['trainerName'] ?? null),
-			'upcoming' => $upcoming,
-		];
-		foreach (array_keys($enrolments) as $id) {
-			$enrolments[$id] = array_merge($enrolments[$id], $day);
-		}
+		$roster = $this->roster(
+			participants: $participants,
+			terms: [
+				'needsBirthDate' => $this->needsBirthDate(course: $course) && in_array($lifecycle, self::OPEN, true) === true,
+				'firstDay' => ($days[0] ?? null),
+				'renewed' => $renewed,
+				'lifecycle' => $lifecycle,
+			]
+		);
+		$day = $this->courseDay(
+			sessions: $sessions,
+			facts: [
+				'days' => $days,
+				'context' => $context,
+				'upcoming' => $this->upcoming(lifecycle: $lifecycle, days: $days, today: $today),
+			]
+		);
+		// The participant reads what to bring on his enrolment; the booking does not copy it.
+		$day['bringList'] = self::bringList(course: $course);
 
 		return [
-			'booking' => [
-				'courseName' => $this->orNull(value: $courseName),
-				'bookingLabel' => $this->orNull(value: implode(', ', array_filter([$courseName, (string)$dayLabel]))),
-				'upcoming' => $upcoming,
-				'firstDay' => $firstDay?->format('Y-m-d'),
-				'dayLabel' => $dayLabel,
-				'timeLabel' => $this->lines->timeLabel(sessions: $sessions, firstDay: $firstDay),
-				'placeLabel' => ($context['placeLabel'] ?? null),
-				'trainerName' => ($context['trainerName'] ?? null),
-				'participantRefs' => $refs,
-				'participantNames' => $this->orNull(value: implode(', ', array_filter($names))),
-				'missingDetailsCount' => $missing,
-				'lifecycle' => $lifecycle,
-				'employerStatus' => $status,
-				'statusNote' => $this->statusNote(
-					status: $status,
-					lifecycle: $lifecycle,
-					counts: ['open' => $open, 'missing' => $missing, 'places' => $places],
-					requestedAt: (string)($booking['requestedAt'] ?? '')
-				),
-				'detailsDueAt' => $this->lines->detailsDueAt(firstDay: $firstDay),
-			],
-			'enrolments' => $enrolments,
+			'booking' => $this->bookingFields(
+				booking: $booking,
+				facts: [
+					'courseName' => trim((string)($course['name'] ?? '')),
+					'firstDay' => ($days[0] ?? null),
+					'lifecycle' => $lifecycle,
+					'participantCount' => count($participants),
+					'roster' => $roster,
+					'day' => $day,
+				]
+			),
+			'enrolments' => array_map(static fn (array $fields): array => array_merge($fields, $day), $roster['enrolments']),
 		];
 	}//end derive()
+
+	/**
+	 * Where the participant is in the steps of his booking: booked, confirmed,
+	 * details complete, course day, result and certificate. The value names
+	 * the current step: `confirmed` while the booking waits for its
+	 * confirmation, `details` while a detail of his is missing, `course-day`
+	 * when nothing is left before the day, `result` once the booking is
+	 * completed; null for a cancelled booking.
+	 *
+	 * @param string $lifecycle     The booking's state.
+	 * @param string $detailsStatus The participant's details status.
+	 *
+	 * @return string|null
+	 *
+	 * @spec openspec/changes/archive/2026-11-17-training-provider-course-days/tasks.md#t7
+	 */
+	public static function participantStep(string $lifecycle, string $detailsStatus): ?string {
+		return match (true) {
+			$lifecycle === 'completed' => 'result',
+			$lifecycle === 'confirmed' && $detailsStatus !== 'complete' => 'details',
+			$lifecycle === 'confirmed' => 'course-day',
+			$lifecycle === 'received' => 'confirmed',
+			default => null,
+		};
+	}//end participantStep()
+
+	/**
+	 * What the participant brings to the course day: the course's bring list,
+	 * one trimmed line each, empty lines and non-text left out.
+	 *
+	 * @param array<string, mixed> $course The course.
+	 *
+	 * @return list<string>
+	 *
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-course-says-what-to-bring
+	 */
+	public static function bringList(array $course): array {
+		$lines = [];
+		foreach ((array)($course['bringList'] ?? []) as $line) {
+			if (is_string($line) === true && trim($line) !== '') {
+				$lines[] = trim($line);
+			}
+		}
+
+		return $lines;
+	}//end bringList()
+
+	/**
+	 * Each present participant's employer fields by enrolment id, with the
+	 * names, refs and the count of missing details the booking shows.
+	 *
+	 * @param array<int, array<string, mixed>> $participants The present `{enrolment, profile}` rows.
+	 * @param array<string, mixed>             $terms        `needsBirthDate`, the `firstDay`, the `renewed`
+	 *                                                       certificate by enrolment id and the booking's `lifecycle`.
+	 *
+	 * @return array{enrolments: array<string, array<string, mixed>>, names: array<int, string>, refs: array<int, string>, missing: int}
+	 */
+	private function roster(array $participants, array $terms): array {
+		$roster = ['enrolments' => [], 'names' => [], 'refs' => [], 'missing' => 0];
+		foreach ($participants as $row) {
+			$fields = $this->participant(row: $row, terms: $terms);
+			$fields['step'] = self::participantStep(lifecycle: (string)$terms['lifecycle'], detailsStatus: (string)$fields['detailsStatus']);
+			$roster['enrolments'][(string)($row['enrolment']['id'] ?? '')] = $fields;
+			$roster['names'][] = $this->fullName(profile: $row['profile']);
+			$roster['refs'][] = (string)($row['profile']['id'] ?? ($row['enrolment']['learnerRef'] ?? ''));
+			$roster['missing'] += (int)($fields['detailsStatus'] === 'birth-date-missing');
+		}
+
+		return $roster;
+	}//end roster()
+
+	/**
+	 * The course day fields the booking and each participant's enrolment
+	 * carry (participant-portal).
+	 *
+	 * @param array<int, array<string, mixed>> $sessions The edition's sessions.
+	 * @param array<string, mixed>             $facts    The course `days`, the `context` (`trainerName`,
+	 *                                                   `placeLabel`) and whether the booking is `upcoming`.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function courseDay(array $sessions, array $facts): array {
+		$firstDay = ($facts['days'][0] ?? null);
+
+		return [
+			'firstDay' => $firstDay?->format('Y-m-d'),
+			'dayLabel' => $this->lines->dayLabel(days: $facts['days']),
+			'timeLabel' => $this->lines->timeLabel(sessions: $sessions, firstDay: $firstDay),
+			'placeLabel' => ($facts['context']['placeLabel'] ?? null),
+			'trainerName' => ($facts['context']['trainerName'] ?? null),
+			'upcoming' => $facts['upcoming'],
+		];
+	}//end courseDay()
+
+	/**
+	 * The booking's copies and employer status.
+	 *
+	 * @param array<string, mixed> $booking The stored booking.
+	 * @param array<string, mixed> $facts   The `courseName`, `firstDay`, `lifecycle`, `participantCount`, the `roster`
+	 *                                      and the course `day`.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function bookingFields(array $booking, array $facts): array {
+		$day = $facts['day'];
+		$roster = $facts['roster'];
+		$places = max(1, (int)($booking['participantCount'] ?? $facts['participantCount']));
+		$counts = ['open' => max(0, ($places - $facts['participantCount'])), 'missing' => $roster['missing'], 'places' => $places];
+		$status = $this->employerStatus(lifecycle: $facts['lifecycle'], counts: $counts);
+
+		return [
+			'courseName' => $this->orNull(value: $facts['courseName']),
+			'bookingLabel' => $this->orNull(value: implode(', ', array_filter([$facts['courseName'], (string)$day['dayLabel']]))),
+			'upcoming' => $day['upcoming'],
+			'firstDay' => $day['firstDay'],
+			'dayLabel' => $day['dayLabel'],
+			'timeLabel' => $day['timeLabel'],
+			'placeLabel' => $day['placeLabel'],
+			'trainerName' => $day['trainerName'],
+			'participantRefs' => $roster['refs'],
+			'participantNames' => $this->orNull(value: implode(', ', array_filter($roster['names']))),
+			'missingDetailsCount' => $roster['missing'],
+			'lifecycle' => $facts['lifecycle'],
+			'employerStatus' => $status,
+			'statusNote' => $this->statusNote(
+				status: $status,
+				booking: ['lifecycle' => $facts['lifecycle'], 'counts' => $counts, 'requestedAt' => (string)($booking['requestedAt'] ?? '')]
+			),
+			'detailsDueAt' => $this->lines->detailsDueAt(firstDay: $facts['firstDay']),
+		];
+	}//end bookingFields()
 
 	/**
 	 * Whether the booking is still coming: it is open, and its last day is
@@ -244,14 +350,15 @@ class EmployerBookingFacts {
 	 * A participant's employer fields: are the details complete, what is
 	 * still to do, and which certificate the course renews.
 	 *
-	 * @param array<string, mixed>                $row            The `{enrolment, profile}`.
-	 * @param bool                                $needsBirthDate Whether the booking still needs birth dates.
-	 * @param DateTimeImmutable|null              $firstDay       The first course day.
-	 * @param array<string, array<string, mixed>> $renewed        The certificate each enrolment renews.
+	 * @param array<string, mixed> $row   The `{enrolment, profile}`.
+	 * @param array<string, mixed> $terms Whether the booking still `needsBirthDate`, the `firstDay`
+	 *                                    and the certificate each enrolment renews (`renewed`).
 	 *
 	 * @return array<string, string|null>
 	 */
-	private function participant(array $row, bool $needsBirthDate, ?DateTimeImmutable $firstDay, array $renewed): array {
+	private function participant(array $row, array $terms): array {
+		$firstDay = $terms['firstDay'];
+		$renewed = $terms['renewed'];
 		$profile = (array)$row['profile'];
 		$fields = [
 			'detailsStatus' => 'complete',
@@ -259,8 +366,9 @@ class EmployerBookingFacts {
 			'openTaskNote' => null,
 			'openTaskDueAt' => null,
 			'certificateLine' => $this->certificateLine(credential: ($renewed[(string)($row['enrolment']['id'] ?? '')] ?? null)),
+			'certificateValidUntil' => $this->lines->date(value: ($renewed[(string)($row['enrolment']['id'] ?? '')]['expiresAt'] ?? null))?->format('Y-m-d'),
 		];
-		if ($needsBirthDate === false || trim((string)($profile['birthDate'] ?? '')) !== '') {
+		if ($terms['needsBirthDate'] === false || trim((string)($profile['birthDate'] ?? '')) !== '') {
 			return $fields;
 		}
 
@@ -327,14 +435,13 @@ class EmployerBookingFacts {
 	/**
 	 * Where the booking stands for the employer.
 	 *
-	 * @param string $lifecycle  The booking's state.
-	 * @param int    $openPlaces Places without a name.
-	 * @param int    $missing    Participants without a needed detail.
+	 * @param string             $lifecycle The booking's state.
+	 * @param array<string, int> $counts    `open` places without a name and participants `missing` a needed detail.
 	 *
 	 * @return string
 	 */
-	private function employerStatus(string $lifecycle, int $openPlaces, int $missing): string {
-		if (in_array($lifecycle, self::OPEN, true) === true && ($openPlaces > 0 || $missing > 0)) {
+	private function employerStatus(string $lifecycle, array $counts): string {
+		if (in_array($lifecycle, self::OPEN, true) === true && ($counts['open'] > 0 || $counts['missing'] > 0)) {
 			return 'waiting-for-you';
 		}
 
@@ -344,14 +451,15 @@ class EmployerBookingFacts {
 	/**
 	 * The line under the status.
 	 *
-	 * @param string             $status      The employer status.
-	 * @param string             $lifecycle   The booking's state.
-	 * @param array<string, int> $counts      `open` places, `missing` details, booked `places`.
-	 * @param string             $requestedAt When the booking was made.
+	 * @param string               $status  The employer status.
+	 * @param array<string, mixed> $booking The booking's state (`lifecycle`), its `counts` (`open` places,
+	 *                                      `missing` details, booked `places`) and when it was made (`requestedAt`).
 	 *
 	 * @return string|null
 	 */
-	private function statusNote(string $status, string $lifecycle, array $counts, string $requestedAt): ?string {
+	private function statusNote(string $status, array $booking): ?string {
+		$lifecycle = $booking['lifecycle'];
+		$counts = $booking['counts'];
 		if ($status === 'waiting-for-you') {
 			return $this->waitingNote(open: $counts['open'], missing: $counts['missing']);
 		}
@@ -364,7 +472,7 @@ class EmployerBookingFacts {
 			return 'De plekken staan vast';
 		}
 
-		$requested = $this->lines->date(value: $requestedAt);
+		$requested = $this->lines->date(value: $booking['requestedAt']);
 		if ($lifecycle === 'received' && $requested !== null) {
 			return 'Bevestiging uiterlijk ' . $this->lines->dayAndDate(day: $this->lines->workingDaysAfter(day: $requested, count: 2));
 		}

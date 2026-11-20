@@ -83,4 +83,42 @@ class TodayStateServiceTest extends TestCase {
 		$this->assertSame([], $service->forCohort(cohort: ['id' => 'g', 'learnerIds' => []], date: '2026-10-05', zone: $zone));
 		$this->assertSame([], $service->forCohort(cohort: ['learnerIds' => ['a']], date: '2026-10-05', zone: $zone));
 	}//end testAGroupWithoutPupilsOrIdReadsNothing()
+
+	/**
+	 * Until when each pupil is reported away: only reports that name a time.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/learner-list-and-page-follow-the-boards/tasks.md#T1
+	 */
+	public function testUntilForCohortReadsTheReportsThatNameATime(): void {
+		$reader = $this->createMock(RollCallReader::class);
+		$reader->expects($this->never())->method('sessionsOn');
+		$reader->expects($this->once())->method('reportsOn')->with(['lina', 'hamza', 'sem'], '2026-10-05')->willReturn(
+			[
+				'lina' => ['reasonKind' => 'medical-appointment', 'untilTime' => '11:30'],
+				'hamza' => ['reasonKind' => 'illness'],
+				'sem' => ['reasonKind' => 'other', 'untilTime' => 'noon'],
+			]
+		);
+
+		$until = (new TodayStateService(reader: $reader))->untilForCohort(
+			cohort: ['id' => 'groep-7', 'learnerIds' => ['lina', 'hamza', 'sem', '', 7]],
+			date: '2026-10-05'
+		);
+
+		$this->assertSame(['lina' => '11:30'], $until);
+	}//end testUntilForCohortReadsTheReportsThatNameATime()
+
+	/**
+	 * A group without pupils reads no reports.
+	 *
+	 * @return void
+	 */
+	public function testUntilForAGroupWithoutPupilsReadsNothing(): void {
+		$reader = $this->createMock(RollCallReader::class);
+		$reader->expects($this->never())->method('reportsOn');
+
+		$this->assertSame([], (new TodayStateService(reader: $reader))->untilForCohort(cohort: ['id' => 'g', 'learnerIds' => []], date: '2026-10-05'));
+	}//end testUntilForAGroupWithoutPupilsReadsNothing()
 }//end class

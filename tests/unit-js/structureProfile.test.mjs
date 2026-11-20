@@ -370,6 +370,7 @@ const KNOWN_UNLINKED = {
 		'CheckInMenu',
 		'ConferenceScheduleBoardMenu',
 		'CourseDaysMenu',
+		'CourseParticipantsMenu',
 		'DossierNotesMenu',
 		'ExamAccommodationsMenu',
 		'ExamRegistrationsMenu',
@@ -410,6 +411,7 @@ const KNOWN_UNLINKED = {
 		'AdmissionsReviewBoardMenu',
 		'ConferenceScheduleBoardMenu',
 		'CourseDaysMenu',
+		'CourseParticipantsMenu',
 		'DossierReviewsMenu',
 		'ExamAccommodationsMenu',
 		'ExamRegistrationsMenu',
@@ -444,6 +446,7 @@ const KNOWN_UNLINKED = {
 		'AdmissionsReviewBoardMenu',
 		'CatalogueMenu',
 		'CourseDaysMenu',
+		'CourseParticipantsMenu',
 		'ExamAccommodationsMenu',
 		'ExamRegistrationsMenu',
 		'GroupPeople',
@@ -626,13 +629,16 @@ test('the full profile is exactly the plain manifest build', () => {
 	// under Learning and its twin under Compliance; 112 with Course days
 	// (training-provider-course-days); 113 since permission-slips added the
 	// Permission slips entry at the top level, beside the School calendar;
-	// 114 with Exam registrations (exam-registration-and-certificate-issue).
-	assert.equal(entries.length, 114)
+	// 114 with Leave to decide under People (leave-requests-decided-by-the-school);
+	// 115 with Participants (training-provider-course-days T7).
+	// One more with Exam registrations (exam-registration-and-certificate-issue).
+	assert.equal(entries.length, 116)
 	assert.equal(plain.menu.length, 27)
-	// 105 in main: Course days, Permission slips and Exam registrations each added one.
+	// 106 in main: Course days, Permission slips, Leave to decide and
+	// Participants each added one.
 	assert.deepEqual(
 		[count('main'), count('footer'), count('settings')],
-		[105, 2, 7],
+		[107, 2, 7],
 	)
 	// 347 since the four unreached pages (BulkEnrol, CohortTimetable,
 	// MarkAttendanceView, SubmitExcuseModal) became actions; 348 with
@@ -640,8 +646,13 @@ test('the full profile is exactly the plain manifest build', () => {
 	// MyGrades became the learner lens of GradeEntries; 349 with
 	// AttendanceNearingLimit (attendance-warns-before-the-threshold); 350 with
 	// CourseDays (training-provider-course-days); 352 with the permission-slips
-	// list and detail; 353 with ExamRegistrations (exam-registration-and-certificate-issue).
-	assert.equal(plain.pages.length, 353)
+	// list and detail; 353 with GroupPupils (learner-list-and-page-follow-the-boards, LqLijst);
+	// 355 with LeaveRequests and LeaveRequestDetail (leave-requests-decided-by-the-school);
+	// 356 with company visits (bpv-coach-today-and-placement-board; its placement
+	// board is a view mode of BpvPlacements, not a page); 358 with
+	// CourseParticipants and CourseParticipantDetail (training-provider-course-days T7).
+	// One more with ExamRegistrations (exam-registration-and-certificate-issue).
+	assert.equal(plain.pages.length, 359)
 })
 
 test('menu-layout.json holds no profile key, so the full profile cannot gain an overlay', () => {

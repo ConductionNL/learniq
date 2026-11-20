@@ -814,7 +814,7 @@ export default {
 		 * the course-day.plan action; anyone else keeps no planner card.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#scenario-four-of-six
+		 * @spec openspec/specs/course-management/spec.md#scenario-four-of-six
 		 */
 		async loadPlannerToday() {
 			try {
@@ -832,7 +832,7 @@ export default {
 		 *
 		 * @param {{widgets: Array<object>, layout: Array<object>}} config The declaration.
 		 * @return {{widgets: Array<object>, layout: Array<object>}} The declaration to render.
-		 * @spec openspec/changes/training-provider-course-days/specs/course-management/spec.md#scenario-four-of-six
+		 * @spec openspec/specs/course-management/spec.md#scenario-four-of-six
 		 */
 		withPlannerToday(config) {
 			if (this.plannerToday === null) {

@@ -117,7 +117,13 @@ class ProgrammeProgress implements ProgrammeProgressInterface {
 		$summaries = [];
 		foreach ($byProgramme as $programmeId => $enrolments) {
 			$programme = ($this->read(schema: 'programme', id: (string)$programmeId) ?? []);
-			$summaries[] = $this->summarise(programmeId: (string)$programmeId, name: (string)($programme['name'] ?? ''), enrolments: $enrolments);
+			$summaries[] = $this->summarise(
+				programmeId: (string)$programmeId,
+				args: [
+					'name' => (string)($programme['name'] ?? ''),
+					'enrolments' => $enrolments,
+				]
+			);
 		}
 
 		return $summaries;
@@ -127,12 +133,14 @@ class ProgrammeProgress implements ProgrammeProgressInterface {
 	 * One programme's progress from the learner's part enrolments.
 	 *
 	 * @param string                     $programmeId The programme uuid.
-	 * @param string                     $name        The programme name.
-	 * @param list<array<string, mixed>> $enrolments  The learner's counted part enrolments.
+	 * @param array{name: string, enrolments: list<array<string, mixed>>} $args The name, and the learner's counted part enrolments.
 	 *
 	 * @return ProgrammeProgressRow
 	 */
-	private function summarise(string $programmeId, string $name, array $enrolments): array {
+	private function summarise(string $programmeId, array $args): array {
+		$name = $args['name'];
+		$enrolments = $args['enrolments'];
+
 		$anyMandatory = in_array(true, array_map(static fn (array $e): bool => ($e['mandatory'] ?? false) === true, $enrolments), true);
 
 		$mandatory = [];

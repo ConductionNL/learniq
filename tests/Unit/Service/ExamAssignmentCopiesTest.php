@@ -33,6 +33,7 @@ use PHPUnit\Framework\TestCase;
  * Ruud's assignment for Daan at the 9.00 sitting of "Storingen zoeken".
  *
  * @covers \OCA\Learniq\Service\ReadableCopies
+ * @uses   \OCA\Learniq\Support\ObjectRow
  */
 class ExamAssignmentCopiesTest extends TestCase {
 

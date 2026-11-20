@@ -44,7 +44,7 @@ class HourPlanRegisterTest extends TestCase {
 		parent::setUp();
 		$config = json_decode((string)file_get_contents(__DIR__ . '/../../../lib/Settings/learniq_register.json'), true);
 		$this->schemas = $config['components']['schemas'];
-		self::assertContains('hour-plan', $config['components']['registers']['learniq']['schemas']);
+		self::assertContains(needle: 'hour-plan', haystack: $config['components']['registers']['learniq']['schemas']);
 	}//end setUp()
 
 	/**
@@ -56,13 +56,16 @@ class HourPlanRegisterTest extends TestCase {
 		$plan = $this->schemas['HourPlan'];
 		$line = $plan['properties']['lines']['items'];
 
-		self::assertSame('0.1.0', $plan['version']);
-		self::assertSame(['programmeId', 'intakeYear', 'durationYears', 'tenant_id'], $plan['required']);
-		self::assertSame('Programme', $plan['properties']['programmeId']['$ref']);
-		self::assertSame(['courseId', 'programmeYear', 'contactHours'], $line['required']);
-		self::assertSame('Course', $line['properties']['courseId']['$ref']);
-		self::assertSame(['lesson', 'practical', 'work-placement', 'self-study', 'exam'], $line['properties']['activityKind']['enum']);
-		self::assertArrayHasKey('contactHours', $plan['properties']['yearNorms']['items']['properties']);
+		self::assertSame(expected: '0.1.0', actual: $plan['version']);
+		self::assertSame(expected: ['programmeId', 'intakeYear', 'durationYears', 'tenant_id'], actual: $plan['required']);
+		self::assertSame(expected: 'Programme', actual: $plan['properties']['programmeId']['$ref']);
+		self::assertSame(expected: ['courseId', 'programmeYear', 'contactHours'], actual: $line['required']);
+		self::assertSame(expected: 'Course', actual: $line['properties']['courseId']['$ref']);
+		self::assertSame(
+			expected: ['lesson', 'practical', 'work-placement', 'self-study', 'exam'],
+			actual: $line['properties']['activityKind']['enum']
+		);
+		self::assertArrayHasKey(key: 'contactHours', array: $plan['properties']['yearNorms']['items']['properties']);
 	}//end testShape()
 
 	/**
@@ -74,10 +77,10 @@ class HourPlanRegisterTest extends TestCase {
 		$plan = $this->schemas['HourPlan'];
 		$transitions = $plan['x-openregister-lifecycle']['transitions'];
 
-		self::assertSame('draft', $plan['x-openregister-lifecycle']['initial']);
-		self::assertSame('OCA\\Learniq\\Lifecycle\\HourPlanActivationGuard', $transitions['activate']['requires']);
-		self::assertSame(['draft', 'active'], [$transitions['activate']['from'], $transitions['activate']['to']]);
-		self::assertArrayNotHasKey('appendOnly', $plan['x-openregister'] ?? []);
+		self::assertSame(expected: 'draft', actual: $plan['x-openregister-lifecycle']['initial']);
+		self::assertSame(expected: 'OCA\\Learniq\\Lifecycle\\HourPlanActivationGuard', actual: $transitions['activate']['requires']);
+		self::assertSame(expected: ['draft', 'active'], actual: [$transitions['activate']['from'], $transitions['activate']['to']]);
+		self::assertArrayNotHasKey(key: 'appendOnly', array: $plan['x-openregister'] ?? []);
 	}//end testLifecycle()
 
 	/**
@@ -88,9 +91,9 @@ class HourPlanRegisterTest extends TestCase {
 	public function testAccess(): void {
 		$auth = $this->schemas['HourPlan']['authorization'];
 
-		self::assertSame(['authenticated'], $auth['read']);
-		self::assertSame(['instructors', 'team-leads', 'compliance-officers'], $auth['create']);
-		self::assertSame($auth['create'], $auth['update']);
+		self::assertSame(expected: ['authenticated'], actual: $auth['read']);
+		self::assertSame(expected: ['instructors', 'team-leads', 'compliance-officers'], actual: $auth['create']);
+		self::assertSame(expected: $auth['create'], actual: $auth['update']);
 	}//end testAccess()
 
 	/**
@@ -103,11 +106,13 @@ class HourPlanRegisterTest extends TestCase {
 	public function testCohortProgrammeYear(): void {
 		$cohort = $this->schemas['Cohort'];
 
+		// 0.6.0: the class roster sync fields (enrolment-sync-classes-from-student-administration);
+		// 0.5.1: the optional substituteUntil (employer-substitutes-a-colleague);
 		// 0.5.0: the manual status move and the course day log, 0.4.0: minimum, decision and
 		// course day status (training-provider-course-days); 0.3.0 the optional capacity
 		// (board-data-the-schemas-lacked); programmeYear came with 0.2.0.
-		self::assertTrue(version_compare($cohort['version'], '0.5.0', '>='));
-		self::assertSame('integer', $cohort['properties']['programmeYear']['type']);
-		self::assertTrue($cohort['properties']['programmeYear']['nullable']);
+		self::assertTrue(condition: version_compare($cohort['version'], '0.6.0', '>='));
+		self::assertSame(expected: 'integer', actual: $cohort['properties']['programmeYear']['type']);
+		self::assertTrue(condition: $cohort['properties']['programmeYear']['nullable']);
 	}//end testCohortProgrammeYear()
 }//end class
