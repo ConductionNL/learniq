@@ -77,6 +77,17 @@
 					:footerRoute="rollCallPath"
 					:limit="6" />
 			</template>
+			<template #widget-teacher-course-day-parts>
+				<CourseDayPartsWidget
+					:filter="sessionsToMark"
+					:pending="scopePending" />
+			</template>
+			<template #widget-planner-today>
+				<PlannerTodayWidget :today="plannerToday" />
+			</template>
+			<template #widget-administration-today>
+				<AdministrationTodayWidget :today="administrationToday" />
+			</template>
 			<template #widget-teacher-cohorts>
 				<ManageListWidget
 					schema="Cohort"
@@ -102,17 +113,22 @@ import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
 import { loadState } from '@nextcloud/initial-state'
 import { generateUrl } from '@nextcloud/router'
+import AdministrationTodayWidget from './widgets/AdministrationTodayWidget.vue'
+import CourseDayPartsWidget from './widgets/CourseDayPartsWidget.vue'
 import ManageCohortsWidget from './widgets/ManageCohortsWidget.vue'
 import ManageCoursesWidget from './widgets/ManageCoursesWidget.vue'
 import ManageListWidget from './widgets/ManageListWidget.vue'
 import ManageProgrammesWidget from './widgets/ManageProgrammesWidget.vue'
 import MyMandatoryTrainingWidget from './widgets/MyMandatoryTrainingWidget.vue'
+import PlannerTodayWidget from './widgets/PlannerTodayWidget.vue'
+import { hasAnything } from '../utils/administrationToday.js'
 import {
 	countTile,
 	customTile,
 	freshLayout,
 	statTile,
 } from '../utils/dashboardTiles.js'
+import { withTileBelow } from '../utils/plannerToday.js'
 import {
 	ROLL_CALL_PATH,
 	rollCallRoute,
@@ -268,6 +284,15 @@ const TEACHER_LAYOUT = [
 		gridY: 6,
 		gridWidth: 6,
 		gridHeight: 4,
+	},	// training-provider-course-days T5: the part of a course day that waits
+	// for its attendance.
+	{
+		id: 7,
+		widgetId: 'teacher-course-day-parts',
+		gridX: 0,
+		gridY: 10,
+		gridWidth: 12,
+		gridHeight: 3,
 	},
 ]
 
@@ -299,12 +324,15 @@ export default {
 	name: 'LearniqDashboards',
 
 	components: {
+		AdministrationTodayWidget,
 		CnDashboardPage,
+		CourseDayPartsWidget,
 		ManageCoursesWidget,
 		ManageCohortsWidget,
 		ManageProgrammesWidget,
 		ManageListWidget,
 		MyMandatoryTrainingWidget,
+		PlannerTodayWidget,
 	},
 
 	props: {
@@ -388,6 +416,12 @@ export default {
 			scopePending: false,
 			// The name of the instance's one school; '' when not known.
 			schoolName: '',
+			// The planner's Today (GET /api/course-days/today); null for
+			// anyone the endpoint refuses, who then sees no planner card.
+			plannerToday: null,
+			// The administration's Today (GET /api/exam-registrations/today);
+			// null for anyone the endpoint refuses or with nothing on it.
+			administrationToday: null,
 		}
 	},
 
@@ -481,10 +515,10 @@ export default {
 		 */
 		viewConfig() {
 			if (this.activeRole === 'admin') {
-				return this.adminConfig
+				return this.withAdministrationToday(this.withPlannerToday(this.adminConfig))
 			}
 			if (this.activeRole === 'teacher') {
-				return this.teacherConfig
+				return this.withAdministrationToday(this.withPlannerToday(this.teacherConfig))
 			}
 			return this.studentConfig
 		},
@@ -615,6 +649,8 @@ export default {
 	created() {
 		this.loadTeacherScope()
 		this.loadSchoolName()
+		this.loadPlannerToday()
+		this.loadAdministrationToday()
 	},
 
 	methods: {
@@ -635,7 +671,7 @@ export default {
 		},
 
 		/**
-		 * The teacher dashboard's four lists.
+		 * The teacher dashboard's four lists and the course day parts card.
 		 *
 		 * @return {Array<object>} The list tiles.
 		 * @spec openspec/specs/dashboard/spec.md#requirement-per-role-group-gated-dashboard-menu-items
@@ -646,6 +682,7 @@ export default {
 				customTile('teacher-assignments', this.t('learniq', 'Assignments to grade')),
 				customTile('teacher-sessions', this.t('learniq', 'Sessions to mark')),
 				customTile('teacher-cohorts', this.t('learniq', 'My cohorts')),
+				customTile('teacher-course-day-parts', this.t('learniq', 'Attendance per part of the day')),
 			]
 		},
 
@@ -770,6 +807,72 @@ export default {
 				? await this.listObjects('Programme', { _ids: programmeIds })
 				: []
 			return teacherScope({ userId, cohorts, programmes })
+		},
+
+		/**
+		 * Read the planner's Today once. The endpoint answers only a holder of
+		 * the course-day.plan action; anyone else keeps no planner card.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/course-management/spec.md#scenario-four-of-six
+		 */
+		async loadPlannerToday() {
+			try {
+				const response = await axios.get(generateUrl('/apps/learniq/api/course-days/today'))
+				this.plannerToday = response.data && typeof response.data === 'object' ? response.data : null
+			} catch {
+				// Refused (no course-day.plan) or unreadable: no planner card.
+				this.plannerToday = null
+			}
+		},
+
+		/**
+		 * A dashboard declaration with the planner's Today card under the
+		 * other tiles, for a reader the course days endpoint answered.
+		 *
+		 * @param {{widgets: Array<object>, layout: Array<object>}} config The declaration.
+		 * @return {{widgets: Array<object>, layout: Array<object>}} The declaration to render.
+		 * @spec openspec/specs/course-management/spec.md#scenario-four-of-six
+		 */
+		withPlannerToday(config) {
+			if (this.plannerToday === null) {
+				return config
+			}
+			return withTileBelow(config, customTile('planner-today', this.t('learniq', 'Course days today')), 6)
+		},
+
+		/**
+		 * Read the administration's Today once. A reader without the
+		 * exam-registration.manage action is refused and sees no card; so does
+		 * one with no list, day, certificate or exam on it.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-youssefs-birth-date
+		 */
+		async loadAdministrationToday() {
+			try {
+				const response = await axios.get(generateUrl('/apps/learniq/api/exam-registrations/today'))
+				const today = response.data && typeof response.data === 'object' ? response.data : null
+				this.administrationToday = hasAnything(today) ? today : null
+			} catch {
+				// Refused (no exam-registration.manage) or unreadable: no card.
+				this.administrationToday = null
+			}
+		},
+
+		/**
+		 * A dashboard declaration with the administration's Today card under
+		 * the other tiles, for a reader the endpoint answered.
+		 *
+		 * @param {{widgets: Array<object>, layout: Array<object>}} config The declaration.
+		 * @return {{widgets: Array<object>, layout: Array<object>}} The declaration to render.
+		 * @spec openspec/changes/exam-registration-and-certificate-issue/specs/certification/spec.md#scenario-youssefs-birth-date
+		 */
+		withAdministrationToday(config) {
+			if (this.administrationToday === null) {
+				return config
+			}
+			return withTileBelow(config, customTile('administration-today', this.t('learniq', 'Exams and certificates today')), 7)
 		},
 
 		/**

@@ -34,9 +34,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\LearningRecordImportIntakeServiceInterface;
 use OCA\Learniq\Service\ActionAuthService;
-use OCA\Learniq\Service\LearningRecordImportIntakeService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -62,7 +62,7 @@ class LearningRecordImportController extends Controller {
 	 * @param IRequest $request HTTP request.
 	 * @param IUserSession $userSession Nextcloud user session.
 	 * @param ActionAuthService $actionAuth ADR-023 action authorization service.
-	 * @param LearningRecordImportIntakeService $intakeService Storage + object creation for an accepted upload.
+	 * @param LearningRecordImportIntakeServiceInterface $intakeService Storage + object creation for an accepted upload.
 	 *
 	 * @return void
 	 */
@@ -70,9 +70,9 @@ class LearningRecordImportController extends Controller {
 		IRequest $request,
 		private readonly IUserSession $userSession,
 		private readonly ActionAuthService $actionAuth,
-		private readonly LearningRecordImportIntakeService $intakeService,
+		private readonly LearningRecordImportIntakeServiceInterface $intakeService,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**

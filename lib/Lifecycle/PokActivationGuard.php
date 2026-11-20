@@ -50,7 +50,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
-use OCA\Learniq\Service\PokParentSignatureRule;
+use OCA\Learniq\Kernel\Contracts\PokParentSignatureRuleInterface;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
@@ -112,14 +112,14 @@ class PokActivationGuard implements LifecycleGuardInterface {
 	 *
 	 * @param ObjectService $objectService OR object query service.
 	 * @param LoggerInterface $logger PSR logger.
-	 * @param PokParentSignatureRule $parentRule Whether a parent signs, and who may.
+	 * @param PokParentSignatureRuleInterface $parentRule Whether a parent signs, and who may.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
-		private readonly PokParentSignatureRule $parentRule,
+		private readonly PokParentSignatureRuleInterface $parentRule,
 	) {
 	}//end __construct()
 
@@ -272,7 +272,7 @@ class PokActivationGuard implements LifecycleGuardInterface {
 
 		if ($gaps['parentMissing'] === true) {
 			$parentSentence = self::PARENT_FOR_MINOR;
-			if ($gaps['parentReason'] === PokParentSignatureRule::REASON_UNKNOWN_AGE) {
+			if ($gaps['parentReason'] === PokParentSignatureRuleInterface::REASON_UNKNOWN_AGE) {
 				$parentSentence = self::PARENT_FOR_UNKNOWN_AGE;
 			}
 

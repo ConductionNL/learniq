@@ -39,8 +39,10 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\AssessmentResultAudienceInterface;
 use OCA\Learniq\Support\EntityRow;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -52,7 +54,7 @@ use Throwable;
  *
  * @spec openspec/specs/assessment/spec.md#requirement-assessment-results-are-read-by-the-learner-their-manager-and-the-courses-teachers
  */
-class AssessmentResultAudience {
+class AssessmentResultAudience implements AssessmentResultAudienceInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const ASSESSMENT_SCHEMA = 'exam';
@@ -115,8 +117,7 @@ class AssessmentResultAudience {
 
 		$assessment = $this->objectService->find(
 			id: $assessmentId,
-			register: self::LEARNIQ_REGISTER,
-			schema: self::ASSESSMENT_SCHEMA,
+			options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::ASSESSMENT_SCHEMA),
 			_rbac: false
 		);
 		if ($assessment === null) {
@@ -130,8 +131,7 @@ class AssessmentResultAudience {
 		if ($cohortId !== '') {
 			$cohort = $this->objectService->find(
 				id: $cohortId,
-				register: self::LEARNIQ_REGISTER,
-				schema: self::COHORT_SCHEMA,
+				options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::COHORT_SCHEMA),
 				_rbac: false
 			);
 			$cohorts = array_filter([$cohort]);

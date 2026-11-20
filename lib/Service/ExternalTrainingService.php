@@ -36,8 +36,12 @@ namespace OCA\Learniq\Service;
 use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
+use OCA\Learniq\Kernel\Contracts\ExternalTrainingServiceInterface;
 use OCA\Learniq\Support\FindOrNull;
 use OCA\Learniq\Support\ObjectRow;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
@@ -46,7 +50,7 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
  */
-class ExternalTrainingService {
+class ExternalTrainingService implements ExternalTrainingServiceInterface {
 	use FindOrNull;
 
 	/**
@@ -196,6 +200,20 @@ class ExternalTrainingService {
 			}
 		}
 
+		return $this->recordBatch(learnerIds: $learnerIds, shared: $shared);
+	}//end bulkRecord()
+
+	/**
+	 * Record the training for each learner under one new batch id.
+	 *
+	 * @param array<int,string>   $learnerIds The learners, without blanks or doubles.
+	 * @param array<string,mixed> $shared     The training fields every record shares.
+	 *
+	 * @return string The generated batchId (empty when nothing was created).
+	 *
+	 * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
+	 */
+	private function recordBatch(array $learnerIds, array $shared): string {
 		$batchId = $this->generateBatchId();
 
 		foreach ($learnerIds as $learnerId) {
@@ -225,14 +243,13 @@ class ExternalTrainingService {
 			// Do NOT set lifecycle — OR defaults it to 'submitted' and fires the
 			// 'created' notification rule.
 			$this->objectService->saveObject(
-				register: self::LEARNIQ_REGISTER,
-				schema: self::SCHEMA,
-				object: $record
+				object: $record,
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::SCHEMA))
 			);
 		}//end foreach
 
 		return $batchId;
-	}//end bulkRecord()
+	}//end recordBatch()
 
 	/**
 	 * Build the manual Credential payload to issue on verification.
@@ -284,7 +301,12 @@ class ExternalTrainingService {
 		}
 
 		$find = fn () => $this->objectService
-			->find(id: $profileId, register: self::LEARNIQ_REGISTER, schema: 'learner-profile', _rbac: false, _multitenancy: false);
+			->find(
+				id: $profileId,
+				options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: 'learner-profile'),
+				_rbac: false,
+				_multitenancy: false
+			);
 		$profile = $this->findOrNull(find: $find);
 
 		$ncUserId = ($profile?->jsonSerialize()['ncUserId'] ?? null);

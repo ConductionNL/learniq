@@ -32,9 +32,11 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Repair;
 
+use OCA\Learniq\Kernel\Contracts\ReadableCopiesInterface;
 use OCA\Learniq\Repair\Support\RepairRowWalk;
 use OCA\Learniq\Repair\Support\RepairTally;
-use OCA\Learniq\Service\ReadableCopies;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Migration\IOutput;
 use OCP\Migration\IRepairStep;
@@ -63,14 +65,14 @@ class BackfillReadableCopies implements IRepairStep {
 	 * Constructor.
 	 *
 	 * @param ObjectService   $objectService OpenRegister object access.
-	 * @param ReadableCopies  $copies        Derives the readable copies.
+	 * @param ReadableCopiesInterface  $copies        Derives the readable copies.
 	 * @param LoggerInterface $logger        PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly ReadableCopies $copies,
+		private readonly ReadableCopiesInterface $copies,
 		private readonly LoggerInterface $logger,
 	) {
 		$this->rows = new RepairRowWalk(objectService: $objectService, logger: $logger, label: 'BackfillReadableCopies');
@@ -150,9 +152,10 @@ class BackfillReadableCopies implements IRepairStep {
 
 			$this->objectService->saveObject(
 				object: $object,
-				register: self::REGISTER,
-				schema: $schema,
-				uuid: $uuid,
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::REGISTER, schema: $schema),
+					uuid: $uuid
+				),
 				_rbac: false,
 				_multitenancy: false
 			);

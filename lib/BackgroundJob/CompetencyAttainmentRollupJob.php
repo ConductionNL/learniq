@@ -29,7 +29,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\BackgroundJob;
 
-use OCA\Learniq\Service\CompetencyAttainmentRollup;
+use OCA\Learniq\Kernel\Contracts\CompetencyAttainmentRollupInterface;
 use OCA\OpenRegister\Service\Deferral\DeferredListenerContext;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -46,12 +46,12 @@ class CompetencyAttainmentRollupJob extends ForwardedJob {
 	 *
 	 * @param ActorForwarding $forwarding Clock, session, user manager and tenant context.
 	 * @param LoggerInterface $logger Logger.
-	 * @param CompetencyAttainmentRollup $rollup The roll-up work.
+	 * @param CompetencyAttainmentRollupInterface $rollup The roll-up work.
 	 */
 	public function __construct(
 		ActorForwarding $forwarding,
 		LoggerInterface $logger,
-		private readonly CompetencyAttainmentRollup $rollup,
+		private readonly CompetencyAttainmentRollupInterface $rollup,
 	) {
 		parent::__construct(forwarding: $forwarding, logger: $logger);
 	}//end __construct()

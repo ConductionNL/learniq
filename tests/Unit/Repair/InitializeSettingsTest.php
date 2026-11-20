@@ -211,4 +211,29 @@ class InitializeSettingsTest extends TestCase {
 
 		self::assertSame(['warning', 'Learniq configuration import issue: no configuration service'], end($this->written));
 	}//end testAnUnresolvableConfigurationServiceIsReportedAsAnIssue()
+
+	/**
+	 * An import that throws is reported to the output and logged as an error, without aborting the upgrade.
+	 *
+	 * @return void
+	 */
+	public function testAThrowingImportIsReportedAndLogged(): void {
+		$settings = $this->createMock(\OCA\Learniq\Service\SettingsService::class);
+		$settings->method('isOpenRegisterAvailable')->willReturn(true);
+		$settings->method('loadConfiguration')->willThrowException(new \RuntimeException('register file unreadable'));
+		$logger = $this->createMock(LoggerInterface::class);
+		$logger->expects(self::once())
+			->method('error')
+			->with('Learniq initialization failed', ['exception' => 'register file unreadable']);
+
+		(new InitializeSettings(settingsService: $settings, logger: $logger))->run($this->repairOutput());
+
+		self::assertSame(
+			[
+				['info', 'Initializing Learniq configuration...'],
+				['warning', 'Could not auto-configure Learniq: register file unreadable'],
+			],
+			$this->written
+		);
+	}//end testAThrowingImportIsReportedAndLogged()
 }//end class

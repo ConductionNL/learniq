@@ -30,10 +30,13 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Service\CredentialLearner;
-use OCA\Learniq\Service\EuropassIssuer;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\CredentialLearnerInterface;
+use OCA\Learniq\Kernel\Contracts\EuropassIssuerInterface;
 use OCA\Learniq\Support\FindOrNull;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -69,8 +72,8 @@ class CredentialEuropassController extends Controller {
 	 * @param IUserSession   $userSession  The signed-in user.
 	 * @param IGroupManager  $groupManager Group membership and admin checks.
 	 * @param ObjectService  $objects      OpenRegister object access.
-	 * @param EuropassIssuer $europass     Builds and signs the Europass form.
-	 * @param CredentialLearner $learners  Whose credential it is, as a Nextcloud user id.
+	 * @param EuropassIssuerInterface $europass     Builds and signs the Europass form.
+	 * @param CredentialLearnerInterface $learners  Whose credential it is, as a Nextcloud user id.
 	 *
 	 * @return void
 	 */
@@ -79,10 +82,10 @@ class CredentialEuropassController extends Controller {
 		private readonly IUserSession $userSession,
 		private readonly IGroupManager $groupManager,
 		private readonly ObjectService $objects,
-		private readonly EuropassIssuer $europass,
-		private readonly CredentialLearner $learners,
+		private readonly EuropassIssuerInterface $europass,
+		private readonly CredentialLearnerInterface $learners,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -203,7 +206,11 @@ class CredentialEuropassController extends Controller {
 			$row = $credential;
 			unset($row['@self']);
 			$row['edciPayload'] = $payload;
-			$this->objects->saveObject(object: $row, register: self::REGISTER, schema: self::SCHEMA, uuid: $id, _rbac: false);
+			$this->objects->saveObject(
+				object: $row,
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: self::SCHEMA), uuid: $id),
+				_rbac: false
+			);
 		} catch (Throwable) {
 			return new JSONResponse(data: ['error' => 'save_failed'], statusCode: Http::STATUS_INTERNAL_SERVER_ERROR);
 		}
@@ -247,7 +254,11 @@ class CredentialEuropassController extends Controller {
 			return null;
 		}
 
-		$find = fn () => $this->objects->find(id: $id, register: self::REGISTER, schema: $schema, _rbac: false, _render: false);
+		$find = fn () => $this->objects->find(
+			id: $id,
+			options: new ObjectFindOptions(register: self::REGISTER, schema: $schema, render: false),
+			_rbac: false
+		);
 		return $this->findRowWithIdOrNull(find: $find, id: $id);
 	}//end read()
 }//end class

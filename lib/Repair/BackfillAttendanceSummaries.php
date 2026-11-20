@@ -32,7 +32,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Repair;
 
-use OCA\Learniq\Service\Attendance\AttendanceSummaryService;
+use OCA\Learniq\Kernel\Contracts\AttendanceSummaryServiceInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Migration\IOutput;
 use OCP\Migration\IRepairStep;
@@ -59,14 +59,14 @@ class BackfillAttendanceSummaries implements IRepairStep {
 	 * Constructor.
 	 *
 	 * @param ObjectService            $objectService OpenRegister object access.
-	 * @param AttendanceSummaryService $summaries     The recount.
+	 * @param AttendanceSummaryServiceInterface $summaries     The recount.
 	 * @param LoggerInterface          $logger        PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly AttendanceSummaryService $summaries,
+		private readonly AttendanceSummaryServiceInterface $summaries,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()

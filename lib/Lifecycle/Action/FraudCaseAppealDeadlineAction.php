@@ -27,9 +27,9 @@ namespace OCA\Learniq\Lifecycle\Action;
 use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
-use OCA\Learniq\Service\Settings\AppealTerm;
+use OCA\Learniq\Kernel\Contracts\AppealTermInterface;
 use OCA\OpenRegister\Lifecycle\LifecycleActionContext;
-use OCA\OpenRegister\Lifecycle\LifecycleActionInterface;
+use OCA\OpenRegister\Lifecycle\ContextLifecycleActionInterface;
 
 /**
  * Writes `decidedAt` (server UTC time) and `appealDeadline` (decidedAt plus the
@@ -45,15 +45,15 @@ use OCA\OpenRegister\Lifecycle\LifecycleActionInterface;
  *
  * @spec openspec/specs/exam-board/spec.md#requirement-a-decided-fraudcase-stamps-the-appeal-deadline-from-the-schools-appeal-term
  */
-class FraudCaseAppealDeadlineAction implements LifecycleActionInterface {
+class FraudCaseAppealDeadlineAction implements ContextLifecycleActionInterface {
 
 	/**
 	 * Constructor.
 	 *
-	 * @param AppealTerm|null $appealTerm The school's appeal term; without it, 42 days.
+	 * @param AppealTermInterface|null $appealTerm The school's appeal term; without it, 42 days.
 	 */
 	public function __construct(
-		private readonly ?AppealTerm $appealTerm = null,
+		private readonly ?AppealTermInterface $appealTerm = null,
 	) {
 	}//end __construct()
 
@@ -73,7 +73,7 @@ class FraudCaseAppealDeadlineAction implements LifecycleActionInterface {
 		$now = new DateTimeImmutable('now', new DateTimeZone('UTC'));
 
 		$objectData['decidedAt'] = $now->format(DateTimeInterface::ATOM);
-		$days = ($this->appealTerm?->days() ?? AppealTerm::DEFAULT_DAYS);
+		$days = ($this->appealTerm?->days() ?? AppealTermInterface::DEFAULT_DAYS);
 		$objectData['appealDeadline'] = $now->modify('+' . $days . ' days')->format(DateTimeInterface::ATOM);
 
 		return $objectData;

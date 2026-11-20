@@ -15,7 +15,6 @@
 		"AccessibilityFeedbacksMenu",
 		"AccessibilityLimitationsMenu",
 		"AdmissionsReviewBoardMenu",
-		"AiProcessingDisclosureMenu",
 		"ApplicationsMenu",
 		"Assessments",
 		"Assignments",
@@ -25,6 +24,7 @@
 		"BpvHourWeeksMenu",
 		"BpvPlacementsMenu",
 		"BpvVisitReportsMenu",
+		"BpvVisitsMenu",
 		"BsaDecisionsMenu",
 		"BsaRiskDashboardMenu",
 		"BsaTrajectoriesMenu",
@@ -36,6 +36,9 @@
 		"Compliance",
 		"ConferenceReportsMenu",
 		"ConferenceScheduleBoardMenu",
+		"CourseDaysMenu",
+		"ExamRegistrationsMenu",
+		"CourseParticipantsMenu",
 		"CourseEvaluationResponsesMenu",
 		"CoursePackageImportReportsMenu",
 		"CourseQualityReportMenu",
@@ -83,7 +86,9 @@
 		"LearnerEngagementsMenu",
 		"LearnerProfilesMenu",
 		"LearningPlans",
+		"LeaveRequestsMenu",
 		"LessonCompletionsMenu",
+		"PermissionRequestsMenu",
 		"PointAwardsMenu",
 		"PointRulesMenu",
 		"PortfolioEntriesMenu",
@@ -93,6 +98,8 @@
 		"PraktijkopleidersMenu",
 		"PraktijkovereenkomstenMenu",
 		"PrivacyGovernanceDashboardMenu",
+		"ProctoringReviewComplianceMenu",
+		"ProctoringReviewMenu",
 		"ReportCardsMenu",
 		"ReportConcernMenu",
 		"RollCallMenu",
@@ -952,6 +959,43 @@
 								}
 							}
 						}
+					},
+					{
+						"id": "today-nearing",
+						"type": "object-table",
+						"title": "Nearly 16 hours",
+						"content": {
+							"source": {
+								"register": "learniq",
+								"schema": "attendance-summary",
+								"filter": {
+									"thresholdNearing": true
+								},
+								"order": {
+									"unauthorisedHoursWindow": "desc"
+								},
+								"limit": 5
+							},
+							"columns": [
+								{
+									"key": "learnerId",
+									"label": "Pupil",
+									"widget": "avatar"
+								},
+								{
+									"key": "windowLabel",
+									"label": "Hours of the limit",
+									"cellClass": "cn-cell--muted"
+								}
+							],
+							"viewAllRoute": {
+								"name": "AttendanceNearingLimit"
+							},
+							"viewAllLabel": "View all",
+							"hideHeader": true,
+							"borderless": true,
+							"emptyText": "Nobody is close to the limit"
+						}
 					}
 				],
 				"layout": [],
@@ -1045,6 +1089,15 @@
 								}
 							},
 							{
+								"id": "t11",
+								"widgetId": "today-nearing",
+								"gridX": 8,
+								"gridY": 7,
+								"gridWidth": 4,
+								"gridHeight": 5,
+								"showTitle": true
+							},
+							{
 								"id": "t8",
 								"widgetId": "today-dashboards",
 								"gridX": 0,
@@ -1078,6 +1131,15 @@
 								"gridHeight": 2,
 								"showTitle": false,
 								"dateChip": false
+							},
+							{
+								"id": "m4",
+								"widgetId": "today-nearing",
+								"gridX": 8,
+								"gridY": 3,
+								"gridWidth": 4,
+								"gridHeight": 4,
+								"showTitle": true
 							},
 							{
 								"id": "m3",
@@ -1258,6 +1320,20 @@
 						"icon": "CalendarRemoveOutline",
 						"handler": "navigate",
 						"route": "ExcuseRequests"
+					},
+					{
+						"id": "open-leave-requests",
+						"label": "Leave to decide",
+						"icon": "CalendarQuestion",
+						"handler": "navigate",
+						"route": "LeaveRequests"
+					},
+					{
+						"id": "open-nearing-limit",
+						"label": "Nearly 16 hours",
+						"icon": "AlertCircleOutline",
+						"handler": "navigate",
+						"route": "AttendanceNearingLimit"
 					}
 				]
 			}
@@ -1450,6 +1526,132 @@
 						"icon": "AccountCheckOutline",
 						"handler": "navigate",
 						"route": "DossierReviews"
+					}
+				]
+			}
+		},
+		{
+			"id": "GroupPupils",
+			"_note": "LqLijst vaartveld (vo): the mentor's list shows a signal, absence this year, the grade average and the mentor talk, with the pupils who have a signal first. The data is the same GET /api/pupil-list; only the columns and the order change.",
+			"when": {
+				"workspace.segment": "vo"
+			},
+			"config": {
+				"columns": [
+					{
+						"key": "name",
+						"label": "Pupil",
+						"widget": "avatar",
+						"widgetProps": {
+							"nameField": "name"
+						}
+					},
+					{
+						"key": "signal",
+						"label": "Signal",
+						"enum": [
+							"attendance-flag",
+							"nearing-threshold",
+							"insufficient-grades"
+						],
+						"enumLabels": {
+							"attendance-flag": "Attendance signal",
+							"nearing-threshold": "Close to the absence limit",
+							"insufficient-grades": "Three or more insufficient grades"
+						}
+					},
+					{
+						"key": "absentDays",
+						"label": "Absent this year",
+						"widget": "number",
+						"widgetProps": {
+							"unit": {
+								"one": "{count} day",
+								"other": "{count} days"
+							}
+						}
+					},
+					{
+						"key": "average",
+						"label": "Average",
+						"widget": "number"
+					},
+					{
+						"key": "conferenceAt",
+						"label": "Mentor talk",
+						"formatter": "datetime"
+					}
+				],
+				"sourceConfig": {
+					"url": "/apps/learniq/api/pupil-list",
+					"rowsPath": "results",
+					"totalPath": "total",
+					"refusedText": "Only the teachers of a group and school-wide staff see its pupils.",
+					"sort": "signal-first"
+				}
+			}
+		},
+		{
+			"id": "GroupPupils",
+			"_note": "LqLijst esdoornveen (mbo): a student's company, approved placement hours, absence and the placement's state, from the running bpv-placement in GET /api/pupil-list.",
+			"when": {
+				"workspace.segment": "mbo"
+			},
+			"config": {
+				"columns": [
+					{
+						"key": "name",
+						"label": "Student",
+						"widget": "avatar",
+						"widgetProps": {
+							"nameField": "name"
+						}
+					},
+					{
+						"key": "company",
+						"label": "Company"
+					},
+					{
+						"key": "bpvHoursApproved",
+						"label": "Approved placement hours",
+						"widget": "number",
+						"widgetProps": {
+							"unit": {
+								"one": "{count} hour",
+								"other": "{count} hours"
+							}
+						}
+					},
+					{
+						"key": "absentDays",
+						"label": "Absent this year",
+						"widget": "number",
+						"widgetProps": {
+							"unit": {
+								"one": "{count} day",
+								"other": "{count} days"
+							}
+						}
+					},
+					{
+						"key": "placementState",
+						"label": "Status",
+						"enum": [
+							"proposed",
+							"sbb-verification-pending",
+							"confirmed",
+							"active",
+							"completed",
+							"terminated"
+						],
+						"enumLabels": {
+							"proposed": "Proposed",
+							"sbb-verification-pending": "Awaiting SBB check",
+							"confirmed": "Confirmed",
+							"active": "Placement running",
+							"completed": "Completed",
+							"terminated": "Ended early"
+						}
 					}
 				]
 			}

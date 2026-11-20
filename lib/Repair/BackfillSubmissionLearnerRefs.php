@@ -21,8 +21,10 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Repair;
 
+use OCA\Learniq\Kernel\Contracts\LearnerRefResolverInterface;
 use OCA\Learniq\Repair\Support\RepairRowWalk;
-use OCA\Learniq\Service\LearnerRefResolver;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Migration\IOutput;
 use OCP\Migration\IRepairStep;
@@ -60,14 +62,14 @@ class BackfillSubmissionLearnerRefs implements IRepairStep {
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OpenRegister object access.
-	 * @param LearnerRefResolver $learnerRefs Nextcloud user id to LearnerProfile UUID.
+	 * @param LearnerRefResolverInterface $learnerRefs Nextcloud user id to LearnerProfile UUID.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly LearnerRefResolver $learnerRefs,
+		private readonly LearnerRefResolverInterface $learnerRefs,
 		private readonly LoggerInterface $logger,
 	) {
 		$this->rows = new RepairRowWalk(objectService: $objectService, logger: $logger, label: 'BackfillSubmissionLearnerRefs');
@@ -135,9 +137,10 @@ class BackfillSubmissionLearnerRefs implements IRepairStep {
 
 			$this->objectService->saveObject(
 				object: array_merge($row, $derived),
-				register: self::LEARNIQ_REGISTER,
-				schema: self::SUBMISSION_SCHEMA,
-				uuid: $uuid,
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::SUBMISSION_SCHEMA),
+					uuid: $uuid
+				),
 				_rbac: false,
 				_multitenancy: false
 			);

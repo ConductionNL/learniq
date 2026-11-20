@@ -52,9 +52,12 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\ListenerSchemaResolver;
-use OCA\Learniq\Service\Programme\ProgrammeRequirements;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Kernel\Contracts\ProgrammeRequirementsInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
@@ -82,8 +85,8 @@ class ApplicationConversionHandler implements IEventListener {
 	 * @param ObjectService $objectService OR object access service.
 	 * @param TransitionEngine $transitionEngine OR lifecycle engine used to dispatch the `convert` transition.
 	 * @param LoggerInterface $logger PSR logger.
-	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
-	 * @param ProgrammeRequirements $requirements Which programme parts are mandatory by default.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param ProgrammeRequirementsInterface $requirements Which programme parts are mandatory by default.
 	 *
 	 * @return void
 	 */
@@ -91,8 +94,8 @@ class ApplicationConversionHandler implements IEventListener {
 		private readonly ObjectService $objectService,
 		private readonly TransitionEngine $transitionEngine,
 		private readonly LoggerInterface $logger,
-		private readonly ListenerSchemaResolver $schemas,
-		private readonly ProgrammeRequirements $requirements,
+		private readonly ListenerSchemaResolverInterface $schemas,
+		private readonly ProgrammeRequirementsInterface $requirements,
 	) {
 	}//end __construct()
 
@@ -148,18 +151,17 @@ class ApplicationConversionHandler implements IEventListener {
 
 		$learnerProfileId = $this->createLearnerProfile(application: $application, ncUserId: $ncUserId, tenantId: $tenantId);
 
-		$enrolmentIds = $this->createEnrolments(programmeId: $programmeId, ncUserId: $ncUserId, tenantId: $tenantId);
+		$enrolmentIds = $this->createEnrolments(programmeId: $programmeId, args: ['ncUserId' => $ncUserId, 'tenantId' => $tenantId]);
 
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::APPLICATION_SCHEMA,
 			object: array_merge(
 				$application,
 				[
 					'convertedLearnerProfileId' => $learnerProfileId,
 					'convertedEnrolmentIds' => $enrolmentIds,
 				]
-			)
+			),
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::APPLICATION_SCHEMA))
 		);
 
 		$this->transitionEngine->transition($applicationId, 'convert');
@@ -192,8 +194,6 @@ class ApplicationConversionHandler implements IEventListener {
 		// System context (learner-profile): admissions staff (coordinators, administration managers)
 		// place the applicant, and LearnerProfile create is hr and compliance officers only.
 		$saved = $this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::LEARNER_PROFILE_SCHEMA,
 			object: [
 				'ncUserId' => $ncUserId,
 				'givenName' => $application['applicantGivenName'] ?? '',
@@ -203,6 +203,7 @@ class ApplicationConversionHandler implements IEventListener {
 				'guardianRefs' => $guardianRefs,
 				'tenant_id' => $tenantId,
 			],
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::LEARNER_PROFILE_SCHEMA)),
 			_rbac: false
 		);
 
@@ -214,15 +215,17 @@ class ApplicationConversionHandler implements IEventListener {
 	 * entry, naming the programme and carrying the part's mandatory default.
 	 *
 	 * @param string $programmeId The Programme UUID applied for.
-	 * @param string $ncUserId The learner's (placeholder) Nextcloud user id.
-	 * @param string $tenantId Tenant ID.
+	 * @param array{ncUserId: string, tenantId: string} $args The ncUserId, tenantId.
 	 *
 	 * @return array<int,mixed> The created Enrolment ids.
 	 *
 	 * @spec openspec/specs/enrolment/spec.md#scenario-placement-creates-a-learnerprofile-and-enrolments
 	 * @spec openspec/changes/enrolment-programme-mandatory-per-person/specs/programme-mandatory-parts/spec.md#scenario-an-author-marks-a-part-optional
 	 */
-	private function createEnrolments(string $programmeId, string $ncUserId, string $tenantId): array {
+	private function createEnrolments(string $programmeId, array $args): array {
+		$ncUserId = $args['ncUserId'];
+		$tenantId = $args['tenantId'];
+
 		$programme = $this->fetchProgramme(programmeId: $programmeId);
 		$courseIds = $programme['courseIds'] ?? [];
 		if (is_array($courseIds) === false) {
@@ -234,8 +237,6 @@ class ApplicationConversionHandler implements IEventListener {
 			// System context (enrolment): admissions staff place the applicant, and Enrolment create is
 			// instructors, hr, compliance officers and team leads only.
 			$saved = $this->objectService->saveObject(
-				register: self::LEARNIQ_REGISTER,
-				schema: self::ENROLMENT_SCHEMA,
 				object: [
 					'learnerId' => $ncUserId,
 					'courseId' => $courseId,
@@ -244,6 +245,7 @@ class ApplicationConversionHandler implements IEventListener {
 					'source' => 'admission',
 					'tenant_id' => $tenantId,
 				],
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::ENROLMENT_SCHEMA)),
 				_rbac: false
 			);
 
@@ -270,8 +272,7 @@ class ApplicationConversionHandler implements IEventListener {
 
 		$programme = $this->objectService->find(
 			id: $programmeId,
-			register: self::LEARNIQ_REGISTER,
-			schema: self::PROGRAMME_SCHEMA
+			options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::PROGRAMME_SCHEMA)
 		);
 
 		if ($programme === null) {

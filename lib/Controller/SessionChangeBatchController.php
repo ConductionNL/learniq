@@ -29,11 +29,11 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use InvalidArgumentException;
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\SessionChangeBatchServiceInterface;
+use OCA\Learniq\Kernel\Contracts\SessionSeriesInterface;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\CallerActions;
-use OCA\Learniq\Service\SessionChangeBatchService;
-use OCA\Learniq\Timetabling\SessionSeries;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -71,18 +71,18 @@ class SessionChangeBatchController extends Controller {
 	 *
 	 * @param IRequest                  $request     HTTP request.
 	 * @param CallerActions $caller The user session and the ADR-023 action matrix.
-	 * @param SessionChangeBatchService $batches     Applies the change.
-	 * @param SessionSeries             $series      Finds the weekly slot.
+	 * @param SessionChangeBatchServiceInterface $batches     Applies the change.
+	 * @param SessionSeriesInterface             $series      Finds the weekly slot.
 	 */
 	public function __construct(
 		IRequest $request,
 		CallerActions $caller,
-		private readonly SessionChangeBatchService $batches,
-		private readonly SessionSeries $series,
+		private readonly SessionChangeBatchServiceInterface $batches,
+		private readonly SessionSeriesInterface $series,
 	) {
 		$this->userSession = $caller->userSession;
 		$this->actionAuth = $caller->actionAuth;
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**

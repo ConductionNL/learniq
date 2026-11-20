@@ -53,9 +53,11 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\ContributionBeneficiaryResolver;
+use OCA\Learniq\Kernel\Contracts\ContributionBeneficiaryResolverInterface;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectUpdatedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
@@ -84,7 +86,7 @@ class ShillinqContributionSettledListener implements IEventListener {
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OpenRegister object access.
-	 * @param ContributionBeneficiaryResolver $contributions Reads the request's chargeable and beneficiary.
+	 * @param ContributionBeneficiaryResolverInterface $contributions Reads the request's chargeable and beneficiary.
 	 * @param TransitionEngine $transitionEngine Fires the Entitlement grant transition.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
@@ -92,7 +94,7 @@ class ShillinqContributionSettledListener implements IEventListener {
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly ContributionBeneficiaryResolver $contributions,
+		private readonly ContributionBeneficiaryResolverInterface $contributions,
 		private readonly TransitionEngine $transitionEngine,
 		private readonly LoggerInterface $logger,
 	) {
@@ -189,9 +191,10 @@ class ShillinqContributionSettledListener implements IEventListener {
 						'paymentSettledVia' => ($request['settledVia'] ?? null),
 					]
 				),
-				register: self::LEARNIQ_REGISTER,
-				schema: self::ENTITLEMENT_SCHEMA,
-				uuid: $entitlementId,
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::ENTITLEMENT_SCHEMA),
+					uuid: $entitlementId
+				),
 				_rbac: false,
 				_multitenancy: false
 			);

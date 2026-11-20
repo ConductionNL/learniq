@@ -8,6 +8,14 @@
 	},
 	"menu": [
 		{
+			"id": "AiProcessingDisclosureMenu",
+			"label": "AI processing disclosure",
+			"icon": "Lock",
+			"route": "AiProcessingDisclosure",
+			"section": "footer",
+			"order": 91
+		},
+		{
 			"id": "Dashboard",
 			"label": "Dashboard",
 			"icon": "ViewDashboardOutline",
@@ -154,21 +162,6 @@
 					}
 				},
 				{
-					"id": "AiProcessingDisclosureMenu",
-					"label": "AI processing disclosure",
-					"icon": "Lock",
-					"route": "AiProcessingDisclosure",
-					"order": 42,
-					"visibleIf": {
-						"user.primaryRole": {
-							"in": [
-								"admin",
-								"compliance-officer"
-							]
-						}
-					}
-				},
-				{
 					"id": "AccessibilityFeedbacksMenu",
 					"label": "Accessibility feedback",
 					"icon": "CommentOutline",
@@ -307,7 +300,7 @@
 			"type": "custom",
 			"title": "AI processing disclosure",
 			"component": "LearniqAiProcessingDisclosure",
-			"_note": "sovereign-ai-guarantee: the AI-processing locality disclosure surface a school hands to its DPO, mirrors LearniqAccessibilityStatement's exact shape (no generic lib index/detail analogue, no :id route param, singleton disclosure page). Composes AiProcessingDisclosureController's server-side read (Hermiq agentaifeature register + scholiq-ai-features AVG carrier + AiLocalityClassifier/SovereigntyPolicyService verdict) with an inline SovereigntyPolicy editor. Gated to admin/compliance-officer via the AiProcessingDisclosure nav entry's visibleIf (unlike Accessibility, which is open to every authenticated user)."
+			"_note": "sovereign-ai-guarantee: the AI-processing locality disclosure surface a school hands to its DPO, mirrors LearniqAccessibilityStatement's exact shape (no generic lib index/detail analogue, no :id route param, singleton disclosure page). Composes AiProcessingDisclosureController's server-side read (Hermiq agentaifeature register + scholiq-ai-features AVG carrier + AiLocalityClassifier/SovereigntyPolicyService verdict) with an inline SovereigntyPolicy editor. Read by every signed-in user through the footer entry AiProcessingDisclosureMenu, which carries no role gate (ai-disclosure-for-every-user, decision 399); only admin and compliance-officer get the edit mode."
 		},
 		{
 			"id": "PrivacyGovernanceDashboard",
@@ -1112,11 +1105,18 @@
 			"route": "/compliance/attestations/:id",
 			"type": "detail",
 			"title": "Attestation",
-			"_note": "An Attestation is an immutable proof-of-completion record (learner, course/lesson, regulation, score, signature, signing key, actor IP, xAPI statement) — the education document/record archetype, read-only. Body leads with the attestation fields 8-wide + a Related panel resolving learner + course + lesson + regulation. Signed evidence renders as a Files leaf below (the attestation IS a signed document a compliance officer downloads). No email/calendar: an attestation is a sealed record, not a conversation (HARD RULE 1). Sidebar keeps metadata + audit-trail — the tamper-evidence trail is the whole point of an attestation.",
+			"_note": "An Attestation is a proof-of-completion record (learner, course/lesson, regulation, score, signature, signing key, actor IP, xAPI statement) — the education document/record archetype. Editable while drafted; read only once signed or revoked (readOnlyWhen, matching AttestationFreezeListener on the server). Sign and revoke run as lifecycle actions; revoke asks for the revocationReason the register declares as its required input. Body leads with the attestation fields 8-wide + a Related panel resolving learner + course + lesson + regulation. Signed evidence renders as a Files leaf below (the attestation IS a signed document a compliance officer downloads). No email/calendar: an attestation is a sealed record, not a conversation (HARD RULE 1). Sidebar keeps metadata + audit-trail — the tamper-evidence trail is the whole point of an attestation.",
 			"config": {
 				"register": "learniq",
 				"schema": "Attestation",
-				"readOnly": true,
+				"readOnlyWhen": {
+					"field": "lifecycle",
+					"op": "neq",
+					"value": "drafted"
+				},
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
 				"widgets": [
 					{
 						"id": "att-data",

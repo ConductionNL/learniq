@@ -35,8 +35,14 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
-use OCA\Learniq\Support\SerialisedRow;
 use DateTimeImmutable;
+use OCA\Learniq\Kernel\Contracts\CourseEvaluationAnswerServiceInterface;
+use OCA\Learniq\Support\SerialisedRow;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectDeletion;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\SaveActor;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
@@ -48,7 +54,7 @@ use Throwable;
  *
  * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#requirement-learner-answers-an-evaluation
  */
-class CourseEvaluationAnswerService {
+class CourseEvaluationAnswerService implements CourseEvaluationAnswerServiceInterface {
 
 	/**
 	 * The register every evaluation object lives in.
@@ -215,13 +221,32 @@ class CourseEvaluationAnswerService {
 
 		$response = $this->objectService->saveObject(
 			object: $this->builder->responsePayload(invitation: $invitation, answers: $checked['answers']),
-			register: self::REGISTER,
-			schema: 'course-evaluation-response',
-			_rbac: false,
-			_unowned: true,
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::REGISTER, schema: 'course-evaluation-response'),
+				actor: new SaveActor(unowned: true)
+			),
+			_rbac: false
 		);
 		$responseId = (string)($response->getUuid() ?? '');
 
+		return $this->submitResponse(responseId: $responseId, invitationId: $invitationId);
+	}//end answer()
+
+	/**
+	 * Submit the saved draft response as the system; a refused submit removes
+	 * the draft again and is reported as a 403.
+	 *
+	 * @param string $responseId   The saved draft response.
+	 * @param string $invitationId The invitation being answered, for the log.
+	 *
+	 * @return array{status: int, error?: string, missing?: array<int, string>}
+	 *
+	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
+	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-cannot-answer-twice
+	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-an-uninvited-user-is-refused
+	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-anonymous-answers-cannot-be-linked
+	 */
+	private function submitResponse(string $responseId, string $invitationId): array {
 		try {
 			$this->transitionEngine->transitionAsSystem(objectId: $responseId, action: 'submit', app: self::APP);
 		} catch (Throwable $exception) {
@@ -232,7 +257,10 @@ class CourseEvaluationAnswerService {
 				'[CourseEvaluationAnswerService] The submit of an evaluation answer was refused; the draft is removed: {error}',
 				['error' => $exception->getMessage(), 'exception' => $exception, 'invitationId' => $invitationId]
 			);
-			$this->objectService->deleteObject(uuid: $responseId, register: self::REGISTER, schema: 'course-evaluation-response', _rbac: false);
+			$this->objectService->deleteObject(
+				new ObjectDeletion(uuid: $responseId, target: new ObjectFindTarget(register: self::REGISTER, schema: 'course-evaluation-response')),
+				_rbac: false
+			);
 			$error = 'Your answer could not be submitted.';
 			if (str_contains($exception->getMessage(), self::GUARD_DENIAL) === true) {
 				$error = self::GUARD_DENIAL;
@@ -242,7 +270,7 @@ class CourseEvaluationAnswerService {
 		}
 
 		return ['status' => 201];
-	}//end answer()
+	}//end submitResponse()
 
 	/**
 	 * A campaign's figures for staff: invitations, responses and the mean
@@ -269,6 +297,21 @@ class CourseEvaluationAnswerService {
 			]
 		);
 
+		return $this->resultCounts(invitations: $invitations, responses: $responses);
+	}//end results()
+
+	/**
+	 * The invitation and response counts and the mean overall score, hidden below
+	 * the minimum number of responses.
+	 *
+	 * @param array<int,mixed> $invitations The campaign's invitations.
+	 * @param array<int,mixed> $responses   Its submitted responses.
+	 *
+	 * @return array{invitationCount: int, responseCount: int, meanOverallScore: float|null, meanHidden: bool}
+	 *
+	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-small-groups-are-protected
+	 */
+	private function resultCounts(array $invitations, array $responses): array {
 		$scores = [];
 		foreach ($responses as $row) {
 			$score = (self::toArray(value: $row)['overallScore'] ?? null);
@@ -289,7 +332,7 @@ class CourseEvaluationAnswerService {
 			'meanOverallScore' => $mean,
 			'meanHidden' => $count < self::MIN_RESPONSES_FOR_MEAN,
 		];
-	}//end results()
+	}//end resultCounts()
 
 	/**
 	 * Why an answer is refused before anything is written, or null: not the
@@ -374,7 +417,7 @@ class CourseEvaluationAnswerService {
 		}
 
 		try {
-			$object = $this->objectService->find(id: $id, register: self::REGISTER, schema: $schema, _rbac: false);
+			$object = $this->objectService->find(id: $id, options: new ObjectFindOptions(register: self::REGISTER, schema: $schema), _rbac: false);
 		} catch (Throwable) {
 			return null;
 		}

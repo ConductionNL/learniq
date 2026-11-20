@@ -32,6 +32,7 @@ namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
 use DateTimeZone;
+use OCA\Learniq\Kernel\Contracts\RegulationCoverageServiceInterface;
 
 /**
  * Coverage per active regulation.
@@ -40,7 +41,7 @@ use DateTimeZone;
  *
  * @spec openspec/changes/compliance-rule-coverage-table/specs/compliance-rule-coverage/spec.md#requirement-per-rule-coverage-table
  */
-class RegulationCoverageService {
+class RegulationCoverageService implements RegulationCoverageServiceInterface {
 
 	/**
 	 * Regulation.ragRedThreshold and ragAmberThreshold defaults, as the register declares them.
@@ -222,6 +223,8 @@ class RegulationCoverageService {
 	 * @param array<string,mixed> $regulation The regulation.
 	 *
 	 * @return array<string,mixed>
+	 *
+	 * @spec openspec/specs/compliance-rule-coverage/spec.md#requirement-each-rule-has-its-own-red-and-amber-limits
 	 */
 	private function finishRegulationRow(array $row, array $regulation): array {
 		$row['coveragePercent'] = null;

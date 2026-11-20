@@ -38,6 +38,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Portal;
 
+use OCA\Learniq\Kernel\Contracts\ExamplePortalAccountGrantsInterface;
 use OCP\App\IAppManager;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventDispatcher;
@@ -49,7 +50,7 @@ use Throwable;
  *
  * @spec openspec/changes/example-portal-install-steps/specs/example-sets/spec.md#requirement-loading-a-set-gives-its-declared-learners-a-portal-account
  */
-class ExamplePortalAccountGrants {
+class ExamplePortalAccountGrants implements ExamplePortalAccountGrantsInterface {
 
 	/**
 	 * The app id portaliq attributes the accounts and claims to.

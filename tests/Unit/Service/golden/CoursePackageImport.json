@@ -666,7 +666,7 @@
                     "resourcesImported": 0,
                     "resourcesDegraded": 0,
                     "resourcesDropped": 0,
-                    "errorMessage": "Archive is not a recognised IMS Common Cartridge (ZIP), Moodle backup (.mbz / gzipped tar), or scholiq-native JSON package.",
+                    "errorMessage": "Archive is not a recognised IMS Common Cartridge (ZIP), SCORM 1.2 or 2004 (ZIP), Moodle backup (.mbz / gzipped tar), or scholiq-native JSON package.",
                     "entries": [],
                     "tenant_id": "t1"
                 },
@@ -686,7 +686,7 @@
                 "resourcesImported": 0,
                 "resourcesDegraded": 0,
                 "resourcesDropped": 0,
-                "errorMessage": "Archive is not a recognised IMS Common Cartridge (ZIP), Moodle backup (.mbz / gzipped tar), or scholiq-native JSON package.",
+                "errorMessage": "Archive is not a recognised IMS Common Cartridge (ZIP), SCORM 1.2 or 2004 (ZIP), Moodle backup (.mbz / gzipped tar), or scholiq-native JSON package.",
                 "entries": [],
                 "tenant_id": "t1",
                 "id": "saved-1"

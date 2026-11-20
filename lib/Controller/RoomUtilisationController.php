@@ -30,10 +30,10 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\OpeningHoursSettingsInterface;
+use OCA\Learniq\Kernel\Contracts\RoomUtilisationServiceInterface;
 use OCA\Learniq\Service\CallerGroups;
-use OCA\Learniq\Service\OpeningHoursSettings;
-use OCA\Learniq\Service\RoomUtilisationService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -85,20 +85,20 @@ class RoomUtilisationController extends Controller {
 	 *
 	 * @param IRequest               $request      HTTP request.
 	 * @param CallerGroups           $caller      The user session and the group manager.
-	 * @param RoomUtilisationService $report       Computes room use.
-	 * @param OpeningHoursSettings   $openingHours Opening hours per weekday.
+	 * @param RoomUtilisationServiceInterface $report       Computes room use.
+	 * @param OpeningHoursSettingsInterface   $openingHours Opening hours per weekday.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		IRequest $request,
 		CallerGroups $caller,
-		private readonly RoomUtilisationService $report,
-		private readonly OpeningHoursSettings $openingHours,
+		private readonly RoomUtilisationServiceInterface $report,
+		private readonly OpeningHoursSettingsInterface $openingHours,
 	) {
 		$this->userSession = $caller->userSession;
 		$this->groupManager = $caller->groupManager;
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**

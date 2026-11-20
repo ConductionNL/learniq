@@ -44,6 +44,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\LearningRecordImportServiceInterface;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCP\Files\IRootFolder;
@@ -56,7 +57,7 @@ use RuntimeException;
  *
  * @spec openspec/changes/archive/2026-07-16-portable-learning-record/tasks.md#task-4-1
  */
-class LearningRecordImportService implements LifecycleGuardInterface {
+class LearningRecordImportService implements LifecycleGuardInterface, LearningRecordImportServiceInterface {
 
 	/**
 	 * The sourceFormat values parse() recognises.

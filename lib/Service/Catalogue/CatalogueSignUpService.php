@@ -51,10 +51,14 @@ namespace OCA\Learniq\Service\Catalogue;
 
 use DateTimeImmutable;
 use DateTimeInterface;
+use OCA\Learniq\Kernel\Contracts\CatalogueSignUpServiceInterface;
 use OCA\Learniq\Service\Portal\PortalLearner;
 use OCA\Learniq\Service\Portal\PortalOutcome;
 use OCA\Learniq\Service\Programme\ProgrammeRequirements;
 use OCA\Learniq\Support\FindOrNull;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Http;
 use Throwable;
@@ -64,7 +68,7 @@ use Throwable;
  *
  * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-signs-up-from-the-catalogue
  */
-class CatalogueSignUpService {
+class CatalogueSignUpService implements CatalogueSignUpServiceInterface {
 	use FindOrNull;
 
 	private const REGISTER = 'learniq';
@@ -246,7 +250,11 @@ class CatalogueSignUpService {
 		$row['lifecycle'] = 'withdrawn';
 		$this->objects->runAs(
 			user: $learner->user,
-			operation: fn () => $this->objects->saveObject(object: $row, register: self::REGISTER, schema: self::ENROLMENT, uuid: $enrolmentId, _rbac: false)
+			operation: fn () => $this->objects->saveObject(
+				object: $row,
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: self::ENROLMENT), uuid: $enrolmentId),
+				_rbac: false
+			)
 		);
 
 		return new PortalOutcome(status: Http::STATUS_OK, body: ['enrolmentId' => $enrolmentId, 'lifecycle' => 'withdrawn']);
@@ -330,7 +338,11 @@ class CatalogueSignUpService {
 		try {
 			$saved = $this->objects->runAs(
 				user: $learner->user,
-				operation: fn () => $this->objects->saveObject(object: $enrolment, register: self::REGISTER, schema: self::ENROLMENT, _rbac: false)
+				operation: fn () => $this->objects->saveObject(
+					object: $enrolment,
+					options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: self::ENROLMENT)),
+					_rbac: false
+				)
 			);
 		} catch (Throwable $exception) {
 			$message = $this->vetoMessage(exception: $exception);
@@ -341,13 +353,28 @@ class CatalogueSignUpService {
 			return new PortalOutcome(status: Http::STATUS_UNPROCESSABLE_ENTITY, body: ['error' => 'prerequisite_missing', 'message' => $message]);
 		}
 
-		$enrolmentId = '';
+		return new PortalOutcome(
+			status: Http::STATUS_OK,
+			body: ['enrolmentId' => $this->savedUuid(saved: $saved), 'courseId' => $courseId, 'lifecycle' => $lifecycle]
+		);
+	}//end create()
+
+	/**
+	 * The uuid of the saved enrolment, or '' when the save returned no entity.
+	 *
+	 * @param mixed $saved What saveObject() returned.
+	 *
+	 * @return string
+	 *
+	 * @spec openspec/specs/enrolment/spec.md#requirement-a-course-or-programme-says-whether-learners-may-sign-up
+	 */
+	private function savedUuid(mixed $saved): string {
 		if (is_object($saved) === true && method_exists($saved, 'getUuid') === true) {
-			$enrolmentId = (string)$saved->getUuid();
+			return (string)$saved->getUuid();
 		}
 
-		return new PortalOutcome(status: Http::STATUS_OK, body: ['enrolmentId' => $enrolmentId, 'courseId' => $courseId, 'lifecycle' => $lifecycle]);
-	}//end create()
+		return '';
+	}//end savedUuid()
 
 	/**
 	 * A published course or programme open for sign-up, or the refusal.
@@ -404,7 +431,12 @@ class CatalogueSignUpService {
 			return null;
 		}
 
-		$find = fn () => $this->objects->find(id: $id, register: self::REGISTER, schema: $schema, _rbac: false, _multitenancy: false, _render: false);
+		$find = fn () => $this->objects->find(
+			id: $id,
+			options: new ObjectFindOptions(register: self::REGISTER, schema: $schema, render: false),
+			_rbac: false,
+			_multitenancy: false
+		);
 		return $this->findRowWithIdOrNull(find: $find, id: $id);
 	}//end read()
 }//end class

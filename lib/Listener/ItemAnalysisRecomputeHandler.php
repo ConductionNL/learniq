@@ -52,10 +52,12 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
+use OCA\Learniq\Kernel\Contracts\ItemAnalysisServiceInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\Learniq\Service\AssessmentObjectReads;
-use OCA\Learniq\Service\ItemAnalysisService;
-use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
@@ -116,17 +118,17 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OR object access.
-	 * @param ItemAnalysisService $itemAnalysisService CTT statistics calculation engine.
+	 * @param ItemAnalysisServiceInterface $itemAnalysisService CTT statistics calculation engine.
 	 * @param ITimeFactory $timeFactory NC time source (injectable "now" for tests).
-	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly ItemAnalysisService $itemAnalysisService,
+		private readonly ItemAnalysisServiceInterface $itemAnalysisService,
 		private readonly ITimeFactory $timeFactory,
-		private readonly ListenerSchemaResolver $schemas,
+		private readonly ListenerSchemaResolverInterface $schemas,
 	) {
 		$this->reads = new AssessmentObjectReads(objectService: $objectService);
 	}//end __construct()
@@ -154,6 +156,20 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 		}
 
 		$result = $event->getObject()->jsonSerialize();
+		$this->recomputeFor(result: $result);
+	}//end handle()
+
+	/**
+	 * Recompute the item statistics and the reliability of the result's
+	 * assessment; a result without an assessment owes none.
+	 *
+	 * @param array<string,mixed> $result The AssessmentResult just graded.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/assessment/spec.md#requirement-per-item-statistics-are-computed-from-graded-results-gated-by-a-minimum-sample-size
+	 */
+	private function recomputeFor(array $result): void {
 		$assessmentId = $result['assessmentId'] ?? null;
 
 		if ($assessmentId === null) {
@@ -172,8 +188,7 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 
 		$reliability = $this->itemAnalysisService->computeReliability(assessmentId: $assessmentId);
 		$this->upsertAssessmentReliability(assessmentId: $assessmentId, tenantId: $tenantId, reliability: $reliability);
-
-	}//end handle()
+	}//end recomputeFor()
 
 	/**
 	 * Collect every distinct itemId referenced across a set of
@@ -280,9 +295,8 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 	private function upsert(string $schema, array $fields): array {
 		$existingData = $this->existingRow(schema: $schema, keys: array_intersect_key($fields, array_flip(self::UPSERT_KEYS[$schema])));
 		$saved = $this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: $schema,
 			object: array_merge($existingData, $fields),
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: $schema)),
 			_rbac: false
 		);
 
@@ -379,8 +393,6 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 
 		// System context (item-revision-flag): as above.
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::ITEM_REVISION_FLAG_SCHEMA,
 			object: [
 				'itemId' => $flag['itemId'],
 				'itemStatisticsId' => $flag['itemStatisticsId'],
@@ -391,6 +403,10 @@ class ItemAnalysisRecomputeHandler implements IEventListener {
 				'lifecycle' => 'open',
 				'tenant_id' => $flag['tenantId'],
 			],
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(
+					register: self::LEARNIQ_REGISTER,
+					schema: self::ITEM_REVISION_FLAG_SCHEMA
+				)),
 			_rbac: false
 		);
 

@@ -40,7 +40,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\SeedProfileServiceInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
@@ -50,7 +51,7 @@ use RuntimeException;
  *
  * @spec openspec/specs/example-sets/spec.md
  */
-class SeedProfileService {
+class SeedProfileService implements SeedProfileServiceInterface {
 	/**
 	 * App-relative directory holding the example-set descriptors.
 	 *
@@ -62,28 +63,6 @@ class SeedProfileService {
 	 * @var string
 	 */
 	private const PROFILE_DIR = '/lib/Settings/profiles';
-
-	/**
-	 * The one set that is not a file: the ADR-111 generated dataset.
-	 *
-	 * Learniq has stored this id as `demo` since the wizard first offered a
-	 * dataset (decidiq calls it `generated`); keeping it means an existing
-	 * answer, the CI seed and every runbook still name a real set.
-	 *
-	 * @var string
-	 */
-	public const GENERATED_PROFILE = DemoDataService::DEMO_DATASET;
-
-	/**
-	 * The answer that means "plant nothing".
-	 *
-	 * 🔴 NOT THE ABSENCE OF AN ANSWER. An operator who declines has FINISHED the
-	 * step; a step that can never be marked done reopens the wizard over every
-	 * page (nextcloud-vue#806).
-	 *
-	 * @var string
-	 */
-	public const NONE_PROFILE = DemoDataService::NONE_DATASET;
 
 	/**
 	 * Constructor.
@@ -247,7 +226,7 @@ class SeedProfileService {
 		$result = $importer->importFromApp(
 			appId: $this->importAppId(profileId: $profileId),
 			data: $this->preparation->sharedCodes->withoutCodesHeldElsewhere(data: $data),
-			version: $this->sources->appManager->getAppVersion(Application::APP_ID),
+			version: $this->sources->appManager->getAppVersion(AppIdentity::APP_ID),
 			force: true
 		);
 
@@ -264,7 +243,7 @@ class SeedProfileService {
 
 		$this->logger->info(
 			'[SeedProfileService] imported example set "' . $profileId . '": ' . $objects . ' object(s).',
-			['app' => Application::APP_ID]
+			['app' => AppIdentity::APP_ID]
 		);
 
 		return [
@@ -290,7 +269,7 @@ class SeedProfileService {
 			return DemoDataService::CONFIG_APP_ID;
 		}
 
-		return Application::APP_ID . '.profile.' . $profileId;
+		return AppIdentity::APP_ID . '.profile.' . $profileId;
 	}//end importAppId()
 
 	/**
@@ -341,7 +320,7 @@ class SeedProfileService {
 		$this->logger->info(
 			'[SeedProfileService] removed example set "' . $profileId . '": ' . $answer['softDeleted'] . ' object(s) soft-deleted, '
 			. $answer['errors'] . ' error(s).',
-			['app' => Application::APP_ID]
+			['app' => AppIdentity::APP_ID]
 		);
 
 		return $answer;
@@ -444,7 +423,7 @@ class SeedProfileService {
 	 * @return array<int, string> The paths.
 	 */
 	private function descriptorFiles(): array {
-		$dir = ($this->sources->appManager->getAppPath(Application::APP_ID) . self::PROFILE_DIR);
+		$dir = ($this->sources->appManager->getAppPath(AppIdentity::APP_ID) . self::PROFILE_DIR);
 		if (is_dir($dir) === false) {
 			return [];
 		}

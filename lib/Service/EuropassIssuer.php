@@ -34,8 +34,10 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\EuropassIssuerInterface;
 use OCA\Learniq\Support\FindOrNull;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IAppConfig;
 
@@ -44,7 +46,7 @@ use OCP\IAppConfig;
  *
  * @spec openspec/specs/certification/spec.md#requirement-an-issued-certificate-carries-a-signed-europass-form
  */
-class EuropassIssuer {
+class EuropassIssuer implements EuropassIssuerInterface {
 	use FindOrNull;
 
 	private const REGISTER = 'learniq';
@@ -153,8 +155,8 @@ class EuropassIssuer {
 	private function issuer(array $credential): array {
 		$issuer = [
 			'name' => $credential['issuedBy'] ?? null,
-			'identifier' => $this->config->getValueString(app: Application::APP_ID, key: self::IDENTIFIER_KEY, default: ''),
-			'identifierScheme' => $this->config->getValueString(app: Application::APP_ID, key: self::SCHEME_KEY, default: 'KvK'),
+			'identifier' => $this->config->getValueString(app: AppIdentity::APP_ID, key: self::IDENTIFIER_KEY, default: ''),
+			'identifierScheme' => $this->config->getValueString(app: AppIdentity::APP_ID, key: self::SCHEME_KEY, default: 'KvK'),
 		];
 		if ($issuer['identifier'] !== '') {
 			return $issuer;
@@ -255,7 +257,12 @@ class EuropassIssuer {
 			return null;
 		}
 
-		$find = fn () => $this->objects->find(id: $id, register: self::REGISTER, schema: $schema, _rbac: false, _multitenancy: false, _render: false);
+		$find = fn () => $this->objects->find(
+			id: $id,
+			options: new ObjectFindOptions(register: self::REGISTER, schema: $schema, render: false),
+			_rbac: false,
+			_multitenancy: false
+		);
 		return $this->findRowWithIdOrNull(find: $find, id: $id);
 	}//end read()
 }//end class

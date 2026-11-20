@@ -41,6 +41,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service\Portal;
 
 use DateTimeImmutable;
+use OCA\Learniq\Kernel\Contracts\BpvPlacementStepsInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IL10N;
 use OCP\L10N\IFactory;
@@ -52,7 +53,7 @@ use Throwable;
  *
  * @spec openspec/changes/site-workplace-trainer-portal-design/specs/portal-contribution/spec.md#requirement-new-a-placement-shows-where-it-stands
  */
-class BpvPlacementSteps {
+class BpvPlacementSteps implements BpvPlacementStepsInterface {
 
 	private const REGISTER = 'learniq';
 

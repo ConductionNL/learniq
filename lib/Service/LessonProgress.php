@@ -28,6 +28,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\LessonProgressInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
@@ -36,7 +39,7 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/specs/progress-tracking/spec.md#requirement-the-follow-up-of-an-xapi-statement-runs-outside-the-save-that-records-it
  */
-class LessonProgress {
+class LessonProgress implements LessonProgressInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const LESSON_SCHEMA = 'lesson';
@@ -370,9 +373,8 @@ class LessonProgress {
 		$data = array_merge($existingData ?? [], $completion);
 
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::LESSON_COMPLETION_SCHEMA,
-			object: $data
+			object: $data,
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::LESSON_COMPLETION_SCHEMA))
 		);
 
 	}//end upsertLessonCompletion()

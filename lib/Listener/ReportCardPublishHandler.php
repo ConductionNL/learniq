@@ -39,10 +39,12 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\ListenerSchemaResolver;
-use OCA\Learniq\Service\ReportSubjectGradeRows;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Kernel\Contracts\ReportSubjectGradeRowsInterface;
 use OCA\Learniq\Support\EntityRow;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
@@ -71,9 +73,9 @@ class ReportCardPublishHandler implements IEventListener {
 	 * @param ObjectService $objectService OR object access service.
 	 * @param ITimeFactory $timeFactory NC time source (injectable "now" for tests).
 	 * @param LoggerInterface $logger PSR logger.
-	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 * @param IFactory $l10nFactory The instance's language, for the readable subject of the notice.
-	 * @param ReportSubjectGradeRows $subjectRows Writes the card's per-subject rows for the parent portal.
+	 * @param ReportSubjectGradeRowsInterface $subjectRows Writes the card's per-subject rows for the parent portal.
 	 *
 	 * @return void
 	 */
@@ -81,9 +83,9 @@ class ReportCardPublishHandler implements IEventListener {
 		private readonly ObjectService $objectService,
 		private readonly ITimeFactory $timeFactory,
 		private readonly LoggerInterface $logger,
-		private readonly ListenerSchemaResolver $schemas,
+		private readonly ListenerSchemaResolverInterface $schemas,
 		private readonly IFactory $l10nFactory,
-		private readonly ReportSubjectGradeRows $subjectRows,
+		private readonly ReportSubjectGradeRowsInterface $subjectRows,
 	) {
 	}//end __construct()
 
@@ -157,30 +159,17 @@ class ReportCardPublishHandler implements IEventListener {
 		$tenantId = (string)($reportCard['tenant_id'] ?? '');
 		$visibleFrom = $this->timeFactory->getDateTime()->format(\DATE_ATOM);
 
-		$notifiedCount = 0;
-
-		foreach ($profile['parentIds'] as $parentId) {
-			if (empty($parentId) === true) {
-				continue;
-			}
-
-			$this->objectService->saveObject(
-				register: self::LEARNIQ_REGISTER,
-				schema: self::REPORT_CARD_PARENT_NOTIFICATION_SCHEMA,
-				object: [
-					'event' => 'reportCardPublished',
-					'recipient' => $parentId,
-					'sourceId' => $reportCardId,
-					'learnerId' => $learnerId,
-					'learnerRef' => $learnerRef,
-					'idempotencyKey' => $reportCardId . '-parent-' . $parentId,
-					'visibleFrom' => $visibleFrom,
-					'subject' => $subject,
-					'tenant_id' => $tenantId,
-				]
-			);
-			$notifiedCount++;
-		}//end foreach
+		$notifiedCount = $this->notifyParents(
+			parentIds: $profile['parentIds'],
+			notice: [
+				'sourceId' => $reportCardId,
+				'learnerId' => $learnerId,
+				'learnerRef' => $learnerRef,
+				'visibleFrom' => $visibleFrom,
+				'subject' => $subject,
+				'tenant_id' => $tenantId,
+			]
+		);
 
 		$this->logger->info(
 			'[ReportCardPublishHandler] ReportCard {id} published — {count} parent notification(s) created.',
@@ -188,6 +177,49 @@ class ReportCardPublishHandler implements IEventListener {
 		);
 
 	}//end fanOutParentNotifications()
+
+	/**
+	 * Create one `ReportCardParentNotification` per non-empty parent id.
+	 *
+	 * @param iterable<mixed>      $parentIds The learner's parent ids.
+	 * @param array<string, mixed> $notice    The fields every parent's notification shares:
+	 *                                        sourceId, learnerId, learnerRef, visibleFrom, subject, tenant_id.
+	 *
+	 * @return integer The number of notifications created.
+	 *
+	 * @spec openspec/specs/report-card/spec.md#scenario-publishing-notifies-the-learner-directly-and-fans-out-to-each-parent
+	 */
+	private function notifyParents(iterable $parentIds, array $notice): int {
+		$notifiedCount = 0;
+
+		foreach ($parentIds as $parentId) {
+			if (empty($parentId) === true) {
+				continue;
+			}
+
+			$this->objectService->saveObject(
+				object: [
+					'event' => 'reportCardPublished',
+					'recipient' => $parentId,
+					'sourceId' => $notice['sourceId'],
+					'learnerId' => $notice['learnerId'],
+					'learnerRef' => $notice['learnerRef'],
+					'idempotencyKey' => $notice['sourceId'] . '-parent-' . $parentId,
+					'visibleFrom' => $notice['visibleFrom'],
+					'subject' => $notice['subject'],
+					'tenant_id' => $notice['tenant_id'],
+				],
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(
+						register: self::LEARNIQ_REGISTER,
+						schema: self::REPORT_CARD_PARENT_NOTIFICATION_SCHEMA
+					))
+			);
+			$notifiedCount++;
+		}//end foreach
+
+		return $notifiedCount;
+
+	}//end notifyParents()
 
 	/**
 	 * The learner's LearnerProfile when it lists at least one parent, else null.

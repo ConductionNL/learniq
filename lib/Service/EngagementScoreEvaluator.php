@@ -55,13 +55,14 @@ namespace OCA\Learniq\Service;
 
 use DateInterval;
 use DateTimeImmutable;
+use OCA\Learniq\Kernel\Contracts\EngagementScoreEvaluatorInterface;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
  * Computes timeOnTaskMinutes, lastActivityAt, and a bounded 0-100 score for
  * a learner + course from their XapiStatement activity.
  */
-class EngagementScoreEvaluator {
+class EngagementScoreEvaluator implements EngagementScoreEvaluatorInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const XAPI_SCHEMA = 'xapi-statement';

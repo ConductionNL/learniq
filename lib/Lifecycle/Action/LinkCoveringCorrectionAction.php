@@ -35,9 +35,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle\Action;
 
-use OCA\Learniq\Service\Grading\CorrectionApprovals;
+use OCA\Learniq\Kernel\Contracts\CorrectionApprovalsInterface;
 use OCA\OpenRegister\Lifecycle\LifecycleActionContext;
-use OCA\OpenRegister\Lifecycle\LifecycleActionInterface;
+use OCA\OpenRegister\Lifecycle\ContextLifecycleActionInterface;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -47,17 +47,17 @@ use Throwable;
  *
  * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-audit-of-corrections
  */
-class LinkCoveringCorrectionAction implements LifecycleActionInterface {
+class LinkCoveringCorrectionAction implements ContextLifecycleActionInterface {
 
 	/**
 	 * Constructor.
 	 *
-	 * @param CorrectionApprovals $approvals   The approved correction for a grade entry.
+	 * @param CorrectionApprovalsInterface $approvals   The approved correction for a grade entry.
 	 * @param IUserSession        $userSession The session whose user publishes.
 	 * @param LoggerInterface     $logger      PSR logger.
 	 */
 	public function __construct(
-		private readonly CorrectionApprovals $approvals,
+		private readonly CorrectionApprovalsInterface $approvals,
 		private readonly IUserSession $userSession,
 		private readonly LoggerInterface $logger,
 	) {

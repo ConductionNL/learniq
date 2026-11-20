@@ -30,13 +30,14 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\CourseStore;
 
+use OCA\Learniq\Kernel\Contracts\CourseStoreInstallerInterface;
 use OCA\Learniq\Service\CallerTenantResolver;
 use OCA\Learniq\Service\CoursePackageImportService;
 
 /**
  * Registry object in, imported copy and report out.
  */
-class CourseStoreInstaller {
+class CourseStoreInstaller implements CourseStoreInstallerInterface {
 
 	/**
 	 * Import outcome => store page component status.

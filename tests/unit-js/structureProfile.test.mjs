@@ -369,8 +369,11 @@ const KNOWN_UNLINKED = {
 		'BookConferenceSlotsMenu',
 		'CheckInMenu',
 		'ConferenceScheduleBoardMenu',
+		'CourseDaysMenu',
+		'CourseParticipantsMenu',
 		'DossierNotesMenu',
 		'ExamAccommodationsMenu',
+		'ExamRegistrationsMenu',
 		'FirstAidIncidentsMenu',
 		'GradeCorrectionsMenu',
 		'GroupPlans',
@@ -379,6 +382,8 @@ const KNOWN_UNLINKED = {
 		'MyElectivesMenu',
 		'MyEvaluationsMenu',
 		'MyWorkGroupsMenu',
+		'PermissionRequestsMenu',
+		'ProctoringReviewMenu',
 		'RegulationExemptionsMenu',
 		'SchoolAdviezenMenu',
 		'SchoolEventsMenu',
@@ -396,6 +401,7 @@ const KNOWN_UNLINKED = {
 		'AbsenceReportsComplianceMenu',
 		'DashboardAdmin',
 		'DashboardStudent',
+		'ProctoringReviewComplianceMenu',
 	],
 	hr: [...CONCERN, 'DashboardAdmin', 'DashboardStudent'],
 	'administration-manager': [
@@ -404,13 +410,17 @@ const KNOWN_UNLINKED = {
 		...TEACHING,
 		'AdmissionsReviewBoardMenu',
 		'ConferenceScheduleBoardMenu',
+		'CourseDaysMenu',
+		'CourseParticipantsMenu',
 		'DossierReviewsMenu',
 		'ExamAccommodationsMenu',
+		'ExamRegistrationsMenu',
 		'ExchangeJobsMenu',
 		'ExchangeRejectionsMenu',
 		'GradeCorrectionsMenu',
 		'GroupPlans',
 		'ImportExportToolsMenu',
+		'PermissionRequestsMenu',
 		'SchoolAdviezenMenu',
 		'SchoolEventsMenu',
 		'StandbyPlanningMenu',
@@ -427,6 +437,7 @@ const KNOWN_UNLINKED = {
 		'DashboardStudent',
 		'DashboardTeacher',
 		'GradeCorrectionsMenu',
+		'PermissionRequestsMenu',
 		'SchoolEventsMenu',
 	],
 	coordinator: [
@@ -434,10 +445,14 @@ const KNOWN_UNLINKED = {
 		...PLANNING,
 		'AdmissionsReviewBoardMenu',
 		'CatalogueMenu',
+		'CourseDaysMenu',
+		'CourseParticipantsMenu',
 		'ExamAccommodationsMenu',
+		'ExamRegistrationsMenu',
 		'GroupPeople',
 		'HourPlanActivitiesMenu',
 		'MyLearningRecordMenu',
+		'PermissionRequestsMenu',
 		'SchoolAdviezenMenu',
 		'SchoolEventsMenu',
 		'StandbyPlanningMenu',
@@ -453,6 +468,8 @@ const KNOWN_UNLINKED = {
 		'GroupPeople',
 		'HourPlanActivitiesMenu',
 		'MyLearningRecordMenu',
+		'PermissionRequestsMenu',
+		'ProctoringReviewMenu',
 		'SubjectChoicesMenu',
 		'TeacherAvailabilitiesMenu',
 		'TimetablesMenu',
@@ -608,17 +625,37 @@ test('the full profile is exactly the plain manifest build', () => {
 	const entries = flat(plain.menu)
 	const count = (section) =>
 		entries.filter((item) => sectionOf(item) === section).length
-	assert.equal(entries.length, 109)
-	assert.equal(plain.menu.length, 26)
+	// 111 since proctoring-flag-review-page added the Proctoring review entry
+	// under Learning and its twin under Compliance; 112 with Course days
+	// (training-provider-course-days); 113 since permission-slips added the
+	// Permission slips entry at the top level, beside the School calendar;
+	// 114 with Leave to decide under People (leave-requests-decided-by-the-school);
+	// 115 with Participants (training-provider-course-days T7); 116 since
+	// ai-disclosure-for-every-user added the AI processing disclosure to the
+	// footer for every signed-in user (footer 2 -> 3).
+	// 117 with Exam registrations (exam-registration-and-certificate-issue).
+	assert.equal(entries.length, 117)
+	// 28 top-level items: the AI disclosure is one of them.
+	assert.equal(plain.menu.length, 28)
+	// 106 in main: Course days, Permission slips, Leave to decide and
+	// Participants each added one.
 	assert.deepEqual(
 		[count('main'), count('footer'), count('settings')],
-		[100, 2, 7],
+		[107, 3, 7],
 	)
 	// 347 since the four unreached pages (BulkEnrol, CohortTimetable,
 	// MarkAttendanceView, SubmitExcuseModal) became actions; 348 with
 	// SignUpRequests (Aanmeldverzoeken); 349 with MyGrades (LqLlCijfers); 348 once
-	// MyGrades became the learner lens of GradeEntries.
-	assert.equal(plain.pages.length, 348)
+	// MyGrades became the learner lens of GradeEntries; 349 with
+	// AttendanceNearingLimit (attendance-warns-before-the-threshold); 350 with
+	// CourseDays (training-provider-course-days); 352 with the permission-slips
+	// list and detail; 353 with GroupPupils (learner-list-and-page-follow-the-boards, LqLijst);
+	// 355 with LeaveRequests and LeaveRequestDetail (leave-requests-decided-by-the-school);
+	// 356 with company visits (bpv-coach-today-and-placement-board; its placement
+	// board is a view mode of BpvPlacements, not a page); 358 with
+	// CourseParticipants and CourseParticipantDetail (training-provider-course-days T7).
+	// One more with ExamRegistrations (exam-registration-and-certificate-issue).
+	assert.equal(plain.pages.length, 360)
 })
 
 test('menu-layout.json holds no profile key, so the full profile cannot gain an overlay', () => {
@@ -1671,7 +1708,8 @@ test('the two lists on Today open what they show', () => {
 	const lists = TEACHER.widgets.filter(
 		(widget) => widget.type === 'object-table',
 	)
-	assert.equal(lists.length, 2)
+	// Three since attendance-warns-before-the-threshold added Nearly 16 hours.
+	assert.equal(lists.length, 3)
 	for (const list of lists) {
 		const { source, columns, rowRoute, viewAllRoute } = list.content
 		const schema = schemaOf(source.schema)
@@ -1684,10 +1722,13 @@ test('the two lists on Today open what they show', () => {
 				`${list.id}: no field ${field}`,
 			)
 		}
-		const detail = pageOf(rowRoute)
-		assert.equal(detail.type, 'detail', list.id)
-		assert.ok(detail.route.endsWith('/:id'), list.id)
-		assert.equal(schemaOf(detail.config.schema).slug, schema.slug, list.id)
+		// A read model with nothing beyond its list (the summary) opens no row.
+		if (rowRoute !== undefined) {
+			const detail = pageOf(rowRoute)
+			assert.equal(detail.type, 'detail', list.id)
+			assert.ok(detail.route.endsWith('/:id'), list.id)
+			assert.equal(schemaOf(detail.config.schema).slug, schema.slug, list.id)
+		}
 		const index = pageOf(viewAllRoute.name)
 		assert.equal(index.type, 'index', list.id)
 		assert.ok(!index.route.includes(':'), list.id)

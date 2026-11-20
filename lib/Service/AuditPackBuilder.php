@@ -36,6 +36,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\AuditPackBuilderInterface;
 use OCA\OpenRegister\Service\AuditHashService;
 use OCP\IUser;
 
@@ -55,7 +56,7 @@ use OCP\IUser;
  *
  * @spec openspec/specs/avg-verwerkingsregister/spec.md
  */
-class AuditPackBuilder {
+class AuditPackBuilder implements AuditPackBuilderInterface {
 	/**
 	 * Constructor.
 	 *
@@ -66,6 +67,7 @@ class AuditPackBuilder {
 	 * @param VerwerkingsregisterCsvBuilder $registerCsv AVG Art. 30 register artefact builder.
 	 * @param ExternalTrainingCsvBuilder $trainingCsv External-training evidence artefact builder.
 	 * @param AuditEntryAttribution $attribution Keeps the entries whose object is in the caller's tenant.
+	 * @param FrozenAttestationLines $attestations Lists the signed and revoked attestations as frozen.
 	 */
 	public function __construct(
 		private readonly AuditPeriodReader $period,
@@ -75,6 +77,7 @@ class AuditPackBuilder {
 		private readonly VerwerkingsregisterCsvBuilder $registerCsv,
 		private readonly ExternalTrainingCsvBuilder $trainingCsv,
 		private readonly AuditEntryAttribution $attribution,
+		private readonly FrozenAttestationLines $attestations,
 	) {
 
 	}//end __construct()
@@ -238,7 +241,13 @@ class AuditPackBuilder {
 			'audit-trail.ndjson' => $this->buildNdjson(events: $content->events),
 			'audit-trail.csv' => $this->buildCsv(events: $content->events),
 			'manifest.json' => $content->manifestJson(scope: $scope),
-			'signature-verification.txt' => $this->buildVerificationTxt(verification: $content->verification),
+			'signature-verification.txt' => $this->buildVerificationTxt(
+				verification: $content->verification,
+				attestationLines: $this->attestations->lines(
+					regulationSlug: $scope->regulationSlug,
+					tenantId: $scope->tenantId,
+				),
+			),
 			'verwerkingsregister.csv' => $this->registerCsv->build(
 				dateFrom: $scope->dateFrom,
 				dateTo: $scope->dateTo,
@@ -319,13 +328,15 @@ class AuditPackBuilder {
 	/**
 	 * Build the signature-verification.txt content from OR's chain verification result.
 	 *
-	 * @param array<string,mixed> $verification OR AuditHashService::verifyChain() response.
+	 * @param array<string,mixed> $verification     OR AuditHashService::verifyChain() response.
+	 * @param array<int,string>   $attestationLines The signed and revoked attestations, one line each.
 	 *
 	 * @return string Plain-text verification report.
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-2
+	 * @spec openspec/specs/compliance-audit/spec.md#requirement-the-audit-pack-states-the-freeze
 	 */
-	private function buildVerificationTxt(array $verification): string {
+	private function buildVerificationTxt(array $verification, array $attestationLines): string {
 		$valid = ($verification['valid'] ?? false) === true;
 		$status = 'broken';
 		if ($valid === true) {
@@ -349,6 +360,15 @@ class AuditPackBuilder {
 
 		if ($brokenAt === null) {
 			$lines[] = 'All HMAC signatures verified. Evidence log is intact.';
+		}
+
+		$lines[] = '';
+		$lines[] = 'Signed attestations: ' . count($attestationLines);
+		if (empty($attestationLines) === false) {
+			$lines[] = 'The evidence fields of a signed or revoked attestation cannot be changed after signing.';
+			foreach ($attestationLines as $attestationLine) {
+				$lines[] = $attestationLine;
+			}
 		}
 
 		$lines[] = '';

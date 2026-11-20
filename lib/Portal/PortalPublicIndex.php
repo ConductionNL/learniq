@@ -7,9 +7,9 @@
  * (portal-public-index, portaliq `portal-public-catalogue`): the courses it
  * offers (training courses, or courses open to sign up) with their next dates
  * and place, its programmes, and the days on its calendar for the whole
- * school. Only published courses and programmes, only runs still to come and
- * only school-wide days; never a person, a group's own day or anything a
- * learner did.
+ * school, and the test weeks the school marked public. Only published courses
+ * and programmes, only runs still to come and only school-wide days; never a
+ * person, a group's own day or anything a learner did.
  *
  * Portaliq asks through `PortalContributionProvider::getPublicIndex()` with
  * the portal's slug. On an instance that carries several example sets, an
@@ -95,7 +95,8 @@ class PortalPublicIndex {
 		return array_merge(
 			(new PublicCourseIndex(reads: $reads, courseHref: $this->courseHrefOf(portal: $portal)))->items(namespace: $namespace, today: $day),
 			(new PublicProgrammeIndex(reads: $reads))->items(namespace: $namespace),
-			(new PublicEventIndex(reads: $reads))->items(namespace: $namespace, today: $day)
+			(new PublicEventIndex(reads: $reads))->items(namespace: $namespace, today: $day),
+			(new PublicTestScheduleIndex(reads: $reads))->items(namespace: $namespace, today: $day)
 		);
 	}//end forPortal()
 

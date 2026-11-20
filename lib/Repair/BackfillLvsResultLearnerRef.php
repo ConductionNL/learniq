@@ -21,8 +21,11 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Repair;
 
+use OCA\Learniq\Kernel\Contracts\LearnerRefResolverInterface;
+use OCA\Learniq\Repair\Support\MissingLearnerRef;
 use OCA\Learniq\Repair\Support\RepairRowWalk;
-use OCA\Learniq\Service\LearnerRefResolver;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Migration\IOutput;
 use OCP\Migration\IRepairStep;
@@ -61,14 +64,14 @@ class BackfillLvsResultLearnerRef implements IRepairStep {
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OpenRegister object access.
-	 * @param LearnerRefResolver $learnerRefs Nextcloud user id to LearnerProfile UUID.
+	 * @param LearnerRefResolverInterface $learnerRefs Nextcloud user id to LearnerProfile UUID.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly LearnerRefResolver $learnerRefs,
+		private readonly LearnerRefResolverInterface $learnerRefs,
 		private readonly LoggerInterface $logger,
 	) {
 		$this->rows = new RepairRowWalk(objectService: $objectService, logger: $logger, label: 'BackfillLvsResultLearnerRef');
@@ -136,9 +139,10 @@ class BackfillLvsResultLearnerRef implements IRepairStep {
 
 			$this->objectService->saveObject(
 				object: array_merge($row, ['learnerRef' => $cache[$key]]),
-				register: self::LEARNIQ_REGISTER,
-				schema: self::LVS_SCHEMA,
-				uuid: $uuid,
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::LVS_SCHEMA),
+					uuid: $uuid
+				),
 				_rbac: false,
 				_multitenancy: false
 			);
@@ -178,17 +182,12 @@ class BackfillLvsResultLearnerRef implements IRepairStep {
 	 * @return array{0: string, 1: string, 2: string}|null
 	 */
 	private function candidate(array $row): ?array {
-		$existing = ($row['learnerRef'] ?? null);
-		if (is_string($existing) === true && $existing !== '') {
+		$candidate = (new MissingLearnerRef())->inRow(row: $row);
+		if ($candidate === null) {
 			return null;
 		}
 
-		$learnerId = ($row['learnerId'] ?? null);
-		$uuid = ($row['id'] ?? ($row['uuid'] ?? null));
-		if (is_string($learnerId) === false || $learnerId === '' || is_string($uuid) === false || $uuid === '') {
-			return null;
-		}
-
+		[$learnerId, $uuid] = $candidate;
 		$tenantId = ($row['tenant_id'] ?? '');
 		if (is_string($tenantId) === false) {
 			$tenantId = '';

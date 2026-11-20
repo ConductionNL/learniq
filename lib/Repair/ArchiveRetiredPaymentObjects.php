@@ -21,7 +21,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Repair;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Files\AppData\IAppDataFactory;
@@ -352,7 +352,7 @@ class ArchiveRetiredPaymentObjects implements IRepairStep {
 	 * @return \OCP\Files\SimpleFS\ISimpleFolder
 	 */
 	private function folder(): \OCP\Files\SimpleFS\ISimpleFolder {
-		$appData = $this->appDataFactory->get(Application::APP_ID);
+		$appData = $this->appDataFactory->get(AppIdentity::APP_ID);
 		try {
 			return $appData->getFolder(self::FOLDER);
 		} catch (NotFoundException $exception) {

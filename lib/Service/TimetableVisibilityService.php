@@ -39,6 +39,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\TimetableVisibilityServiceInterface;
 use OCP\IGroupManager;
 use OCP\IUserManager;
 
@@ -47,9 +48,7 @@ use OCP\IUserManager;
  *
  * @spec openspec/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
  */
-class TimetableVisibilityService {
-
-	public const KINDS = ['cohort', 'teacher', 'room'];
+class TimetableVisibilityService implements TimetableVisibilityServiceInterface {
 
 	/**
 	 * The policy that applies when a school has not set one.

@@ -38,6 +38,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\PupilGroupTeachersInterface;
 use OCA\Learniq\Support\ObjectRow;
 use OCA\OpenRegister\Service\ObjectService;
 
@@ -46,7 +47,7 @@ use OCA\OpenRegister\Service\ObjectService;
  *
  * @spec openspec/changes/excuse-reports-follow-the-pupils-group/specs/attendance/spec.md#requirement-an-absence-report-is-read-by-the-teachers-of-the-pupils-group-and-by-school-wide-staff
  */
-class PupilGroupTeachers {
+class PupilGroupTeachers implements PupilGroupTeachersInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const COHORT_SCHEMA = 'cohort';

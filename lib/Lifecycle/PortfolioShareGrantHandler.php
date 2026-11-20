@@ -55,9 +55,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
-use OCA\Learniq\Service\ListenerSchemaResolver;
-use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\Learniq\Service\ObjectRowReader;
+use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
@@ -104,7 +104,7 @@ class PortfolioShareGrantHandler implements IEventListener, LifecycleGuardInterf
 	 * @param IManager $shareManager NC share manager for the teacher-kind NC Files share.
 	 * @param IRootFolder $rootFolder NC root folder for resolving attachmentRef paths to Nodes.
 	 * @param LoggerInterface $logger PSR logger.
-	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
@@ -113,7 +113,7 @@ class PortfolioShareGrantHandler implements IEventListener, LifecycleGuardInterf
 		private readonly IManager $shareManager,
 		private readonly IRootFolder $rootFolder,
 		private readonly LoggerInterface $logger,
-		private readonly ListenerSchemaResolver $schemas,
+		private readonly ListenerSchemaResolverInterface $schemas,
 	) {
 	}//end __construct()
 
@@ -362,7 +362,7 @@ class PortfolioShareGrantHandler implements IEventListener, LifecycleGuardInterf
 				continue;
 			}
 
-			if ($this->shareAttachment(ownerId: $ownerId, teacherId: $teacherId, attachmentRef: $attachmentRef) === true) {
+			if ($this->shareAttachment(attachmentRef: $attachmentRef, parties: ['ownerId' => $ownerId, 'teacherId' => $teacherId]) === true) {
 				$shared++;
 			}
 		}//end foreach
@@ -404,15 +404,17 @@ class PortfolioShareGrantHandler implements IEventListener, LifecycleGuardInterf
 	 * attachmentRef (already-deleted file, foreign OR attachment id shape) is
 	 * logged and skipped rather than failing the whole grant.
 	 *
-	 * @param string $ownerId NC uid of the file owner (the portfolio's own learner).
-	 * @param string $teacherId NC uid of the recipient.
-	 * @param string $attachmentRef nc:files path (relative to the owner's home) or OR attachment id.
+	 * @param array{ownerId: string, teacherId: string} $parties       NC uids of the file owner (the portfolio's own
+	 *                                                                learner) and of the recipient.
+	 * @param string                                     $attachmentRef nc:files path (relative to the owner's home) or OR attachment id.
 	 *
 	 * @return bool True when a share was created (or already existed for this recipient).
 	 *
 	 * @spec openspec/specs/eportfolio/spec.md#scenario-granting-a-teacher-share-creates-a-native-nc-files-share
 	 */
-	private function shareAttachment(string $ownerId, string $teacherId, string $attachmentRef): bool {
+	private function shareAttachment(array $parties, string $attachmentRef): bool {
+		$ownerId = $parties['ownerId'];
+		$teacherId = $parties['teacherId'];
 		try {
 			$userFolder = $this->rootFolder->getUserFolder($ownerId);
 			$node = $userFolder->get($attachmentRef);

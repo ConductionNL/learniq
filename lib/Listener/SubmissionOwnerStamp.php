@@ -39,13 +39,14 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\ListenerSchemaResolver;
-use OCA\Learniq\Service\LearnerRefResolver;
-use OCA\Learniq\Service\Portal\PortalWriteSubject;
+use OCA\Learniq\Kernel\Contracts\LearnerRefResolverInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Kernel\Contracts\PortalWriteSubjectInterface;
 use OCA\Learniq\Support\FindOrNull;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -80,20 +81,20 @@ class SubmissionOwnerStamp implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param ListenerSchemaResolver $schemaResolver Entity schema id to slug.
-	 * @param LearnerRefResolver $profiles LearnerProfile by uuid, uuid by user.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Entity schema id to slug.
+	 * @param LearnerRefResolverInterface $profiles LearnerProfile by uuid, uuid by user.
 	 * @param ObjectService $objectService OpenRegister object access (the Assignment).
 	 * @param LoggerInterface $logger PSR logger.
-	 * @param PortalWriteSubject $writers Whether the portal's own subject is writing.
+	 * @param PortalWriteSubjectInterface $writers Whether the portal's own subject is writing.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ListenerSchemaResolver $schemaResolver,
-		private readonly LearnerRefResolver $profiles,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
+		private readonly LearnerRefResolverInterface $profiles,
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
-		private readonly PortalWriteSubject $writers,
+		private readonly PortalWriteSubjectInterface $writers,
 	) {
 	}//end __construct()
 
@@ -290,7 +291,12 @@ class SubmissionOwnerStamp implements IEventListener {
 		}
 
 		$find = fn () => $this->objectService
-			->find(id: $id, register: self::LEARNIQ_REGISTER, schema: self::ASSIGNMENT_SCHEMA, _rbac: false, _multitenancy: false);
+			->find(
+				id: $id,
+				options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::ASSIGNMENT_SCHEMA),
+				_rbac: false,
+				_multitenancy: false
+			);
 		return $this->findOrNull(find: $find)?->jsonSerialize();
 	}//end assignment()
 

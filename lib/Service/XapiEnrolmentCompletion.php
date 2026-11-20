@@ -28,6 +28,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\XapiEnrolmentCompletionInterface;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
@@ -40,17 +41,7 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/specs/progress-tracking/spec.md#requirement-the-follow-up-of-an-xapi-statement-runs-outside-the-save-that-records-it
  */
-class XapiEnrolmentCompletion {
-
-	/**
-	 * XAPI verb IRIs that indicate successful completion, for every xAPI listener.
-	 *
-	 * @var array<int, string>
-	 */
-	public const COMPLETION_VERBS = [
-		'http://adlnet.gov/expapi/verbs/completed',
-		'http://adlnet.gov/expapi/verbs/passed',
-	];
+class XapiEnrolmentCompletion implements XapiEnrolmentCompletionInterface {
 
 	/**
 	 * OR register slug for Learniq objects.
@@ -123,8 +114,10 @@ class XapiEnrolmentCompletion {
 
 		return $this->resolveActiveEnrolmentId(
 			learnerId: $learnerId,
-			courseId: $lesson['courseId'],
-			tenantId: (string)($statement['tenant_id'] ?? '')
+			args: [
+				'courseId' => $lesson['courseId'],
+				'tenantId' => (string)($statement['tenant_id'] ?? ''),
+			]
 		);
 	}//end resolveEnrolmentToComplete()
 
@@ -211,7 +204,7 @@ class XapiEnrolmentCompletion {
 	private function resolveFinalMandatoryLesson(array $payload, string $tenantId): ?array {
 		$lesson = $this->resolveMandatoryLesson(payload: $payload, tenantId: $tenantId);
 		if ($lesson === null
-			|| $this->isFinalPublishedLesson(lesson: $lesson, courseId: $lesson['courseId'], tenantId: $tenantId) === false
+			|| $this->isFinalPublishedLesson(lesson: $lesson, args: ['courseId' => $lesson['courseId'], 'tenantId' => $tenantId]) === false
 		) {
 			return null;
 		}
@@ -307,14 +300,16 @@ class XapiEnrolmentCompletion {
 	 * true final lesson.
 	 *
 	 * @param array<string,mixed> $lesson The completed Lesson.
-	 * @param mixed $courseId The Lesson's course id.
-	 * @param string $tenantId Tenant UUID, or '' when unknown.
+	 * @param array{courseId: mixed, tenantId: string} $args The courseId, tenantId.
 	 *
 	 * @return bool True when this Lesson is the course's final published lesson.
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-19
 	 */
-	private function isFinalPublishedLesson(array $lesson, mixed $courseId, string $tenantId): bool {
+	private function isFinalPublishedLesson(array $lesson, array $args): bool {
+		$courseId = $args['courseId'];
+		$tenantId = $args['tenantId'];
+
 		$publishedLessons = $this->objectService->findAll(
 			[
 				'filters' => $this->tenantScoped(
@@ -361,14 +356,16 @@ class XapiEnrolmentCompletion {
 	 * learner's enrolment.
 	 *
 	 * @param mixed $learnerId Server-trusted learner identity.
-	 * @param mixed $courseId The course being completed.
-	 * @param string $tenantId Tenant UUID, or '' when unknown.
+	 * @param array{courseId: mixed, tenantId: string} $args The courseId, tenantId.
 	 *
 	 * @return string|null The Enrolment UUID, or null when there is nothing to complete.
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-19
 	 */
-	private function resolveActiveEnrolmentId(mixed $learnerId, mixed $courseId, string $tenantId): ?string {
+	private function resolveActiveEnrolmentId(mixed $learnerId, array $args): ?string {
+		$courseId = $args['courseId'];
+		$tenantId = $args['tenantId'];
+
 		$enrolments = $this->objectService->findAll(
 			[
 				'filters' => $this->tenantScoped(

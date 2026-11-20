@@ -21,8 +21,10 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Repair;
 
+use OCA\Learniq\Kernel\Contracts\PupilGroupTeachersInterface;
 use OCA\Learniq\Repair\Support\RepairRowWalk;
-use OCA\Learniq\Service\PupilGroupTeachers;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Migration\IOutput;
 use OCP\Migration\IRepairStep;
@@ -58,14 +60,14 @@ class BackfillExcuseRequestTeachers implements IRepairStep {
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OpenRegister object access.
-	 * @param PupilGroupTeachers $groupTeachers The teachers of a pupil's current groups.
+	 * @param PupilGroupTeachersInterface $groupTeachers The teachers of a pupil's current groups.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly PupilGroupTeachers $groupTeachers,
+		private readonly PupilGroupTeachersInterface $groupTeachers,
 		private readonly LoggerInterface $logger,
 	) {
 		$this->rows = new RepairRowWalk(objectService: $objectService, logger: $logger, label: 'BackfillExcuseRequestTeachers');
@@ -141,9 +143,10 @@ class BackfillExcuseRequestTeachers implements IRepairStep {
 
 			$this->objectService->saveObject(
 				object: $object,
-				register: self::LEARNIQ_REGISTER,
-				schema: self::EXCUSE_SCHEMA,
-				uuid: $uuid,
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::EXCUSE_SCHEMA),
+					uuid: $uuid
+				),
 				_rbac: false,
 				_multitenancy: false
 			);

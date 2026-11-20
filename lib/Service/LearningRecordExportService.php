@@ -47,6 +47,7 @@ namespace OCA\Learniq\Service;
 use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
+use OCA\Learniq\Kernel\Contracts\LearningRecordExportServiceInterface;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
@@ -58,7 +59,7 @@ use RuntimeException;
  *
  * @spec openspec/changes/archive/2026-07-16-portable-learning-record/tasks.md#task-2-3
  */
-class LearningRecordExportService implements LifecycleGuardInterface {
+class LearningRecordExportService implements LifecycleGuardInterface, LearningRecordExportServiceInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 

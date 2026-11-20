@@ -21,7 +21,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Repair;
 
-use OCA\Learniq\Service\ReportCardGradeLines;
+use OCA\Learniq\Kernel\Contracts\ReportCardGradeLinesInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Migration\IOutput;
 use OCP\Migration\IRepairStep;
@@ -69,14 +71,14 @@ class BackfillReportCardGradeLines implements IRepairStep {
 	 * Constructor.
 	 *
 	 * @param ObjectService        $objectService OpenRegister object access.
-	 * @param ReportCardGradeLines $gradeLines    Derives the readable copies.
+	 * @param ReportCardGradeLinesInterface $gradeLines    Derives the readable copies.
 	 * @param LoggerInterface      $logger        PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly ReportCardGradeLines $gradeLines,
+		private readonly ReportCardGradeLinesInterface $gradeLines,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
@@ -270,6 +272,19 @@ class BackfillReportCardGradeLines implements IRepairStep {
 			return null;
 		}
 
+		return $this->writeDerived(row: $row, uuid: $uuid);
+	}//end stampRow()
+
+	/**
+	 * Write the derived period name and grade lines onto the report card unless it
+	 * already carries them.
+	 *
+	 * @param array<string,mixed> $row  The report card as read.
+	 * @param string              $uuid Its uuid.
+	 *
+	 * @return string|null Counter to bump, or null when the row needed nothing.
+	 */
+	private function writeDerived(array $row, string $uuid): ?string {
 		try {
 			$derived = $this->gradeLines->derive(reportCard: $row);
 			if (($row['periodName'] ?? null) === $derived['periodName']
@@ -287,9 +302,10 @@ class BackfillReportCardGradeLines implements IRepairStep {
 
 			$this->objectService->saveObject(
 				object: $object,
-				register: self::LEARNIQ_REGISTER,
-				schema: self::REPORT_CARD_SCHEMA,
-				uuid: $uuid,
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::REPORT_CARD_SCHEMA),
+					uuid: $uuid
+				),
 				_rbac: false,
 				_multitenancy: false
 			);
@@ -303,5 +319,5 @@ class BackfillReportCardGradeLines implements IRepairStep {
 		}//end try
 
 		return 'stamped';
-	}//end stampRow()
+	}//end writeDerived()
 }//end class

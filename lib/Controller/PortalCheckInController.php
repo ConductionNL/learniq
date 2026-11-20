@@ -36,16 +36,16 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Portal\PortalAssertionVerifier;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\CheckInMessagesInterface;
+use OCA\Learniq\Kernel\Contracts\CheckInServiceInterface;
+use OCA\Learniq\Kernel\Contracts\PortalAssertionVerifierInterface;
+use OCA\Learniq\Kernel\Contracts\PortalLearnerResolverInterface;
 use OCA\Learniq\Portal\PortalForwardFailure;
 use OCA\Learniq\Portal\PortalForwardGate;
 use OCA\Learniq\Portal\PortalLearnerForward;
 use OCA\Learniq\Portal\PortalLearnerStep;
-use OCA\Learniq\Service\CheckIn\CheckInMessages;
-use OCA\Learniq\Service\CheckIn\CheckInService;
 use OCA\Learniq\Service\Portal\PortalLearner;
-use OCA\Learniq\Service\Portal\PortalLearnerResolver;
 use OCA\Learniq\Service\Portal\PortalOutcome;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -74,23 +74,23 @@ class PortalCheckInController extends Controller {
 	 * Constructor.
 	 *
 	 * @param IRequest                $request  The request.
-	 * @param PortalAssertionVerifier $verifier Verifies X-Portal-Subject.
-	 * @param PortalLearnerResolver   $learners learnerRef to the pupil.
-	 * @param CheckInService          $checkIns The check-in rules and write.
-	 * @param CheckInMessages         $messages Plain refusal reasons.
+	 * @param PortalAssertionVerifierInterface $verifier Verifies X-Portal-Subject.
+	 * @param PortalLearnerResolverInterface   $learners learnerRef to the pupil.
+	 * @param CheckInServiceInterface          $checkIns The check-in rules and write.
+	 * @param CheckInMessagesInterface         $messages Plain refusal reasons.
 	 * @param LoggerInterface         $logger   PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		IRequest $request,
-		private readonly PortalAssertionVerifier $verifier,
-		private readonly PortalLearnerResolver $learners,
-		private readonly CheckInService $checkIns,
-		private readonly CheckInMessages $messages,
+		private readonly PortalAssertionVerifierInterface $verifier,
+		private readonly PortalLearnerResolverInterface $learners,
+		private readonly CheckInServiceInterface $checkIns,
+		private readonly CheckInMessagesInterface $messages,
 		private readonly LoggerInterface $logger,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**

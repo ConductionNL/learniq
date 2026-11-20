@@ -49,8 +49,10 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -91,7 +93,7 @@ class CohortGroupProvisioningHandler implements IEventListener {
 	 *                                  user ids to an `IUser` (mirrors
 	 *                                  `CohortTalkMembershipHandler::resolveUser()`).
 	 * @param LoggerInterface $logger PSR logger.
-	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
@@ -100,7 +102,7 @@ class CohortGroupProvisioningHandler implements IEventListener {
 		private readonly IGroupManager $groupManager,
 		private readonly IUserManager $userManager,
 		private readonly LoggerInterface $logger,
-		private readonly ListenerSchemaResolver $schemas,
+		private readonly ListenerSchemaResolverInterface $schemas,
 	) {
 	}//end __construct()
 
@@ -189,6 +191,37 @@ class CohortGroupProvisioningHandler implements IEventListener {
 
 		$groupId = self::GROUP_ID_PREFIX . $cohortId;
 
+		$group = $this->provisionedGroup(groupId: $groupId, cohortId: $cohortId);
+		if ($group === null) {
+			return;
+		}
+
+		$memberIds = $this->addMembers(group: $group, cohort: $cohort);
+
+		$cohort['ncGroupId'] = $groupId;
+		$this->objectService->saveObject(
+			object: $cohort,
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::COHORT_SCHEMA))
+		);
+
+		$this->logger->info(
+			'[CohortGroupProvisioningHandler] Provisioned NC group {gid} for Cohort {id} with {n} member(s).',
+			['gid' => $groupId, 'id' => $cohortId, 'n' => count($memberIds)]
+		);
+
+	}//end provisionGroup()
+
+	/**
+	 * The cohort's NC group, created when missing; null (logged) when that failed.
+	 *
+	 * @param string $groupId  The group id to create or reuse.
+	 * @param string $cohortId The cohort, for the log.
+	 *
+	 * @return object|null
+	 *
+	 * @spec openspec/specs/school-structure/spec.md#scenario-activating-an-already-provisioned-cohort-does-not-provision-a-second-group
+	 */
+	private function provisionedGroup(string $groupId, string $cohortId): ?object {
 		try {
 			$group = $this->createOrGetGroup(groupId: $groupId);
 		} catch (Throwable $e) {
@@ -196,7 +229,7 @@ class CohortGroupProvisioningHandler implements IEventListener {
 				'[CohortGroupProvisioningHandler] Failed to create/resolve NC group {gid} for Cohort {id}: {msg}',
 				['gid' => $groupId, 'id' => $cohortId, 'msg' => $e->getMessage()]
 			);
-			return;
+			return null;
 		}
 
 		if ($group === null) {
@@ -204,9 +237,22 @@ class CohortGroupProvisioningHandler implements IEventListener {
 				'[CohortGroupProvisioningHandler] NC group {gid} could not be created for Cohort {id}.',
 				['gid' => $groupId, 'id' => $cohortId]
 			);
-			return;
 		}
 
+		return $group;
+	}//end provisionedGroup()
+
+	/**
+	 * Add the cohort's teachers and learners that resolve to a user to the group.
+	 *
+	 * @param object               $group  The NC group.
+	 * @param array<string, mixed> $cohort The cohort.
+	 *
+	 * @return list<string> Every member id, resolved or not.
+	 *
+	 * @spec openspec/specs/school-structure/spec.md#scenario-activating-an-already-provisioned-cohort-does-not-provision-a-second-group
+	 */
+	private function addMembers(object $group, array $cohort): array {
 		$memberIds = array_values(array_unique(array_merge(
 			$this->stringIds(ids: $cohort['teacherIds'] ?? []),
 			$this->stringIds(ids: $cohort['learnerIds'] ?? [])
@@ -219,19 +265,8 @@ class CohortGroupProvisioningHandler implements IEventListener {
 			}
 		}
 
-		$cohort['ncGroupId'] = $groupId;
-		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::COHORT_SCHEMA,
-			object: $cohort
-		);
-
-		$this->logger->info(
-			'[CohortGroupProvisioningHandler] Provisioned NC group {gid} for Cohort {id} with {n} member(s).',
-			['gid' => $groupId, 'id' => $cohortId, 'n' => count($memberIds)]
-		);
-
-	}//end provisionGroup()
+		return $memberIds;
+	}//end addMembers()
 
 	/**
 	 * Add or remove an Enrolment's learner from its Cohort's Nextcloud group.
@@ -302,6 +337,19 @@ class CohortGroupProvisioningHandler implements IEventListener {
 			return null;
 		}
 
+		return $this->groupById(groupId: $groupId, cohortId: $cohortId);
+	}//end resolveProvisionedGroup()
+
+	/**
+	 * The Nextcloud group with this id, or null when it cannot be resolved or no
+	 * longer exists (both logged).
+	 *
+	 * @param string $groupId  The cohort's Nextcloud group id.
+	 * @param string $cohortId The cohort, for the log.
+	 *
+	 * @return object|null The `IGroup`, or null.
+	 */
+	private function groupById(string $groupId, string $cohortId): ?object {
 		try {
 			$group = $this->groupManager->get($groupId);
 		} catch (Throwable $e) {
@@ -320,8 +368,7 @@ class CohortGroupProvisioningHandler implements IEventListener {
 		}
 
 		return $group;
-
-	}//end resolveProvisionedGroup()
+	}//end groupById()
 
 	/**
 	 * Add or remove a resolved user from a resolved group, and log the result.

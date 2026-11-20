@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Portal;
 
+use OCA\Learniq\Kernel\Contracts\PortalAssertionVerifierInterface;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IRequest;
@@ -44,11 +45,11 @@ final class PortalForwardGate {
 	/**
 	 * Constructor.
 	 *
-	 * @param PortalAssertionVerifier $verifier Verifies X-Portal-Subject.
+	 * @param PortalAssertionVerifierInterface $verifier Verifies X-Portal-Subject.
 	 * @param IRequest                $request  The forwarded request.
 	 */
 	public function __construct(
-		private readonly PortalAssertionVerifier $verifier,
+		private readonly PortalAssertionVerifierInterface $verifier,
 		private readonly IRequest $request,
 	) {
 	}//end __construct()
@@ -65,7 +66,7 @@ final class PortalForwardGate {
 	 * @spec openspec/specs/assessment/spec.md#requirement-portal-test-requests-are-accepted-only-from-portaliqs-signed-forward
 	 */
 	public function admit(string $audience, string $subjectParam): PortalAdmission|JSONResponse {
-		$claims = $this->verifier->verify(jwt: (string)$this->request->getHeader(PortalAssertionVerifier::HEADER));
+		$claims = $this->verifier->verify(jwt: (string)$this->request->getHeader(PortalAssertionVerifierInterface::HEADER));
 		if ($claims === null) {
 			$response = new JSONResponse(data: ['error' => 'unauthorized'], statusCode: Http::STATUS_UNAUTHORIZED);
 			$response->throttle(['action' => self::THROTTLE_ACTION]);

@@ -32,11 +32,13 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\CallerTenantResolverInterface;
+use OCA\Learniq\Kernel\Contracts\RolloverServiceInterface;
 use OCA\Learniq\Service\ActionAuthService;
-use OCA\Learniq\Service\CallerTenantResolver;
-use OCA\Learniq\Service\RolloverService;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
+use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
@@ -57,19 +59,19 @@ class RolloverController extends Controller {
 	 * @param IRequest $request HTTP request.
 	 * @param IUserSession $userSession Current user session.
 	 * @param ActionAuthService $actionAuth ADR-023 action authorization.
-	 * @param RolloverService $rolloverService Rollover logic.
+	 * @param RolloverServiceInterface $rolloverService Rollover logic.
 	 * @param ObjectService $objectService OR object query/persistence.
-	 * @param CallerTenantResolver $callerTenant Resolves the caller's tenant.
+	 * @param CallerTenantResolverInterface $callerTenant Resolves the caller's tenant.
 	 */
 	public function __construct(
 		IRequest $request,
 		private readonly IUserSession $userSession,
 		private readonly ActionAuthService $actionAuth,
-		private readonly RolloverService $rolloverService,
+		private readonly RolloverServiceInterface $rolloverService,
 		private readonly ObjectService $objectService,
-		private readonly CallerTenantResolver $callerTenant,
+		private readonly CallerTenantResolverInterface $callerTenant,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -237,7 +239,10 @@ class RolloverController extends Controller {
 
 		// A plan deleted between the read above and this save reads as absent.
 		try {
-			$this->objectService->saveObject(register: 'learniq', schema: 'rollover-plan', object: $plan);
+			$this->objectService->saveObject(
+				object: $plan,
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: 'learniq', schema: 'rollover-plan'))
+			);
 		} catch (DoesNotExistException $e) {
 			return new JSONResponse(data: ['error' => 'Plan not found'], statusCode: Http::STATUS_NOT_FOUND);
 		}

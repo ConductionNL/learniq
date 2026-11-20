@@ -24,8 +24,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Service\SeedProfileService;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\SeedProfileServiceInterface;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
 use Psr\Log\LoggerInterface;
@@ -57,11 +57,11 @@ final class ExampleSetLoader {
 	/**
 	 * Constructor.
 	 *
-	 * @param SeedProfileService $seedProfiles Imports and removes the example sets.
+	 * @param SeedProfileServiceInterface $seedProfiles Imports and removes the example sets.
 	 * @param LoggerInterface    $logger       Records a failed import or removal.
 	 */
 	public function __construct(
-		private readonly SeedProfileService $seedProfiles,
+		private readonly SeedProfileServiceInterface $seedProfiles,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
@@ -96,7 +96,7 @@ final class ExampleSetLoader {
 	private function importFailed(string $picked, \Throwable $error): JSONResponse {
 		$this->logger->error(
 			'Setup load-example-set failed for "' . $picked . '": ' . $error->getMessage(),
-			['app' => Application::APP_ID, 'exception' => $error]
+			['app' => AppIdentity::APP_ID, 'exception' => $error]
 		);
 
 		return new JSONResponse(
@@ -163,7 +163,7 @@ final class ExampleSetLoader {
 	 * @spec openspec/specs/example-sets/spec.md#requirement-an-administrator-removes-a-loaded-example-set-on-the-admin-page
 	 */
 	public function remove(string $picked): ExampleSetAnswer {
-		if ($picked === '' || $picked === SeedProfileService::NONE_PROFILE) {
+		if ($picked === '' || $picked === SeedProfileServiceInterface::NONE_PROFILE) {
 			return $this->unrecorded(
 				response: new JSONResponse(data: ['success' => true, 'message' => 'No example data was loaded, so there is nothing to remove.'])
 			);
@@ -189,7 +189,7 @@ final class ExampleSetLoader {
 	private function removalFailed(string $picked, \Throwable $error): JSONResponse {
 		$this->logger->error(
 			'Setup remove-example-set failed for "' . $picked . '": ' . $error->getMessage(),
-			['app' => Application::APP_ID, 'exception' => $error]
+			['app' => AppIdentity::APP_ID, 'exception' => $error]
 		);
 
 		return new JSONResponse(
@@ -287,7 +287,7 @@ final class ExampleSetLoader {
 	 * @return string The advice, naming the command where one exists.
 	 */
 	private function fallbackMessage(string $profileId): string {
-		if ($profileId === SeedProfileService::GENERATED_PROFILE) {
+		if ($profileId === SeedProfileServiceInterface::GENERATED_PROFILE) {
 			return 'This OpenRegister cannot remove the generated example data from here. Update OpenRegister and run this step again.';
 		}
 

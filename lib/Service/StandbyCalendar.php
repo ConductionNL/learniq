@@ -30,6 +30,7 @@ namespace OCA\Learniq\Service;
 use DateInterval;
 use DatePeriod;
 use DateTimeImmutable;
+use OCA\Learniq\Kernel\Contracts\StandbyCalendarInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use Throwable;
 
@@ -38,7 +39,7 @@ use Throwable;
  *
  * @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-plans-standby-hours
  */
-class StandbyCalendar {
+class StandbyCalendar implements StandbyCalendarInterface {
 
 	private const WEEKDAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 

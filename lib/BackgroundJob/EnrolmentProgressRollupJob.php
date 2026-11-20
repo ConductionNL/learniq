@@ -20,7 +20,10 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\BackgroundJob;
 
-use OCA\Learniq\Service\EnrolmentProgressEvaluator;
+use OCA\Learniq\Kernel\Contracts\EnrolmentProgressEvaluatorInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\Deferral\DeferredListenerContext;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
@@ -66,13 +69,13 @@ class EnrolmentProgressRollupJob extends ForwardedJob {
 	 * @param ActorForwarding $forwarding Clock, session, user manager and tenant context.
 	 * @param LoggerInterface            $logger        Logger; the base declares it protected.
 	 * @param ObjectService              $objectService OR object access.
-	 * @param EnrolmentProgressEvaluator $evaluator     progressPercent calculation engine.
+	 * @param EnrolmentProgressEvaluatorInterface $evaluator     progressPercent calculation engine.
 	 */
 	public function __construct(
 		ActorForwarding $forwarding,
 		LoggerInterface $logger,
 		private readonly ObjectService $objectService,
-		private readonly EnrolmentProgressEvaluator $evaluator,
+		private readonly EnrolmentProgressEvaluatorInterface $evaluator,
 	) {
 		parent::__construct(forwarding: $forwarding, logger: $logger);
 	}//end __construct()
@@ -116,9 +119,8 @@ class EnrolmentProgressRollupJob extends ForwardedJob {
 				$result = $this->evaluator->evaluate(learnerId: $learnerId, courseId: $courseId, enrolment: $enrolment);
 
 				$this->objectService->saveObject(
-					register: self::LEARNIQ_REGISTER,
-					schema: self::ENROLMENT_SCHEMA,
-					object: array_merge($enrolment, ['progressPercent' => $result['progressPercent']])
+					object: array_merge($enrolment, ['progressPercent' => $result['progressPercent']]),
+					options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::ENROLMENT_SCHEMA))
 				);
 			} catch (\Throwable $e) {
 				$this->logger->warning(
@@ -151,7 +153,10 @@ class EnrolmentProgressRollupJob extends ForwardedJob {
 	private function resolveEnrolment(string $learnerId, string $courseId, string $enrolmentId): ?array {
 		if ($enrolmentId !== '') {
 			try {
-				$named = $this->objectService->find(id: $enrolmentId, register: self::LEARNIQ_REGISTER, schema: self::ENROLMENT_SCHEMA);
+				$named = $this->objectService->find(
+					id: $enrolmentId,
+					options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::ENROLMENT_SCHEMA)
+				);
 			} catch (\Throwable $e) {
 				$named = null;
 			}

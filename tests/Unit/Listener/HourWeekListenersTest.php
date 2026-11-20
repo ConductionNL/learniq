@@ -30,7 +30,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
-use OCA\Learniq\AppInfo\Registrar\IntegrityListenerRegistrar;
+use OCA\Learniq\Listener\Registrar\IntegrityListenerRegistrar;
 use OCA\Learniq\Listener\HourWeekSubmissionStamp;
 use OCA\Learniq\Listener\HourWeekTotalRollup;
 use OCA\Learniq\Service\ListenerSchemaResolver;
@@ -45,6 +45,7 @@ use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use RuntimeException;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Tests for the two listeners internship-hours adds.
@@ -114,7 +115,7 @@ class HourWeekListenersTest extends TestCase {
 			}
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			fn (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null): object => $this->store->save((string)$schema, $object, ($uuid ?? (string)($object['id'] ?? '')))
+			fn (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()): object => $this->store->save((string)($options->target->schema), $object, (($options->uuid) ?? (string)($object['id'] ?? '')))
 		);
 
 		return $objectService;
@@ -220,6 +221,51 @@ class HourWeekListenersTest extends TestCase {
 			'submittedAt must be the date-time the schema declares'
 		);
 	}//end testThePupilsWeekLearnsWhoWhenAndWhichSchool()
+
+	/**
+	 * A week written as days gets its hours from them: each day's hours from
+	 * its times, the week's from their sum, whatever number was sent.
+	 *
+	 * @return void
+	 */
+	public function testAWeekOfDaysIsTheSumOfItsDays(): void {
+		$event = $this->pupilCreate(
+			extra: [
+				'isoWeek' => '2026-W41',
+				'hoursSubmitted' => 40,
+				'days' => [
+					['date' => '2026-10-06', 'startTime' => '08:00', 'endTime' => '12:00', 'breakMinutes' => 0],
+					['date' => '2026-10-05', 'startTime' => '08:00', 'endTime' => '16:30', 'breakMinutes' => 30, 'hours' => 12],
+				],
+			]
+		);
+		$this->stamp()->handle($event);
+
+		self::assertFalse($event->isPropagationStopped());
+		$stamped = $event->getModifiedData();
+		self::assertSame(12.0, $stamped['hoursSubmitted']);
+		self::assertSame(['2026-10-05', '2026-10-06'], array_column($stamped['days'], 'date'));
+		self::assertSame([8.0, 4.0], array_column($stamped['days'], 'hours'));
+	}//end testAWeekOfDaysIsTheSumOfItsDays()
+
+	/**
+	 * A day outside the week, and a week with neither hours nor days, are
+	 * refused in words before anything is stored.
+	 *
+	 * @return void
+	 */
+	public function testAWrongDayOrNoHoursAtAllIsRefused(): void {
+		$outside = $this->pupilCreate(extra: ['days' => [['date' => '2026-10-05', 'startTime' => '08:00', 'endTime' => '16:00']]]);
+		$this->stamp()->handle($outside);
+		self::assertTrue($outside->isPropagationStopped());
+		self::assertSame('hour-day-outside-week', $outside->getErrors()['reason']);
+		self::assertSame('Each day of these hours must be a date inside the week.', $outside->getErrors()['message']);
+
+		$nothing = $this->pupilCreate(extra: ['hoursSubmitted' => null, 'days' => []]);
+		$this->stamp()->handle($nothing);
+		self::assertTrue($nothing->isPropagationStopped());
+		self::assertSame('hour-week-hours-missing', $nothing->getErrors()['reason']);
+	}//end testAWrongDayOrNoHoursAtAllIsRefused()
 
 	/**
 	 * A learner sent in the body never decides whose week it is: the placement
@@ -403,7 +449,11 @@ class HourWeekListenersTest extends TestCase {
 			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $this->store->findAll($config, $_rbac, $_multitenancy)
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null) use (&$writes): object {
+			function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) use (&$writes): object {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
+				$uuid = $options->uuid;
 				$writes++;
 				return $this->store->save((string)$schema, $object, ($uuid ?? (string)($object['id'] ?? '')));
 			}
@@ -580,7 +630,11 @@ class HourWeekListenersTest extends TestCase {
 			}
 		);
 		$service->method('saveObject')->willReturnCallback(
-			function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null) use (&$writes): object {
+			function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) use (&$writes): object {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
+				$uuid = $options->uuid;
 				$writes++;
 				return $this->store->save((string)$schema, $object, (string)($object['id'] ?? ''));
 			}

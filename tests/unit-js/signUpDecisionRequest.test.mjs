@@ -96,3 +96,9 @@ test('each sign-up is declined at its own url', async () => {
 		'/nc/apps/openregister/api/objects/two/transition',
 	])
 })
+
+test('a missing reason is sent as an empty decline input, not as "undefined"', async () => {
+	const http = client(200, {})
+	await declineSignUp('enr-8', undefined)
+	assert.deepEqual(http.calls[0].body, { action: 'decline', data: { declineReason: '' } })
+})

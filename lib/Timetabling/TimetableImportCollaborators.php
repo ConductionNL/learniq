@@ -23,7 +23,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Timetabling;
 
-use OCA\Learniq\Service\TimetableExchangeSettings;
+use OCA\Learniq\Kernel\Contracts\TimetableExchangeSettingsInterface;
 use OCA\Learniq\Timetabling\Source\TimetableSourceResolver;
 
 /**
@@ -38,12 +38,12 @@ final class TimetableImportCollaborators {
 	 * Constructor.
 	 *
 	 * @param TimetableSourceResolver   $sources          Says whether planninq is the source; reads its lessons.
-	 * @param TimetableExchangeSettings $groupMaps        The group code maps the administrator keeps per rostering system.
+	 * @param TimetableExchangeSettingsInterface $groupMaps        The group code maps the administrator keeps per rostering system.
 	 * @param TimetableConflictDetector $conflictDetector Scans the delivered lessons.
 	 */
 	public function __construct(
 		public readonly TimetableSourceResolver $sources,
-		public readonly TimetableExchangeSettings $groupMaps,
+		public readonly TimetableExchangeSettingsInterface $groupMaps,
 		public readonly TimetableConflictDetector $conflictDetector,
 	) {
 	}//end __construct()

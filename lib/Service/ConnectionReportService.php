@@ -33,7 +33,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use DateTimeZone;
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\ConnectionReportServiceInterface;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
@@ -47,7 +48,7 @@ use Throwable;
  *
  * @spec openspec/specs/integrations/spec.md#requirement-req-int-conn-002-learniq-reports-what-the-last-wallet-offer-met
  */
-class ConnectionReportService {
+class ConnectionReportService implements ConnectionReportServiceInterface {
 
 	/**
 	 * Integriq's report event (ADR-041). Named by string so learniq stays
@@ -56,13 +57,6 @@ class ConnectionReportService {
 	 * @var string
 	 */
 	public const STATUS_EVENT = 'OCA\Integriq\Event\ConnectionStatusReportedEvent';
-
-	/**
-	 * The connection key of the EUDI wallet row in lib/Settings/connections.json.
-	 *
-	 * @var string
-	 */
-	public const WALLET_KEY = 'eudi-wallet';
 
 	/**
 	 * The connection key of the timetable row. Learniq reports it from whether
@@ -180,7 +174,7 @@ class ConnectionReportService {
 			}
 
 			$this->appConfig->setValueString(
-				app: Application::APP_ID,
+				app: AppIdentity::APP_ID,
 				key: self::OBSERVATION_KEY_PREFIX . $key,
 				value: json_encode(
 					[
@@ -258,7 +252,7 @@ class ConnectionReportService {
 		}
 
 		$event = new $eventClass(
-			app: Application::APP_ID,
+			app: AppIdentity::APP_ID,
 			key: $key,
 			status: $stored['status'],
 			message: $stored['reason'] . ' Unchanged since ' . $stored['since'] . ' UTC.',
@@ -339,7 +333,7 @@ class ConnectionReportService {
 	 */
 	private function readObservation(string $key): ?array {
 		$raw = $this->appConfig->getValueString(
-			app: Application::APP_ID,
+			app: AppIdentity::APP_ID,
 			key: self::OBSERVATION_KEY_PREFIX . $key,
 			default: '',
 			lazy: true

@@ -2,7 +2,7 @@
     "openapi": "3.0.3",
     "info": {
         "title": "Learniq",
-        "version": "0.3.9-beta.20261105100000",
+        "version": "0.3.13-unstable.20261119064942",
         "description": "The JSON API of Learniq, the learning app for Nextcloud: courses and lessons, enrolments, assessments and submissions, attendance and check-in, timetables, credentials, the learner portal and the settings behind them. The learning records themselves are stored in OpenRegister and read and written through its API; this document covers the endpoints Learniq adds on top.\n\nEvery path is served under `/api/v1/`, the version this document describes. The unversioned `/api/` paths keep working, are deprecated, and name their `/api/v1/` successor in a `Link` header next to a `Deprecation` header. Errors are RFC 9457 problem details (`application/problem+json`), and every response carries an `API-Version` header. Paths that implement an external standard keep the formats of that standard and are not described here.",
         "contact": {
             "name": "Conduction B.V.",
@@ -362,6 +362,14 @@
         {
             "name": "work-group",
             "description": "The learner's work groups."
+        },
+        {
+            "name": "credential",
+            "description": "Certificate PDF download"
+        },
+        {
+            "name": "credential-migration",
+            "description": "Certificates taken over from the previous system."
         }
     ],
     "paths": {
@@ -7015,6 +7023,166 @@
                         "$ref": "#/components/responses/Problem401"
                     }
                 }
+            }
+        },
+        "/credentials/{id}/pdf": {
+            "get": {
+                "operationId": "credential-pdf",
+                "summary": "Download the certificate's rendered PDF as `certificaat-<course code>-<issued date>.pdf`",
+                "description": "Download the certificate's rendered PDF, for its holder, hr and compliance officers; anyone else, and a certificate without a rendered PDF, gets a 404.",
+                "tags": [
+                    "credential"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The result.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/pdf": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/Problem404"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "The credential uuid.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ]
+            }
+        },
+        "/credentials/migrate": {
+            "post": {
+                "operationId": "credential-migration-migrate",
+                "summary": "Check, and on confirm write, the rows of an uploaded certificate list",
+                "description": "Check, and on confirm write, the rows of an uploaded certificate list.\n\nCertificates taken over from the previous system. Authorized via the `credential.migrate` action. The organisation is the caller's, resolved on the server; a tenant in a row is ignored. `dryRun` (the default) writes nothing. A written row becomes a Credential with `source: migrated`, its dates as given, its old number and issuer, and no learniq signature.",
+                "tags": [
+                    "credential-migration"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The per-row report, or an error.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": true
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/Problem400"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Problem403"
+                    }
+                },
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "rows": {
+                                        "type": "object",
+                                        "additionalProperties": true,
+                                        "description": "The parsed rows (learner, course or regulation, issuedAt, expiresAt, legacyNumber, legacyIssuer, kind)."
+                                    },
+                                    "dryRun": {
+                                        "type": "boolean",
+                                        "description": "True for the preview, false to write the ready rows."
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/timetable/feed/{feedFile}": {
+            "get": {
+                "operationId": "timetable-feed-feed",
+                "summary": "Serve the feed of the token's owner as iCalendar",
+                "description": "Serve the feed of the token's owner as iCalendar.\n\nThe last path segment is the feed file name: the 64-character feed token followed by `.ics`.\n\nAn unknown, replaced or malformed token, and an owner who no longer exists or is disabled, all answer 404 with no body. When the timetable source is unavailable the feed answers 503 with no body and a `Retry-After` header.",
+                "tags": [
+                    "timetable-feed"
+                ],
+                "security": [],
+                "responses": {
+                    "200": {
+                        "description": "The result.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "text/calendar": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "No feed for this token. The body is empty."
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/Problem500"
+                    },
+                    "503": {
+                        "description": "The timetable source is unavailable. The body is empty.",
+                        "headers": {
+                            "Retry-After": {
+                                "description": "Seconds to wait before asking again.",
+                                "schema": {
+                                    "type": "integer"
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "feedFile",
+                        "in": "path",
+                        "required": true,
+                        "description": "The feed token followed by `.ics`.",
+                        "schema": {
+                            "type": "string",
+                            "pattern": "^[a-f0-9]{64}\\.ics$"
+                        }
+                    }
+                ]
             }
         }
     },

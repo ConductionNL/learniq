@@ -34,7 +34,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\AssessmentResultPortalStampInterface;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -44,7 +46,7 @@ use Throwable;
  *
  * @spec openspec/specs/assessment/spec.md#requirement-every-attempt-carries-a-server-stamped-learnerref-and-assessment-title
  */
-class AssessmentResultPortalStamp {
+class AssessmentResultPortalStamp implements AssessmentResultPortalStampInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const ASSESSMENT_SCHEMA = 'exam';
@@ -126,8 +128,7 @@ class AssessmentResultPortalStamp {
 		try {
 			$assessment = $this->objectService->find(
 				id: $assessmentId,
-				register: self::LEARNIQ_REGISTER,
-				schema: self::ASSESSMENT_SCHEMA,
+				options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::ASSESSMENT_SCHEMA),
 				_rbac: false,
 				_multitenancy: false
 			);

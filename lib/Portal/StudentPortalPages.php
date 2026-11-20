@@ -72,6 +72,7 @@ class StudentPortalPages {
 		'room-unavailable' => 'Other room',
 		'teacher-absence'  => 'Other teacher',
 		'timetable-change' => 'Changed',
+		'other'            => 'Changed',
 	];
 
 	private const STUDENT_SESSIONS_FIELDS = [
@@ -290,6 +291,68 @@ class StudentPortalPages {
 		'hoursSubmitted' => ['label' => 'Hours you worked', 'required' => true],
 	];
 
+	/**
+	 * The phone form of one day (board MobielDetail): the placement and the
+	 * day, when she started and stopped, her break, what she did and the work
+	 * processes it belongs to, and whether she keeps the week or sends it.
+	 */
+	private const WRITE_HOUR_DAY_FIELDS = [
+		'bpvPlacementId',
+		'date',
+		'startTime',
+		'endTime',
+		'breakMinutes',
+		'description',
+		'werkprocesCodes',
+		'send',
+	];
+
+	private const WRITE_HOUR_DAY_OPTIONS_PROVIDERS = [
+		'bpvPlacementId' => self::PLACEMENT_OPTIONS,
+		'breakMinutes' => [
+			'type' => 'static',
+			'options' => [
+				['value' => '0', 'label' => 'No break'],
+				['value' => '30', 'label' => '30 minutes'],
+				['value' => '60', 'label' => '60 minutes'],
+			],
+		],
+		// Her own work process rows: portaliq fills a collection provider
+		// from her subject-scoped read of the schema.
+		'werkprocesCodes' => [
+			'type' => 'collection',
+			'register' => self::REGISTER,
+			'schema' => 'werkproces-progress',
+			'labelField' => 'werkprocesLabel',
+			'valueField' => 'werkprocesCode',
+		],
+		'send' => [
+			'type' => 'static',
+			'options' => [
+				['value' => 'keep', 'label' => 'Keep for later'],
+				['value' => 'send', 'label' => 'Send to your workplace trainer'],
+			],
+		],
+	];
+
+	private const WRITE_HOUR_DAY_FIELD_CONFIGS = [
+		'bpvPlacementId' => ['label' => 'Your placement', 'required' => true],
+		'date' => ['label' => 'Which day, as 2026-10-05', 'required' => true],
+		'startTime' => ['label' => 'Started at, as 08:00', 'required' => true],
+		'endTime' => ['label' => 'Stopped at, as 16:30', 'required' => true],
+		'breakMinutes' => ['label' => 'Break', 'widget' => 'choices'],
+		'description' => ['label' => 'What did you do?', 'size' => 'large'],
+		'werkprocesCodes' => ['label' => 'Which work process does this belong to? You may choose more than one.'],
+		'send' => ['label' => 'Send now or later?', 'required' => true, 'widget' => 'choices'],
+	];
+
+	/**
+	 * Work to hand in on the overview. Her own submission is looked up per
+	 * assignment; work handed in, handed in late or marked leaves the list,
+	 * a draft or no submission keeps it (portaliq REQ-SMO-025).
+	 *
+	 * @spec openspec/changes/site-pupil-portal-design/specs/portal-contribution/spec.md
+	 */
 	private const STUDENT_HOMEWORK_TASKS_BLOCK = [
 		'type' => 'tasks',
 		'label' => 'Homework and tests',
@@ -297,6 +360,15 @@ class StudentPortalPages {
 		'collection' => 'studentHomework',
 		'dueField' => 'dueAt',
 		'titleFields' => ['title'],
+		'lookups' => [
+			[
+				'as' => 'submission',
+				'collection' => 'studentSubmissions',
+				'matchField' => 'assignmentId',
+				'valueField' => 'lifecycle',
+			],
+		],
+		'excludeWhen' => ['lookup' => 'submission', 'in' => ['submitted', 'late', 'returned']],
 	];
 
 	private const STUDENT_LATEST_GRADES_BLOCK = [
@@ -573,6 +645,40 @@ class StudentPortalPages {
 	}//end hourWeekAction()
 
 	/**
+	 * She writes the hours of one day (board MobielDetail): the day becomes a
+	 * line of her week, created as a draft when she has none for it, and she
+	 * keeps the week for later or sends it to her workplace trainer.
+	 *
+	 * Through learniq's own endpoint, because a day is a line inside the week
+	 * that must be added or replaced, not a record of its own. The placement
+	 * is checked there to be hers, and the hours are worked out there, never
+	 * taken from the form. The photo of the board is not part of the form:
+	 * portaliq writes files only through its own upload into a record's
+	 * folder, and a day line is not a record.
+	 *
+	 * @return array<string, mixed> The endpoint-forward action.
+	 *
+	 * @spec openspec/changes/bpv-hours-per-day/specs/portal-contribution/spec.md#requirement-a-student-writes-hours-per-day-and-keeps-a-draft
+	 */
+	public function hourDayAction(): array {
+		return [
+			'id' => 'writeHourDay',
+			'type' => 'endpoint-forward',
+			'label' => 'Write the hours of a day',
+			'endpoint' => '/apps/learniq/api/portal/hour-weeks/day',
+			'method' => 'POST',
+			'minTrust' => 'low',
+			'subjectField' => 'learnerRef',
+			'scopeClaim' => 'learnerRef',
+			'fields' => self::WRITE_HOUR_DAY_FIELDS,
+			'optionsProviders' => self::WRITE_HOUR_DAY_OPTIONS_PROVIDERS,
+			'fieldConfigs' => self::WRITE_HOUR_DAY_FIELD_CONFIGS,
+			'submitLabel' => 'Save this day',
+			'successMessage' => 'Your day is saved. A week you sent is with your workplace trainer; a week you keep waits for you.',
+		];
+	}//end hourDayAction()
+
+	/**
 	 * The pupil's pages: the overview, the menu pages, then every other
 	 * listable collection's page out of the menu. Page ids are the collection
 	 * ids, so the routes portaliq gave them before stay the same.
@@ -598,13 +704,54 @@ class StudentPortalPages {
 			$pages[] = $this->collectionPage(collection: $collection, actions: $actions);
 		}
 
+		// The page her mentor-talk task opens.
+		if (in_array('studentConferenceInvitations', array_column($collections, 'id'), true) === true) {
+			$pages[] = (new StudentSelfBooking())->pickATimePage();
+		}
+
 		// Her self-assessment, where her work processes are read.
 		if (in_array('studentWorkProcesses', array_column($collections, 'id'), true) === true) {
 			$pages[] = (new StudentSelfAssessment())->page();
 		}
 
+		// Her documents, a group per enrolment (school-documents-on-the-portal T3).
+		if (in_array('studentEnrolments', array_column($collections, 'id'), true) === true) {
+			$pages[] = $this->documentsPage();
+		}
+
 		return $pages;
 	}//end pages()
+
+	/**
+	 * Her documents (vaartveld/Documenten, esdoornveen/Documenten): a group
+	 * per enrolment with her reports, statements, agreements and
+	 * certificates. Portaliq lists every group through the per-row route,
+	 * which proves the enrolment is hers before LearnerDocuments is asked.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-each-school-audience-offers-its-own-documents-grouped-per-record
+	 */
+	public function documentsPage(): array {
+		return [
+			'id' => 'studentDocuments',
+			'label' => 'Documents',
+			'icon' => 'FileDocumentMultipleOutline',
+			'group' => ParentSitePages::GROUP,
+			'blocks' => [
+				['type' => 'richText', 'markdown' => 'Your reports, choices, agreements and certificates. You can download and keep them all.'],
+				// A proof of enrolment for a side job or a travel card (school-documents-on-the-portal T4).
+				['type' => 'action', 'action' => 'requestProofOfEnrolment'],
+				[
+					'type' => 'documents',
+					'collection' => 'studentEnrolments',
+					'eachRecord' => true,
+					'titleFields' => ['cohortName'],
+					'emptyLabel' => 'There are no documents yet.',
+				],
+			],
+		];
+	}//end documentsPage()
 
 	/**
 	 * The overview, in the order of the board (school-design vaartveld,
@@ -634,6 +781,8 @@ class StudentPortalPages {
 				$this->timetableBlock(label: 'Your timetable today', range: 'day'),
 				['type' => 'cta', 'page' => 'studentSessions', 'label' => 'Whole week'],
 				self::STUDENT_HOMEWORK_TASKS_BLOCK,
+				// Her talk invitation links to the booking page (pupil-books-support-lessons-and-mentor-talks, D-5).
+				(new StudentSelfBooking())->invitationTasksBlock(),
 				self::STUDENT_LATEST_GRADES_BLOCK,
 				$this->absenceFigures(),
 				['type' => 'cta', 'action' => 'createSubmission', 'label' => 'Hand in work'],

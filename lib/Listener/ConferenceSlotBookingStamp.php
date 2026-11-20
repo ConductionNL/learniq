@@ -23,7 +23,13 @@
  *   the child has no more bookings in the round than it allows, and sets the
  *   slot to `booked` with the child and the guardian;
  * - stamps the signup with the round, the child's user id, the guardian's
- *   user id, the tenant, the teacher, the time and the lifecycle `booked`.
+ *   user id, the tenant, the teacher, the time, who booked it and when, and
+ *   the lifecycle `booked`.
+ *
+ * A pupil's own booking (pupil-books-support-lessons-and-mentor-talks)
+ * carries her `learnerRef` and no `guardianRef`, and may arrive with her own
+ * school-account session; it is taken only in a round with `pupilMayBook`.
+ * Any other session user is an app write and left alone.
  *
  * A signup without a `slotId` is the preference flow and is left to
  * ConferenceSignupPortalStamp. Every other write is left alone.
@@ -46,12 +52,15 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
+use DateTimeImmutable;
+use DateTimeInterface;
+use OCA\Learniq\Kernel\Contracts\ConferenceSlotClaimInterface;
+use OCA\Learniq\Kernel\Contracts\LearnerRefResolverInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\Learniq\Service\ConferenceBookingMode;
-use OCA\Learniq\Service\ConferenceSlotClaim;
-use OCA\Learniq\Service\LearnerRefResolver;
-use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -87,25 +96,27 @@ class ConferenceSlotBookingStamp implements IEventListener {
 		'slot-taken' => 'Someone else just booked this time. Pick another free time.',
 		'child-already-booked' => 'Your child already has a conversation in this round. Cancel it first to pick another time.',
 		'slot-lookup-failed' => 'The booking could not be checked. Try again later.',
+		'signup-learner-unknown' => 'You can only book a conversation for yourself.',
+		'slot-pupil-not-allowed' => 'You cannot book a time in this round yourself. Your parent books it.',
 	];
 
 	/**
 	 * Constructor.
 	 *
-	 * @param ListenerSchemaResolver $schemaResolver Entity schema id to slug.
-	 * @param LearnerRefResolver $profiles LearnerProfile by uuid.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Entity schema id to slug.
+	 * @param LearnerRefResolverInterface $profiles LearnerProfile by uuid.
 	 * @param ObjectService $objectService Reads the slot's round.
-	 * @param ConferenceSlotClaim $claim Takes the slot under a lock.
+	 * @param ConferenceSlotClaimInterface $claim Takes the slot under a lock.
 	 * @param IUserSession $userSession Tells a portal write (no session) from an app write.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ListenerSchemaResolver $schemaResolver,
-		private readonly LearnerRefResolver $profiles,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
+		private readonly LearnerRefResolverInterface $profiles,
 		private readonly ObjectService $objectService,
-		private readonly ConferenceSlotClaim $claim,
+		private readonly ConferenceSlotClaimInterface $claim,
 		private readonly IUserSession $userSession,
 		private readonly LoggerInterface $logger,
 	) {
@@ -189,13 +200,29 @@ class ConferenceSlotBookingStamp implements IEventListener {
 	 * @return bool
 	 */
 	private function isPortalBooking(array $payload): bool {
-		if ($this->userSession->getUser() !== null) {
+		$learnerRef = self::text(value: ($payload['learnerRef'] ?? null));
+		if ($learnerRef === '' || self::text(value: ($payload['slotId'] ?? null)) === '') {
 			return false;
 		}
 
-		return self::text(value: ($payload['guardianRef'] ?? null)) !== ''
-			&& self::text(value: ($payload['learnerRef'] ?? null)) !== ''
-			&& self::text(value: ($payload['slotId'] ?? null)) !== '';
+		// A guardian's booking carries the guardianRef portaliq stamps from
+		// her claim; a pupil's own booking carries her learnerRef and none
+		// (pupil-books-support-lessons-and-mentor-talks).
+		$user = $this->userSession->getUser();
+		if ($user === null) {
+			return true;
+		}
+
+		// A pupil signs in to her portal with her school account, so her own
+		// booking can arrive with her session. Only her own counts: anybody
+		// else's session is an app write, left to the app's own rules.
+		if (self::text(value: ($payload['guardianRef'] ?? null)) !== '') {
+			return false;
+		}
+
+		$learner = $this->profiles->byRef(learnerRef: $learnerRef);
+
+		return $learner !== null && self::text(value: ($learner['ncUserId'] ?? null)) === $user->getUID();
 	}//end isPortalBooking()
 
 	/**
@@ -207,9 +234,13 @@ class ConferenceSlotBookingStamp implements IEventListener {
 	 * @return array{stamp?: array<string, mixed>, refuse?: string}
 	 */
 	private function outcomeFor(array $payload, string $signupId): array {
-		$guardianRef = self::text(value: $payload['guardianRef']);
+		$guardianRef = self::text(value: ($payload['guardianRef'] ?? null));
 		$child = $this->profiles->byRef(learnerRef: self::text(value: $payload['learnerRef']));
-		if ($child === null || in_array($guardianRef, (array)($child['guardianRefs'] ?? []), true) === false) {
+		if ($guardianRef === '' && $child === null) {
+			return ['refuse' => 'signup-learner-unknown'];
+		}
+
+		if ($guardianRef !== '' && ($child === null || in_array($guardianRef, (array)($child['guardianRefs'] ?? []), true) === false)) {
 			return ['refuse' => 'signup-guardian-unknown'];
 		}
 
@@ -235,7 +266,7 @@ class ConferenceSlotBookingStamp implements IEventListener {
 	 */
 	private function bookSlot(string $slotId, array $booking): array {
 		$round = $this->roundOfSlot(slotId: $slotId);
-		$refusal = $this->roundRefusal(round: $round, childRef: $booking['learnerRef']);
+		$refusal = $this->roundRefusal(round: $round, childRef: $booking['learnerRef'], byPupil: $booking['guardianRef'] === '');
 		if ($refusal !== null) {
 			return ['refuse' => $refusal];
 		}
@@ -253,14 +284,21 @@ class ConferenceSlotBookingStamp implements IEventListener {
 	 *
 	 * @param array<string, mixed>|null $round    The slot's round, or null when unknown.
 	 * @param string                    $childRef The child's LearnerProfile uuid.
+	 * @param bool                      $byPupil  Whether the learner books her own time.
 	 *
 	 * @return string|null The refusal reason, or null.
 	 *
 	 * @spec openspec/changes/direct-conference-booking/specs/parent-conferences/spec.md
+	 * @spec openspec/changes/pupil-books-support-lessons-and-mentor-talks/specs/parent-conferences/spec.md#requirement-a-conference-round-says-whether-pupils-may-book
 	 */
-	private function roundRefusal(?array $round, string $childRef): ?string {
+	private function roundRefusal(?array $round, string $childRef, bool $byPupil=false): ?string {
 		if ($round === null) {
 			return 'slot-unknown';
+		}
+
+		// A pupil books her own talk only in a round that says pupils may.
+		if ($byPupil === true && ($round['pupilMayBook'] ?? false) !== true) {
+			return 'slot-pupil-not-allowed';
 		}
 
 		if ($this->isBookable(round: $round, childRef: $childRef) === false) {
@@ -282,6 +320,10 @@ class ConferenceSlotBookingStamp implements IEventListener {
 	 */
 	private function bookingStamp(array $round, array $booking): array {
 		$guardian = $this->profiles->byRef(learnerRef: $booking['guardianRef']);
+		$bookedBy = 'guardian';
+		if ($booking['guardianRef'] === '') {
+			$bookedBy = 'pupil';
+		}
 
 		return [
 			'conferenceRoundId' => (string)$round['id'],
@@ -289,6 +331,9 @@ class ConferenceSlotBookingStamp implements IEventListener {
 			'learnerRef' => $booking['learnerRef'],
 			'guardianId' => self::text(value: ($guardian['ncUserId'] ?? null)),
 			'tenant_id' => self::text(value: ($round['tenant_id'] ?? null)),
+			// Who booked it, for the guardian's notice of a pupil's own booking.
+			'bookedBy' => $bookedBy,
+			'bookedAt' => (new DateTimeImmutable())->format(DateTimeInterface::ATOM),
 		];
 	}//end bookingStamp()
 
@@ -343,7 +388,12 @@ class ConferenceSlotBookingStamp implements IEventListener {
 	 * @return array<string, mixed>|null
 	 */
 	private function roundOfSlot(string $slotId): ?array {
-		$found = $this->objectService->find(id: $slotId, register: self::REGISTER, schema: self::SLOT_SCHEMA, _rbac: false, _multitenancy: false);
+		$found = $this->objectService->find(
+			id: $slotId,
+			options: new ObjectFindOptions(register: self::REGISTER, schema: self::SLOT_SCHEMA),
+			_rbac: false,
+			_multitenancy: false
+		);
 		if ($found === null) {
 			return null;
 		}
@@ -354,7 +404,12 @@ class ConferenceSlotBookingStamp implements IEventListener {
 			return null;
 		}
 
-		$round = $this->objectService->find(id: $roundId, register: self::REGISTER, schema: self::ROUND_SCHEMA, _rbac: false, _multitenancy: false);
+		$round = $this->objectService->find(
+			id: $roundId,
+			options: new ObjectFindOptions(register: self::REGISTER, schema: self::ROUND_SCHEMA),
+			_rbac: false,
+			_multitenancy: false
+		);
 		if ($round === null) {
 			return null;
 		}

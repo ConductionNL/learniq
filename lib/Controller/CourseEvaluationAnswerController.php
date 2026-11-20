@@ -31,9 +31,9 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use DateTimeImmutable;
-use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Service\CourseEvaluationAnswerService;
-use OCA\Learniq\Service\DashboardRoleService;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\CourseEvaluationAnswerServiceInterface;
+use OCA\Learniq\Kernel\Contracts\DashboardRoleServiceInterface;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -59,18 +59,18 @@ class CourseEvaluationAnswerController extends Controller {
 	 *
 	 * @param IRequest                      $request              The request.
 	 * @param IUserSession                  $userSession          The caller.
-	 * @param CourseEvaluationAnswerService $answers              Lists, answers and sums up invitations.
-	 * @param DashboardRoleService          $dashboardRoleService Staff check.
+	 * @param CourseEvaluationAnswerServiceInterface $answers              Lists, answers and sums up invitations.
+	 * @param DashboardRoleServiceInterface          $dashboardRoleService Staff check.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		IRequest $request,
 		private readonly IUserSession $userSession,
-		private readonly CourseEvaluationAnswerService $answers,
-		private readonly DashboardRoleService $dashboardRoleService,
+		private readonly CourseEvaluationAnswerServiceInterface $answers,
+		private readonly DashboardRoleServiceInterface $dashboardRoleService,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**

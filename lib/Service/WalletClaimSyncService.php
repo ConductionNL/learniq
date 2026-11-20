@@ -45,6 +45,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\WalletClaimSyncServiceInterface;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 
@@ -59,7 +60,7 @@ use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
  *
  * @spec openspec/specs/certification/spec.md#requirement-recordwalletclaim-transition-syncs-wallet-claim-status-back-onto-the-credential
  */
-class WalletClaimSyncService implements LifecycleGuardInterface {
+class WalletClaimSyncService implements LifecycleGuardInterface, WalletClaimSyncServiceInterface {
 	/**
 	 * OpenRegister lifecycle guard entry-point for `recordWalletClaim`.
 	 *

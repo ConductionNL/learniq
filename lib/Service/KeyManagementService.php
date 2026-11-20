@@ -29,6 +29,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use InvalidArgumentException;
+use OCA\Learniq\Kernel\Contracts\KeyManagementServiceInterface;
 use OCP\IAppConfig;
 use OCP\Security\ICrypto;
 use RuntimeException;
@@ -43,10 +44,7 @@ use RuntimeException;
  *
  * Cryptographic operation — legitimate PHP seam per ADR-031.
  */
-class KeyManagementService {
-
-
-
+class KeyManagementService implements KeyManagementServiceInterface {
 
 	/**
 	 * Maximum number of archived public keys retained per tenant.
@@ -84,6 +82,7 @@ class KeyManagementService {
 	 * @throws \RuntimeException If OpenSSL key generation fails.
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-3
+	 * @spec openspec/changes/certificate-verification-and-key-rotation/specs/certification/spec.md#requirement-rotating-the-signing-key-keeps-earlier-certificates-checkable
 	 */
 	public function generateTenantKeypair(string $tenantId): array {
 		// #211: validate tenantId before touching key storage.

@@ -26,7 +26,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Portal;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\PortalMessagesInterface;
 use OCP\IUser;
 use OCP\L10N\IFactory;
 
@@ -35,7 +36,7 @@ use OCP\L10N\IFactory;
  *
  * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
  */
-class PortalMessages {
+class PortalMessages implements PortalMessagesInterface {
 
 	/**
 	 * English source text per reason; translated through l10n.
@@ -54,6 +55,14 @@ class PortalMessages {
 		'already-handed-in' => 'This work is already handed in.',
 		'late-not-accepted' => 'The deadline has passed and this assignment does not accept late work.',
 		'hand-in-refused' => 'This work cannot be handed in right now. Ask your teacher.',
+		// A day of BPV hours (bpv-hours-per-day); the last four are HourDayLines' refusals.
+		'hour-day-incomplete' => 'Choose your placement and the day, as YYYY-MM-DD.',
+		'hour-day-not-your-placement' => 'You can only write hours for your own placement.',
+		'hour-week-with-trainer' => 'This week is with your workplace trainer or already approved, so its days cannot change.',
+		'hour-day-outside-week' => 'This day is not part of the week.',
+		'hour-day-times-invalid' => 'Fill in when you started and when you stopped, as HH:MM. You stop after you start.',
+		'hour-day-break-too-long' => 'Your break is as long as the time you worked, or longer.',
+		'hour-day-invalid' => 'This day could not be read. Fill it in again.',
 	];
 
 	/**
@@ -80,7 +89,7 @@ class PortalMessages {
 	 * @spec openspec/specs/assessment/spec.md#requirement-a-portal-attempt-follows-every-test-rule-inside-the-endpoints
 	 */
 	public function message(string $reason, ?IUser $user): string {
-		$l10n = $this->l10nFactory->get(Application::APP_ID, $this->l10nFactory->getUserLanguage($user));
+		$l10n = $this->l10nFactory->get(AppIdentity::APP_ID, $this->l10nFactory->getUserLanguage($user));
 
 		return $l10n->t(self::TEXTS[$reason] ?? self::TEXTS['not-available']);
 	}//end message()

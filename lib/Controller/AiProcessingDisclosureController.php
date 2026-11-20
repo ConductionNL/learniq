@@ -46,10 +46,10 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\AiLocalityClassifierInterface;
+use OCA\Learniq\Kernel\Contracts\SovereigntyPolicyServiceInterface;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Service\AiLocalityClassifier;
-use OCA\Learniq\Service\SovereigntyPolicyService;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -64,6 +64,7 @@ use Throwable;
  * Composes the AI-processing disclosure a school hands to its DPO.
  *
  * @spec openspec/specs/ai-locality-guarantee/spec.md#requirement-the-system-shall-compose-an-ai-processing-disclosure-a-school-can-hand-to-its-dpo
+ * @spec openspec/specs/platform-properties/spec.md#REQ-PLAT-003
  */
 class AiProcessingDisclosureController extends Controller {
 
@@ -105,8 +106,8 @@ class AiProcessingDisclosureController extends Controller {
 	 * @param IUserSession $userSession Current user session.
 	 * @param IAppManager $appManager Tells "Hermiq absent" from "Hermiq installed".
 	 * @param ObjectService $objectService OR object service for the Hermiq/SovereigntyPolicy reads.
-	 * @param AiLocalityClassifier $localityClassifier Derives the active provider's locality verdict.
-	 * @param SovereigntyPolicyService $policyService Evaluates a verdict against the school's policy.
+	 * @param AiLocalityClassifierInterface $localityClassifier Derives the active provider's locality verdict.
+	 * @param SovereigntyPolicyServiceInterface $policyService Evaluates a verdict against the school's policy.
 	 * @param LoggerInterface $logger PSR logger.
 	 */
 	public function __construct(
@@ -114,11 +115,11 @@ class AiProcessingDisclosureController extends Controller {
 		private readonly IUserSession $userSession,
 		private readonly IAppManager $appManager,
 		private readonly ObjectService $objectService,
-		private readonly AiLocalityClassifier $localityClassifier,
-		private readonly SovereigntyPolicyService $policyService,
+		private readonly AiLocalityClassifierInterface $localityClassifier,
+		private readonly SovereigntyPolicyServiceInterface $policyService,
 		private readonly LoggerInterface $logger,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**

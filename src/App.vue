@@ -55,11 +55,13 @@
 
 <script>
 import { CnAppRoot } from '@conduction/nextcloud-vue'
+import axios from '@nextcloud/axios'
 import { getCanonicalLocale, translate as ncT } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
 import { markRaw } from 'vue'
 import LearnerNameCell from './components/cells/LearnerNameCell.vue'
 import { createConnectionHandlers } from './utils/connectionRegistry.js'
+import { createCourseDayHandlers } from './utils/courseDayBoard.js'
 import { createFormatters } from './utils/timeBlocks.js'
 
 export default {
@@ -119,10 +121,15 @@ export default {
 			 * in `registry`, so the Integrations page's Add integration handler
 			 * has to travel through that prop.
 			 */
-			headerActionHandlers: createConnectionHandlers({
-				generateUrl,
-				assign: (url) => window.location.assign(url),
-			}),
+			headerActionHandlers: {
+				...createConnectionHandlers({
+					generateUrl,
+					assign: (url) => window.location.assign(url),
+				}),
+
+				// The course days board's move (training-provider-course-days T4).
+				...createCourseDayHandlers({ post: (url, body) => axios.post(url, body), generateUrl }),
+			},
 
 			/**
 			 * List column formatters learniq adds to the library's built-ins,

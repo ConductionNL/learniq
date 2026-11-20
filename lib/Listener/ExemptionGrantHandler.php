@@ -38,9 +38,11 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
-use OCA\Learniq\Service\LearnerRefResolver;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\LearnerRefResolverInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
@@ -65,8 +67,8 @@ class ExemptionGrantHandler implements IEventListener {
 	 * @param ObjectService $objectService OR object access service.
 	 * @param TransitionEngine $transitionEngine OR lifecycle engine used to dispatch the `publish` transition.
 	 * @param LoggerInterface $logger PSR logger.
-	 * @param LearnerRefResolver $profiles The learner's user id from the case's LearnerProfile.
-	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param LearnerRefResolverInterface $profiles The learner's user id from the case's LearnerProfile.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
@@ -74,8 +76,8 @@ class ExemptionGrantHandler implements IEventListener {
 		private readonly ObjectService $objectService,
 		private readonly TransitionEngine $transitionEngine,
 		private readonly LoggerInterface $logger,
-		private readonly LearnerRefResolver $profiles,
-		private readonly ListenerSchemaResolver $schemas,
+		private readonly LearnerRefResolverInterface $profiles,
+		private readonly ListenerSchemaResolverInterface $schemas,
 	) {
 	}//end __construct()
 
@@ -126,9 +128,8 @@ class ExemptionGrantHandler implements IEventListener {
 		}
 
 		$saved = $this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::GRADE_ENTRY_SCHEMA,
-			object: $this->gradeEntryFor(case: $case, caseId: $caseId, userId: $userId)
+			object: $this->gradeEntryFor(case: $case, caseId: $caseId, userId: $userId),
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::GRADE_ENTRY_SCHEMA))
 		);
 
 		$savedData = $saved->jsonSerialize();
@@ -224,9 +225,8 @@ class ExemptionGrantHandler implements IEventListener {
 
 		// Back-link the case to the GradeEntry it produced.
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::EXEMPTION_CASE_SCHEMA,
-			object: array_merge($case, ['resultingGradeEntryId' => $gradeEntryId])
+			object: array_merge($case, ['resultingGradeEntryId' => $gradeEntryId]),
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::EXEMPTION_CASE_SCHEMA))
 		);
 
 		$this->logger->info(

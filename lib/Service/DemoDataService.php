@@ -29,7 +29,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCP\App\IAppManager;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
@@ -58,7 +58,7 @@ class DemoDataService {
 	 *
 	 * @var string
 	 */
-	public const CONFIG_APP_ID = Application::APP_ID . '.demo';
+	public const CONFIG_APP_ID = AppIdentity::APP_ID . '.demo';
 
 	/**
 	 * Constructor.
@@ -263,7 +263,7 @@ class DemoDataService {
 		return $this->configurationService()->importFromApp(
 			appId: self::CONFIG_APP_ID,
 			data: $data,
-			version: $this->appManager->getAppVersion(Application::APP_ID),
+			version: $this->appManager->getAppVersion(AppIdentity::APP_ID),
 			force: true
 		);
 	}//end importDescriptor()
@@ -282,7 +282,7 @@ class DemoDataService {
 			. $imported['skipped'] . ' skipped, '
 			. $imported['registers'] . ' register(s), '
 			. $imported['schemas'] . ' schema(s).',
-			['app' => Application::APP_ID]
+			['app' => AppIdentity::APP_ID]
 		);
 	}//end logImported()
 
@@ -317,7 +317,7 @@ class DemoDataService {
 	 * @return string The path.
 	 */
 	private function descriptorPath(): string {
-		return $this->appManager->getAppPath(Application::APP_ID) . self::DESCRIPTOR;
+		return $this->appManager->getAppPath(AppIdentity::APP_ID) . self::DESCRIPTOR;
 	}//end descriptorPath()
 
 	/**

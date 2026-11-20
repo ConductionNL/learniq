@@ -76,6 +76,46 @@
             "registerEventListener",
             [
                 "OCA\\OpenRegister\\Event\\ObjectTransitionedEvent",
+                "OCA\\Learniq\\Listener\\ExamObjectionDecisionHandler",
+                "int"
+            ]
+        ],
+        [
+            "registerEventListener",
+            [
+                "OCA\\OpenRegister\\Event\\ObjectCreatingEvent",
+                "OCA\\Learniq\\Listener\\ExamObjectionDeadlineStamp",
+                "int"
+            ]
+        ],
+        [
+            "registerEventListener",
+            [
+                "OCA\\OpenRegister\\Event\\ObjectTransitionedEvent",
+                "OCA\\Learniq\\Listener\\ExamSittingEstablishHandler",
+                "int"
+            ]
+        ],
+        [
+            "registerEventListener",
+            [
+                "OCA\\OpenRegister\\Event\\ObjectTransitionedEvent",
+                "OCA\\Learniq\\Listener\\ExamProgressCascade",
+                "int"
+            ]
+        ],
+        [
+            "registerEventListener",
+            [
+                "OCA\\OpenRegister\\Event\\ObjectCreatedEvent",
+                "OCA\\Learniq\\Listener\\ExamProgressCascade",
+                "int"
+            ]
+        ],
+        [
+            "registerEventListener",
+            [
+                "OCA\\OpenRegister\\Event\\ObjectTransitionedEvent",
                 "OCA\\Learniq\\Listener\\ItemAnalysisRecomputeHandler",
                 "int"
             ]
@@ -179,6 +219,14 @@
         [
             "registerEventListener",
             [
+                "OCP\\User\\Events\\UserLoggedInEvent",
+                "OCA\\Learniq\\Listener\\SsoProfileFillListener",
+                "int"
+            ]
+        ],
+        [
+            "registerEventListener",
+            [
                 "OCA\\OpenRegister\\Event\\ObjectCreatingEvent",
                 "OCA\\Learniq\\Listener\\EnrolmentPrerequisiteListener",
                 "int"
@@ -228,6 +276,14 @@
             "registerEventListener",
             [
                 "OCA\\OpenRegister\\Event\\ObjectTransitionedEvent",
+                "OCA\\Learniq\\Listener\\ApplicationSubmittedAtStamp",
+                "int"
+            ]
+        ],
+        [
+            "registerEventListener",
+            [
+                "OCA\\OpenRegister\\Event\\ObjectTransitionedEvent",
                 "OCA\\Learniq\\Listener\\SubjectChoiceEnrolmentBridge",
                 "int"
             ]
@@ -237,6 +293,14 @@
             [
                 "OCA\\OpenRegister\\Event\\ObjectTransitionedEvent",
                 "OCA\\Learniq\\Listener\\SessionChangeNoticeHandler",
+                "int"
+            ]
+        ],
+        [
+            "registerEventListener",
+            [
+                "OCA\\OpenRegister\\Event\\ObjectUpdatedEvent",
+                "OCA\\Learniq\\Listener\\SessionMoveNoticeHandler",
                 "int"
             ]
         ]
@@ -295,6 +359,17 @@
             ],
             [
                 "lesson-completion"
+            ]
+        ],
+        [
+            "learniq",
+            "OCA\\OpenRegister\\Event\\ObjectUpdatedEvent",
+            "OCA\\Learniq\\Listener\\SubjectChoiceValidator",
+            [
+                "learniq"
+            ],
+            [
+                "subject-choice"
             ]
         ],
         [

@@ -43,6 +43,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\LearningRecordAggregationServiceInterface;
 use OCA\Learniq\Support\SerialisedRow;
 use OCA\OpenRegister\Service\ObjectService;
 
@@ -52,7 +53,7 @@ use OCA\OpenRegister\Service\ObjectService;
  *
  * @spec openspec/changes/archive/2026-07-16-portable-learning-record/tasks.md#task-2-1
  */
-class LearningRecordAggregationService {
+class LearningRecordAggregationService implements LearningRecordAggregationServiceInterface {
 
 	private const REGISTER = 'learniq';
 

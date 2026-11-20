@@ -176,8 +176,8 @@
       "type": "library",
       "name": "core",
       "group": "@babel",
-      "version": "7.29.7",
-      "bom-ref": "learniq@0.1.0|@babel/core@7.29.7",
+      "version": "7.29.13",
+      "bom-ref": "learniq@0.1.0|@babel/core@7.29.13",
       "licenses": [
         {
           "license": {
@@ -185,15 +185,15 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40babel/core@7.29.7",
+      "purl": "pkg:npm/%40babel/core@7.29.13",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/@babel/core/-/core-7.29.7.tgz",
+          "url": "https://registry.npmjs.org/@babel/core/-/core-7.29.13.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "4601c10afb636ce2b681748d04d22436811cf6aa1512d6aede18fc804a8a42e2f71d90226ca6ab585108dcb7e6e8460a90b6a53a1f1e4ab8fd6fe721f47fd504"
+              "content": "8f59ef390099612829ec72e68ac9c25c54e956f14e0e28a343d40790e45f18a587e980edb244c4782252ede579e39199f54073aead1edb1b0e779410e4f8c8ab"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -210,8 +210,8 @@
       "type": "library",
       "name": "generator",
       "group": "@babel",
-      "version": "7.29.8",
-      "bom-ref": "learniq@0.1.0|@babel/generator@7.29.8",
+      "version": "7.29.14",
+      "bom-ref": "learniq@0.1.0|@babel/generator@7.29.14",
       "licenses": [
         {
           "license": {
@@ -219,15 +219,15 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40babel/generator@7.29.8",
+      "purl": "pkg:npm/%40babel/generator@7.29.14",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/@babel/generator/-/generator-7.29.8.tgz",
+          "url": "https://registry.npmjs.org/@babel/generator/-/generator-7.29.14.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "8196dea6c761dd60ed8192962febd33e1ef52d206b9bf638fd00d905509c61f99e4c412ea0e630952cbe1b54ad7c983efd9cb9e74bbfdd30136e6eea0db6ccb6"
+              "content": "a92639ea3816e499d25f3b9e90b56297acda390c4e0ad38789dafae4a91a301c3bef622e018dbc431e19ca401c0e7f3e151175e6a93cd17ccac2049cfd1616ea"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -278,8 +278,8 @@
       "type": "library",
       "name": "helper-compilation-targets",
       "group": "@babel",
-      "version": "7.29.7",
-      "bom-ref": "learniq@0.1.0|@babel/helper-compilation-targets@7.29.7",
+      "version": "7.29.13",
+      "bom-ref": "learniq@0.1.0|@babel/helper-compilation-targets@7.29.13",
       "licenses": [
         {
           "license": {
@@ -287,15 +287,15 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40babel/helper-compilation-targets@7.29.7",
+      "purl": "pkg:npm/%40babel/helper-compilation-targets@7.29.13",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/@babel/helper-compilation-targets/-/helper-compilation-targets-7.29.7.tgz",
+          "url": "https://registry.npmjs.org/@babel/helper-compilation-targets/-/helper-compilation-targets-7.29.13.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "c1e9ba59a063e0d69561574d84b3cf55a7044ba649f8a0417d2913303dd86716cfdeb9b70e2f39b4953996369436168eca7b7e023d31aee858bb3401b7c9fbd6"
+              "content": "f16c49e3f5667acde085a723f15389cb7356f1ec8788563fe2d854fcb481b81138ef4fa282347f8f5653367f1f57955d36b2f1ea25d4c22839dba51d3af7cfd3"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -516,8 +516,8 @@
       "type": "library",
       "name": "helper-module-transforms",
       "group": "@babel",
-      "version": "7.29.7",
-      "bom-ref": "learniq@0.1.0|@babel/helper-module-transforms@7.29.7",
+      "version": "7.29.14",
+      "bom-ref": "learniq@0.1.0|@babel/helper-module-transforms@7.29.14",
       "licenses": [
         {
           "license": {
@@ -525,15 +525,15 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40babel/helper-module-transforms@7.29.7",
+      "purl": "pkg:npm/%40babel/helper-module-transforms@7.29.14",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/@babel/helper-module-transforms/-/helper-module-transforms-7.29.7.tgz",
+          "url": "https://registry.npmjs.org/@babel/helper-module-transforms/-/helper-module-transforms-7.29.14.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "50f5154b25db3a1eb6eca8822064128305b319e04a2e4689f4f24476b9e0230312cf12d1e234b8f9fd5fd636fb57305b83c9c52da628b6f54f1424ea76b99302"
+              "content": "d970ef41577d24449a3a019ce234f6fe3aae4c03bba690399e84d942a1fe32667cf728c2cd270bc2d08f6d6b643d9ca52fe4cb591e3d2305a693e424451e06b0"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -856,8 +856,8 @@
       "type": "library",
       "name": "helpers",
       "group": "@babel",
-      "version": "7.29.7",
-      "bom-ref": "learniq@0.1.0|@babel/helpers@7.29.7",
+      "version": "7.29.14",
+      "bom-ref": "learniq@0.1.0|@babel/helpers@7.29.14",
       "licenses": [
         {
           "license": {
@@ -865,15 +865,15 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40babel/helpers@7.29.7",
+      "purl": "pkg:npm/%40babel/helpers@7.29.14",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/@babel/helpers/-/helpers-7.29.7.tgz",
+          "url": "https://registry.npmjs.org/@babel/helpers/-/helpers-7.29.14.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "d64da500644c7c74dcc2e35870235499a51f7e642ff0a58c7e1da225451e465c25c07e0574d1bb99f3c8d7434f7cb1c9153844e13cabe26bfb9133593a23ee06"
+              "content": "e84dcc8b5af4074ba6ababe665ae3fefcabeeb87ea3b6618d131d47630cf29408a84d6f4c90cb935021a3c70920f7af24e0893b2cfff3f826c592f3402c67a2d"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -3134,8 +3134,8 @@
       "type": "library",
       "name": "traverse",
       "group": "@babel",
-      "version": "7.29.8",
-      "bom-ref": "learniq@0.1.0|@babel/traverse@7.29.8",
+      "version": "7.29.14",
+      "bom-ref": "learniq@0.1.0|@babel/traverse@7.29.14",
       "licenses": [
         {
           "license": {
@@ -3143,15 +3143,15 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40babel/traverse@7.29.8",
+      "purl": "pkg:npm/%40babel/traverse@7.29.14",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/@babel/traverse/-/traverse-7.29.8.tgz",
+          "url": "https://registry.npmjs.org/@babel/traverse/-/traverse-7.29.14.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "239cfb1f76dfff8d64b6c3552eda4dd3001adf7e8792a20743906e3cb1214e4b758d54b266978d288cd38045a69718dd83cd51d0881409c684f8e93736fadf66"
+              "content": "44075026b0609881f5156bcdd17fb58680f1cccce53f872fff5662e1d9f8b46d47d1c4dbfabc3b0b3531409869d5fe0035df23e6f1f77f2f010161469010c4b0"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -3782,6 +3782,146 @@
           "name": "cdx:npm:package:path",
           "value": "node_modules/@conduction/nextcloud-vue"
         }
+      ],
+      "components": [
+        {
+          "type": "library",
+          "name": "dialogs",
+          "group": "@nextcloud",
+          "version": "7.6.0",
+          "bom-ref": "learniq@0.1.0|@conduction/nextcloud-vue@2.180.0|@nextcloud/dialogs@7.6.0",
+          "licenses": [
+            {
+              "license": {
+                "id": "AGPL-3.0-or-later"
+              }
+            }
+          ],
+          "purl": "pkg:npm/%40nextcloud/dialogs@7.6.0",
+          "externalReferences": [
+            {
+              "url": "https://registry.npmjs.org/@nextcloud/dialogs/-/dialogs-7.6.0.tgz",
+              "type": "distribution",
+              "hashes": [
+                {
+                  "alg": "SHA-512",
+                  "content": "b3a3d90cd8a82be8966d59bf636bad96958308aaa5c5f874a1468e9224166b166af23e5442c875888d5b2809e109116535cff22a68f510e5413114361031a435"
+                }
+              ],
+              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+            }
+          ],
+          "properties": [
+            {
+              "name": "cdx:npm:package:path",
+              "value": "node_modules/@conduction/nextcloud-vue/node_modules/@nextcloud/dialogs"
+            }
+          ],
+          "components": [
+            {
+              "type": "library",
+              "name": "core",
+              "group": "@vueuse",
+              "version": "15.0.0",
+              "bom-ref": "learniq@0.1.0|@conduction/nextcloud-vue@2.180.0|@nextcloud/dialogs@7.6.0|@vueuse/core@15.0.0",
+              "licenses": [
+                {
+                  "license": {
+                    "id": "MIT"
+                  }
+                }
+              ],
+              "purl": "pkg:npm/%40vueuse/core@15.0.0",
+              "externalReferences": [
+                {
+                  "url": "https://registry.npmjs.org/@vueuse/core/-/core-15.0.0.tgz",
+                  "type": "distribution",
+                  "hashes": [
+                    {
+                      "alg": "SHA-512",
+                      "content": "66febb8799ab93b6070c9b1139bc7e0d7682073e91281529c6a2deb09fb7c5934f1bacae42cee36bb920def785aeba2e60b580ab2750ec2c0611b2d5c41e3736"
+                    }
+                  ],
+                  "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+                }
+              ],
+              "properties": [
+                {
+                  "name": "cdx:npm:package:path",
+                  "value": "node_modules/@conduction/nextcloud-vue/node_modules/@nextcloud/dialogs/node_modules/@vueuse/core"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "library",
+          "name": "metadata",
+          "group": "@vueuse",
+          "version": "15.0.0",
+          "bom-ref": "learniq@0.1.0|@conduction/nextcloud-vue@2.180.0|@vueuse/metadata@15.0.0",
+          "licenses": [
+            {
+              "license": {
+                "id": "MIT"
+              }
+            }
+          ],
+          "purl": "pkg:npm/%40vueuse/metadata@15.0.0",
+          "externalReferences": [
+            {
+              "url": "https://registry.npmjs.org/@vueuse/metadata/-/metadata-15.0.0.tgz",
+              "type": "distribution",
+              "hashes": [
+                {
+                  "alg": "SHA-512",
+                  "content": "b1f584e4b00300a2742a78ed1a588c75237c223fcbeee3faad72199603e5a00238cefbde7dbc3a1f92edeca240e91a90398815a961791ae8f9d071cc233ca006"
+                }
+              ],
+              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+            }
+          ],
+          "properties": [
+            {
+              "name": "cdx:npm:package:path",
+              "value": "node_modules/@conduction/nextcloud-vue/node_modules/@vueuse/metadata"
+            }
+          ]
+        },
+        {
+          "type": "library",
+          "name": "shared",
+          "group": "@vueuse",
+          "version": "15.0.0",
+          "bom-ref": "learniq@0.1.0|@conduction/nextcloud-vue@2.180.0|@vueuse/shared@15.0.0",
+          "licenses": [
+            {
+              "license": {
+                "id": "MIT"
+              }
+            }
+          ],
+          "purl": "pkg:npm/%40vueuse/shared@15.0.0",
+          "externalReferences": [
+            {
+              "url": "https://registry.npmjs.org/@vueuse/shared/-/shared-15.0.0.tgz",
+              "type": "distribution",
+              "hashes": [
+                {
+                  "alg": "SHA-512",
+                  "content": "bdb357846adb579df13ce312c8eccc1d046f84c8197fba0d0f0d910a151eb55c704c81242274358e867d25b4f41b7cf69f6009363be609678cf72498ae7be880"
+                }
+              ],
+              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+            }
+          ],
+          "properties": [
+            {
+              "name": "cdx:npm:package:path",
+              "value": "node_modules/@conduction/nextcloud-vue/node_modules/@vueuse/shared"
+            }
+          ]
+        }
       ]
     },
     {
@@ -4203,8 +4343,8 @@
       "type": "library",
       "name": "config-array",
       "group": "@eslint",
-      "version": "0.23.5",
-      "bom-ref": "learniq@0.1.0|@eslint/config-array@0.23.5",
+      "version": "0.23.6",
+      "bom-ref": "learniq@0.1.0|@eslint/config-array@0.23.6",
       "licenses": [
         {
           "license": {
@@ -4212,15 +4352,15 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40eslint/config-array@0.23.5",
+      "purl": "pkg:npm/%40eslint/config-array@0.23.6",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/@eslint/config-array/-/config-array-0.23.5.tgz",
+          "url": "https://registry.npmjs.org/@eslint/config-array/-/config-array-0.23.6.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "63790a2ef0b576f4ce4fea0696a350d572ea2ba0f51d4d985cf739d8d98094965b30c583cc66173223d127c4d80f7f66b83fce4e395998d27889beddbd2acc04"
+              "content": "5ab4c7ee78a823d40f6383591a7b32c2679cb3025d81eab804233beaaa24f558234cedbd66053352f72e24b54f61540ce2e0db68f054d0cdf747d0c8c48f17df"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -4234,6 +4374,45 @@
         {
           "name": "cdx:npm:package:path",
           "value": "node_modules/@eslint/config-array"
+        }
+      ],
+      "components": [
+        {
+          "type": "library",
+          "name": "minimatch",
+          "version": "11.0.8",
+          "bom-ref": "learniq@0.1.0|@eslint/config-array@0.23.6|minimatch@11.0.8",
+          "licenses": [
+            {
+              "license": {
+                "id": "BlueOak-1.0.0"
+              }
+            }
+          ],
+          "purl": "pkg:npm/minimatch@11.0.8",
+          "externalReferences": [
+            {
+              "url": "https://registry.npmjs.org/minimatch/-/minimatch-11.0.8.tgz",
+              "type": "distribution",
+              "hashes": [
+                {
+                  "alg": "SHA-512",
+                  "content": "9c542e6124d5ac6bf2b15069b39221fb405d9d814dfc28f70bcd7aafafa9ef22be147ad52c61383b837d005c3292b94d96f3361d8b7e45a775522ae8ea1f3c22"
+                }
+              ],
+              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+            }
+          ],
+          "properties": [
+            {
+              "name": "cdx:npm:package:development",
+              "value": "true"
+            },
+            {
+              "name": "cdx:npm:package:path",
+              "value": "node_modules/@eslint/config-array/node_modules/minimatch"
+            }
+          ]
         }
       ]
     },
@@ -4712,6 +4891,40 @@
         {
           "name": "cdx:npm:package:path",
           "value": "node_modules/@humanwhocodes/retry"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "nonrecursive-glob-match",
+      "group": "@isaacs",
+      "version": "1.1.0",
+      "bom-ref": "learniq@0.1.0|@isaacs/nonrecursive-glob-match@1.1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BlueOak-1.0.0"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40isaacs/nonrecursive-glob-match@1.1.0",
+      "externalReferences": [
+        {
+          "url": "https://registry.npmjs.org/@isaacs/nonrecursive-glob-match/-/nonrecursive-glob-match-1.1.0.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "18f9bf0dbbe4e512e68519f15c86bb9d3a4ad31b65e04d308f432c96cb8d889d45211394fb6fbd960502fdd805ec4cb84025a17c4b20c6294c44c09d1cf7c37f"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/@isaacs/nonrecursive-glob-match"
         }
       ]
     },
@@ -5513,8 +5726,8 @@
       "type": "library",
       "name": "dialogs",
       "group": "@nextcloud",
-      "version": "7.6.0",
-      "bom-ref": "learniq@0.1.0|@nextcloud/dialogs@7.6.0",
+      "version": "8.0.0",
+      "bom-ref": "learniq@0.1.0|@nextcloud/dialogs@8.0.0",
       "licenses": [
         {
           "license": {
@@ -5522,15 +5735,15 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40nextcloud/dialogs@7.6.0",
+      "purl": "pkg:npm/%40nextcloud/dialogs@8.0.0",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/@nextcloud/dialogs/-/dialogs-7.6.0.tgz",
+          "url": "https://registry.npmjs.org/@nextcloud/dialogs/-/dialogs-8.0.0.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "b3a3d90cd8a82be8966d59bf636bad96958308aaa5c5f874a1468e9224166b166af23e5442c875888d5b2809e109116535cff22a68f510e5413114361031a435"
+              "content": "f2e379f5728e324ecc54287437175df21bd9999431955211bfcb351ab842e7e51bd210fac89ffc5f2aee179e25ae4986981aa1d38f3f8bf64447ddefc1f4690e"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -5548,7 +5761,7 @@
           "name": "core",
           "group": "@vueuse",
           "version": "15.0.0",
-          "bom-ref": "learniq@0.1.0|@nextcloud/dialogs@7.6.0|@vueuse/core@15.0.0",
+          "bom-ref": "learniq@0.1.0|@nextcloud/dialogs@8.0.0|@vueuse/core@15.0.0",
           "licenses": [
             {
               "license": {
@@ -5579,10 +5792,43 @@
         },
         {
           "type": "library",
+          "name": "p-queue",
+          "version": "10.0.0",
+          "bom-ref": "learniq@0.1.0|@nextcloud/dialogs@8.0.0|p-queue@10.0.0",
+          "licenses": [
+            {
+              "license": {
+                "id": "MIT"
+              }
+            }
+          ],
+          "purl": "pkg:npm/p-queue@10.0.0",
+          "externalReferences": [
+            {
+              "url": "https://registry.npmjs.org/p-queue/-/p-queue-10.0.0.tgz",
+              "type": "distribution",
+              "hashes": [
+                {
+                  "alg": "SHA-512",
+                  "content": "3f6c2b0ab8b76e118b3e8de45fba985576e8ff91af6950135340e93b6e026de4f9dd8e33df9b7c2545a4bb4e044695c7518079acf322dd39161377e6260c79ac"
+                }
+              ],
+              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+            }
+          ],
+          "properties": [
+            {
+              "name": "cdx:npm:package:path",
+              "value": "node_modules/@nextcloud/dialogs/node_modules/p-queue"
+            }
+          ]
+        },
+        {
+          "type": "library",
           "name": "metadata",
           "group": "@vueuse",
           "version": "15.0.0",
-          "bom-ref": "learniq@0.1.0|@nextcloud/dialogs@7.6.0|@vueuse/metadata@15.0.0",
+          "bom-ref": "learniq@0.1.0|@nextcloud/dialogs@8.0.0|@vueuse/metadata@15.0.0",
           "licenses": [
             {
               "license": {
@@ -5616,7 +5862,7 @@
           "name": "shared",
           "group": "@vueuse",
           "version": "15.0.0",
-          "bom-ref": "learniq@0.1.0|@nextcloud/dialogs@7.6.0|@vueuse/shared@15.0.0",
+          "bom-ref": "learniq@0.1.0|@nextcloud/dialogs@8.0.0|@vueuse/shared@15.0.0",
           "licenses": [
             {
               "license": {
@@ -10288,6 +10534,10 @@
       ],
       "properties": [
         {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        },
+        {
           "name": "cdx:npm:package:path",
           "value": "node_modules/axe-core"
         }
@@ -10552,10 +10802,6 @@
       ],
       "properties": [
         {
-          "name": "cdx:npm:package:development",
-          "value": "true"
-        },
-        {
           "name": "cdx:npm:package:path",
           "value": "node_modules/balanced-match"
         }
@@ -10757,10 +11003,6 @@
         }
       ],
       "properties": [
-        {
-          "name": "cdx:npm:package:development",
-          "value": "true"
-        },
         {
           "name": "cdx:npm:package:path",
           "value": "node_modules/brace-expansion"
@@ -12915,8 +13157,8 @@
     {
       "type": "library",
       "name": "enhanced-resolve",
-      "version": "5.24.5",
-      "bom-ref": "learniq@0.1.0|enhanced-resolve@5.24.5",
+      "version": "5.27.0",
+      "bom-ref": "learniq@0.1.0|enhanced-resolve@5.27.0",
       "licenses": [
         {
           "license": {
@@ -12924,15 +13166,15 @@
           }
         }
       ],
-      "purl": "pkg:npm/enhanced-resolve@5.24.5",
+      "purl": "pkg:npm/enhanced-resolve@5.27.0",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/enhanced-resolve/-/enhanced-resolve-5.24.5.tgz",
+          "url": "https://registry.npmjs.org/enhanced-resolve/-/enhanced-resolve-5.27.0.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "2f597c4cdbe89a6e94556e41db9dc01b141a81242bfaf1b084c96badf452daa9a1c78e8032931524a4182ef5986f2b13318f15a2270ebf31f3a0731bcb307ee0"
+              "content": "0e8e81076c7395c73fa1d160f97118ca7780c784ff59fcb03bbd72c3d78f4b6b557d1b1fec9551e2651e10b69d21e1f38b19336c6e43a65ba21053e2d9619f61"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -13123,43 +13365,6 @@
         {
           "name": "cdx:npm:package:path",
           "value": "node_modules/es-errors"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "name": "es-module-lexer",
-      "version": "2.3.2",
-      "bom-ref": "learniq@0.1.0|es-module-lexer@2.3.2",
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT"
-          }
-        }
-      ],
-      "purl": "pkg:npm/es-module-lexer@2.3.2",
-      "externalReferences": [
-        {
-          "url": "https://registry.npmjs.org/es-module-lexer/-/es-module-lexer-2.3.2.tgz",
-          "type": "distribution",
-          "hashes": [
-            {
-              "alg": "SHA-512",
-              "content": "a681c6a4e4400688c926e72757d29b39abc44d6f250559e98645bbec4479fc1439173ee85d2a0235e93b207def4799d18ddb04cfddba89b1585fc2ad2d099dcb"
-            }
-          ],
-          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
-        }
-      ],
-      "properties": [
-        {
-          "name": "cdx:npm:package:development",
-          "value": "true"
-        },
-        {
-          "name": "cdx:npm:package:path",
-          "value": "node_modules/es-module-lexer"
         }
       ]
     },
@@ -13485,8 +13690,8 @@
     {
       "type": "library",
       "name": "eslint",
-      "version": "10.14.0",
-      "bom-ref": "learniq@0.1.0|eslint@10.14.0",
+      "version": "10.15.0",
+      "bom-ref": "learniq@0.1.0|eslint@10.15.0",
       "licenses": [
         {
           "license": {
@@ -13494,15 +13699,15 @@
           }
         }
       ],
-      "purl": "pkg:npm/eslint@10.14.0",
+      "purl": "pkg:npm/eslint@10.15.0",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/eslint/-/eslint-10.14.0.tgz",
+          "url": "https://registry.npmjs.org/eslint/-/eslint-10.15.0.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "4f4a4db3191bf482a6b508e1a4adddee758ea45bfe607b8c6d326749532841b945d289ef5df12baeda785758c7b6c40f6a7edd29a1950f4ab55825e7ccc177d4"
+              "content": "fb95a0e29fb37b7b06d5612b62050eff71f521021f141ca6554034168fd74de04e2d2e9440851e929489f2c751927eceef08e1f386f9e70feba2a6af1f669272"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -13523,7 +13728,7 @@
           "type": "library",
           "name": "ajv",
           "version": "6.15.0",
-          "bom-ref": "learniq@0.1.0|eslint@10.14.0|ajv@6.15.0",
+          "bom-ref": "learniq@0.1.0|eslint@10.15.0|ajv@6.15.0",
           "licenses": [
             {
               "license": {
@@ -13560,7 +13765,7 @@
           "type": "library",
           "name": "eslint-visitor-keys",
           "version": "5.0.1",
-          "bom-ref": "learniq@0.1.0|eslint@10.14.0|eslint-visitor-keys@5.0.1",
+          "bom-ref": "learniq@0.1.0|eslint@10.15.0|eslint-visitor-keys@5.0.1",
           "licenses": [
             {
               "license": {
@@ -13597,7 +13802,7 @@
           "type": "library",
           "name": "espree",
           "version": "11.2.0",
-          "bom-ref": "learniq@0.1.0|eslint@10.14.0|espree@11.2.0",
+          "bom-ref": "learniq@0.1.0|eslint@10.15.0|espree@11.2.0",
           "licenses": [
             {
               "license": {
@@ -13632,9 +13837,46 @@
         },
         {
           "type": "library",
+          "name": "minimatch",
+          "version": "11.0.8",
+          "bom-ref": "learniq@0.1.0|eslint@10.15.0|minimatch@11.0.8",
+          "licenses": [
+            {
+              "license": {
+                "id": "BlueOak-1.0.0"
+              }
+            }
+          ],
+          "purl": "pkg:npm/minimatch@11.0.8",
+          "externalReferences": [
+            {
+              "url": "https://registry.npmjs.org/minimatch/-/minimatch-11.0.8.tgz",
+              "type": "distribution",
+              "hashes": [
+                {
+                  "alg": "SHA-512",
+                  "content": "9c542e6124d5ac6bf2b15069b39221fb405d9d814dfc28f70bcd7aafafa9ef22be147ad52c61383b837d005c3292b94d96f3361d8b7e45a775522ae8ea1f3c22"
+                }
+              ],
+              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+            }
+          ],
+          "properties": [
+            {
+              "name": "cdx:npm:package:development",
+              "value": "true"
+            },
+            {
+              "name": "cdx:npm:package:path",
+              "value": "node_modules/eslint/node_modules/minimatch"
+            }
+          ]
+        },
+        {
+          "type": "library",
           "name": "json-schema-traverse",
           "version": "0.4.1",
-          "bom-ref": "learniq@0.1.0|eslint@10.14.0|json-schema-traverse@0.4.1",
+          "bom-ref": "learniq@0.1.0|eslint@10.15.0|json-schema-traverse@0.4.1",
           "licenses": [
             {
               "license": {
@@ -17816,8 +18058,8 @@
     {
       "type": "library",
       "name": "marked",
-      "version": "18.0.13",
-      "bom-ref": "learniq@0.1.0|marked@18.0.13",
+      "version": "18.2.1",
+      "bom-ref": "learniq@0.1.0|marked@18.2.1",
       "licenses": [
         {
           "license": {
@@ -17825,15 +18067,15 @@
           }
         }
       ],
-      "purl": "pkg:npm/marked@18.0.13",
+      "purl": "pkg:npm/marked@18.2.1",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/marked/-/marked-18.0.13.tgz",
+          "url": "https://registry.npmjs.org/marked/-/marked-18.2.1.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "c53c55cd9b01170ba73fa1c39ad06469b51011802b9cfeffacc0c698f8fd4a5aca950e22f0c758568c3e9c92f478eab0a54aa1cc1a1305100318deae6303f23b"
+              "content": "8a2e1bc424c2aaac294fce9765680936cf999c021992c98b19831589603b3c321760878da35c7a703757dc93a2a7d34cfdc23aa7ccf9ec5c6588009ba13aee30"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -19403,8 +19645,8 @@
     {
       "type": "library",
       "name": "minimizer-webpack-plugin",
-      "version": "5.8.0",
-      "bom-ref": "learniq@0.1.0|minimizer-webpack-plugin@5.8.0",
+      "version": "5.14.0",
+      "bom-ref": "learniq@0.1.0|minimizer-webpack-plugin@5.14.0",
       "licenses": [
         {
           "license": {
@@ -19412,15 +19654,15 @@
           }
         }
       ],
-      "purl": "pkg:npm/minimizer-webpack-plugin@5.8.0",
+      "purl": "pkg:npm/minimizer-webpack-plugin@5.14.0",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/minimizer-webpack-plugin/-/minimizer-webpack-plugin-5.8.0.tgz",
+          "url": "https://registry.npmjs.org/minimizer-webpack-plugin/-/minimizer-webpack-plugin-5.14.0.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "d9c4fdfa0a097c186d333fa026a7a349fd3d0a58266213e171c45bfdf6f4ced55b8b1b740643bc991b88dba1683cfb94364464ea2103af2580228b9ce56f1e24"
+              "content": "3e7bd05c22718601f665554eecb8f4b0ceaaf0bd571b19d4bddf30550211c22f2484c08bab9c20d0d8317b8e1b72e64bd8548df3545d544ed81c45734cab100d"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -19704,43 +19946,6 @@
         {
           "name": "cdx:npm:package:path",
           "value": "node_modules/natural-compare"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "name": "neo-async",
-      "version": "2.6.2",
-      "bom-ref": "learniq@0.1.0|neo-async@2.6.2",
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT"
-          }
-        }
-      ],
-      "purl": "pkg:npm/neo-async@2.6.2",
-      "externalReferences": [
-        {
-          "url": "https://registry.npmjs.org/neo-async/-/neo-async-2.6.2.tgz",
-          "type": "distribution",
-          "hashes": [
-            {
-              "alg": "SHA-512",
-              "content": "61ddd4112e665824aa47ea8d4fddd2dd4a18524a8067d94b83c6bb83dae29ac5a66062bc7154e8038fec17746bb21772577b0018c5d5526a4c60ec3e74ba4ebb"
-            }
-          ],
-          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
-        }
-      ],
-      "properties": [
-        {
-          "name": "cdx:npm:package:development",
-          "value": "true"
-        },
-        {
-          "name": "cdx:npm:package:path",
-          "value": "node_modules/neo-async"
         }
       ]
     },
@@ -22416,8 +22621,8 @@
     {
       "type": "library",
       "name": "schema-utils",
-      "version": "4.3.3",
-      "bom-ref": "learniq@0.1.0|schema-utils@4.3.3",
+      "version": "4.8.5",
+      "bom-ref": "learniq@0.1.0|schema-utils@4.8.5",
       "licenses": [
         {
           "license": {
@@ -22425,15 +22630,15 @@
           }
         }
       ],
-      "purl": "pkg:npm/schema-utils@4.3.3",
+      "purl": "pkg:npm/schema-utils@4.8.5",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/schema-utils/-/schema-utils-4.3.3.tgz",
+          "url": "https://registry.npmjs.org/schema-utils/-/schema-utils-4.8.5.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "79f94af3012dc8e13afa1b1a4553f1bd42980a9460ccba834dbf24aef02c448c0e1a51e84a060b8015e8b9b1a02ddd9f4f8d7f39461d6f8f2fe24e1658742eac"
+              "content": "2b54513fb6935006369465cdccfc2330ae8030ccdb113769177a533cc1271ff46ba663f1e8ad57e3bfe049e6eb57ed48f6945c829c19c2aa58065c9902c9628b"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -22447,45 +22652,6 @@
         {
           "name": "cdx:npm:package:path",
           "value": "node_modules/schema-utils"
-        }
-      ],
-      "components": [
-        {
-          "type": "library",
-          "name": "ajv-formats",
-          "version": "2.1.1",
-          "bom-ref": "learniq@0.1.0|schema-utils@4.3.3|ajv-formats@2.1.1",
-          "licenses": [
-            {
-              "license": {
-                "id": "MIT"
-              }
-            }
-          ],
-          "purl": "pkg:npm/ajv-formats@2.1.1",
-          "externalReferences": [
-            {
-              "url": "https://registry.npmjs.org/ajv-formats/-/ajv-formats-2.1.1.tgz",
-              "type": "distribution",
-              "hashes": [
-                {
-                  "alg": "SHA-512",
-                  "content": "5b1d0ac79da1c44ec2d7c8643048206251227ea599b58691828b89a2bf9631d3e743210ad77be0116c9536ea7b4a879ea0b32caf891fe61e9d396d75235e4c50"
-                }
-              ],
-              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
-            }
-          ],
-          "properties": [
-            {
-              "name": "cdx:npm:package:development",
-              "value": "true"
-            },
-            {
-              "name": "cdx:npm:package:path",
-              "value": "node_modules/schema-utils/node_modules/ajv-formats"
-            }
-          ]
         }
       ]
     },
@@ -24228,8 +24394,8 @@
     {
       "type": "library",
       "name": "tapable",
-      "version": "2.3.3",
-      "bom-ref": "learniq@0.1.0|tapable@2.3.3",
+      "version": "2.3.4",
+      "bom-ref": "learniq@0.1.0|tapable@2.3.4",
       "licenses": [
         {
           "license": {
@@ -24237,15 +24403,15 @@
           }
         }
       ],
-      "purl": "pkg:npm/tapable@2.3.3",
+      "purl": "pkg:npm/tapable@2.3.4",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/tapable/-/tapable-2.3.3.tgz",
+          "url": "https://registry.npmjs.org/tapable/-/tapable-2.3.4.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "bb173fce9a8583ac7b0bcbce13b961e8b6dd6bc7842fdce6566fcf2de4cf051861d710a0756690f89d42522786a487e6d8776db14a51bfe1ec8626ac04c71ce8"
+              "content": "3471625a701b309c4d36907088eee3255183baa3314fdfe857cbf9ed147e7e00504a19098a5e629c60fcff15b2d218cbc874325f5b6edbb400361973dca06a0a"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -26100,8 +26266,8 @@
     {
       "type": "library",
       "name": "watchpack",
-      "version": "2.5.2",
-      "bom-ref": "learniq@0.1.0|watchpack@2.5.2",
+      "version": "2.6.4",
+      "bom-ref": "learniq@0.1.0|watchpack@2.6.4",
       "licenses": [
         {
           "license": {
@@ -26109,15 +26275,15 @@
           }
         }
       ],
-      "purl": "pkg:npm/watchpack@2.5.2",
+      "purl": "pkg:npm/watchpack@2.6.4",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/watchpack/-/watchpack-2.5.2.tgz",
+          "url": "https://registry.npmjs.org/watchpack/-/watchpack-2.6.4.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "ea2ff4d0d0633f8c863ecf9c68a4b245fa5317ff13a2bb2ed0c396de633321b86021215d7abf22ef16ea80794b33026b76237c9dd055dd4035fc07f33d2afe8e"
+              "content": "e47dd371ed867f359b72bf559d2ab26a4db084568e370e017662390439cc5e895de2a4a508577ae1768c404491876be40ca99d524bfaad4a35ed4bd9f5ff675f"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -26236,24 +26402,24 @@
         {
           "type": "library",
           "name": "minimatch",
-          "version": "9.0.9",
-          "bom-ref": "learniq@0.1.0|webdav@5.11.0|minimatch@9.0.9",
+          "version": "11.0.8",
+          "bom-ref": "learniq@0.1.0|webdav@5.11.0|minimatch@11.0.8",
           "licenses": [
             {
               "license": {
-                "id": "ISC"
+                "id": "BlueOak-1.0.0"
               }
             }
           ],
-          "purl": "pkg:npm/minimatch@9.0.9",
+          "purl": "pkg:npm/minimatch@11.0.8",
           "externalReferences": [
             {
-              "url": "https://registry.npmjs.org/minimatch/-/minimatch-9.0.9.tgz",
+              "url": "https://registry.npmjs.org/minimatch/-/minimatch-11.0.8.tgz",
               "type": "distribution",
               "hashes": [
                 {
                   "alg": "SHA-512",
-                  "content": "381c0137d00be1daa61139694b6cdab31faf4de59c956ce46e57d993b2930398f78de38e373fed4429d9a26532bcd83cdf02f966ff52b3a1cc2570202fc47662"
+                  "content": "9c542e6124d5ac6bf2b15069b39221fb405d9d814dfc28f70bcd7aafafa9ef22be147ad52c61383b837d005c3292b94d96f3361d8b7e45a775522ae8ea1f3c22"
                 }
               ],
               "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -26265,80 +26431,14 @@
               "value": "node_modules/webdav/node_modules/minimatch"
             }
           ]
-        },
-        {
-          "type": "library",
-          "name": "brace-expansion",
-          "version": "2.1.8",
-          "bom-ref": "learniq@0.1.0|webdav@5.11.0|brace-expansion@2.1.8",
-          "licenses": [
-            {
-              "license": {
-                "id": "MIT"
-              }
-            }
-          ],
-          "purl": "pkg:npm/brace-expansion@2.1.8",
-          "externalReferences": [
-            {
-              "url": "https://registry.npmjs.org/brace-expansion/-/brace-expansion-2.1.8.tgz",
-              "type": "distribution",
-              "hashes": [
-                {
-                  "alg": "SHA-512",
-                  "content": "067943cc3610a29953b194af3e2f3a08dce66dc6f4ed7f2e7d1f1f935ce2bda8842655c9922ab5310c830959a559cb166e3e9a597a879ebc307af6eb9bf49a8a"
-                }
-              ],
-              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
-            }
-          ],
-          "properties": [
-            {
-              "name": "cdx:npm:package:path",
-              "value": "node_modules/webdav/node_modules/brace-expansion"
-            }
-          ]
-        },
-        {
-          "type": "library",
-          "name": "balanced-match",
-          "version": "1.0.2",
-          "bom-ref": "learniq@0.1.0|webdav@5.11.0|balanced-match@1.0.2",
-          "licenses": [
-            {
-              "license": {
-                "id": "MIT"
-              }
-            }
-          ],
-          "purl": "pkg:npm/balanced-match@1.0.2",
-          "externalReferences": [
-            {
-              "url": "https://registry.npmjs.org/balanced-match/-/balanced-match-1.0.2.tgz",
-              "type": "distribution",
-              "hashes": [
-                {
-                  "alg": "SHA-512",
-                  "content": "de849e50ed13315ebb84dd4099b5ec2b8c9aa94eed8e21e56f144364ea47d0a5bdf82797e1b440697d009f1b74b71d8cae94695b041a3f02252121098585393f"
-                }
-              ],
-              "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
-            }
-          ],
-          "properties": [
-            {
-              "name": "cdx:npm:package:path",
-              "value": "node_modules/webdav/node_modules/balanced-match"
-            }
-          ]
         }
       ]
     },
     {
       "type": "library",
       "name": "webpack-sources",
-      "version": "3.5.1",
-      "bom-ref": "learniq@0.1.0|webpack-sources@3.5.1",
+      "version": "3.7.1",
+      "bom-ref": "learniq@0.1.0|webpack-sources@3.7.1",
       "licenses": [
         {
           "license": {
@@ -26346,15 +26446,15 @@
           }
         }
       ],
-      "purl": "pkg:npm/webpack-sources@3.5.1",
+      "purl": "pkg:npm/webpack-sources@3.7.1",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/webpack-sources/-/webpack-sources-3.5.1.tgz",
+          "url": "https://registry.npmjs.org/webpack-sources/-/webpack-sources-3.7.1.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "8f2ba218976dbd8e37e33e5b519ae3cfaeefefafde3cdbc5653a7d31dcf6f48947e3e18fb20c868e2bf47ca23e33b05d914e800e3ba551c280777b542b75a513"
+              "content": "99cc6cec0d8bb04770b0da906eeaea4b84073d1d826b7346a6551a927e89e463d0be7559e280f820ce0525c4f77fc0153767b612c8ee215c4a8f8ae8ac7bf2b9"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -26407,8 +26507,8 @@
     {
       "type": "library",
       "name": "webpack",
-      "version": "5.110.3",
-      "bom-ref": "learniq@0.1.0|webpack@5.110.3",
+      "version": "5.113.0",
+      "bom-ref": "learniq@0.1.0|webpack@5.113.0",
       "licenses": [
         {
           "license": {
@@ -26416,15 +26516,15 @@
           }
         }
       ],
-      "purl": "pkg:npm/webpack@5.110.3",
+      "purl": "pkg:npm/webpack@5.113.0",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/webpack/-/webpack-5.110.3.tgz",
+          "url": "https://registry.npmjs.org/webpack/-/webpack-5.113.0.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "1ae8b307346fa3d60fa72a0d31fdda83b033c5b696f39aab452a9385adf8e4ac896c014fb77fdc33304cd21f915a0ed22bfec377344b20d3f72ef43486faf886"
+              "content": "ab9e221742cd68001d2c4b776a5f6a3170b6cc046f731ecb54a8c7a7e1318c24641b1d0cf1399ac061c05f2917c287d6cf184dccf4c087790b557bcd834125e0"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -26445,7 +26545,7 @@
           "type": "library",
           "name": "mime-db",
           "version": "1.54.0",
-          "bom-ref": "learniq@0.1.0|webpack@5.110.3|mime-db@1.54.0",
+          "bom-ref": "learniq@0.1.0|webpack@5.113.0|mime-db@1.54.0",
           "licenses": [
             {
               "license": {

@@ -35,9 +35,10 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle\Action;
 
-use OCA\Learniq\Service\LearnerRefResolver;
+use OCA\Learniq\Kernel\Contracts\LearnerRefResolverInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Lifecycle\LifecycleActionContext;
-use OCA\OpenRegister\Lifecycle\LifecycleActionInterface;
+use OCA\OpenRegister\Lifecycle\ContextLifecycleActionInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -47,7 +48,7 @@ use Throwable;
  *
  * @spec openspec/specs/parent-conferences/spec.md#requirement-digital-invitations-are-a-declared-transition-notification-to-the-rounds-invited-learners
  */
-class ConferenceInvitationAction implements LifecycleActionInterface {
+class ConferenceInvitationAction implements ContextLifecycleActionInterface {
 
 	private const REGISTER = 'learniq';
 
@@ -57,14 +58,14 @@ class ConferenceInvitationAction implements LifecycleActionInterface {
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService Reads the round's cohorts.
-	 * @param LearnerRefResolver $profiles Nextcloud user id to LearnerProfile uuid.
+	 * @param LearnerRefResolverInterface $profiles Nextcloud user id to LearnerProfile uuid.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly LearnerRefResolver $profiles,
+		private readonly LearnerRefResolverInterface $profiles,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
@@ -118,8 +119,7 @@ class ConferenceInvitationAction implements LifecycleActionInterface {
 		try {
 			$cohort = $this->objectService->find(
 				id: $cohortId,
-				register: self::REGISTER,
-				schema: self::COHORT_SCHEMA,
+				options: new ObjectFindOptions(register: self::REGISTER, schema: self::COHORT_SCHEMA),
 				_rbac: false,
 				_multitenancy: false
 			);

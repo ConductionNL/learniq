@@ -33,6 +33,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\ReadableCopiesInterface;
 use OCA\Learniq\Support\ObjectRow;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IUserManager;
@@ -42,7 +43,7 @@ use OCP\IUserManager;
  *
  * @spec openspec/specs/portal-contribution/spec.md#requirement-new-a-grade-names-its-subject-and-its-weight
  */
-class ReadableCopies {
+class ReadableCopies implements ReadableCopiesInterface {
 
 	private const REGISTER = 'learniq';
 
@@ -55,7 +56,10 @@ class ReadableCopies {
 		'grade-entry'     => ['courseName' => null],
 		// The employer's portal reads a participant's name, course and company on the row (employer-portal-audience).
 		'enrolment'       => ['cohortName' => null, 'learnerName' => null, 'courseName' => null, 'organisationRef' => null],
-		'portfolio-share' => ['portfolioTitle' => null, 'learnerName' => null],
+		// The wholePortfolioId copy: the portfolio a share opens whole, for the assessor portal's second join (site-external-assessor-portal-design T3).
+		'portfolio-share' => ['portfolioTitle' => null, 'learnerName' => null, 'wholePortfolioId' => null],
+		// The assessor's exam list reads time, candidate and exam off the row (practical-exam-assessment).
+		'exam-assessor-assignment' => ['learnerName' => null, 'sittingStartsAt' => null, 'examTitle' => null],
 		'teacher-availability' => ['teacherName' => null],
 		// The line under a child's name in the guardian's menu (school-portals-use-the-new-blocks).
 		// With the group's teacher for the child page's "Bericht aan {teacherName}" (wilgenboom/Detail).
@@ -143,7 +147,14 @@ class ReadableCopies {
 		}
 
 		if ($slug === 'portfolio-share') {
-			return $this->shareCopies(portfolioId: $row['portfolioId'] ?? null);
+			return array_merge(
+				$this->shareCopies(portfolioId: $row['portfolioId'] ?? null),
+				['wholePortfolioId' => self::wholePortfolioOf(share: $row)]
+			);
+		}
+
+		if ($slug === 'exam-assessor-assignment') {
+			return $this->assignmentCopies(row: $row);
 		}
 
 		if ($slug === 'teacher-availability') {
@@ -232,6 +243,55 @@ class ReadableCopies {
 	}//end personName()
 
 	/**
+	 * The portfolio a share opens as a whole, or null when it selects entries.
+	 *
+	 * A share without a selection (entryIds null or empty) opens the whole
+	 * portfolio, as PortfolioShareGrantHandler reads it too. The copy lets a
+	 * portal join on it without telling the two kinds apart by a condition.
+	 *
+	 * @param array<string, mixed> $share The share as written.
+	 *
+	 * @return string|null The portfolio UUID, or null.
+	 *
+	 * @spec openspec/changes/site-external-assessor-portal-design/specs/portal-contribution/spec.md#requirement-new-an-external-assessor-opens-the-shared-entries-and-only-those
+	 */
+	public static function wholePortfolioOf(array $share): ?string {
+		if (self::selectsEntries(share: $share) === true) {
+			return null;
+		}
+
+		return self::trimmedId(value: ($share['portfolioId'] ?? null));
+	}//end wholePortfolioOf()
+
+	/**
+	 * Whether a share selects entries rather than opening the whole portfolio.
+	 *
+	 * @param array<string, mixed> $share The share as written.
+	 *
+	 * @return bool True when entryIds is a non-empty list.
+	 */
+	private static function selectsEntries(array $share): bool {
+		$selection = ($share['entryIds'] ?? null);
+
+		return is_array($selection) === true && $selection !== [];
+	}//end selectsEntries()
+
+	/**
+	 * An id with its surrounding blanks removed.
+	 *
+	 * @param mixed $value The id as written.
+	 *
+	 * @return string|null The id, or null when it is not a non-blank string.
+	 */
+	private static function trimmedId(mixed $value): ?string {
+		if (is_string($value) === false || trim($value) === '') {
+			return null;
+		}
+
+		return trim($value);
+	}//end trimmedId()
+
+	/**
 	 * The portfolio title and the learner's name for a share.
 	 *
 	 * @param mixed $portfolioId The share's portfolio pointer.
@@ -257,6 +317,36 @@ class ReadableCopies {
 			'learnerName'    => $name,
 		];
 	}//end shareCopies()
+
+	/**
+	 * The candidate's name, the sitting's start and the exam's title, for an assessor assignment.
+	 *
+	 * @param array<string, mixed> $row The assignment as it will be stored.
+	 *
+	 * @return array{learnerName: string|null, sittingStartsAt: string|null, examTitle: string|null}
+	 *
+	 * @throws \Throwable When OpenRegister cannot be read.
+	 *
+	 * @spec openspec/changes/practical-exam-assessment/specs/exam-board/spec.md#requirement-an-assessor-is-linked-to-an-exam-sitting-by-a-record
+	 */
+	private function assignmentCopies(array $row): array {
+		$learner = $this->read(schema: 'learner-profile', id: $row['learnerRef'] ?? null);
+		$name = null;
+		if ($learner !== null) {
+			$name = $this->personName(profile: $learner);
+		}
+
+		$sitting = $this->read(schema: 'exam-sitting', id: $row['examSittingId'] ?? null);
+		if ($sitting === null) {
+			return ['learnerName' => $name, 'sittingStartsAt' => null, 'examTitle' => null];
+		}
+
+		return [
+			'learnerName'     => $name,
+			'sittingStartsAt' => $this->orNull(value: trim($this->text(value: $sitting['startsAt'] ?? null))),
+			'examTitle'       => $this->nameOf(schema: 'assessment', id: $sitting['assessmentId'] ?? null, field: 'title'),
+		];
+	}//end assignmentCopies()
 
 	/**
 	 * A Nextcloud user's display name, or null for an empty or unknown uid.

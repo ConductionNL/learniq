@@ -31,8 +31,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
-use OCA\Learniq\Timetabling\ContactHoursCalendar;
-use OCA\Learniq\Timetabling\Source\TimetableSourceResolver;
+use OCA\Learniq\Kernel\Contracts\ContactHoursCalendarInterface;
+use OCA\Learniq\Kernel\Contracts\ContactHoursServiceInterface;
+use OCA\Learniq\Kernel\Contracts\TimetableSourceResolverInterface;
 use OCP\IAppConfig;
 use RuntimeException;
 
@@ -41,7 +42,7 @@ use RuntimeException;
  *
  * @spec openspec/specs/attendance/spec.md#requirement-a-coordinator-compares-owed-given-and-attended-contact-hours
  */
-class ContactHoursService {
+class ContactHoursService implements ContactHoursServiceInterface {
 
 	public const MARGIN_KEY = 'contact_hours_margin_percent';
 	private const ATTENDED = ['present', 'late', 'left-early'];
@@ -51,15 +52,15 @@ class ContactHoursService {
 	 *
 	 * @param ContactHoursReader      $reader    Cohorts, periods, courses and attendance.
 	 * @param HourPlanActivityService $plans     The hour plan lines per group.
-	 * @param TimetableSourceResolver $sources   Planninq or learniq's own sessions.
-	 * @param ContactHoursCalendar    $calendar  Teaching days and proration.
+	 * @param TimetableSourceResolverInterface $sources   Planninq or learniq's own sessions.
+	 * @param ContactHoursCalendarInterface    $calendar  Teaching days and proration.
 	 * @param IAppConfig              $appConfig The margin setting.
 	 */
 	public function __construct(
 		private readonly ContactHoursReader $reader,
 		private readonly HourPlanActivityService $plans,
-		private readonly TimetableSourceResolver $sources,
-		private readonly ContactHoursCalendar $calendar,
+		private readonly TimetableSourceResolverInterface $sources,
+		private readonly ContactHoursCalendarInterface $calendar,
 		private readonly IAppConfig $appConfig,
 	) {
 	}//end __construct()

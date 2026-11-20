@@ -29,6 +29,10 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\ReportSubjectGradeRowsInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectDeletion;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -36,7 +40,7 @@ use OCA\OpenRegister\Service\ObjectService;
  *
  * @spec openspec/specs/portal-contribution/spec.md#requirement-the-latest-report-reads-as-one-bar-per-subject
  */
-class ReportSubjectGradeRows {
+class ReportSubjectGradeRows implements ReportSubjectGradeRowsInterface {
 
 	private const REGISTER = 'learniq';
 
@@ -123,9 +127,10 @@ class ReportSubjectGradeRows {
 
 		foreach ($this->rowsOf(learnerRef: $learnerRef) as $old) {
 			$this->objectService->deleteObject(
-				uuid: (string)($old['id'] ?? ($old['uuid'] ?? '')),
-				register: self::REGISTER,
-				schema: self::SCHEMA,
+				new ObjectDeletion(
+					uuid: (string)($old['id'] ?? ($old['uuid'] ?? '')),
+					target: new ObjectFindTarget(register: self::REGISTER, schema: self::SCHEMA)
+				),
 				_rbac: false,
 				_multitenancy: false
 			);
@@ -135,8 +140,7 @@ class ReportSubjectGradeRows {
 		foreach ($rows as $row) {
 			$this->objectService->saveObject(
 				object: $row,
-				register: self::REGISTER,
-				schema: self::SCHEMA,
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: self::SCHEMA)),
 				_rbac: false,
 				_multitenancy: false
 			);

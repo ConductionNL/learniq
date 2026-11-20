@@ -29,9 +29,11 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Timetabling;
 
-use OCA\Learniq\Support\ObjectRow;
 use DateTimeImmutable;
 use DateTimeZone;
+use OCA\Learniq\Kernel\Contracts\SessionSeriesInterface;
+use OCA\Learniq\Support\ObjectRow;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Throwable;
 
@@ -40,12 +42,10 @@ use Throwable;
  *
  * @spec openspec/specs/timetabling/spec.md#requirement-a-coordinator-applies-one-change-to-several-weeks
  */
-class SessionSeries {
+class SessionSeries implements SessionSeriesInterface {
 
 	private const REGISTER = 'learniq';
 	private const SESSION_SCHEMA = 'session';
-	public const TIMEZONE = 'Europe/Amsterdam';
-	public const OPEN_STATES = ['scheduled', 'in-progress'];
 
 	/**
 	 * Turns one OpenRegister result into a plain array.
@@ -246,7 +246,7 @@ class SessionSeries {
 	 */
 	public function loadSession(string $sessionId): ?array {
 		try {
-			$row = $this->objectService->find(id: $sessionId, register: self::REGISTER, schema: self::SESSION_SCHEMA);
+			$row = $this->objectService->find(id: $sessionId, options: new ObjectFindOptions(register: self::REGISTER, schema: self::SESSION_SCHEMA));
 		} catch (Throwable $exception) {
 			unset($exception);
 			return null;

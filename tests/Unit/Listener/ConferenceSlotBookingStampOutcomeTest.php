@@ -36,6 +36,7 @@ use OCP\IUserSession;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 
 /**
  * Pins what ConferenceSlotBookingStamp answers for each portal booking.
@@ -108,7 +109,11 @@ class ConferenceSlotBookingStampOutcomeTest extends TestCase {
 
 		$objects = $this->createMock(ObjectService::class);
 		$objects->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) {
+			function (int|string $id, ?ObjectFindOptions $options = null) {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				$this->calls[] = 'find ' . $schema . ' ' . $id;
 				if ($id === 'boom') {
 					throw new RuntimeException('store down');
@@ -195,6 +200,9 @@ class ConferenceSlotBookingStampOutcomeTest extends TestCase {
 		$event = $this->book(['learnerRef' => 'child', 'guardianRef' => 'mum', 'slotId' => 's1', 'notes' => 'x']);
 
 		self::assertFalse($event->isPropagationStopped());
+		$data = $event->getModifiedData();
+		self::assertMatchesRegularExpression(pattern: '/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}$/', string: $data['bookedAt']);
+		unset($data['bookedAt']);
 		self::assertSame(
 			[
 				'conferenceRoundId' => 'r1',
@@ -202,6 +210,7 @@ class ConferenceSlotBookingStampOutcomeTest extends TestCase {
 				'learnerRef' => 'child',
 				'guardianId' => 'parent-1',
 				'tenant_id' => 't1',
+				'bookedBy' => 'guardian',
 				'requestedTeacherIds' => ['teacher-9'],
 				'teacherName' => 'Anna',
 				'startsAt' => '2026-10-08T18:00',
@@ -209,7 +218,7 @@ class ConferenceSlotBookingStampOutcomeTest extends TestCase {
 				'slotLabel' => 'Thu 18:00',
 				'lifecycle' => 'booked',
 			],
-			$event->getModifiedData()
+			$data
 		);
 		self::assertSame(
 			[
@@ -234,9 +243,11 @@ class ConferenceSlotBookingStampOutcomeTest extends TestCase {
 		$this->claimed = ['slot' => []];
 
 		$data = $this->book(['learnerRef' => 'child', 'guardianRef' => 'mum', 'slotId' => 's1'])->getModifiedData();
+		unset($data['bookedAt']);
 
 		self::assertSame(
-			['conferenceRoundId' => 'r1', 'learnerId' => '', 'learnerRef' => 'child', 'guardianId' => '', 'tenant_id' => '', 'requestedTeacherIds' => [''],
+			['conferenceRoundId' => 'r1', 'learnerId' => '', 'learnerRef' => 'child', 'guardianId' => '', 'tenant_id' => '', 'bookedBy' => 'guardian',
+				'requestedTeacherIds' => [''],
 				'teacherName' => '', 'startsAt' => '', 'endsAt' => '', 'slotLabel' => '', 'lifecycle' => 'booked'],
 			$data
 		);

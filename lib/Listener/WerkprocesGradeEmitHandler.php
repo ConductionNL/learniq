@@ -48,9 +48,11 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\Learniq\Service\ObjectRowReader;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -93,14 +95,14 @@ class WerkprocesGradeEmitHandler implements IEventListener {
 	 *
 	 * @param ObjectService $objectService OR object access service.
 	 * @param LoggerInterface $logger PSR logger.
-	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
-		private readonly ListenerSchemaResolver $schemas,
+		private readonly ListenerSchemaResolverInterface $schemas,
 	) {
 		$this->rows = new ObjectRowReader(objectService: $objectService);
 	}//end __construct()
@@ -158,25 +160,19 @@ class WerkprocesGradeEmitHandler implements IEventListener {
 
 		$curriculumPlan = $this->loadObject(schema: self::CURRICULUM_SCHEMA, id: $refs['curriculum']);
 
-		$existing = $this->findExistingGradeEntry(
-			learnerId: $learner['learnerId'],
-			curriculumPlanId: $refs['curriculum'],
-			componentId: $refs['component'],
-			tenantId: $learner['tenantId']
-		);
+		$existing = $this->findExistingGradeEntry(learner: $learner, refs: $refs);
 
 		// System context (grade-entry): coordinators and praktijkopleiders confirm a werkproces
 		// assessment, and GradeEntry create is instructors, hr, compliance officers and team leads
 		// only.
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::GRADE_ENTRY_SCHEMA,
 			object: $this->gradeEntryData(
 				refs: $refs,
 				learner: $learner,
 				gradeScaleId: ($curriculumPlan['gradeScaleId'] ?? ''),
 				existing: $existing
 			),
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::GRADE_ENTRY_SCHEMA)),
 			_rbac: false
 		);
 
@@ -319,25 +315,19 @@ class WerkprocesGradeEmitHandler implements IEventListener {
 	/**
 	 * Find an existing GradeEntry for the same learner/plan/component pair, if any.
 	 *
-	 * @param string $learnerId NC user id.
-	 * @param string $curriculumPlanId Plan UUID.
-	 * @param string $componentId Component identifier.
-	 * @param string $tenantId Tenant UUID scope filter.
+	 * @param array{learnerId: string, tenantId: string} $learner The learner's NC user id and tenant UUID scope filter.
+	 * @param array{curriculum: string, component: string} $refs    The plan UUID and component identifier.
 	 *
 	 * @return array<string,mixed>|null The existing GradeEntry data, or null when none exists.
 	 *
 	 * @spec openspec/specs/bpv/spec.md#requirement-werkprocesassessment-aligns-to-the-kwalificatiedossier-and-emits-a-gradeentry
 	 */
-	private function findExistingGradeEntry(
-		string $learnerId,
-		string $curriculumPlanId,
-		string $componentId,
-		string $tenantId,
-	): ?array {
+	private function findExistingGradeEntry(array $learner, array $refs): ?array {
+		$tenantId = $learner['tenantId'];
 		$filters = [
-			'learnerId' => $learnerId,
-			'curriculumPlanId' => $curriculumPlanId,
-			'componentId' => $componentId,
+			'learnerId' => $learner['learnerId'],
+			'curriculumPlanId' => $refs['curriculum'],
+			'componentId' => $refs['component'],
 		];
 		if ($tenantId !== '') {
 			$filters['tenant_id'] = $tenantId;

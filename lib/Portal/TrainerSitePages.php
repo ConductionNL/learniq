@@ -79,6 +79,71 @@ class TrainerSitePages {
 		'match' => 'scopeField',
 	];
 
+	/**
+	 * The placement states that still show the student's name to her: every
+	 * state but `terminated`. A placement that ended early must not reveal who
+	 * the student was (site-workplace-trainer-portal-design T1).
+	 */
+	public const PO_LEARNERS_PLACEMENT_STATES = [
+		'proposed',
+		'sbb-verification-pending',
+		'confirmed',
+		'active',
+		'completed',
+	];
+
+	/**
+	 * The forward one-hop join from her placements to their students: portaliq
+	 * reads the placements whose `practicalTrainerId` is her claim and whose
+	 * `lifecycle` is not `terminated`, collects each row's `learnerRef`, and
+	 * keeps only the learner profiles whose own id is in that set
+	 * (`match: id`, the forward direction).
+	 */
+	private const PO_LEARNERS_VIA = [
+		'register' => self::REGISTER,
+		'schema' => 'bpv-placement',
+		'scopeField' => 'practicalTrainerId',
+		'targetField' => 'learnerRef',
+		'match' => 'id',
+		'when' => ['field' => 'lifecycle', 'in' => self::PO_LEARNERS_PLACEMENT_STATES],
+	];
+
+	/**
+	 * Names only: birth date, address, contacts and medical data stay in learniq.
+	 */
+	private const PO_LEARNERS_FIELDS = [
+		'givenName',
+		'familyName',
+	];
+
+	private const PO_LEARNERS_COLUMNS = [
+		['field' => 'givenName', 'label' => 'First name'],
+		['field' => 'familyName', 'label' => 'Last name'],
+	];
+
+	/**
+	 * What she reads of a visit: the placement, the kind and the moment. The
+	 * school coach's identity stays out of her projection, as on the placement.
+	 */
+	private const PO_BPV_VISITS_FIELDS = [
+		'bpvPlacementId',
+		'visitKind',
+		'proposedAt',
+		'plannedAt',
+		'lifecycle',
+	];
+
+	private const PO_BPV_VISITS_COLUMNS = [
+		['field' => 'visitKind', 'label' => 'Visit', 'valueLabels' => self::VISIT_KIND_LABELS],
+		['field' => 'proposedAt', 'label' => 'Proposed moment', 'render' => 'datetime'],
+	];
+
+	private const VISIT_KIND_LABELS = [
+		'voortgangsbezoek' => 'Progress visit',
+		'tussentijds-gesprek' => 'Mid-term assessment',
+		'eindgesprek' => 'Final assessment',
+	];
+
 	private const PO_HOUR_WEEKS_COLUMNS = [
 		['field' => 'isoWeek', 'label' => 'Week'],
 		['field' => 'hoursSubmitted', 'label' => 'Hours'],
@@ -98,6 +163,21 @@ class TrainerSitePages {
 			'collection' => 'poHourWeeks',
 			'dueField' => 'submittedAt',
 			'titleFields' => ['isoWeek'],
+		],
+		// Her students by name, each card with its placement period looked
+		// up on her placements (a placement's `learnerRef` holds the
+		// student's id). A placement card cannot carry the student's name,
+		// so the names stand on cards of their own.
+		[
+			'type' => 'collection',
+			'label' => 'My students',
+			'collection' => 'poLearners',
+			'display' => 'cards',
+			'titleFields' => ['givenName', 'familyName'],
+			'lookups' => [
+				['as' => 'periodFrom', 'collection' => 'poBpvPlacements', 'matchField' => 'learnerRef', 'valueField' => 'periodFrom'],
+				['as' => 'periodTo', 'collection' => 'poBpvPlacements', 'matchField' => 'learnerRef', 'valueField' => 'periodTo'],
+			],
 		],
 		// A collection block carries no heading of its own on portaliq
 		// today, so the two lists stand on their columns: the placements
@@ -131,7 +211,17 @@ class TrainerSitePages {
 			'limit' => 3,
 			'sort' => ['field' => 'assessedAt', 'direction' => 'desc'],
 		],
+		// A visit date the school coach proposed waits for her answer as well, after what she wrote last
+		// (bpv-coach-today-and-placement-board T3).
+		[
+			'type' => 'tasks',
+			'label' => 'Visit dates to agree',
+			'collection' => 'poBpvVisits',
+			'dueField' => 'proposedAt',
+			'titleFields' => ['proposedAt'],
+		],
 		['type' => 'cta', 'action' => 'approveHourWeek', 'label' => 'Approve hours'],
+		['type' => 'cta', 'action' => 'answerBpvVisit', 'label' => 'Answer a visit date'],
 		['type' => 'cta', 'action' => 'createWerkprocesAssessment', 'label' => 'Fill in an assessment'],
 		['type' => 'cta', 'action' => 'signPraktijkovereenkomst', 'label' => 'Sign the placement agreement'],
 		['type' => 'inbox', 'label' => 'Messages', 'limit' => 2],
@@ -259,7 +349,12 @@ class TrainerSitePages {
 		'minTrust' => 'low',
 		'subjectField' => 'practicalTrainerId',
 		'scopeClaim' => 'practicalTrainerId',
-		'fields' => ['hourWeekId', 'hoursApproved', 'note'],
+		// A return names the day she has a question about and the question
+		// (bpv-hours-per-day): portaliq forwards declared fields only.
+		'fields' => ['hourWeekId', 'outcome', 'hoursApproved', 'note', 'returnedDate', 'question'],
+		// Declared only so portaliq shapes the inputs: `hoursApproved`
+		// becomes a number input and is sent as a number.
+		'schema' => 'bpv-hour-week',
 		// She picks the week from the weeks waiting for her instead of
 		// typing a uuid. Portaliq fills a `collection` provider from the
 		// SUBJECT-SCOPED collection over that schema, which for her is
@@ -274,14 +369,65 @@ class TrainerSitePages {
 				'labelField' => 'isoWeek',
 				'valueField' => 'id',
 			],
+			'outcome' => [
+				'type' => 'static',
+				'options' => [
+					['value' => 'approved', 'label' => 'Approve the week'],
+					['value' => 'returned', 'label' => 'Send it back with a question'],
+				],
+			],
 		],
 		'fieldConfigs' => [
 			'hourWeekId' => ['label' => 'The week you are approving', 'required' => true],
-			'hoursApproved' => ['label' => 'Hours you approve', 'required' => true],
+			'outcome' => ['label' => 'Your decision', 'widget' => 'choices'],
+			// Left empty, she approves the hours the student wrote.
+			'hoursApproved' => ['label' => 'Hours you approve'],
 			'note' => ['label' => 'Why you approve another number'],
+			'returnedDate' => ['label' => 'The day you have a question about (YYYY-MM-DD)'],
+			'question' => ['label' => 'Your question', 'size' => 'large'],
 		],
 		'submitLabel' => 'Approve these hours',
 		'successMessage' => 'The hours are approved. Your student sees your decision and your note.',
+	];
+
+	private const ANSWER_BPV_VISIT = [
+		'id' => 'answerBpvVisit',
+		// Through learniq's own endpoint: the trainer is the subject of the
+		// assertion, and the visit must be one of her own placements.
+		'type' => 'endpoint-forward',
+		'label' => 'Answer a proposed visit date',
+		'endpoint' => '/apps/learniq/api/portal/bpv-visits/answer',
+		'method' => 'POST',
+		'minTrust' => 'low',
+		'subjectField' => 'practicalTrainerId',
+		'scopeClaim' => 'practicalTrainerId',
+		'fields' => ['bpvVisitId', 'outcome', 'trainerResponse'],
+		// She picks from the visits waiting for her answer: portaliq fills a
+		// `collection` provider from her subject-scoped `poBpvVisits`, which
+		// already holds only proposed visits of her own placements.
+		'optionsProviders' => [
+			'bpvVisitId' => [
+				'type' => 'collection',
+				'register' => self::REGISTER,
+				'schema' => 'bpv-visit',
+				'labelField' => 'proposedAt',
+				'valueField' => 'id',
+			],
+			'outcome' => [
+				'type' => 'static',
+				'options' => [
+					['value' => 'accept', 'label' => 'This moment suits us'],
+					['value' => 'answer', 'label' => 'Another moment, see my note'],
+				],
+			],
+		],
+		'fieldConfigs' => [
+			'bpvVisitId' => ['label' => 'The visit', 'required' => true],
+			'outcome' => ['label' => 'Your answer', 'required' => true, 'widget' => 'choices'],
+			'trainerResponse' => ['label' => 'Which moment suits you, or why this one does not', 'size' => 'large'],
+		],
+		'submitLabel' => 'Send my answer',
+		'successMessage' => 'Your answer has been sent to the school coach.',
 	];
 
 	private const SIGN_PRAKTIJKOVEREENKOMST = [
@@ -330,6 +476,36 @@ class TrainerSitePages {
 	}//end assessmentsCollection()
 
 	/**
+	 * Her students, by name only.
+	 *
+	 * Joined forward through her own placements, so she reads the learner
+	 * profiles of the students she supervises and nobody else's. A placement
+	 * that is `terminated` grants nothing (`via.when`), so a student whose
+	 * placement with her ended early drops out of her list. Only the two name
+	 * fields are projected.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/site-workplace-trainer-portal-design/specs/portal-contribution/spec.md
+	 */
+	public function learnersCollection(): array {
+		return [
+			'id' => 'poLearners',
+			'register' => self::REGISTER,
+			'schema' => 'learner-profile',
+			'scopeField' => 'id',
+			'scopeClaim' => 'practicalTrainerId',
+			'via' => self::PO_LEARNERS_VIA,
+			'label' => 'My students',
+			'listable' => true,
+			'minTrust' => 'low',
+			'fields' => self::PO_LEARNERS_FIELDS,
+			'columns' => self::PO_LEARNERS_COLUMNS,
+		];
+	}//end learnersCollection()
+
+	/**
+	 * The weeks of hours waiting for her.	/**
 	 * The weeks of hours waiting for her.
 	 *
 	 * Matched through the placement she supervises, so she reads the weeks of
@@ -364,6 +540,35 @@ class TrainerSitePages {
 			'columns' => self::PO_HOUR_WEEKS_COLUMNS,
 		];
 	}//end hourWeeksCollection()
+
+	/**
+	 * The visit dates waiting for her answer.
+	 *
+	 * Matched through the placement she supervises, the way her weeks of
+	 * hours are, so she reads the visits of her own students and nobody
+	 * else's. Only visits in `proposed` are offered: a planned visit is agreed,
+	 * and an unplanned one waits for the coach.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/bpv-coach-today-and-placement-board/specs/bpv/spec.md#requirement-a-school-coach-plans-visits-and-the-company-agrees-the-date
+	 */
+	public function visitsCollection(): array {
+		return [
+			'id' => 'poBpvVisits',
+			'register' => self::REGISTER,
+			'schema' => 'bpv-visit',
+			'scopeField' => 'bpvPlacementId',
+			'scopeClaim' => 'practicalTrainerId',
+			'via' => self::PO_HOUR_WEEKS_VIA,
+			'label' => 'Visit dates to agree',
+			'listable' => true,
+			'minTrust' => 'low',
+			'filter' => ['lifecycle' => 'proposed'],
+			'fields' => self::PO_BPV_VISITS_FIELDS,
+			'columns' => self::PO_BPV_VISITS_COLUMNS,
+		];
+	}//end visitsCollection()
 
 	/**
 	 * The trainer's pages: the overview, then one page per section.
@@ -417,7 +622,7 @@ class TrainerSitePages {
 		$blocks = [];
 		// The assessment form posts to learniq's endpoint, so it carries no
 		// schema to match a page on; it belongs to the assessments page.
-		$forms = ['poWerkprocesAssessments' => 'createWerkprocesAssessment'];
+		$forms = ['poWerkprocesAssessments' => 'createWerkprocesAssessment', 'poBpvVisits' => 'answerBpvVisit'];
 		$form = ($forms[$id] ?? null);
 		foreach ($actions as $action) {
 			if ($form === null && ($action['type'] ?? '') === 'create' && ($action['schema'] ?? '') === ($collection['schema'] ?? '')) {
@@ -494,6 +699,8 @@ class TrainerSitePages {
 		];
 		$contribution['collections'][] = $this->assessmentsCollection();
 		$contribution['collections'][] = $this->hourWeeksCollection();
+		$contribution['collections'][] = $this->learnersCollection();
+		$contribution['collections'][] = $this->visitsCollection();
 		// The overview and a page per section (site-workplace-trainer-portal-design).
 		$contribution['pages'] = $this->pages(collections: $contribution['collections'], actions: $contribution['actions']);
 
@@ -554,6 +761,7 @@ class TrainerSitePages {
 		return [
 			$this->assessmentAction(),
 			self::APPROVE_HOUR_WEEK,
+			self::ANSWER_BPV_VISIT,
 			self::SIGN_PRAKTIJKOVEREENKOMST,
 		];
 	}//end actions()

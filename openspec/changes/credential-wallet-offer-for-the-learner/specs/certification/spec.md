@@ -45,7 +45,7 @@ On `CredentialDetail`, a section MUST show the holder (the user whose id is `lea
 - **GIVEN** a learner whose certificate has an open wallet offer
 - **WHEN** the learner opens the certificate
 - **THEN** the page shows a QR code that encodes `walletOfferUri` and an "Naar wallet" link to it
-- @e2e exclude needs an integriq offer and a learner session; covered by tests/unit-js/credentialWalletOffer.test.mjs
+- @e2e tests/e2e/credential-wallet-offer.spec.ts
 
 #### Scenario: No offer yet
 
@@ -59,7 +59,7 @@ On `CredentialDetail`, a section MUST show the holder (the user whose id is `lea
 - **GIVEN** a user in `hr` and a certificate with an open offer
 - **WHEN** that user opens the certificate
 - **THEN** the wallet section is not shown
-- @e2e exclude covered by tests/unit-js/credentialWalletOffer.test.mjs
+- @e2e tests/e2e/credential-wallet-offer.spec.ts
 
 ### Requirement: The course participant finds the offer in the portal
 

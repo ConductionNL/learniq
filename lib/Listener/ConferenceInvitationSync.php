@@ -37,11 +37,12 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\ConferenceInvitations;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\ConferenceInvitationsInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -66,22 +67,22 @@ class ConferenceInvitationSync implements IEventListener {
 	/**
 	 * The round fields an invitation depends on.
 	 */
-	private const ROUND_FIELDS = ['invitedLearnerRefs', 'lifecycle', 'name', 'bookingClosesAt', 'bookingMode', 'tenant_id'];
+	private const ROUND_FIELDS = ['invitedLearnerRefs', 'lifecycle', 'name', 'bookingClosesAt', 'bookingMode', 'pupilMayBook', 'tenant_id'];
 
 	/**
 	 * Constructor.
 	 *
-	 * @param ListenerSchemaResolver $schemaResolver Entity schema id to slug.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Entity schema id to slug.
 	 * @param ObjectService $objectService Reads the slot's round.
-	 * @param ConferenceInvitations $invitations Writes the round's invitation rows.
+	 * @param ConferenceInvitationsInterface $invitations Writes the round's invitation rows.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ListenerSchemaResolver $schemaResolver,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
 		private readonly ObjectService $objectService,
-		private readonly ConferenceInvitations $invitations,
+		private readonly ConferenceInvitationsInterface $invitations,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
@@ -230,8 +231,7 @@ class ConferenceInvitationSync implements IEventListener {
 		try {
 			$round = $this->objectService->find(
 				id: $roundId,
-				register: self::REGISTER,
-				schema: self::ROUND_SCHEMA,
+				options: new ObjectFindOptions(register: self::REGISTER, schema: self::ROUND_SCHEMA),
 				_rbac: false,
 				_multitenancy: false
 			);

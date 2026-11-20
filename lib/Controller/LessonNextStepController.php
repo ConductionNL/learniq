@@ -32,11 +32,12 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Service\DashboardRoleService;
-use OCA\Learniq\Service\NextStepResolver;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\DashboardRoleServiceInterface;
+use OCA\Learniq\Kernel\Contracts\NextStepResolverInterface;
 use OCA\Learniq\Support\FindOrNull;
 use OCA\Learniq\Support\SerialisedRow;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -72,8 +73,8 @@ class LessonNextStepController extends Controller {
 	 * @param IRequest             $request              HTTP request.
 	 * @param IUserSession         $userSession          The caller.
 	 * @param ObjectService        $objectService        OpenRegister object access.
-	 * @param NextStepResolver     $resolver             Resolves the next lesson.
-	 * @param DashboardRoleService $dashboardRoleService Resolves the caller's Learniq views.
+	 * @param NextStepResolverInterface     $resolver             Resolves the next lesson.
+	 * @param DashboardRoleServiceInterface $dashboardRoleService Resolves the caller's Learniq views.
 	 *
 	 * @return void
 	 */
@@ -81,10 +82,10 @@ class LessonNextStepController extends Controller {
 		IRequest $request,
 		private readonly IUserSession $userSession,
 		private readonly ObjectService $objectService,
-		private readonly NextStepResolver $resolver,
-		private readonly DashboardRoleService $dashboardRoleService,
+		private readonly NextStepResolverInterface $resolver,
+		private readonly DashboardRoleServiceInterface $dashboardRoleService,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -273,7 +274,9 @@ class LessonNextStepController extends Controller {
 	 * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException When the id matches more than one object; LookupIntegrityMiddleware answers it.
 	 */
 	private function read(string $schema, string $id): ?array {
-		$object = $this->findOrNull(find: fn () => $this->objectService->find(id: $id, register: self::REGISTER, schema: $schema));
+		$object = $this->findOrNull(
+			find: fn () => $this->objectService->find(id: $id, options: new ObjectFindOptions(register: self::REGISTER, schema: $schema))
+		);
 		if ($object === null) {
 			return null;
 		}

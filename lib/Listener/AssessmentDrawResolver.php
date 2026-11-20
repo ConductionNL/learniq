@@ -57,12 +57,14 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\OpenRegister\Event\ObjectCreatedEvent;
-use OCA\OpenRegister\Service\ObjectService;
+use OCA\Learniq\Kernel\Contracts\ItemPoolFilterInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Kernel\Contracts\QtiChoiceOrderResolverInterface;
 use OCA\Learniq\Service\AssessmentObjectReads;
-use OCA\Learniq\Service\ItemPoolFilter;
-use OCA\Learniq\Service\ListenerSchemaResolver;
-use OCA\Learniq\Service\QtiChoiceOrderResolver;
+use OCA\OpenRegister\Event\ObjectCreatedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
+use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use Psr\Log\LoggerInterface;
@@ -96,18 +98,18 @@ class AssessmentDrawResolver implements IEventListener {
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OR object service for Assessment/Item lookups and the follow-up save.
-	 * @param QtiChoiceOrderResolver $choiceResolver QTI simpleChoice parsing/permutation collaborator.
-	 * @param ItemPoolFilter $poolFilter Pool filter/variant-grouping collaborator.
-	 * @param ListenerSchemaResolver $schemaResolver Resolves the entity's register/schema ids to slugs.
+	 * @param QtiChoiceOrderResolverInterface $choiceResolver QTI simpleChoice parsing/permutation collaborator.
+	 * @param ItemPoolFilterInterface $poolFilter Pool filter/variant-grouping collaborator.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Resolves the entity's register/schema ids to slugs.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly QtiChoiceOrderResolver $choiceResolver,
-		private readonly ItemPoolFilter $poolFilter,
-		private readonly ListenerSchemaResolver $schemaResolver,
+		private readonly QtiChoiceOrderResolverInterface $choiceResolver,
+		private readonly ItemPoolFilterInterface $poolFilter,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
 		private readonly LoggerInterface $logger,
 	) {
 		$this->reads = new AssessmentObjectReads(objectService: $objectService);
@@ -231,9 +233,8 @@ class AssessmentDrawResolver implements IEventListener {
 	 */
 	private function saveDraw(array $result, array $drawnItemRefs): void {
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::ASSESSMENT_RESULT_SCHEMA,
-			object: array_merge($result, ['drawnItemRefs' => $drawnItemRefs])
+			object: array_merge($result, ['drawnItemRefs' => $drawnItemRefs]),
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::ASSESSMENT_RESULT_SCHEMA))
 		);
 
 		$this->logger->info(

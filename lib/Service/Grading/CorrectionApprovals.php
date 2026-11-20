@@ -28,6 +28,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Grading;
 
+use OCA\Learniq\Kernel\Contracts\CorrectionApprovalsInterface;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -35,7 +36,7 @@ use OCA\OpenRegister\Service\ObjectService;
  *
  * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
  */
-class CorrectionApprovals {
+class CorrectionApprovals implements CorrectionApprovalsInterface {
 
 	private const REGISTER = 'learniq';
 

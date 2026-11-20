@@ -29,12 +29,13 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\AssessmentAccessFactsInterface;
+use OCA\Learniq\Kernel\Contracts\DashboardRoleServiceInterface;
+use OCA\Learniq\Kernel\Contracts\LessonReleaseEvaluatorInterface;
 use OCA\Learniq\Support\FindOrNull;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Service\AssessmentAccessFacts;
-use OCA\Learniq\Service\LessonReleaseEvaluator;
-use OCA\Learniq\Service\DashboardRoleService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Db\MultipleObjectsReturnedException;
 use OCP\AppFramework\Http;
@@ -76,19 +77,19 @@ class LessonReleaseController extends Controller {
 	 * @param IRequest $request HTTP request.
 	 * @param IUserSession $userSession NC user session.
 	 * @param ObjectService $objectService OR object access service.
-	 * @param LessonReleaseEvaluator $releaseEvaluator Stateless release-gate evaluator.
-	 * @param DashboardRoleService $dashboardRoleService Resolves the caller's Learniq role/views.
-	 * @param AssessmentAccessFacts $accessFacts Attempt-gate facts for an Assessment.
+	 * @param LessonReleaseEvaluatorInterface $releaseEvaluator Stateless release-gate evaluator.
+	 * @param DashboardRoleServiceInterface $dashboardRoleService Resolves the caller's Learniq role/views.
+	 * @param AssessmentAccessFactsInterface $accessFacts Attempt-gate facts for an Assessment.
 	 */
 	public function __construct(
 		IRequest $request,
 		private readonly IUserSession $userSession,
 		private readonly ObjectService $objectService,
-		private readonly LessonReleaseEvaluator $releaseEvaluator,
-		private readonly DashboardRoleService $dashboardRoleService,
-		private readonly AssessmentAccessFacts $accessFacts,
+		private readonly LessonReleaseEvaluatorInterface $releaseEvaluator,
+		private readonly DashboardRoleServiceInterface $dashboardRoleService,
+		private readonly AssessmentAccessFactsInterface $accessFacts,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 
 	}//end __construct()
 
@@ -262,7 +263,9 @@ class LessonReleaseController extends Controller {
 	 * @throws \OCP\AppFramework\Db\MultipleObjectsReturnedException When the id matches more than one object; LookupIntegrityMiddleware answers it.
 	 */
 	private function resolveObject(string $id, string $schema): ?array {
-		$object = $this->findOrNull(find: fn () => $this->objectService->find(id: $id, register: self::LEARNIQ_REGISTER, schema: $schema));
+		$object = $this->findOrNull(
+			find: fn () => $this->objectService->find(id: $id, options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: $schema))
+		);
 		if ($object === null) {
 			return null;
 		}

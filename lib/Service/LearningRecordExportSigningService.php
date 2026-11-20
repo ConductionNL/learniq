@@ -38,6 +38,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\LearningRecordExportSigningServiceInterface;
 use OCP\IAppConfig;
 use OCP\Security\ICrypto;
 
@@ -47,9 +48,7 @@ use OCP\Security\ICrypto;
  *
  * @spec openspec/changes/archive/2026-07-16-portable-learning-record/tasks.md#task-2-4
  */
-class LearningRecordExportSigningService {
-
-
+class LearningRecordExportSigningService implements LearningRecordExportSigningServiceInterface {
 
 	/**
 	 * Constructor.

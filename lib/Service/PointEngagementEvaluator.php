@@ -53,6 +53,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
+use OCA\Learniq\Kernel\Contracts\PointEngagementEvaluatorInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 
@@ -62,7 +63,7 @@ use OCP\AppFramework\Utility\ITimeFactory;
  *
  * @spec openspec/specs/engagement/spec.md#requirement-learner-totals-level-and-streak-are-computed-by-a-php-evaluator-not-a-sum-aggregation
  */
-class PointEngagementEvaluator {
+class PointEngagementEvaluator implements PointEngagementEvaluatorInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const POINT_AWARD_SCHEMA = 'point-award';

@@ -88,7 +88,17 @@ class OpenApiControllerTest extends TestCase {
 		$response = $this->controller($this->dir)->show();
 
 		$this->assertSame(404, $response->getStatus());
-		$this->assertSame(['error' => 'The OpenAPI document is not installed'], $response->getData());
+		$this->assertSame(
+			[
+				'type'   => 'about:blank',
+				'title'  => 'Not Found',
+				'status' => 404,
+				'detail' => 'The OpenAPI document is not installed',
+				'error'  => 'The OpenAPI document is not installed',
+			],
+			$response->getData()
+		);
+		$this->assertSame('application/problem+json; charset=utf-8', $this->headers($response)['Content-Type']);
 		$this->assertSame('*', $this->headers($response)['Access-Control-Allow-Origin']);
 		$this->assertSame('0.3.1', $this->headers($response)['API-Version']);
 	}//end testAMissingDocumentIs404()

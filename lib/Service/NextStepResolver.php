@@ -39,12 +39,14 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\NextStepResolverInterface;
+
 /**
  * Resolves a lesson's next lesson for one learner.
  *
  * @spec openspec/changes/content-adaptive-next-step-and-preview/specs/content-adaptive-path/spec.md#requirement-next-step-rules
  */
-class NextStepResolver {
+class NextStepResolver implements NextStepResolverInterface {
 
 	private const KIND_LESSON_COMPLETED = 'lesson-completed';
 	private const KIND_MIN_SCORE = 'assessment-min-score';

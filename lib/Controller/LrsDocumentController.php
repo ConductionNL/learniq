@@ -44,11 +44,11 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Exception\XapiRequestException;
-use OCA\Learniq\Service\XapiCallerResolver;
-use OCA\Learniq\Service\XapiDocumentStore;
-use OCA\Learniq\Service\XapiDocumentRequest;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\XapiCallerResolverInterface;
+use OCA\Learniq\Kernel\Contracts\XapiDocumentRequestInterface;
+use OCA\Learniq\Kernel\Contracts\XapiDocumentStoreInterface;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\AnonRateLimit;
@@ -79,19 +79,19 @@ class LrsDocumentController extends Controller {
 	 * Constructor.
 	 *
 	 * @param IRequest           $request   The current request.
-	 * @param XapiCallerResolver $callers   Resolves the token or session caller.
-	 * @param XapiDocumentStore  $documents Stores the documents.
-	 * @param XapiDocumentRequest $reader   Reads the key, body and concurrency headers.
+	 * @param XapiCallerResolverInterface $callers   Resolves the token or session caller.
+	 * @param XapiDocumentStoreInterface  $documents Stores the documents.
+	 * @param XapiDocumentRequestInterface $reader   Reads the key, body and concurrency headers.
 	 * @param LoggerInterface    $logger    PSR logger.
 	 */
 	public function __construct(
 		IRequest $request,
-		private readonly XapiCallerResolver $callers,
-		private readonly XapiDocumentStore $documents,
-		private readonly XapiDocumentRequest $reader,
+		private readonly XapiCallerResolverInterface $callers,
+		private readonly XapiDocumentStoreInterface $documents,
+		private readonly XapiDocumentRequestInterface $reader,
 		private readonly LoggerInterface $logger,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -105,7 +105,7 @@ class LrsDocumentController extends Controller {
 	#[NoCSRFRequired]
 	#[AnonRateLimit(limit: 600, period: 60)]
 	public function getState(): Response {
-		return $this->handle(kind: XapiDocumentStore::KIND_STATE, verb: 'GET');
+		return $this->handle(kind: XapiDocumentStoreInterface::KIND_STATE, verb: 'GET');
 	}//end getState()
 
 	/**
@@ -119,7 +119,7 @@ class LrsDocumentController extends Controller {
 	#[NoCSRFRequired]
 	#[AnonRateLimit(limit: 600, period: 60)]
 	public function putState(): Response {
-		return $this->handle(kind: XapiDocumentStore::KIND_STATE, verb: 'PUT');
+		return $this->handle(kind: XapiDocumentStoreInterface::KIND_STATE, verb: 'PUT');
 	}//end putState()
 
 	/**
@@ -133,7 +133,7 @@ class LrsDocumentController extends Controller {
 	#[NoCSRFRequired]
 	#[AnonRateLimit(limit: 600, period: 60)]
 	public function postState(): Response {
-		return $this->handle(kind: XapiDocumentStore::KIND_STATE, verb: 'POST');
+		return $this->handle(kind: XapiDocumentStoreInterface::KIND_STATE, verb: 'POST');
 	}//end postState()
 
 	/**
@@ -147,7 +147,7 @@ class LrsDocumentController extends Controller {
 	#[NoCSRFRequired]
 	#[AnonRateLimit(limit: 600, period: 60)]
 	public function deleteState(): Response {
-		return $this->handle(kind: XapiDocumentStore::KIND_STATE, verb: 'DELETE');
+		return $this->handle(kind: XapiDocumentStoreInterface::KIND_STATE, verb: 'DELETE');
 	}//end deleteState()
 
 	/**
@@ -161,7 +161,7 @@ class LrsDocumentController extends Controller {
 	#[NoCSRFRequired]
 	#[AnonRateLimit(limit: 600, period: 60)]
 	public function getAgentProfile(): Response {
-		return $this->handle(kind: XapiDocumentStore::KIND_AGENT_PROFILE, verb: 'GET');
+		return $this->handle(kind: XapiDocumentStoreInterface::KIND_AGENT_PROFILE, verb: 'GET');
 	}//end getAgentProfile()
 
 	/**
@@ -175,7 +175,7 @@ class LrsDocumentController extends Controller {
 	#[NoCSRFRequired]
 	#[AnonRateLimit(limit: 600, period: 60)]
 	public function putAgentProfile(): Response {
-		return $this->handle(kind: XapiDocumentStore::KIND_AGENT_PROFILE, verb: 'PUT');
+		return $this->handle(kind: XapiDocumentStoreInterface::KIND_AGENT_PROFILE, verb: 'PUT');
 	}//end putAgentProfile()
 
 	/**
@@ -189,7 +189,7 @@ class LrsDocumentController extends Controller {
 	#[NoCSRFRequired]
 	#[AnonRateLimit(limit: 600, period: 60)]
 	public function postAgentProfile(): Response {
-		return $this->handle(kind: XapiDocumentStore::KIND_AGENT_PROFILE, verb: 'POST');
+		return $this->handle(kind: XapiDocumentStoreInterface::KIND_AGENT_PROFILE, verb: 'POST');
 	}//end postAgentProfile()
 
 	/**
@@ -203,7 +203,7 @@ class LrsDocumentController extends Controller {
 	#[NoCSRFRequired]
 	#[AnonRateLimit(limit: 600, period: 60)]
 	public function deleteAgentProfile(): Response {
-		return $this->handle(kind: XapiDocumentStore::KIND_AGENT_PROFILE, verb: 'DELETE');
+		return $this->handle(kind: XapiDocumentStoreInterface::KIND_AGENT_PROFILE, verb: 'DELETE');
 	}//end deleteAgentProfile()
 
 	/**
@@ -253,7 +253,7 @@ class LrsDocumentController extends Controller {
 			return $this->show(document: $existing);
 		}
 
-		$strictPut = $verb === 'PUT' && $key['kind'] === XapiDocumentStore::KIND_AGENT_PROFILE;
+		$strictPut = $verb === 'PUT' && $key['kind'] === XapiDocumentStoreInterface::KIND_AGENT_PROFILE;
 		$this->reader->checkPreconditions(request: $this->request, current: $existing['etag'] ?? null, strictPut: $strictPut);
 		if ($verb === 'DELETE') {
 			$this->documents->delete(key: $key);

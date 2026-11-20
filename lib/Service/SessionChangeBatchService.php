@@ -37,10 +37,13 @@ namespace OCA\Learniq\Service;
 
 use DateTimeZone;
 use InvalidArgumentException;
-use OCA\Learniq\Lifecycle\SessionChangeGuard;
-use OCA\Learniq\Listener\SessionChangeNoticeHandler;
-use OCA\Learniq\Timetabling\SessionChangeInput;
-use OCA\Learniq\Timetabling\SessionSeries;
+use OCA\Learniq\Kernel\Contracts\SessionChangeBatchServiceInterface;
+use OCA\Learniq\Kernel\Contracts\SessionChangeGuardInterface;
+use OCA\Learniq\Kernel\Contracts\SessionChangeInputInterface;
+use OCA\Learniq\Kernel\Contracts\SessionChangeNoticeHandlerInterface;
+use OCA\Learniq\Kernel\Contracts\SessionSeriesInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
@@ -51,7 +54,7 @@ use Throwable;
  *
  * @spec openspec/specs/timetabling/spec.md#requirement-every-lesson-in-a-batch-passes-the-same-checks
  */
-class SessionChangeBatchService {
+class SessionChangeBatchService implements SessionChangeBatchServiceInterface {
 
 	private const REGISTER = 'learniq';
 	private const SESSION_SCHEMA = 'session';
@@ -63,20 +66,20 @@ class SessionChangeBatchService {
 	 * Constructor.
 	 *
 	 * @param ObjectService              $objectService    OpenRegister objects, as the caller.
-	 * @param SessionSeries              $series           Reads lessons as the caller.
-	 * @param SessionChangeInput         $input            Checks the request body.
+	 * @param SessionSeriesInterface              $series           Reads lessons as the caller.
+	 * @param SessionChangeInputInterface         $input            Checks the request body.
 	 * @param TransitionEngine           $transitionEngine Session lifecycle transitions.
-	 * @param SessionChangeGuard         $guard            Who may change a lesson.
-	 * @param SessionChangeNoticeHandler $notices          Who a change affects.
+	 * @param SessionChangeGuardInterface         $guard            Who may change a lesson.
+	 * @param SessionChangeNoticeHandlerInterface $notices          Who a change affects.
 	 * @param LoggerInterface            $logger           Logger.
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly SessionSeries $series,
-		private readonly SessionChangeInput $input,
+		private readonly SessionSeriesInterface $series,
+		private readonly SessionChangeInputInterface $input,
 		private readonly TransitionEngine $transitionEngine,
-		private readonly SessionChangeGuard $guard,
-		private readonly SessionChangeNoticeHandler $notices,
+		private readonly SessionChangeGuardInterface $guard,
+		private readonly SessionChangeNoticeHandlerInterface $notices,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
@@ -102,9 +105,10 @@ class SessionChangeBatchService {
 
 		$saved = $this->objectService->saveObject(
 			object: $batch,
-			register: self::REGISTER,
-			schema: self::BATCH_SCHEMA,
-			uuid: $batchId
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::REGISTER, schema: self::BATCH_SCHEMA),
+				uuid: $batchId
+			)
 		);
 
 		$this->logger->info(
@@ -197,7 +201,7 @@ class SessionChangeBatchService {
 
 		$lesson = ['sessionId' => $sessionId, 'startsAt' => (string)($session['startsAt'] ?? '')];
 		$lifecycle = (string)($session['lifecycle'] ?? 'scheduled');
-		if (in_array($lifecycle, SessionSeries::OPEN_STATES, true) === false) {
+		if (in_array($lifecycle, SessionSeriesInterface::OPEN_STATES, true) === false) {
 			return $this->refused(lesson: $lesson, reason: self::CLOSED_LESSON);
 		}
 
@@ -251,7 +255,10 @@ class SessionChangeBatchService {
 	 */
 	private function commit(array $lesson): array {
 		try {
-			$this->objectService->saveObject(object: $lesson['changed'], register: self::REGISTER, schema: self::SESSION_SCHEMA);
+			$this->objectService->saveObject(
+				object: $lesson['changed'],
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: self::SESSION_SCHEMA))
+			);
 			if ($lesson['kind'] !== 'room') {
 				$this->transitionEngine->transition(objectId: $lesson['sessionId'], action: $lesson['action']);
 			}
@@ -299,7 +306,10 @@ class SessionChangeBatchService {
 	 */
 	private function restore(array $original): void {
 		try {
-			$this->objectService->saveObject(object: $original, register: self::REGISTER, schema: self::SESSION_SCHEMA);
+			$this->objectService->saveObject(
+				object: $original,
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: self::SESSION_SCHEMA))
+			);
 		} catch (Throwable $exception) {
 			$this->logger->warning(
 				'[SessionChangeBatchService] Could not restore lesson {id}: {msg}',
@@ -372,7 +382,7 @@ class SessionChangeBatchService {
 	 * @return string|null
 	 */
 	private function formatDates(array $dates): ?string {
-		$tz = new DateTimeZone(SessionSeries::TIMEZONE);
+		$tz = new DateTimeZone(SessionSeriesInterface::TIMEZONE);
 		$labels = [];
 		foreach ($dates as $date) {
 			$local = $this->series->localTime(value: $date, tz: $tz);

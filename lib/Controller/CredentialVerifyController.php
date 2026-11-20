@@ -34,18 +34,21 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\JwsProofVerifierInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Service\JwsProofVerifier;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\MultipleObjectsReturnedException;
-use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
-use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\Attribute\AnonRateLimit;
 use OCP\AppFramework\Http\Attribute\BruteForceProtection;
+use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\JSONResponse;
+use OCP\AppFramework\Http\RedirectResponse;
 use OCP\IRequest;
+use OCP\IURLGenerator;
 use OCP\Security\Bruteforce\IThrottler;
 use Psr\Log\LoggerInterface;
 
@@ -93,20 +96,22 @@ class CredentialVerifyController extends Controller {
 	 *
 	 * @param IRequest $request The HTTP request.
 	 * @param ObjectService $objectService OR object-read service.
-	 * @param JwsProofVerifier $proofs Verifies a payload's detached JWS against the tenant key.
+	 * @param JwsProofVerifierInterface $proofs Verifies a payload's detached JWS against the tenant key.
 	 * @param IThrottler $throttler Brute-force throttler counting failed verifications.
 	 * @param LoggerInterface $logger PSR logger.
+	 * @param IURLGenerator $urlGenerator Builds the public page's address for a browser.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		IRequest $request,
 		private readonly ObjectService $objectService,
-		private readonly JwsProofVerifier $proofs,
+		private readonly JwsProofVerifierInterface $proofs,
 		private readonly IThrottler $throttler,
 		private readonly LoggerInterface $logger,
+		private readonly IURLGenerator $urlGenerator,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -116,20 +121,32 @@ class CredentialVerifyController extends Controller {
 	 * before returning valid:true. Returns valid:false + error:'signature_invalid'
 	 * when the JWS fails cryptographic verification (C1).
 	 *
+	 * A browser that opens the link (it asks for text/html, not JSON) is sent
+	 * to the readable page, whose script asks this route again for JSON; the
+	 * redirect reads nothing, so it reveals nothing about the id.
+	 *
 	 * @param string $id Credential UUID.
 	 *
-	 * @return JSONResponse {valid, issuedAt, expiresAt, issuerName} or error response.
+	 * @return JSONResponse|RedirectResponse {valid, issuedAt, expiresAt, issuerName}, an error response, or the page for a browser.
 	 *
 	 * @NoCSRFRequired
 	 * @PublicPage
 	 *
-	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-3
+	 * @spec openspec/changes/certificate-verification-and-key-rotation/specs/certification/spec.md#requirement-anyone-checks-a-certificate-from-its-link-without-logging-in
+	 * @spec openspec/changes/certificate-verification-and-key-rotation/specs/certification/spec.md#requirement-rotating-the-signing-key-keeps-earlier-certificates-checkable
+	 * @spec openspec/changes/certificate-verification-and-key-rotation/specs/certification/spec.md#requirement-the-verification-link-opens-a-page-that-says-in-words-what-was-checked
 	 */
 	#[NoCSRFRequired]
 	#[PublicPage]
 	#[AnonRateLimit(limit: 60, period: 60)]
 	#[BruteForceProtection(action: self::THROTTLE_ACTION)]
-	public function verify(string $id): JSONResponse {
+	public function verify(string $id): JSONResponse|RedirectResponse {
+		if (CredentialVerifyPageController::wantsPage(request: $this->request) === true) {
+			return new RedirectResponse(
+				$this->urlGenerator->linkToRoute('learniq.credentialVerifyPage.show', ['id' => $id])
+			);
+		}
+
 		$found = $this->findCredential(id: $id);
 		if ($found instanceof JSONResponse) {
 			return $found;
@@ -159,8 +176,7 @@ class CredentialVerifyController extends Controller {
 		try {
 			$credentialObj = $this->objectService->find(
 				id: $id,
-				register: 'learniq',
-				schema: 'credential'
+				options: new ObjectFindOptions(register: 'learniq', schema: 'credential')
 			);
 		} catch (DoesNotExistException | MultipleObjectsReturnedException $notFound) {
 			// Same meaning as `null` below, so the same answer: a guess, and
@@ -215,6 +231,10 @@ class CredentialVerifyController extends Controller {
 			);
 		}
 
+		if (($data['source'] ?? null) === 'migrated') {
+			return $this->migratedVerdict(data: $data, lifecycle: $lifecycle, isExpired: $isExpired);
+		}
+
 		// C1: validate the JWS proof before declaring the credential valid.
 		$tenantId = $data['tenant_id'] ?? '';
 		$jwsValid = $this->validateJwsProof(data: $data, tenantId: $tenantId);
@@ -239,6 +259,39 @@ class CredentialVerifyController extends Controller {
 			]
 		);
 	}//end verdictFor()
+
+	/**
+	 * The answer for a certificate taken over from the previous system.
+	 *
+	 * Learniq did not issue it and holds no signature for it, so there is no
+	 * signature to check: the answer says so, with the old number, the old
+	 * issuer and when it was taken over (credentials-migrate-with-validity
+	 * D2). Who took it over is not shown on this public route.
+	 *
+	 * @param array<string, mixed> $data      The credential data.
+	 * @param mixed                $lifecycle The credential's lifecycle state.
+	 * @param mixed                $isExpired The calculated expiry flag.
+	 *
+	 * @return JSONResponse
+	 *
+	 * @spec openspec/changes/credentials-migrate-with-validity/specs/certification/spec.md#requirement-a-migrated-certificate-keeps-its-dates-and-is-not-signed-as-learniqs-own
+	 */
+	private function migratedVerdict(array $data, mixed $lifecycle, mixed $isExpired): JSONResponse {
+		return new JSONResponse(
+			[
+				'valid' => ($lifecycle === 'issued') && ($isExpired !== true),
+				'issuedAt' => $data['issuedAt'] ?? null,
+				'expiresAt' => $data['expiresAt'] ?? null,
+				'issuerName' => $data['legacyIssuer'] ?? null,
+				'migrated' => true,
+				'issuedByLearniq' => false,
+				'signatureChecked' => false,
+				'legacyNumber' => $data['legacyNumber'] ?? null,
+				'legacyIssuer' => $data['legacyIssuer'] ?? null,
+				'migratedAt' => $data['migratedAt'] ?? null,
+			]
+		);
+	}//end migratedVerdict()
 
 	/**
 	 * Check a Europass file for a credential (credentials-europass-edci-export).
@@ -266,7 +319,7 @@ class CredentialVerifyController extends Controller {
 		}
 
 		try {
-			$credentialObj = $this->objectService->find(id: $id, register: 'learniq', schema: 'credential');
+			$credentialObj = $this->objectService->find(id: $id, options: new ObjectFindOptions(register: 'learniq', schema: 'credential'));
 		} catch (DoesNotExistException | MultipleObjectsReturnedException) {
 			$credentialObj = null;
 		}

@@ -31,10 +31,11 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Service\SubmissionMarkAllocationService;
-use OCA\Learniq\Service\SubmissionMarkReader;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\SubmissionMarkAllocationServiceInterface;
+use OCA\Learniq\Kernel\Contracts\SubmissionMarkReaderInterface;
 use OCA\Learniq\Support\FindOrNull;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -71,8 +72,8 @@ class SubmissionMarkController extends Controller {
 	 * @param IUserSession                    $userSession  The signed-in user.
 	 * @param IGroupManager                   $groupManager Group membership and admin checks.
 	 * @param ObjectService                   $objects      OpenRegister object access.
-	 * @param SubmissionMarkAllocationService $allocation   The allocation rules.
-	 * @param SubmissionMarkReader            $reader       Which marks a caller may read.
+	 * @param SubmissionMarkAllocationServiceInterface $allocation   The allocation rules.
+	 * @param SubmissionMarkReaderInterface            $reader       Which marks a caller may read.
 	 *
 	 * @return void
 	 */
@@ -81,10 +82,10 @@ class SubmissionMarkController extends Controller {
 		private readonly IUserSession $userSession,
 		private readonly IGroupManager $groupManager,
 		private readonly ObjectService $objects,
-		private readonly SubmissionMarkAllocationService $allocation,
-		private readonly SubmissionMarkReader $reader,
+		private readonly SubmissionMarkAllocationServiceInterface $allocation,
+		private readonly SubmissionMarkReaderInterface $reader,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -218,7 +219,11 @@ class SubmissionMarkController extends Controller {
 			return null;
 		}
 
-		$find = fn () => $this->objects->find(id: $id, register: self::REGISTER, schema: $schema, _rbac: false, _render: false);
+		$find = fn () => $this->objects->find(
+			id: $id,
+			options: new ObjectFindOptions(register: self::REGISTER, schema: $schema, render: false),
+			_rbac: false
+		);
 		return $this->findRowWithIdOrNull(find: $find, id: $id);
 	}//end read()
 }//end class

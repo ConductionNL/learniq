@@ -38,6 +38,8 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use Throwable;
+use OCA\Learniq\Tests\Support\LegacyObjectArgs;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectDeletion;
 
 /**
  * Pins every create and delete call, the result or refusal, and the log of
@@ -189,7 +191,11 @@ class CourseTemplateInstantiateGoldenTest extends TestCase {
 			}
 		);
 		$objects->method('deleteObject')->willReturnCallback(
-			function (string $uuid, mixed $register = null, mixed $schema = null, ...$rest): bool {
+			function (ObjectDeletion $deletion, bool $_rbac = true, bool $_multitenancy = true, bool $_retentionSweep = false, ...$rest): bool {
+				$uuid = $deletion->uuid;
+				$register = $deletion->target->register;
+				$schema = $deletion->target->schema;
+				$rest = array_slice(LegacyObjectArgs::positional('deleteObject', func_get_args()), 3);
 				$this->calls[] = ['delete' => [$uuid, $register, $schema, $rest]];
 				if ($uuid === 'id-1') {
 					throw new RuntimeException('cannot delete');

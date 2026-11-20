@@ -10,6 +10,11 @@
 <template>
 	<div class="my-electives lq-board-page">
 		<CnPageHeader :title="t('learniq', 'Optional lessons')" />
+		<p class="my-electives__keuzedelen">
+			<router-link :to="{ name: 'MyKeuzedelen' }" data-testid="to-keuzedelen">
+				{{ t('learniq', 'Choose a keuzedeel') }}
+			</router-link>
+		</p>
 		<NcNoteCard v-if="error" type="error">
 			{{ error }}
 		</NcNoteCard>
@@ -229,6 +234,10 @@ export default {
 </script>
 
 <style scoped>
+.my-electives__keuzedelen {
+	margin-bottom: calc(var(--default-grid-baseline) * 3);
+}
+
 .my-electives__lessons {
 	display: flex;
 	flex-direction: column;

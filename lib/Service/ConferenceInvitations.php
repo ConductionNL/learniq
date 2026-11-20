@@ -41,6 +41,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\ConferenceInvitationsInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -48,7 +51,7 @@ use OCA\OpenRegister\Service\ObjectService;
  *
  * @spec openspec/changes/guardian-tasks-per-child-and-self-assessment/specs/parent-conferences/spec.md#requirement-the-guardian-gets-one-task-per-child-per-open-conference-round
  */
-class ConferenceInvitations {
+class ConferenceInvitations implements ConferenceInvitationsInterface {
 
 	public const SCHEMA = 'conference-invitation';
 
@@ -110,9 +113,10 @@ class ConferenceInvitations {
 		foreach ($writes as $write) {
 			$this->objectService->saveObject(
 				object: $write['object'],
-				register: self::REGISTER,
-				schema: self::SCHEMA,
-				uuid: $write['uuid'],
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::REGISTER, schema: self::SCHEMA),
+					uuid: $write['uuid']
+				),
 				_rbac: false,
 				_multitenancy: false
 			);
@@ -181,6 +185,11 @@ class ConferenceInvitations {
 		}
 
 		$object = array_merge(($row ?? []), self::fields(round: $round, learnerRef: $learnerRef), ['status' => $status]);
+		// A round that no longer lets pupils book takes it back from her task.
+		if (($object['pupilMayBook'] ?? false) === true && ($round['pupilMayBook'] ?? false) !== true) {
+			$object['pupilMayBook'] = false;
+		}
+
 		if ($row !== null && $object === $row) {
 			return null;
 		}
@@ -224,6 +233,12 @@ class ConferenceInvitations {
 			'learnerRef' => $learnerRef,
 		];
 		$fields = array_merge($fields, self::copiedFields(round: $round));
+		// The pupil books the time herself: her portal's task reads it
+		// (pupil-books-support-lessons-and-mentor-talks). Written only for
+		// such a round, so every other invitation stays as it was.
+		if (($round['pupilMayBook'] ?? false) === true) {
+			$fields['pupilMayBook'] = true;
+		}
 
 		// An enum takes no null: a round without a mode leaves the key out.
 		if (in_array(($round['bookingMode'] ?? null), self::MODES, true) === true) {

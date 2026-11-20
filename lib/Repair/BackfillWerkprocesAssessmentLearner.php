@@ -21,8 +21,10 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Repair;
 
-use OCA\Learniq\Listener\WerkprocesAssessmentLearnerStamp;
+use OCA\Learniq\Kernel\Contracts\WerkprocesAssessmentLearnerStampInterface;
 use OCA\Learniq\Repair\Support\RepairRowWalk;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Migration\IOutput;
 use OCP\Migration\IRepairStep;
@@ -57,14 +59,14 @@ class BackfillWerkprocesAssessmentLearner implements IRepairStep {
 	 * Constructor.
 	 *
 	 * @param ObjectService                    $objectService OpenRegister object access.
-	 * @param WerkprocesAssessmentLearnerStamp $stamp         Placement to learner, the same derivation as on every write.
+	 * @param WerkprocesAssessmentLearnerStampInterface $stamp         Placement to learner, the same derivation as on every write.
 	 * @param LoggerInterface                  $logger        PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly WerkprocesAssessmentLearnerStamp $stamp,
+		private readonly WerkprocesAssessmentLearnerStampInterface $stamp,
 		private readonly LoggerInterface $logger,
 	) {
 		$this->rows = new RepairRowWalk(objectService: $objectService, logger: $logger, label: 'BackfillWerkprocesAssessmentLearner');
@@ -131,9 +133,10 @@ class BackfillWerkprocesAssessmentLearner implements IRepairStep {
 
 			$this->objectService->saveObject(
 				object: array_merge($row, ['learnerId' => $cache[$placementId]]),
-				register: self::LEARNIQ_REGISTER,
-				schema: self::ASSESSMENT_SCHEMA,
-				uuid: $uuid,
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::ASSESSMENT_SCHEMA),
+					uuid: $uuid
+				),
 				_rbac: false,
 				_multitenancy: false
 			);

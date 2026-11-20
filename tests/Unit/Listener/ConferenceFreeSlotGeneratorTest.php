@@ -24,7 +24,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Listener;
 
 use DateTimeZone;
-use OCA\Learniq\AppInfo\Registrar\CollaborationListenerRegistrar;
+use OCA\Learniq\Listener\Registrar\CollaborationListenerRegistrar;
 use OCA\Learniq\Listener\ConferenceFreeSlotGenerator;
 use OCA\Learniq\Service\LearnerRefResolver;
 use OCA\Learniq\Service\ListenerSchemaResolver;
@@ -41,6 +41,8 @@ use OCP\IUserManager;
 use OCA\Learniq\Tests\Support\RegisterSchemaPayloads;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * A teacher's availability becomes free times parents can book, once.
@@ -112,30 +114,50 @@ class ConferenceFreeSlotGeneratorTest extends TestCase {
 		$this->generator()->handle($this->opened(round: $this->round()));
 
 		$slots = $this->store->rows['conference-slot'];
-		$this->assertSame(['2026-10-08T18:00:00+02:00', '2026-10-08T18:12:00+02:00', '2026-10-08T18:24:00+02:00'], array_column($slots, 'startsAt'));
-		$this->assertSame('2026-10-08T18:10:00+02:00', $slots[0]['endsAt']);
+		$this->assertSame(expected: ['2026-10-08T18:00:00+02:00', '2026-10-08T18:12:00+02:00', '2026-10-08T18:24:00+02:00'], actual: array_column($slots, 'startsAt'));
+		$this->assertSame(expected: '2026-10-08T18:10:00+02:00', actual: $slots[0]['endsAt']);
 		foreach ($slots as $slot) {
-			$this->assertSame('free', $slot['lifecycle']);
-			$this->assertSame('po-leerkracht-09', $slot['teacherId']);
-			$this->assertSame('Anna de Vries', $slot['teacherName']);
-			$this->assertSame([self::VERA, self::DAAN], $slot['eligibleLearnerRefs']);
-			$this->assertSame(self::ROUND_1, $slot['conferenceRoundId']);
-			$this->assertSame(self::TENANT, $slot['tenant_id']);
-			$this->assertArrayNotHasKey('learnerId', $slot);
+			$this->assertSame(expected: 'free', actual: $slot['lifecycle']);
+			$this->assertSame(expected: 'po-leerkracht-09', actual: $slot['teacherId']);
+			$this->assertSame(expected: 'Anna de Vries', actual: $slot['teacherName']);
+			$this->assertSame(expected: [self::VERA, self::DAAN], actual: $slot['eligibleLearnerRefs']);
+			$this->assertSame(expected: self::ROUND_1, actual: $slot['conferenceRoundId']);
+			$this->assertSame(expected: self::TENANT, actual: $slot['tenant_id']);
+			$this->assertArrayNotHasKey(key: 'learnerId', array: $slot);
 		}
 
-		$this->assertSame('08-10-2026 18:00-18:10, Anna de Vries', $slots[0]['slotLabel']);
+		$this->assertSame(expected: '08-10-2026 18:00-18:10, Anna de Vries', actual: $slots[0]['slotLabel']);
 
 		// A block given in UTC is labelled in the school's time zone.
 		$this->store->rows['conference-slot'] = [];
 		$this->store->rows['teacher-availability'][0]['blocks'] = [['startsAt' => '2026-10-09T16:00:00+00:00', 'endsAt' => '2026-10-09T16:10:00+00:00']];
 		$this->generator()->handle($this->opened(round: $this->round()));
-		$this->assertSame('09-10-2026 18:00-18:10, Anna de Vries', $this->store->rows['conference-slot'][0]['slotLabel']);
+		$this->assertSame(expected: '09-10-2026 18:00-18:10, Anna de Vries', actual: $this->store->rows['conference-slot'][0]['slotLabel']);
 
 		foreach ($this->store->saves as $save) {
-			$this->assertNull(self::schemaError($save['schema'], $save['object']), 'the real conference-slot fragment accepts a free slot');
+			$this->assertNull(actual: self::schemaError(slug: $save['schema'], payload: $save['object']), message: 'the real conference-slot fragment accepts a free slot');
 		}
 	}//end testOpeningBookingWritesTheFreeTimesOfTheTeachersGroup()
+
+	/**
+	 * In a round that lets pupils book, every free time says so, for the
+	 * pupil's portal; in any other round the key is not written at all.
+	 *
+	 * @return void
+	 */
+	public function testAFreeTimeCopiesWhetherThePupilMayBook(): void {
+		$this->generator()->handle($this->opened(round: array_merge($this->round(), ['pupilMayBook' => true])));
+		$slots = $this->store->rows['conference-slot'];
+		self::assertNotEmpty(actual: $slots);
+		self::assertSame(expected: array_fill(0, count($slots), true), actual: array_column($slots, 'pupilMayBook'));
+		foreach ($this->store->saves as $save) {
+			$this->assertNull(actual: self::schemaError(slug: $save['schema'], payload: $save['object']), message: 'the real fragment accepts the copy');
+		}
+
+		$this->store->rows['conference-slot'] = [];
+		$this->generator()->handle($this->opened(round: $this->round()));
+		self::assertSame(expected: [], actual: array_column($this->store->rows['conference-slot'], 'pupilMayBook'));
+	}//end testAFreeTimeCopiesWhetherThePupilMayBook()
 
 	/**
 	 * Running it again (`create-free-slots`) adds nothing that exists, and a
@@ -152,10 +174,10 @@ class ConferenceFreeSlotGeneratorTest extends TestCase {
 
 		$generator = $this->generator();
 		$generator->handle($this->opened(round: $this->round(), action: 'create-free-slots', from: 'booking-open'));
-		$this->assertCount(2, $this->store->saves, 'the 18:00 and the 18:24 time, not the booked 18:12');
+		$this->assertCount(expectedCount: 2, haystack: $this->store->saves, message: 'the 18:00 and the 18:24 time, not the booked 18:12');
 
 		$generator->handle($this->opened(round: $this->round(), action: 'create-free-slots', from: 'booking-open'));
-		$this->assertCount(2, $this->store->saves, 'a second run writes nothing');
+		$this->assertCount(expectedCount: 2, haystack: $this->store->saves, message: 'a second run writes nothing');
 	}//end testRunningAgainAddsOnlyWhatIsMissing()
 
 	/**
@@ -169,7 +191,7 @@ class ConferenceFreeSlotGeneratorTest extends TestCase {
 
 		$this->generator()->handle($this->opened(round: $this->round()));
 
-		$this->assertSame([self::VERA, self::DAAN, self::SEM], $this->store->rows['conference-slot'][0]['eligibleLearnerRefs']);
+		$this->assertSame(expected: [self::VERA, self::DAAN, self::SEM], actual: $this->store->rows['conference-slot'][0]['eligibleLearnerRefs']);
 	}//end testATeacherWithoutAGroupInTheRoundOffersEveryInvitedPupil()
 
 	/**
@@ -181,9 +203,9 @@ class ConferenceFreeSlotGeneratorTest extends TestCase {
 	public function testAnUnreadableGroupRefusesInsteadOfOpeningToEveryInvitedPupil(): void {
 		$this->store->rows['cohort'] = [$this->store->rows['cohort'][1]];
 
-		$this->assertSame(0, $this->generator()->generateForRound(round: $this->round()));
+		$this->assertSame(expected: 0, actual: $this->generator()->generateForRound(round: $this->round()));
 
-		$this->assertSame([], $this->store->rows['conference-slot']);
+		$this->assertSame(expected: [], actual: $this->store->rows['conference-slot']);
 	}//end testAnUnreadableGroupRefusesInsteadOfOpeningToEveryInvitedPupil()
 
 	/**
@@ -196,7 +218,7 @@ class ConferenceFreeSlotGeneratorTest extends TestCase {
 
 		$this->generator()->handle($this->opened(round: $this->round()));
 
-		$this->assertSame([self::VERA, self::DAAN], $this->store->rows['conference-slot'][0]['eligibleLearnerRefs']);
+		$this->assertSame(expected: [self::VERA, self::DAAN], actual: $this->store->rows['conference-slot'][0]['eligibleLearnerRefs']);
 	}//end testAnUnreadableGroupLeavesTheTeachersOwnGroup()
 
 	/**
@@ -211,7 +233,7 @@ class ConferenceFreeSlotGeneratorTest extends TestCase {
 		$this->generator()->handle($this->opened(round: $this->round()));
 
 		$teachers = array_unique(array_column($this->store->rows['conference-slot'], 'teacherId'));
-		$this->assertSame(['po-leerkracht-09'], array_values($teachers));
+		$this->assertSame(expected: ['po-leerkracht-09'], actual: array_values($teachers));
 	}//end testARefusedTeacherDoesNotStopTheNextOne()
 
 	/**
@@ -225,7 +247,7 @@ class ConferenceFreeSlotGeneratorTest extends TestCase {
 
 		$this->generator()->handle($this->opened(round: $round));
 
-		$this->assertSame([self::VERA, self::DAAN, self::SEM], $this->store->rows['conference-slot'][0]['eligibleLearnerRefs']);
+		$this->assertSame(expected: [self::VERA, self::DAAN, self::SEM], actual: $this->store->rows['conference-slot'][0]['eligibleLearnerRefs']);
 	}//end testABlankGroupIdIsNoFailedRead()
 
 	/**
@@ -239,7 +261,7 @@ class ConferenceFreeSlotGeneratorTest extends TestCase {
 
 		$this->generator()->handle($this->opened(round: $round));
 
-		$this->assertSame([], $this->store->rows['conference-slot'][0]['eligibleLearnerRefs']);
+		$this->assertSame(expected: [], actual: $this->store->rows['conference-slot'][0]['eligibleLearnerRefs']);
 	}//end testATaughtGroupWithoutInvitedPupilsOffersNobody()
 
 	/**
@@ -256,7 +278,7 @@ class ConferenceFreeSlotGeneratorTest extends TestCase {
 		unset($withoutMode['bookingMode']);
 		$this->generator()->handle($this->opened(round: $withoutMode));
 
-		$this->assertSame([], $this->store->saves);
+		$this->assertSame(expected: [], actual: $this->store->saves);
 	}//end testAPreferenceRoundGetsNoFreeTimes()
 
 	/**
@@ -266,7 +288,7 @@ class ConferenceFreeSlotGeneratorTest extends TestCase {
 	 */
 	public function testTheRegistrarWiresTheListener(): void {
 		$wired = [];
-		$context = $this->createMock(IRegistrationContext::class);
+		$context = $this->createMock(originalClassName: IRegistrationContext::class);
 		$context->method('registerEventListener')->willReturnCallback(
 			static function (string $event, string $listener) use (&$wired): void {
 				$wired[] = [$event, $listener];
@@ -275,7 +297,7 @@ class ConferenceFreeSlotGeneratorTest extends TestCase {
 
 		(new CollaborationListenerRegistrar())->register($context);
 
-		$this->assertContains([ObjectTransitionedEvent::class, ConferenceFreeSlotGenerator::class], $wired);
+		$this->assertContains(needle: [ObjectTransitionedEvent::class, ConferenceFreeSlotGenerator::class], haystack: $wired);
 	}//end testTheRegistrarWiresTheListener()
 
 	/**
@@ -320,12 +342,16 @@ class ConferenceFreeSlotGeneratorTest extends TestCase {
 	 * @return ConferenceFreeSlotGenerator
 	 */
 	private function generator(): ConferenceFreeSlotGenerator {
-		$objectService = $this->createMock(ObjectService::class);
+		$objectService = $this->createMock(originalClassName: ObjectService::class);
 		$objectService->method('findAll')->willReturnCallback(
 			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $this->store->findAll($config, $_rbac, $_multitenancy)
 		);
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) {
+			function (int|string $id, ?ObjectFindOptions $options = null) {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				foreach (($this->store->rows[(string)$schema] ?? []) as $row) {
 					if ($row['id'] === $id) {
 						return OrEntityFactory::make($row, (string)$schema);
@@ -336,26 +362,26 @@ class ConferenceFreeSlotGeneratorTest extends TestCase {
 			}
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			fn (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null) => $this->store->save((string)$schema, $object, $uuid)
+			fn (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) => $this->store->save((string)($options->target->schema), $object, ($options->uuid))
 		);
 
-		$schemas = $this->createMock(ListenerSchemaResolver::class);
+		$schemas = $this->createMock(originalClassName: ListenerSchemaResolver::class);
 		$schemas->method('eventRegister')->willReturnCallback(static fn (ObjectTransitionedEvent $event): string => $event->getRegister());
 		$schemas->method('eventSchema')->willReturnCallback(static fn (ObjectTransitionedEvent $event): string => $event->getSchema());
 
-		$users = $this->createMock(IUserManager::class);
+		$users = $this->createMock(originalClassName: IUserManager::class);
 		$users->method('getDisplayName')->willReturnCallback(static fn (string $uid): ?string => ($uid === 'po-leerkracht-09' ? 'Anna de Vries' : null));
 
-		$timeZone = $this->createMock(IDateTimeZone::class);
+		$timeZone = $this->createMock(originalClassName: IDateTimeZone::class);
 		$timeZone->method('getTimeZone')->willReturn(new DateTimeZone('Europe/Amsterdam'));
 
 		return new ConferenceFreeSlotGenerator(
-			$objectService,
-			$schemas,
-			new LearnerRefResolver(objectService: $objectService),
-			$users,
-			$timeZone,
-			new NullLogger()
+			objectService: $objectService,
+			schemas: $schemas,
+			profiles: new LearnerRefResolver(objectService: $objectService),
+			users: $users,
+			timeZone: $timeZone,
+			logger: new NullLogger()
 		);
 	}//end generator()
 }//end class

@@ -37,7 +37,12 @@ namespace OCA\Learniq\Service;
 use DateTimeImmutable;
 use DateTimeInterface;
 use OCA\Learniq\Exception\XapiRequestException;
+use OCA\Learniq\Kernel\Contracts\XapiDocumentStoreInterface;
 use OCA\Learniq\Support\ObjectRow;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectDeletion;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Http;
 use Throwable;
@@ -47,7 +52,7 @@ use Throwable;
  *
  * @spec openspec/specs/course-management/spec.md#requirement-run-cmi5--xapi-natively-with-scorm-shim
  */
-class XapiDocumentStore {
+class XapiDocumentStore implements XapiDocumentStoreInterface {
 
 	/**
 	 * The learniq register slug.
@@ -62,20 +67,6 @@ class XapiDocumentStore {
 	 * @var string
 	 */
 	public const SCHEMA = 'xapi-document';
-
-	/**
-	 * Document kind: an activity State document.
-	 *
-	 * @var string
-	 */
-	public const KIND_STATE = 'state';
-
-	/**
-	 * Document kind: an Agent Profile document.
-	 *
-	 * @var string
-	 */
-	public const KIND_AGENT_PROFILE = 'agent-profile';
 
 	/**
 	 * Largest document accepted, in bytes.
@@ -171,9 +162,10 @@ class XapiDocumentStore {
 		$row = $this->row(key: $key, contents: $contents, contentType: $contentType, context: $context);
 		$this->objectService->saveObject(
 			object: $row,
-			register: self::REGISTER,
-			schema: self::SCHEMA,
-			uuid: $row['id'],
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::REGISTER, schema: self::SCHEMA),
+				uuid: $row['id']
+			),
 			_rbac: false
 		);
 
@@ -232,9 +224,10 @@ class XapiDocumentStore {
 		}
 
 		$this->objectService->deleteObject(
-			uuid: $this->documentUuid(key: $key),
-			register: self::REGISTER,
-			schema: self::SCHEMA,
+			new ObjectDeletion(
+				uuid: $this->documentUuid(key: $key),
+				target: new ObjectFindTarget(register: self::REGISTER, schema: self::SCHEMA)
+			),
 			_rbac: false,
 			_multitenancy: false
 		);
@@ -281,9 +274,10 @@ class XapiDocumentStore {
 	public function deleteAll(array $key): void {
 		foreach ($this->rowsUnder(key: $key) as $row) {
 			$this->objectService->deleteObject(
-				uuid: $this->documentUuid(key: array_replace($key, ['documentId' => (string)$row['documentId']])),
-				register: self::REGISTER,
-				schema: self::SCHEMA,
+				new ObjectDeletion(
+					uuid: $this->documentUuid(key: array_replace($key, ['documentId' => (string)$row['documentId']])),
+					target: new ObjectFindTarget(register: self::REGISTER, schema: self::SCHEMA)
+				),
 				_rbac: false,
 				_multitenancy: false
 			);
@@ -320,8 +314,7 @@ class XapiDocumentStore {
 		try {
 			$entity = $this->objectService->find(
 				id: $this->documentUuid(key: $key),
-				register: self::REGISTER,
-				schema: self::SCHEMA,
+				options: new ObjectFindOptions(register: self::REGISTER, schema: self::SCHEMA),
 				_rbac: false,
 				_multitenancy: false
 			);

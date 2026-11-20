@@ -30,6 +30,8 @@ use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
 use OCA\Learniq\Tests\Support\RegisterSchemaPayloads;
 use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\TestCase;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * One invitation row per invited child: open while the child has no time in
@@ -60,12 +62,12 @@ class ConferenceInvitationsTest extends TestCase {
 	public function testEachInvitedChildGetsARowAndOnlyTheOneWithoutATimeIsOpen(): void {
 		$writes = ConferenceInvitations::writesFor(round: $this->round(), takenRefs: [self::VERA], existing: []);
 
-		self::assertSame([null, null], array_column($writes, 'uuid'), 'two new rows');
+		self::assertSame(expected: [null, null], actual: array_column($writes, 'uuid'), message: 'two new rows');
 		$byChild = array_column(array_column($writes, 'object'), null, 'learnerRef');
-		self::assertSame('booked', $byChild[self::VERA]['status']);
-		self::assertSame('open', $byChild[self::SAMI]['status']);
+		self::assertSame(expected: 'booked', actual: $byChild[self::VERA]['status']);
+		self::assertSame(expected: 'open', actual: $byChild[self::SAMI]['status']);
 		self::assertSame(
-			[
+			expected: [
 				'conferenceRoundId' => self::ROUND,
 				'learnerRef' => self::SAMI,
 				'roundName' => 'Oudergesprekken groep 4, oktober 2026',
@@ -74,12 +76,41 @@ class ConferenceInvitationsTest extends TestCase {
 				'tenant_id' => self::TENANT,
 				'status' => 'open',
 			],
-			$byChild[self::SAMI]
+			actual: $byChild[self::SAMI]
 		);
 		foreach ($writes as $write) {
-			self::assertNull(self::schemaError('conference-invitation', $write['object']), 'the real fragment accepts the row');
+			self::assertNull(actual: self::schemaError(slug: 'conference-invitation', payload: $write['object']), message: 'the real fragment accepts the row');
 		}
 	}//end testEachInvitedChildGetsARowAndOnlyTheOneWithoutATimeIsOpen()
+
+	/**
+	 * A round that lets pupils book marks each invitation so her portal task
+	 * shows; switched off again, the mark is taken back on rows that had it,
+	 * and rows of other rounds never gain the key.
+	 *
+	 * @return void
+	 */
+	public function testARoundThatLetsPupilsBookMarksItsInvitations(): void {
+		$round = array_merge($this->round(), ['pupilMayBook' => true]);
+		$writes = ConferenceInvitations::writesFor(round: $round, takenRefs: [], existing: []);
+		self::assertSame(expected: [true, true], actual: array_column(array_column($writes, 'object'), 'pupilMayBook'));
+		foreach ($writes as $write) {
+			self::assertNull(actual: self::schemaError(slug: 'conference-invitation', payload: $write['object']), message: 'the real fragment accepts the mark');
+		}
+
+		$marked = array_merge($this->row(id: 'inv-2', child: self::SAMI, status: 'open'), ['pupilMayBook' => true]);
+		$off = ConferenceInvitations::writesFor(
+			round: $this->round(),
+			takenRefs: [self::VERA],
+			existing: [$this->row(id: 'inv-1', child: self::VERA, status: 'booked'), $marked]
+		);
+		self::assertSame(expected: ['inv-2'], actual: array_column($off, 'uuid'));
+		self::assertFalse(condition: $off[0]['object']['pupilMayBook']);
+
+		foreach (ConferenceInvitations::writesFor(round: $this->round(), takenRefs: [], existing: []) as $write) {
+			self::assertArrayNotHasKey(key: 'pupilMayBook', array: $write['object']);
+		}
+	}//end testARoundThatLetsPupilsBookMarksItsInvitations()
 
 	/**
 	 * Nothing changed, nothing is written; a time booked or given back moves
@@ -92,20 +123,20 @@ class ConferenceInvitationsTest extends TestCase {
 			$this->row(id: 'inv-1', child: self::VERA, status: 'booked'),
 			$this->row(id: 'inv-2', child: self::SAMI, status: 'open'),
 		];
-		self::assertSame([], ConferenceInvitations::writesFor(round: $this->round(), takenRefs: [self::VERA], existing: $existing));
+		self::assertSame(expected: [], actual: ConferenceInvitations::writesFor(round: $this->round(), takenRefs: [self::VERA], existing: $existing));
 
 		$writes = ConferenceInvitations::writesFor(round: $this->round(), takenRefs: [self::VERA, self::SAMI], existing: $existing);
-		self::assertSame(['inv-2'], array_column($writes, 'uuid'));
-		self::assertSame('booked', $writes[0]['object']['status']);
+		self::assertSame(expected: ['inv-2'], actual: array_column($writes, 'uuid'));
+		self::assertSame(expected: 'booked', actual: $writes[0]['object']['status']);
 
 		$writes = ConferenceInvitations::writesFor(round: $this->round(), takenRefs: [], existing: $existing);
-		self::assertSame(['inv-1'], array_column($writes, 'uuid'), 'a time given back asks again');
-		self::assertSame('open', $writes[0]['object']['status']);
+		self::assertSame(expected: ['inv-1'], actual: array_column($writes, 'uuid'), message: 'a time given back asks again');
+		self::assertSame(expected: 'open', actual: $writes[0]['object']['status']);
 
 		$round = array_merge($this->round(), ['invitedLearnerRefs' => [self::VERA]]);
 		$writes = ConferenceInvitations::writesFor(round: $round, takenRefs: [self::VERA], existing: $existing);
-		self::assertSame(['inv-2'], array_column($writes, 'uuid'));
-		self::assertSame('closed', $writes[0]['object']['status']);
+		self::assertSame(expected: ['inv-2'], actual: array_column($writes, 'uuid'));
+		self::assertSame(expected: 'closed', actual: $writes[0]['object']['status']);
 	}//end testOnlyChangedRowsAreWritten()
 
 	/**
@@ -116,14 +147,14 @@ class ConferenceInvitationsTest extends TestCase {
 	 */
 	public function testAClosedRoundAsksNothing(): void {
 		$closed = array_merge($this->round(), ['lifecycle' => 'booking-closed']);
-		self::assertSame([], ConferenceInvitations::writesFor(round: $closed, takenRefs: [], existing: []));
+		self::assertSame(expected: [], actual: ConferenceInvitations::writesFor(round: $closed, takenRefs: [], existing: []));
 
 		$writes = ConferenceInvitations::writesFor(
 			round: $closed,
 			takenRefs: [self::VERA],
 			existing: [$this->row(id: 'inv-1', child: self::VERA, status: 'booked'), $this->row(id: 'inv-2', child: self::SAMI, status: 'open')]
 		);
-		self::assertSame([['inv-2', 'closed']], array_map(static fn (array $w): array => [$w['uuid'], $w['object']['status']], $writes));
+		self::assertSame(expected: [['inv-2', 'closed']], actual: array_map(static fn (array $w): array => [$w['uuid'], $w['object']['status']], $writes));
 	}//end testAClosedRoundAsksNothing()
 
 	/**
@@ -139,13 +170,13 @@ class ConferenceInvitationsTest extends TestCase {
 			$this->slot(id: 'slot-2', child: self::SAMI, state: 'cancelled'),
 			$this->slot(id: 'slot-3', child: self::DAAN, state: 'booked', round: 'ab000001-0000-4000-8000-000000000099'),
 		];
-		$service = new ConferenceInvitations($this->objectService(store: $store));
+		$service = new ConferenceInvitations(objectService: $this->objectService(store: $store));
 
-		self::assertSame(2, $service->syncRound(round: $this->round()));
+		self::assertSame(expected: 2, actual: $service->syncRound(round: $this->round()));
 		$statuses = array_column($store->rows['conference-invitation'], 'status', 'learnerRef');
-		self::assertSame([self::VERA => 'booked', self::SAMI => 'open'], $statuses);
+		self::assertSame(expected: [self::VERA => 'booked', self::SAMI => 'open'], actual: $statuses);
 
-		self::assertSame(0, $service->syncRound(round: $this->round()), 'a second run writes nothing');
+		self::assertSame(expected: 0, actual: $service->syncRound(round: $this->round()), message: 'a second run writes nothing');
 	}//end testSyncRoundReadsTheRoundsTimesAndIsIdempotent()
 
 	/**
@@ -165,7 +196,7 @@ class ConferenceInvitationsTest extends TestCase {
 			return $row;
 		};
 		$invitations = array_map($strip, $objects['conference-invitation']);
-		self::assertNotEmpty($objects['conference-round']);
+		self::assertNotEmpty(actual: $objects['conference-round']);
 		foreach ($objects['conference-round'] as $round) {
 			$round = $strip($round);
 			$taken = [];
@@ -176,16 +207,16 @@ class ConferenceInvitationsTest extends TestCase {
 			}
 
 			$own = array_values(array_filter($invitations, static fn (array $row): bool => $row['conferenceRoundId'] === $round['id']));
-			self::assertCount(count($round['invitedLearnerRefs']), $own, $round['name']);
-			self::assertSame([], ConferenceInvitations::writesFor(round: $round, takenRefs: $taken, existing: $own), $round['name'].' is in step');
+			self::assertCount(expectedCount: count($round['invitedLearnerRefs']), haystack: $own, message: $round['name']);
+			self::assertSame(expected: [], actual: ConferenceInvitations::writesFor(round: $round, takenRefs: $taken, existing: $own), message: $round['name'].' is in step');
 		}
 
 		$statuses = array_column($invitations, 'status', 'learnerRef');
-		self::assertSame('booked', $statuses['ee010008-0000-4000-8000-000000000415'], "Vera's time is acknowledged");
-		self::assertSame(1, count(array_filter($invitations, static fn (array $row): bool => $row['status'] === 'booked')));
+		self::assertSame(expected: 'booked', actual: $statuses['ee010008-0000-4000-8000-000000000415'], message: "Vera's time is acknowledged");
+		self::assertSame(expected: 1, actual: count(array_filter($invitations, static fn (array $row): bool => $row['status'] === 'booked')));
 		foreach ($invitations as $row) {
 			unset($row['id']);
-			self::assertNull(self::schemaError('conference-invitation', $row));
+			self::assertNull(actual: self::schemaError(slug: 'conference-invitation', payload: $row));
 		}
 	}//end testTheSeededInvitationsAreWhatTheServiceWrites()
 
@@ -259,15 +290,19 @@ class ConferenceInvitationsTest extends TestCase {
 	 * @return ObjectService
 	 */
 	private function objectService(RegisterFaithfulStore $store): ObjectService {
-		$objectService = $this->createMock(ObjectService::class);
+		$objectService = $this->createMock(originalClassName: ObjectService::class);
 		$objectService->method('findAll')->willReturnCallback(
 			static fn (array $config, bool $_rbac=true, bool $_multitenancy=true): array => $store->findAll($config, $_rbac, $_multitenancy)
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			static fn (array $object, ?array $extend=[], $register=null, $schema=null, ?string $uuid=null) => $store->save((string)$schema, $object, $uuid, false)
+			static fn (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) => $store->save((string)($options->target->schema), $object, ($options->uuid), false)
 		);
 		$objectService->method('find')->willReturnCallback(
-			static function (int|string $id, ?array $_extend=[], bool $files=false, $register=null, $schema=null) use ($store) {
+			static function (int|string $id, ?ObjectFindOptions $options = null) use ($store) {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				foreach (($store->rows[(string)$schema] ?? []) as $row) {
 					if ($row['id'] === $id) {
 						return OrEntityFactory::make($row, (string)$schema);
@@ -293,7 +328,7 @@ class ConferenceInvitationsTest extends TestCase {
 		$uuidOf = new \ReflectionMethod(ConferenceInvitations::class, 'uuidOf');
 
 		self::assertSame(
-			[
+			expected: [
 				'conferenceRoundId' => '7',
 				'learnerRef' => 'lp-1',
 				'roundName' => 'Najaar',
@@ -301,22 +336,22 @@ class ConferenceInvitationsTest extends TestCase {
 				'bookingMode' => 'preference',
 				'tenant_id' => 't1',
 			],
-			$fields->invoke(null, ['id' => 7, 'name' => 'Najaar', 'bookingClosesAt' => '2026-10-01', 'bookingMode' => 'preference', 'tenant_id' => 't1', 'other' => 'x'], 'lp-1')
+			actual: $fields->invoke(null, ['id' => 7, 'name' => 'Najaar', 'bookingClosesAt' => '2026-10-01', 'bookingMode' => 'preference', 'tenant_id' => 't1', 'other' => 'x'], 'lp-1')
 		);
 		self::assertSame(
-			['conferenceRoundId' => 'r', 'learnerRef' => 'lp-2'],
-			$fields->invoke(null, ['id' => 'r', 'name' => '', 'bookingClosesAt' => 5, 'bookingMode' => 'walk-in', 'tenant_id' => ''], 'lp-2')
+			expected: ['conferenceRoundId' => 'r', 'learnerRef' => 'lp-2'],
+			actual: $fields->invoke(null, ['id' => 'r', 'name' => '', 'bookingClosesAt' => 5, 'bookingMode' => 'walk-in', 'tenant_id' => ''], 'lp-2')
 		);
 		self::assertSame(
-			['conferenceRoundId' => 'r', 'learnerRef' => 'lp-3', 'bookingMode' => 'direct'],
-			$fields->invoke(null, ['id' => 'r', 'bookingMode' => 'direct', 'tenant_id' => 9], 'lp-3')
+			expected: ['conferenceRoundId' => 'r', 'learnerRef' => 'lp-3', 'bookingMode' => 'direct'],
+			actual: $fields->invoke(null, ['id' => 'r', 'bookingMode' => 'direct', 'tenant_id' => 9], 'lp-3')
 		);
 
-		self::assertNull($uuidOf->invoke(null, null));
-		self::assertSame('a', $uuidOf->invoke(null, ['id' => 'a', 'uuid' => 'b']));
-		self::assertSame('b', $uuidOf->invoke(null, ['uuid' => 'b']));
-		self::assertNull($uuidOf->invoke(null, ['id' => '', 'uuid' => 'b']));
-		self::assertNull($uuidOf->invoke(null, ['id' => 5]));
-		self::assertNull($uuidOf->invoke(null, []));
+		self::assertNull(actual: $uuidOf->invoke(null, null));
+		self::assertSame(expected: 'a', actual: $uuidOf->invoke(null, ['id' => 'a', 'uuid' => 'b']));
+		self::assertSame(expected: 'b', actual: $uuidOf->invoke(null, ['uuid' => 'b']));
+		self::assertNull(actual: $uuidOf->invoke(null, ['id' => '', 'uuid' => 'b']));
+		self::assertNull(actual: $uuidOf->invoke(null, ['id' => 5]));
+		self::assertNull(actual: $uuidOf->invoke(null, []));
 	}//end testTheCopiedFieldsAndTheStoredUuid()
 }//end class

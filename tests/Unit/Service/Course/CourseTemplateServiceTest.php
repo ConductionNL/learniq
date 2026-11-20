@@ -36,6 +36,8 @@ use OCP\IL10N;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectDeletion;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 
 /**
  * The course tree comes from one lesson query, a template captures names and
@@ -91,7 +93,11 @@ class CourseTemplateServiceTest extends TestCase {
 	): CourseTemplateService {
 		$objects = $this->createMock(ObjectService::class);
 		$objects->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, mixed $register = null, mixed $schema = null, bool $_rbac = false) use ($records) {
+			function (int|string $id, ?ObjectFindOptions $options = null, bool $_rbac = true) use ($records) {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				$this->rbac[] = ['find', $_rbac];
 				if (isset($records[$id]) === false) {
 					throw new DoesNotExistException('missing');
@@ -113,7 +119,10 @@ class CourseTemplateServiceTest extends TestCase {
 			}
 		);
 		$objects->method('deleteObject')->willReturnCallback(
-			function (string $uuid, mixed $register = null, mixed $schema = null, bool $_rbac = false): bool {
+			function (ObjectDeletion $deletion, bool $_rbac = true): bool {
+				$uuid = $deletion->uuid;
+				$register = $deletion->target->register;
+				$schema = $deletion->target->schema;
 				$this->deleted[] = ['schema' => (string)$schema, 'id' => $uuid];
 				$this->rbac[]    = ['deleteObject', $_rbac];
 

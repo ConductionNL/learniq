@@ -34,8 +34,10 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -59,14 +61,14 @@ class SubjectChoiceEnrolmentBridge implements IEventListener {
 	 *
 	 * @param ObjectService $objectService OR object access service.
 	 * @param LoggerInterface $logger PSR logger.
-	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
-		private readonly ListenerSchemaResolver $schemas,
+		private readonly ListenerSchemaResolverInterface $schemas,
 	) {
 	}//end __construct()
 
@@ -139,14 +141,13 @@ class SubjectChoiceEnrolmentBridge implements IEventListener {
 			// System context (enrolment): a coordinator or administration manager locks the choice, and
 			// Enrolment create is instructors, hr, compliance officers and team leads only.
 			$this->objectService->saveObject(
-				register: self::LEARNIQ_REGISTER,
-				schema: self::ENROLMENT_SCHEMA,
 				object: [
 					'learnerId' => $learnerId,
 					'courseId' => $courseId,
 					'source' => 'subject-choice',
 					'tenant_id' => $tenantId,
 				],
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::ENROLMENT_SCHEMA)),
 				_rbac: false
 			);
 			$created++;

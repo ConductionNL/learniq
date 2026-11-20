@@ -44,8 +44,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\DashboardRoleService;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\DashboardRoleServiceInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectDeletingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
 use OCP\EventDispatcher\Event;
@@ -78,19 +78,19 @@ class AssessmentResultIntegrityListener implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param ListenerSchemaResolver $schemaResolver Resolves the event entity's schema slug.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Resolves the event entity's schema slug.
 	 * @param IUserSession $userSession The acting user.
 	 * @param IGroupManager $groupManager Admin check.
-	 * @param DashboardRoleService $roles Resolves whether the caller is staff.
+	 * @param DashboardRoleServiceInterface $roles Resolves whether the caller is staff.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ListenerSchemaResolver $schemaResolver,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
 		private readonly IUserSession $userSession,
 		private readonly IGroupManager $groupManager,
-		private readonly DashboardRoleService $roles,
+		private readonly DashboardRoleServiceInterface $roles,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()

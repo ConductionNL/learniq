@@ -43,11 +43,10 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use InvalidArgumentException;
-use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\Exception\XapiRequestException;
-use OCA\Learniq\Service\Cmi5LaunchTokenService;
-use OCA\Learniq\Service\XapiCallerResolver;
-use OCA\Learniq\Service\XapiStatementIngest;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\XapiCallerResolverInterface;
+use OCA\Learniq\Kernel\Contracts\XapiStatementIngestInterface;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\AnonRateLimit;
@@ -74,19 +73,19 @@ class LrsController extends Controller {
 	 * @param IRequest               $request      The current request.
 	 * @param IUserSession           $userSession  The session, for lesson-player callers.
 	 * @param IGroupManager          $groupManager Admin check for the query scope.
-	 * @param XapiCallerResolver     $callers      Resolves the token or session caller.
-	 * @param XapiStatementIngest    $ingest       Stamps, stores and reads statements.
+	 * @param XapiCallerResolverInterface     $callers      Resolves the token or session caller.
+	 * @param XapiStatementIngestInterface    $ingest       Stamps, stores and reads statements.
 	 * @param LoggerInterface        $logger       PSR logger.
 	 */
 	public function __construct(
 		IRequest $request,
 		private readonly IUserSession $userSession,
 		private readonly IGroupManager $groupManager,
-		private readonly XapiCallerResolver $callers,
-		private readonly XapiStatementIngest $ingest,
+		private readonly XapiCallerResolverInterface $callers,
+		private readonly XapiStatementIngestInterface $ingest,
 		private readonly LoggerInterface $logger,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**

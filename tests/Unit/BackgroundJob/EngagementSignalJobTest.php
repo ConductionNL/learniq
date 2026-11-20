@@ -42,6 +42,8 @@ use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCP\AppFramework\Utility\ITimeFactory;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Tests for EngagementSignalHandler::handle() on ObjectCreatedEvent<XapiStatement>.
@@ -123,7 +125,11 @@ class EngagementSignalJobTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) {
+			function (int|string $id, ?ObjectFindOptions $options = null) {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				if ($schema === 'cohort') {
 					foreach (($this->db['cohort'] ?? []) as $cohort) {
 						if (($cohort['id'] ?? null) === $id) {
@@ -166,7 +172,10 @@ class EngagementSignalJobTest extends TestCase {
 		);
 
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
+			function (array|ObjectEntity $object, ObjectSaveOptions $options = new ObjectSaveOptions()): ObjectEntity {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
 				$register = (string)$register;
 				$schema = (string)$schema;
 
@@ -501,6 +510,39 @@ class EngagementSignalJobTest extends TestCase {
 		self::assertCount(0, $this->savedFor('engagement-risk-flag'));
 
 	}//end testCohortScopedThresholdSkipsNonMember()
+
+	/**
+	 * Thresholds without a limit, not crossed, without an id, or scoped to a
+	 * cohort that is missing or has no learner list raise no flag; a crossed,
+	 * complete threshold beside them still does.
+	 *
+	 * @return void
+	 */
+	public function testIncompleteOrUncrossedThresholdsRaiseNoFlag(): void {
+		$now = new DateTime('2026-07-13 10:00:00', new DateTimeZone('Europe/Amsterdam'));
+
+		$this->seed('cohort', ['id' => 'cohort-bad', 'learnerIds' => 'learner-1']);
+		$base = ['metric' => 'engagement-score-below', 'limit' => 30, 'lifecycle' => 'active', 'cohortId' => null];
+		$this->seed('engagement-risk-threshold', ['id' => 't-no-limit', 'limit' => null] + $base);
+		$this->seed('engagement-risk-threshold', ['id' => 't-not-crossed', 'limit' => 10] + $base);
+		$this->seed('engagement-risk-threshold', $base);
+		$this->seed('engagement-risk-threshold', ['id' => 't-missing-cohort', 'cohortId' => 'cohort-gone'] + $base);
+		$this->seed('engagement-risk-threshold', ['id' => 't-bad-cohort', 'cohortId' => 'cohort-bad'] + $base);
+		$this->seed('engagement-risk-threshold', ['id' => 't-ok'] + $base);
+
+		$handler = $this->makeHandler(
+			evaluated: ['timeOnTaskMinutes' => 1.0, 'lastActivityAt' => '2026-07-13T09:00:00+02:00', 'score' => 20],
+			now: $now
+		);
+
+		$this->runOne($handler, $this->entryFrom(
+				['verified_actor_id' => 'learner-1', 'courseId' => 'course-1', 'tenant_id' => 'tenant-a']
+			)
+		);
+
+		self::assertSame(['t-ok'], array_column($this->savedFor('engagement-risk-flag'), 'engagementRiskThresholdId'));
+
+	}//end testIncompleteOrUncrossedThresholdsRaiseNoFlag()
 
 	/**
 	 * No AI/ML client, HTTP call, or Hermiq dependency is constructed
