@@ -1,0 +1,871 @@
+{
+    "testDeliverMatchesGolden all accepted": {
+        "outcome": {
+            "state": "succeed",
+            "fields": {
+                "finishedAt": "<date-c>",
+                "connectorRunId": null,
+                "result": {
+                    "recordsProcessed": 6,
+                    "recordsAccepted": 6,
+                    "recordsRejected": 0,
+                    "validationReport": [],
+                    "artefactRef": null,
+                    "target": "planninq",
+                    "rosterSource": "roster-zermelo",
+                    "flavour": "mock"
+                }
+            }
+        },
+        "calls": [
+            {
+                "integriq": [
+                    "learniq",
+                    "roster-zermelo",
+                    {
+                        "groupMap": {
+                            "3a": "c-1",
+                            "n": "5"
+                        },
+                        "teacherMap": {
+                            "JAN": "jan"
+                        }
+                    },
+                    "job-1"
+                ]
+            }
+        ],
+        "log": [
+            {
+                "level": "info",
+                "message": "[PlanninqTimetableImport] {source} delivered into planninq ({flavour}): processed={p}, accepted={a}, rejected={r}.",
+                "context": {
+                    "source": "roster-zermelo",
+                    "flavour": "mock",
+                    "p": 6,
+                    "a": 6,
+                    "r": 0
+                }
+            }
+        ]
+    },
+    "testDeliverMatchesGolden all rejected": {
+        "outcome": {
+            "state": "fail",
+            "fields": {
+                "finishedAt": "<date-c>",
+                "connectorRunId": null,
+                "result": {
+                    "recordsProcessed": 3,
+                    "recordsAccepted": 0,
+                    "recordsRejected": 3,
+                    "validationReport": [
+                        {
+                            "recordId": "zm-9",
+                            "errorCode": "missing-fields",
+                            "errorMessage": "Missing subject"
+                        },
+                        {
+                            "recordId": null,
+                            "errorCode": "7",
+                            "errorMessage": ""
+                        },
+                        {
+                            "recordId": null,
+                            "errorCode": "",
+                            "errorMessage": ""
+                        }
+                    ],
+                    "artefactRef": null,
+                    "target": "planninq",
+                    "rosterSource": "roster-zermelo",
+                    "flavour": "mock"
+                }
+            }
+        },
+        "calls": [
+            {
+                "integriq": [
+                    "learniq",
+                    "roster-zermelo",
+                    {
+                        "groupMap": {
+                            "3a": "c-1",
+                            "n": "5"
+                        },
+                        "teacherMap": {
+                            "JAN": "jan"
+                        }
+                    },
+                    "job-1"
+                ]
+            }
+        ],
+        "log": [
+            {
+                "level": "info",
+                "message": "[PlanninqTimetableImport] {source} delivered into planninq ({flavour}): processed={p}, accepted={a}, rejected={r}.",
+                "context": {
+                    "source": "roster-zermelo",
+                    "flavour": "mock",
+                    "p": 3,
+                    "a": 0,
+                    "r": 3
+                }
+            }
+        ]
+    },
+    "testDeliverMatchesGolden integriq absent": {
+        "exception": "Integriq is not installed, so the timetable cannot be delivered to planninq.",
+        "calls": [],
+        "log": []
+    },
+    "testDeliverMatchesGolden integriq failed": {
+        "exception": "Integriq could not deliver the timetable to planninq (planninq-absent): Planninq is not installed",
+        "calls": [
+            {
+                "integriq": [
+                    "learniq",
+                    "roster-zermelo",
+                    {
+                        "groupMap": {
+                            "3a": "c-1",
+                            "n": "5"
+                        },
+                        "teacherMap": {
+                            "JAN": "jan"
+                        }
+                    },
+                    "job-1"
+                ]
+            }
+        ],
+        "log": []
+    },
+    "testDeliverMatchesGolden integriq failed without code": {
+        "exception": "Integriq could not deliver the timetable to planninq (unknown): ",
+        "calls": [
+            {
+                "integriq": [
+                    "learniq",
+                    "roster-zermelo",
+                    {
+                        "groupMap": {
+                            "3a": "c-1",
+                            "n": "5"
+                        },
+                        "teacherMap": {
+                            "JAN": "jan"
+                        }
+                    },
+                    "job-1"
+                ]
+            }
+        ],
+        "log": []
+    },
+    "testDeliverMatchesGolden integriq silent": {
+        "exception": "Integriq did not answer the timetable delivery.",
+        "calls": [
+            {
+                "integriq": [
+                    "learniq",
+                    "roster-zermelo",
+                    {
+                        "groupMap": {
+                            "3a": "c-1",
+                            "n": "5"
+                        },
+                        "teacherMap": {
+                            "JAN": "jan"
+                        }
+                    },
+                    "job-1"
+                ]
+            }
+        ],
+        "log": []
+    },
+    "testDeliverMatchesGolden kept map": {
+        "outcome": {
+            "state": "succeed",
+            "fields": {
+                "finishedAt": "<date-c>",
+                "connectorRunId": null,
+                "result": {
+                    "recordsProcessed": 0,
+                    "recordsAccepted": 1,
+                    "recordsRejected": 0,
+                    "validationReport": [],
+                    "artefactRef": null,
+                    "target": "planninq",
+                    "rosterSource": "roster-zermelo",
+                    "flavour": "mock"
+                }
+            }
+        },
+        "calls": [
+            {
+                "integriq": [
+                    "learniq",
+                    "roster-zermelo",
+                    {
+                        "groupMap": {
+                            "4H1": "cohort-1"
+                        },
+                        "teacherMap": []
+                    },
+                    "j"
+                ]
+            }
+        ],
+        "log": [
+            {
+                "level": "info",
+                "message": "[PlanninqTimetableImport] {source} delivered into planninq ({flavour}): processed={p}, accepted={a}, rejected={r}.",
+                "context": {
+                    "source": "roster-zermelo",
+                    "flavour": "mock",
+                    "p": 0,
+                    "a": 1,
+                    "r": 0
+                }
+            }
+        ]
+    },
+    "testDeliverMatchesGolden negative accepted with a rejection": {
+        "outcome": {
+            "state": "succeed",
+            "fields": {
+                "finishedAt": "<date-c>",
+                "connectorRunId": null,
+                "result": {
+                    "recordsProcessed": 0,
+                    "recordsAccepted": -1,
+                    "recordsRejected": 1,
+                    "validationReport": [
+                        {
+                            "recordId": "zm-9",
+                            "errorCode": "missing-fields",
+                            "errorMessage": "Missing subject"
+                        }
+                    ],
+                    "artefactRef": null,
+                    "target": "planninq",
+                    "rosterSource": "roster-zermelo",
+                    "flavour": "mock"
+                }
+            }
+        },
+        "calls": [
+            {
+                "integriq": [
+                    "learniq",
+                    "roster-zermelo",
+                    {
+                        "groupMap": {
+                            "3a": "c-1",
+                            "n": "5"
+                        },
+                        "teacherMap": {
+                            "JAN": "jan"
+                        }
+                    },
+                    "job-1"
+                ]
+            }
+        ],
+        "log": [
+            {
+                "level": "info",
+                "message": "[PlanninqTimetableImport] {source} delivered into planninq ({flavour}): processed={p}, accepted={a}, rejected={r}.",
+                "context": {
+                    "source": "roster-zermelo",
+                    "flavour": "mock",
+                    "p": 0,
+                    "a": -1,
+                    "r": 1
+                }
+            }
+        ]
+    },
+    "testDeliverMatchesGolden no id at all": {
+        "outcome": {
+            "state": "succeed",
+            "fields": {
+                "finishedAt": "<date-c>",
+                "connectorRunId": null,
+                "result": {
+                    "recordsProcessed": 0,
+                    "recordsAccepted": 1,
+                    "recordsRejected": 0,
+                    "validationReport": [],
+                    "artefactRef": null,
+                    "target": "planninq",
+                    "rosterSource": "roster-untis-oneroster",
+                    "flavour": "mock"
+                }
+            }
+        },
+        "calls": [
+            {
+                "integriq": [
+                    "learniq",
+                    "roster-untis-oneroster",
+                    {
+                        "groupMap": [],
+                        "teacherMap": []
+                    },
+                    ""
+                ]
+            }
+        ],
+        "log": [
+            {
+                "level": "info",
+                "message": "[PlanninqTimetableImport] {source} delivered into planninq ({flavour}): processed={p}, accepted={a}, rejected={r}.",
+                "context": {
+                    "source": "roster-untis-oneroster",
+                    "flavour": "mock",
+                    "p": 0,
+                    "a": 1,
+                    "r": 0
+                }
+            }
+        ]
+    },
+    "testDeliverMatchesGolden no planninq part, no flavour": {
+        "outcome": {
+            "state": "succeed",
+            "fields": {
+                "finishedAt": "<date-c>",
+                "connectorRunId": null,
+                "result": {
+                    "recordsProcessed": 0,
+                    "recordsAccepted": 0,
+                    "recordsRejected": 0,
+                    "validationReport": [],
+                    "artefactRef": null,
+                    "target": "planninq",
+                    "rosterSource": "roster-zermelo",
+                    "flavour": ""
+                }
+            }
+        },
+        "calls": [
+            {
+                "integriq": [
+                    "learniq",
+                    "roster-zermelo",
+                    {
+                        "groupMap": {
+                            "3a": "c-1",
+                            "n": "5"
+                        },
+                        "teacherMap": {
+                            "JAN": "jan"
+                        }
+                    },
+                    "job-1"
+                ]
+            }
+        ],
+        "log": [
+            {
+                "level": "info",
+                "message": "[PlanninqTimetableImport] {source} delivered into planninq ({flavour}): processed={p}, accepted={a}, rejected={r}.",
+                "context": {
+                    "source": "roster-zermelo",
+                    "flavour": "",
+                    "p": 0,
+                    "a": 0,
+                    "r": 0
+                }
+            }
+        ]
+    },
+    "testDeliverMatchesGolden no rostering system": {
+        "exception": "This job does not say which rostering system to read. Set scope.rosterSource, or use a Zermelo, Untis, Xedule or TimeEdit mapping profile.",
+        "calls": [],
+        "log": []
+    },
+    "testDeliverMatchesGolden nothing at all": {
+        "outcome": {
+            "state": "succeed",
+            "fields": {
+                "finishedAt": "<date-c>",
+                "connectorRunId": null,
+                "result": {
+                    "recordsProcessed": 0,
+                    "recordsAccepted": 0,
+                    "recordsRejected": 0,
+                    "validationReport": [],
+                    "artefactRef": null,
+                    "target": "planninq",
+                    "rosterSource": "roster-zermelo",
+                    "flavour": "mock"
+                }
+            }
+        },
+        "calls": [
+            {
+                "integriq": [
+                    "learniq",
+                    "roster-zermelo",
+                    {
+                        "groupMap": {
+                            "3a": "c-1",
+                            "n": "5"
+                        },
+                        "teacherMap": {
+                            "JAN": "jan"
+                        }
+                    },
+                    "job-1"
+                ]
+            }
+        ],
+        "log": [
+            {
+                "level": "info",
+                "message": "[PlanninqTimetableImport] {source} delivered into planninq ({flavour}): processed={p}, accepted={a}, rejected={r}.",
+                "context": {
+                    "source": "roster-zermelo",
+                    "flavour": "mock",
+                    "p": 0,
+                    "a": 0,
+                    "r": 0
+                }
+            }
+        ]
+    },
+    "testDeliverMatchesGolden partial": {
+        "outcome": {
+            "state": "partial",
+            "fields": {
+                "finishedAt": "<date-c>",
+                "connectorRunId": null,
+                "result": {
+                    "recordsProcessed": 3,
+                    "recordsAccepted": 2,
+                    "recordsRejected": 1,
+                    "validationReport": [
+                        {
+                            "recordId": "zm-9",
+                            "errorCode": "missing-fields",
+                            "errorMessage": "Missing subject"
+                        }
+                    ],
+                    "artefactRef": null,
+                    "target": "planninq",
+                    "rosterSource": "roster-zermelo",
+                    "flavour": "mock"
+                }
+            }
+        },
+        "calls": [
+            {
+                "integriq": [
+                    "learniq",
+                    "roster-zermelo",
+                    {
+                        "groupMap": {
+                            "3a": "c-1",
+                            "n": "5"
+                        },
+                        "teacherMap": {
+                            "JAN": "jan"
+                        }
+                    },
+                    "job-1"
+                ]
+            }
+        ],
+        "log": [
+            {
+                "level": "info",
+                "message": "[PlanninqTimetableImport] {source} delivered into planninq ({flavour}): processed={p}, accepted={a}, rejected={r}.",
+                "context": {
+                    "source": "roster-zermelo",
+                    "flavour": "mock",
+                    "p": 3,
+                    "a": 2,
+                    "r": 1
+                }
+            }
+        ]
+    },
+    "testDeliverMatchesGolden posted map wins over kept": {
+        "outcome": {
+            "state": "succeed",
+            "fields": {
+                "finishedAt": "<date-c>",
+                "connectorRunId": null,
+                "result": {
+                    "recordsProcessed": 0,
+                    "recordsAccepted": 1,
+                    "recordsRejected": 0,
+                    "validationReport": [],
+                    "artefactRef": null,
+                    "target": "planninq",
+                    "rosterSource": "roster-zermelo",
+                    "flavour": "mock"
+                }
+            }
+        },
+        "calls": [
+            {
+                "integriq": [
+                    "learniq",
+                    "roster-zermelo",
+                    {
+                        "groupMap": {
+                            "1A": "c-9"
+                        },
+                        "teacherMap": []
+                    },
+                    "j"
+                ]
+            }
+        ],
+        "log": [
+            {
+                "level": "info",
+                "message": "[PlanninqTimetableImport] {source} delivered into planninq ({flavour}): processed={p}, accepted={a}, rejected={r}.",
+                "context": {
+                    "source": "roster-zermelo",
+                    "flavour": "mock",
+                    "p": 0,
+                    "a": 1,
+                    "r": 0
+                }
+            }
+        ]
+    },
+    "testDeliverMatchesGolden scope not an array": {
+        "outcome": {
+            "state": "succeed",
+            "fields": {
+                "finishedAt": "<date-c>",
+                "connectorRunId": null,
+                "result": {
+                    "recordsProcessed": 0,
+                    "recordsAccepted": 1,
+                    "recordsRejected": 0,
+                    "validationReport": [],
+                    "artefactRef": null,
+                    "target": "planninq",
+                    "rosterSource": "roster-timeedit",
+                    "flavour": "mock"
+                }
+            }
+        },
+        "calls": [
+            {
+                "integriq": [
+                    "learniq",
+                    "roster-timeedit",
+                    {
+                        "groupMap": [],
+                        "teacherMap": []
+                    },
+                    "j"
+                ]
+            }
+        ],
+        "log": [
+            {
+                "level": "info",
+                "message": "[PlanninqTimetableImport] {source} delivered into planninq ({flavour}): processed={p}, accepted={a}, rejected={r}.",
+                "context": {
+                    "source": "roster-timeedit",
+                    "flavour": "mock",
+                    "p": 0,
+                    "a": 1,
+                    "r": 0
+                }
+            }
+        ]
+    },
+    "testDeliverMatchesGolden unknown source in scope, vendor in profile name": {
+        "outcome": {
+            "state": "succeed",
+            "fields": {
+                "finishedAt": "<date-c>",
+                "connectorRunId": null,
+                "result": {
+                    "recordsProcessed": 0,
+                    "recordsAccepted": 1,
+                    "recordsRejected": 0,
+                    "validationReport": [],
+                    "artefactRef": null,
+                    "target": "planninq",
+                    "rosterSource": "roster-untis-oneroster",
+                    "flavour": "mock"
+                }
+            }
+        },
+        "calls": [
+            {
+                "integriq": [
+                    "learniq",
+                    "roster-untis-oneroster",
+                    {
+                        "groupMap": [],
+                        "teacherMap": []
+                    },
+                    "j"
+                ]
+            }
+        ],
+        "log": [
+            {
+                "level": "info",
+                "message": "[PlanninqTimetableImport] {source} delivered into planninq ({flavour}): processed={p}, accepted={a}, rejected={r}.",
+                "context": {
+                    "source": "roster-untis-oneroster",
+                    "flavour": "mock",
+                    "p": 0,
+                    "a": 1,
+                    "r": 0
+                }
+            }
+        ]
+    },
+    "testDeliverMatchesGolden uuid correlation": {
+        "outcome": {
+            "state": "succeed",
+            "fields": {
+                "finishedAt": "<date-c>",
+                "connectorRunId": null,
+                "result": {
+                    "recordsProcessed": 0,
+                    "recordsAccepted": 1,
+                    "recordsRejected": 0,
+                    "validationReport": [],
+                    "artefactRef": null,
+                    "target": "planninq",
+                    "rosterSource": "roster-xedule",
+                    "flavour": "mock"
+                }
+            }
+        },
+        "calls": [
+            {
+                "integriq": [
+                    "learniq",
+                    "roster-xedule",
+                    {
+                        "groupMap": [],
+                        "teacherMap": []
+                    },
+                    "u-1"
+                ]
+            }
+        ],
+        "log": [
+            {
+                "level": "info",
+                "message": "[PlanninqTimetableImport] {source} delivered into planninq ({flavour}): processed={p}, accepted={a}, rejected={r}.",
+                "context": {
+                    "source": "roster-xedule",
+                    "flavour": "mock",
+                    "p": 0,
+                    "a": 1,
+                    "r": 0
+                }
+            }
+        ]
+    },
+    "testScanConflictsMatchesGolden cohorts and teachers": {
+        "scanned": 5,
+        "calls": [
+            {
+                "planninqQuery": {
+                    "cohortId": "c-1",
+                    "limit": 1000,
+                    "from": "2026-09-28T00:00:00+02:00",
+                    "to": "2026-10-04T00:00:00+02:00"
+                }
+            },
+            {
+                "planninqQuery": {
+                    "cohortId": "c-2",
+                    "limit": 1000,
+                    "from": "2026-09-28T00:00:00+02:00",
+                    "to": "2026-10-04T00:00:00+02:00"
+                }
+            },
+            {
+                "planninqQuery": {
+                    "teacherUserId": "jan",
+                    "limit": 1000,
+                    "from": "2026-09-28T00:00:00+02:00",
+                    "to": "2026-10-04T00:00:00+02:00"
+                }
+            },
+            {
+                "planninqQuery": {
+                    "teacherUserId": "piet",
+                    "limit": 1000,
+                    "from": "2026-09-28T00:00:00+02:00",
+                    "to": "2026-10-04T00:00:00+02:00"
+                }
+            },
+            {
+                "scanWindow": [
+                    [
+                        "p-c-1",
+                        "p-shared",
+                        "p-c-2",
+                        "p-jan",
+                        "p-piet"
+                    ],
+                    "t-1"
+                ]
+            }
+        ],
+        "log": []
+    },
+    "testScanConflictsMatchesGolden explicit window": {
+        "scanned": 2,
+        "calls": [
+            {
+                "planninqQuery": {
+                    "cohortId": "c-1",
+                    "limit": 1000,
+                    "from": "2026-09-28T00:00:00+02:00",
+                    "to": "2026-10-04T00:00:00+02:00"
+                }
+            },
+            {
+                "scanWindow": [
+                    [
+                        "p-c-1",
+                        "p-shared"
+                    ],
+                    "t-1"
+                ]
+            }
+        ],
+        "log": []
+    },
+    "testScanConflictsMatchesGolden kept map": {
+        "scanned": 2,
+        "calls": [
+            {
+                "planninqQuery": {
+                    "cohortId": "c-kept",
+                    "limit": 1000,
+                    "from": "2026-09-28T00:00:00+02:00",
+                    "to": "2026-10-04T00:00:00+02:00"
+                }
+            },
+            {
+                "scanWindow": [
+                    [
+                        "p-c-kept",
+                        "p-shared"
+                    ],
+                    ""
+                ]
+            }
+        ],
+        "log": []
+    },
+    "testScanConflictsMatchesGolden nothing mapped": {
+        "scanned": 0,
+        "calls": [],
+        "log": []
+    },
+    "testScanConflictsMatchesGolden only lessons without an id": {
+        "scanned": 0,
+        "calls": [
+            {
+                "planninqQuery": {
+                    "cohortId": "c-empty",
+                    "limit": 1000,
+                    "from": "2026-09-28T00:00:00+02:00",
+                    "to": "2026-10-04T00:00:00+02:00"
+                }
+            }
+        ],
+        "log": []
+    },
+    "testScanConflictsMatchesGolden planninq absent": {
+        "scanned": 2,
+        "calls": [
+            {
+                "planninqQuery": {
+                    "cohortId": "c-1",
+                    "limit": 1000,
+                    "from": "2026-09-28T00:00:00+02:00",
+                    "to": "2026-10-04T00:00:00+02:00"
+                }
+            },
+            {
+                "scanWindow": [
+                    [
+                        "p-c-1",
+                        "p-shared"
+                    ],
+                    "t-1"
+                ]
+            }
+        ],
+        "log": []
+    },
+    "testScanConflictsMatchesGolden planninq does not answer for a teacher": {
+        "scanned": 0,
+        "calls": [
+            {
+                "planninqQuery": {
+                    "cohortId": "c-1",
+                    "limit": 1000,
+                    "from": "2026-09-28T00:00:00+02:00",
+                    "to": "2026-10-04T00:00:00+02:00"
+                }
+            },
+            {
+                "planninqQuery": {
+                    "teacherUserId": "c-silent",
+                    "limit": 1000,
+                    "from": "2026-09-28T00:00:00+02:00",
+                    "to": "2026-10-04T00:00:00+02:00"
+                }
+            }
+        ],
+        "log": [
+            {
+                "level": "warning",
+                "message": "[PlanninqTimetableImport] Conflict scan skipped: {msg}",
+                "context": {
+                    "msg": "Planninq did not answer the timetable query."
+                }
+            }
+        ]
+    },
+    "testScanConflictsMatchesGolden teachers only, no tenant": {
+        "scanned": 2,
+        "calls": [
+            {
+                "planninqQuery": {
+                    "teacherUserId": "piet",
+                    "limit": 1000,
+                    "from": "2026-09-28T00:00:00+02:00",
+                    "to": "2026-10-04T00:00:00+02:00"
+                }
+            },
+            {
+                "scanWindow": [
+                    [
+                        "p-piet",
+                        "p-shared"
+                    ],
+                    ""
+                ]
+            }
+        ],
+        "log": []
+    }
+}

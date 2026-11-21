@@ -36,6 +36,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Timetabling\Source;
 
+use OCA\Learniq\Support\ObjectRow;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -50,6 +51,13 @@ class LocalSessionTimetableSource implements TimetableSource {
 	private const LEARNIQ_REGISTER = 'learniq';
 
 	/**
+	 * Turns one OpenRegister result into a plain array.
+	 *
+	 * @var ObjectRow
+	 */
+	private readonly ObjectRow $objectRow;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OR object query service (RBAC-scoped).
@@ -59,6 +67,7 @@ class LocalSessionTimetableSource implements TimetableSource {
 	public function __construct(
 		private readonly ObjectService $objectService,
 	) {
+		$this->objectRow = new ObjectRow();
 	}//end __construct()
 
 	/**
@@ -104,20 +113,36 @@ class LocalSessionTimetableSource implements TimetableSource {
 				_rbac: false
 			);
 
-			foreach ($results as $row) {
-				$data = $this->toArray(row: $row);
-				// Defensive: never let a mismatched cohort through.
-				if ((string)($data['cohortId'] ?? '') !== $cohortId) {
-					continue;
-				}
-
-				$data['source'] = self::NAME;
-				$rows[] = $data;
-			}
+			$rows = array_merge($rows, $this->rowsMatching(results: $results, match: ['field' => 'cohortId', 'id' => $cohortId]));
 		}//end foreach
 
 		return $rows;
 	}//end sessionsForCohorts()
+
+	/**
+	 * The found sessions whose field holds the id asked for, marked with this
+	 * source. Defensive: never let another course's or cohort's lesson through,
+	 * whatever the query did with its filter.
+	 *
+	 * @param array<int,mixed>                  $results The sessions the query found.
+	 * @param array{field: string, id: string} $match   The field and the id it must hold.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 */
+	private function rowsMatching(array $results, array $match): array {
+		$rows = [];
+		foreach ($results as $row) {
+			$data = $this->toArray(row: $row);
+			if ((string)($data[$match['field']] ?? '') !== $match['id']) {
+				continue;
+			}
+
+			$data['source'] = self::NAME;
+			$rows[] = $data;
+		}
+
+		return $rows;
+	}//end rowsMatching()
 
 	/**
 	 * The Sessions the caller covers as substitute teacher (learniq#1134).
@@ -204,16 +229,7 @@ class LocalSessionTimetableSource implements TimetableSource {
 				_rbac: false
 			);
 
-			foreach ($results as $row) {
-				$data = $this->toArray(row: $row);
-				// Defensive: never let another course's lesson through.
-				if ((string)($data['courseId'] ?? '') !== $courseId) {
-					continue;
-				}
-
-				$data['source'] = self::NAME;
-				$rows[] = $data;
-			}
+			$rows = array_merge($rows, $this->rowsMatching(results: $results, match: ['field' => 'courseId', 'id' => $courseId]));
 		}//end foreach
 
 		return $rows;
@@ -227,14 +243,6 @@ class LocalSessionTimetableSource implements TimetableSource {
 	 * @return array<string,mixed>
 	 */
 	private function toArray(mixed $row): array {
-		if (is_array($row) === true) {
-			return $row;
-		}
-
-		if (is_object($row) === true && method_exists($row, 'jsonSerialize') === true) {
-			return (array)$row->jsonSerialize();
-		}
-
-		return [];
+		return $this->objectRow->asArray(object: $row);
 	}//end toArray()
 }//end class

@@ -8,6 +8,14 @@
 	},
 	"menu": [
 		{
+			"id": "AiProcessingDisclosureMenu",
+			"label": "AI processing disclosure",
+			"icon": "Lock",
+			"route": "AiProcessingDisclosure",
+			"section": "footer",
+			"order": 91
+		},
+		{
 			"id": "Dashboard",
 			"label": "Dashboard",
 			"icon": "ViewDashboardOutline",
@@ -154,21 +162,6 @@
 					}
 				},
 				{
-					"id": "AiProcessingDisclosureMenu",
-					"label": "AI processing disclosure",
-					"icon": "Lock",
-					"route": "AiProcessingDisclosure",
-					"order": 42,
-					"visibleIf": {
-						"user.primaryRole": {
-							"in": [
-								"admin",
-								"compliance-officer"
-							]
-						}
-					}
-				},
-				{
 					"id": "AccessibilityFeedbacksMenu",
 					"label": "Accessibility feedback",
 					"icon": "CommentOutline",
@@ -219,7 +212,19 @@
 			"type": "custom",
 			"title": "Dashboards",
 			"component": "LearniqDashboards",
-			"_note": "Landing dashboard (ADR-009 §6): LearniqDashboards with no role prop resolves to the user's default view (initial state dashboardRole). The three explicit per-role pages below back the group-gated Administration/Teaching/My learning menu items — the in-page role switcher was removed."
+			"_note": "Landing dashboard (ADR-009 §6): LearniqDashboards with no role prop resolves to the user's default view (initial state dashboardRole). The three explicit per-role pages below back the group-gated Administration/Teaching/My learning menu items — the in-page role switcher was removed.",
+			"config": {
+				"title": "Today",
+				"greeting": "date",
+				"subtitleByRole": {
+					"hr": "HR employee · school-wide, all locations",
+					"team-lead": "team lead · school-wide: a team lead sees all courses, assignments, lessons and groups",
+					"confidential-counsellor": "confidential adviser · your own mandatory training courses and points"
+				},
+				"subtitleOfSchoolByRole": {
+					"hr": "HR employee · school-wide, all locations of {school}"
+				}
+			}
 		},
 		{
 			"id": "DashboardAdmin",
@@ -227,7 +232,19 @@
 			"type": "custom",
 			"title": "Administration",
 			"component": "DashboardAdmin",
-			"_note": "Per-role dashboard (ADR-009 §6): DashboardAdmin renders LearniqDashboards in its admin view. Backs the group-gated Administration menu item (visibleIf user.canAdminDashboard)."
+			"_note": "Per-role dashboard (ADR-009 §6): DashboardAdmin renders LearniqDashboards in its admin view. Backs the group-gated Administration menu item (visibleIf user.canAdminDashboard).",
+			"config": {
+				"title": "Today",
+				"greeting": "date",
+				"subtitleByRole": {
+					"hr": "HR employee · school-wide, all locations",
+					"team-lead": "team lead · school-wide: a team lead sees all courses, assignments, lessons and groups",
+					"confidential-counsellor": "confidential adviser · your own mandatory training courses and points"
+				},
+				"subtitleOfSchoolByRole": {
+					"hr": "HR employee · school-wide, all locations of {school}"
+				}
+			}
 		},
 		{
 			"id": "DashboardTeacher",
@@ -235,7 +252,19 @@
 			"type": "custom",
 			"title": "Teaching",
 			"component": "DashboardTeacher",
-			"_note": "Per-role dashboard (ADR-009 §6): DashboardTeacher renders LearniqDashboards in its teacher view. Backs the group-gated Teaching menu item (visibleIf user.canTeachDashboard)."
+			"_note": "Per-role dashboard (ADR-009 §6): DashboardTeacher renders LearniqDashboards in its teacher view. Backs the group-gated Teaching menu item (visibleIf user.canTeachDashboard).",
+			"config": {
+				"title": "Today",
+				"greeting": "date",
+				"subtitleByRole": {
+					"hr": "HR employee · school-wide, all locations",
+					"team-lead": "team lead · school-wide: a team lead sees all courses, assignments, lessons and groups",
+					"confidential-counsellor": "confidential adviser · your own mandatory training courses and points"
+				},
+				"subtitleOfSchoolByRole": {
+					"hr": "HR employee · school-wide, all locations of {school}"
+				}
+			}
 		},
 		{
 			"id": "DashboardStudent",
@@ -243,7 +272,19 @@
 			"type": "custom",
 			"title": "My learning",
 			"component": "DashboardStudent",
-			"_note": "Per-role dashboard (ADR-009 §6): DashboardStudent renders LearniqDashboards in its student view. Backs the group-gated My learning menu item (visibleIf user.canLearnDashboard)."
+			"_note": "Per-role dashboard (ADR-009 §6): DashboardStudent renders LearniqDashboards in its student view. Backs the group-gated My learning menu item (visibleIf user.canLearnDashboard).",
+			"config": {
+				"title": "Today",
+				"greeting": "date",
+				"subtitleByRole": {
+					"hr": "HR employee · school-wide, all locations",
+					"team-lead": "team lead · school-wide: a team lead sees all courses, assignments, lessons and groups",
+					"confidential-counsellor": "confidential adviser · your own mandatory training courses and points"
+				},
+				"subtitleOfSchoolByRole": {
+					"hr": "HR employee · school-wide, all locations of {school}"
+				}
+			}
 		},
 		{
 			"id": "Compliance",
@@ -259,7 +300,7 @@
 			"type": "custom",
 			"title": "AI processing disclosure",
 			"component": "LearniqAiProcessingDisclosure",
-			"_note": "sovereign-ai-guarantee: the AI-processing locality disclosure surface a school hands to its DPO, mirrors LearniqAccessibilityStatement's exact shape (no generic lib index/detail analogue, no :id route param, singleton disclosure page). Composes AiProcessingDisclosureController's server-side read (Hermiq agentaifeature register + scholiq-ai-features AVG carrier + AiLocalityClassifier/SovereigntyPolicyService verdict) with an inline SovereigntyPolicy editor. Gated to admin/compliance-officer via the AiProcessingDisclosure nav entry's visibleIf (unlike Accessibility, which is open to every authenticated user)."
+			"_note": "sovereign-ai-guarantee: the AI-processing locality disclosure surface a school hands to its DPO, mirrors LearniqAccessibilityStatement's exact shape (no generic lib index/detail analogue, no :id route param, singleton disclosure page). Composes AiProcessingDisclosureController's server-side read (Hermiq agentaifeature register + scholiq-ai-features AVG carrier + AiLocalityClassifier/SovereigntyPolicyService verdict) with an inline SovereigntyPolicy editor. Read by every signed-in user through the footer entry AiProcessingDisclosureMenu, which carries no role gate (ai-disclosure-for-every-user, decision 399); only admin and compliance-officer get the edit mode."
 		},
 		{
 			"id": "PrivacyGovernanceDashboard",
@@ -269,6 +310,8 @@
 			"_note": "privacy-reuse-openregister-register (D20): a typed dashboard page, formerly a custom page. Every tile reads PrivacyGovernanceController::overview() through CnStatWidget's endpointSource, and the group table through CnWidgetObjectTable's endpointSource on `groups`; the library shares one request per render. A null figure (group not provisioned, 2FA registry unavailable, ExchangePartnerApproval read failed) shows as `unknown`, never as 0. Gated to admin and compliance officers by the PrivacyGovernanceDashboardMenu entry's visibleIf.",
 			"config": {
 				"allowEdit": false,
+				"showActionsMenu": false,
+				"showWidgetActions": false,
 				"widgets": [
 					{
 						"id": "pg-two-factor",
@@ -414,9 +457,83 @@
 			"type": "index",
 			"title": "Accessibility limitations",
 			"config": {
+				"headerButtons": [
+					{
+						"action": "export",
+						"label": "Download",
+						"icon": "TrayArrowDown"
+					},
+					{
+						"action": "add",
+						"label": "New limitation",
+						"variant": "primary",
+						"icon": "Plus"
+					}
+				],
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "accessibility-limitation",
-				"_note": "accessibility-conformance-statement: the known-limitations register index, compliance-officer/admin authoring surface (gated via the Accessibility limitations nav entry's visibleIf). Generic declarative index - no bespoke UI."
+				"_note": "accessibility-conformance-statement: the known-limitations register index, compliance-officer/admin authoring surface (gated via the Accessibility limitations nav entry's visibleIf). Generic declarative index - no bespoke UI.",
+				"countText": "{shown} of {total} limitations",
+				"searchPlaceholder": "Search by criterion or component",
+				"quickFilters": [
+					{
+						"label": "All",
+						"filter": {},
+						"showCount": true,
+						"default": true
+					},
+					{
+						"label": "Open",
+						"filter": {
+							"lifecycle": "open"
+						},
+						"showCount": true
+					},
+					{
+						"label": "Workaround available",
+						"filter": {
+							"lifecycle": "mitigated"
+						},
+						"showCount": true
+					},
+					{
+						"label": "Fixed",
+						"filter": {
+							"lifecycle": "fixed"
+						},
+						"showCount": true
+					}
+				],
+				"columns": [
+					{
+						"key": "wcagCriterion",
+						"label": "WCAG criterion"
+					},
+					{
+						"key": "severity",
+						"label": "Severity"
+					},
+					{
+						"key": "affectedSurface",
+						"label": "Component"
+					},
+					{
+						"key": "workaround",
+						"label": "Workaround"
+					},
+					{
+						"key": "lifecycle",
+						"label": "Status"
+					},
+					{
+						"key": "plannedFixDate",
+						"label": "Planned fix",
+						"formatter": "date"
+					}
+				],
+				"massActionNameField": "wcagCriterion",
+				"allowSavedViews": true
 			}
 		},
 		{
@@ -491,9 +608,11 @@
 			"type": "index",
 			"title": "Accessibility feedback",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "accessibility-feedback",
-				"_note": "accessibility-conformance-statement: the triage log of user-submitted AccessibilityFeedback, compliance-officer/admin surface (gated via the Accessibility feedback nav entry's visibleIf). Creation itself stays open to any authenticated user via AccessibilityFeedbackCreate, reached from the AccessibilityStatement page's 'Report an accessibility problem' entry point, not from this index."
+				"_note": "accessibility-conformance-statement: the triage log of user-submitted AccessibilityFeedback, compliance-officer/admin surface (gated via the Accessibility feedback nav entry's visibleIf). Creation itself stays open to any authenticated user via AccessibilityFeedbackCreate, reached from the AccessibilityStatement page's 'Report an accessibility problem' entry point, not from this index.",
+				"createModal": "AccessibilityBarrierDialog"
 			}
 		},
 		{
@@ -579,8 +698,86 @@
 			"type": "index",
 			"title": "Regulations",
 			"config": {
+				"headerButtons": [
+					{
+						"action": "export",
+						"label": "Download",
+						"icon": "TrayArrowDown"
+					},
+					{
+						"action": "add",
+						"label": "Add regulation",
+						"variant": "primary",
+						"icon": "Plus"
+					}
+				],
+				"showTitle": true,
 				"register": "learniq",
-				"schema": "Regulation"
+				"schema": "Regulation",
+				"countText": "{shown} of {total} obligations",
+				"searchPlaceholder": "Search an obligation or source",
+				"quickFilters": [
+					{
+						"label": "All obligations",
+						"filter": {},
+						"showCount": true,
+						"default": true
+					},
+					{
+						"label": "Red",
+						"filter": {
+							"ragStatus": "red"
+						},
+						"showCount": true
+					},
+					{
+						"label": "Amber",
+						"filter": {
+							"ragStatus": "amber"
+						},
+						"showCount": true
+					},
+					{
+						"label": "Green",
+						"filter": {
+							"ragStatus": "green"
+						},
+						"showCount": true
+					}
+				],
+				"columns": [
+					{
+						"key": "name",
+						"label": "Obligation"
+					},
+					{
+						"key": "renewalCycleMonths",
+						"label": "Repeat (months)"
+					},
+					{
+						"key": "coveragePercent",
+						"label": "Coverage",
+						"widget": "progress",
+						"widgetProps": {
+							"thresholds": {
+								"good": 90,
+								"warn": 70
+							}
+						}
+					}
+				],
+				"massActionNameField": "name",
+				"bulkNoun": "obligations",
+				"allowSavedViews": true,
+				"actions": [
+					{
+						"id": "enrol-group",
+						"label": "Enrol a group",
+						"icon": "AccountPlusOutline",
+						"type": "open-modal",
+						"target": "GroupEnrolDialog"
+					}
+				]
 			}
 		},
 		{
@@ -872,6 +1069,7 @@
 			"type": "index",
 			"title": "Attestations",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "Attestation",
 				"readOnly": true,
@@ -907,11 +1105,18 @@
 			"route": "/compliance/attestations/:id",
 			"type": "detail",
 			"title": "Attestation",
-			"_note": "An Attestation is an immutable proof-of-completion record (learner, course/lesson, regulation, score, signature, signing key, actor IP, xAPI statement) — the education document/record archetype, read-only. Body leads with the attestation fields 8-wide + a Related panel resolving learner + course + lesson + regulation. Signed evidence renders as a Files leaf below (the attestation IS a signed document a compliance officer downloads). No email/calendar: an attestation is a sealed record, not a conversation (HARD RULE 1). Sidebar keeps metadata + audit-trail — the tamper-evidence trail is the whole point of an attestation.",
+			"_note": "An Attestation is a proof-of-completion record (learner, course/lesson, regulation, score, signature, signing key, actor IP, xAPI statement) — the education document/record archetype. Editable while drafted; read only once signed or revoked (readOnlyWhen, matching AttestationFreezeListener on the server). Sign and revoke run as lifecycle actions; revoke asks for the revocationReason the register declares as its required input. Body leads with the attestation fields 8-wide + a Related panel resolving learner + course + lesson + regulation. Signed evidence renders as a Files leaf below (the attestation IS a signed document a compliance officer downloads). No email/calendar: an attestation is a sealed record, not a conversation (HARD RULE 1). Sidebar keeps metadata + audit-trail — the tamper-evidence trail is the whole point of an attestation.",
 			"config": {
 				"register": "learniq",
 				"schema": "Attestation",
-				"readOnly": true,
+				"readOnlyWhen": {
+					"field": "lifecycle",
+					"op": "neq",
+					"value": "drafted"
+				},
+				"lifecycleActions": {
+					"field": "lifecycle"
+				},
 				"widgets": [
 					{
 						"id": "att-data",

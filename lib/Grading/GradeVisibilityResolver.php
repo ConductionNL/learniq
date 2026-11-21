@@ -3,6 +3,9 @@
 /**
  * Learniq Grade Visibility Resolver
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Stateless service that resolves the `visibleFrom` datetime for a `GradeEntry`
  * at the moment it publishes — the earliest moment its (and its fanned-out
  * `GradeNotification`s') declared `gradePublished` notification is eligible to
@@ -31,8 +34,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -48,13 +49,14 @@ use DateInterval;
 use DateTimeImmutable;
 use DateTimeZone;
 use Exception;
+use OCA\Learniq\Kernel\Contracts\GradeVisibilityResolverInterface;
 
 /**
  * Resolves the effective `visibleFrom` for a publishing GradeEntry.
  *
  * @spec openspec/specs/grading/spec.md#requirement-persist-grading-domain-objects-in-openregister
  */
-class GradeVisibilityResolver {
+class GradeVisibilityResolver implements GradeVisibilityResolverInterface {
 
 	private const DEFAULT_TIME = '00:00';
 	private const DEFAULT_TIMEZONE = 'Europe/Amsterdam';

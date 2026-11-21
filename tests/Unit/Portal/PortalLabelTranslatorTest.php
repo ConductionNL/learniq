@@ -117,7 +117,7 @@ class PortalLabelTranslatorTest extends TestCase {
 	 * @return bool
 	 */
 	private static function isVisible(string $path): bool {
-		return preg_match('#/(label|submitLabel|successMessage|unit|fallback|group|otherLabel|requiredMessage|buttonLabel|template|eyebrow|soonLabel|noteLabel|help|composeLabel|composeHint|firstLabel|titleTemplate)$#', $path) === 1
+		return preg_match('#/(label|submitLabel|successMessage|unit|fallback|group|otherLabel|requiredMessage|buttonLabel|template|eyebrow|soonLabel|noteLabel|help|composeLabel|composeHint|firstLabel|titleTemplate|subtitle|emptyLabel|markdown)$#', $path) === 1
 			|| preg_match('#/confirmation/(title|body|next)$#', $path) === 1
 			|| preg_match('#/phrases/[^/]+/[^/]+$#', $path) === 1
 			|| preg_match('#/(label|unit)/(one|other)$#', $path) === 1
@@ -372,6 +372,8 @@ class PortalLabelTranslatorTest extends TestCase {
 		$labelSets  = [
 			[PortalValueLabels::EXCUSE_STATUS, 'excuse-request', 'lifecycle'],
 			[PortalValueLabels::ABSENCE_KIND, 'excuse-request', 'reasonKind'],
+			[PortalValueLabels::LEAVE_STATUS, 'leave-request', 'lifecycle'],
+			[PortalValueLabels::LEAVE_KIND, 'leave-request', 'kind'],
 			[PortalValueLabels::ATTENDANCE_STATUS, 'attendance-record', 'status'],
 			[PortalValueLabels::SIGNUP_STATUS, 'conference-signup', 'lifecycle'],
 			[PortalValueLabels::SLOT_STATUS, 'conference-slot', 'lifecycle'],

@@ -158,8 +158,21 @@ class RollCallReader {
 			return [];
 		}
 
+		$rows = $this->rows(schema: 'attendance-record', filters: ['sessionId' => $sessionId], limit: self::MAX_ROWS);
+		return self::marksByPupil(rows: $rows, sessionId: $sessionId);
+	}//end recordsOf()
+
+	/**
+	 * The rows of one lesson that name a pupil, keyed by pupil; a later row wins.
+	 *
+	 * @param array<int, array<string, mixed>> $rows      The rows read.
+	 * @param string                           $sessionId The lesson.
+	 *
+	 * @return array<string, array<string, mixed>>
+	 */
+	private static function marksByPupil(array $rows, string $sessionId): array {
 		$records = [];
-		foreach ($this->rows(schema: 'attendance-record', filters: ['sessionId' => $sessionId], limit: self::MAX_ROWS) as $row) {
+		foreach ($rows as $row) {
 			$learnerId = (string)($row['learnerId'] ?? '');
 			if (($row['sessionId'] ?? null) === $sessionId && $learnerId !== '') {
 				$records[$learnerId] = $row;
@@ -167,7 +180,7 @@ class RollCallReader {
 		}
 
 		return $records;
-	}//end recordsOf()
+	}//end marksByPupil()
 
 	/**
 	 * The pupils' profiles, keyed by Nextcloud user id.
@@ -211,34 +224,173 @@ class RollCallReader {
 		}
 
 		$reports = [];
-		$filters = ['learnerId' => $learnerIds, 'lifecycle' => ['approved', 'submitted']];
-		$rows = $this->rows(schema: 'excuse-request', filters: $filters, limit: self::MAX_ROWS);
-		foreach ($rows as $row) {
+		foreach ($this->openOrApprovedReports(learnerIds: $learnerIds) as $row) {
 			$learnerId = (string)($row['learnerId'] ?? '');
 			if (in_array($learnerId, $learnerIds, true) === false || $this->covers(report: $row, date: $date) === false) {
 				continue;
 			}
 
-			// An approved report wins over one still waiting for a decision.
-			if (($reports[$learnerId]['lifecycle'] ?? '') !== 'approved') {
-				$reports[$learnerId] = $row;
-			}
+			$reports = self::withReport(reports: $reports, report: $row);
 		}
 
 		return $reports;
 	}//end reportsOn()
 
 	/**
-	 * Whether an approved or open report covers a day.
+	 * The allowed leave requests that cover a day, keyed by pupil, in the
+	 * shape of an approved absence report: allowed leave reads in the register
+	 * as an absence with permission, the way an approved report does.
+	 *
+	 * @param array<int, string> $learnerIds The pupils.
+	 * @param string             $date       The day, `Y-m-d`.
+	 *
+	 * @return array<string, array<string, mixed>>
+	 *
+	 * @spec openspec/changes/leave-requests-decided-by-the-school/tasks.md
+	 */
+	public function allowedLeaveOn(array $learnerIds, string $date): array {
+		if ($learnerIds === []) {
+			return [];
+		}
+
+		$byProfile = [];
+		foreach ($this->profilesOf(learnerIds: $learnerIds) as $learnerId => $profile) {
+			$profileId = $this->idOf(row: $profile);
+			if ($profileId !== '') {
+				$byProfile[$profileId] = (string)$learnerId;
+			}
+		}
+
+		if ($byProfile === []) {
+			return [];
+		}
+
+		$leave = [];
+		$filters = ['learnerRef' => array_keys($byProfile), 'lifecycle' => 'allowed'];
+		foreach ($this->rows(schema: 'leave-request', filters: $filters, limit: self::MAX_ROWS) as $row) {
+			$learnerId = ($byProfile[(string)($row['learnerRef'] ?? '')] ?? null);
+			if ($learnerId === null || ($row['lifecycle'] ?? null) !== 'allowed' || self::spans(row: $row, date: $date) === false) {
+				continue;
+			}
+
+			$leave[$learnerId] ??= self::leaveAsReport(row: $row, learnerId: $learnerId);
+		}
+
+		return $leave;
+	}//end allowedLeaveOn()
+
+	/**
+	 * The reports of a day with allowed leave added; an approved report of a pupil stays.
+	 *
+	 * @param array<string, array<string, mixed>> $reports The absence reports, keyed by pupil.
+	 * @param array<string, array<string, mixed>> $leave   The allowed leave, keyed by pupil.
+	 *
+	 * @return array<string, array<string, mixed>>
+	 *
+	 * @spec openspec/changes/leave-requests-decided-by-the-school/tasks.md
+	 */
+	public static function withLeave(array $reports, array $leave): array {
+		foreach ($leave as $learnerId => $report) {
+			if (($reports[$learnerId]['lifecycle'] ?? '') !== 'approved') {
+				$reports[$learnerId] = $report;
+			}
+		}
+
+		return $reports;
+	}//end withLeave()
+
+	/**
+	 * An allowed leave request as an approved absence report.
+	 *
+	 * @param array<string, mixed> $row       The leave request.
+	 * @param string               $learnerId The pupil.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private static function leaveAsReport(array $row, string $learnerId): array {
+		$reasonKind = match ($row['kind'] ?? null) {
+			'wedding', 'family-circumstance' => 'family-circumstance',
+			'funeral' => 'bereavement',
+			'religious-observance' => 'religious-observance',
+			default => 'other',
+		};
+
+		return [
+			'id' => (string)($row['id'] ?? ''),
+			'learnerId' => $learnerId,
+			'lifecycle' => 'approved',
+			'reasonKind' => $reasonKind,
+			'reason' => (string)($row['reason'] ?? ''),
+			'dateFrom' => substr((string)($row['dateFrom'] ?? ''), 0, 10),
+			'dateTo' => substr((string)($row['dateTo'] ?? ''), 0, 10),
+			'leaveRequestId' => (string)($row['id'] ?? ''),
+		];
+	}//end leaveAsReport()
+
+	/**
+	 * Whether a row's date range holds a day.
+	 *
+	 * @param array<string, mixed> $row  The row with `dateFrom` and `dateTo`.
+	 * @param string               $date The day, `Y-m-d`.
+	 *
+	 * @return bool
+	 */
+	private static function spans(array $row, string $date): bool {
+		$from = substr((string)($row['dateFrom'] ?? ''), 0, 10);
+		$to = substr((string)($row['dateTo'] ?? ''), 0, 10);
+
+		return $from !== '' && $to !== '' && $date >= $from && $date <= $to;
+	}//end spans()
+
+	/**
+	 * The pupils' absence reports that are approved or still open.
+	 *
+	 * @param array<int, string> $learnerIds The pupils.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function openOrApprovedReports(array $learnerIds): array {
+		$filters = ['learnerId' => $learnerIds, 'lifecycle' => ['approved', 'submitted']];
+		return $this->rows(schema: 'excuse-request', filters: $filters, limit: self::MAX_ROWS);
+	}//end openOrApprovedReports()
+
+	/**
+	 * The reports with this one as its pupil's, unless that pupil already has an approved one.
+	 *
+	 * @param array<string, array<string, mixed>> $reports The reports so far, keyed by pupil.
+	 * @param array<string, mixed>                $report  A report that covers the day.
+	 *
+	 * @return array<string, array<string, mixed>>
+	 */
+	private static function withReport(array $reports, array $report): array {
+		$learnerId = (string)($report['learnerId'] ?? '');
+		// An approved report wins over one still waiting for a decision.
+		if (($reports[$learnerId]['lifecycle'] ?? '') !== 'approved') {
+			$reports[$learnerId] = $report;
+		}
+
+		return $reports;
+	}//end withReport()
+
+	/**
+	 * Whether an approved or open report covers a day. An illness without a
+	 * last day covers every day from its first until the pupil is reported
+	 * better.
 	 *
 	 * @param array<string, mixed> $report The report.
 	 * @param string               $date   The day, `Y-m-d`.
 	 *
 	 * @return bool
+	 *
+	 * @spec openspec/changes/absence-reports-seen-and-ended/specs/attendance/spec.md#requirement-a-report-may-cover-lesson-hours-and-an-illness-may-stay-open-until-the-pupil-is-better
 	 */
 	private function covers(array $report, string $date): bool {
 		$from = substr((string)($report['dateFrom'] ?? ''), 0, 10);
 		$to = substr((string)($report['dateTo'] ?? ''), 0, 10);
+		if ($to === '' && ($report['reasonKind'] ?? null) === 'illness') {
+			$to = '9999-12-31';
+		}
+
 		if ($from === '' || $to === '' || $date < $from || $date > $to) {
 			return false;
 		}
@@ -299,17 +451,30 @@ class RollCallReader {
 	 * @return array<string, mixed>
 	 */
 	private function toRow(mixed $object): array {
-		$row = [];
-		if (is_array($object) === true) {
-			$row = $object;
-		} else if (is_object($object) === true && method_exists($object, 'jsonSerialize') === true) {
-			$row = (array)$object->jsonSerialize();
-		}
-
+		$row = self::asArray(object: $object);
 		if ($row !== [] && isset($row['id']) === false) {
 			$row['id'] = $this->idOf(row: $row);
 		}
 
 		return $row;
 	}//end toRow()
+
+	/**
+	 * An array as it is, an entity as its serialisation, anything else as [].
+	 *
+	 * @param mixed $object An entity or an array.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private static function asArray(mixed $object): array {
+		if (is_array($object) === true) {
+			return $object;
+		}
+
+		if (is_object($object) === true && method_exists($object, 'jsonSerialize') === true) {
+			return (array)$object->jsonSerialize();
+		}
+
+		return [];
+	}//end asArray()
 }//end class

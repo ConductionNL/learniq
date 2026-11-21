@@ -28,6 +28,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Timetabling\Source;
 
+use OCA\Learniq\Kernel\Contracts\TimetableSourceResolverInterface;
 use OCP\IAppConfig;
 
 /**
@@ -35,7 +36,7 @@ use OCP\IAppConfig;
  *
  * @spec openspec/specs/timetable-source/spec.md#requirement-a-resolver-picks-planninq-when-it-is-installed-req-001
  */
-class TimetableSourceResolver {
+class TimetableSourceResolver implements TimetableSourceResolverInterface {
 
 	public const CONFIG_KEY = 'timetable_source';
 

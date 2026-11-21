@@ -40,6 +40,10 @@ namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
 use DateTimeInterface;
+use OCA\Learniq\Kernel\Contracts\LearniqAgentToolsInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Mcp\Attribute\McpTool;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IUser;
@@ -49,7 +53,7 @@ use Throwable;
 /**
  * Agent-callable learniq actions, each a thin, gated wrapper over the UI's own write path.
  */
-class LearniqAgentTools {
+class LearniqAgentTools implements LearniqAgentToolsInterface {
 
 	/**
 	 * The learniq register slug.
@@ -443,7 +447,10 @@ class LearniqAgentTools {
 		}
 
 		try {
-			$saved = $this->objectService->saveObject(object: $object, register: self::REGISTER, schema: $schema, uuid: $uuid);
+			$saved = $this->objectService->saveObject(
+				object: $object,
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: $schema), uuid: $uuid)
+			);
 		} catch (Throwable $e) {
 			// A guard or RBAC refusal: the same refusal the UI gets, passed on as is.
 			return $this->answer->error(code: 'refused', message: $e->getMessage());
@@ -474,7 +481,7 @@ class LearniqAgentTools {
 		}
 
 		try {
-			$object = $this->objectService->find(id: $id, register: self::REGISTER, schema: $schema);
+			$object = $this->objectService->find(id: $id, options: new ObjectFindOptions(register: self::REGISTER, schema: $schema));
 		} catch (Throwable $e) {
 			return null;
 		}

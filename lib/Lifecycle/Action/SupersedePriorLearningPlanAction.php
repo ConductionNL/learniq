@@ -37,7 +37,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle\Action;
 
-use OCA\OpenRegister\Lifecycle\LifecycleActionInterface;
+use OCA\OpenRegister\Lifecycle\LifecycleActionContext;
+use OCA\OpenRegister\Lifecycle\ContextLifecycleActionInterface;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 
 /**
@@ -45,7 +46,7 @@ use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
  *
  * @spec openspec/specs/learning-plan/spec.md#requirement-append-on-version-with-immutable-prior-versions
  */
-class SupersedePriorLearningPlanAction implements LifecycleActionInterface {
+class SupersedePriorLearningPlanAction implements ContextLifecycleActionInterface {
 
 	/**
 	 * Constructor.
@@ -62,18 +63,15 @@ class SupersedePriorLearningPlanAction implements LifecycleActionInterface {
 	/**
 	 * Supersede the version the activating plan replaces; return the plan unchanged.
 	 *
-	 * @param array<string, mixed> $objectData   The LearningPlan at `active`.
-	 * @param array<string, mixed> $previousData The LearningPlan before the transition.
-	 * @param array<string, mixed> $parameters   The declared actionParameters (unused).
-	 * @param string               $actionName   The declared action name.
+	 * @param LifecycleActionContext $context The transition; its objectData is the LearningPlan at `active`.
 	 *
 	 * @return array<string, mixed> The plan, unchanged: this action only writes the prior version.
 	 *
 	 * @spec openspec/specs/learning-plan/spec.md#requirement-append-on-version-with-immutable-prior-versions
-	 *
-	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleActionInterface's.
 	 */
-	public function execute(array $objectData, array $previousData, array $parameters, string $actionName): array {
+	public function execute(LifecycleActionContext $context): array {
+		$objectData = $context->objectData;
+
 		$supersedesId = (string)($objectData['supersedesId'] ?? '');
 		if ($supersedesId !== '') {
 			$this->transitionEngine->transition(objectId: $supersedesId, action: 'supersede');

@@ -3,6 +3,9 @@
 /**
  * Learniq BPV Confirmation Guard
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Lifecycle guard for the BpvPlacement schema's `confirm` transition
  * (sbb-verification-pending → confirmed). Blocks confirmation unless the
  * placement's stored `leerbedrijfVerification.status` is `verified` — WEB
@@ -28,8 +31,6 @@
  * @author    Conduction Development Team <dev@conductio.nl>
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
- *
- * SPDX-License-Identifier: EUPL-1.2
  *
  * @version GIT: <git-id>
  *

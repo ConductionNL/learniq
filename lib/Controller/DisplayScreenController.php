@@ -27,14 +27,14 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\DisplayScreenServiceInterface;
 use OCA\Learniq\Service\ActionAuthService;
-use OCA\Learniq\Service\DisplayScreenService;
+use OCA\Learniq\Service\CallerActions;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\JSONResponse;
-use OCP\AppFramework\OCS\OCSForbiddenException;
 use OCP\IRequest;
 use OCP\IURLGenerator;
 use OCP\IUserSession;
@@ -50,22 +50,36 @@ class DisplayScreenController extends Controller {
 	private const NOT_FOUND = 'This screen cannot be found, or you cannot see it.';
 
 	/**
+	 * Current user session.
+	 *
+	 * @var IUserSession
+	 */
+	private readonly IUserSession $userSession;
+
+	/**
+	 * ADR-023 action matrix.
+	 *
+	 * @var ActionAuthService
+	 */
+	private readonly ActionAuthService $actionAuth;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param IRequest             $request     HTTP request.
-	 * @param IUserSession         $userSession Current user session.
-	 * @param ActionAuthService    $actionAuth  ADR-023 action matrix.
-	 * @param DisplayScreenService $screens     Issues and revokes addresses.
+	 * @param CallerActions $caller The user session and the ADR-023 action matrix.
+	 * @param DisplayScreenServiceInterface $screens     Issues and revokes addresses.
 	 * @param IURLGenerator        $urls        Builds the screen's address.
 	 */
 	public function __construct(
 		IRequest $request,
-		private readonly IUserSession $userSession,
-		private readonly ActionAuthService $actionAuth,
-		private readonly DisplayScreenService $screens,
+		CallerActions $caller,
+		private readonly DisplayScreenServiceInterface $screens,
 		private readonly IURLGenerator $urls,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		$this->userSession = $caller->userSession;
+		$this->actionAuth = $caller->actionAuth;
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -128,17 +142,6 @@ class DisplayScreenController extends Controller {
 	 * @return JSONResponse|null Null when the caller may go on.
 	 */
 	private function denied(): ?JSONResponse {
-		$user = $this->userSession->getUser();
-		if ($user === null) {
-			return new JSONResponse(data: ['error' => 'Not authenticated'], statusCode: Http::STATUS_UNAUTHORIZED);
-		}
-
-		try {
-			$this->actionAuth->requireAction(user: $user, action: self::ACTION);
-		} catch (OCSForbiddenException $exception) {
-			return new JSONResponse(data: ['error' => $exception->getMessage()], statusCode: Http::STATUS_FORBIDDEN);
-		}
-
-		return null;
+		return (new CallerActionCheck(userSession: $this->userSession, actionAuth: $this->actionAuth))->refusal(action: self::ACTION);
 	}//end denied()
 }//end class

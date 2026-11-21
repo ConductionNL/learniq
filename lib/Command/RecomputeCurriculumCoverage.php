@@ -29,7 +29,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Command;
 
-use OCA\Learniq\Service\CurriculumCoverageRollup;
+use OCA\Learniq\Kernel\Contracts\CurriculumCoverageRollupInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -45,12 +45,12 @@ class RecomputeCurriculumCoverage extends Command {
 	/**
 	 * Constructor.
 	 *
-	 * @param CurriculumCoverageRollup $rollup Recomputes one framework.
+	 * @param CurriculumCoverageRollupInterface $rollup Recomputes one framework.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly CurriculumCoverageRollup $rollup,
+		private readonly CurriculumCoverageRollupInterface $rollup,
 	) {
 		parent::__construct();
 	}//end __construct()

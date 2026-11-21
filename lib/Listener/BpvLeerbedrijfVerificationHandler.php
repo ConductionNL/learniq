@@ -3,6 +3,9 @@
 /**
  * Learniq BPV Leerbedrijf Verification Handler
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * IEventListener for BpvPlacement lifecycle → `sbb-verification-pending`
  * (the OR ObjectTransitionedEvent with register=learniq, schema=bpv-placement,
  * to=sbb-verification-pending — the coordinator-triggered `checkLeerbedrijf`
@@ -35,8 +38,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -48,10 +49,12 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\ListenerSchemaResolver;
-use OCA\OpenRegister\Event\ObjectTransitionedEvent;
-use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Bpv\ProvidesLeerbedrijfVerification;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
+use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use Psr\Container\ContainerInterface;
@@ -81,7 +84,7 @@ class BpvLeerbedrijfVerificationHandler implements IEventListener {
 	 * @param ContainerInterface $container DI container used to resolve the configured
 	 *                                      ProvidesLeerbedrijfVerification adapter by FQCN.
 	 * @param LoggerInterface $logger PSR logger.
-	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
@@ -89,7 +92,7 @@ class BpvLeerbedrijfVerificationHandler implements IEventListener {
 		private readonly ObjectService $objectService,
 		private readonly ContainerInterface $container,
 		private readonly LoggerInterface $logger,
-		private readonly ListenerSchemaResolver $schemas,
+		private readonly ListenerSchemaResolverInterface $schemas,
 	) {
 	}//end __construct()
 
@@ -146,6 +149,24 @@ class BpvLeerbedrijfVerificationHandler implements IEventListener {
 			$verification = [];
 		}
 
+		$this->verifyWithProvider(placement: $placement, verification: $verification);
+
+	}//end runVerification()
+
+	/**
+	 * Verify the placement's training company with the configured provider and
+	 * record the result; logs and leaves it unresolved without a provider or KvK number.
+	 *
+	 * @param array<string,mixed> $placement    The BpvPlacement data, with an id.
+	 * @param array<string,mixed> $verification Its trainingCompanyVerification block.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/bpv/spec.md#requirement-leerbedrijf-verification-is-a-pluggable-provider
+	 */
+	private function verifyWithProvider(array $placement, array $verification): void {
+		$placementId = $placement['id'] ?? ($placement['uuid'] ?? '');
+
 		$providerClass = $verification['provider'] ?? null;
 		$kvkNumber = $placement['trainingCompanyKvkNumber'] ?? '';
 
@@ -169,18 +190,53 @@ class BpvLeerbedrijfVerificationHandler implements IEventListener {
 			return;
 		}
 
-		try {
-			$result = $provider->verify($kvkNumber);
-		} catch (\Throwable $e) {
-			$this->logger->error(
-				'[BpvLeerbedrijfVerificationHandler] Provider call failed for BpvPlacement {id}: {msg}',
-				['id' => $placementId, 'msg' => $e->getMessage()]
-			);
+		$result = $this->callProvider(provider: $provider, subject: ['kvkNumber' => $kvkNumber, 'placementId' => $placementId]);
+		if ($result === null) {
 			return;
 		}
 
+		$this->recordVerification(
+			placement: ['object' => $placement, 'id' => $placementId, 'verification' => $verification],
+			result: $result
+		);
+	}//end verifyWithProvider()
+
+	/**
+	 * Ask the provider about the company; null when the call failed (and was logged).
+	 *
+	 * @param mixed                $provider The configured verification provider.
+	 * @param array<string, mixed> $subject  kvkNumber: the company's KvK number; placementId: for the log.
+	 *
+	 * @return array<string, mixed>|null
+	 *
+	 * @spec openspec/specs/bpv/spec.md#requirement-leerbedrijf-verification-is-a-pluggable-provider
+	 */
+	private function callProvider(mixed $provider, array $subject): ?array {
+		try {
+			return $provider->verify($subject['kvkNumber']);
+		} catch (\Throwable $e) {
+			$this->logger->error(
+				'[BpvLeerbedrijfVerificationHandler] Provider call failed for BpvPlacement {id}: {msg}',
+				['id' => $subject['placementId'], 'msg' => $e->getMessage()]
+			);
+			return null;
+		}
+	}//end callProvider()
+
+	/**
+	 * Store the provider's answer on the placement and log the new status.
+	 *
+	 * @param array<string, mixed> $placement object: the placement as read; id: its id;
+	 *                                        verification: its current trainingCompanyVerification block.
+	 * @param array<string, mixed> $result    The provider's answer.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/bpv/spec.md#requirement-leerbedrijf-verification-is-a-pluggable-provider
+	 */
+	private function recordVerification(array $placement, array $result): void {
 		$updatedVerification = array_merge(
-			$verification,
+			$placement['verification'],
 			[
 				'status' => $result['status'],
 				'erkenningNumber' => $result['erkenningNumber'],
@@ -191,17 +247,15 @@ class BpvLeerbedrijfVerificationHandler implements IEventListener {
 		);
 
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::PLACEMENT_SCHEMA,
-			object: array_merge($placement, ['trainingCompanyVerification' => $updatedVerification])
+			object: array_merge($placement['object'], ['trainingCompanyVerification' => $updatedVerification]),
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::PLACEMENT_SCHEMA))
 		);
 
 		$this->logger->info(
 			'[BpvLeerbedrijfVerificationHandler] BpvPlacement {id} leerbedrijfVerification.status → {status}.',
-			['id' => $placementId, 'status' => $updatedVerification['status']]
+			['id' => $placement['id'], 'status' => $updatedVerification['status']]
 		);
-
-	}//end runVerification()
+	}//end recordVerification()
 
 	/**
 	 * Resolve the configured provider FQCN through the DI container.
@@ -221,6 +275,17 @@ class BpvLeerbedrijfVerificationHandler implements IEventListener {
 			return null;
 		}
 
+		return $this->providerFrom(providerClass: $providerClass);
+	}//end resolveProvider()
+
+	/**
+	 * Build the named provider through the DI container; null (logged) when it cannot be built.
+	 *
+	 * @param string $providerClass The provider FQCN.
+	 *
+	 * @return ProvidesLeerbedrijfVerification|null
+	 */
+	private function providerFrom(string $providerClass): ?ProvidesLeerbedrijfVerification {
 		try {
 			$service = $this->container->get($providerClass);
 		} catch (\Throwable $e) {
@@ -231,6 +296,18 @@ class BpvLeerbedrijfVerificationHandler implements IEventListener {
 			return null;
 		}
 
+		return $this->asProvider(service: $service, providerClass: $providerClass);
+	}//end providerFrom()
+
+	/**
+	 * The built service as a provider; null (logged) when it does not implement ProvidesLeerbedrijfVerification.
+	 *
+	 * @param mixed  $service       What the container built.
+	 * @param string $providerClass The provider FQCN, for the log.
+	 *
+	 * @return ProvidesLeerbedrijfVerification|null
+	 */
+	private function asProvider(mixed $service, string $providerClass): ?ProvidesLeerbedrijfVerification {
 		if (($service instanceof ProvidesLeerbedrijfVerification) === false) {
 			$this->logger->warning(
 				'[BpvLeerbedrijfVerificationHandler] Configured provider "{class}" does not implement '
@@ -241,5 +318,5 @@ class BpvLeerbedrijfVerificationHandler implements IEventListener {
 		}
 
 		return $service;
-	}//end resolveProvider()
+	}//end asProvider()
 }//end class

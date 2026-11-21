@@ -42,6 +42,19 @@ export function markingMode(assignment, submission, marks) {
 }
 
 /**
+ * The proposed final grade per rule, from the marks summary; null when the
+ * summary carries no number for it.
+ */
+const PREFILL_RULES = Object.freeze({
+	average: (summary) =>
+		typeof summary.average === 'number'
+			? Math.round(summary.average * 100) / 100
+			: null,
+	highest: (summary) =>
+		typeof summary.highest === 'number' ? summary.highest : null,
+})
+
+/**
  * The value the final grade field starts at.
  *
  * @param {string} rule `manual`, `average` or `highest`.
@@ -53,11 +66,5 @@ export function prefillFinalGrade(rule, summary) {
 	if (!summary) {
 		return null
 	}
-	if (rule === 'average' && typeof summary.average === 'number') {
-		return Math.round(summary.average * 100) / 100
-	}
-	if (rule === 'highest' && typeof summary.highest === 'number') {
-		return summary.highest
-	}
-	return null
+	return Object.hasOwn(PREFILL_RULES, rule) ? PREFILL_RULES[rule](summary) : null
 }

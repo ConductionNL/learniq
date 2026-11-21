@@ -9,7 +9,7 @@
  navigation, so a change shows the next time somebody opens learniq. The
  section says so, because a setting that seems to do nothing gets changed back.
 
- @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-004-the-structure-is-an-app-setting-and-simple-is-the-default
+ @spec openspec/specs/navigation/spec.md#requirement-req-ssp-004-the-structure-is-an-app-setting-and-simple-is-the-default
 -->
 <template>
 	<NcSettingsSection
@@ -92,7 +92,7 @@ const SETTINGS_URL = '/apps/learniq/api/settings'
 /**
  * The menu structure choice on the admin settings page.
  *
- * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-004-the-structure-is-an-app-setting-and-simple-is-the-default
+ * @spec openspec/specs/navigation/spec.md#requirement-req-ssp-004-the-structure-is-an-app-setting-and-simple-is-the-default
  */
 export default {
 	name: 'MenuStructureSection',
@@ -114,7 +114,7 @@ export default {
 	 * click cannot save over a value the section has not seen.
 	 *
 	 * @return {Promise<void>}
-	 * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-004-the-structure-is-an-app-setting-and-simple-is-the-default
+	 * @spec openspec/specs/navigation/spec.md#requirement-req-ssp-004-the-structure-is-an-app-setting-and-simple-is-the-default
 	 */
 	async created() {
 		try {
@@ -137,7 +137,7 @@ export default {
 		 * Store the chosen structure, and put the radio back when that fails.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-004-the-structure-is-an-app-setting-and-simple-is-the-default
+		 * @spec openspec/specs/navigation/spec.md#requirement-req-ssp-004-the-structure-is-an-app-setting-and-simple-is-the-default
 		 */
 		async save() {
 			if (this.structure === this.stored) {

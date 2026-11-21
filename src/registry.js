@@ -10,28 +10,38 @@
  * SPDX-FileCopyrightText: 2026 Conduction B.V.
  */
 
-// registry-component-fix: eight shared @conduction/nextcloud-vue components
-// that 14 type:"custom" manifest pages named by their exact export string but
-// this registry never registered, so CnPageRenderer.resolveCustomComponent()
-// found nothing and mounted an empty page body. learniq#947 then pointed
-// those 14 pages at thin learniq views (below) that load the data and mount
-// these building blocks with their props, since a bare CnWizardDialog or
-// CnDataMatrix mounted as a page receives no steps, rows or save handler.
-// The eight stay registered for registryComponentCoverage.test.mjs.
-import {
-	CnDataMatrix,
-	CnExportWizard,
-	CnRelationshipGraph,
-	CnRichSubmitDialog,
-	CnSignatureCapture,
-	CnStructuredDocReview,
-	CnTimelineView,
-	CnWizardDialog,
-} from '@conduction/nextcloud-vue'
+// open-learning-material: the Lesmateriaal tab of a course.
+import CourseOpenMaterials from './components/openMaterial/CourseOpenMaterials.vue'
 // assignment-missing-submissions-view: body section on AssignmentDetail.
 import AssignmentHandInStatus from './components/sections/AssignmentHandInStatus.vue'
 import AssignmentPeerReviewAllocation from './components/sections/AssignmentPeerReviewAllocation.vue'
-import AuditTrailWidget from './components/widgets/AuditTrailWidget.vue'
+import CredentialWalletOffer from './components/sections/CredentialWalletOffer.vue'
+// exam-sitting-overview-section: body section on ExamSittingDetail.
+import ExamSittingOverview from './components/sections/ExamSittingOverview.vue'
+import ExcuseRequestSeen from './components/sections/ExcuseRequestSeen.vue'
+import LearningPlanVersionChanges from './components/sections/LearningPlanVersionChanges.vue'
+import PermissionRequestOutcome from './components/sections/PermissionRequestOutcome.vue'
+// learner-list-and-page-follow-the-boards T5: the guardian conversation on the pupil's page.
+import PupilGuardianConversation from './components/sections/PupilGuardianConversation.vue'
+// lqb-c board dialogs: purpose-built create and decision dialogs (G5, G11).
+import AccessibilityBarrierDialog from './dialogs/AccessibilityBarrierDialog.vue'
+import CohortCreateDialog from './dialogs/CohortCreateDialog.vue'
+import ConcernReportDialog from './dialogs/ConcernReportDialog.vue'
+import ConferenceReportDialog from './dialogs/ConferenceReportDialog.vue'
+import ConfidentialNoteCreateDialog from './dialogs/ConfidentialNoteCreateDialog.vue'
+import CredentialMigrationDialog from './dialogs/CredentialMigrationDialog.vue'
+import CredentialRevokeDialog from './dialogs/CredentialRevokeDialog.vue'
+import DeclineSignUpDialog from './dialogs/DeclineSignUpDialog.vue'
+import DossierNoteCreateDialog from './dialogs/DossierNoteCreateDialog.vue'
+import EnrolmentWithdrawDialog from './dialogs/EnrolmentWithdrawDialog.vue'
+import ExemptionDecisionDialog from './dialogs/ExemptionDecisionDialog.vue'
+import GradeEntryCreateDialog from './dialogs/GradeEntryCreateDialog.vue'
+import GroupEnrolDialog from './dialogs/GroupEnrolDialog.vue'
+import RegulationExemptionDecisionDialog from './dialogs/RegulationExemptionDecisionDialog.vue'
+import SelfCheckInDialog from './dialogs/SelfCheckInDialog.vue'
+import SubmissionReopenDialog from './dialogs/SubmissionReopenDialog.vue'
+import TeacherAvailabilityDialog from './dialogs/TeacherAvailabilityDialog.vue'
+import TimetableCalendarFeedDialog from './dialogs/TimetableCalendarFeedDialog.vue'
 // admissions-and-subject-choice: the two genuine new custom views this
 // change adds — the coordinator's admissions review board (queue of
 // intake-completed Applications cross-referenced against their round's
@@ -42,12 +52,10 @@ import AdmissionsReviewBoard from './views/AdmissionsReviewBoard.vue'
 import AllocateMarkersView from './views/AllocateMarkersView.vue'
 // learniq#948: score one open question for every submitted attempt in turn.
 import AssessmentScoringView from './views/AssessmentScoringView.vue'
-// learniq#947: AttendanceRegisterView, BulkEnrolView, CohortGradebookView,
-// CohortTimetableView, ExportRequestView, LearningPlanEditorView,
-// QtiImportView, SignatureView, SubmitExcuseView and
+// learniq#947: CohortGradebookView, ExportRequestView,
+// LearningPlanEditorView, QtiImportView, SignatureView and
 // SubmitWorkView are thin views for the custom pages that named a library
 // component directly and so opened as "This page is empty".
-import AttendanceRegisterView from './views/AttendanceRegisterView.vue'
 // parent-evening-planner: the guardian/self conversation-slot picker and the
 // coordinator's manual-override / regenerate board.
 import BookConferenceSlotsView from './views/BookConferenceSlotsView.vue'
@@ -56,10 +64,8 @@ import BookConferenceSlotsView from './views/BookConferenceSlotsView.vue'
 // discovered while wiring learning-progress-and-analytics's own new custom
 // view below — both routes were unreachable at HEAD; fixed here alongside).
 import BsaRiskDashboard from './views/BsaRiskDashboard.vue'
-import BulkEnrolView from './views/BulkEnrolView.vue'
 import CheckInPage from './views/CheckInPage.vue'
 import CohortGradebookView from './views/CohortGradebookView.vue'
-import CohortTimetableView from './views/CohortTimetableView.vue'
 import ConferenceScheduleBoard from './views/ConferenceScheduleBoard.vue'
 import ContactHoursReport from './views/ContactHoursReport.vue'
 // course-authoring-ux: the two genuine new custom views this change adds —
@@ -79,8 +85,7 @@ import CourseBuilder from './views/CourseBuilder.vue'
 import CourseCatalogue from './views/CourseCatalogue.vue'
 // course-package-import-export: the one genuine new custom view this change
 // adds — uploads a Common Cartridge/Moodle course package and renders the
-// resulting CoursePackageImportReport's entries table. Course export reuses
-// the existing CnExportWizard shared component (no new Vue file for export).
+// resulting CoursePackageImportReport's entries table.
 import CoursePackageImportView from './views/CoursePackageImportView.vue'
 // content-adaptive-next-step-and-preview: Preview as learner from the course page.
 import CoursePreviewView from './views/CoursePreviewView.vue'
@@ -154,6 +159,7 @@ import MarkSubmissionView from './views/MarkSubmissionView.vue'
 import MyElectives from './views/MyElectives.vue'
 // assessment-course-evaluation-answer-page: a learner answers their course evaluations.
 import MyEvaluationsView from './views/MyEvaluationsView.vue'
+import MyKeuzedelen from './views/MyKeuzedelen.vue'
 // portable-learning-record: the three genuine new custom views this change
 // adds — the learner's aggregate dashboard + export/share actions, the
 // coordinator's prior-record upload + live coverage report, and the public
@@ -194,7 +200,6 @@ import SkillsGapDashboard from './views/SkillsGapDashboard.vue'
 // timetabling-standby-slots: the standby planning grid.
 import StandbyPlanning from './views/StandbyPlanning.vue'
 import SubjectChoicePicker from './views/SubjectChoicePicker.vue'
-import SubmitExcuseView from './views/SubmitExcuseView.vue'
 import SubmitWorkView from './views/SubmitWorkView.vue'
 import TakeAssessmentView from './views/TakeAssessmentView.vue'
 // timetabling-and-substitution: the one genuine new routed custom view this
@@ -222,20 +227,6 @@ function page(component) {
 	return { kind: 'page', component }
 }
 
-/*
- * Grid metadata required for every kind:"widget" registry entry by the
- * ADR-036 registry validator in CnAppRoot. `allowedSlots` uses the v2 slot
- * literals; `audit-trail` is placed on both body and sidebar since detail
- * pages use it in either position depending on the page's layout.
- */
-const PANEL_WIDGET_META = {
-	defaultSize: { w: 6, h: 4 },
-	minSize: { w: 3, h: 2 },
-	maxSize: { w: 12, h: 6 },
-	allowedSlots: ['body', 'sidebar'],
-	propsSchema: null,
-}
-
 export default {
 	// --- Flows (ADR-110 Decision 4). Only the SIDEBAR is an app component;
 	//     the list and the canvas are the shared `index` (with
@@ -243,33 +234,110 @@ export default {
 	//     CnFlowSidebar has to mount in the NC app sidebar for the canvas
 	//     to keep full width. ---
 	FlowDetailSidebar: page(FlowDetailSidebar),
+	CourseOpenMaterials: page(CourseOpenMaterials),
 
-	// --- Shared @conduction/nextcloud-vue components named directly by
-	//     type:"custom" manifest pages (registry-component-fix; see the
-	//     import comment above). Keyed by the component's own export name,
-	//     matching each page's `component` string verbatim. ---
-	CnDataMatrix: page(CnDataMatrix),
-	CnExportWizard: page(CnExportWizard),
-	CnRelationshipGraph: page(CnRelationshipGraph),
-	CnRichSubmitDialog: page(CnRichSubmitDialog),
-	CnSignatureCapture: page(CnSignatureCapture),
-	CnStructuredDocReview: page(CnStructuredDocReview),
-	CnTimelineView: page(CnTimelineView),
-	CnWizardDialog: page(CnWizardDialog),
 	// learniq#947
-	AttendanceRegisterView: page(AttendanceRegisterView),
 	RollCallView: page(RollCallView),
-	BulkEnrolView: page(BulkEnrolView),
+	// The lesson page's "Open self check-in" header action.
+	SelfCheckInDialog: {
+		kind: 'modal',
+		component: SelfCheckInDialog,
+		propsSchema: { type: 'object', properties: { sessionId: { type: 'string' } }, required: ['sessionId'] },
+	},
+	// The "Reject" row action on Aanmeldverzoeken.
+	DeclineSignUpDialog: {
+		kind: 'modal',
+		component: DeclineSignUpDialog,
+		propsSchema: { type: 'object', properties: { objectId: { type: 'string' } }, required: ['objectId'] },
+	},
+	AccessibilityBarrierDialog: {
+		kind: 'modal',
+		component: AccessibilityBarrierDialog,
+		propsSchema: { type: 'object', properties: { surface: { type: 'string' } } },
+	},
+	CohortCreateDialog: {
+		kind: 'modal',
+		component: CohortCreateDialog,
+		propsSchema: { type: 'object', properties: {} },
+	},
+	ConcernReportDialog: {
+		kind: 'modal',
+		component: ConcernReportDialog,
+		propsSchema: { type: 'object', properties: { learnerId: { type: 'string' }, audience: { type: 'string' } } },
+	},
+	ConferenceReportDialog: {
+		kind: 'modal',
+		component: ConferenceReportDialog,
+		propsSchema: { type: 'object', properties: { conferenceSlotId: { type: 'string' }, learnerId: { type: 'string' } } },
+	},
+	ConfidentialNoteCreateDialog: {
+		kind: 'modal',
+		component: ConfidentialNoteCreateDialog,
+		propsSchema: { type: 'object', properties: {} },
+	},
+	CredentialMigrationDialog: {
+		kind: 'modal',
+		component: CredentialMigrationDialog,
+		propsSchema: { type: 'object', properties: {} },
+	},
+	CredentialRevokeDialog: {
+		kind: 'modal',
+		component: CredentialRevokeDialog,
+		propsSchema: { type: 'object', properties: { objectId: { type: 'string' } }, required: ['objectId'] },
+	},
+	DossierNoteCreateDialog: {
+		kind: 'modal',
+		component: DossierNoteCreateDialog,
+		propsSchema: { type: 'object', properties: { learnerId: { type: 'string' } } },
+	},
+	EnrolmentWithdrawDialog: {
+		kind: 'modal',
+		component: EnrolmentWithdrawDialog,
+		propsSchema: { type: 'object', properties: { objectId: { type: 'string' } }, required: ['objectId'] },
+	},
+	ExemptionDecisionDialog: {
+		kind: 'modal',
+		component: ExemptionDecisionDialog,
+		propsSchema: { type: 'object', properties: { objectId: { type: 'string' } }, required: ['objectId'] },
+	},
+	GradeEntryCreateDialog: {
+		kind: 'modal',
+		component: GradeEntryCreateDialog,
+		propsSchema: { type: 'object', properties: { learnerId: { type: 'string' } } },
+	},
+	GroupEnrolDialog: {
+		kind: 'modal',
+		component: GroupEnrolDialog,
+		propsSchema: { type: 'object', properties: { objectId: { type: 'string' } }, required: ['objectId'] },
+	},
+	RegulationExemptionDecisionDialog: {
+		kind: 'modal',
+		component: RegulationExemptionDecisionDialog,
+		propsSchema: { type: 'object', properties: { objectId: { type: 'string' } }, required: ['objectId'] },
+	},
+	SubmissionReopenDialog: {
+		kind: 'modal',
+		component: SubmissionReopenDialog,
+		propsSchema: { type: 'object', properties: { objectId: { type: 'string' } }, required: ['objectId'] },
+	},
+	TeacherAvailabilityDialog: {
+		kind: 'modal',
+		component: TeacherAvailabilityDialog,
+		propsSchema: { type: 'object', properties: { conferenceRoundId: { type: 'string' } }, required: ['conferenceRoundId'] },
+	},
+	TimetableCalendarFeedDialog: {
+		kind: 'modal',
+		component: TimetableCalendarFeedDialog,
+		propsSchema: { type: 'object', properties: {} },
+	},
 	CheckInPage: page(CheckInPage),
 	CourseCatalogue: page(CourseCatalogue),
 	CohortGradebookView: page(CohortGradebookView),
-	CohortTimetableView: page(CohortTimetableView),
 	ExportRequestView: page(ExportRequestView),
 	LearningPlanEditorView: page(LearningPlanEditorView),
 	QtiImportView: page(QtiImportView),
 	SignatureView: page(SignatureView),
 	StandbyPlanning: page(StandbyPlanning),
-	SubmitExcuseView: page(SubmitExcuseView),
 	TimetableLookup: page(TimetableLookup),
 	SubmitWorkView: page(SubmitWorkView),
 
@@ -314,6 +382,7 @@ export default {
 	AllocateMarkersView: page(AllocateMarkersView),
 	MyLearningRecordView: page(MyLearningRecordView),
 	MyElectives: page(MyElectives),
+	MyKeuzedelen: page(MyKeuzedelen),
 	MyTimetable: page(MyTimetable),
 	PeerReviewMarkingView: page(PeerReviewMarkingView),
 	PeopleDashboard: page(PeopleDashboard),
@@ -343,17 +412,39 @@ export default {
 		component: AssignmentHandInStatus,
 		_note: 'Hand-in status on AssignmentDetail: the cohort roster minus the learners who handed in, split into started and not started, overdue after dueAt. Staff only; self-fetches assignment, cohort(s), submissions and learner names.',
 	},
+	PermissionRequestOutcome: {
+		kind: 'section',
+		component: PermissionRequestOutcome,
+		_note: 'Answers on PermissionRequestDetail: the learners the request asks, split into not answered, answered yes and answered no, by name, with whether silence counts as no. Staff only; self-fetches the request, its permission responses and learner names.',
+	},
+	ExamSittingOverview: {
+		kind: 'section',
+		component: ExamSittingOverview,
+		_note: 'Extra time and invigilators on ExamSittingDetail: each accommodated learner with the extra time, the end time and a separate room, the invigilator places, and the colleagues free for the whole sitting with an Ask button that writes a pending invigilator-assignment through OpenRegister. Self-fetches the exam schedule overview and available-invigilators routes; hidden for a caller they refuse.',
+	},
+	PupilGuardianConversation: {
+		kind: 'section',
+		component: PupilGuardianConversation,
+		_note: 'The conversation with the guardians on LearnerProfileDetail: the newest messages the reader takes part in, read through portaliq\'s staff messaging by /api/pupils/{learnerId}/conversation in CnConversationThread, with a reply box for a participant.',
+	},
+	ExcuseRequestSeen: {
+		kind: 'section',
+		component: ExcuseRequestSeen,
+		_note: 'The seen line on ExcuseRequestDetail: opening the report posts to /api/attendance/excuse-requests/{id}/seen, which stamps a group teacher\'s first look (never the lifecycle), and shows who saw it and when. Empty until someone has seen it, and for a reader the server refuses.',
+	},
+	CredentialWalletOffer: {
+		kind: 'section',
+		component: CredentialWalletOffer,
+		_note: 'The holder\'s wallet block on CredentialDetail: the open offer as a QR code with its link, the claim date, or a sentence. Only the holder (learnerUserId) sees it.',
+	},
+	LearningPlanVersionChanges: {
+		kind: 'section',
+		component: LearningPlanVersionChanges,
+		_note: 'What changed on LearningPlanDetail against the version the plan replaces (supersedesId): goals and support measures added, removed or changed. Hidden on a first version; reads the earlier version through OpenRegister.',
+	},
 	AssignmentPeerReviewAllocation: {
 		kind: 'section',
 		component: AssignmentPeerReviewAllocation,
 		_note: 'Peer review on AssignmentDetail: states the strategy and reviewers per submission and, unless allocation is manual, posts to /api/peer-review/{id}/allocate and reports the counts. Staff only, and only when peerReviewEnabled.',
-	},
-
-	// --- Shared library widgets registered under manifest widget keys (ADR-036). ---
-	'audit-trail': {
-		kind: 'widget',
-		component: AuditTrailWidget,
-		...PANEL_WIDGET_META,
-		_note: 'Object change-log card — self-fetches from the detail object context (register/schema/objectId).',
 	},
 }

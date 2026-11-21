@@ -3,6 +3,9 @@
 /**
  * Learniq FeeItem Voluntary Entitlement Guard
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Lifecycle guard for the Entitlement schema's `grant` transition (pending ->
  * active). This is the STRUCTURAL enforcement of the Wet vrijwillige
  * ouderbijdrage (in force since 1 August 2021, amending WPO/WVO): non-payment
@@ -42,8 +45,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -55,6 +56,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
@@ -171,8 +173,7 @@ class FeeItemVoluntaryEntitlementGuard implements LifecycleGuardInterface {
 	private function fetchFeeItem(string $feeItemId): ?array {
 		$obj = $this->objectService->find(
 			id: $feeItemId,
-			register: self::LEARNIQ_REGISTER,
-			schema: self::FEE_ITEM_SCHEMA
+			options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::FEE_ITEM_SCHEMA)
 		);
 
 		if ($obj === null) {

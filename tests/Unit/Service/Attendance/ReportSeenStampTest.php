@@ -1,0 +1,161 @@
+<?php
+
+/**
+ * ReportSeenStamp unit tests: who counts as the first look, and what is written.
+ *
+ * @category Tests
+ * @package  OCA\Learniq\Tests\Unit\Service\Attendance
+ *
+ * @author    Conduction Development Team <info@conduction.nl>
+ * @copyright 2026 Conduction B.V.
+ * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * SPDX-License-Identifier: EUPL-1.2
+ *
+ * @version GIT: <git-id>
+ *
+ * @link https://conduction.nl
+ *
+ * @spec openspec/changes/absence-reports-seen-and-ended/specs/attendance/spec.md#requirement-a-teachers-first-look-at-an-absence-report-is-recorded
+ */
+
+declare(strict_types=1);
+
+namespace OCA\Learniq\Tests\Unit\Service\Attendance;
+
+use OCA\Learniq\Service\Attendance\ReportSeenStamp;
+use OCA\OpenRegister\Db\ObjectEntity;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
+use OCA\OpenRegister\Service\ObjectService;
+use OCP\AppFramework\Utility\ITimeFactory;
+use PHPUnit\Framework\TestCase;
+
+/**
+ * @covers \OCA\Learniq\Service\Attendance\ReportSeenStamp
+ */
+class ReportSeenStampTest extends TestCase {
+
+	/**
+	 * The stamp writes seenBy and seenAt under the report's id, without its
+	 * id fields in the body, with the server's own rights; unusable reports
+	 * are left alone.
+	 *
+	 * @return void
+	 */
+	public function testOnlyAUsableOpenReportOfHerGroupIsStamped(): void {
+		$objects = $this->createMock(ObjectService::class);
+		$objects->expects(self::once())->method('saveObject')->with(
+			['learnerId' => 'sami', 'lifecycle' => 'submitted', 'teacherIds' => ['esra'], 'seenBy' => 'esra', 'seenAt' => '2026-10-05T06:12:00+00:00'],
+			self::callback(
+				callback: static fn (ObjectSaveOptions $options): bool => $options->target->register === 'learniq'
+					&& $options->target->schema === 'excuse-request'
+					&& $options->uuid === 'x-sami'
+			),
+			false
+		);
+		$time = $this->createMock(ITimeFactory::class);
+		$time->method('getTime')->willReturn(1791180720);
+
+		$reports = [
+			'sami' => ['id' => 'x-sami', '@self' => ['id' => 'x-sami'], 'learnerId' => 'sami', 'lifecycle' => 'submitted', 'teacherIds' => ['esra']],
+			'lisa' => ['learnerId' => 'lisa', 'lifecycle' => 'submitted', 'teacherIds' => ['esra']],
+			'tom'  => ['id' => 'x-tom', 'learnerId' => 'tom', 'lifecycle' => 'submitted', 'teacherIds' => 'esra'],
+			'ella' => ['id' => 'x-ella', 'learnerId' => 'ella', 'lifecycle' => 'submitted', 'teacherIds' => ['esra'], 'seenAt' => '2026-10-04T10:00:00+00:00', 'seenBy' => 'bram'],
+		];
+
+		$after = (new ReportSeenStamp(objectService: $objects, time: $time))->seen(reports: $reports, userId: 'esra');
+
+		self::assertSame('esra', $after['sami']['seenBy']);
+		self::assertSame('2026-10-05T06:12:00+00:00', $after['sami']['seenAt']);
+		self::assertSame($reports['lisa'], $after['lisa'], 'a report without an id cannot be written');
+		self::assertSame($reports['tom'], $after['tom'], 'teacherIds must be a list');
+		self::assertSame('bram', $after['ella']['seenBy'], 'the first look stays');
+	}//end testOnlyAUsableOpenReportOfHerGroupIsStamped()
+
+	/**
+	 * Nobody signed in sees nothing.
+	 *
+	 * @return void
+	 */
+	public function testAnEmptyUserStampsNothing(): void {
+		$objects = $this->createMock(ObjectService::class);
+		$objects->expects(self::never())->method('saveObject');
+
+		$reports = ['sami' => ['id' => 'x-sami', 'lifecycle' => 'submitted', 'teacherIds' => ['']]];
+		$after = (new ReportSeenStamp(objectService: $objects, time: $this->createMock(ITimeFactory::class)))->seen(reports: $reports, userId: '');
+
+		self::assertSame($reports, $after);
+	}//end testAnEmptyUserStampsNothing()
+	/**
+	 * A report a group teacher opens on its own page is read with her own
+	 * rights and stamped on her first look; the lifecycle stays.
+	 *
+	 * @return void
+	 */
+	public function testSeenOneStampsHerFirstLookOnTheReportsOwnPage(): void {
+		$entity = $this->createMock(originalClassName: ObjectEntity::class);
+		$entity->method('jsonSerialize')->willReturn(['id' => 'x-sami', 'learnerId' => 'sami', 'lifecycle' => 'submitted', 'teacherIds' => ['esra']]);
+		$objects = $this->createMock(originalClassName: ObjectService::class);
+		$objects->expects(self::once())->method('find')->with(
+			'x-sami',
+			self::callback(
+				callback: static fn (ObjectFindOptions $options): bool => $options->register === 'learniq' && $options->schema === 'excuse-request'
+			)
+		)->willReturn($entity);
+		$objects->expects(self::once())->method('saveObject')->with(
+			[
+				'learnerId' => 'sami',
+				'lifecycle' => 'submitted',
+				'teacherIds' => ['esra'],
+				'seenBy' => 'esra',
+				'seenAt' => '2026-10-05T06:12:00+00:00'
+			],
+			self::callback(callback: static fn (ObjectSaveOptions $options): bool => $options->uuid === 'x-sami'),
+			false
+		);
+		$time = $this->createMock(originalClassName: ITimeFactory::class);
+		$time->method('getTime')->willReturn(1791180720);
+
+		$report = (new ReportSeenStamp(objectService: $objects, time: $time))->seenOne(reportId: 'x-sami', userId: 'esra');
+
+		self::assertSame(expected: 'esra', actual: $report['seenBy']);
+		self::assertSame(expected: '2026-10-05T06:12:00+00:00', actual: $report['seenAt']);
+		self::assertSame(expected: 'submitted', actual: $report['lifecycle']);
+	}//end testSeenOneStampsHerFirstLookOnTheReportsOwnPage()
+
+	/**
+	 * A later look, a reader outside the group and a report she cannot read
+	 * write nothing.
+	 *
+	 * @return void
+	 */
+	public function testSeenOneWritesNothingButTheFirstLookOfAGroupTeacher(): void {
+		$seen = $this->createMock(originalClassName: ObjectEntity::class);
+		$seen->method('jsonSerialize')->willReturn(
+			[
+				'id' => 'x-ella',
+				'lifecycle' => 'submitted',
+				'teacherIds' => ['esra', 'bram'],
+				'seenBy' => 'bram',
+				'seenAt' => '2026-10-04T10:00:00+00:00'
+			]
+		);
+		$objects = $this->createMock(originalClassName: ObjectService::class);
+		$objects->method('find')->willReturnCallback(
+			static fn (int|string $id): ?ObjectEntity => ($id === 'x-ella' ? $seen : null)
+		);
+		$objects->expects(self::never())->method('saveObject');
+		$stamp = new ReportSeenStamp(objectService: $objects, time: $this->createMock(originalClassName: ITimeFactory::class));
+
+		self::assertSame(expected: 'bram', actual: $stamp->seenOne(reportId: 'x-ella', userId: 'esra')['seenBy'], message: 'the first look stays');
+		self::assertSame(
+			expected: 'bram',
+			actual: $stamp->seenOne(reportId: 'x-ella', userId: 'lisa')['seenBy'],
+			message: 'a reader outside the group stamps nothing'
+		);
+		self::assertNull(actual: $stamp->seenOne(reportId: 'x-gone', userId: 'esra'), message: 'a report she cannot read');
+		self::assertNull(actual: $stamp->seenOne(reportId: '', userId: 'esra'));
+		self::assertNull(actual: $stamp->seenOne(reportId: 'x-ella', userId: ''));
+	}//end testSeenOneWritesNothingButTheFirstLookOfAGroupTeacher()
+}//end class

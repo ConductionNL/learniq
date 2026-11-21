@@ -38,6 +38,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Portal;
 
+use OCA\Learniq\Service\Portal\PortalEmployerBookings;
+
 /**
  * Builds the participant's collections and pages.
  *
@@ -59,6 +61,106 @@ class ParticipantSitePages {
 
 	private const GROUP = 'My academy';
 
+	private const PARTICIPANT_CERTIFICATES_FIELDS = [
+		'learnerId',
+		'courseName',
+		'kind',
+		'validUntilLabel',
+		'expiresAt',
+		'expiryStatus',
+		'expiryLabel',
+		'renewalLine',
+		'verificationUrl',
+		'walletOfferUri',
+		'lifecycle',
+	];
+
+	private const PARTICIPANT_CERTIFICATES_EXTRA = [
+		// A certificate names its holder by the profile uuid in `learnerId`.
+		'scopeField' => 'learnerId',
+		'filter' => ['lifecycle' => 'issued', 'kind' => 'certificate'],
+		'defaultSort' => ['field' => 'expiresAt', 'direction' => 'asc'],
+		'fieldConfigs' => ['expiryStatus' => ['valueLabels' => EmployerSitePages::EXPIRY_STATUS]],
+		'columns' => [
+			['field' => 'courseName', 'label' => 'Certificate'],
+			['field' => 'expiresAt', 'label' => 'Valid until', 'render' => 'date'],
+			['field' => 'expiryLabel', 'label' => 'Status'],
+			['field' => 'verificationUrl', 'label' => 'Check or download', 'render' => 'link'],
+			// The open wallet offer as a QR code with its link (portaliq link-field-qr-code).
+			['field' => 'walletOfferUri', 'label' => 'Wallet', 'render' => 'qr', 'linkLabel' => 'Add to wallet'],
+		],
+	];
+
+	private const PARTICIPANT_OVERVIEW = [
+		'id' => 'participantOverview',
+		'label' => 'Overview',
+		'icon' => 'ViewDashboard',
+		'group' => self::GROUP,
+		'home' => true,
+		'blocks' => [
+			['type' => 'greeting', 'label' => 'My course days', 'page' => 'participantCourseDays'],
+			[
+				'type' => 'tasks',
+				'label' => 'Your next course day',
+				'display' => 'highlight',
+				'eyebrow' => 'Your next course day',
+				'collection' => 'participantComingDays',
+				'titleFields' => ['courseName'],
+				'subtitleFields' => ['dayLabel', 'timeLabel', 'placeLabel'],
+				'dueField' => 'firstDay',
+				'buttonLabel' => 'Everything about this day',
+				// Only the next one; the rest is "Daarna" (REPORT-2, item 10).
+				'limit' => 1,
+			],
+			[
+				'type' => 'collection',
+				'collection' => 'participantCertificates',
+				'display' => 'rows',
+				'dateField' => 'expiresAt',
+				'titleFields' => ['courseName'],
+				'subtitleField' => 'validUntilLabel',
+				'quoteField' => 'renewalLine',
+				'statusField' => 'expiryStatus',
+				'statusTones' => ['valid' => 'success', 'none' => 'success', 'expiring' => 'warning', 'expiring-soon' => 'warning', 'expired' => 'error'],
+				'statusNoteField' => 'expiryLabel',
+				'limit' => 3,
+			],
+			[
+				'type' => 'collection',
+				// "Daarna": the days after the next one. `skip` leaves out the
+				// next day the highlight above shows (portaliq: requested).
+				'label' => 'After that',
+				'skip' => 1,
+				'collection' => 'participantComingDays',
+				'display' => 'rows',
+				'dateField' => 'firstDay',
+				'titleFields' => ['courseName'],
+				'subtitleField' => 'dayLabel',
+				'limit' => 4,
+				'sort' => ['field' => 'firstDay', 'direction' => 'asc'],
+			],
+		],
+	];
+
+	private const PARTICIPANT_COURSE_DAYS = [
+		'id' => 'participantCourseDays',
+		'label' => 'My course days',
+		'icon' => 'CalendarMonth',
+		'group' => self::GROUP,
+		'blocks' => [
+			['type' => 'collection', 'collection' => 'participantCourseDays'],
+			['type' => 'detail', 'collection' => 'participantCourseDays'],
+		],
+	];
+
+	private const PARTICIPANT_CERTIFICATES = [
+		'id' => 'participantCertificates',
+		'label' => 'My certificates',
+		'icon' => 'CertificateOutline',
+		'group' => self::GROUP,
+		'blocks' => [['type' => 'collection', 'collection' => 'participantCertificates']],
+	];
+
 	/**
 	 * The participant's manifest.
 	 *
@@ -72,9 +174,43 @@ class ParticipantSitePages {
 			'collections' => $this->collections(),
 			'actions' => [],
 			'pages' => $this->pages(),
-			'notifications' => [],
+			'notifications' => [$this->substitutedRule()],
 		];
 	}//end contribution()
+
+	/**
+	 * The notice on his portal when his employer sent a colleague in his place.
+	 *
+	 * Fires when his enrolment's withdrawal reason becomes the one
+	 * {@see PortalEmployerBookings::substituteParticipant()} writes; any other
+	 * reason has no message here and so sends none. The colleague's own
+	 * enrolment is created like any participant's.
+	 *
+	 * @return array<string, mixed> The rule.
+	 *
+	 * @spec openspec/changes/employer-substitutes-a-colleague/specs/portal-contribution/spec.md#requirement-an-employer-sends-a-colleague-in-place-of-a-participant-before-the-deadline
+	 */
+	public function substitutedRule(): array {
+		return [
+			'ruleKey' => 'enrolment.substituted',
+			'collection' => 'participantCourseDays',
+			'on' => ['field' => 'withdrawReason', 'operator' => 'changed'],
+			'titleField' => 'courseName',
+			'recipients' => ['field' => self::CLAIM, 'claim' => self::CLAIM],
+			'messages' => [
+				PortalEmployerBookings::SUBSTITUTED => [
+					'subject' => [
+						'nl' => 'Een collega gaat in uw plaats',
+						'en' => 'A colleague goes in your place',
+					],
+					'body' => [
+						'nl' => 'Uw werkgever stuurt een collega in uw plaats naar {courseName} ({dayLabel}). U staat niet meer ingeschreven.',
+						'en' => 'Your employer sends a colleague in your place to {courseName} ({dayLabel}). You are no longer enrolled.',
+					],
+				],
+			],
+		];
+	}//end substitutedRule()
 
 	/**
 	 * His coming course days, all his course days, and his certificates.
@@ -84,7 +220,9 @@ class ParticipantSitePages {
 	 * @spec openspec/changes/participant-portal/specs/portal-contribution/spec.md#requirement-a-participant-lands-on-his-next-course-day
 	 */
 	public function collections(): array {
-		$dayFields = ['learnerRef', 'courseName', 'firstDay', 'dayLabel', 'timeLabel', 'placeLabel', 'trainerName', 'upcoming', 'lifecycle'];
+		$dayFields = ['learnerRef', 'courseName', 'firstDay', 'dayLabel', 'timeLabel', 'placeLabel', 'trainerName', 'bringList', 'upcoming', 'lifecycle'];
+		// "Meenemen" on his course day: the course's bring list, one line each (training-provider-course-days).
+		$dayConfigs = ['bringList' => ['label' => 'What to bring']];
 		$dayColumns = [
 			['field' => 'firstDay', 'label' => 'First day', 'render' => 'date'],
 			['field' => 'courseName', 'label' => 'Course name'],
@@ -104,6 +242,7 @@ class ParticipantSitePages {
 					'filter' => ['upcoming' => true],
 					'defaultSort' => ['field' => 'firstDay', 'direction' => 'asc'],
 					'columns' => $dayColumns,
+					'fieldConfigs' => $dayConfigs,
 				]
 			),
 			$this->direct(
@@ -111,37 +250,14 @@ class ParticipantSitePages {
 				schema: 'enrolment',
 				label: 'My course days',
 				fields: $dayFields,
-				extra: ['defaultSort' => ['field' => 'firstDay', 'direction' => 'desc'], 'columns' => $dayColumns]
+				extra: ['defaultSort' => ['field' => 'firstDay', 'direction' => 'desc'], 'columns' => $dayColumns, 'fieldConfigs' => $dayConfigs]
 			),
 			$this->direct(
 				id: 'participantCertificates',
 				schema: 'credential',
 				label: 'My certificates',
-				fields: [
-					'learnerId',
-					'courseName',
-					'kind',
-					'validUntilLabel',
-					'expiresAt',
-					'expiryStatus',
-					'expiryLabel',
-					'renewalLine',
-					'verificationUrl',
-					'lifecycle',
-				],
-				extra: [
-					// A certificate names its holder by the profile uuid in `learnerId`.
-					'scopeField' => 'learnerId',
-					'filter' => ['lifecycle' => 'issued', 'kind' => 'certificate'],
-					'defaultSort' => ['field' => 'expiresAt', 'direction' => 'asc'],
-					'fieldConfigs' => ['expiryStatus' => ['valueLabels' => EmployerSitePages::EXPIRY_STATUS]],
-					'columns' => [
-						['field' => 'courseName', 'label' => 'Certificate'],
-						['field' => 'expiresAt', 'label' => 'Valid until', 'render' => 'date'],
-						['field' => 'expiryLabel', 'label' => 'Status'],
-						['field' => 'verificationUrl', 'label' => 'Check or download', 'render' => 'link'],
-					],
-				]
+				fields: self::PARTICIPANT_CERTIFICATES_FIELDS,
+				extra: self::PARTICIPANT_CERTIFICATES_EXTRA
 			),
 		];
 	}//end collections()
@@ -155,73 +271,9 @@ class ParticipantSitePages {
 	 */
 	public function pages(): array {
 		return [
-			[
-				'id' => 'participantOverview',
-				'label' => 'Overview',
-				'icon' => 'ViewDashboard',
-				'group' => self::GROUP,
-				'home' => true,
-				'blocks' => [
-					['type' => 'greeting', 'label' => 'My course days', 'page' => 'participantCourseDays'],
-					[
-						'type' => 'tasks',
-						'label' => 'Your next course day',
-						'display' => 'highlight',
-						'eyebrow' => 'Your next course day',
-						'collection' => 'participantComingDays',
-						'titleFields' => ['courseName'],
-						'subtitleFields' => ['dayLabel', 'timeLabel', 'placeLabel'],
-						'dueField' => 'firstDay',
-						'buttonLabel' => 'Everything about this day',
-						// Only the next one; the rest is "Daarna" (REPORT-2, item 10).
-						'limit' => 1,
-					],
-					[
-						'type' => 'collection',
-						'collection' => 'participantCertificates',
-						'display' => 'rows',
-						'dateField' => 'expiresAt',
-						'titleFields' => ['courseName'],
-						'subtitleField' => 'validUntilLabel',
-						'quoteField' => 'renewalLine',
-						'statusField' => 'expiryStatus',
-						'statusTones' => ['valid' => 'success', 'none' => 'success', 'expiring' => 'warning', 'expiring-soon' => 'warning', 'expired' => 'error'],
-						'statusNoteField' => 'expiryLabel',
-						'limit' => 3,
-					],
-					[
-						'type' => 'collection',
-						// "Daarna": the days after the next one. `skip` leaves out the
-						// next day the highlight above shows (portaliq: requested).
-						'label' => 'After that',
-						'skip' => 1,
-						'collection' => 'participantComingDays',
-						'display' => 'rows',
-						'dateField' => 'firstDay',
-						'titleFields' => ['courseName'],
-						'subtitleField' => 'dayLabel',
-						'limit' => 4,
-						'sort' => ['field' => 'firstDay', 'direction' => 'asc'],
-					],
-				],
-			],
-			[
-				'id' => 'participantCourseDays',
-				'label' => 'My course days',
-				'icon' => 'CalendarMonth',
-				'group' => self::GROUP,
-				'blocks' => [
-					['type' => 'collection', 'collection' => 'participantCourseDays'],
-					['type' => 'detail', 'collection' => 'participantCourseDays'],
-				],
-			],
-			[
-				'id' => 'participantCertificates',
-				'label' => 'My certificates',
-				'icon' => 'CertificateOutline',
-				'group' => self::GROUP,
-				'blocks' => [['type' => 'collection', 'collection' => 'participantCertificates']],
-			],
+			self::PARTICIPANT_OVERVIEW,
+			self::PARTICIPANT_COURSE_DAYS,
+			self::PARTICIPANT_CERTIFICATES,
 		];
 	}//end pages()
 

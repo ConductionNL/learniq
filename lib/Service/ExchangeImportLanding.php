@@ -15,6 +15,8 @@
  * - `migration-import`: onto the LearnerProfile of the pupil (by ncUserId),
  *   filling only fields the profile does not have yet; a new pupil gets a new
  *   profile.
+ * - `class-roster`: a class from the student administration system, kept in
+ *   step as a Cohort with its enrolments by ClassRosterSync.
  *
  * Runs inside integriq's background job, so every read and write is
  * system-level (no RBAC, no session). A rejection names a code and field
@@ -34,12 +36,16 @@
  * @link https://conduction.nl
  *
  * @spec openspec/specs/data-exchange/spec.md#requirement-records-integriq-hands-back-for-an-import-land-in-learniq
+ * @spec openspec/changes/enrolment-sync-classes-from-student-administration/specs/enrolment/spec.md#requirement-classes-from-the-student-administration-land-as-cohorts
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\ExchangeImportLandingInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use Throwable;
@@ -49,12 +55,7 @@ use Throwable;
  *
  * @spec openspec/specs/data-exchange/spec.md#requirement-records-integriq-hands-back-for-an-import-land-in-learniq
  */
-class ExchangeImportLanding {
-
-	/**
-	 * The targets this service lands.
-	 */
-	public const TARGETS = ['lvs-results', 'oso', 'migration-import'];
+class ExchangeImportLanding implements ExchangeImportLandingInterface {
 
 	private const REGISTER = 'learniq';
 
@@ -97,15 +98,23 @@ class ExchangeImportLanding {
 	private const OSO_FIELDS = ['sourceSchoolBrin', 'learnerEckId', 'receivedAt', 'categories', 'draftProfile', 'attachmentRefs'];
 
 	/**
+	 * Lands `class-roster` records.
+	 *
+	 * @var ClassRosterSync
+	 */
+	private readonly ClassRosterSync $rosterSync;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OpenRegister object access.
-	 * @param ITimeFactory $time The receiving time for a dossier without one.
+	 * @param ITimeFactory $time The receiving time for a dossier without one, and the sync time of a class.
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly ITimeFactory $time,
 	) {
+		$this->rosterSync = new ClassRosterSync(objectService: $objectService, time: $time);
 	}//end __construct()
 
 	/**
@@ -167,6 +176,10 @@ class ExchangeImportLanding {
 			return $this->landOso(jobId: $jobId, data: $data);
 		}
 
+		if ($target === 'class-roster') {
+			return $this->rosterSync->sync(data: $data);
+		}
+
 		return $this->landMigration(data: $data);
 	}//end landOne()
 
@@ -179,6 +192,22 @@ class ExchangeImportLanding {
 	 * @return array{code: string, fields: array<int, string>}|null
 	 */
 	private function landLvs(string $jobId, array $data): ?array {
+		$refusal = $this->lvsRefusal(data: $data);
+		if ($refusal === null) {
+			$this->storeLvs(jobId: $jobId, data: $data);
+		}
+
+		return $refusal;
+	}//end landLvs()
+
+	/**
+	 * Why an LVS result cannot land: a missing field or an unknown pupil; null when it can.
+	 *
+	 * @param array<string, mixed> $data The record.
+	 *
+	 * @return array{code: string, fields: array<int, string>}|null
+	 */
+	private function lvsRefusal(array $data): ?array {
 		$missing = $this->missing(data: $data, fields: ['provider', 'instrument', 'moment', 'learnerId']);
 		if ($missing !== []) {
 			return ['code' => 'LVS-MISSING-FIELD', 'fields' => $missing];
@@ -188,8 +217,41 @@ class ExchangeImportLanding {
 			return ['code' => 'LVS-UNKNOWN-PUPIL', 'fields' => ['learnerId']];
 		}
 
+		return null;
+	}//end lvsRefusal()
+
+	/**
+	 * Store an LVS result as imported, over the stored one unless that is frozen.
+	 *
+	 * @param string               $jobId The job uuid.
+	 * @param array<string, mixed> $data  The record.
+	 *
+	 * @return void
+	 */
+	private function storeLvs(string $jobId, array $data): void {
 		$row = $this->pick(data: $data, fields: self::LVS_FIELDS);
-		$existing = $this->first(
+		$existing = $this->storedLvsResult(row: $row);
+		if ($existing !== null && in_array((string)($existing['lifecycle'] ?? ''), ['verified', 'archived'], true) === true) {
+			// A verified result is frozen (lvs-score-freeze); a second
+			// delivery of it changes nothing.
+			return;
+		}
+
+		$this->save(
+			schema: 'lvs-result',
+			row: array_merge($existing ?? [], $row, ['dataExchangeJobId' => $jobId, 'tenant_id' => $data['tenant_id'], 'lifecycle' => 'imported'])
+		);
+	}//end storeLvs()
+
+	/**
+	 * The stored result of the same pupil, provider, instrument and moment, or null.
+	 *
+	 * @param array<string, mixed> $row The picked result.
+	 *
+	 * @return array<string, mixed>|null
+	 */
+	private function storedLvsResult(array $row): ?array {
+		return $this->first(
 			schema: 'lvs-result',
 			filters: [
 				'learnerId' => $row['learnerId'],
@@ -198,18 +260,7 @@ class ExchangeImportLanding {
 				'moment' => $row['moment'],
 			]
 		);
-		if ($existing !== null && in_array((string)($existing['lifecycle'] ?? ''), ['verified', 'archived'], true) === true) {
-			// A verified result is frozen (lvs-score-freeze); a second
-			// delivery of it changes nothing.
-			return null;
-		}
-
-		$this->save(
-			schema: 'lvs-result',
-			row: array_merge($existing ?? [], $row, ['dataExchangeJobId' => $jobId, 'tenant_id' => $data['tenant_id'], 'lifecycle' => 'imported'])
-		);
-		return null;
-	}//end landLvs()
+	}//end storedLvsResult()
 
 	/**
 	 * An OSO dossier, received and held for review.
@@ -225,17 +276,8 @@ class ExchangeImportLanding {
 			return ['code' => 'OSO-MISSING-FIELD', 'fields' => $missing];
 		}
 
-		$row = $this->pick(data: $data, fields: self::OSO_FIELDS);
-		if (($row['receivedAt'] ?? '') === '') {
-			$row['receivedAt'] = $this->time->getDateTime()->format(DATE_ATOM);
-		}
-
-		$key = ['sourceSchoolBrin' => $row['sourceSchoolBrin'], 'receivedAt' => $row['receivedAt']];
-		if (($row['learnerEckId'] ?? '') !== '') {
-			$key['learnerEckId'] = $row['learnerEckId'];
-		}
-
-		if ($this->first(schema: 'oso-import-dossier', filters: $key) !== null) {
+		$row = $this->osoRow(data: $data);
+		if ($this->first(schema: 'oso-import-dossier', filters: self::osoKey(row: $row)) !== null) {
 			// Delivered before: the dossier is already held for review.
 			return null;
 		}
@@ -246,6 +288,38 @@ class ExchangeImportLanding {
 		);
 		return null;
 	}//end landOso()
+
+	/**
+	 * The dossier's own fields, received now when it names no receiving time.
+	 *
+	 * @param array<string, mixed> $data The record.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function osoRow(array $data): array {
+		$row = $this->pick(data: $data, fields: self::OSO_FIELDS);
+		if (($row['receivedAt'] ?? '') === '') {
+			$row['receivedAt'] = $this->time->getDateTime()->format(DATE_ATOM);
+		}
+
+		return $row;
+	}//end osoRow()
+
+	/**
+	 * What makes a dossier the same delivery: its school, receiving time and, when named, the pupil's ECK id.
+	 *
+	 * @param array<string, mixed> $row The dossier.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private static function osoKey(array $row): array {
+		$key = ['sourceSchoolBrin' => $row['sourceSchoolBrin'], 'receivedAt' => $row['receivedAt']];
+		if (($row['learnerEckId'] ?? '') !== '') {
+			$key['learnerEckId'] = $row['learnerEckId'];
+		}
+
+		return $key;
+	}//end osoKey()
 
 	/**
 	 * A migrated pupil, onto their LearnerProfile.
@@ -263,14 +337,38 @@ class ExchangeImportLanding {
 		$incoming = $this->pick(data: $data, fields: self::PROFILE_FIELDS);
 		$existing = $this->first(schema: 'learner-profile', filters: ['ncUserId' => (string)$data['ncUserId']]);
 		if ($existing === null) {
-			$this->save(
-				schema: 'learner-profile',
-				row: array_merge($incoming, ['ncUserId' => (string)$data['ncUserId'], 'tenant_id' => $data['tenant_id'], 'lifecycle' => 'active'])
-			);
+			$this->createProfile(incoming: $incoming, data: $data);
 			return null;
 		}
 
-		// Never overwrite what the school already holds: fill the gaps only.
+		$this->fillGaps(existing: $existing, incoming: $incoming);
+		return null;
+	}//end landMigration()
+
+	/**
+	 * A new, active LearnerProfile for a migrated pupil.
+	 *
+	 * @param array<string, mixed> $incoming The picked profile fields.
+	 * @param array<string, mixed> $data     The record.
+	 *
+	 * @return void
+	 */
+	private function createProfile(array $incoming, array $data): void {
+		$this->save(
+			schema: 'learner-profile',
+			row: array_merge($incoming, ['ncUserId' => (string)$data['ncUserId'], 'tenant_id' => $data['tenant_id'], 'lifecycle' => 'active'])
+		);
+	}//end createProfile()
+
+	/**
+	 * Never overwrite what the school already holds: write only the empty fields the record fills.
+	 *
+	 * @param array<string, mixed> $existing The stored profile.
+	 * @param array<string, mixed> $incoming The picked profile fields.
+	 *
+	 * @return void
+	 */
+	private function fillGaps(array $existing, array $incoming): void {
 		$fill = [];
 		foreach ($incoming as $field => $value) {
 			if ($this->isEmpty(value: $existing[$field] ?? null) === true) {
@@ -281,9 +379,7 @@ class ExchangeImportLanding {
 		if ($fill !== []) {
 			$this->save(schema: 'learner-profile', row: array_merge($existing, $fill));
 		}
-
-		return null;
-	}//end landMigration()
+	}//end fillGaps()
 
 	/**
 	 * The named fields that are missing or empty.
@@ -364,8 +460,7 @@ class ExchangeImportLanding {
 	private function save(string $schema, array $row): void {
 		$this->objectService->saveObject(
 			object: $row,
-			register: self::REGISTER,
-			schema: $schema,
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: $schema)),
 			_rbac: false,
 			_multitenancy: false
 		);

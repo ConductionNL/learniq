@@ -34,6 +34,7 @@ use OCA\Learniq\Service\CallerTenantResolver;
 use OCA\Learniq\Service\CredentialSigningService;
 use OCA\Learniq\Service\ExternalTrainingService;
 use OCA\Learniq\Service\SigningKeyConfigKey;
+use OCA\Learniq\Tests\Support\ContractImplementations;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
@@ -49,6 +50,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use ReflectionNamedType;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Tests that issueCredential() saves a signed credential, or none.
@@ -156,7 +158,7 @@ class ExternalTrainingControllerIssueCredentialTest extends TestCase {
 		foreach (($class->getConstructor()?->getParameters() ?? []) as $parameter) {
 			$type = $parameter->getType();
 			self::assertInstanceOf(ReflectionNamedType::class, $type);
-			$arguments[$parameter->getName()] = match ($type->getName()) {
+			$arguments[$parameter->getName()] = match (ContractImplementations::concrete($type->getName())) {
 				IUserSession::class => $userSession,
 				ObjectService::class => $objectService,
 				ExternalTrainingService::class => new ExternalTrainingService($objectService, $this->createStub(LoggerInterface::class)),
@@ -209,7 +211,11 @@ class ExternalTrainingControllerIssueCredentialTest extends TestCase {
 			)
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], mixed $register = null, mixed $schema = null, ?string $uuid = null): ObjectEntity {
+			function (array|ObjectEntity $object, ObjectSaveOptions $options = new ObjectSaveOptions()): ObjectEntity {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
+				$uuid = $options->uuid;
 				$data = $object;
 				if ($object instanceof ObjectEntity) {
 					$data = (array)$object->getObject();

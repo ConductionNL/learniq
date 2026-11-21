@@ -8,22 +8,13 @@
  @spec openspec/specs/personal-timetable/spec.md#requirement-a-display-screen-shows-todays-lessons-and-changes-without-a-signed-in-user
 -->
 <template>
-	<main class="display-screen">
-		<header class="display-screen__header">
-			<h1>{{ name || t('learniq', 'Timetable') }}</h1>
-			<p class="display-screen__clock">
-				{{ updatedLabel }}
-			</p>
-		</header>
-		<p v-if="stale" class="display-screen__stale" role="status">
-			{{
-				t(
-					'learniq',
-					'Cannot reach the server. Showing the timetable as it was at {time}.',
-					{ time: updatedLabel },
-				)
-			}}
-		</p>
+	<CnDisplayScreen
+		:title="name || t('learniq', 'Timetable')"
+		clock
+		dark
+		:updatedAt="updatedAt"
+		:stale="stale"
+		:staleText="staleText">
 		<p v-if="loaded && lessons.length === 0" class="display-screen__empty">
 			{{ t('learniq', 'No lessons to show.') }}
 		</p>
@@ -68,10 +59,11 @@
 				</tr>
 			</tbody>
 		</table>
-	</main>
+	</CnDisplayScreen>
 </template>
 
 <script>
+import { CnDisplayScreen } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { translate as t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
@@ -80,6 +72,8 @@ const REFRESH_MS = 60_000
 
 export default {
 	name: 'DisplayScreenView',
+
+	components: { CnDisplayScreen },
 
 	props: {
 		token: {
@@ -101,13 +95,17 @@ export default {
 
 	computed: {
 		/**
-		 * When the data was last updated, as a clock time.
+		 * The stale line, with `{time}` left for the screen to fill in.
 		 *
 		 * @return {string}
 		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-display-screen-shows-todays-lessons-and-changes-without-a-signed-in-user
 		 */
-		updatedLabel() {
-			return this.updatedAt ? this.time(this.updatedAt) : ''
+		staleText() {
+			return t(
+				'learniq',
+				'Cannot reach the server. Showing the timetable as it was at {time}.',
+				{ time: '{time}' },
+			)
 		},
 	},
 
@@ -188,29 +186,10 @@ export default {
 </script>
 
 <style scoped>
-.display-screen {
-	min-height: 100vh;
-	padding: 24px 32px;
-	background: var(--color-main-background);
-	color: var(--color-main-text);
-	font-size: 1.6rem;
-}
-
-.display-screen__header {
-	display: flex;
-	justify-content: space-between;
-	align-items: baseline;
-}
-
-.display-screen__stale {
-	padding: 8px 12px;
-	border-inline-start: 6px solid var(--color-warning);
-	background: var(--color-background-dark);
-}
-
 .display-screen__table {
 	width: 100%;
 	border-collapse: collapse;
+	font-size: 1.6rem;
 }
 
 .display-screen__table th,

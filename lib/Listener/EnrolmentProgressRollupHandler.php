@@ -34,7 +34,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\BackgroundJob\EnrolmentProgressRollupJob;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatedEvent;
 use OCA\OpenRegister\Service\Deferral\ListenerDeferralService;
@@ -55,13 +55,13 @@ class EnrolmentProgressRollupHandler implements IEventListener {
 	 * Constructor.
 	 *
 	 * @param ListenerDeferralService $deferral Buffers the roll-up for after the request.
-	 * @param ListenerSchemaResolver $schemaResolver Resolves the entity's register/schema ids to slugs.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Resolves the entity's register/schema ids to slugs.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ListenerDeferralService $deferral,
-		private readonly ListenerSchemaResolver $schemaResolver,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
 	) {
 	}//end __construct()
 
@@ -91,6 +91,21 @@ class EnrolmentProgressRollupHandler implements IEventListener {
 		}
 
 		$completion = $objectEntity->jsonSerialize();
+		$this->deferRollup(completion: $completion);
+	}//end handle()
+
+	/**
+	 * Defer the progress roll-up of the completion's learner and course, deduped
+	 * per learner and course; a completion without either owes none.
+	 *
+	 * @param array<string,mixed> $completion The LessonCompletion written.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/enrolment/spec.md#scenario-progress-percentage-recomputes-when-a-lesson-is-completed
+	 * @spec openspec/specs/progress-tracking/spec.md#requirement-a-lesson-completion-belongs-to-one-enrolment
+	 */
+	private function deferRollup(array $completion): void {
 		$learnerId = $completion['learnerId'] ?? '';
 		// LessonCompletion already denormalizes courseId (mirrors
 		// XapiStatement.courseId/.lessonId) — no extra Lesson lookup needed
@@ -120,7 +135,6 @@ class EnrolmentProgressRollupHandler implements IEventListener {
 			],
 			dedupeKey: $learnerId . '|' . $courseId
 		);
-
-	}//end handle()
+	}//end deferRollup()
 
 }//end class

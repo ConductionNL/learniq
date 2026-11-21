@@ -62,38 +62,78 @@ class TimetableFeedEventBuilder {
 	 * @spec openspec/changes/attendance-timetable-calendar-feed/specs/timetable-calendar-feed/spec.md#requirement-calendar-subscription-feed
 	 */
 	public function events(string $uid, array $sessions, IL10N $l10n): array {
+		$owner = new TimetableFeedOwner();
+		$owner->uid = $uid;
+		$owner->l10n = $l10n;
+
 		$events = [];
 		foreach ($sessions as $session) {
-			$id = (string)($session['id'] ?? '');
-			if ($id === '') {
+			if ((string)($session['id'] ?? '') === '') {
 				continue;
 			}
 
-			$cancelled = (($session['lifecycle'] ?? '') === 'cancelled');
-			$summary = trim((string)($session['title'] ?? ''));
-			if ($summary === '') {
-				$summary = $l10n->t('Untitled lesson');
-			}
-
-			if ($cancelled === true) {
-				$summary = $l10n->t('Cancelled: %s', [$summary]);
-			}
-
-			$events[] = [
-				'uid' => $id . '@learniq',
-				'start' => (string)($session['startsAt'] ?? ''),
-				'end' => (string)($session['endsAt'] ?? ''),
-				'summary' => $summary,
-				'location' => $this->location(session: $session),
-				'description' => implode("\n", $this->notes(uid: $uid, session: $session, cancelled: $cancelled, l10n: $l10n)),
-				'cancelled' => $cancelled,
-				// The online lesson link; the projection already dropped a non-https value.
-				'url' => (string)($session['onlineMeetingUrl'] ?? ''),
-			];
+			$events[] = $this->event(session: $session, owner: $owner);
 		}
 
 		return $events;
 	}//end events()
+
+	/**
+	 * The feed event of one session that has an id.
+	 *
+	 * @param array<string,mixed> $session The projected session.
+	 * @param TimetableFeedOwner  $owner   The feed's owner and their language.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private function event(array $session, TimetableFeedOwner $owner): array {
+		$cancelled = $this->isCancelled(session: $session);
+		$summary = $this->summary(session: $session, owner: $owner);
+
+		return [
+			'uid' => (string)$session['id'] . '@learniq',
+			'start' => (string)($session['startsAt'] ?? ''),
+			'end' => (string)($session['endsAt'] ?? ''),
+			'summary' => $summary,
+			'location' => $this->location(session: $session),
+			'description' => implode("\n", $this->notes(session: $session, owner: $owner)),
+			'cancelled' => $cancelled,
+			// The online lesson link; the projection already dropped a non-https value.
+			'url' => (string)($session['onlineMeetingUrl'] ?? ''),
+		];
+	}//end event()
+
+	/**
+	 * The event's title: the lesson title, a placeholder without one, marked when cancelled.
+	 *
+	 * @param array<string,mixed> $session The projected session.
+	 * @param TimetableFeedOwner  $owner   The feed's owner and their language.
+	 *
+	 * @return string
+	 */
+	private function summary(array $session, TimetableFeedOwner $owner): string {
+		$summary = trim((string)($session['title'] ?? ''));
+		if ($summary === '') {
+			$summary = $owner->l10n->t('Untitled lesson');
+		}
+
+		if ($this->isCancelled(session: $session) === true) {
+			$summary = $owner->l10n->t('Cancelled: %s', [$summary]);
+		}
+
+		return $summary;
+	}//end summary()
+
+	/**
+	 * Whether the lesson is cancelled.
+	 *
+	 * @param array<string,mixed> $session The projected session.
+	 *
+	 * @return bool
+	 */
+	private function isCancelled(array $session): bool {
+		return (($session['lifecycle'] ?? '') === 'cancelled');
+	}//end isCancelled()
 
 	/**
 	 * The room's name, or the session's location text.
@@ -114,61 +154,83 @@ class TimetableFeedEventBuilder {
 	/**
 	 * The description lines of one event.
 	 *
-	 * @param string              $uid       The feed's owner.
-	 * @param array<string,mixed> $session   The projected session.
-	 * @param bool                $cancelled Whether the lesson is cancelled.
-	 * @param IL10N               $l10n      Strings in the owner's language.
+	 * @param array<string,mixed> $session The projected session.
+	 * @param TimetableFeedOwner  $owner   The feed's owner and their language.
 	 *
 	 * @return array<int,string>
 	 */
-	private function notes(string $uid, array $session, bool $cancelled, IL10N $l10n): array {
+	private function notes(array $session, TimetableFeedOwner $owner): array {
+		$cancelled = $this->isCancelled(session: $session);
 		$lines = [];
 		if ($cancelled === true) {
-			$lines[] = $l10n->t('This lesson is cancelled.');
+			$lines[] = $owner->l10n->t('This lesson is cancelled.');
 		}
 
 		$substitute = (string)($session['substituteTeacherId'] ?? '');
 		if ($substitute !== '' && $cancelled === false) {
-			$lines[] = $this->substituteLine(uid: $uid, substitute: $substitute, l10n: $l10n);
+			$lines[] = $this->substituteLine(substitute: $substitute, owner: $owner);
 		}
 
-		// The substitute line already says it when the reader is the substitute.
-		if (($session['cover'] ?? false) === true && $substitute !== $uid) {
-			$lines[] = $l10n->t('You cover this lesson.');
-		}
-
-		$reason = $this->reason(kind: (string)($session['changeReasonKind'] ?? ''), l10n: $l10n);
-		if ($reason !== '' && ($cancelled === true || $substitute !== '')) {
-			$lines[] = $l10n->t('Reason: %s', [$reason]);
-		}
-
-		return $lines;
+		return array_merge($lines, $this->coverLines(session: $session, owner: $owner), $this->reasonLines(session: $session, owner: $owner));
 	}//end notes()
+
+	/**
+	 * The cover line of a lesson the owner covers, unless the substitute line already says it.
+	 *
+	 * @param array<string,mixed> $session The projected session.
+	 * @param TimetableFeedOwner  $owner   The feed's owner and their language.
+	 *
+	 * @return array<int,string>
+	 */
+	private function coverLines(array $session, TimetableFeedOwner $owner): array {
+		// The substitute line already says it when the reader is the substitute.
+		if (($session['cover'] ?? false) === true && (string)($session['substituteTeacherId'] ?? '') !== $owner->uid) {
+			return [$owner->l10n->t('You cover this lesson.')];
+		}
+
+		return [];
+	}//end coverLines()
+
+	/**
+	 * The reason line of a cancelled lesson or one with a substitute, when its kind has a label.
+	 *
+	 * @param array<string,mixed> $session The projected session.
+	 * @param TimetableFeedOwner  $owner   The feed's owner and their language.
+	 *
+	 * @return array<int,string>
+	 */
+	private function reasonLines(array $session, TimetableFeedOwner $owner): array {
+		$reason = $this->reason(kind: (string)($session['changeReasonKind'] ?? ''), l10n: $owner->l10n);
+		if ($reason !== '' && ($this->isCancelled(session: $session) === true || (string)($session['substituteTeacherId'] ?? '') !== '')) {
+			return [$owner->l10n->t('Reason: %s', [$reason])];
+		}
+
+		return [];
+	}//end reasonLines()
 
 	/**
 	 * The substitute line, with a name only when the policy allows it.
 	 *
-	 * @param string $uid        The feed's owner.
-	 * @param string $substitute The substitute's user id.
-	 * @param IL10N  $l10n       Strings in the owner's language.
+	 * @param string             $substitute The substitute's user id.
+	 * @param TimetableFeedOwner $owner      The feed's owner and their language.
 	 *
 	 * @return string
 	 */
-	private function substituteLine(string $uid, string $substitute, IL10N $l10n): string {
-		if ($substitute === $uid) {
-			return $l10n->t('You cover this lesson.');
+	private function substituteLine(string $substitute, TimetableFeedOwner $owner): string {
+		if ($substitute === $owner->uid) {
+			return $owner->l10n->t('You cover this lesson.');
 		}
 
-		if ($this->visibility->mayOpen(uid: $uid, kind: 'teacher', id: $substitute) === true) {
+		if ($this->visibility->mayOpen(uid: $owner->uid, kind: 'teacher', id: $substitute) === true) {
 			$name = $this->userManager->getDisplayName($substitute);
 			if ($name === null || trim($name) === '') {
 				$name = $substitute;
 			}
 
-			return $l10n->t('Substitute teacher: %s', [$name]);
+			return $owner->l10n->t('Substitute teacher: %s', [$name]);
 		}
 
-		return $l10n->t('A substitute teacher covers this lesson.');
+		return $owner->l10n->t('A substitute teacher covers this lesson.');
 	}//end substituteLine()
 
 	/**

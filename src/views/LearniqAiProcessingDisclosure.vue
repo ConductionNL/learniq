@@ -22,18 +22,27 @@
  unverifiable claim must never look like a green tick.
 
  @spec openspec/specs/ai-locality-guarantee/spec.md#requirement-the-system-shall-let-a-school-declare-an-ai-processing-locality-policy
+ EVERY SIGNED-IN USER READS THIS PAGE (ai-disclosure-for-every-user,
+ decision 399). Only an admin or compliance officer gets the edit mode: the
+ policy editor and the school's own text (introduction, contact, a note per
+ feature, kept as one AiDisclosureText object). Everybody else sees them
+ read-only, and the server refuses their writes anyway. The composed facts
+ (features, processing-activity fields, verdict badges) have no edit control
+ for anyone.
+
  @spec openspec/specs/ai-locality-guarantee/spec.md#requirement-the-system-shall-compose-an-ai-processing-disclosure-a-school-can-hand-to-its-dpo
+ @spec openspec/specs/ai-locality-guarantee/spec.md
 -->
 
 <template>
-	<div class="ai-processing-disclosure">
+	<div class="ai-processing-disclosure lq-board-page">
 		<NcLoadingIcon
 			v-if="loading"
 			:size="44"
 			class="ai-processing-disclosure__loading" />
 
 		<template v-else>
-			<h2>{{ t('learniq', 'AI processing disclosure') }}</h2>
+			<CnPageHeader :title="t('learniq', 'AI processing disclosure')" />
 			<p class="ai-processing-disclosure__intro">
 				{{
 					t(
@@ -43,9 +52,88 @@
 				}}
 			</p>
 
-			<!-- Sovereignty policy tier — editable. -->
-			<section class="ai-processing-disclosure__policy">
-				<h3>{{ t('learniq', 'Locality policy') }}</h3>
+			<!-- The school's own text: read by everyone, edited by admins. -->
+			<CnDetailCard
+				v-if="canEdit || text.introduction || text.contact"
+				:title="t('learniq', 'About AI at this school')"
+				class="ai-processing-disclosure__school-text">
+				<template v-if="!editingText">
+					<p v-if="text.introduction" class="ai-processing-disclosure__school-intro">
+						{{ text.introduction }}
+					</p>
+					<p v-if="text.contact" class="ai-processing-disclosure__contact">
+						{{ t('learniq', 'Questions? Contact: {contact}', { contact: text.contact }) }}
+					</p>
+					<p
+						v-if="canEdit && !text.introduction && !text.contact"
+						class="ai-processing-disclosure__meta">
+						{{ t('learniq', 'Add an introduction and a contact for questions, in the school\'s own words.') }}
+					</p>
+					<NcButton v-if="canEdit" @click="startEditingText">
+						{{ t('learniq', 'Edit the school\'s text') }}
+					</NcButton>
+				</template>
+
+				<template v-else>
+					<label
+						class="ai-processing-disclosure__field-label"
+						for="ai-disclosure-introduction">
+						{{ t('learniq', 'Introduction') }}
+					</label>
+					<textarea
+						id="ai-disclosure-introduction"
+						v-model="textForm.introduction"
+						class="ai-processing-disclosure__rationale" />
+
+					<label
+						class="ai-processing-disclosure__field-label"
+						for="ai-disclosure-contact">
+						{{ t('learniq', 'Contact for questions') }}
+					</label>
+					<input
+						id="ai-disclosure-contact"
+						v-model="textForm.contact"
+						type="text"
+						class="ai-processing-disclosure__contact-input">
+
+					<div
+						v-for="(note, slug) in textForm.featureNotes"
+						:key="slug">
+						<label
+							class="ai-processing-disclosure__field-label"
+							:for="`ai-disclosure-note-${slug}`">
+							{{ t('learniq', 'Explanation of {feature}', { feature: featureName(slug) }) }}
+						</label>
+						<textarea
+							:id="`ai-disclosure-note-${slug}`"
+							v-model="textForm.featureNotes[slug]"
+							class="ai-processing-disclosure__rationale" />
+					</div>
+
+					<div class="ai-processing-disclosure__actions">
+						<NcButton variant="primary" :disabled="savingText" @click="saveText">
+							{{ savingText ? t('learniq', 'Saving…') : t('learniq', 'Save text') }}
+						</NcButton>
+						<NcButton :disabled="savingText" @click="editingText = false">
+							{{ t('learniq', 'Cancel') }}
+						</NcButton>
+					</div>
+				</template>
+			</CnDetailCard>
+
+			<!-- Sovereignty policy tier — editable by admins, read by everyone. -->
+			<CnDetailCard
+				:title="t('learniq', 'Locality policy')"
+				class="ai-processing-disclosure__policy">
+				<template v-if="!canEdit">
+					<p class="ai-processing-disclosure__policy-tier">
+						{{ policyLabel(policy.policy) }}
+					</p>
+					<p v-if="policy.rationale" class="ai-processing-disclosure__meta">
+						{{ policy.rationale }}
+					</p>
+				</template>
+				<template v-else>
 				<NcSelect
 					v-model="policyForm.policy"
 					:options="policyOptions"
@@ -74,6 +162,7 @@
 							: t('learniq', 'Save policy')
 					}}
 				</NcButton>
+				</template>
 
 				<p v-if="policy.setAt" class="ai-processing-disclosure__meta">
 					{{
@@ -83,11 +172,12 @@
 						})
 					}}
 				</p>
-			</section>
+			</CnDetailCard>
 
 			<!-- Hermiq-governed AI features + locality verdicts. -->
-			<section class="ai-processing-disclosure__features">
-				<h3>{{ t('learniq', 'AI features') }}</h3>
+			<CnDetailCard
+				:title="t('learniq', 'AI features')"
+				class="ai-processing-disclosure__features">
 
 				<NcNoteCard v-if="!hermiqInstalled" type="warning">
 					{{
@@ -113,6 +203,7 @@
 							<th scope="col">{{ t('learniq', 'DPO state') }}</th>
 							<th scope="col">{{ t('learniq', 'Purpose (AVG)') }}</th>
 							<th scope="col">{{ t('learniq', 'Locality') }}</th>
+							<th scope="col">{{ t('learniq', 'Explanation') }}</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -136,19 +227,34 @@
 									{{ feature.evidence }}
 								</p>
 							</td>
+							<td>{{ featureNote(text, feature.slug) || '—' }}</td>
 						</tr>
 					</tbody>
 				</table>
-			</section>
+			</CnDetailCard>
 		</template>
 	</div>
 </template>
 
 <script>
-import { useObjectStore } from '@conduction/nextcloud-vue'
-import { getCurrentUser } from '@nextcloud/auth'
+import { CnDetailCard, CnPageHeader, useObjectStore } from '@conduction/nextcloud-vue'
+import { loadState } from '@nextcloud/initial-state'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcLoadingIcon, NcNoteCard, NcSelect } from '@nextcloud/vue'
+import {
+	canEditDisclosure,
+	disclosureTextForm,
+	disclosureTextFromRecord,
+	disclosureTextPayload,
+	featureNote,
+} from '../utils/aiDisclosureText.js'
+import {
+	firstRecord,
+	policyFormFrom,
+	policyFromRecord,
+	policyFromSaved,
+	policyPayload,
+} from '../utils/sovereigntyPolicy.js'
 
 const REGISTER = 'learniq'
 // The slug this schema declares in lib/Settings/learniq_register.json, verbatim.
@@ -158,11 +264,16 @@ const REGISTER = 'learniq'
 // ⚠️ Look the slug up; do not kebab-case by rule (AiFeature's slug is 'AiFeature').
 const POLICY_SCHEMA = 'sovereignty-policy'
 const POLICY_TYPE = `${REGISTER}-${POLICY_SCHEMA}`
+// The school's own disclosure text (ai-disclosure-for-every-user); slug as declared.
+const TEXT_SCHEMA = 'ai-disclosure-text'
+const TEXT_TYPE = `${REGISTER}-${TEXT_SCHEMA}`
 
 export default {
 	name: 'LearniqAiProcessingDisclosure',
 
 	components: {
+		CnDetailCard,
+		CnPageHeader,
 		NcButton,
 		NcLoadingIcon,
 		NcNoteCard,
@@ -184,6 +295,13 @@ export default {
 			},
 
 			policyForm: { policy: 'eu-hosted-allowed', rationale: '' },
+
+			// Edit mode for admin and compliance officer only (ai-disclosure-for-every-user).
+			canEdit: canEditDisclosure(loadState('learniq', 'primaryRole', 'learner')),
+			text: disclosureTextFromRecord(null),
+			textForm: { introduction: '', contact: '', featureNotes: {} },
+			editingText: false,
+			savingText: false,
 		}
 	},
 
@@ -216,11 +334,89 @@ export default {
 	 * @spec openspec/specs/ai-locality-guarantee/spec.md#requirement-the-system-shall-let-a-school-declare-an-ai-processing-locality-policy
 	 */
 	async mounted() {
-		await Promise.all([this.loadPolicy(), this.loadDisclosure()])
+		await Promise.all([this.loadPolicy(), this.loadDisclosure(), this.loadText()])
 		this.loading = false
 	},
 
 	methods: {
+		featureNote,
+
+		/**
+		 * Load the school's own disclosure text (the first AiDisclosureText, or
+		 * the empty text when none was written yet).
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/ai-locality-guarantee/spec.md
+		 */
+		async loadText() {
+			const store = useObjectStore()
+			if (typeof store.registerObjectType === 'function') {
+				store.registerObjectType(TEXT_TYPE, TEXT_SCHEMA, REGISTER)
+			}
+
+			const records = typeof store.fetchCollection === 'function'
+				? await store.fetchCollection(TEXT_TYPE, { _limit: 1 }).catch(() => [])
+				: []
+			this.text = disclosureTextFromRecord(firstRecord(records))
+		},
+
+		/**
+		 * Open the edit form for the school's text, with a field per listed feature.
+		 *
+		 * @return {void}
+		 */
+		startEditingText() {
+			this.textForm = disclosureTextForm(this.text, this.features)
+			this.editingText = true
+		},
+
+		/**
+		 * Save the school's text through OpenRegister's generic object endpoint;
+		 * the schema refuses the write for anyone but an admin or compliance officer.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/ai-locality-guarantee/spec.md
+		 */
+		async saveText() {
+			this.savingText = true
+			try {
+				const store = useObjectStore()
+				const payload = disclosureTextPayload(this.textForm, this.text.id)
+				const saved = typeof store.saveObject === 'function'
+					? await store.saveObject(TEXT_TYPE, payload)
+					: null
+				this.text = disclosureTextFromRecord(saved ? { ...payload, ...saved } : payload)
+				this.editingText = false
+			} catch (err) {
+				// eslint-disable-next-line no-console
+				console.error('[LearniqAiProcessingDisclosure] saveText error', err)
+			} finally {
+				this.savingText = false
+			}
+		},
+
+		/**
+		 * A feature's display name from the composed list, or its slug.
+		 *
+		 * @param {string} slug The feature slug.
+		 * @return {string} The name.
+		 */
+		featureName(slug) {
+			const feature = this.features.find((item) => item.slug === slug)
+			return (feature && feature.name) || slug
+		},
+
+		/**
+		 * The translated label of a policy tier, for the read-only view.
+		 *
+		 * @param {string} tier The tier value.
+		 * @return {string} The label.
+		 */
+		policyLabel(tier) {
+			const option = this.policyOptions.find((item) => item.value === tier)
+			return option ? option.label : tier
+		},
+
 		/**
 		 * Load the SovereigntyPolicy singleton (the first object, or the
 		 * schema default) into both the display and edit-form state.
@@ -230,39 +426,41 @@ export default {
 		 */
 		async loadPolicy() {
 			const store = useObjectStore()
+			this.registerPolicyType(store)
 
+			const existing = firstRecord(await this.fetchPolicies(store))
+			if (existing) {
+				this.policy = policyFromRecord(existing)
+			}
+
+			this.policyForm = policyFormFrom(this.policy)
+		},
+
+		/**
+		 * Register the SovereigntyPolicy object type when the store supports it.
+		 *
+		 * @param {object} store The object store.
+		 * @return {void}
+		 */
+		registerPolicyType(store) {
 			if (typeof store.registerObjectType === 'function') {
 				store.registerObjectType(POLICY_TYPE, POLICY_SCHEMA, REGISTER)
 			}
+		},
 
-			const results =
-				typeof store.fetchCollection === 'function'
-					? await store
-							.fetchCollection(POLICY_TYPE, { _limit: 1 })
-							.catch(() => [])
-					: []
-
-			const existing =
-				Array.isArray(results) && results.length > 0 ? results[0] : null
-
-			if (existing) {
-				this.policy = {
-					id:
-						existing.id
-						?? (existing['@self'] && existing['@self'].id)
-						?? null,
-
-					policy: existing.policy || 'eu-hosted-allowed',
-					rationale: existing.rationale || null,
-					setBy: existing.setBy || null,
-					setAt: existing.setAt || null,
-				}
-			}
-
-			this.policyForm = {
-				policy: this.policy.policy,
-				rationale: this.policy.rationale || '',
-			}
+		/**
+		 * Read at most one SovereigntyPolicy; an empty list when the store
+		 * cannot fetch or the read fails.
+		 *
+		 * @param {object} store The object store.
+		 * @return {Promise<Array>|Array} The records.
+		 */
+		fetchPolicies(store) {
+			return typeof store.fetchCollection === 'function'
+				? store
+					.fetchCollection(POLICY_TYPE, { _limit: 1 })
+					.catch(() => [])
+				: []
 		},
 
 		/**
@@ -309,32 +507,10 @@ export default {
 			this.saving = true
 			try {
 				const store = useObjectStore()
-				const currentUser = getCurrentUser()
 
-				const payload = {
-					policy: this.policyForm.policy,
-					rationale: this.policyForm.rationale || null,
-					setBy: currentUser ? currentUser.uid : null,
-					setAt: new Date().toISOString(),
-				}
-				if (this.policy.id) {
-					payload.id = this.policy.id
-				}
-
-				const saved =
-					typeof store.saveObject === 'function'
-						? await store.saveObject(POLICY_TYPE, payload)
-						: null
-
-				if (saved) {
-					this.policy = {
-						id: saved.id ?? this.policy.id,
-						policy: saved.policy || payload.policy,
-						rationale: saved.rationale ?? payload.rationale,
-						setBy: saved.setBy ?? payload.setBy,
-						setAt: saved.setAt ?? payload.setAt,
-					}
-				}
+				const payload = policyPayload(this.policyForm, this.policy.id)
+				const saved = await this.storePolicy(store, payload)
+				this.applySavedPolicy(saved, payload)
 
 				// Re-fetch the composed disclosure so every feature's
 				// policyCompliant verdict reflects the newly saved tier.
@@ -348,6 +524,37 @@ export default {
 			} finally {
 				this.saving = false
 			}
+		},
+
+		/**
+		 * Take a saved policy into the page state; nothing when the save
+		 * returned no record.
+		 *
+		 * @param {object|null} saved The saved record.
+		 * @param {object} payload The payload that was sent.
+		 * @return {void}
+		 */
+		applySavedPolicy(saved, payload) {
+			if (saved) {
+				this.policy = policyFromSaved(saved, {
+					id: this.policy.id,
+					policy: payload.policy,
+					rationale: payload.rationale,
+				})
+			}
+		},
+
+		/**
+		 * Save the policy payload when the store supports it.
+		 *
+		 * @param {object} store The object store.
+		 * @param {object} payload The policy payload.
+		 * @return {Promise<object|null>|null} The saved record.
+		 */
+		storePolicy(store, payload) {
+			return typeof store.saveObject === 'function'
+				? store.saveObject(POLICY_TYPE, payload)
+				: null
 		},
 
 		/**
@@ -390,8 +597,6 @@ export default {
 
 <style scoped lang="scss">
 .ai-processing-disclosure {
-	padding: calc(var(--default-grid-baseline, 4px) * 4);
-	max-width: 960px;
 
 	&__loading {
 		margin: calc(var(--default-grid-baseline, 4px) * 8) auto;
@@ -399,11 +604,6 @@ export default {
 
 	&__intro {
 		color: var(--color-text-maxcontrast);
-		margin-bottom: calc(var(--default-grid-baseline, 4px) * 4);
-	}
-
-	&__policy {
-		margin-bottom: calc(var(--default-grid-baseline, 4px) * 8);
 	}
 
 	&__field-label {
@@ -417,6 +617,28 @@ export default {
 		width: 100%;
 		min-height: 4em;
 		margin-bottom: calc(var(--default-grid-baseline, 4px) * 3);
+	}
+
+	&__school-intro {
+		white-space: pre-line;
+	}
+
+	&__contact {
+		font-weight: bold;
+	}
+
+	&__contact-input {
+		width: 100%;
+		margin-bottom: calc(var(--default-grid-baseline, 4px) * 3);
+	}
+
+	&__actions {
+		display: flex;
+		gap: calc(var(--default-grid-baseline, 4px) * 2);
+	}
+
+	&__policy-tier {
+		font-weight: bold;
 	}
 
 	&__meta {

@@ -3,6 +3,9 @@
 /**
  * Learniq MigrateAppConfigKeys Repair Step
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V.
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Rename-to-learniq boundary 4 (IAppConfig key migration): copies every
  * stored `IAppConfig` value from the old `scholiq` app-config namespace to
  * the new `learniq` namespace. Nextcloud's `IAppConfig` is namespaced by app
@@ -54,9 +57,6 @@
  *     raw stored string, regardless of which typed getter/setter wrote it —
  *     IAppConfig's storage layer is string-based; the typed accessors only
  *     coerce on read, so a string round-trip cannot lose or corrupt data.
- *
- * SPDX-License-Identifier: EUPL-1.2
- * SPDX-FileCopyrightText: 2026 Conduction B.V.
  *
  * @category Repair
  * @package  OCA\Learniq\Repair
@@ -159,47 +159,50 @@ class MigrateAppConfigKeys implements IRepairStep {
 			return;
 		}
 
-		$migrated = 0;
-		$alreadyPresent = 0;
-		$emptySource = 0;
-
-		$skippedReserved = 0;
-
+		$counts = array_fill_keys(['migrated', 'present', 'empty', 'reserved', 'failed'], 0);
 		foreach ($keys as $key) {
-			if (in_array($key, self::RESERVED_KEYS, strict: true) === true) {
-				$skippedReserved++;
-				continue;
-			}
-
-			$old = $this->appConfig->getValueString(self::OLD_APP_ID, $key, '');
-			if ($old === '') {
-				$emptySource++;
-				continue;
-			}
-
-			$existing = $this->appConfig->getValueString(self::NEW_APP_ID, $key, '');
-			if ($existing !== '') {
-				$alreadyPresent++;
-				continue;
-			}
-
-			try {
-				$this->appConfig->setValueString(self::NEW_APP_ID, $key, $old);
-				$migrated++;
-			} catch (\Throwable $e) {
-				$this->logger->warning(
-					'MigrateAppConfigKeys: could not migrate one key; leaving it under the old namespace.',
-					['key' => $key, 'exception' => $e->getMessage()]
-				);
-			}
-		}//end foreach
+			$counts[$this->migrateKey(key: $key)]++;
+		}
 
 		$output->info(
-			'MigrateAppConfigKeys: ' . $migrated . ' key(s) migrated, ' . $alreadyPresent
-			. ' already present, ' . $emptySource . ' had no value to migrate, '
-			. $skippedReserved . ' skipped as Nextcloud-reserved.'
+			'MigrateAppConfigKeys: ' . $counts['migrated'] . ' key(s) migrated, ' . $counts['present']
+			. ' already present, ' . $counts['empty'] . ' had no value to migrate, '
+			. $counts['reserved'] . ' skipped as Nextcloud-reserved.'
 		);
 	}//end run()
+
+	/**
+	 * Copy one key to the new namespace unless it is reserved, empty or already present there.
+	 *
+	 * @param string $key The config key.
+	 *
+	 * @return string What happened: migrated, present, empty, reserved or failed.
+	 */
+	private function migrateKey(string $key): string {
+		if (in_array($key, self::RESERVED_KEYS, strict: true) === true) {
+			return 'reserved';
+		}
+
+		$old = $this->appConfig->getValueString(self::OLD_APP_ID, $key, '');
+		if ($old === '') {
+			return 'empty';
+		}
+
+		if ($this->appConfig->getValueString(self::NEW_APP_ID, $key, '') !== '') {
+			return 'present';
+		}
+
+		try {
+			$this->appConfig->setValueString(self::NEW_APP_ID, $key, $old);
+			return 'migrated';
+		} catch (\Throwable $e) {
+			$this->logger->warning(
+				'MigrateAppConfigKeys: could not migrate one key; leaving it under the old namespace.',
+				['key' => $key, 'exception' => $e->getMessage()]
+			);
+			return 'failed';
+		}
+	}//end migrateKey()
 
 	/**
 	 * Every key currently stored under the old app-config namespace.

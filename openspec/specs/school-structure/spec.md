@@ -479,11 +479,11 @@ The system MUST persist `School` (BRIN, name, pedagogical concept) and `Location
 - **THEN** `locationId` resolves to `null` and the cohort's existing `programmeId`/`courseId`/`teacherIds`/`learnerIds` fields and lifecycle are unchanged
 
 ### Requirement: Frontend is declarative for School and Location
-`School` and `Location` MUST render as manifest-declared index+detail page pairs under the existing People domain (`src/manifest.d/people.json`), matching the Enrolment/Credential convention: a data widget, a related widget, and an audit-history sidebar tab. No custom Vue view and no PHP CRUD controller.
+`School` and `Location` MUST render as manifest-declared index+detail page pairs under "Leerlingen, Scholen" in the menu (declared in `src/manifest.d/people.json`), matching the Enrolment/Credential convention: a data widget, a related widget, and an audit-history sidebar tab. No custom Vue view and no PHP CRUD controller.
 
 #### Scenario: A coordinator opens a School's detail page
 - **GIVEN** the School/Location pages are configured
-- **WHEN** a coordinator navigates to People → Schools and opens a School
+- **WHEN** a coordinator goes to "Leerlingen, Scholen" and opens a School
 - **THEN** the detail page renders from the manifest (data + related widgets, audit tab), with no bespoke Vue component
 
 ### Requirement: Cohort carries free-text notes
@@ -516,9 +516,9 @@ The system MUST persist `School` (BRIN, name, pedagogical concept) and `Location
 `CohortDetail`'s header MUST show the cohort's own `name`, not the static page-type label. This is satisfied by the current `@conduction/nextcloud-vue` `CnDetailPage` component's `objectDisplayName`/`displayTitle` resolution (which prefers `obj.name` over the `title` prop) consuming `Cohort.name` (already a required property); no manifest change is needed.
 
 #### Scenario: A coordinator opens a cohort and sees its name in the header
-- **GIVEN** `CohortDetail` for a cohort named "Groep 5/6"
+- **GIVEN** `CohortDetail` for a cohort named "3HV-B"
 - **WHEN** the page renders and the object has loaded
-- **THEN** the header reads "Groep 5/6", not the literal string "Cohort"
+- **THEN** the header reads "3HV-B", not the literal string "Cohort"
 
 ### Requirement: A class x subject teacher join exists distinct from Cohort.teacherIds
 The system MUST persist `SubjectTeacherAssignment` (`cohortId`, `courseId`, `teacherId`) as an OpenRegister object, distinct from `Cohort.teacherIds`. `Cohort.teacherIds` names who teaches the cohort generally; `SubjectTeacherAssignment` names who teaches a specific subject (`Course`) within that cohort.
@@ -801,6 +801,54 @@ An index page whose schema holds a pupil's Nextcloud user id (`learnerId`, `lear
 - **GIVEN** a new index page on a schema with `learnerId` and no `columns`
 - **WHEN** the unit tests run
 - **THEN** they fail and name the page
+
+### Requirement: The school year starts on the day the school sets
+
+The school year SHALL start on the day in the app setting `school_year_start` (`MM-DD`), and on 1 August when the
+setting is missing or not a valid day. A date SHALL fall in the school year that started on the last such day on or
+before it; the year is written `YYYY-YYYY` after the calendar years it spans, and ends the day before the next start.
+
+#### Scenario: A school that starts in September
+
+- **GIVEN** `school_year_start` is `09-01`
+- **WHEN** the contact hours of 20 August 2027 are counted
+- **THEN** that day falls in school year 2026-2027, which runs from 1 September 2026 to 31 August 2027
+
+#### Scenario: No setting
+
+- **GIVEN** no `school_year_start`
+- **WHEN** a standby slot is planned on 21 October 2026 without validity dates
+- **THEN** it is valid from 1 August 2026 to 31 July 2027
+
+### Requirement: A new cohort gets its own Talk room automatically
+
+When a Cohort becomes active and has no Talk conversation linked, Learniq MUST create a Talk conversation named after the cohort and link it to the Cohort through OpenRegister's Talk link. The cohort's active members MUST be its participants, as the membership sync already does for a linked room. A cohort that already has a linked conversation MUST NOT get a second one. When Talk is not available, nothing MUST be created and the coordinator can link a room by hand later.
+
+#### Scenario: A coordinator activates a new cohort
+- **GIVEN** a Cohort "Verpleegkunde 2027" with no Talk conversation linked and Talk enabled
+- **WHEN** the cohort becomes active
+- **THEN** a Talk conversation named "Verpleegkunde 2027" exists and is linked to the cohort
+- **AND** the Cohort detail page shows it as the cohort's class space
+
+#### Scenario: A cohort that already has a room
+- **GIVEN** an active Cohort with a linked Talk conversation
+- **WHEN** the cohort is saved again
+- **THEN** no new conversation is created
+
+#### Scenario: Talk is not available
+- **GIVEN** Talk is not installed or not enabled
+- **WHEN** a cohort becomes active
+- **THEN** no conversation is created and the cohort saves normally
+
+### Requirement: A lesson is scheduled with a time, a room and a teacher
+
+A `Session` MUST carry its group, course, start and end time and a room. The group's teachers teach it, and a substitute teacher MAY be set through the `substitute-teacher` transition. A scheduled lesson MUST appear in the timetables of its group, its teachers and its room.
+
+#### Scenario: A planner schedules a lesson
+
+- **GIVEN** the group 3HV-B with teacher j.devries and the room A1.12
+- **WHEN** a planner schedules a lesson for 3HV-B on Tuesday 10:15 to 11:05 in A1.12
+- **THEN** the lesson is `scheduled` and shows in the timetables of 3HV-B, j.devries and A1.12
 
 ## Standards
 

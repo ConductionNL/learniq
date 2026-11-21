@@ -30,9 +30,10 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Portal\CallerOrganisations;
-use OCA\Learniq\Portal\EmployerPortalInvitation;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\CallerOrganisationsInterface;
+use OCA\Learniq\Kernel\Contracts\EmployerPortalInvitationInterface;
+use OCA\Learniq\Service\CallerGroups;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -60,24 +61,38 @@ class PortalEmployerInviteController extends Controller {
 	private const BAD_INPUT = ['email-invalid', 'organisation-missing', 'company-unknown'];
 
 	/**
+	 * The signed-in user.
+	 *
+	 * @var IUserSession
+	 */
+	private readonly IUserSession $userSession;
+
+	/**
+	 * Checks who may invite.
+	 *
+	 * @var IGroupManager
+	 */
+	private readonly IGroupManager $groups;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param IRequest                 $request       The request.
-	 * @param EmployerPortalInvitation $invitations   Provisions the account and writes its claims.
-	 * @param IUserSession             $userSession   The signed-in user.
-	 * @param IGroupManager            $groups        Checks who may invite.
-	 * @param CallerOrganisations      $organisations The organisations the caller belongs to.
+	 * @param EmployerPortalInvitationInterface $invitations   Provisions the account and writes its claims.
+	 * @param CallerGroups             $caller      The user session and the group manager.
+	 * @param CallerOrganisationsInterface      $organisations The organisations the caller belongs to.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		IRequest $request,
-		private readonly EmployerPortalInvitation $invitations,
-		private readonly IUserSession $userSession,
-		private readonly IGroupManager $groups,
-		private readonly CallerOrganisations $organisations,
+		private readonly EmployerPortalInvitationInterface $invitations,
+		CallerGroups $caller,
+		private readonly CallerOrganisationsInterface $organisations,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		$this->userSession = $caller->userSession;
+		$this->groups = $caller->groupManager;
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -93,16 +108,18 @@ class PortalEmployerInviteController extends Controller {
 	 */
 	#[NoAdminRequired]
 	public function invite(string $organisationRef, string $organisation='', string $email=''): JSONResponse {
-		if ($this->mayInvite() === false) {
+		$uid = $this->userSession->getUser()?->getUID();
+		if ($uid === null || $this->mayInvite(uid: $uid) === false) {
 			return new JSONResponse(['error' => 'forbidden'], Http::STATUS_FORBIDDEN);
 		}
 
 		// The portal organisation is the caller's own, never a free parameter.
-		if ($this->organisations->includes(slug: $organisation) === false) {
+		$tenant = $this->organisations->tenant(slug: $organisation);
+		if ($tenant === null) {
 			return new JSONResponse(['error' => 'organisation-not-yours'], Http::STATUS_FORBIDDEN);
 		}
 
-		$result = $this->invitations->invite(organisationRef: $organisationRef, organisation: $organisation, email: $email);
+		$result = $this->invitations->inviteAsCaller(organisationRef: $organisationRef, tenant: $tenant, email: $email);
 		if ($result['status'] === 'invited') {
 			return new JSONResponse($result);
 		}
@@ -118,14 +135,11 @@ class PortalEmployerInviteController extends Controller {
 	/**
 	 * Whether the signed-in user may invite an employer.
 	 *
+	 * @param string $uid The signed-in user.
+	 *
 	 * @return bool
 	 */
-	private function mayInvite(): bool {
-		$uid = $this->userSession->getUser()?->getUID();
-		if ($uid === null) {
-			return false;
-		}
-
+	private function mayInvite(string $uid): bool {
 		foreach (self::INVITE_GROUPS as $group) {
 			if ($this->groups->isInGroup($uid, $group) === true) {
 				return true;

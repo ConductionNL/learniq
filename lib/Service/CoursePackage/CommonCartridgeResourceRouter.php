@@ -38,71 +38,68 @@ use Psr\Log\LoggerInterface;
  */
 class CommonCartridgeResourceRouter {
 	/**
+	 * Creates the Learniq objects the package materialises.
+	 *
+	 * @var CoursePackageObjectWriter
+	 */
+	private readonly CoursePackageObjectWriter $objectWriter;
+
+	/**
+	 * Resolves package-relative file bytes into nc:files.
+	 *
+	 * @var CoursePackageFileWriter
+	 */
+	private readonly CoursePackageFileWriter $fileWriter;
+
+	/**
+	 * Builds the report entry rows.
+	 *
+	 * @var CoursePackageImportReporter
+	 */
+	private readonly CoursePackageImportReporter $reporter;
+
+	/**
 	 * Constructor.
 	 *
-	 * @param CoursePackageObjectWriter $objectWriter Creates the Learniq objects a resource materialises.
-	 * @param CoursePackageFileWriter $fileWriter Resolves package-relative file bytes into nc:files.
-	 * @param CoursePackageImportReporter $reporter Builds the report entry rows.
+	 * @param CoursePackageOutput $output The object writer, file writer and report entry builder.
 	 * @param PackageXmlValueReader $xmlReader Reads weblink side-car XML descriptors.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly CoursePackageObjectWriter $objectWriter,
-		private readonly CoursePackageFileWriter $fileWriter,
-		private readonly CoursePackageImportReporter $reporter,
+		CoursePackageOutput $output,
 		private readonly PackageXmlValueReader $xmlReader,
 		private readonly LoggerInterface $logger,
 	) {
+		$this->objectWriter = $output->objectWriter;
+		$this->fileWriter = $output->fileWriter;
+		$this->reporter = $output->reporter;
 	}//end __construct()
 
 	/**
-	 * Route one CC resource, appending exactly one report entry (for QTI
+	 * Route one CC resource and return its one report entry (for QTI
 	 * resources a `pending-qti` placeholder, resolved in bulk later by
 	 * `CommonCartridgeCourseImporter::importQtiResources()`).
 	 *
-	 * @param array<string, mixed> $resource One `CommonCartridgeParser` resource row.
-	 * @param string $dir Extracted package directory (for file resolution).
-	 * @param string|null $courseId Enclosing Course UUID, when known.
-	 * @param int|null $lessonOrder Manifest order, when this resource has an owning Lesson slot.
-	 * @param string|null $lessonTitle Lesson title, when this resource has an owning Lesson slot.
-	 * @param string $importedBy NC user id (nc:files owner for resolved Material bytes).
-	 * @param string $tenantId Tenant UUID.
-	 * @param array<int, array<string,mixed>> $entries Report entries accumulator (by reference).
+	 * @param ResourceSlot   $slot    The resource and its Course and Lesson slot.
+	 * @param PackageContext $package The extracted package, its importer and tenant.
 	 *
-	 * @return void
+	 * @return array<string, mixed> The report entry for this resource.
 	 *
 	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#fidelity--loss-table
 	 */
-	public function routeResource(
-		array $resource,
-		string $dir,
-		?string $courseId,
-		?int $lessonOrder,
-		?string $lessonTitle,
-		string $importedBy,
-		string $tenantId,
-		array &$entries,
-	): void {
+	public function routeResource(ResourceSlot $slot, PackageContext $package): array {
+		$resource = $slot->resource;
 		if (str_contains(strtolower($resource['type']), 'scorm') === true) {
-			$entries[] = $this->droppedEntry(
+			return $this->droppedEntry(
 				resource: $resource,
 				reason: "requires ADR-002's lesson-content importer, not yet implemented"
 			);
-			return;
 		}
 
 		try {
-			$entries[] = $this->buildResourceEntry(
-				resource: $resource,
-				dir: $dir,
-				courseId: $courseId,
-				lessonOrder: $lessonOrder,
-				lessonTitle: $lessonTitle,
-				importedBy: $importedBy,
-				tenantId: $tenantId,
-			);
+			return $this->buildResourceEntry(slot: $slot, package: $package);
 		} catch (\Throwable $e) {
 			// A per-resource failure never aborts the whole import — it becomes a
 			// dropped entry so the report still names every resource (never a
@@ -111,56 +108,30 @@ class CommonCartridgeResourceRouter {
 				'[CommonCartridgeResourceRouter] Resource {id} failed to import: {msg}',
 				['id' => $resource['identifier'], 'msg' => $e->getMessage()]
 			);
-			$entries[] = $this->droppedEntry(resource: $resource, reason: 'Import failed: ' . $e->getMessage());
+			return $this->droppedEntry(resource: $resource, reason: 'Import failed: ' . $e->getMessage());
 		}//end try
 	}//end routeResource()
 
 	/**
 	 * Materialise one resource by its manifest classification and return its report entry.
 	 *
-	 * @param array<string, mixed> $resource One `CommonCartridgeParser` resource row.
-	 * @param string $dir Extracted package directory.
-	 * @param string|null $courseId Enclosing Course UUID, when known.
-	 * @param int|null $lessonOrder Manifest order, when this resource has an owning Lesson slot.
-	 * @param string|null $lessonTitle Lesson title, when this resource has an owning Lesson slot.
-	 * @param string $importedBy NC user id (nc:files owner for resolved Material bytes).
-	 * @param string $tenantId Tenant UUID.
+	 * @param ResourceSlot   $slot    The resource and its Course and Lesson slot.
+	 * @param PackageContext $package The extracted package, its importer and tenant.
 	 *
 	 * @return array<string, mixed> The report entry for this resource.
 	 *
 	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#fidelity--loss-table
 	 */
-	private function buildResourceEntry(
-		array $resource,
-		string $dir,
-		?string $courseId,
-		?int $lessonOrder,
-		?string $lessonTitle,
-		string $importedBy,
-		string $tenantId,
-	): array {
+	private function buildResourceEntry(ResourceSlot $slot, PackageContext $package): array {
+		$resource = $slot->resource;
 		$classification = $resource['classification'];
 
 		if ($classification === 'webcontent') {
-			return $this->importWebContent(
-				resource: $resource,
-				dir: $dir,
-				courseId: $courseId,
-				lessonOrder: $lessonOrder,
-				lessonTitle: $lessonTitle,
-				importedBy: $importedBy,
-				tenantId: $tenantId,
-			);
+			return $this->importWebContent(slot: $slot, package: $package);
 		}
 
 		if ($classification === 'weblink') {
-			return $this->importWebLink(
-				resource: $resource,
-				dir: $dir,
-				courseId: $courseId,
-				lessonTitle: $lessonTitle,
-				tenantId: $tenantId,
-			);
+			return $this->importWebLink(slot: $slot, package: $package);
 		}
 
 		if ($classification === 'imsqti_item' || $classification === 'imsqti_test') {
@@ -168,7 +139,7 @@ class CommonCartridgeResourceRouter {
 		}
 
 		if ($classification === 'basiclti') {
-			return $this->importBasicLti(resource: $resource, courseId: $courseId, tenantId: $tenantId);
+			return $this->importBasicLti(resource: $resource, courseId: $slot->courseId, tenantId: $package->tenantId);
 		}
 
 		if ($classification === 'discussion') {
@@ -200,96 +171,114 @@ class CommonCartridgeResourceRouter {
 			resourceIdentifier: $resource['identifier'],
 			resourceType: $resource['type'],
 			title: $resource['title'],
-			outcome: 'pending-qti',
-			targetType: null,
-			targetId: null,
-			reason: null,
+			result: ['outcome' => 'pending-qti', 'targetType' => null, 'targetId' => null, 'reason' => null]
 		);
 	}//end pendingQtiEntry()
 
 	/**
 	 * Materialise a `webcontent` resource as a Material plus its owning Lesson.
 	 *
-	 * @param array<string, mixed> $resource One `CommonCartridgeParser` resource row.
-	 * @param string $dir Extracted package directory.
-	 * @param string|null $courseId Enclosing Course UUID, when known.
-	 * @param int|null $lessonOrder Manifest order, when this resource has an owning Lesson slot.
-	 * @param string|null $lessonTitle Lesson title, when this resource has an owning Lesson slot.
-	 * @param string $importedBy NC user id (nc:files owner for resolved Material bytes).
-	 * @param string $tenantId Tenant UUID.
+	 * @param ResourceSlot   $slot    The resource and its Course and Lesson slot.
+	 * @param PackageContext $package The extracted package, its importer and tenant.
 	 *
 	 * @return array<string, mixed> The report entry for this resource.
 	 *
 	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#fidelity--loss-table
 	 */
-	private function importWebContent(
-		array $resource,
-		string $dir,
-		?string $courseId,
-		?int $lessonOrder,
-		?string $lessonTitle,
-		string $importedBy,
-		string $tenantId,
-	): array {
+	private function importWebContent(ResourceSlot $slot, PackageContext $package): array {
+		$resource = $slot->resource;
 		$materialId = $this->objectWriter->createMaterial(
-			title: $lessonTitle ?? $resource['title'],
-			kind: 'document',
-			fileRef: $this->fileWriter->resolveFileRef(dir: $dir, href: $resource['href'], importedBy: $importedBy, tenantId: $tenantId),
-			url: null,
-			courseId: $courseId,
-			tenantId: $tenantId,
+			material: [
+				'title' => $slot->lessonTitle ?? $resource['title'],
+				'kind' => 'document',
+				'fileRef' => $this->fileWriter->resolveFileRef(
+				dir: $package->dir,
+				href: $resource['href'],
+				importedBy: $package->importedBy,
+				tenantId: $package->tenantId
+			),
+				'url' => null,
+				'courseId' => $slot->courseId,
+			],
+			tenantId: $package->tenantId
 		);
-		$this->objectWriter->createLesson(
-			courseId: $courseId,
-			title: $lessonTitle ?? $resource['title'],
-			order: $lessonOrder ?? 0,
-			contentType: 'text',
-			contentRef: (string)$materialId,
-			tenantId: $tenantId
-		);
+		try {
+			$this->objectWriter->createLesson(
+				lesson: [
+					'courseId' => $slot->courseId,
+					'title' => $slot->lessonTitle ?? $resource['title'],
+					'order' => $slot->lessonOrder ?? 0,
+					'contentType' => 'text',
+					'contentRef' => (string)$materialId,
+				],
+				tenantId: $package->tenantId
+			);
+		} catch (\Throwable $e) {
+			// The resource is reported dropped, so its Material must not stay behind.
+			$this->discardMaterial(materialId: $materialId);
+			throw $e;
+		}
 
 		return $this->reporter->entry(
 			resourceIdentifier: $resource['identifier'],
 			resourceType: $resource['type'],
 			title: $resource['title'],
-			outcome: 'imported',
-			targetType: 'material',
-			targetId: $materialId,
-			reason: null,
+			result: ['outcome' => 'imported', 'targetType' => 'material', 'targetId' => $materialId, 'reason' => null]
 		);
 	}//end importWebContent()
 
 	/**
+	 * Remove a Material whose Lesson could not be created; a failed removal is logged.
+	 *
+	 * @param string|null $materialId The created Material UUID.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#fidelity--loss-table
+	 */
+	private function discardMaterial(?string $materialId): void {
+		if ($materialId === null) {
+			return;
+		}
+
+		try {
+			$this->objectWriter->delete(schema: 'material', uuid: $materialId);
+		} catch (\Throwable $e) {
+			$this->logger->warning(
+				'[CommonCartridgeResourceRouter] Material {id} of a dropped resource could not be removed: {msg}',
+				['id' => $materialId, 'msg' => $e->getMessage()]
+			);
+		}
+	}//end discardMaterial()
+
+	/**
 	 * Materialise a `weblink` resource as a `link`-kind Material.
 	 *
-	 * @param array<string, mixed> $resource One `CommonCartridgeParser` resource row.
-	 * @param string $dir Extracted package directory.
-	 * @param string|null $courseId Enclosing Course UUID, when known.
-	 * @param string|null $lessonTitle Lesson title, when this resource has an owning Lesson slot.
-	 * @param string $tenantId Tenant UUID.
+	 * @param ResourceSlot   $slot    The resource and its Course and Lesson slot.
+	 * @param PackageContext $package The extracted package, its importer and tenant.
 	 *
 	 * @return array<string, mixed> The report entry for this resource.
 	 *
 	 * @spec openspec/changes/archive/2026-07-16-course-package-import-export/design.md#fidelity--loss-table
 	 */
-	private function importWebLink(array $resource, string $dir, ?string $courseId, ?string $lessonTitle, string $tenantId): array {
+	private function importWebLink(ResourceSlot $slot, PackageContext $package): array {
+		$resource = $slot->resource;
 		$materialId = $this->objectWriter->createMaterial(
-			title: $lessonTitle ?? $resource['title'],
-			kind: 'link',
-			fileRef: null,
-			url: $this->resolveWeblinkUrl(dir: $dir, href: $resource['href']),
-			courseId: $courseId,
-			tenantId: $tenantId,
+			material: [
+				'title' => $slot->lessonTitle ?? $resource['title'],
+				'kind' => 'link',
+				'fileRef' => null,
+				'url' => $this->resolveWeblinkUrl(dir: $package->dir, href: $resource['href']),
+				'courseId' => $slot->courseId,
+			],
+			tenantId: $package->tenantId
 		);
 
 		return $this->reporter->entry(
 			resourceIdentifier: $resource['identifier'],
 			resourceType: $resource['type'],
 			title: $resource['title'],
-			outcome: 'imported',
-			targetType: 'material',
-			targetId: $materialId,
-			reason: null,
+			result: ['outcome' => 'imported', 'targetType' => 'material', 'targetId' => $materialId, 'reason' => null]
 		);
 	}//end importWebLink()
 
@@ -311,11 +300,13 @@ class CommonCartridgeResourceRouter {
 			resourceIdentifier: $resource['identifier'],
 			resourceType: $resource['type'],
 			title: $resource['title'],
-			outcome: 'degraded',
-			targetType: 'lti-tool-placement',
-			targetId: $placementId,
-			reason: 'LTI placement created without a configured OpenConnector deployment; '
+			result: [
+				'outcome' => 'degraded',
+				'targetType' => 'lti-tool-placement',
+				'targetId' => $placementId,
+				'reason' => 'LTI placement created without a configured OpenConnector deployment; '
 				. 'an admin must bind a deployment before this tool can be launched.',
+			]
 		);
 	}//end importBasicLti()
 
@@ -334,10 +325,7 @@ class CommonCartridgeResourceRouter {
 			resourceIdentifier: $resource['identifier'],
 			resourceType: $resource['type'],
 			title: $resource['title'],
-			outcome: 'dropped',
-			targetType: null,
-			targetId: null,
-			reason: $reason,
+			result: ['outcome' => 'dropped', 'targetType' => null, 'targetId' => null, 'reason' => $reason]
 		);
 	}//end droppedEntry()
 

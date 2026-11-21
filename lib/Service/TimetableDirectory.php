@@ -32,7 +32,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
-use OCA\Learniq\Timetabling\Source\TimetableSourceResolver;
+use OCA\Learniq\Kernel\Contracts\TimetableDirectoryInterface;
+use OCA\Learniq\Kernel\Contracts\TimetableSourceResolverInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use RuntimeException;
 
@@ -41,7 +42,7 @@ use RuntimeException;
  *
  * @spec openspec/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
  */
-class TimetableDirectory {
+class TimetableDirectory implements TimetableDirectoryInterface {
 
 	private const REGISTER = 'learniq';
 
@@ -49,13 +50,13 @@ class TimetableDirectory {
 	 * Constructor.
 	 *
 	 * @param ObjectService           $objectService OpenRegister object access.
-	 * @param TimetableSourceResolver $sources       Where lessons are read from.
+	 * @param TimetableSourceResolverInterface $sources       Where lessons are read from.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly TimetableSourceResolver $sources,
+		private readonly TimetableSourceResolverInterface $sources,
 	) {
 	}//end __construct()
 
@@ -121,40 +122,93 @@ class TimetableDirectory {
 	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
 	 */
 	public function lessonsOf(string $kind, string $id, string $from, string $to): array {
-		$source = $this->sources->current();
 		if ($kind === 'cohort') {
-			return ['sessions' => $source->sessionsForCohorts(cohortIds: [$id], from: $from, to: $to), 'source' => $source->name()];
+			return $this->cohortLessons(id: $id, window: [$from, $to]);
 		}
 
-		$cohorts = $this->cohorts();
 		if ($kind === 'teacher') {
-			$taught = [];
-			foreach ($cohorts as $cohort) {
-				if (in_array($id, (array)($cohort['teacherIds'] ?? []), true) === true) {
-					$taught[] = $this->idOf(row: $cohort);
-				}
-			}
-
-			$sessions = array_merge(
-				$source->sessionsForCohorts(cohortIds: $taught, from: $from, to: $to),
-				$source->sessionsForTeacher(userId: $id, from: $from, to: $to)
-			);
-			return ['sessions' => $this->uniqueById(sessions: $sessions), 'source' => $source->name()];
+			return $this->teacherLessons(id: $id, window: [$from, $to]);
 		}
 
-		$code = (string)($this->roomCodes()[$id] ?? '');
-		$sessions = [];
-		$cohortIds = array_map(fn (array $c): string => $this->idOf(row: $c), $cohorts);
-		foreach ($source->sessionsForCohorts(cohortIds: $cohortIds, from: $from, to: $to) as $session) {
-			$inRoom = (string)($session['roomId'] ?? '') === $id
-				|| ($code !== '' && (string)($session['roomReference'] ?? '') === $code);
-			if ($inRoom === true) {
-				$sessions[] = $session;
-			}
-		}
-
-		return ['sessions' => $sessions, 'source' => $source->name()];
+		return $this->roomLessons(id: $id, window: [$from, $to]);
 	}//end lessonsOf()
+
+	/**
+	 * The lessons of one cohort in a window.
+	 *
+	 * @param string                   $id     The cohort id.
+	 * @param array{0:string,1:string} $window Window start and end, ISO 8601.
+	 *
+	 * @return array{sessions:array<int,array<string,mixed>>,source:string}
+	 *
+	 * @throws RuntimeException When the timetable source does not answer.
+	 */
+	private function cohortLessons(string $id, array $window): array {
+		$source = $this->sources->current();
+		return ['sessions' => $source->sessionsForCohorts(cohortIds: [$id], from: $window[0], to: $window[1]), 'source' => $source->name()];
+	}//end cohortLessons()
+
+	/**
+	 * The lessons of the cohorts a teacher teaches and the lessons the teacher covers, each once.
+	 *
+	 * @param string                   $id     The teacher's user id.
+	 * @param array{0:string,1:string} $window Window start and end, ISO 8601.
+	 *
+	 * @return array{sessions:array<int,array<string,mixed>>,source:string}
+	 *
+	 * @throws RuntimeException When the timetable source does not answer.
+	 */
+	private function teacherLessons(string $id, array $window): array {
+		$source = $this->sources->current();
+		$taught = [];
+		foreach ($this->cohorts() as $cohort) {
+			if (in_array($id, (array)($cohort['teacherIds'] ?? []), true) === true) {
+				$taught[] = $this->idOf(row: $cohort);
+			}
+		}
+
+		$sessions = array_merge(
+			$source->sessionsForCohorts(cohortIds: $taught, from: $window[0], to: $window[1]),
+			$source->sessionsForTeacher(userId: $id, from: $window[0], to: $window[1])
+		);
+		return ['sessions' => $this->uniqueById(sessions: $sessions), 'source' => $source->name()];
+	}//end teacherLessons()
+
+	/**
+	 * The lessons of every cohort that take place in a room, by its id or its code.
+	 *
+	 * @param string                   $id     The room id.
+	 * @param array{0:string,1:string} $window Window start and end, ISO 8601.
+	 *
+	 * @return array{sessions:array<int,array<string,mixed>>,source:string}
+	 *
+	 * @throws RuntimeException When the timetable source does not answer.
+	 */
+	private function roomLessons(string $id, array $window): array {
+		$source = $this->sources->current();
+		$cohorts = $this->cohorts();
+		$room = ['id' => $id, 'code' => (string)($this->roomCodes()[$id] ?? '')];
+		$cohortIds = array_map(fn (array $c): string => $this->idOf(row: $c), $cohorts);
+		$sessions = array_filter(
+			$source->sessionsForCohorts(cohortIds: $cohortIds, from: $window[0], to: $window[1]),
+			fn (array $session): bool => $this->inRoom(session: $session, room: $room)
+		);
+
+		return ['sessions' => array_values($sessions), 'source' => $source->name()];
+	}//end roomLessons()
+
+	/**
+	 * Whether a lesson takes place in the room: by its room id, or by the room's code when it has one.
+	 *
+	 * @param array<string,mixed>         $session The lesson.
+	 * @param array{id:string,code:string} $room    The room id and code.
+	 *
+	 * @return bool
+	 */
+	private function inRoom(array $session, array $room): bool {
+		return (string)($session['roomId'] ?? '') === $room['id']
+			|| ($room['code'] !== '' && (string)($session['roomReference'] ?? '') === $room['code']);
+	}//end inRoom()
 
 	/**
 	 * Room code by room id.
@@ -229,11 +283,7 @@ class TimetableDirectory {
 		$byCode = array_flip(array_filter($this->roomCodes()));
 		$rooms = [];
 		foreach ($sessions as $session) {
-			$roomId = (string)($session['roomId'] ?? '');
-			if ($roomId === '') {
-				$roomId = (string)($byCode[(string)($session['roomReference'] ?? '')] ?? '');
-			}
-
+			$roomId = $this->roomIdOf(session: $session, byCode: $byCode);
 			if ($roomId !== '') {
 				$rooms[$roomId] = true;
 			}
@@ -241,6 +291,23 @@ class TimetableDirectory {
 
 		return array_keys($rooms);
 	}//end roomsOfCohorts()
+
+	/**
+	 * The room of a lesson: its room id, or the room whose code it names.
+	 *
+	 * @param array<string,mixed>      $session The lesson.
+	 * @param array<string,int|string> $byCode  Room id by code.
+	 *
+	 * @return string The room id, or ''.
+	 */
+	private function roomIdOf(array $session, array $byCode): string {
+		$roomId = (string)($session['roomId'] ?? '');
+		if ($roomId === '') {
+			return (string)($byCode[(string)($session['roomReference'] ?? '')] ?? '');
+		}
+
+		return $roomId;
+	}//end roomIdOf()
 
 	/**
 	 * Every cohort or room with its name, or every teacher of a cohort (keyed by user id).

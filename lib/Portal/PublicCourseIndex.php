@@ -82,18 +82,12 @@ class PublicCourseIndex {
 	 * @spec openspec/changes/portal-public-index/specs/portal-contribution/spec.md#requirement-a-school-offers-its-portal-an-index-of-its-public-courses-programmes-and-school-days
 	 */
 	public function items(string $namespace, string $today): array {
-		$offered = [];
-		foreach ($this->reads->rows(schema: 'course', namespace: $namespace) as $course) {
-			if ($this->isOffered(course: $course) === true) {
-				$offered[$this->reads->idOf(row: $course)] = $course;
-			}
-		}
-
+		$offered = $this->offeredCourses(namespace: $namespace);
 		if ($offered === []) {
 			return [];
 		}
 
-		$runs = $this->runsOf(courseIds: array_keys($offered), namespace: $namespace, today: $today);
+		$runs = $this->runsOf(courseIds: array_keys($offered), args: ['namespace' => $namespace, 'today' => $today]);
 		$out  = [];
 		foreach ($offered as $id => $course) {
 			if (isset($runs[$id]) === true) {
@@ -103,6 +97,24 @@ class PublicCourseIndex {
 
 		return $out;
 	}//end items()
+
+	/**
+	 * The courses of the namespace offered to the public, by id.
+	 *
+	 * @param string $namespace The uuid namespace, '' for all.
+	 *
+	 * @return array<string, array<string, mixed>>
+	 */
+	private function offeredCourses(string $namespace): array {
+		$offered = [];
+		foreach ($this->reads->rows(schema: 'course', namespace: $namespace) as $course) {
+			if ($this->isOffered(course: $course) === true) {
+				$offered[$this->reads->idOf(row: $course)] = $course;
+			}
+		}
+
+		return $offered;
+	}//end offeredCourses()
 
 	/**
 	 * Whether a course is offered to the public: published, and a training
@@ -127,12 +139,14 @@ class PublicCourseIndex {
 	 * `{days, place}` per cohort with a lesson day to come.
 	 *
 	 * @param array<int, int|string> $courseIds The offered courses.
-	 * @param string                 $namespace The uuid namespace.
-	 * @param string                 $today     Today.
+	 * @param array{namespace: string, today: string} $args The namespace, today.
 	 *
 	 * @return array<string, array<int, array{days: array<int, string>, place: string}>>
 	 */
-	private function runsOf(array $courseIds, string $namespace, string $today): array {
+	private function runsOf(array $courseIds, array $args): array {
+		$namespace = $args['namespace'];
+		$today = $args['today'];
+
 		$places = [];
 		foreach ($this->reads->rows(schema: 'vestiging', namespace: $namespace) as $place) {
 			$places[$this->reads->idOf(row: $place)] = (string)($place['name'] ?? '');
@@ -281,14 +295,7 @@ class PublicCourseIndex {
 	 * @return string
 	 */
 	private function weekdays(array $days): string {
-		$names = [];
-		foreach ($days as $day) {
-			$name = (self::WEEKDAYS[(int)date('N', (int)strtotime($day . ' 12:00:00')) - 1] ?? '');
-			if ($name !== '' && in_array($name, $names, true) === false) {
-				$names[] = $name;
-			}
-		}
-
+		$names = $this->weekdayNames(days: $days);
 		if ($names === []) {
 			return '';
 		}
@@ -301,6 +308,25 @@ class PublicCourseIndex {
 
 		return ucfirst($line);
 	}//end weekdays()
+
+	/**
+	 * The distinct weekday names of the days, in order of first appearance.
+	 *
+	 * @param array<int, string> $days The days, `YYYY-MM-DD`.
+	 *
+	 * @return array<int, string>
+	 */
+	private function weekdayNames(array $days): array {
+		$names = [];
+		foreach ($days as $day) {
+			$name = (self::WEEKDAYS[(int)date('N', (int)strtotime($day . ' 12:00:00')) - 1] ?? '');
+			if ($name !== '' && in_array($name, $names, true) === false) {
+				$names[] = $name;
+			}
+		}
+
+		return $names;
+	}//end weekdayNames()
 
 	/**
 	 * The kind of course from its tags: a certificate or exam course, a basic

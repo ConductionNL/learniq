@@ -3,6 +3,9 @@
 /**
  * Learniq Move Teacher Notes Out Of Lessons
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Every signed-in user reads a Lesson (teacher-notes-protection), so a
  * `teacherNote` block inside Lesson.blocks was readable by learners through
  * the objects API, however well the lesson player hid it. Notes now live in
@@ -29,8 +32,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -43,6 +44,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Repair;
 
 use OCA\Learniq\Service\LessonOnboarding\TeacherNoteSplitter;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Migration\IOutput;
 use OCP\Migration\IRepairStep;
@@ -143,7 +146,7 @@ class MoveTeacherNotesOutOfLessons implements IRepairStep {
 		}
 
 		$split   = $this->splitter->split(blocks: $blocks);
-		$created = $this->createMissingNotes(lessonId: $uuid, tenantId: (string)($lesson['tenant_id'] ?? ''), notes: $split['notes']);
+		$created = $this->createMissingNotes(lessonId: $uuid, args: ['tenantId' => (string)($lesson['tenant_id'] ?? ''), 'notes' => $split['notes']]);
 		if ($created === null) {
 			$counts['left']++;
 			return;
@@ -152,9 +155,10 @@ class MoveTeacherNotesOutOfLessons implements IRepairStep {
 		try {
 			$this->objectService->saveObject(
 				object: array_merge($this->dataOf(row: $lesson), ['blocks' => $split['blocks']]),
-				register: self::REGISTER,
-				schema: self::LESSON_SCHEMA,
-				uuid: $uuid,
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::REGISTER, schema: self::LESSON_SCHEMA),
+					uuid: $uuid
+				),
 				_rbac: false,
 				_multitenancy: false
 			);
@@ -175,12 +179,14 @@ class MoveTeacherNotesOutOfLessons implements IRepairStep {
 	 * Create the notes the store does not have yet, by `blockId`.
 	 *
 	 * @param string                                                                            $lessonId The lesson.
-	 * @param string                                                                            $tenantId The lesson's tenant.
-	 * @param list<array{blockId: string, afterBlockId: string, position: int, text: string}> $notes    The split notes.
+	 * @param array{tenantId: string, notes: list<array{blockId: string, afterBlockId: string, position: int, text: string}>} $args The tenantId, notes.
 	 *
 	 * @return int|null How many were created, or null when one failed (the lesson must keep its notes).
 	 */
-	private function createMissingNotes(string $lessonId, string $tenantId, array $notes): ?int {
+	private function createMissingNotes(string $lessonId, array $args): ?int {
+		$tenantId = $args['tenantId'];
+		$notes = $args['notes'];
+
 		try {
 			$existing = [];
 			foreach ($this->rows(schema: self::NOTE_SCHEMA, filters: ['lessonId' => $lessonId], offset: 0) as $note) {
@@ -195,8 +201,7 @@ class MoveTeacherNotesOutOfLessons implements IRepairStep {
 
 				$this->objectService->saveObject(
 					object: [...$note, 'lessonId' => $lessonId, 'tenant_id' => $tenantId],
-					register: self::REGISTER,
-					schema: self::NOTE_SCHEMA,
+					options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: self::NOTE_SCHEMA)),
 					_rbac: false,
 					_multitenancy: false
 				);

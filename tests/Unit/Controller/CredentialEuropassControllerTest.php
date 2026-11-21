@@ -37,6 +37,8 @@ use OCP\IRequest;
 use OCP\IUser;
 use OCP\IUserSession;
 use PHPUnit\Framework\TestCase;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Who may download, and the one-time backfill.
@@ -79,7 +81,11 @@ class CredentialEuropassControllerTest extends TestCase {
 		];
 		$objects = $this->createMock(ObjectService::class);
 		$objects->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null): ObjectEntity {
+			function (int|string $id, ?ObjectFindOptions $options = null): ObjectEntity {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				if ($schema === 'course' && $id === 'c-1') {
 					return OrEntityFactory::make(['id' => 'c-1', 'code' => 'MDB 2026'], 'course');
 				}
@@ -96,7 +102,11 @@ class CredentialEuropassControllerTest extends TestCase {
 			}
 		);
 		$objects->method('saveObject')->willReturnCallback(
-			function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null): ObjectEntity {
+			function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()): ObjectEntity {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
+				$uuid = $options->uuid;
 				$this->saves[] = ['uuid' => $uuid, 'object' => $object];
 				return OrEntityFactory::make($object, (string)$schema);
 			}
@@ -138,6 +148,39 @@ class CredentialEuropassControllerTest extends TestCase {
 		self::assertSame('urn:uuid:cred-1', json_decode($response->render(), true)['id']);
 		self::assertInstanceOf(DataDownloadResponse::class, $this->controller(userId: 'hr-1', groups: ['hr'])->download(id: 'cred-1'));
 	}//end testTheLearnerAndStaffDownload()
+
+	/**
+	 * Without a session the download is unauthorized; an unknown credential
+	 * is not found; a credential without a known course is named after the
+	 * credential and its date only.
+	 *
+	 * @return void
+	 */
+	public function testEveryOtherDownloadOutcome(): void {
+		$controller = $this->controller(userId: 'p.ganpat');
+		$noSession = $this->createMock(IUserSession::class);
+		$noSession->method('getUser')->willReturn(null);
+		$anonymous = new CredentialEuropassController(
+			request: $this->createMock(IRequest::class),
+			userSession: $noSession,
+			groupManager: $this->createMock(IGroupManager::class),
+			objects: $this->createMock(ObjectService::class),
+			europass: $this->createMock(EuropassIssuer::class),
+			learners: new CredentialLearner(profiles: new LearnerRefResolver(objectService: $this->createMock(ObjectService::class)))
+		);
+
+		$unauthorized = $anonymous->download(id: 'cred-1');
+		self::assertSame([401, ['error' => 'unauthorized']], [$unauthorized->getStatus(), $unauthorized->getData()]);
+		$missing = $controller->download(id: 'no-such-credential');
+		self::assertSame([404, ['error' => 'not_found']], [$missing->getStatus(), $missing->getData()]);
+
+		$controller = $this->controller(userId: 'hr-1', groups: ['hr']);
+		$this->credentials['cred-1'] = ['id' => 'cred-1', 'learnerUserId' => 'p.ganpat', 'courseId' => 'c-gone', 'issuedAt' => '', 'edciPayload' => ['id' => 'urn:uuid:x/ü']];
+		$response = $controller->download(id: 'cred-1');
+		$headers = (new \ReflectionProperty(\OCP\AppFramework\Http\Response::class, 'headers'))->getValue($response);
+		self::assertStringContainsString('europass-credential.jsonld', $headers['Content-Disposition']);
+		self::assertSame("{\n    \"id\": \"urn:uuid:x/ü\"\n}", $response->render());
+	}//end testEveryOtherDownloadOutcome()
 
 	/**
 	 * A learner downloads their own credential: its learnerId is their

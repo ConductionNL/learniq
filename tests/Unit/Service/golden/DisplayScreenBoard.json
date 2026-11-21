@@ -1,0 +1,956 @@
+{
+    "groups, today": {
+        "name": "Hal",
+        "lessons": [
+            {
+                "startsAt": "D0 08:30",
+                "endsAt": "D0 09:20",
+                "group": "4H1",
+                "subject": "Wiskunde",
+                "room": "Lokaal 1",
+                "teacherCode": "JAN",
+                "change": null
+            },
+            {
+                "startsAt": "D0 08:30",
+                "endsAt": "D0 09:20",
+                "group": "EXT",
+                "subject": "Gym",
+                "room": "",
+                "teacherCode": null,
+                "change": null
+            },
+            {
+                "startsAt": "D0 09:20",
+                "endsAt": "D0 10:10",
+                "group": "4H1",
+                "subject": "Engels",
+                "room": "Gang",
+                "teacherCode": null,
+                "change": "cancelled"
+            },
+            {
+                "startsAt": "D0 10:30",
+                "endsAt": "D0 11:20",
+                "group": "5V2",
+                "subject": "Biologie",
+                "room": "Lokaal 2",
+                "teacherCode": "PIE",
+                "change": "other-teacher"
+            },
+            {
+                "startsAt": "D0 11:20",
+                "endsAt": "D0 12:10",
+                "group": "5V2",
+                "subject": "",
+                "room": "Aula",
+                "teacherCode": null,
+                "change": "other-room"
+            }
+        ],
+        "calls": [
+            {
+                "cache get": "d-1"
+            },
+            "runAsSystem",
+            {
+                "findAll": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "cohort"
+                    },
+                    "ids": [
+                        "c-1",
+                        "c-2"
+                    ]
+                },
+                "flags": [
+                    false,
+                    false
+                ]
+            },
+            {
+                "findAll": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "room"
+                    }
+                },
+                "flags": [
+                    false,
+                    false
+                ]
+            },
+            {
+                "sessionsForCohorts": [
+                    "c-1",
+                    "c-2"
+                ],
+                "window": [
+                    {
+                        "startsAt": "D0 00:00",
+                        "endsAt": "D1 00:00"
+                    }
+                ]
+            },
+            {
+                "cache set": [
+                    "d-1",
+                    60
+                ]
+            }
+        ]
+    },
+    "groups, today and tomorrow": {
+        "name": "Hal",
+        "lessons": [
+            {
+                "startsAt": "D0 08:30",
+                "endsAt": "D0 09:20",
+                "group": "4H1",
+                "subject": "Wiskunde",
+                "room": "Lokaal 1",
+                "teacherCode": "JAN",
+                "change": null
+            },
+            {
+                "startsAt": "D0 08:30",
+                "endsAt": "D0 09:20",
+                "group": "EXT",
+                "subject": "Gym",
+                "room": "",
+                "teacherCode": null,
+                "change": null
+            },
+            {
+                "startsAt": "D0 09:20",
+                "endsAt": "D0 10:10",
+                "group": "4H1",
+                "subject": "Engels",
+                "room": "Gang",
+                "teacherCode": null,
+                "change": "cancelled"
+            },
+            {
+                "startsAt": "D0 10:30",
+                "endsAt": "D0 11:20",
+                "group": "5V2",
+                "subject": "Biologie",
+                "room": "Lokaal 2",
+                "teacherCode": "PIE",
+                "change": "other-teacher"
+            },
+            {
+                "startsAt": "D0 11:20",
+                "endsAt": "D0 12:10",
+                "group": "5V2",
+                "subject": "",
+                "room": "Aula",
+                "teacherCode": null,
+                "change": "other-room"
+            },
+            {
+                "startsAt": "D1 08:30",
+                "endsAt": "D1 09:20",
+                "group": "4H1",
+                "subject": "Morgen",
+                "room": "Lokaal 1",
+                "teacherCode": null,
+                "change": null
+            }
+        ],
+        "calls": [
+            {
+                "cache get": "d-2"
+            },
+            "runAsSystem",
+            {
+                "findAll": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "cohort"
+                    },
+                    "ids": [
+                        "c-1",
+                        "c-2"
+                    ]
+                },
+                "flags": [
+                    false,
+                    false
+                ]
+            },
+            {
+                "findAll": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "room"
+                    }
+                },
+                "flags": [
+                    false,
+                    false
+                ]
+            },
+            {
+                "sessionsForCohorts": [
+                    "c-1",
+                    "c-2"
+                ],
+                "window": [
+                    {
+                        "startsAt": "D0 00:00",
+                        "endsAt": "D2 00:00"
+                    }
+                ]
+            },
+            {
+                "cache set": [
+                    "d-2",
+                    60
+                ]
+            }
+        ]
+    },
+    "groups, changes only": {
+        "name": "",
+        "lessons": [
+            {
+                "startsAt": "D0 09:20",
+                "endsAt": "D0 10:10",
+                "group": "4H1",
+                "subject": "Engels",
+                "room": "Gang",
+                "teacherCode": null,
+                "change": "cancelled"
+            },
+            {
+                "startsAt": "D0 10:30",
+                "endsAt": "D0 11:20",
+                "group": "5V2",
+                "subject": "Biologie",
+                "room": "Lokaal 2",
+                "teacherCode": "PIE",
+                "change": "other-teacher"
+            },
+            {
+                "startsAt": "D0 11:20",
+                "endsAt": "D0 12:10",
+                "group": "5V2",
+                "subject": "",
+                "room": "Aula",
+                "teacherCode": null,
+                "change": "other-room"
+            }
+        ],
+        "calls": [
+            {
+                "cache get": "d-3"
+            },
+            "runAsSystem",
+            {
+                "findAll": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "cohort"
+                    },
+                    "ids": [
+                        "c-1",
+                        "c-2"
+                    ]
+                },
+                "flags": [
+                    false,
+                    false
+                ]
+            },
+            {
+                "findAll": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "room"
+                    }
+                },
+                "flags": [
+                    false,
+                    false
+                ]
+            },
+            {
+                "sessionsForCohorts": [
+                    "c-1",
+                    "c-2"
+                ],
+                "window": [
+                    {
+                        "startsAt": "D0 00:00",
+                        "endsAt": "D1 00:00"
+                    }
+                ]
+            },
+            {
+                "cache set": [
+                    "d-3",
+                    60
+                ]
+            }
+        ]
+    },
+    "groups, no teacher codes": {
+        "name": "",
+        "lessons": [
+            {
+                "startsAt": "D0 08:30",
+                "endsAt": "D0 09:20",
+                "group": "4H1",
+                "subject": "Wiskunde",
+                "room": "Lokaal 1",
+                "teacherCode": null,
+                "change": null
+            },
+            {
+                "startsAt": "D0 08:30",
+                "endsAt": "D0 09:20",
+                "group": "EXT",
+                "subject": "Gym",
+                "room": "",
+                "teacherCode": null,
+                "change": null
+            },
+            {
+                "startsAt": "D0 09:20",
+                "endsAt": "D0 10:10",
+                "group": "4H1",
+                "subject": "Engels",
+                "room": "Gang",
+                "teacherCode": null,
+                "change": "cancelled"
+            },
+            {
+                "startsAt": "D0 10:30",
+                "endsAt": "D0 11:20",
+                "group": "5V2",
+                "subject": "Biologie",
+                "room": "Lokaal 2",
+                "teacherCode": null,
+                "change": "other-teacher"
+            },
+            {
+                "startsAt": "D0 11:20",
+                "endsAt": "D0 12:10",
+                "group": "5V2",
+                "subject": "",
+                "room": "Aula",
+                "teacherCode": null,
+                "change": "other-room"
+            }
+        ],
+        "calls": [
+            {
+                "cache get": "d-4"
+            },
+            "runAsSystem",
+            {
+                "findAll": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "cohort"
+                    },
+                    "ids": [
+                        "c-1",
+                        "c-2"
+                    ]
+                },
+                "flags": [
+                    false,
+                    false
+                ]
+            },
+            {
+                "findAll": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "room"
+                    }
+                },
+                "flags": [
+                    false,
+                    false
+                ]
+            },
+            {
+                "sessionsForCohorts": [
+                    "c-1",
+                    "c-2"
+                ],
+                "window": [
+                    {
+                        "startsAt": "D0 00:00",
+                        "endsAt": "D1 00:00"
+                    }
+                ]
+            },
+            {
+                "cache set": [
+                    "d-4",
+                    60
+                ]
+            }
+        ]
+    },
+    "groups, teacher codes as text": {
+        "name": "",
+        "lessons": [
+            {
+                "startsAt": "D0 08:30",
+                "endsAt": "D0 09:20",
+                "group": "4H1",
+                "subject": "Wiskunde",
+                "room": "Lokaal 1",
+                "teacherCode": "JAN",
+                "change": null
+            },
+            {
+                "startsAt": "D0 08:30",
+                "endsAt": "D0 09:20",
+                "group": "EXT",
+                "subject": "Gym",
+                "room": "",
+                "teacherCode": null,
+                "change": null
+            },
+            {
+                "startsAt": "D0 09:20",
+                "endsAt": "D0 10:10",
+                "group": "4H1",
+                "subject": "Engels",
+                "room": "Gang",
+                "teacherCode": null,
+                "change": "cancelled"
+            },
+            {
+                "startsAt": "D0 10:30",
+                "endsAt": "D0 11:20",
+                "group": "5V2",
+                "subject": "Biologie",
+                "room": "Lokaal 2",
+                "teacherCode": "PIE",
+                "change": "other-teacher"
+            },
+            {
+                "startsAt": "D0 11:20",
+                "endsAt": "D0 12:10",
+                "group": "5V2",
+                "subject": "",
+                "room": "Aula",
+                "teacherCode": null,
+                "change": "other-room"
+            }
+        ],
+        "calls": [
+            {
+                "cache get": "d-5"
+            },
+            "runAsSystem",
+            {
+                "findAll": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "cohort"
+                    },
+                    "ids": [
+                        "c-1",
+                        "c-2"
+                    ]
+                },
+                "flags": [
+                    false,
+                    false
+                ]
+            },
+            {
+                "findAll": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "room"
+                    }
+                },
+                "flags": [
+                    false,
+                    false
+                ]
+            },
+            {
+                "sessionsForCohorts": [
+                    "c-1",
+                    "c-2"
+                ],
+                "window": [
+                    {
+                        "startsAt": "D0 00:00",
+                        "endsAt": "D1 00:00"
+                    }
+                ]
+            },
+            {
+                "cache set": [
+                    "d-5",
+                    60
+                ]
+            }
+        ]
+    },
+    "location": {
+        "name": "Vestiging Noord",
+        "lessons": [
+            {
+                "startsAt": "D0 08:30",
+                "endsAt": "D0 09:20",
+                "group": "4H1",
+                "subject": "Wiskunde",
+                "room": "Lokaal 1",
+                "teacherCode": "JAN",
+                "change": null
+            },
+            {
+                "startsAt": "D0 08:30",
+                "endsAt": "D0 09:20",
+                "group": "EXT",
+                "subject": "Gym",
+                "room": "",
+                "teacherCode": null,
+                "change": null
+            },
+            {
+                "startsAt": "D0 09:20",
+                "endsAt": "D0 10:10",
+                "group": "4H1",
+                "subject": "Engels",
+                "room": "Gang",
+                "teacherCode": null,
+                "change": "cancelled"
+            },
+            {
+                "startsAt": "D0 10:30",
+                "endsAt": "D0 11:20",
+                "group": "",
+                "subject": "Biologie",
+                "room": "Lokaal 2",
+                "teacherCode": "PIE",
+                "change": "other-teacher"
+            },
+            {
+                "startsAt": "D0 11:20",
+                "endsAt": "D0 12:10",
+                "group": "",
+                "subject": "",
+                "room": "Aula",
+                "teacherCode": null,
+                "change": "other-room"
+            }
+        ],
+        "calls": [
+            {
+                "cache get": "d-6"
+            },
+            "runAsSystem",
+            {
+                "findAll": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "cohort",
+                        "locationId": "v-1"
+                    }
+                },
+                "flags": [
+                    false,
+                    false
+                ]
+            },
+            {
+                "findAll": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "room"
+                    }
+                },
+                "flags": [
+                    false,
+                    false
+                ]
+            },
+            {
+                "sessionsForCohorts": [
+                    "c-1"
+                ],
+                "window": [
+                    {
+                        "startsAt": "D0 00:00",
+                        "endsAt": "D1 00:00"
+                    }
+                ]
+            },
+            {
+                "cache set": [
+                    "d-6",
+                    60
+                ]
+            }
+        ]
+    },
+    "blank location": {
+        "name": "",
+        "lessons": [
+            {
+                "startsAt": "D0 08:30",
+                "endsAt": "D0 09:20",
+                "group": "",
+                "subject": "Wiskunde",
+                "room": "Lokaal 1",
+                "teacherCode": "JAN",
+                "change": null
+            },
+            {
+                "startsAt": "D0 08:30",
+                "endsAt": "D0 09:20",
+                "group": "EXT",
+                "subject": "Gym",
+                "room": "",
+                "teacherCode": null,
+                "change": null
+            },
+            {
+                "startsAt": "D0 09:20",
+                "endsAt": "D0 10:10",
+                "group": "",
+                "subject": "Engels",
+                "room": "Gang",
+                "teacherCode": null,
+                "change": "cancelled"
+            },
+            {
+                "startsAt": "D0 10:30",
+                "endsAt": "D0 11:20",
+                "group": "",
+                "subject": "Biologie",
+                "room": "Lokaal 2",
+                "teacherCode": "PIE",
+                "change": "other-teacher"
+            },
+            {
+                "startsAt": "D0 11:20",
+                "endsAt": "D0 12:10",
+                "group": "",
+                "subject": "",
+                "room": "Aula",
+                "teacherCode": null,
+                "change": "other-room"
+            }
+        ],
+        "calls": [
+            {
+                "cache get": "d-7"
+            },
+            "runAsSystem",
+            {
+                "findAll": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "room"
+                    }
+                },
+                "flags": [
+                    false,
+                    false
+                ]
+            },
+            {
+                "sessionsForCohorts": [],
+                "window": [
+                    {
+                        "startsAt": "D0 00:00",
+                        "endsAt": "D1 00:00"
+                    }
+                ]
+            },
+            {
+                "cache set": [
+                    "d-7",
+                    60
+                ]
+            }
+        ]
+    },
+    "nothing named": {
+        "name": "",
+        "lessons": [
+            {
+                "startsAt": "D0 08:30",
+                "endsAt": "D0 09:20",
+                "group": "",
+                "subject": "Wiskunde",
+                "room": "Lokaal 1",
+                "teacherCode": "JAN",
+                "change": null
+            },
+            {
+                "startsAt": "D0 08:30",
+                "endsAt": "D0 09:20",
+                "group": "EXT",
+                "subject": "Gym",
+                "room": "",
+                "teacherCode": null,
+                "change": null
+            },
+            {
+                "startsAt": "D0 09:20",
+                "endsAt": "D0 10:10",
+                "group": "",
+                "subject": "Engels",
+                "room": "Gang",
+                "teacherCode": null,
+                "change": "cancelled"
+            },
+            {
+                "startsAt": "D0 10:30",
+                "endsAt": "D0 11:20",
+                "group": "",
+                "subject": "Biologie",
+                "room": "Lokaal 2",
+                "teacherCode": "PIE",
+                "change": "other-teacher"
+            },
+            {
+                "startsAt": "D0 11:20",
+                "endsAt": "D0 12:10",
+                "group": "",
+                "subject": "",
+                "room": "Aula",
+                "teacherCode": null,
+                "change": "other-room"
+            }
+        ],
+        "calls": [
+            {
+                "cache get": "d-8"
+            },
+            "runAsSystem",
+            {
+                "findAll": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "room"
+                    }
+                },
+                "flags": [
+                    false,
+                    false
+                ]
+            },
+            {
+                "sessionsForCohorts": [],
+                "window": [
+                    {
+                        "startsAt": "D0 00:00",
+                        "endsAt": "D1 00:00"
+                    }
+                ]
+            },
+            {
+                "cache set": [
+                    "d-8",
+                    60
+                ]
+            }
+        ]
+    },
+    "rooms": {
+        "name": "",
+        "lessons": [
+            {
+                "startsAt": "D0 08:30",
+                "endsAt": "D0 09:20",
+                "group": "4H1",
+                "subject": "Wiskunde",
+                "room": "Lokaal 1",
+                "teacherCode": "JAN",
+                "change": null
+            },
+            {
+                "startsAt": "D0 08:30",
+                "endsAt": "D0 09:20",
+                "group": "EXT",
+                "subject": "Gym",
+                "room": "",
+                "teacherCode": null,
+                "change": null
+            }
+        ],
+        "calls": [
+            {
+                "cache get": "d-9"
+            },
+            "runAsSystem",
+            {
+                "findAll": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "cohort"
+                    },
+                    "ids": [
+                        "c-1",
+                        "c-2"
+                    ]
+                },
+                "flags": [
+                    false,
+                    false
+                ]
+            },
+            {
+                "findAll": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "room"
+                    },
+                    "ids": [
+                        "r-1"
+                    ]
+                },
+                "flags": [
+                    false,
+                    false
+                ]
+            },
+            {
+                "sessionsForCohorts": [
+                    "c-1",
+                    "c-2"
+                ],
+                "window": [
+                    {
+                        "startsAt": "D0 00:00",
+                        "endsAt": "D1 00:00"
+                    }
+                ]
+            },
+            {
+                "cache set": [
+                    "d-9",
+                    60
+                ]
+            }
+        ]
+    },
+    "rooms not a list": {
+        "name": "",
+        "lessons": [
+            {
+                "startsAt": "D0 08:30",
+                "endsAt": "D0 09:20",
+                "group": "4H1",
+                "subject": "Wiskunde",
+                "room": "Lokaal 1",
+                "teacherCode": "JAN",
+                "change": null
+            },
+            {
+                "startsAt": "D0 08:30",
+                "endsAt": "D0 09:20",
+                "group": "EXT",
+                "subject": "Gym",
+                "room": "",
+                "teacherCode": null,
+                "change": null
+            },
+            {
+                "startsAt": "D0 09:20",
+                "endsAt": "D0 10:10",
+                "group": "4H1",
+                "subject": "Engels",
+                "room": "Gang",
+                "teacherCode": null,
+                "change": "cancelled"
+            },
+            {
+                "startsAt": "D0 10:30",
+                "endsAt": "D0 11:20",
+                "group": "5V2",
+                "subject": "Biologie",
+                "room": "Lokaal 2",
+                "teacherCode": "PIE",
+                "change": "other-teacher"
+            },
+            {
+                "startsAt": "D0 11:20",
+                "endsAt": "D0 12:10",
+                "group": "5V2",
+                "subject": "",
+                "room": "Aula",
+                "teacherCode": null,
+                "change": "other-room"
+            }
+        ],
+        "calls": [
+            {
+                "cache get": "d-10"
+            },
+            "runAsSystem",
+            {
+                "findAll": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "cohort"
+                    },
+                    "ids": [
+                        "c-1",
+                        "c-2"
+                    ]
+                },
+                "flags": [
+                    false,
+                    false
+                ]
+            },
+            {
+                "findAll": {
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "room"
+                    }
+                },
+                "flags": [
+                    false,
+                    false
+                ]
+            },
+            {
+                "sessionsForCohorts": [
+                    "c-1",
+                    "c-2"
+                ],
+                "window": [
+                    {
+                        "startsAt": "D0 00:00",
+                        "endsAt": "D1 00:00"
+                    }
+                ]
+            },
+            {
+                "cache set": [
+                    "d-10",
+                    60
+                ]
+            }
+        ]
+    },
+    "cached": {
+        "name": "uit de cache",
+        "lessons": []
+    },
+    "cached calls": [
+        {
+            "cache get": "d-1"
+        }
+    ]
+}

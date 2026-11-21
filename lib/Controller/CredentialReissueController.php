@@ -28,9 +28,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
 use OCA\Learniq\BackgroundJob\CredentialReissueJob;
-use OCA\Learniq\Service\CredentialReissueService;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\CredentialReissueServiceInterface;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -65,7 +65,7 @@ class CredentialReissueController extends Controller {
 	 * @param IRequest                 $request      The request.
 	 * @param IUserSession             $userSession  The signed-in user.
 	 * @param IGroupManager            $groupManager Group membership and admin checks.
-	 * @param CredentialReissueService $reissues     Preview and run summaries.
+	 * @param CredentialReissueServiceInterface $reissues     Preview and run summaries.
 	 * @param IJobList                 $jobs         Queues the run.
 	 * @param ISecureRandom            $random       Makes the run id.
 	 * @param IAppConfig               $config       Remembers the last run per course.
@@ -76,12 +76,12 @@ class CredentialReissueController extends Controller {
 		IRequest $request,
 		private readonly IUserSession $userSession,
 		private readonly IGroupManager $groupManager,
-		private readonly CredentialReissueService $reissues,
+		private readonly CredentialReissueServiceInterface $reissues,
 		private readonly IJobList $jobs,
 		private readonly ISecureRandom $random,
 		private readonly IAppConfig $config,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -99,7 +99,7 @@ class CredentialReissueController extends Controller {
 			return new JSONResponse(data: ['error' => 'forbidden'], statusCode: Http::STATUS_FORBIDDEN);
 		}
 
-		$lastRun = $this->config->getValueString(app: Application::APP_ID, key: self::LAST_RUN_PREFIX . md5($courseId), default: '');
+		$lastRun = $this->config->getValueString(app: AppIdentity::APP_ID, key: self::LAST_RUN_PREFIX . md5($courseId), default: '');
 		$summary = null;
 		if ($lastRun !== '') {
 			$summary = $this->reissues->summary(runId: $lastRun) ?? ['runId' => $lastRun, 'status' => 'queued'];
@@ -133,7 +133,7 @@ class CredentialReissueController extends Controller {
 			CredentialReissueJob::class,
 			['courseId' => $courseId, 'runId' => $runId, 'reason' => trim($reason), 'by' => (string)$this->userSession->getUser()?->getUID()]
 		);
-		$this->config->setValueString(app: Application::APP_ID, key: self::LAST_RUN_PREFIX . md5($courseId), value: $runId);
+		$this->config->setValueString(app: AppIdentity::APP_ID, key: self::LAST_RUN_PREFIX . md5($courseId), value: $runId);
 
 		return new JSONResponse(data: ['runId' => $runId], statusCode: Http::STATUS_ACCEPTED);
 	}//end start()

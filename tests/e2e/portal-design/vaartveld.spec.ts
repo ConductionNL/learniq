@@ -2,13 +2,15 @@
 // SPDX-FileCopyrightText: 2026 Conduction B.V.
 
 /**
- * Vaartveld College (vo), against school-design/vaartveld/preview. The
- * website boards run signed out; Noor Bakker's boards sign her in with her
+ * Zuiddrecht College (vo), against school-design/vaartveld/preview. The
+ * website boards run signed out; the pupil boards sign Fenna de Jong in with her
  * school account (`PORTAL_DESIGN_PASSWORD`). Today's timetable is not
  * checked: it waits for the pupil's sessions (site-pupil-portal-design T1).
  *
  * @spec openspec/changes/example-portal-declares-its-site/specs/example-sets/spec.md
  * @spec openspec/changes/site-pupil-portal-design/specs/portal-contribution/spec.md#requirement-the-pupil-overview-follows-the-designed-board
+ * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-each-school-audience-offers-its-own-documents-grouped-per-record
+ * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-a-pupil-asks-for-a-proof-of-enrolment
  */
 
 import { expect, test } from '@playwright/test'
@@ -36,12 +38,12 @@ const DESIGN = {
 }
 const FOOTER = [
 	'Een vraag? Bel of mail de school.',
-	'Vaartveld College is een voorbeeldschool.',
+	'Zuiddrecht College is een voorbeeldschool.',
 ]
 const NOOR = {
 	user: 'vo-leerling-121',
 	ref: 'ee02000a-0000-4000-8000-000000000534',
-	name: 'Noor Bakker',
+	name: 'Fenna de Jong',
 }
 
 test.describe('vaartveld: the website', () => {
@@ -58,7 +60,7 @@ test.describe('vaartveld: the website', () => {
 			'Rooster en wijzigingen',
 			'Nieuws',
 			dated('Informatieavond profielkeuze op dinsdag 3 november'),
-			'Mijn Vaartveld',
+			'Mijn Zuiddrecht',
 			'Agenda',
 			'Mentorgesprekken',
 			'Toetsweek 1, bovenbouw',
@@ -129,7 +131,7 @@ test.describe('vaartveld: the website', () => {
 	})
 })
 
-test.describe('vaartveld: Mijn Vaartveld (Noor Bakker)', () => {
+test.describe('vaartveld: Mijn Zuiddrecht (Fenna de Jong)', () => {
 	test('MijnOverzicht', async ({ browser }, info) => {
 		await ensurePortalAccount(
 			NOOR.user,
@@ -144,7 +146,7 @@ test.describe('vaartveld: Mijn Vaartveld (Noor Bakker)', () => {
 			info.project.use.viewport ?? { width: 1440, height: 1000 },
 		)
 		await expect(
-			page.getByText(/Goede(morgen|middag|navond), Noor/).first(),
+			page.getByText(/Goede(morgen|middag|navond), Fenna/).first(),
 		).toBeVisible()
 		await expectTexts(page, [
 			'Huiswerk en toetsen',
@@ -163,5 +165,37 @@ test.describe('vaartveld: Mijn Vaartveld (Noor Bakker)', () => {
 			info.project.name === 'phone' ? 'MobielHome' : 'MijnOverzicht',
 			info,
 		)
+	})
+
+	test('Documenten: her reports and a proof of enrolment', async ({ browser }, info) => {
+		await ensurePortalAccount(
+			NOOR.user,
+			'student',
+			{ learnerRef: NOOR.ref },
+			NOOR.name,
+		)
+		const page = await signInAs(
+			browser,
+			PORTAL,
+			NOOR.user,
+			info.project.use.viewport ?? { width: 1440, height: 1000 },
+		)
+		await page.goto(
+			`${siteUrl(PORTAL)}&route=${encodeURIComponent('/mijn/learniq/studentDocuments')}`,
+		)
+		await expectTexts(page, ['Rapporten', 'Keuzes en verklaringen'])
+		// She asks for a proof of enrolment; it joins her statements.
+		await page
+			.getByRole('button', { name: 'Vraag een bewijs van inschrijving aan' })
+			.first()
+			.click()
+		await expect(
+			page.getByText(/Bewijs van inschrijving, schooljaar \d{4}-\d{4}/).first(),
+		).toBeVisible({ timeout: 15_000 })
+		if (info.project.name === 'phone') {
+			await expectNoHorizontalScroll(page)
+		}
+		await expectNoSeriousAxeFinding(page)
+		await boardShot(page, PORTAL, 'Documenten', info)
 	})
 })

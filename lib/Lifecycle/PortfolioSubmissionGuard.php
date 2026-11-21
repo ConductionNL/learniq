@@ -40,6 +40,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\Learniq\Service\ObjectRowReader;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
@@ -58,11 +59,6 @@ use Psr\Log\LoggerInterface;
  * @spec openspec/specs/eportfolio/spec.md#requirement-portfolio-submission-is-blocked-until-required-template-sections-have-evidence
  */
 class PortfolioSubmissionGuard implements LifecycleGuardInterface {
-
-	/**
-	 * OR register slug for Learniq objects.
-	 */
-	private const LEARNIQ_REGISTER = 'learniq';
 
 	/**
 	 * OR schema slug for PortfolioTemplate.
@@ -126,26 +122,50 @@ class PortfolioSubmissionGuard implements LifecycleGuardInterface {
 	 * @spec openspec/specs/eportfolio/spec.md#requirement-portfolio-submission-is-blocked-until-required-template-sections-have-evidence
 	 */
 	private function allows(array $portfolio): bool {
-		$portfolioId = $portfolio['id'] ?? ($portfolio['uuid'] ?? '');
 		$templateId = $portfolio['templateId'] ?? null;
-
 		if ($templateId === null || $templateId === '') {
 			// No governing template — nothing to verify. Allow unconditionally.
 			return true;
 		}
 
-		$template = $this->loadObject(schema: self::TEMPLATE_SCHEMA, id: $templateId);
+		$template = $this->loadTemplate(portfolio: $portfolio, templateId: $templateId);
+		if ($template === null) {
+			return false;
+		}
 
+		return $this->coversRequiredSections(portfolio: $portfolio, sections: ($template['sections'] ?? []));
+	}//end allows()
+
+	/**
+	 * The portfolio's template, or null (logged) when it can not be resolved.
+	 *
+	 * @param array<string,mixed> $portfolio  The Portfolio data array.
+	 * @param string              $templateId The template it references.
+	 *
+	 * @return array<string,mixed>|null
+	 */
+	private function loadTemplate(array $portfolio, string $templateId): ?array {
+		$template = $this->rows()->load(schema: self::TEMPLATE_SCHEMA, id: $templateId);
 		if ($template === null) {
 			$this->logger->warning(
 				'[PortfolioSubmissionGuard] Portfolio {id} references PortfolioTemplate {templateId} '
 				. 'which could not be resolved; blocking submit.',
-				['id' => $portfolioId, 'templateId' => $templateId]
+				['id' => self::portfolioId(portfolio: $portfolio), 'templateId' => $templateId]
 			);
-			return false;
 		}
 
-		$sections = $template['sections'] ?? [];
+		return $template;
+	}//end loadTemplate()
+
+	/**
+	 * Whether the portfolio has evidence for every section its template requires.
+	 *
+	 * @param array<string,mixed> $portfolio The Portfolio data array.
+	 * @param mixed               $sections  The template's declared sections.
+	 *
+	 * @return bool
+	 */
+	private function coversRequiredSections(array $portfolio, mixed $sections): bool {
 		if (empty($sections) === true) {
 			// A template with no declared sections has nothing to require.
 			return true;
@@ -156,8 +176,8 @@ class PortfolioSubmissionGuard implements LifecycleGuardInterface {
 			return true;
 		}
 
+		$portfolioId = self::portfolioId(portfolio: $portfolio);
 		$coveredSectionIds = $this->coveredSectionIds(portfolioId: (string)$portfolioId);
-
 		$missingSectionIds = array_values(
 			array_filter(
 				$requiredSectionIds,
@@ -165,6 +185,18 @@ class PortfolioSubmissionGuard implements LifecycleGuardInterface {
 			)
 		);
 
+		return $this->coverageVerdict(portfolioId: $portfolioId, missingSectionIds: $missingSectionIds);
+	}//end coversRequiredSections()
+
+	/**
+	 * Log and answer the coverage: refused while any required section lacks evidence.
+	 *
+	 * @param mixed             $portfolioId       The Portfolio id, as logged.
+	 * @param array<int,string> $missingSectionIds Required sections without evidence.
+	 *
+	 * @return bool
+	 */
+	private function coverageVerdict(mixed $portfolioId, array $missingSectionIds): bool {
 		if (empty($missingSectionIds) === false) {
 			$this->logger->info(
 				'[PortfolioSubmissionGuard] Portfolio {id} is missing evidence for required section(s) '
@@ -180,7 +212,18 @@ class PortfolioSubmissionGuard implements LifecycleGuardInterface {
 		);
 
 		return true;
-	}//end allows()
+	}//end coverageVerdict()
+
+	/**
+	 * The Portfolio's id, else its uuid, else ''.
+	 *
+	 * @param array<string,mixed> $portfolio The Portfolio data array.
+	 *
+	 * @return mixed
+	 */
+	private static function portfolioId(array $portfolio): mixed {
+		return $portfolio['id'] ?? ($portfolio['uuid'] ?? '');
+	}//end portfolioId()
 
 	/**
 	 * Collect the section ids a PortfolioTemplate declares as required.
@@ -216,23 +259,8 @@ class PortfolioSubmissionGuard implements LifecycleGuardInterface {
 	 * @spec openspec/specs/eportfolio/spec.md#requirement-portfolio-submission-is-blocked-until-required-template-sections-have-evidence
 	 */
 	private function coveredSectionIds(string $portfolioId): array {
-		$entries = $this->objectService->findAll(
-			[
-				'filters' => [
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => self::ENTRY_SCHEMA,
-					'portfolioId' => $portfolioId,
-				],
-			]
-		);
-
 		$coveredSectionIds = [];
-		foreach ($entries as $entry) {
-			$entryData = $entry;
-			if (is_array($entry) === false) {
-				$entryData = $entry->jsonSerialize();
-			}
-
+		foreach ($this->rows()->rows(schema: self::ENTRY_SCHEMA, filters: ['portfolioId' => $portfolioId]) as $entryData) {
 			$sectionId = $entryData['sectionId'] ?? null;
 			if ($sectionId !== null && $sectionId !== '') {
 				$coveredSectionIds[$sectionId] = true;
@@ -243,39 +271,11 @@ class PortfolioSubmissionGuard implements LifecycleGuardInterface {
 	}//end coveredSectionIds()
 
 	/**
-	 * Load a single OpenRegister object by id.
+	 * Reads Learniq rows as plain arrays.
 	 *
-	 * @param string $schema Schema slug.
-	 * @param string $id Object UUID.
-	 *
-	 * @return array<string,mixed>|null The object data, or null when not found.
-	 *
-	 * @spec openspec/specs/eportfolio/spec.md#requirement-portfolio-submission-is-blocked-until-required-template-sections-have-evidence
+	 * @return ObjectRowReader
 	 */
-	private function loadObject(string $schema, string $id): ?array {
-		if ($id === '') {
-			return null;
-		}
-
-		$results = $this->objectService->findAll(
-			[
-				'ids' => [$id],
-				'filters' => [
-					'register' => self::LEARNIQ_REGISTER,
-					'schema' => $schema,
-				],
-				'limit' => 1,
-			]
-		);
-
-		if (empty($results) === true) {
-			return null;
-		}
-
-		if (is_array($results[0]) === true) {
-			return $results[0];
-		}
-
-		return $results[0]->jsonSerialize();
-	}//end loadObject()
+	private function rows(): ObjectRowReader {
+		return new ObjectRowReader(objectService: $this->objectService);
+	}//end rows()
 }//end class

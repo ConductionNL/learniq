@@ -225,7 +225,12 @@ class VerzuimReportComposerRegisterTest extends TestCase {
 		self::assertSame('reported', $recordFeedback['from']);
 		self::assertSame('reported', $recordFeedback['to']);
 		self::assertSame('OCA\\Learniq\\Lifecycle\\MunicipalityFeedbackGuard', $recordFeedback['requires']);
-		self::assertSame([['field' => 'municipalityFeedback', 'required' => false]], $recordFeedback['inputs']);
+		// Design D3 of attendance-flag-report-actions: the dialog asks for the
+		// MAS route and a note only; receivedAt and recordedBy are stamped server-side.
+		self::assertSame(
+			expected: [['field' => 'municipalityFeedback', 'required' => false, 'fields' => ['masRoute', 'note']]],
+			actual: $recordFeedback['inputs']
+		);
 		self::assertSame('OCA\\Learniq\\Lifecycle\\AttendanceFlagReportGuard', $transitions['report']['requires']);
 		self::assertArrayNotHasKey('DataExchangeJob', $this->config['components']['schemas']);
 

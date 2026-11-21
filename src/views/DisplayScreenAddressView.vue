@@ -7,53 +7,56 @@
  @spec openspec/specs/personal-timetable/spec.md#requirement-an-administrator-sets-up-a-display-screen
 -->
 <template>
-	<div class="screen-address">
-		<h2>{{ t('learniq', 'Screen address') }}</h2>
-		<p>
-			{{
-				t(
-					'learniq',
-					"Open this address in the browser of the screen. It needs no account and shows today's lessons and changes without names of learners.",
-				)
-			}}
-		</p>
-		<NcNoteCard v-if="error" type="error">
-			{{ error }}
-		</NcNoteCard>
-		<NcNoteCard v-if="revoked" type="success">
-			{{
-				t(
-					'learniq',
-					'The address was revoked. The screen shows nothing until you create a new address.',
-				)
-			}}
-		</NcNoteCard>
-		<div
-			v-if="address"
-			class="screen-address__result"
-			data-testid="screen-address">
-			<NcNoteCard type="warning">
+	<div class="screen-address lq-board-page">
+		<CnPageHeader :title="t('learniq', 'Screen address')" />
+		<CnDetailCard class="screen-address__card">
+			<p>
 				{{
 					t(
 						'learniq',
-						"This address is shown once. Copy it into the screen's browser now.",
+						"Open this address in the browser of the screen. It needs no account and shows today's lessons and changes without names of learners.",
+					)
+				}}
+			</p>
+			<NcNoteCard v-if="error" type="error">
+				{{ error }}
+			</NcNoteCard>
+			<NcNoteCard v-if="revoked" type="success">
+				{{
+					t(
+						'learniq',
+						'The address was revoked. The screen shows nothing until you create a new address.',
 					)
 				}}
 			</NcNoteCard>
-			<code class="screen-address__value">{{ address }}</code>
-		</div>
-		<div class="screen-address__actions">
-			<NcButton variant="primary" :disabled="busy" @click="create">
-				{{ t('learniq', 'Create address') }}
-			</NcButton>
-			<NcButton :disabled="busy" @click="revoke">
-				{{ t('learniq', 'Revoke address') }}
-			</NcButton>
-		</div>
+			<div
+				v-if="address"
+				class="screen-address__result"
+				data-testid="screen-address">
+				<NcNoteCard type="warning">
+					{{
+						t(
+							'learniq',
+							"This address is shown once. Copy it into the screen's browser now.",
+						)
+					}}
+				</NcNoteCard>
+				<code class="screen-address__value">{{ address }}</code>
+			</div>
+			<div class="screen-address__actions">
+				<NcButton variant="primary" :disabled="busy" @click="create">
+					{{ t('learniq', 'Create address') }}
+				</NcButton>
+				<NcButton :disabled="busy" @click="revoke">
+					{{ t('learniq', 'Revoke address') }}
+				</NcButton>
+			</div>
+		</CnDetailCard>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { translate as t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
@@ -63,6 +66,8 @@ export default {
 	name: 'DisplayScreenAddressView',
 
 	components: {
+		CnDetailCard,
+		CnPageHeader,
 		NcButton,
 		NcNoteCard,
 	},
@@ -148,9 +153,7 @@ export default {
 </script>
 
 <style scoped>
-.screen-address {
-	max-width: 720px;
-	padding: 16px;
+.screen-address__card :deep(.cn-detail-card__content) {
 	display: flex;
 	flex-direction: column;
 	gap: 12px;

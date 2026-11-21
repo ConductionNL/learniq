@@ -29,6 +29,7 @@ use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\CallerTenantResolver;
 use OCA\Learniq\Service\ExternalTrainingImport;
 use OCA\Learniq\Service\ExternalTrainingLearnerMatch;
+use OCA\Learniq\Tests\Support\ContractImplementations;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
@@ -42,6 +43,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use ReflectionClass;
 use ReflectionNamedType;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * @covers \OCA\Learniq\Controller\ExternalTrainingController::import
@@ -50,6 +52,8 @@ use ReflectionNamedType;
  * @uses \OCA\Learniq\Service\ExternalTrainingImport
  * @uses \OCA\Learniq\Service\ExternalTrainingLearnerMatch
  * @uses \OCA\Learniq\Service\ExternalTrainingRowCheck
+ * @uses \OCA\Learniq\Support\ResultArrays
+ * @uses \OCA\Learniq\Support\RowId
  */
 class ExternalTrainingControllerImportTest extends TestCase {
 	private const CALLER_TENANT = 'tenant-a';
@@ -93,7 +97,10 @@ class ExternalTrainingControllerImportTest extends TestCase {
 				: [])
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null) {
+			function (array|ObjectEntity $object, ObjectSaveOptions $options = new ObjectSaveOptions()) {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
 				$this->saved[] = $object;
 				return OrEntityFactory::make($object, (string)$schema);
 			}
@@ -109,7 +116,7 @@ class ExternalTrainingControllerImportTest extends TestCase {
 		foreach (($class->getConstructor()?->getParameters() ?? []) as $parameter) {
 			$type = $parameter->getType();
 			self::assertInstanceOf(ReflectionNamedType::class, $type);
-			$arguments[$parameter->getName()] = match ($type->getName()) {
+			$arguments[$parameter->getName()] = match (ContractImplementations::concrete($type->getName())) {
 				IUserSession::class => $userSession,
 				ObjectService::class => $objectService,
 				CallerTenantResolver::class => new CallerTenantResolver($config, $objectService),

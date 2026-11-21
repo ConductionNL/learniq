@@ -38,6 +38,7 @@ use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCP\EventDispatcher\Event;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Tests for ExemptionGrantHandler::handle() on ExemptionCase → granted.
@@ -86,7 +87,10 @@ class ExemptionGrantHandlerTest extends TestCase {
 	private function makeHandler(array|ObjectEntity $savedGradeEntry): ExemptionGrantHandler {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null) use ($savedGradeEntry): ObjectEntity {
+			function (array|ObjectEntity $object, ObjectSaveOptions $options = new ObjectSaveOptions()) use ($savedGradeEntry): ObjectEntity {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
 				$data = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
 				$this->savedObjects[] = [
 					'register' => (string)$register,
@@ -187,6 +191,38 @@ class ExemptionGrantHandlerTest extends TestCase {
 		self::assertSame('entry-1', $caseSaves[0]['object']['resultingGradeEntryId']);
 
 	}//end testGrantedCaseCreatesAndPublishesGradeEntry()
+
+	/**
+	 * A GradeEntry that comes back without an id is neither published nor linked onto the case.
+	 *
+	 * @return void
+	 */
+	public function testAGradeEntryWithoutAnIdIsNotPublished(): void {
+		$entity = $this->createMock(ObjectEntity::class);
+		$entity->method('jsonSerialize')->willReturn(['sourceKind' => 'exemption']);
+		$handler = $this->makeHandler(savedGradeEntry: $entity);
+
+		$handler->handle(
+			$this->makeEvent(
+				[
+					'id' => 'case-3',
+					'learnerId' => self::PROFILE_2,
+					'curriculumPlanId' => 'plan-1',
+					'componentId' => 'comp-a',
+					'gradeScaleId' => 'scale-1',
+					'tenant_id' => 'tenant-a',
+				]
+			)
+		);
+
+		self::assertCount(1, $this->savedObjects);
+		self::assertSame('grade-entry', $this->savedObjects[0]['schema']);
+		self::assertSame('learner-2', $this->savedObjects[0]['object']['learnerId']);
+		self::assertSame('scale-1', $this->savedObjects[0]['object']['gradeScaleId']);
+		self::assertSame('examboard', $this->savedObjects[0]['object']['grader']);
+		self::assertSame([], $this->transitions);
+
+	}//end testAGradeEntryWithoutAnIdIsNotPublished()
 
 	/**
 	 * A GradeEntry save that returns an ObjectEntity (not a plain array) is handled identically.

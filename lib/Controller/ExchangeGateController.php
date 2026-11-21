@@ -26,9 +26,11 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\ExchangeGateServiceInterface;
 use OCA\Learniq\Service\ActionAuthService;
-use OCA\Learniq\Service\ExchangeGateService;
+use OCA\Learniq\Service\CallerActions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -55,22 +57,36 @@ class ExchangeGateController extends Controller {
 	private const OWNER_APP = 'learniq';
 
 	/**
+	 * Current user session.
+	 *
+	 * @var IUserSession
+	 */
+	private readonly IUserSession $userSession;
+
+	/**
+	 * ADR-023 action matrix.
+	 *
+	 * @var ActionAuthService
+	 */
+	private readonly ActionAuthService $actionAuth;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param IRequest            $request       HTTP request.
-	 * @param IUserSession        $userSession   Current user session.
-	 * @param ActionAuthService   $actionAuth    ADR-023 action matrix.
+	 * @param CallerActions $caller The user session and the ADR-023 action matrix.
 	 * @param ObjectService       $objectService Reads integriq's job row.
-	 * @param ExchangeGateService $gate          Decides for the job.
+	 * @param ExchangeGateServiceInterface $gate          Decides for the job.
 	 */
 	public function __construct(
 		IRequest $request,
-		private readonly IUserSession $userSession,
-		private readonly ActionAuthService $actionAuth,
+		CallerActions $caller,
 		private readonly ObjectService $objectService,
-		private readonly ExchangeGateService $gate,
+		private readonly ExchangeGateServiceInterface $gate,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		$this->userSession = $caller->userSession;
+		$this->actionAuth = $caller->actionAuth;
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -136,8 +152,7 @@ class ExchangeGateController extends Controller {
 		try {
 			$job = $this->objectService->find(
 				id: $jobId,
-				register: self::INTEGRIQ_REGISTER,
-				schema: self::INTEGRIQ_JOB_SCHEMA,
+				options: new ObjectFindOptions(register: self::INTEGRIQ_REGISTER, schema: self::INTEGRIQ_JOB_SCHEMA),
 				_rbac: false,
 				_multitenancy: false
 			);

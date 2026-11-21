@@ -144,3 +144,35 @@ test('a learniq lesson is named by its session id, and the audience is closed', 
 	assert.equal(note.audience, 'learners')
 	assert.equal(noteFor(lesson, { text: 'x', audience: 'cover' }).audience, 'cover')
 })
+
+test('repeats need two lessons of one cohort at a readable slot', () => {
+	const a = { id: 'p-1', cohortId: 'c-1', courseId: 'k-1', startsAt: tuesday(29) }
+	const b = { ...a, id: 'p-2', startsAt: '2026-10-06T09:00:00' }
+	assert.equal(repeatsLesson(a, b), true)
+	assert.equal(repeatsLesson(null, b), false)
+	assert.equal(repeatsLesson(a, undefined), false)
+	assert.equal(repeatsLesson(a, { ...b, cohortId: 'c-2' }), false)
+	assert.equal(repeatsLesson(a, { ...b, courseId: 'k-2', title: 'Same' }), false)
+	assert.equal(repeatsLesson({ ...a, startsAt: 'nonsense' }, { ...b, startsAt: 'nonsense' }), false)
+	assert.equal(
+		repeatsLesson({ id: 'x', cohortId: 'c-1', startsAt: tuesday(29) }, { id: 'y', cohortId: 'c-1', startsAt: b.startsAt }),
+		true,
+	)
+})
+
+test('a planninq lesson without references gets blank ones, a lesson without a source is learniq', () => {
+	assert.deepEqual(noteFor({ id: 'p-1', cohortId: 'c-1', source: 'planninq' }, { text: 'x' }), {
+		cohortId: 'c-1',
+		topic: null,
+		text: 'x',
+		audience: 'learners',
+		timetableSessionRef: { sourceSystem: '', externalRef: '' },
+	})
+	assert.deepEqual(Object.keys(noteFor({ id: 's-9', cohortId: 'c-1' }, { text: 'y' })), [
+		'cohortId',
+		'topic',
+		'text',
+		'audience',
+		'sessionId',
+	])
+})
