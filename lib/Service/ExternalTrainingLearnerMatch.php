@@ -29,8 +29,11 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Support\FindOrNull;
+use OCA\Learniq\Support\ResultArrays;
+use OCA\Learniq\Support\RowId;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
-use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IUserManager;
 
 /**
@@ -41,6 +44,7 @@ use OCP\IUserManager;
  * @spec openspec/changes/compliance-external-training-spreadsheet-upload/specs/external-training-upload/spec.md#requirement-spreadsheet-import-of-external-training
  */
 class ExternalTrainingLearnerMatch {
+	use FindOrNull;
 
 	/**
 	 * OpenRegister register slug Learniq objects live in.
@@ -144,17 +148,9 @@ class ExternalTrainingLearnerMatch {
 			return null;
 		}
 
-		try {
-			$object = $this->objectService->find(
-				id: $id,
-				register: self::REGISTER,
-				schema: self::PROFILE_SCHEMA,
-				_rbac: false,
-				_multitenancy: false
-			);
-		} catch (DoesNotExistException) {
-			return null;
-		}
+		$find = fn () => $this->objectService
+			->find(id: $id, options: new ObjectFindOptions(register: self::REGISTER, schema: self::PROFILE_SCHEMA), _rbac: false, _multitenancy: false);
+		$object = $this->findOrNull(find: $find);
 
 		$rows = self::rows(objects: [$object]);
 		$rows = array_values(array_filter($rows, static fn (array $row): bool => ($row['tenant_id'] ?? null) === $tenantId));
@@ -211,16 +207,7 @@ class ExternalTrainingLearnerMatch {
 	 * @return string The uuid, or ''.
 	 */
 	private static function idOf(array $row): string {
-		$id = $row['id'] ?? $row['uuid'] ?? null;
-		if ($id === null && is_array($row['@self'] ?? null) === true) {
-			$id = $row['@self']['id'] ?? null;
-		}
-
-		if (is_string($id) === false) {
-			return '';
-		}
-
-		return $id;
+		return (new RowId())->idOf(row: $row);
 	}//end idOf()
 
 	/**
@@ -231,18 +218,6 @@ class ExternalTrainingLearnerMatch {
 	 * @return array<int,array<string,mixed>> The rows.
 	 */
 	private static function rows(array $objects): array {
-		$rows = [];
-		foreach ($objects as $object) {
-			if (is_array($object) === true) {
-				$rows[] = $object;
-				continue;
-			}
-
-			if (is_object($object) === true && method_exists($object, 'jsonSerialize') === true) {
-				$rows[] = (array)$object->jsonSerialize();
-			}
-		}
-
-		return $rows;
+		return (new ResultArrays())->arraysOf(objects: $objects);
 	}//end rows()
 }//end class

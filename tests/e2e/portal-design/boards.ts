@@ -11,9 +11,11 @@
  * designed token sets ship in a thematiq release the instance may not have.
  *
  * @spec openspec/changes/example-portal-declares-its-site/specs/example-sets/spec.md
+ * @spec openspec/changes/portal-board-checks-run-on-a-real-instance/specs/example-sets/spec.md#requirement-the-board-checks-run-against-any-instance-that-loaded-the-sets
  */
 
 import type { Browser, Page, TestInfo } from '@playwright/test'
+import type { StubDigid } from '../helpers/stub-digid.ts'
 
 import AxeBuilder from '@axe-core/playwright'
 import { expect, request, test } from '@playwright/test'
@@ -25,6 +27,45 @@ import {
 	siteUrl,
 	waitForAccountPage,
 } from '../helpers/portal-fixture.ts'
+import { startStubDigid } from '../helpers/stub-digid.ts'
+
+/**
+ * The admin's credentials for API calls. `send: 'always'` because
+ * OpenRegister answers 403 and learniq 401 without a Basic challenge, so
+ * Playwright would otherwise never send the password.
+ */
+export const ADMIN_CREDENTIALS = {
+	username: process.env.NC_ADMIN_USER ?? 'admin',
+	password: process.env.NC_ADMIN_PASS ?? 'admin',
+	send: 'always' as const,
+}
+
+/**
+ * The stub broker a sign-in test talks to. With
+ * `PORTAL_DESIGN_EXTERNAL_STUB=1` a long-lived stub already answers at the
+ * issuer (Docker Desktop forwards a port that opens during the run too late
+ * for the container to reach it); that stub always answers with its own
+ * identity, so `nextLogin` does nothing. Otherwise the test starts its own.
+ *
+ * @param {string} issuer The issuer URL the organisation is configured with.
+ * @param {string} clientId The client id.
+ * @param {string} keyFile Where an own stub keeps its signing key.
+ * @return {Promise<StubDigid>} The broker.
+ */
+export async function startBroker(
+	issuer: string,
+	clientId: string,
+	keyFile: string,
+): Promise<StubDigid> {
+	if (process.env.PORTAL_DESIGN_EXTERNAL_STUB === '1') {
+		return {
+			issuer,
+			nextLogin: () => undefined,
+			close: async () => undefined,
+		}
+	}
+	return startStubDigid(issuer, clientId, keyFile)
+}
 
 /** The designed theme of each portal, and what it must render as. */
 export interface DesignedTheme {
@@ -79,6 +120,31 @@ export async function openSitePage(
 		.toBeGreaterThan(0)
 }
 
+const MONTH =
+	'januari|februari|maart|april|mei|juni|juli|augustus|september|oktober|november|december|jan|feb|mrt|apr|jun|jul|aug|sep|okt|nov|dec'
+
+/**
+ * A board text with dates in it, as a pattern that holds in any week: the
+ * example-set load moves every date to the week it runs in
+ * (demo-dates-follow-the-load-week), so the day and month vary while the
+ * weekday and every other word stay. "Bevestiging uiterlijk dinsdag 6
+ * oktober" matches "Bevestiging uiterlijk dinsdag 27 oktober".
+ *
+ * @param {string} text The board's words.
+ * @return {RegExp} The pattern.
+ */
+export function dated(text: string): RegExp {
+	const escaped = text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+	return new RegExp(
+		escaped
+			.replace(new RegExp(`\\b(${MONTH})\\b`, 'gi'), `(?:${MONTH})`)
+			// Days first: the year pattern written after holds digits of its own.
+			.replace(/\b\d{1,2}\b/g, '\\d{1,2}')
+			.replace(/\b\d{4}\b/g, '\\d{4}'),
+		'i',
+	)
+}
+
 /**
  * Every text must be visible on the page, in any element.
  *
@@ -86,11 +152,16 @@ export async function openSitePage(
  * @param {string[]} texts The texts of the board.
  * @return {Promise<void>}
  */
-export async function expectTexts(page: Page, texts: string[]): Promise<void> {
+export async function expectTexts(
+	page: Page,
+	texts: Array<string | RegExp>,
+): Promise<void> {
 	for (const text of texts) {
+		// Only visible matches count: the site title is in the header twice,
+		// once hidden behind the logo.
 		await expect(
-			page.getByText(text, { exact: false }).first(),
-			`"${text}" is on the page`,
+			page.getByText(text, { exact: false }).filter({ visible: true }).first(),
+			`"${String(text)}" is on the page`,
 		).toBeVisible({ timeout: 15_000 })
 	}
 }
@@ -171,9 +242,17 @@ export async function expectTheme(
 		const css = (el: Element | null, prop: string) =>
 			el ? getComputedStyle(el).getPropertyValue(prop) : ''
 		const heading = document.querySelector('main h1, main h2')
-		const button = document.querySelector(
-			'main .utrecht-button--primary-action, main button, main a.utrecht-button',
-		)
+		// Not the hero's search button: it is joined to its field and square
+		// on the left by design (portaliq hero `variant: plain`).
+		const inSearch = (el: Element) =>
+			el.closest('[role="search"]') !== null
+			|| Boolean(el.closest('form')?.querySelector('input[type="search"]'))
+		const button =
+			Array.from(
+				document.querySelectorAll(
+					'main .utrecht-button--primary-action, main button, main a.utrecht-button',
+				),
+			).find((el) => !inSearch(el)) ?? null
 		return {
 			headingFont: css(heading, 'font-family'),
 			bodyFont: css(document.body, 'font-family'),
@@ -296,7 +375,9 @@ export async function signInAs(
 	await page.goto(`${siteUrl(portal)}&route=${encodeURIComponent('/mijn')}`)
 	await page.getByTestId('site-account-signin').waitFor({ timeout: 20_000 })
 	await page
-		.getByRole('link', { name: 'Inloggen met uw account', exact: false })
+		.getByRole('link', {
+			name: /Inloggen (met (uw|je) (school)?account|als deelnemer)/,
+		})
 		.first()
 		.click()
 	await page.locator('input[name="user"]').waitFor({ timeout: 20_000 })
@@ -338,10 +419,7 @@ export async function ensurePortalAccount(
 ): Promise<void> {
 	const admin = await request.newContext({
 		baseURL: baseUrl(),
-		httpCredentials: {
-			username: process.env.NC_ADMIN_USER ?? 'admin',
-			password: process.env.NC_ADMIN_PASS ?? 'admin',
-		},
+		httpCredentials: ADMIN_CREDENTIALS,
 		extraHTTPHeaders: { 'OCS-APIRequest': 'true' },
 	})
 	const list = await admin.get(

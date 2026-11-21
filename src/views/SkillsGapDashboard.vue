@@ -24,11 +24,9 @@
 -->
 
 <template>
-	<div class="skills-gap-dashboard">
+	<div class="skills-gap-dashboard lq-board-page">
 		<header class="skills-gap-dashboard__header">
-			<h2 class="skills-gap-dashboard__title">
-				{{ t('learniq', 'Skills gap dashboard') }}
-			</h2>
+			<CnPageHeader :title="t('learniq', 'Skills gap dashboard')" />
 			<p class="skills-gap-dashboard__subtitle">
 				{{
 					t(
@@ -42,7 +40,7 @@
 		<!-- Loading -->
 		<div v-if="loading" class="skills-gap-dashboard__loading" aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
-			<span>{{ t('learniq', 'Loading skills gap...') }}</span>
+			<span>{{ t('learniq', 'Loading skills gap…') }}</span>
 		</div>
 
 		<!-- Error -->
@@ -51,9 +49,39 @@
 			<p>{{ error }}</p>
 		</div>
 
+		<!-- Cohort view (?cohortId=): where the group is thin -->
+		<template v-else-if="cohortId">
+			<CnDetailCard
+				:title="t('learniq', 'Skills gap of {cohort}', { cohort: cohortName })"
+				class="skills-gap-dashboard__section skills-gap-dashboard__cohort">
+				<div
+					v-if="cohortRows.length === 0"
+					class="skills-gap-dashboard__empty"
+					role="status">
+					<span>{{ t('learniq', 'The programme of this cohort requires no competencies.') }}</span>
+				</div>
+				<ul v-else class="skills-gap-dashboard__list">
+					<li
+						v-for="row in cohortRows"
+						:key="row.id"
+						class="skills-gap-dashboard__item">
+						<span class="skills-gap-dashboard__item-code">{{ row.code }}</span>
+						<span class="skills-gap-dashboard__item-title">{{ row.title }}</span>
+						<span class="skills-gap-dashboard__count">{{
+							t('learniq', '{below} of {total} learners below the target level', {
+								below: row.below,
+								total: row.total,
+							})
+						}}</span>
+					</li>
+				</ul>
+			</CnDetailCard>
+		</template>
+
 		<template v-else>
-			<section class="skills-gap-dashboard__section">
-				<h3>{{ t('learniq', 'Required by programme') }}</h3>
+			<CnDetailCard
+				:title="t('learniq', 'Required by programme')"
+				class="skills-gap-dashboard__section">
 				<div
 					v-if="programmeGaps.length === 0"
 					class="skills-gap-dashboard__empty"
@@ -77,10 +105,11 @@
 						</span>
 					</li>
 				</ul>
-			</section>
+			</CnDetailCard>
 
-			<section class="skills-gap-dashboard__section">
-				<h3>{{ t('learniq', 'Required by role') }}</h3>
+			<CnDetailCard
+				:title="t('learniq', 'Required by role')"
+				class="skills-gap-dashboard__section">
 				<div
 					v-if="roleGaps.length === 0"
 					class="skills-gap-dashboard__empty"
@@ -104,10 +133,11 @@
 						</span>
 					</li>
 				</ul>
-			</section>
+			</CnDetailCard>
 
-			<section class="skills-gap-dashboard__section">
-				<h3>{{ t('learniq', 'Attained') }}</h3>
+			<CnDetailCard
+				:title="t('learniq', 'Attained')"
+				class="skills-gap-dashboard__section">
 				<div
 					v-if="attainedList.length === 0"
 					class="skills-gap-dashboard__empty"
@@ -130,18 +160,21 @@
 						</span>
 					</li>
 				</ul>
-			</section>
+			</CnDetailCard>
 		</template>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
+import { cohortSkillsGap } from '../utils/cohortSkillsGap.js'
 
 export default {
 	name: 'SkillsGapDashboard',
+	components: { CnDetailCard, CnPageHeader },
 
 	data() {
 		return {
@@ -151,6 +184,11 @@ export default {
 			requiredProgrammeCompetencies: [],
 			requiredRoleCompetencies: [],
 			competencyIndex: {},
+			/** The cohort of the cohort view (?cohortId=), or null for one learner. */
+			cohortId: null,
+			cohortName: '',
+			/** @type {Array<{id: string, code: string, title: string, below: number, total: number}>} */
+			cohortRows: [],
 			loading: false,
 			error: null,
 		}
@@ -225,10 +263,66 @@ export default {
 	},
 
 	created() {
+		this.cohortId = this.$route?.query?.cohortId || null
+		if (this.cohortId) {
+			this.loadCohortSkillsGap(this.cohortId)
+			return
+		}
+
 		this.loadSkillsGap()
 	},
 
 	methods: {
+		/**
+		 * Load the cohort view: each competency the cohort's programme requires,
+		 * with how many of its learners are below the framework's target level.
+		 * Server-side RBAC decides which attainments the viewer may read.
+		 *
+		 * @param {string} cohortId Cohort UUID.
+		 * @return {Promise<void>}
+		 * @spec openspec/changes/capability-rows-say-what-they-do/specs/competency/spec.md#scenario-a-teacher-opens-the-skills-gap-of-a-class
+		 */
+		async loadCohortSkillsGap(cohortId) {
+			this.loading = true
+			this.error = null
+
+			try {
+				const cohort = await this.fetchObject('Cohort', cohortId)
+				if (!cohort) {
+					throw new Error('Cohort not found')
+				}
+
+				this.cohortName = cohort.name ?? ''
+				const learnerIds = [...new Set((cohort.learnerIds ?? []).filter(Boolean))]
+				const programme = await this.fetchObject('Programme', cohort.programmeId)
+				const requiredIds = new Set((programme?.requiredCompetencyIds ?? []).filter(Boolean))
+
+				const [competencies, frameworks, attainmentLists] = await Promise.all([
+					this.fetchCollection('Competency', { limit: 500 }),
+					this.fetchCollection('competency-framework', { limit: 200 }),
+					Promise.all(
+						learnerIds.map((learnerId) => this.fetchCollection('competency-attainment', { learnerId, limit: 200 })),
+					),
+				])
+
+				this.cohortRows = cohortSkillsGap({
+					learnerIds,
+					competencies: competencies.filter((c) => requiredIds.has(c.id ?? c.uuid)),
+					attainments: attainmentLists.flat(),
+					frameworks,
+				})
+			} catch (err) {
+				this.error = this.t(
+					'learniq',
+					'Failed to load the skills gap dashboard. Please try again.',
+				)
+				// eslint-disable-next-line no-console
+				console.error('[SkillsGapDashboard] loadCohortSkillsGap error', err)
+			} finally {
+				this.loading = false
+			}
+		},
+
 		/**
 		 * Load every source needed to compute the skills-gap view for the
 		 * target learner (self by default, or ?learnerId= for a manager
@@ -384,20 +478,9 @@ export default {
 </script>
 
 <style scoped>
-.skills-gap-dashboard {
-	max-width: 900px;
-	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
-.skills-gap-dashboard__header {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-}
-
-.skills-gap-dashboard__title {
-	font-size: var(--default-font-size, 15px);
-	font-weight: bold;
+.skills-gap-dashboard__count {
+	margin-inline-start: auto;
+	color: var(--color-text-maxcontrast);
 }
 
 .skills-gap-dashboard__subtitle {
@@ -413,10 +496,6 @@ export default {
 	align-items: center;
 	gap: var(--default-grid-baseline, 8px);
 	padding: calc(var(--default-grid-baseline, 8px) * 2);
-}
-
-.skills-gap-dashboard__section {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
 }
 
 .skills-gap-dashboard__list {

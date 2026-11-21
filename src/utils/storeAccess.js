@@ -48,17 +48,37 @@ export function applyStoreAccess(manifest, access) {
 		if (page?.type !== 'store') {
 			continue
 		}
-		const config =
-			page.config
-			&& typeof page.config === 'object'
-			&& !Array.isArray(page.config)
-				? page.config
-				: {}
-		page.config = {
-			...config,
-			canInstall: flags.install,
-			canPublish: flags.publish,
-		}
+		page.config = withStoreFlags(page.config, flags)
 	}
 	return manifest
+}
+
+/**
+ * A page config as an object; anything else (an empty PHP array, a string)
+ * becomes an empty one.
+ *
+ * @param {object|Array|string|null|undefined} config The page's config.
+ * @return {object}
+ */
+function plainConfig(config) {
+	return config
+		&& typeof config === 'object'
+		&& !Array.isArray(config)
+		? config
+		: {}
+}
+
+/**
+ * A copy of a store page config with the two flags written in.
+ *
+ * @param {object|Array|string|null|undefined} config The page's config.
+ * @param {{install: boolean, publish: boolean}} flags Output of normaliseStoreAccess().
+ * @return {object} The new config.
+ */
+function withStoreFlags(config, flags) {
+	return {
+		...plainConfig(config),
+		canInstall: flags.install,
+		canPublish: flags.publish,
+	}
 }

@@ -3,6 +3,9 @@
 /**
  * Learniq Report Period Lock Guard
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Lifecycle guard for the GradeEntry schema's `publish` and `republish`
  * transitions (grading spec, report-card-composer delta). Blocks ordinary
  * grade-publishing once a matching `ReportPeriod` is locked (`isLocked`
@@ -49,8 +52,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -65,8 +66,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
-use OCA\Learniq\Service\Grading\CorrectionApprovals;
-use OCA\Learniq\Service\Grading\ReportPeriodLocks;
+use OCA\Learniq\Kernel\Contracts\CorrectionApprovalsInterface;
+use OCA\Learniq\Kernel\Contracts\ReportPeriodLocksInterface;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use Psr\Log\LoggerInterface;
@@ -100,16 +101,16 @@ class ReportPeriodLockGuard implements LifecycleGuardInterface {
 	 * Constructor.
 	 *
 	 * @param FraudCaseBlockGuard $fraudCaseBlockGuard The original guard this class composes (unchanged behaviour, called first).
-	 * @param ReportPeriodLocks $locks The report period over a grade entry, and whether it is locked.
-	 * @param CorrectionApprovals $corrections The approved correction for a grade entry, if any.
+	 * @param ReportPeriodLocksInterface $locks The report period over a grade entry, and whether it is locked.
+	 * @param CorrectionApprovalsInterface $corrections The approved correction for a grade entry, if any.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly FraudCaseBlockGuard $fraudCaseBlockGuard,
-		private readonly ReportPeriodLocks $locks,
-		private readonly CorrectionApprovals $corrections,
+		private readonly ReportPeriodLocksInterface $locks,
+		private readonly CorrectionApprovalsInterface $corrections,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()

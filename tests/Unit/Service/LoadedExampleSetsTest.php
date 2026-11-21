@@ -72,7 +72,7 @@ class LoadedExampleSetsTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/specs/example-sets/spec.md#scenario-two-sets-were-loaded
+	 * @spec openspec/specs/example-sets/spec.md#requirement-an-administrator-removes-a-loaded-example-set-on-the-admin-page
 	 */
 	public function testRecordKeepsOneEntryAndForgetDropsIt(): void {
 		$written = new \ArrayObject();
@@ -91,7 +91,7 @@ class LoadedExampleSetsTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/specs/example-sets/spec.md#requirement-the-wizard-lists-every-loaded-example-set-with-its-own-remove-button
+	 * @spec openspec/specs/example-sets/spec.md#requirement-the-removal-step-never-runs-by-itself
 	 */
 	public function testRemovalStepsAndActionIds(): void {
 		$sets = $this->sets(value: '');
@@ -111,7 +111,7 @@ class LoadedExampleSetsTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/specs/example-sets/spec.md#scenario-removing-one-of-two-loaded-sets
+	 * @spec openspec/specs/example-sets/spec.md#scenario-removing-the-company-set
 	 */
 	public function testOnlyACleanRemovalForgetsTheSet(): void {
 		$written = new \ArrayObject();

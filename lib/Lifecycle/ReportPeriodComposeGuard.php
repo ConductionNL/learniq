@@ -3,6 +3,9 @@
 /**
  * Learniq Report Period Compose Guard
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Lifecycle guard for the ReportPeriod schema's `compose` transition
  * (open -> composed). Blocks composition until the period is `isLocked`
  * (lockDate is set AND has passed @now) — a coordinator/mentor must not
@@ -32,8 +35,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -46,7 +47,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
-use OCA\Learniq\Service\Grading\ReportPeriodLocks;
+use OCA\Learniq\Kernel\Contracts\ReportPeriodLocksInterface;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use Psr\Log\LoggerInterface;
@@ -70,13 +71,13 @@ class ReportPeriodComposeGuard implements LifecycleGuardInterface {
 	/**
 	 * Constructor.
 	 *
-	 * @param ReportPeriodLocks $locks Whether a report period is locked.
+	 * @param ReportPeriodLocksInterface $locks Whether a report period is locked.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ReportPeriodLocks $locks,
+		private readonly ReportPeriodLocksInterface $locks,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()

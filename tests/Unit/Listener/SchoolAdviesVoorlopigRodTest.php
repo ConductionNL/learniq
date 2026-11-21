@@ -19,7 +19,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
-use OCA\Learniq\AppInfo\Registrar\TransitionBridgeListenerRegistrar;
+use OCA\Learniq\Listener\Registrar\TransitionBridgeListenerRegistrar;
+use OCA\Learniq\BackgroundJob\ActorForwarding;
 use OCA\Learniq\BackgroundJob\SchoolAdviesVoorlopigRodJob;
 use OCA\Learniq\Listener\SchoolAdviesVoorlopigRodHandler;
 use OCA\Learniq\Service\ExchangeDisclosure;
@@ -41,6 +42,7 @@ use OCP\IUserSession;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use ReflectionMethod;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * The voorlopig advice is queued once given, and the job sends it once.
@@ -164,7 +166,11 @@ class SchoolAdviesVoorlopigRodTest extends TestCase {
 			}
 		);
 		$objects->method('saveObject')->willReturnCallback(
-			static function (array $object, ?array $extend = [], $register = null, $schema = null, $uuid = null) use (&$saved, &$stored): ObjectEntity {
+			static function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) use (&$saved, &$stored): ObjectEntity {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
+				$uuid = $options->uuid;
 				$saved[] = ['schema' => $schema, 'object' => $object, 'uuid' => $uuid];
 				$stored = $object;
 				return OrEntityFactory::make($object, (string)$schema);
@@ -182,10 +188,12 @@ class SchoolAdviesVoorlopigRodTest extends TestCase {
 		)->willReturn('job-7');
 
 		$job = new SchoolAdviesVoorlopigRodJob(
-			$this->createMock(ITimeFactory::class),
-			$this->createMock(IUserSession::class),
-			$this->createMock(IUserManager::class),
-			$this->createMock(OrganisationService::class),
+			new ActorForwarding(
+				time: $this->createMock(ITimeFactory::class),
+				userSession: $this->createMock(IUserSession::class),
+				userManager: $this->createMock(IUserManager::class),
+				organisation: $this->createMock(OrganisationService::class)
+			),
 			new NullLogger(),
 			$objects,
 			$integriq,

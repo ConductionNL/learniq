@@ -170,4 +170,73 @@ class AssessmentScoringHandlerTest extends TestCase {
 		self::assertSame(0.0, $scored['responses'][2]['autoScore']);
 		self::assertSame(1.0, $scored['responses'][3]['autoScore']);
 	}//end testTheStoredValueShapeIsScored()
+	/**
+	 * Every response naming an item gets its auto score and keeps its key;
+	 * one without an item is left exactly as it came; the rest of the result
+	 * is untouched and the count is logged once.
+	 *
+	 * @return void
+	 */
+	public function testEveryResponseIsScoredInPlaceAndCounted(): void {
+		$queries = [];
+		$objectService = $this->getMockBuilder(ObjectService::class)->disableOriginalConstructor()->getMock();
+		$objectService->method('findAll')->willReturnCallback(
+			static function (array $config) use (&$queries): array {
+				$queries[] = [$config['filters']['schema'], ($config['ids'][0] ?? ''), ($config['filters']['tenant_id'] ?? null)];
+				if ($config['filters']['schema'] === 'exam') {
+					return [['id' => 'exam-1', 'itemRefs' => [['itemId' => 'item-choice', 'points' => 3], ['points' => 9]]]];
+				}
+
+				return [['interactionType' => 'choice', 'correctResponse' => 'B', 'maxScore' => 1]];
+			}
+		);
+		$logged = [];
+		$logger = $this->getMockBuilder(LoggerInterface::class)->getMock();
+		$logger->method('info')->willReturnCallback(
+			static function (string $message, array $context) use (&$logged): void {
+				$logged[] = [$message, $context];
+			}
+		);
+		$handler = new AssessmentScoringHandler($objectService, $logger);
+
+		$scored = $handler->score(
+			[
+				'assessmentId' => 'exam-1',
+				'tenant_id' => 'tenant-1',
+				'note' => 'kept',
+				'responses' => [
+					'first' => ['itemId' => 'item-choice', 'response' => 'B', 'autoScore' => 99],
+					'second' => ['response' => 'no item', 'autoScore' => 7],
+					'third' => ['itemId' => 'item-other', 'response' => 'A'],
+				],
+			]
+		);
+
+		self::assertSame(
+			[
+				'assessmentId' => 'exam-1',
+				'tenant_id' => 'tenant-1',
+				'note' => 'kept',
+				'responses' => [
+					'first' => ['itemId' => 'item-choice', 'response' => 'B', 'autoScore' => 3.0],
+					'second' => ['response' => 'no item', 'autoScore' => 7],
+					'third' => ['itemId' => 'item-other', 'response' => 'A', 'autoScore' => 0.0],
+				],
+			],
+			$scored
+		);
+		self::assertSame([['[AssessmentScoringHandler] Auto-scored {count} responses for AssessmentResult.', ['count' => 3]]], $logged);
+		self::assertSame('exam', $queries[0][0]);
+		self::assertSame('exam-1', $queries[0][1]);
+		self::assertCount(3, $queries);
+
+		$queries = [];
+		$logged = [];
+		$nothing = ['assessmentId' => 'exam-1', 'responses' => []];
+		self::assertSame($nothing, $handler->score($nothing));
+		$noAssessment = ['responses' => [['itemId' => 'item-choice']]];
+		self::assertSame($noAssessment, $handler->score($noAssessment));
+		self::assertSame([], $queries);
+		self::assertSame([], $logged);
+	}//end testEveryResponseIsScoredInPlaceAndCounted()
 }//end class

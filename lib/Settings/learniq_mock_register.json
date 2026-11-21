@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "learniq demo data",
-    "version": "1.1.50",
+    "version": "1.1.53",
     "description": "Demo data covering every schema this app supplies, offered as the first step of the app's setup walkthrough. Generated from the schemas themselves, so every object satisfies the schema that will validate it."
   },
   "x-openregister": {
@@ -1552,11 +1552,19 @@
           "id": "ee000051-0000-4000-8000-000000000003"
         },
         "title": "Voorbeeld Title 3",
-        "kind": "video",
-        "fileRef": "Voorbeeld Fileref 3",
+        "kind": "link",
         "tenant_id": "00000000-0000-4000-8000-000000000002",
         "url": "https://example.invalid/resource/2",
-        "license": "Voorbeeld License 3",
+        "license": "CC-BY-4.0",
+        "source": "edurep",
+        "sourceId": "urn:wikiwijsmaken:194413",
+        "sourceUrl": "https://example.invalid/resource/2",
+        "sourceCollection": "wikiwijsmaken",
+        "authors": [
+          "Voorbeeld Maker 3"
+        ],
+        "accessRights": "OpenAccess",
+        "nonCommercial": false,
         "lomTags": [
           "Voorbeeld Lomtags 3"
         ],
@@ -6580,14 +6588,16 @@
         },
         "submissionId": "ee00006b-0000-4000-8000-000000000001",
         "assignmentId": "ee00000a-0000-4000-8000-000000000001",
+        "learnerIds": [
+          "Voorbeeld Learnerids 1"
+        ],
         "tenant_id": "00000000-0000-4000-8000-000000000000",
         "reviewCount": 1,
         "averageScore": 1.0,
         "feedbackItems": [
           {
             "comments": "Voorbeeld Comments 1",
-            "rubricScores": [],
-            "reviewerId": "Voorbeeld Reviewerid 1"
+            "rubricScores": []
           }
         ],
         "lastComputedAt": "2026-03-01T09:00:00+00:00"
@@ -6601,14 +6611,16 @@
         },
         "submissionId": "ee00006b-0000-4000-8000-000000000002",
         "assignmentId": "ee00000a-0000-4000-8000-000000000002",
+        "learnerIds": [
+          "Voorbeeld Learnerids 2"
+        ],
         "tenant_id": "00000000-0000-4000-8000-000000000001",
         "reviewCount": 2,
         "averageScore": 2.0,
         "feedbackItems": [
           {
             "comments": "Voorbeeld Comments 2",
-            "rubricScores": [],
-            "reviewerId": "Voorbeeld Reviewerid 2"
+            "rubricScores": []
           }
         ],
         "lastComputedAt": "2026-03-02T09:00:00+00:00"
@@ -6622,14 +6634,16 @@
         },
         "submissionId": "ee00006b-0000-4000-8000-000000000003",
         "assignmentId": "ee00000a-0000-4000-8000-000000000003",
+        "learnerIds": [
+          "Voorbeeld Learnerids 3"
+        ],
         "tenant_id": "00000000-0000-4000-8000-000000000002",
         "reviewCount": 3,
         "averageScore": 3.0,
         "feedbackItems": [
           {
             "comments": "Voorbeeld Comments 3",
-            "rubricScores": [],
-            "reviewerId": "Voorbeeld Reviewerid 3"
+            "rubricScores": []
           }
         ],
         "lastComputedAt": "2026-03-03T09:00:00+00:00"
@@ -10467,6 +10481,274 @@
         "caption": "Rapport 1 · december 2025 · Groep 6",
         "mentorComment": "Woordjes vaker oefenen.",
         "tenant_id": "00000000-0000-4000-8000-000000000002"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "exam-assessor-assignment",
+          "slug": "examassessorassignment-examassessorassignment-1-1",
+          "id": "ee00ffa3-0000-4000-8000-000000000001"
+        },
+        "examSittingId": "ee000098-0000-4000-8000-000000000001",
+        "externalAssessorId": "ee000034-0000-4000-8000-000000000001",
+        "learnerRef": "ee000046-0000-4000-8000-000000000001",
+        "role": "first",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "lifecycle": "assigned",
+        "learnerName": "Voorbeeld Givenname 1 Voorbeeld Familyname 1",
+        "sittingStartsAt": "2026-03-01T09:00:00+00:00",
+        "examTitle": "Voorbeeld Title 1"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "exam-assessor-assignment",
+          "slug": "examassessorassignment-examassessorassignment-2-2",
+          "id": "ee00ffa3-0000-4000-8000-000000000002"
+        },
+        "examSittingId": "ee000098-0000-4000-8000-000000000002",
+        "externalAssessorId": "ee000034-0000-4000-8000-000000000002",
+        "learnerRef": "ee000046-0000-4000-8000-000000000002",
+        "role": "second",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "lifecycle": "assigned",
+        "learnerName": "Voorbeeld Givenname 2 Voorbeeld Familyname 2",
+        "sittingStartsAt": "2026-03-02T09:00:00+00:00",
+        "examTitle": "Voorbeeld Title 2"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "exam-assessor-assignment",
+          "slug": "examassessorassignment-examassessorassignment-3-3",
+          "id": "ee00ffa3-0000-4000-8000-000000000003"
+        },
+        "examSittingId": "ee000098-0000-4000-8000-000000000003",
+        "externalAssessorId": "ee000034-0000-4000-8000-000000000003",
+        "learnerRef": "ee000046-0000-4000-8000-000000000003",
+        "role": "first",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "lifecycle": "withdrawn",
+        "learnerName": "Voorbeeld Givenname 3 Voorbeeld Familyname 3",
+        "sittingStartsAt": "2026-03-03T09:00:00+00:00",
+        "examTitle": "Voorbeeld Title 3"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "practical-exam-assessment",
+          "slug": "practicalexamassessment-practicalexamassessment-1-1",
+          "id": "ee00ffa4-0000-4000-8000-000000000001"
+        },
+        "examSittingId": "ee000098-0000-4000-8000-000000000001",
+        "learnerRef": "ee000046-0000-4000-8000-000000000001",
+        "assessorId": "ee000034-0000-4000-8000-000000000001",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "assessmentModelId": "ee000065-0000-4000-8000-000000000001",
+        "criteria": [
+          {
+            "criterionId": "Voorbeeld Criterionid 1",
+            "label": "Voorbeeld Label 1",
+            "score": 1.0,
+            "notes": "Voorbeeld Notes 1"
+          }
+        ],
+        "outcome": "pass",
+        "assessorName": "Voorbeeld Givenname 1 Voorbeeld Familyname 1",
+        "assuranceLevel": "substantial",
+        "lifecycle": "submitted"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "practical-exam-assessment",
+          "slug": "practicalexamassessment-practicalexamassessment-2-2",
+          "id": "ee00ffa4-0000-4000-8000-000000000002"
+        },
+        "examSittingId": "ee000098-0000-4000-8000-000000000002",
+        "learnerRef": "ee000046-0000-4000-8000-000000000002",
+        "assessorId": "ee000034-0000-4000-8000-000000000002",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "assessmentModelId": "ee000065-0000-4000-8000-000000000002",
+        "criteria": [
+          {
+            "criterionId": "Voorbeeld Criterionid 2",
+            "label": "Voorbeeld Label 2",
+            "score": 0.0,
+            "notes": "Voorbeeld Notes 2"
+          }
+        ],
+        "outcome": "fail",
+        "assessorName": "Voorbeeld Givenname 2 Voorbeeld Familyname 2",
+        "assuranceLevel": "high",
+        "lifecycle": "submitted"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "practical-exam-assessment",
+          "slug": "practicalexamassessment-practicalexamassessment-3-3",
+          "id": "ee00ffa4-0000-4000-8000-000000000003"
+        },
+        "examSittingId": "ee000098-0000-4000-8000-000000000003",
+        "learnerRef": "ee000046-0000-4000-8000-000000000003",
+        "assessorId": "ee000034-0000-4000-8000-000000000003",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "assessmentModelId": "ee000065-0000-4000-8000-000000000003",
+        "criteria": [
+          {
+            "criterionId": "Voorbeeld Criterionid 3",
+            "label": "Voorbeeld Label 3",
+            "score": null,
+            "notes": null
+          }
+        ],
+        "outcome": null,
+        "assessorName": "Voorbeeld Givenname 3 Voorbeeld Familyname 3",
+        "assuranceLevel": "basic",
+        "lifecycle": "draft"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "exam-registration",
+          "slug": "examregistration-examregistration-1-1",
+          "id": "ee0000a7-0000-4000-8000-000000000001"
+        },
+        "cohortId": "ee000018-0000-4000-8000-000000000001",
+        "courseId": "ee000020-0000-4000-8000-000000000001",
+        "courseName": "Voorbeeld Name 1",
+        "examDate": "2026-10-12",
+        "bodyName": "Examenbureau Koudetechniek",
+        "closesAt": "2026-10-07T12:00:00+02:00",
+        "requiredFields": [
+          "fullName",
+          "birthDate",
+          "placeOfBirth"
+        ],
+        "lines": [],
+        "participantCount": 0,
+        "completeCount": 0,
+        "lifecycle": "open",
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "exam-registration",
+          "slug": "examregistration-examregistration-2-2",
+          "id": "ee0000a7-0000-4000-8000-000000000002"
+        },
+        "cohortId": "ee000018-0000-4000-8000-000000000002",
+        "courseId": "ee000020-0000-4000-8000-000000000002",
+        "courseName": "Voorbeeld Name 2",
+        "examDate": "2026-10-05",
+        "bodyName": "Examenbureau Installatietechniek",
+        "closesAt": "2026-09-30T12:00:00+02:00",
+        "requiredFields": [
+          "fullName",
+          "birthDate",
+          "placeOfBirth"
+        ],
+        "lines": [],
+        "participantCount": 0,
+        "completeCount": 0,
+        "lifecycle": "closed",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "closedAt": "2026-09-30T12:00:00+02:00",
+        "closedBy": "admin"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "exam-registration",
+          "slug": "examregistration-examregistration-3-3",
+          "id": "ee0000a7-0000-4000-8000-000000000003"
+        },
+        "cohortId": "ee000018-0000-4000-8000-000000000003",
+        "courseId": "ee000020-0000-4000-8000-000000000003",
+        "courseName": "Voorbeeld Name 3",
+        "examDate": "2026-09-21",
+        "bodyName": "Examenbureau Veiligheid",
+        "closesAt": "2026-09-16T12:00:00+02:00",
+        "requiredFields": [
+          "fullName",
+          "birthDate",
+          "placeOfBirth"
+        ],
+        "lines": [],
+        "participantCount": 0,
+        "completeCount": 0,
+        "lifecycle": "sent",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "closedAt": "2026-09-16T12:00:00+02:00",
+        "closedBy": "admin",
+        "exportedAt": "2026-09-16T14:30:00+02:00",
+        "sentAt": "2026-09-16T14:30:00+02:00",
+        "sentBy": "admin"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "leave-request",
+          "slug": "leaverequest-leaverequest-1-1",
+          "id": "ee00ffa5-0000-4000-8000-000000000001"
+        },
+        "learnerRef": "ee000046-0000-4000-8000-000000000001",
+        "requestedByRef": "00000000-0000-4000-8000-000000000000",
+        "dateFrom": "2026-03-12",
+        "dateTo": "2026-03-13",
+        "kind": "wedding",
+        "reason": "Bruiloft van een tante in Utrecht.",
+        "schoolDays": 2,
+        "decideBy": "2026-03-09",
+        "lifecycle": "submitted",
+        "teacherIds": [],
+        "tenant_id": "00000000-0000-4000-8000-000000000000"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "leave-request",
+          "slug": "leaverequest-leaverequest-2-1",
+          "id": "ee00ffa5-0000-4000-8000-000000000002"
+        },
+        "learnerRef": "ee000046-0000-4000-8000-000000000002",
+        "requestedByRef": "00000000-0000-4000-8000-000000000001",
+        "dateFrom": "2026-03-05",
+        "dateTo": "2026-03-05",
+        "kind": "funeral",
+        "reason": "Uitvaart van opa.",
+        "schoolDays": 1,
+        "decideBy": "2026-03-09",
+        "lifecycle": "allowed",
+        "teacherIds": [],
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "decidedBy": "Voorbeeld Decidedby 2",
+        "decidedAt": "2026-03-02T09:00:00+00:00",
+        "decisionNote": "Sterkte gewenst."
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "leave-request",
+          "slug": "leaverequest-leaverequest-3-1",
+          "id": "ee00ffa5-0000-4000-8000-000000000003"
+        },
+        "learnerRef": "ee000046-0000-4000-8000-000000000003",
+        "requestedByRef": "00000000-0000-4000-8000-000000000002",
+        "dateFrom": "2026-03-16",
+        "dateTo": "2026-03-20",
+        "kind": "holiday-outside-school-holidays",
+        "reason": "Vakantie buiten de schoolvakanties.",
+        "schoolDays": 5,
+        "decideBy": "2026-03-09",
+        "lifecycle": "refused",
+        "teacherIds": [],
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "decidedBy": "Voorbeeld Decidedby 3",
+        "decidedAt": "2026-03-03T09:00:00+00:00",
+        "decisionNote": "Vakantie buiten de schoolvakanties is geen reden voor verlof."
       }
     ]
   }

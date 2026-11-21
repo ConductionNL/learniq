@@ -3,20 +3,22 @@
 /**
  * Learniq Peer Feedback Aggregator
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Listens for OpenRegister's ObjectTransitionedEvent, filtered to PeerReview
  * objects transitioning to `released`. Recomputes the linked Submission's
  * `PeerFeedbackSummary` — `reviewCount`, `averageScore` (mean of released
- * PeerReview.totalScore), and `feedbackItems` (one per released PeerReview:
- * `comments`, `rubricScores`, and `reviewerId` set to null when the governing
- * Assignment's `peerReviewAnonymity` is `blind`/`double-blind`, or the
- * reviewer's identity when `open`).
+ * PeerReview.totalScore), `feedbackItems` (one per released PeerReview:
+ * `comments` and `rubricScores`) and `learnerIds`, the Submission's own
+ * learners, copied so the schema's read rule can name them.
  *
  * This is the server-side anonymity mechanism (design.md "Anonymity
- * Enforcement"): `PeerFeedbackSummary` structurally omits `reviewerId` — the
- * field is computed as null, not merely hidden — so a submission's author who
- * reads this projection (their own `PeerReview` rows are denied by
- * `x-property-rbac.read`) can never learn a blind/double-blind reviewer's
- * identity through it.
+ * Enforcement"): the summary is what the submission's learner reads, so it
+ * carries no reviewer name, user id or PeerReview id in any anonymity mode —
+ * the fields are never written, not merely hidden. Staff who need to know who
+ * reviewed read the PeerReview rows themselves; the learner's own read of
+ * those rows is denied by `x-property-rbac.read`.
  *
  * ADR-031 legitimate exception: this register's `x-openregister-aggregations`
  * vocabulary is `count`/`count_distinct` only (no `avg`, verified — a
@@ -32,14 +34,12 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
  *
  * @spec openspec/specs/assignments/spec.md#scenario-blind-and-double-blind-hide-reviewer-identity-in-the-feedback-summary
- * @spec openspec/specs/assignments/spec.md#scenario-open-anonymity-reveals-reviewer-identity-in-the-feedback-summary
+ * @spec openspec/specs/assignments/spec.md#requirement-a-learner-reads-the-feedback-summary-of-their-own-submission-with-reviewers-anonymised
  */
 
 declare(strict_types=1);
@@ -47,8 +47,12 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use DateTimeImmutable;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Support\SerialisedRow;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
@@ -65,23 +69,21 @@ class PeerFeedbackAggregator implements IEventListener {
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const PEER_REVIEW_SCHEMA = 'peer-review';
 	private const PEER_FEEDBACK_SUMMARY_SCHEMA = 'peer-feedback-summary';
-	private const ASSIGNMENT_SCHEMA = 'assignment';
-
-	private const OPEN_ANONYMITY = 'open';
+	private const SUBMISSION_SCHEMA = 'submission';
 
 	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OpenRegister object access.
 	 * @param ITimeFactory $timeFactory NC time source (injectable "now" for tests).
-	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly ITimeFactory $timeFactory,
-		private readonly ListenerSchemaResolver $schemas,
+		private readonly ListenerSchemaResolverInterface $schemas,
 	) {
 	}//end __construct()
 
@@ -130,10 +132,9 @@ class PeerFeedbackAggregator implements IEventListener {
 	 * @return void
 	 *
 	 * @spec openspec/specs/assignments/spec.md#scenario-blind-and-double-blind-hide-reviewer-identity-in-the-feedback-summary
-	 * @spec openspec/specs/assignments/spec.md#scenario-open-anonymity-reveals-reviewer-identity-in-the-feedback-summary
+	 * @spec openspec/specs/assignments/spec.md#requirement-a-learner-reads-the-feedback-summary-of-their-own-submission-with-reviewers-anonymised
 	 */
 	private function recomputeSummary(string $submissionId, string $assignmentId): void {
-		$anonymity = $this->fetchAnonymityMode(assignmentId: $assignmentId);
 		$released = $this->fetchReleasedReviews(submissionId: $submissionId);
 
 		$feedbackItems = [];
@@ -145,15 +146,11 @@ class PeerFeedbackAggregator implements IEventListener {
 				$scores[] = (float)$totalScore;
 			}
 
-			$reviewerId = null;
-			if ($anonymity === self::OPEN_ANONYMITY) {
-				$reviewerId = $review['reviewerId'] ?? null;
-			}
-
+			// Only what the reviewer said, never who said it: the learner
+			// reads this row, so no reviewer or PeerReview id goes in.
 			$feedbackItems[] = [
 				'comments' => $review['comments'] ?? null,
 				'rubricScores' => $review['rubricScores'] ?? [],
-				'reviewerId' => $reviewerId,
 			];
 		}
 
@@ -163,49 +160,57 @@ class PeerFeedbackAggregator implements IEventListener {
 		}
 
 		$existing = $this->fetchExistingSummary(submissionId: $submissionId);
+		$submission = $this->fetchObject(id: $submissionId, schema: self::SUBMISSION_SCHEMA);
 
 		$data = array_merge(
 			$existing ?? [],
 			[
 				'submissionId' => $submissionId,
 				'assignmentId' => $assignmentId,
+				'learnerIds' => $this->learnerIdsOf(submission: $submission),
 				'reviewCount' => count($released),
 				'averageScore' => $averageScore,
 				'feedbackItems' => $feedbackItems,
 				'lastComputedAt' => DateTimeImmutable::createFromMutable($this->timeFactory->getDateTime())->format(\DATE_ATOM),
-				'tenant_id' => $existing['tenant_id'] ?? ($this->fetchTenantId(submissionId: $submissionId) ?? ''),
+				'tenant_id' => $existing['tenant_id'] ?? ($this->tenantIdOf(submission: $submission) ?? ''),
 			]
 		);
 
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::PEER_FEEDBACK_SUMMARY_SCHEMA,
-			object: $data
+			object: $data,
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(
+					register: self::LEARNIQ_REGISTER,
+					schema: self::PEER_FEEDBACK_SUMMARY_SCHEMA
+				))
 		);
 
 	}//end recomputeSummary()
 
 	/**
-	 * Resolve the governing Assignment's `peerReviewAnonymity`.
+	 * The Submission's learner user ids, the people the summary's read rule
+	 * lets in. Non-string and empty entries and repeats are dropped.
 	 *
-	 * @param string $assignmentId UUID of the Assignment.
+	 * @param array<string,mixed>|null $submission The Submission, or null when it cannot be read.
 	 *
-	 * @return string Defaults to `blind` (the schema default) when unresolvable —
-	 *                fail closed on anonymity, never fail open.
+	 * @return list<string>
+	 *
+	 * @spec openspec/specs/assignments/spec.md#requirement-a-learner-reads-the-feedback-summary-of-their-own-submission-with-reviewers-anonymised
 	 */
-	private function fetchAnonymityMode(string $assignmentId): string {
-		$assignment = $this->fetchObject(id: $assignmentId, schema: self::ASSIGNMENT_SCHEMA);
-		if ($assignment === null) {
-			return 'blind';
+	private function learnerIdsOf(?array $submission): array {
+		$learnerIds = $submission['learnerIds'] ?? [];
+		if (is_array($learnerIds) === false) {
+			return [];
 		}
 
-		$anonymity = $assignment['peerReviewAnonymity'] ?? 'blind';
-		if (is_string($anonymity) === false || $anonymity === '') {
-			return 'blind';
+		$ids = [];
+		foreach ($learnerIds as $learnerId) {
+			if (is_string($learnerId) === true && $learnerId !== '') {
+				$ids[] = $learnerId;
+			}
 		}
 
-		return $anonymity;
-	}//end fetchAnonymityMode()
+		return array_values(array_unique($ids));
+	}//end learnerIdsOf()
 
 	/**
 	 * Fetch every `released` PeerReview for a Submission.
@@ -261,25 +266,20 @@ class PeerFeedbackAggregator implements IEventListener {
 	}//end fetchExistingSummary()
 
 	/**
-	 * Best-effort resolve a Submission's tenant_id for a brand-new PeerFeedbackSummary.
+	 * The Submission's tenant_id, for a brand-new PeerFeedbackSummary.
 	 *
-	 * @param string $submissionId UUID of the Submission.
+	 * @param array<string,mixed>|null $submission The Submission, or null when it cannot be read.
 	 *
 	 * @return string|null
 	 */
-	private function fetchTenantId(string $submissionId): ?string {
-		$submission = $this->fetchObject(id: $submissionId, schema: 'submission');
-		if ($submission === null) {
-			return null;
-		}
-
+	private function tenantIdOf(?array $submission): ?string {
 		$tenantId = $submission['tenant_id'] ?? null;
 		if (is_string($tenantId) === false || $tenantId === '') {
 			return null;
 		}
 
 		return $tenantId;
-	}//end fetchTenantId()
+	}//end tenantIdOf()
 
 	/**
 	 * Fetch an object by id/schema, normalising to an array.
@@ -292,8 +292,7 @@ class PeerFeedbackAggregator implements IEventListener {
 	private function fetchObject(string $id, string $schema): ?array {
 		$obj = $this->objectService->find(
 			id: $id,
-			register: self::LEARNIQ_REGISTER,
-			schema: $schema
+			options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: $schema)
 		);
 
 		if ($obj === null) {
@@ -312,17 +311,6 @@ class PeerFeedbackAggregator implements IEventListener {
 	 * @return array<string,mixed>
 	 */
 	private function toArray(mixed $value): array {
-		if (is_array($value) === true) {
-			return $value;
-		}
-
-		if (is_object($value) === true && method_exists($value, 'jsonSerialize') === true) {
-			$serialized = $value->jsonSerialize();
-			if (is_array($serialized) === true) {
-				return $serialized;
-			}
-		}
-
-		return [];
+		return (new SerialisedRow())->asArray(object: $value);
 	}//end toArray()
 }//end class

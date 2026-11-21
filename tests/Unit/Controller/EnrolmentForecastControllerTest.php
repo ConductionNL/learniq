@@ -25,6 +25,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Controller;
 
 use InvalidArgumentException;
+use OCA\Learniq\Service\CallerActions;
 use OCA\Learniq\Controller\EnrolmentForecastController;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Service\EnrolmentForecastService;
@@ -77,7 +78,15 @@ class EnrolmentForecastControllerTest extends TestCase {
 			}
 		);
 
-		return new EnrolmentForecastController($this->createMock(IRequest::class), $session, $auth, $service, $objects);
+		return new EnrolmentForecastController(
+			request: $this->createMock(IRequest::class),
+			caller: new CallerActions(
+				userSession: $session,
+				actionAuth: $auth
+			),
+			forecasts: $service,
+			objectService: $objects
+		);
 	}//end controller()
 
 	/**

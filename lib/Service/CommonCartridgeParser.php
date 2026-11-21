@@ -37,6 +37,7 @@ namespace OCA\Learniq\Service;
 use DOMDocument;
 use DOMElement;
 use DOMXPath;
+use OCA\Learniq\Service\CoursePackage\CommonCartridgeItemTree;
 use RuntimeException;
 
 /**
@@ -48,6 +49,19 @@ class CommonCartridgeParser {
 	 * IMS Content Packaging namespace used by the manifest root/organizations/resources elements.
 	 */
 	private const IMSCP_NS = 'http://www.imsglobal.org/xsd/imscp_v1p1';
+
+	/**
+	 * Type marker to fidelity-table category, in the order they are tried.
+	 */
+	private const CLASSIFICATION_MARKERS = [
+		'imsqti_test' => 'imsqti_test',
+		'imsqti' => 'imsqti_item',
+		'basiclti' => 'basiclti',
+		'imswl' => 'weblink',
+		'imsdt' => 'discussion',
+		'webcontent' => 'webcontent',
+		'associatedcontent' => 'webcontent',
+	];
 
 	/**
 	 * Parse the manifest at `$dir/imsmanifest.xml`.
@@ -67,6 +81,27 @@ class CommonCartridgeParser {
 	 * @spec openspec/specs/course-management/spec.md#requirement-import-a-common-cartridge-or-moodle-course-package-into-the-courselessonmaterial-hierarchy
 	 */
 	public function parseManifest(string $dir): array {
+		$xpath = new DOMXPath($this->loadManifest(dir: $dir));
+		$xpath->registerNamespace('imscp', self::IMSCP_NS);
+
+		$resources = $this->parseResources(xpath: $xpath);
+
+		return [
+			'organizationNodes' => $this->parseOrganizations(xpath: $xpath),
+			'resources' => $resources,
+		];
+	}//end parseManifest()
+
+	/**
+	 * Load `$dir/imsmanifest.xml` as a document.
+	 *
+	 * @param string $dir Absolute path to the extracted CC package directory.
+	 *
+	 * @return \DOMDocument
+	 *
+	 * @throws \RuntimeException When `imsmanifest.xml` is missing or not parseable XML.
+	 */
+	private function loadManifest(string $dir): DOMDocument {
 		$manifestPath = $dir . '/imsmanifest.xml';
 		if (file_exists($manifestPath) === false) {
 			throw new RuntimeException("No imsmanifest.xml found in '{$dir}' — not a recognisable Common Cartridge package.");
@@ -87,88 +122,34 @@ class CommonCartridgeParser {
 			throw new RuntimeException("Could not parse imsmanifest.xml in '{$dir}' as XML.");
 		}
 
-		$xpath = new DOMXPath($xml);
-		$xpath->registerNamespace('imscp', self::IMSCP_NS);
-
-		$resources = $this->parseResources(xpath: $xpath);
-
-		$organizationNodes = [];
-		$orgNodes = $xpath->query('//imscp:organizations/imscp:organization');
-		if ($orgNodes === false || $orgNodes->length === 0) {
-			$orgNodes = $xml->getElementsByTagName('organization');
-		}
-
-		$order = 0;
-		foreach ($orgNodes as $orgNode) {
-			if (($orgNode instanceof DOMElement) === false) {
-				continue;
-			}
-
-			$this->walkItems(
-				parent: $orgNode,
-				parentIdentifier: null,
-				order: $order,
-				out: $organizationNodes,
-			);
-		}
-
-		return [
-			'organizationNodes' => $organizationNodes,
-			'resources' => $resources,
-		];
-	}//end parseManifest()
+		return $xml;
+	}//end loadManifest()
 
 	/**
-	 * Recursively walk `<item>` elements under an `<organization>` or parent `<item>`,
-	 * preserving manifest order and parent/child relationships.
+	 * Walk every organization's `<item>` tree, preserving manifest order and
+	 * parent/child relationships, with one order counter across organizations.
 	 *
-	 * @param \DOMElement $parent The `<organization>` or `<item>` element whose direct `<item>` children are walked.
-	 * @param string|null $parentIdentifier Identifier of the organization node this level nests under (null at the root).
-	 * @param int $order Running order counter, incremented per sibling.
-	 * @param array<int, array<string, mixed>> $out Accumulator the walked nodes are appended to.
+	 * @param \DOMXPath $xpath Manifest XPath, with the `imscp` namespace registered.
 	 *
-	 * @return void
+	 * @return array<int, array<string, mixed>> One row per organization node.
 	 *
 	 * @spec openspec/specs/course-management/spec.md#requirement-import-a-common-cartridge-or-moodle-course-package-into-the-courselessonmaterial-hierarchy
 	 */
-	private function walkItems(DOMElement $parent, ?string $parentIdentifier, int &$order, array &$out): void {
-		foreach ($parent->childNodes as $child) {
-			if (($child instanceof DOMElement) === false || $child->localName !== 'item') {
-				continue;
+	private function parseOrganizations(DOMXPath $xpath): array {
+		$orgNodes = $xpath->query('//imscp:organizations/imscp:organization');
+		if ($orgNodes === false || $orgNodes->length === 0) {
+			$orgNodes = $xpath->document->getElementsByTagName('organization');
+		}
+
+		$tree = new CommonCartridgeItemTree();
+		foreach ($orgNodes as $orgNode) {
+			if ($orgNode instanceof DOMElement) {
+				$tree->walk(parent: $orgNode, parentIdentifier: null);
 			}
+		}
 
-			$identifier = $child->getAttribute('identifier');
-			$identifierRef = $child->getAttribute('identifierref');
-			$title = $this->firstChildText(element: $child, tagName: 'title') ?? $identifier;
-
-			$hasChildItems = false;
-			foreach ($child->childNodes as $grandChild) {
-				if ($grandChild instanceof DOMElement && $grandChild->localName === 'item') {
-					$hasChildItems = true;
-					break;
-				}
-			}
-
-			$resourceIdentifier = null;
-			if ($identifierRef !== '') {
-				$resourceIdentifier = $identifierRef;
-			}
-
-			$out[] = [
-				'identifier' => $identifier,
-				'title' => $title,
-				'order' => $order,
-				'parentIdentifier' => $parentIdentifier,
-				'isFolder' => $hasChildItems,
-				'resourceIdentifier' => $resourceIdentifier,
-			];
-			$order++;
-
-			if ($hasChildItems === true) {
-				$this->walkItems(parent: $child, parentIdentifier: $identifier, order: $order, out: $out);
-			}
-		}//end foreach
-	}//end walkItems()
+		return $tree->nodes();
+	}//end parseOrganizations()
 
 	/**
 	 * Parse the manifest's `<resources><resource>` list.
@@ -180,53 +161,98 @@ class CommonCartridgeParser {
 	 * @spec openspec/specs/course-management/spec.md#requirement-import-a-common-cartridge-or-moodle-course-package-into-the-courselessonmaterial-hierarchy
 	 */
 	private function parseResources(DOMXPath $xpath): array {
-		$resourceNodes = $xpath->query('//imscp:resources/imscp:resource');
-		if ($resourceNodes === false || $resourceNodes->length === 0) {
-			$resourceNodes = $xpath->query('//resource');
-		}
-
 		$resources = [];
-		if ($resourceNodes === false) {
-			return $resources;
+		foreach ($this->resourceElements(xpath: $xpath) as $node) {
+			if ($node instanceof DOMElement) {
+				$resources[] = $this->resourceRow(node: $node);
+			}
 		}
-
-		foreach ($resourceNodes as $node) {
-			if (($node instanceof DOMElement) === false) {
-				continue;
-			}
-
-			$identifier = $node->getAttribute('identifier');
-			$type = $node->getAttribute('type');
-			$href = $node->getAttribute('href');
-			if ($href === '') {
-				$fileNodes = $node->getElementsByTagName('file');
-				$firstFile = $fileNodes->item(0);
-				if ($firstFile instanceof DOMElement) {
-					$href = $firstFile->getAttribute('href');
-				}
-			}
-
-			$title = $identifier;
-			$hrefOrNull = null;
-			if ($href !== '') {
-				$title = basename($href);
-				$hrefOrNull = $href;
-			}
-
-			$resources[] = [
-				'identifier' => $identifier,
-				'type' => $type,
-				'classification' => $this->classify(type: $type),
-				'href' => $hrefOrNull,
-				'title' => $title,
-			];
-		}//end foreach
 
 		return $resources;
 	}//end parseResources()
 
 	/**
-	 * Classify a CC `<resource type="...">` string into a fidelity-table category.
+	 * The `<resource>` elements: the namespaced ones, else any `<resource>`.
+	 *
+	 * @param \DOMXPath $xpath Manifest XPath, with the `imscp` namespace registered.
+	 *
+	 * @return iterable<\DOMNode>
+	 */
+	private function resourceElements(DOMXPath $xpath): iterable {
+		$resourceNodes = $xpath->query('//imscp:resources/imscp:resource');
+		if ($resourceNodes === false || $resourceNodes->length === 0) {
+			$resourceNodes = $xpath->query('//resource');
+		}
+
+		if ($resourceNodes === false) {
+			return [];
+		}
+
+		return $resourceNodes;
+	}//end resourceElements()
+
+	/**
+	 * One `<resource>` as a row. The href falls back to the first `<file>`'s,
+	 * and the title is the href's file name, or the identifier when there is no href.
+	 *
+	 * @param \DOMElement $node The `<resource>` element.
+	 *
+	 * @return array<string, mixed> `{identifier, type, classification, href, title}`.
+	 */
+	private function resourceRow(DOMElement $node): array {
+		$identifier = $node->getAttribute('identifier');
+		$type       = $node->getAttribute('type');
+		$href       = $this->resourceHref(node: $node);
+
+		return [
+			'identifier' => $identifier,
+			'type' => $type,
+			'classification' => $this->classify(type: $type),
+			'href' => $href,
+			'title' => self::fileNameOr(href: $href, fallback: $identifier),
+		];
+	}//end resourceRow()
+
+	/**
+	 * The file name of the href, or the fallback when there is no href.
+	 *
+	 * @param string|null $href     The resource href.
+	 * @param string      $fallback The title to use without an href.
+	 *
+	 * @return string
+	 */
+	private static function fileNameOr(?string $href, string $fallback): string {
+		if ($href === null) {
+			return $fallback;
+		}
+
+		return basename($href);
+	}//end fileNameOr()
+
+	/**
+	 * The resource's `href`, else the first `<file>`'s, or null when both are empty.
+	 *
+	 * @param \DOMElement $node The `<resource>` element.
+	 *
+	 * @return string|null
+	 */
+	private function resourceHref(DOMElement $node): ?string {
+		$href = $node->getAttribute('href');
+		$firstFile = $node->getElementsByTagName('file')->item(0);
+		if ($href === '' && $firstFile instanceof DOMElement) {
+			$href = $firstFile->getAttribute('href');
+		}
+
+		if ($href === '') {
+			return null;
+		}
+
+		return $href;
+	}//end resourceHref()
+
+	/**
+	 * Classify a CC `<resource type="...">` string into a fidelity-table category:
+	 * the category of the first marker the lower-cased type contains.
 	 *
 	 * @param string $type The raw `type` attribute value.
 	 *
@@ -236,56 +262,12 @@ class CommonCartridgeParser {
 	 */
 	private function classify(string $type): string {
 		$lower = strtolower($type);
-
-		if (str_contains($lower, 'imsqti_test') === true) {
-			return 'imsqti_test';
-		}
-
-		if (str_contains($lower, 'imsqti') === true) {
-			return 'imsqti_item';
-		}
-
-		if (str_contains($lower, 'basiclti') === true) {
-			return 'basiclti';
-		}
-
-		if (str_contains($lower, 'imswl') === true) {
-			return 'weblink';
-		}
-
-		if (str_contains($lower, 'imsdt') === true) {
-			return 'discussion';
-		}
-
-		if (str_contains($lower, 'webcontent') === true || str_contains($lower, 'associatedcontent') === true) {
-			return 'webcontent';
+		foreach (self::CLASSIFICATION_MARKERS as $marker => $classification) {
+			if (str_contains($lower, $marker) === true) {
+				return $classification;
+			}
 		}
 
 		return 'other';
 	}//end classify()
-
-	/**
-	 * Read the trimmed text content of the first direct child with the given local tag name.
-	 *
-	 * @param \DOMElement $element The parent element.
-	 * @param string $tagName The child tag's local name (namespace-agnostic).
-	 *
-	 * @return string|null Trimmed text content, or null when no such child exists.
-	 *
-	 * @spec openspec/specs/course-management/spec.md#requirement-import-a-common-cartridge-or-moodle-course-package-into-the-courselessonmaterial-hierarchy
-	 */
-	private function firstChildText(DOMElement $element, string $tagName): ?string {
-		foreach ($element->childNodes as $child) {
-			if ($child instanceof DOMElement && $child->localName === $tagName) {
-				$text = trim((string)$child->textContent);
-				if ($text !== '') {
-					return $text;
-				}
-
-				return null;
-			}
-		}
-
-		return null;
-	}//end firstChildText()
 }//end class

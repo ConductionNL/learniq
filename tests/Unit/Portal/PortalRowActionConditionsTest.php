@@ -39,9 +39,22 @@ class PortalRowActionConditionsTest extends TestCase {
 	 * The condition each row action declares.
 	 */
 	private const CONDITIONS = [
+		'answerPermissionRequest' => ['field' => 'lifecycle', 'in' => ['open']],
 		'cancelConferenceTime' => ['field' => 'lifecycle', 'in' => ['booked', 'acknowledged']],
 		'handIn' => ['field' => 'lifecycle', 'in' => ['draft']],
+		// An absence that may still be going on (absence-reports-seen-and-ended T4).
+		'reportRecovered' => ['field' => 'lifecycle', 'in' => ['submitted', 'approved']],
+		'signUpForElective' => ['field' => 'lifecycle', 'in' => ['open']],
+		// A participant who still has a place (employer-substitutes-a-colleague T4).
+		'substituteParticipant' => ['field' => 'lifecycle', 'in' => ['pending', 'active']],
 	];
+
+	/**
+	 * Row actions offered on every row of their collection, on purpose: she
+	 * may fill in or change her own estimate on any of her work processes,
+	 * and the row has no state to narrow it to.
+	 */
+	private const ON_EVERY_ROW = ['fillInSelfAssessment'];
 
 	/**
 	 * The guardian is offered the cancel only on a booked or acknowledged
@@ -72,6 +85,11 @@ class PortalRowActionConditionsTest extends TestCase {
 			$actions = array_column($manifest['actions'], null, 'id');
 			foreach ($manifest['collections'] as $collection) {
 				foreach (($collection['rowActions'] ?? []) as $actionId) {
+					if (in_array($actionId, self::ON_EVERY_ROW, true) === true) {
+						self::assertArrayNotHasKey('rowWhen', $actions[$actionId], $actionId);
+						continue;
+					}
+
 					$condition = ($actions[$actionId]['rowWhen'] ?? null);
 					self::assertIsArray($condition, $actionId.' declares no rowWhen');
 					self::assertSame(['field', 'in'], array_keys($condition), $actionId);

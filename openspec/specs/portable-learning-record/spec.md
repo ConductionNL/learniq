@@ -1,7 +1,7 @@
 # portable-learning-record Specification
 
 ## Purpose
-TBD - created by archiving change portable-learning-record. Update Purpose after archive.
+Let a learner export a signed record of their learning and share it for a limited time with a named recipient, who checks it on a public page. A coordinator can upload another institution's record as evidence during intake.
 ## Requirements
 ### Requirement: Persist LearningRecordExport, LearningRecordShare, and LearningRecordImport in OpenRegister
 

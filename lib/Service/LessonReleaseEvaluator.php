@@ -3,6 +3,9 @@
 /**
  * Learniq Lesson Release Evaluator
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Stateless service resolving, per (item, learner) pair, whether a Lesson or
  * Assessment is available to a specific learner right now — the "adaptive
  * release" / "drip scheduling" gate the adaptive-release-and-prerequisites
@@ -31,8 +34,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -51,6 +52,8 @@ use DateInterval;
 use DateTimeImmutable;
 use DateTimeInterface;
 use Exception;
+use OCA\Learniq\Kernel\Contracts\LessonReleaseEvaluatorInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -58,7 +61,7 @@ use OCA\OpenRegister\Service\ObjectService;
  *
  * @spec openspec/specs/course-management/spec.md#requirement-lesson-declares-per-learner-release-conditions
  */
-class LessonReleaseEvaluator {
+class LessonReleaseEvaluator implements LessonReleaseEvaluatorInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 
@@ -130,7 +133,6 @@ class LessonReleaseEvaluator {
 	 * @spec openspec/specs/course-management/spec.md#scenario-a-lesson-is-locked-until-n-days-after-the-learners-own-enrolment-date
 	 */
 	public function evaluate(array $item, string $itemSchema, string $learnerId, array $enrolment): array {
-		$tenantId = (string)($item['tenant_id'] ?? '');
 		$now = new DateTimeImmutable();
 
 		if ($itemSchema === self::ASSESSMENT_SCHEMA) {
@@ -144,7 +146,7 @@ class LessonReleaseEvaluator {
 			}
 		}
 
-		$drip = $this->evaluateDrip(item: $item, enrolment: $enrolment, now: $now);
+		$drip = $this->evaluateDrip(item: $item, args: ['enrolment' => $enrolment, 'now' => $now]);
 		if ($drip['blocked'] === true) {
 			return [
 				'available' => false,
@@ -153,22 +155,13 @@ class LessonReleaseEvaluator {
 			];
 		}
 
-		$releaseConditions = $item['releaseConditions'] ?? [];
-		if (is_array($releaseConditions) === true) {
-			foreach ($releaseConditions as $condition) {
-				if (is_array($condition) === false) {
-					continue;
-				}
-
-				$result = $this->evaluateCondition(condition: $condition, learnerId: $learnerId, tenantId: $tenantId);
-				if ($result['blocked'] === true) {
-					return [
-						'available' => false,
-						'reason' => $result['reason'],
-						'availableAt' => null,
-					];
-				}
-			}
+		$blocking = $this->blockingCondition(item: $item, learnerId: $learnerId);
+		if ($blocking !== null) {
+			return [
+				'available' => false,
+				'reason' => $blocking['reason'],
+				'availableAt' => null,
+			];
 		}
 
 		return [
@@ -178,6 +171,35 @@ class LessonReleaseEvaluator {
 		];
 
 	}//end evaluate()
+
+	/**
+	 * The first of the item's release conditions that blocks the learner, or null when none does.
+	 *
+	 * @param array<string, mixed> $item      The Lesson or Assessment row.
+	 * @param string               $learnerId NC user ID of the requesting learner.
+	 *
+	 * @return array<string, mixed>|null The blocking condition's result.
+	 */
+	private function blockingCondition(array $item, string $learnerId): ?array {
+		$tenantId = (string)($item['tenant_id'] ?? '');
+		$releaseConditions = $item['releaseConditions'] ?? [];
+		if (is_array($releaseConditions) === false) {
+			return null;
+		}
+
+		foreach ($releaseConditions as $condition) {
+			if (is_array($condition) === false) {
+				continue;
+			}
+
+			$result = $this->evaluateCondition(condition: $condition, learnerId: $learnerId, tenantId: $tenantId);
+			if ($result['blocked'] === true) {
+				return $result;
+			}
+		}
+
+		return null;
+	}//end blockingCondition()
 
 	/**
 	 * Check the item's absolute availability window, evaluated live from
@@ -204,12 +226,14 @@ class LessonReleaseEvaluator {
 	 * Enrolment.created.
 	 *
 	 * @param array<string, mixed> $item The Lesson or Assessment row.
-	 * @param array<string, mixed> $enrolment The learner's own Enrolment row, or `[]`.
-	 * @param DateTimeInterface $now Evaluation instant.
+	 * @param array{enrolment: array<string, mixed>, now: DateTimeInterface} $args The enrolment, now.
 	 *
 	 * @return array{blocked: bool, reason: string|null, availableAt: string|null}
 	 */
-	private function evaluateDrip(array $item, array $enrolment, DateTimeInterface $now): array {
+	private function evaluateDrip(array $item, array $args): array {
+		$enrolment = $args['enrolment'];
+		$now = $args['now'];
+
 		$availableAfterDays = ($item['availableAfterDays'] ?? null);
 		if (is_numeric($availableAfterDays) === false) {
 			return $this->dripNotBlocked();
@@ -438,43 +462,12 @@ class LessonReleaseEvaluator {
 		$bestScore = null;
 		foreach ($results as $result) {
 			$data = $this->toArray(object: $result);
-			$sumScore = $this->sumResponses(responses: ($data['responses'] ?? []));
+			$sumScore = (new ResultResponseSum())->sumOf(responses: ($data['responses'] ?? []));
 			$bestScore = max(($bestScore ?? $sumScore), $sumScore);
 		}
 
 		return $bestScore;
 	}//end bestScore()
-
-	/**
-	 * Sum an AssessmentResult's per-item scores, preferring `autoScore` and
-	 * falling back to `manualScore`; a response with neither contributes 0.
-	 *
-	 * @param mixed $responses The AssessmentResult's `responses` array.
-	 *
-	 * @return float
-	 */
-	private function sumResponses($responses): float {
-		if (is_array($responses) === false) {
-			return 0.0;
-		}
-
-		$sum = 0.0;
-		foreach ($responses as $response) {
-			if (is_array($response) === false) {
-				continue;
-			}
-
-			$auto = ($response['autoScore'] ?? null);
-			$manual = ($response['manualScore'] ?? null);
-			if (is_numeric($auto) === true) {
-				$sum += (float)$auto;
-			} elseif (is_numeric($manual) === true) {
-				$sum += (float)$manual;
-			}
-		}
-
-		return $sum;
-	}//end sumResponses()
 
 	/**
 	 * Resolve a Lesson/Assessment's display name (`name` or `title`) by id.
@@ -485,7 +478,7 @@ class LessonReleaseEvaluator {
 	 * @return string|null
 	 */
 	private function resolveName(string $id, string $schema): ?string {
-		$object = $this->objectService->find(id: $id, register: self::LEARNIQ_REGISTER, schema: $schema);
+		$object = $this->objectService->find(id: $id, options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: $schema));
 		if ($object === null) {
 			return null;
 		}

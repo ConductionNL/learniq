@@ -34,7 +34,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Listener;
 
 use OCA\Learniq\BackgroundJob\EmployerBookingRestampJob;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Listener\Support\SavedObjectChange;
 use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatedEvent;
 use OCA\OpenRegister\Service\Deferral\ListenerDeferralService;
@@ -51,6 +52,8 @@ use Throwable;
  */
 class EmployerBookingCascade implements IEventListener {
 
+	use SavedObjectChange;
+
 	/**
 	 * The fields per schema a booking depends on.
 	 *
@@ -65,13 +68,13 @@ class EmployerBookingCascade implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param ListenerSchemaResolver  $schemaResolver Entity schema id to slug.
+	 * @param ListenerSchemaResolverInterface  $schemaResolver Entity schema id to slug.
 	 * @param ListenerDeferralService $deferral       Queues the work for after the request.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ListenerSchemaResolver $schemaResolver,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
 		private readonly ListenerDeferralService $deferral,
 	) {
 	}//end __construct()
@@ -147,38 +150,4 @@ class EmployerBookingCascade implements IEventListener {
 
 		return ['learnerRef' => $id];
 	}//end entry()
-
-	/**
-	 * The saved object and, for an update, the data before the save.
-	 *
-	 * @param ObjectCreatedEvent|ObjectUpdatedEvent $event The event.
-	 *
-	 * @return array{0: \OCA\OpenRegister\Db\ObjectEntity, 1: array<string, mixed>}
-	 */
-	private static function sides(ObjectCreatedEvent|ObjectUpdatedEvent $event): array {
-		if ($event instanceof ObjectUpdatedEvent === true) {
-			return [$event->getNewObject(), ($event->getOldObject()?->getObject() ?? [])];
-		}
-
-		return [$event->getObject(), []];
-	}//end sides()
-
-	/**
-	 * Whether none of the watched fields moved.
-	 *
-	 * @param array<int, string>   $fields The watched fields.
-	 * @param array<string, mixed> $old    Before the save.
-	 * @param array<string, mixed> $new    After the save.
-	 *
-	 * @return bool
-	 */
-	private static function unchanged(array $fields, array $old, array $new): bool {
-		foreach ($fields as $field) {
-			if (($old[$field] ?? null) !== ($new[$field] ?? null)) {
-				return false;
-			}
-		}
-
-		return true;
-	}//end unchanged()
 }//end class

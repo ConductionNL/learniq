@@ -137,8 +137,6 @@ class LearningPlanSignatureGuard implements LifecycleGuardInterface {
 		$planId = $plan['id'] ?? ($plan['uuid'] ?? '');
 		$templateId = $plan['templateId'] ?? null;
 		$version = (int)($plan['version'] ?? 1);
-		$kind = $plan['kind'] ?? '';
-		$learnerId = $plan['learnerId'] ?? '';
 		$tenantId = $plan['tenant_id'] ?? '';
 
 		if ($planId === '') {
@@ -157,6 +155,26 @@ class LearningPlanSignatureGuard implements LifecycleGuardInterface {
 			);
 			return true;
 		}
+
+		return $this->requiredRolesSigned(plan: $plan, requiredRoles: $requiredRoles);
+	}//end allows()
+
+	/**
+	 * Whether every required role signed this plan version with sufficient assurance.
+	 *
+	 * @param array<string,mixed> $plan          The object at its target state, transition inputs merged in.
+	 * @param string[]            $requiredRoles The roles the template requires to sign.
+	 *
+	 * @return bool True when all required roles have signed with sufficient assurance.
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-15
+	 */
+	private function requiredRolesSigned(array $plan, array $requiredRoles): bool {
+		$planId = $plan['id'] ?? ($plan['uuid'] ?? '');
+		$version = (int)($plan['version'] ?? 1);
+		$kind = $plan['kind'] ?? '';
+		$learnerId = $plan['learnerId'] ?? '';
+		$tenantId = $plan['tenant_id'] ?? '';
 
 		// Fetch all Signatures for this plan + version.
 		$signatures = $this->fetchSignatures(planId: $planId, version: $version, tenantId: $tenantId);
@@ -196,9 +214,8 @@ class LearningPlanSignatureGuard implements LifecycleGuardInterface {
 			['n' => count($requiredRoles), 'id' => $planId, 'v' => $version]
 		);
 
-
 		return true;
-	}//end allows()
+	}//end requiredRolesSigned()
 
 	/**
 	 * Fetch the requiredSignerRoles from the LearningPlanTemplate.
@@ -238,6 +255,19 @@ class LearningPlanSignatureGuard implements LifecycleGuardInterface {
 			]
 		);
 
+		return $this->requiredRolesOf(templates: $templates);
+	}//end fetchRequiredRoles()
+
+	/**
+	 * The requiredSignerRoles of the found template, or none without one.
+	 *
+	 * @param array<int,mixed> $templates The templates found, at most one.
+	 *
+	 * @return string[] Empty array when no template or no roles defined.
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-15
+	 */
+	private function requiredRolesOf(array $templates): array {
 		if (empty($templates) === true) {
 			return [];
 		}
@@ -248,7 +278,7 @@ class LearningPlanSignatureGuard implements LifecycleGuardInterface {
 		}
 
 		return $template['requiredSignerRoles'] ?? [];
-	}//end fetchRequiredRoles()
+	}//end requiredRolesOf()
 
 	/**
 	 * Fetch all Signature objects for the given plan and version.
@@ -315,6 +345,43 @@ class LearningPlanSignatureGuard implements LifecycleGuardInterface {
 			return $signatures;
 		}
 
+		$authorisedParentIds = $this->authorisedParentIds(learnerId: $learnerId, tenantId: $tenantId);
+
+		$filtered = [];
+		foreach ($signatures as $sig) {
+			if (($sig['signerRole'] ?? '') !== 'parent') {
+				// Non-parent roles pass through — only 'parent' needs join-verification.
+				$filtered[] = $sig;
+				continue;
+			}
+
+			$signerId = $sig['signerId'] ?? ($sig['userId'] ?? '');
+			if (in_array($signerId, $authorisedParentIds, strict: true) === true) {
+				// Signer is a registered parent of this learner — accept.
+				$filtered[] = $sig;
+				continue;
+			}
+
+			$this->logger->warning(
+				'[LearningPlanSignatureGuard] Parent co-sign from {signer} rejected — not in LearnerProfile.parentIds for learner {learner}.',
+				['signer' => $signerId, 'learner' => $learnerId]
+			);
+		}//end foreach
+
+		return $filtered;
+	}//end filterVerifiedParentSignatures()
+
+	/**
+	 * The parentIds on the learner's LearnerProfile in the tenant, or [] when there is no profile.
+	 *
+	 * @param string $learnerId The learner's Nextcloud user id.
+	 * @param string $tenantId  The tenant, or '' for any.
+	 *
+	 * @return mixed
+	 *
+	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-15
+	 */
+	private function authorisedParentIds(string $learnerId, string $tenantId): mixed {
 		// Load the LearnerProfile to resolve the authoritative parentIds.
 		// H1: scope to the same tenant.
 		// LearnerProfile keys the pupil on ncUserId; it has no learnerId, and a
@@ -350,29 +417,8 @@ class LearningPlanSignatureGuard implements LifecycleGuardInterface {
 			$authorisedParentIds = $profile['parentIds'] ?? [];
 		}
 
-		$filtered = [];
-		foreach ($signatures as $sig) {
-			if (($sig['signerRole'] ?? '') !== 'parent') {
-				// Non-parent roles pass through — only 'parent' needs join-verification.
-				$filtered[] = $sig;
-				continue;
-			}
-
-			$signerId = $sig['signerId'] ?? ($sig['userId'] ?? '');
-			if (in_array($signerId, $authorisedParentIds, strict: true) === true) {
-				// Signer is a registered parent of this learner — accept.
-				$filtered[] = $sig;
-				continue;
-			}
-
-			$this->logger->warning(
-				'[LearningPlanSignatureGuard] Parent co-sign from {signer} rejected — not in LearnerProfile.parentIds for learner {learner}.',
-				['signer' => $signerId, 'learner' => $learnerId]
-			);
-		}//end foreach
-
-		return $filtered;
-	}//end filterVerifiedParentSignatures()
+		return $authorisedParentIds;
+	}//end authorisedParentIds()
 
 	/**
 	 * Index signatures by signerRole, keeping the highest assurance per role.

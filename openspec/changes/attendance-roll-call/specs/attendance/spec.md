@@ -60,11 +60,11 @@ When the group has no lesson that day, saving the register MUST create one `Sess
 - **THEN** a lesson "Groep 7, 2 October 2026" exists and the records point at it
 
 ### Requirement: The teacher reaches the register from the menu and the dashboard
-The menu MUST offer "Today's register" to `instructors`, `coordinators` and `administration-managers`. On the teacher dashboard, "Sessions to mark" MUST list lessons that started today or earlier, newest first, and a click MUST open the roll-call for that lesson's group and day.
+The menu MUST offer "Today's register" to `instructors`, `coordinators` and `administration-managers`. On the teacher dashboard, "Lessen om in te vullen" MUST list lessons that started today or earlier, newest first, and a click MUST open the roll-call for that lesson's group and day.
 
 #### Scenario: The newest lesson comes first
 @e2e exclude Covered by tests/unit-js/rollCall.test.mjs (sessionsToMarkFilter) and checked live on the teacher dashboard.
 - **GIVEN** a group teacher with lessons on Monday and Tuesday
 - **WHEN** they open the teacher dashboard on Tuesday
-- **THEN** Tuesday's lesson is first in "Sessions to mark"
+- **THEN** Tuesday's lesson is first in "Lessen om in te vullen"
 - **AND** a click opens Tuesday's roll-call for that group

@@ -13,8 +13,8 @@
  @spec openspec/changes/content-adaptive-next-step-and-preview/specs/content-preview-as-learner/spec.md#requirement-preview-as-learner
 -->
 <template>
-	<div class="course-preview">
-		<h2>{{ t('learniq', 'Preview as learner') }}</h2>
+	<div class="course-preview lq-board-page">
+		<CnPageHeader :title="t('learniq', 'Preview as learner')" />
 		<NcLoadingIcon v-if="loading" :size="32" />
 		<NcNoteCard v-else-if="error" type="error">
 			{{ error }}
@@ -42,13 +42,15 @@
 			<NcEmptyContent
 				v-if="lessons.length === 0"
 				:name="t('learniq', 'This course has no lessons yet')" />
-			<ol v-else class="course-preview__lessons">
-				<li v-for="lesson in lessons" :key="lesson.id">
-					<NcButton variant="tertiary" @click="open(lesson.id)">
-						{{ lesson.name || lesson.id }}
-					</NcButton>
-				</li>
-			</ol>
+			<CnDetailCard v-else :title="t('learniq', 'Lessons')">
+				<ol class="course-preview__lessons">
+					<li v-for="lesson in lessons" :key="lesson.id">
+						<NcButton variant="tertiary" @click="open(lesson.id)">
+							{{ lesson.name || lesson.id }}
+						</NcButton>
+					</li>
+				</ol>
+			</CnDetailCard>
 			<div class="course-preview__actions">
 				<NcButton
 					variant="primary"
@@ -62,6 +64,7 @@
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { generateUrl } from '@nextcloud/router'
 import {
 	NcButton,
@@ -75,7 +78,7 @@ import { previewQuery } from '../utils/lessonPreview.js'
 export default {
 	name: 'CoursePreviewView',
 
-	components: { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard, NcTextField },
+	components: { CnDetailCard, CnPageHeader, NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard, NcTextField },
 
 	props: {
 		/** Course UUID from the route :courseId param. */
@@ -103,32 +106,13 @@ export default {
 	 */
 	async mounted() {
 		try {
-			const resp = await fetch(
-				generateUrl(
-					'/apps/learniq/api/courses/'
-						+ encodeURIComponent(this.courseId)
-						+ '/preview',
-				),
-				{ headers: { Accept: 'application/json' } },
-			)
-			if (resp.status === 403) {
-				this.error = this.t(
-					'learniq',
-					'Only course authors can preview a course.',
-				)
+			const resp = await fetch(this.previewUrl(), { headers: { Accept: 'application/json' } })
+			const refusal = this.previewRefusal(resp)
+			if (refusal) {
+				this.error = refusal
 				return
 			}
-			if (!resp.ok) {
-				this.error = this.t(
-					'learniq',
-					'Failed to load course (HTTP {status})',
-					{ status: resp.status },
-				)
-				return
-			}
-			const body = await resp.json()
-			this.courseName = body.name ?? ''
-			this.lessons = Array.isArray(body.lessons) ? body.lessons : []
+			this.showPreview(await resp.json())
 		} catch (e) {
 			this.error = e?.message ?? String(e)
 		} finally {
@@ -137,6 +121,60 @@ export default {
 	},
 
 	methods: {
+		/**
+		 * The preview endpoint of this course.
+		 *
+		 * @return {string}
+		 */
+		previewUrl() {
+			return generateUrl(
+				'/apps/learniq/api/courses/'
+					+ encodeURIComponent(this.courseId)
+					+ '/preview',
+			)
+		},
+
+		/**
+		 * What to say when the preview is refused or fails, '' when it loaded.
+		 *
+		 * @param {Response} resp The preview response.
+		 * @return {string}
+		 */
+		previewRefusal(resp) {
+			if (resp.status === 403) {
+				return this.t(
+					'learniq',
+					'Only course authors can preview a course.',
+				)
+			}
+			return resp.ok ? '' : this.loadFailureText(resp.status)
+		},
+
+		/**
+		 * The message for a preview the server could not give.
+		 *
+		 * @param {number} status The HTTP status.
+		 * @return {string}
+		 */
+		loadFailureText(status) {
+			return this.t(
+				'learniq',
+				'Failed to load course (HTTP {status})',
+				{ status },
+			)
+		},
+
+		/**
+		 * Show the course name and its lessons.
+		 *
+		 * @param {object} body The preview answer.
+		 * @return {void}
+		 */
+		showPreview(body) {
+			this.courseName = body.name ?? ''
+			this.lessons = Array.isArray(body.lessons) ? body.lessons : []
+		},
+
 		/**
 		 * Open a lesson in the player in preview mode.
 		 *
@@ -162,14 +200,6 @@ export default {
 </script>
 
 <style scoped>
-.course-preview {
-	padding: calc(var(--default-grid-baseline) * 4);
-	max-width: 720px;
-	display: flex;
-	flex-direction: column;
-	gap: calc(var(--default-grid-baseline) * 3);
-}
-
 .course-preview__lessons {
 	padding-inline-start: calc(var(--default-grid-baseline) * 5);
 }

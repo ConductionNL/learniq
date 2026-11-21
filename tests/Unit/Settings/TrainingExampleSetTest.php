@@ -35,6 +35,10 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Settings;
 
 use DateTimeImmutable;
+use OCA\Learniq\Service\ExamRegistration\ExamRegistrationDates;
+use OCA\Learniq\Service\ExamRegistration\ExamRegistrationLines;
+use OCA\Learniq\Service\ExampleSetPreparation;
+use OCA\Learniq\Service\ExampleSetSources;
 use OCA\Learniq\Service\DemoDataService;
 use OCA\Learniq\Service\QtiChoiceOrderResolver;
 use OCA\Learniq\Service\SeedProfileService;
@@ -558,7 +562,21 @@ class TrainingExampleSetTest extends TestCase {
 		$appManager->method('getAppPath')->willReturn(dirname(__DIR__, 3));
 		$demo = $this->createMock(DemoDataService::class);
 		$demo->method('listChoices')->willReturn([]);
-		$service = new SeedProfileService($appManager, $this->createMock(ContainerInterface::class), $this->createMock(LoggerInterface::class), $demo, $this->createMock(\OCA\Learniq\Service\SharedCodeFilter::class), $this->createMock(\OCA\Learniq\Service\LoadedExampleSets::class), $this->createMock(\OCA\Learniq\Portal\ExamplePortalProvisioner::class));
+		$service = new SeedProfileService(
+			sources: new ExampleSetSources(
+				appManager: $appManager,
+				demoData: $demo,
+				loadedSets: $this->createMock(\OCA\Learniq\Service\LoadedExampleSets::class)
+			),
+			preparation: new ExampleSetPreparation(
+				sharedCodes: $this->createMock(\OCA\Learniq\Service\SharedCodeFilter::class),
+				dates: $this->createMock(\OCA\Learniq\Service\ExampleSetDates::class),
+				organisation: $this->createMock(\OCA\Learniq\Service\ExampleSetOrganisation::class),
+				examplePortals: $this->createMock(\OCA\Learniq\Portal\ExamplePortalProvisioner::class)
+			),
+			container: $this->createMock(ContainerInterface::class),
+			logger: $this->createMock(LoggerInterface::class)
+		);
 
 		$offered = array_values(array_filter($service->listChoices(), static fn (array $c): bool => $c['id'] === 'training'))[0];
 		self::assertSame('Training institute', $offered['label']);
@@ -832,4 +850,106 @@ class TrainingExampleSetTest extends TestCase {
 		$daan = self::person(given: 'Daan', family: 'Visser')['ncUserId'];
 		self::assertArrayNotHasKey($daan, $held, 'Daan has no certificate yet');
 	}//end testTheCertificatesInTheCompany()
+
+	/**
+	 * training-provider-course-days: Hybride warmtepomp on 22 October has 4 of
+	 * minimum 6 and is decided by Thursday 8 October, 26 November has 9 places
+	 * free, the 5 October practical day is held in a morning and an afternoon,
+	 * and Tom's F-gassen day lists what to bring.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/course-management/spec.md#scenario-four-of-six
+	 */
+	public function testTheCourseDaysOfThePlanner(): void {
+		$courses = [];
+		foreach (self::of('course') as $course) {
+			$courses[$course['name']] = $course;
+		}
+
+		$days = [];
+		foreach (self::of('cohort') as $cohort) {
+			if (($cohort['minParticipants'] ?? null) !== null) {
+				$days[$cohort['name']] = $cohort;
+			}
+		}
+
+		$booked = [];
+		foreach (self::of('course-booking') as $booking) {
+			if ($booking['lifecycle'] !== 'cancelled') {
+				$booked[$booking['cohortId']] = (($booked[$booking['cohortId']] ?? 0) + $booking['participantCount']);
+			}
+		}
+
+		$hybride = $days['Hybride warmtepomp, 22 oktober 2026'];
+		self::assertSame($courses['Hybride warmtepomp']['uuid'], $hybride['courseId']);
+		self::assertSame([6, 12, '2026-10-08'], [$hybride['minParticipants'], $hybride['capacity'], $hybride['goDecisionBy']]);
+		self::assertSame(4, $booked[$hybride['uuid']]);
+		$next = $days['Hybride warmtepomp, 26 november 2026'];
+		self::assertSame(9, ($next['capacity'] - $booked[$next['uuid']]), 'nine places free on 26 November');
+
+		$practical = $days['Storingen zoeken aan warmtepompen, 5 oktober 2026'];
+		$sessions  = array_values(array_filter(self::of('session'), static fn (array $row): bool => $row['cohortId'] === $practical['uuid']));
+		self::assertCount(1, $sessions);
+		self::assertSame(['morning', 'afternoon'], array_column($sessions[0]['parts'], 'key'));
+		self::assertSame(9, $booked[$practical['uuid']]);
+
+		self::assertSame(
+			['Een geldig legitimatiebewijs', 'Uw huidige F-gassencertificaat', 'Werkschoenen en werkkleding'],
+			$courses['F-gassen: herhaling en examen']['bringList']
+		);
+	}//end testTheCourseDaysOfThePlanner()
+
+	/**
+	 * The registration of the 8 October F-gassen exam reads as the administration's Today: closing on
+	 * Wednesday at 12.00, two of three complete, Youssef's birth date missing and Linda told this
+	 * morning. Every line is what ExamRegistrationLines writes for the seeded enrolment and profile,
+	 * and the list carries no birth date.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/certification/spec.md#scenario-youssefs-birth-date
+	 */
+	public function testTheExamRegistrationOfTheFGassenDay(): void {
+		$lists = self::of(schema: 'exam-registration');
+		self::assertCount(expectedCount: 1, haystack: $lists);
+		$list = $lists[0];
+
+		$profiles = array_column(self::of(schema: 'learner-profile'), null, 'uuid');
+		$enrolments = array_column(self::of(schema: 'enrolment'), null, 'uuid');
+		$companies = array_column(self::of(schema: 'client-organisation'), null, 'uuid');
+		foreach ($list['lines'] as $line) {
+			$enrolment = $enrolments[$line['enrolmentId']];
+			self::assertSame(expected: $list['cohortId'], actual: $enrolment['cohortId']);
+			$expected = (new ExamRegistrationLines())->line(
+				enrolment: array_merge($enrolment, ['id' => $enrolment['uuid']]),
+				profile: array_merge($profiles[$line['learnerRef']], ['id' => $line['learnerRef']]),
+				organisation: array_merge($companies[$line['organisationRef']], ['id' => $line['organisationRef']]),
+				state: [
+					'required' => (new ExamRegistrationLines())->required(required: $list['requiredFields']),
+					'previous' => $line,
+					'now' => '2026-10-05T07:45:00+02:00'
+				]
+			);
+			self::assertSame(expected: $expected, actual: $line, message: $line['learnerName']);
+		}
+
+		self::assertSame(
+			expected: 'De aanmelding voor het examen van donderdag sluit woensdag om 12.00 uur.',
+			actual: (new ExamRegistrationDates())->closingSentence(examDate: $list['examDate'], closesAt: $list['closesAt'])
+		);
+		self::assertSame(expected: '2 van de 3 deelnemers zijn compleet.', actual: (new ExamRegistrationLines())->summary(lines: $list['lines']));
+		self::assertSame(expected: [2, 3], actual: [$list['completeCount'], $list['participantCount']]);
+		$youssef = array_values(array_filter($list['lines'], static fn (array $line): bool => $line['complete'] === false));
+		self::assertCount(expectedCount: 1, haystack: $youssef);
+		self::assertSame(
+			expected: 'Van Youssef El Amrani (Jansen Installatietechniek BV) ontbreekt de geboortedatum.',
+			actual: (new ExamRegistrationLines())->missingSentence(line: $youssef[0])
+		);
+		self::assertSame(
+			expected: 'De werkgever kreeg vanochtend bericht.',
+			actual: (new ExamRegistrationDates())->notice(notifiedAt: $youssef[0]['employerNotifiedAt'], now: '2026-10-05T09:00:00+02:00')
+		);
+		self::assertStringNotContainsString(needle: '1988-06-12', haystack: json_encode($list), message: 'the list carries no birth date');
+	}//end testTheExamRegistrationOfTheFGassenDay()
 }//end class

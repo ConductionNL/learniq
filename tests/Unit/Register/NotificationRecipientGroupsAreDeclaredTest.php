@@ -117,7 +117,10 @@ class NotificationRecipientGroupsAreDeclaredTest extends TestCase {
 				continue;
 			}
 
-			foreach (array_diff($groups, $read, ['admin']) as $group) {
+			// A read list may hold match rules (arrays) next to group names;
+			// only the names are groups, and comparing an array as a string warns.
+			$names = array_values(array_filter($read, 'is_string'));
+			foreach (array_diff($groups, $names, ['admin']) as $group) {
 				$blind[] = $rule . ' => ' . $group;
 			}
 		}

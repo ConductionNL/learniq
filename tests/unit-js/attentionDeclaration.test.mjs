@@ -21,7 +21,7 @@
 // Run by `npm run check:attention`, which `check:specs` (a CI frontend check)
 // calls.
 //
-// @spec openspec/changes/simple-today-dashboard/specs/dashboard/spec.md
+// @spec openspec/specs/dashboard/spec.md
 
 import assert from 'node:assert/strict'
 import { readdirSync, readFileSync } from 'node:fs'
@@ -39,16 +39,16 @@ const item = declaration.items.find((entry) => entry.id === 'attendance-flags-op
 const base = readJson('src/manifest.json')
 // The Today dashboard is for the roles that teach or run teaching.
 base.runtime = { user: { primaryRole: 'instructor' } }
-const built = buildProfiledManifest(
+const built = buildProfiledManifest({
 	buildManifest,
 	base,
-	readdirSync(new URL('src/manifest.d/', root))
+	fragments: readdirSync(new URL('src/manifest.d/', root))
 		.filter((name) => name.endsWith('.json'))
 		.sort()
 		.map((name) => readJson('src/manifest.d/' + name)),
-	readJson('src/menu-layout.simple.json'),
-	passesContextPredicates,
-)
+	profileFile: readJson('src/menu-layout.simple.json'),
+	passes: passesContextPredicates,
+})
 // The app's own "First today" card, as the Today dashboard ships it.
 const card = built.pages
 	.find((page) => page.id === 'Dashboard')

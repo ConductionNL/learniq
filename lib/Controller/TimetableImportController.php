@@ -29,9 +29,10 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\PlanninqTimetableImportInterface;
 use OCA\Learniq\Service\ActionAuthService;
-use OCA\Learniq\Timetabling\PlanninqTimetableImport;
+use OCA\Learniq\Service\CallerActions;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -57,22 +58,36 @@ class TimetableImportController extends Controller {
 	private const SCOPE_KEYS = ['rosterSource', 'groupMap', 'teacherMap', 'from', 'to'];
 
 	/**
+	 * Current user session.
+	 *
+	 * @var IUserSession
+	 */
+	private readonly IUserSession $userSession;
+
+	/**
+	 * ADR-023 action matrix.
+	 *
+	 * @var ActionAuthService
+	 */
+	private readonly ActionAuthService $actionAuth;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param IRequest                $request       HTTP request.
-	 * @param IUserSession            $userSession   Current user session.
-	 * @param ActionAuthService       $actionAuth    ADR-023 action matrix.
-	 * @param PlanninqTimetableImport $planninq      Delivers through integriq into planninq.
+	 * @param CallerActions $caller The user session and the ADR-023 action matrix.
+	 * @param PlanninqTimetableImportInterface $planninq      Delivers through integriq into planninq.
 	 * @param ISecureRandom           $secureRandom  Correlation id for the delivery.
 	 */
 	public function __construct(
 		IRequest $request,
-		private readonly IUserSession $userSession,
-		private readonly ActionAuthService $actionAuth,
-		private readonly PlanninqTimetableImport $planninq,
+		CallerActions $caller,
+		private readonly PlanninqTimetableImportInterface $planninq,
 		private readonly ISecureRandom $secureRandom,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		$this->userSession = $caller->userSession;
+		$this->actionAuth = $caller->actionAuth;
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
