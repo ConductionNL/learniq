@@ -40,3 +40,12 @@ test('the average rule proposes the average, highest the highest, manual nothing
 	assert.equal(prefillFinalGrade('manual', summary), null)
 	assert.equal(prefillFinalGrade('average', null), null)
 })
+
+test('a rule without a numeric figure, or an unknown rule, proposes nothing', () => {
+	assert.equal(prefillFinalGrade('average', { average: '7', highest: 8 }), null)
+	assert.equal(prefillFinalGrade('highest', { average: 7 }), null)
+	assert.equal(prefillFinalGrade('average', { average: 6.666 }), 6.67)
+	assert.equal(prefillFinalGrade('constructor', { average: 7 }), null)
+	assert.equal(prefillFinalGrade(undefined, { average: 7 }), null)
+	assert.equal(prefillFinalGrade('highest', undefined), null)
+})

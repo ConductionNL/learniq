@@ -49,6 +49,9 @@ use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
 use OCA\Learniq\Tests\Support\TransitionScope;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\RegisterSchemaRef;
+use OCA\OpenRegister\Service\Lifecycle\TransitionActor;
+use OCA\OpenRegister\Service\Lifecycle\TransitionMove;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IUser;
 use OCP\IUserSession;
@@ -56,6 +59,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use ReflectionMethod;
 use RuntimeException;
+use OCA\Learniq\Tests\Support\LegacyObjectArgs;
 
 /**
  * The correction is applied by the declared transition, not by a readOnly write.
@@ -108,7 +112,7 @@ class CorrectionAppliedThroughApplyTransitionTest extends TestCase {
 	 */
 	private static function named(string $method, array $args): array {
 		$named = [];
-		foreach ((new ReflectionMethod(ObjectService::class, $method))->getParameters() as $position => $parameter) {
+		foreach (LegacyObjectArgs::parameters(ObjectService::class, $method) as $position => $parameter) {
 			if (array_key_exists($position, $args) === true) {
 				$named[$parameter->getName()] = $args[$position];
 			}
@@ -131,6 +135,7 @@ class CorrectionAppliedThroughApplyTransitionTest extends TestCase {
 		);
 		$objects->method('find')->willReturnCallback(
 			static function (mixed ...$args) use ($store): ?ObjectEntity {
+				$args = LegacyObjectArgs::positional(method: 'find', args: $args);
 				$named = self::named(method: 'find', args: $args);
 				$schema = (string)($named['schema'] ?? '');
 				foreach (($store->rows[$schema] ?? []) as $row) {
@@ -144,6 +149,7 @@ class CorrectionAppliedThroughApplyTransitionTest extends TestCase {
 		);
 		$objects->method('saveObject')->willReturnCallback(
 			static function (mixed ...$args) use ($store): ObjectEntity {
+				$args = LegacyObjectArgs::positional(method: 'saveObject', args: $args);
 				$named = self::named(method: 'saveObject', args: $args);
 				$object = $named['object'];
 				$data = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
@@ -212,13 +218,10 @@ class CorrectionAppliedThroughApplyTransitionTest extends TestCase {
 		// ObjectTransitionedEvent with the saved entry.
 		$published = $store->save('grade-entry', array_merge(self::ENTRY, ['lifecycle' => 'published']), self::ENTRY_ID);
 		$handler->handle(new ObjectTransitionedEvent(
-			$published,
-			'republish',
-			'revised',
-			'published',
-			'lp-teacher',
-			'learniq',
-			'grade-entry'
+			object: $published,
+			move: new TransitionMove(action: 'republish', from: 'revised', to: 'published'),
+			scope: new RegisterSchemaRef(register: 'learniq', schema: 'grade-entry'),
+			actor: new TransitionActor(userId: 'lp-teacher'),
 		));
 
 		self::assertSame([], $logger->records, 'The handler logged a failure: ' . $logger->dump());

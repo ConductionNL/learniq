@@ -36,6 +36,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
+use OCA\Learniq\Kernel\Contracts\ElectiveServiceInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Throwable;
 
@@ -44,12 +46,9 @@ use Throwable;
  *
  * @spec openspec/specs/enrolment/spec.md#requirement-every-sign-up-obeys-the-same-rules-whoever-writes-it
  */
-class ElectiveService {
+class ElectiveService implements ElectiveServiceInterface {
 
-	public const REGISTER = 'learniq';
 	public const OFFER_SCHEMA = 'elective-offer';
-	public const SIGN_UP_SCHEMA = 'elective-sign-up';
-	public const WITHDRAWN = 'withdrawn';
 	public const STAFF_GROUPS = ['instructors', 'team-leads', 'compliance-officers', 'coordinators'];
 	public const INTEGRATION_GROUP = 'elective-integrations';
 
@@ -117,7 +116,8 @@ class ElectiveService {
 	 *
 	 * @param array<string, mixed> $offer The offer.
 	 *
-	 * @return array<string, array{key: string, sessionId: ?string, timetableSessionRef: ?array, title: string, startsAt: string, endsAt: string}>
+	 * @return array<string, array{key: string, sessionId: ?string, timetableSessionRef: ?array, title: string, startsAt: string, endsAt: string,
+	 *     location: string}>
 	 *
 	 * @spec openspec/specs/enrolment/spec.md#requirement-a-school-offers-optional-lessons-with-a-window-and-a-capacity
 	 */
@@ -134,6 +134,7 @@ class ElectiveService {
 					'title' => (string)($session['title'] ?? ''),
 					'startsAt' => (string)($session['startsAt'] ?? ''),
 					'endsAt' => (string)($session['endsAt'] ?? ''),
+					'location' => (string)($session['location'] ?? ''),
 				];
 			}
 		}
@@ -151,6 +152,7 @@ class ElectiveService {
 				'title' => (string)($ref['title'] ?? ''),
 				'startsAt' => (string)($ref['startsAt'] ?? ''),
 				'endsAt' => (string)($ref['endsAt'] ?? ''),
+				'location' => (string)($ref['location'] ?? ''),
 			];
 		}
 
@@ -322,7 +324,12 @@ class ElectiveService {
 	 */
 	private function one(string $id, string $schema): ?array {
 		try {
-			$row = $this->objectService->find(id: $id, register: self::REGISTER, schema: $schema, _rbac: false, _multitenancy: false);
+			$row = $this->objectService->find(
+				id: $id,
+				options: new ObjectFindOptions(register: self::REGISTER, schema: $schema),
+				_rbac: false,
+				_multitenancy: false
+			);
 		} catch (Throwable $exception) {
 			unset($exception);
 			return null;

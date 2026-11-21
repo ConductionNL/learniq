@@ -29,6 +29,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Portal;
 
 use OCA\Learniq\Portal\EmployerPortalInvitation;
+use OCA\Learniq\Portal\PortalTenant;
 use OCA\Learniq\Portal\EmployerSitePages;
 use OCA\Learniq\Portal\PortalContributionProvider;
 use OCA\Learniq\Service\Portal\EmployerBookingSteps;
@@ -200,7 +201,7 @@ class EmployerSitePagesTest extends TestCase {
 		self::assertSame('employerComingBookings', $firstBySchema['course-booking']['id']);
 		self::assertSame('employerOpenTasks', $firstBySchema['enrolment']['id']);
 		$actions = array_column($manifest['actions'], null, 'id');
-		self::assertSame(['enrolEmployees', 'addBookingParticipant', 'supplyBirthDate'], array_keys($actions));
+		self::assertSame(['enrolEmployees', 'addBookingParticipant', 'substituteParticipant', 'supplyBirthDate'], array_keys($actions));
 		foreach ($actions as $action) {
 			self::assertSame('endpoint-forward', $action['type']);
 			self::assertStringStartsWith('/apps/learniq/api/portal/employer/', $action['endpoint']);
@@ -216,6 +217,33 @@ class EmployerSitePagesTest extends TestCase {
 			}
 		}
 	}//end testTheFormsStampHerCompanyAndPickFromHerOwnRows()
+
+	/**
+	 * "Collega in zijn plaats" is a row action on her participants: the row
+	 * stamps its enrolment, she picks the colleague from her own employees,
+	 * and the button shows only on a participant who still has a place.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/employer-substitutes-a-colleague/tasks.md#T4
+	 */
+	public function testAParticipantRowOffersAColleagueInTheirPlace(): void {
+		$manifest = self::manifest();
+		$collections = array_column($manifest['collections'], null, 'id');
+		$actions = array_column($manifest['actions'], null, 'id');
+
+		self::assertSame([EmployerSitePages::SUBSTITUTE_ACTION], $collections['employerParticipants']['rowActions']);
+		$action = $actions[EmployerSitePages::SUBSTITUTE_ACTION];
+		self::assertSame('/apps/learniq/api/portal/employer/substitutions', $action['endpoint']);
+		self::assertSame('POST', $action['method']);
+		self::assertSame('enrolmentId', $action['rowField']);
+		self::assertSame(['enrolmentId', 'substituteRef'], $action['fields']);
+		self::assertSame(['enrolmentId', 'substituteRef'], $action['requiredFields']);
+		self::assertSame(['field' => 'lifecycle', 'in' => ['pending', 'active']], $action['rowWhen']);
+		self::assertContains('lifecycle', $collections['employerParticipants']['fields'], 'the row condition reads a projected field');
+		self::assertSame('learner-profile', $action['optionsProviders']['substituteRef']['schema']);
+		self::assertSame('id', $action['optionsProviders']['substituteRef']['valueField']);
+	}//end testAParticipantRowOffersAColleagueInTheirPlace()
 
 	/**
 	 * Every block names a collection or action of this manifest, and each
@@ -311,8 +339,16 @@ class EmployerSitePagesTest extends TestCase {
 					'contactEmail' => 'linda@jansen.example',
 					'locationId' => 'loc-1',
 					'lifecycle' => 'active',
+					'@self' => ['organisation' => 'uuid-default'],
 				],
-				['id' => 'co-gone', 'name' => 'Weg BV', 'contactEmail' => 'x@weg.example', 'lifecycle' => 'inactive'],
+				[
+					'id' => 'co-gone',
+					'name' => 'Weg BV',
+					'contactEmail' => 'x@weg.example',
+					'lifecycle' => 'inactive',
+					'@self' => ['organisation' => 'uuid-default']
+				],
+				['id' => 'co-elsewhere', 'name' => 'Elders BV', 'contactEmail' => 'y@elders.example', '@self' => ['organisation' => 'uuid-other']],
 			],
 		];
 		$objectService = $this->createMock(ObjectService::class);
@@ -330,7 +366,12 @@ class EmployerSitePagesTest extends TestCase {
 			claimEventClass: FakeEmployerClaimEvent::class
 		);
 
-		self::assertSame(['status' => 'invited', 'subjectRef' => 'linda-account'], $invitation->invite(organisationRef: 'co-jansen', organisation: 'default-organisation'));
+		$tenant = new PortalTenant(slug: 'default-organisation', uuid: 'uuid-default');
+		self::assertSame(
+			expected: ['status' => 'invited', 'subjectRef' => 'linda-account'],
+			actual: $invitation->invite(organisationRef: 'co-jansen', tenant: $tenant)
+		);
+		self::assertSame(expected: 'default-organisation', actual: $dispatched[0]->organisation);
 		self::assertSame(['employer', 'eherkenning', 'eherkenning-jansen', 'linda@jansen.example', 'Linda Jansen'], [$dispatched[0]->audience, $dispatched[0]->identityType, $dispatched[0]->identityRef, $dispatched[0]->email, $dispatched[0]->displayName]);
 		$claims = [];
 		foreach (array_slice($dispatched, 1) as $claim) {
@@ -341,9 +382,16 @@ class EmployerSitePagesTest extends TestCase {
 		$read = array_unique(array_column(self::manifest()['collections'], 'scopeClaim'));
 		self::assertSame([], array_diff($read, array_keys($claims)), 'every claim a collection reads is written');
 
-		self::assertSame(['status' => 'refused', 'reason' => 'company-unknown'], $invitation->invite(organisationRef: 'co-gone', organisation: 'default-organisation'));
-		self::assertSame(['status' => 'refused', 'reason' => 'company-unknown'], $invitation->invite(organisationRef: 'co-none', organisation: 'default-organisation'));
-		self::assertSame(['status' => 'refused', 'reason' => 'email-invalid'], $invitation->invite(organisationRef: 'co-jansen', organisation: 'o', email: 'geen-adres'));
+		$unknown = ['status' => 'refused', 'reason' => 'company-unknown'];
+		self::assertSame(expected: $unknown, actual: $invitation->invite(organisationRef: 'co-gone', tenant: $tenant));
+		self::assertSame(expected: $unknown, actual: $invitation->invite(organisationRef: 'co-none', tenant: $tenant));
+		self::assertSame(
+			expected: $unknown,
+			actual: $invitation->invite(organisationRef: 'co-elsewhere', tenant: $tenant),
+			message: 'a company of another organisation'
+		);
+		$invalid = $invitation->invite(organisationRef: 'co-jansen', tenant: $tenant, email: 'geen-adres');
+		self::assertSame(expected: ['status' => 'refused', 'reason' => 'email-invalid'], actual: $invalid);
 	}//end testTheInvitationWritesTheClaimsTheCollectionsRead()
 
 	/**
@@ -359,14 +407,40 @@ class EmployerSitePagesTest extends TestCase {
 		$manifest = (new PortalContributionProvider())->getContribution(['audience' => EmployerSitePages::AUDIENCE]);
 		$bookings = array_column($manifest['pages'], null, 'id')['employerBookings'];
 		$people   = array_values(array_filter($bookings['blocks'], static fn (array $b): bool => ($b['collection'] ?? '') === 'employerParticipants'))[0];
-		self::assertSame(['rows', ['learnerName'], 'certificateLine', 'detailsStatus'], [$people['display'], $people['titleFields'], $people['subtitleField'], $people['statusField']]);
-		self::assertSame(array_keys(EmployerSitePages::DETAILS_STATUS), array_keys($people['statusTones']));
+		// A table, so portaliq draws the participants' row action ("Collega in zijn plaats").
+		self::assertArrayNotHasKey('display', $people);
+		self::assertSame('bookingRef', $people['recordField']);
 
 		$collections = array_column($manifest['collections'], null, 'id');
+		self::assertSame(['learnerName', 'certificateLine', 'detailsStatus'], array_column($collections['employerParticipants']['columns'], 'field'));
+		self::assertSame(array_keys(EmployerSitePages::DETAILS_STATUS), array_keys($collections['employerParticipants']['fieldConfigs']['detailsStatus']['valueLabels']));
 		self::assertSame('courseName', $collections['employerCertificates']['groupByField']);
 		self::assertContains('courseName', $collections['employerCertificates']['fields']);
 		foreach (['learnerName', 'certificateLine', 'detailsStatus'] as $field) {
 			self::assertContains($field, $collections['employerParticipants']['fields']);
 		}
 	}//end testABookingListsItsParticipantsAndCertificatesGroup()
+
+	/**
+	 * An opened booking names every field it shows in words the translator
+	 * moves: no field falls back to its English schema title. The state reads
+	 * as words, not as `confirmed`.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/board-checks-follow-the-live-week/specs/portal-contribution/spec.md#requirement-an-opened-booking-names-its-fields-in-the-readers-language
+	 */
+	public function testAnOpenedBookingNamesEveryField(): void {
+		$collections = array_column(self::manifest()['collections'], null, 'id');
+		$dutch = json_decode((string)file_get_contents(__DIR__ . '/../../../l10n/nl.json'), true)['translations'];
+		foreach (['employerBookings', 'employerComingBookings'] as $id) {
+			$configs = $collections[$id]['fieldConfigs'];
+			foreach (array_diff($collections[$id]['fields'], ['organisationRef']) as $field) {
+				self::assertArrayHasKey('label', ($configs[$field] ?? []), $id . '.' . $field);
+				self::assertArrayHasKey($configs[$field]['label'], $dutch, $configs[$field]['label']);
+			}
+
+			self::assertSame('Confirmed', $configs['lifecycle']['valueLabels']['confirmed']);
+		}
+	}//end testAnOpenedBookingNamesEveryField()
 }//end class

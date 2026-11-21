@@ -24,11 +24,11 @@
 -->
 
 <template>
-	<div class="grade-impact">
+	<div class="grade-impact lq-board-page">
 		<!-- Loading -->
 		<div v-if="loading" class="grade-impact__loading" aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
-			<span>{{ t('learniq', 'Loading grade impact...') }}</span>
+			<span>{{ t('learniq', 'Loading grade impact…') }}</span>
 		</div>
 
 		<!-- Error -->
@@ -40,7 +40,7 @@
 		<!-- Content -->
 		<template v-else-if="entry">
 			<header class="grade-impact__header">
-				<h2>{{ t('learniq', 'Grade impact') }}</h2>
+				<CnPageHeader :title="t('learniq', 'Grade impact')" />
 				<p class="grade-impact__meta">
 					{{
 						t('learniq', 'Component: {id}', {
@@ -71,8 +71,9 @@
 			</header>
 
 			<!-- Grade value block -->
-			<section class="grade-impact__section">
-				<h3>{{ t('learniq', 'This grade') }}</h3>
+			<CnDetailCard
+				:title="t('learniq', 'This grade')"
+				class="grade-impact__section">
 				<dl class="grade-impact__dl">
 					<div class="grade-impact__dl-row">
 						<dt>{{ t('learniq', 'Value') }}</dt>
@@ -107,17 +108,17 @@
 						<dd>{{ entry.comment }}</dd>
 					</div>
 				</dl>
-			</section>
+			</CnDetailCard>
 
 			<!-- Period average block -->
-			<section v-if="periodEntries.length > 0" class="grade-impact__section">
-				<h3>
-					{{
-						t('learniq', 'Period {period} average', {
-							period: entry.period || '',
-						})
-					}}
-				</h3>
+			<CnDetailCard
+				v-if="periodEntries.length > 0"
+				:title="
+					t('learniq', 'Period {period} average', {
+						period: entry.period || '',
+					})
+				"
+				class="grade-impact__section">
 				<dl class="grade-impact__dl">
 					<div class="grade-impact__dl-row">
 						<dt>{{ t('learniq', 'Published grades in period') }}</dt>
@@ -130,11 +131,13 @@
 						</dd>
 					</div>
 				</dl>
-			</section>
+			</CnDetailCard>
 
 			<!-- Final grade impact block -->
-			<section v-if="finalGrade" class="grade-impact__section">
-				<h3>{{ t('learniq', 'Final grade') }}</h3>
+			<CnDetailCard
+				v-if="finalGrade"
+				:title="t('learniq', 'Final grade')"
+				class="grade-impact__section">
 				<dl class="grade-impact__dl">
 					<div class="grade-impact__dl-row">
 						<dt>{{ t('learniq', 'Current final grade') }}</dt>
@@ -170,16 +173,73 @@
 						<dd>{{ formatDate(finalGrade.lastRecomputedAt) }}</dd>
 					</div>
 				</dl>
-			</section>
+			</CnDetailCard>
+
+			<!-- What-if forecast: computed in the browser, never saved -->
+			<CnDetailCard
+				:title="t('learniq', 'What would one more mark do?')"
+				class="grade-impact__section grade-impact__forecast">
+				<p class="grade-impact__forecast-hint">
+					{{ t('learniq', 'Enter a possible next mark and its weight. This is a forecast only; no grade is saved.') }}
+				</p>
+				<div class="grade-impact__forecast-inputs">
+					<NcTextField
+						v-model="forecastMark"
+						:label="t('learniq', 'Possible next mark')"
+						type="text"
+						inputmode="decimal" />
+					<NcTextField
+						v-model="forecastWeight"
+						:label="t('learniq', 'Weight')"
+						type="text"
+						inputmode="decimal" />
+				</div>
+				<dl v-if="forecast" class="grade-impact__dl" aria-live="polite">
+					<div class="grade-impact__dl-row">
+						<dt>{{ t('learniq', 'Average now') }}</dt>
+						<dd class="grade-impact__value">
+							{{ formatValue(forecast.current) }}
+						</dd>
+					</div>
+					<div class="grade-impact__dl-row">
+						<dt>{{ t('learniq', 'Average it would become') }}</dt>
+						<dd class="grade-impact__value">
+							{{ formatValue(forecast.average) }}
+						</dd>
+					</div>
+					<div class="grade-impact__dl-row">
+						<dt>{{ t('learniq', 'Pass status') }}</dt>
+						<dd>
+							<span
+								:class="
+									forecast.passes
+										? 'grade-impact__pass'
+										: 'grade-impact__fail'
+								">
+								{{
+									forecast.passes
+										? t('learniq', 'Would pass')
+										: t('learniq', 'Would not pass')
+								}}
+							</span>
+						</dd>
+					</div>
+				</dl>
+			</CnDetailCard>
 		</template>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { generateUrl } from '@nextcloud/router'
+import { NcTextField } from '@nextcloud/vue'
+import { forecastAverage } from '../utils/gradeForecast.js'
+import { readObject, readRequiredObject } from '../utils/registerRequests.js'
 
 export default {
 	name: 'GradeImpactDetail',
+	components: { CnDetailCard, CnPageHeader, NcTextField },
 
 	props: {
 		/**
@@ -203,10 +263,30 @@ export default {
 			finalGrade: null,
 			loading: false,
 			error: null,
+			/** Possible next mark typed by the learner (forecast only). */
+			forecastMark: '',
+			/** Weight of that possible mark (forecast only). */
+			forecastWeight: '1',
 		}
 	},
 
 	computed: {
+		/**
+		 * The average with the possible next mark, and whether it would pass.
+		 * Computed in the browser from the published grades on the page; never saved.
+		 *
+		 * @return {object|null}
+		 * @spec openspec/changes/capability-rows-say-what-they-do/specs/grading/spec.md#scenario-a-learner-tries-a-possible-next-mark
+		 */
+		forecast() {
+			return forecastAverage({
+				entries: this.periodEntries,
+				plan: this.plan,
+				mark: this.forecastMark,
+				weight: this.forecastWeight,
+			})
+		},
+
 		/**
 		 * True when this entry has published but its scheduled visibility window
 		 * (visibleFrom) has not opened yet — the learner-facing notification has
@@ -382,18 +462,12 @@ export default {
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-30
 		 */
 		async loadEntry(entryId) {
-			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/grade-entry/${entryId}`,
+			this.entry = await readRequiredObject(
+				generateUrl(
+					`/apps/openregister/api/objects/learniq/grade-entry/${entryId}`,
+				),
+				'GradeEntry fetch failed',
 			)
-			const resp = await fetch(url, {
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-			})
-			if (!resp.ok) {
-				throw new Error(`GradeEntry fetch failed: ${resp.status}`)
-			}
-
-			const json = await resp.json()
-			this.entry = json.object ?? json ?? null
 		},
 
 		/**
@@ -408,18 +482,14 @@ export default {
 				return
 			}
 
-			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/curriculum-plan/${planId}`,
+			const read = await readObject(
+				generateUrl(
+					`/apps/openregister/api/objects/learniq/curriculum-plan/${planId}`,
+				),
 			)
-			const resp = await fetch(url, {
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-			})
-			if (!resp.ok) {
-				return
+			if (read.ok) {
+				this.plan = read.object ?? null
 			}
-
-			const json = await resp.json()
-			this.plan = json.object ?? json ?? null
 		},
 
 		/**
@@ -441,15 +511,10 @@ export default {
 			const url = generateUrl(
 				`/apps/openregister/api/objects/learniq/grade-entry?learnerId=${encodeURIComponent(learnerId)}&curriculumPlanId=${encodeURIComponent(curriculumPlanId)}&period=${encodeURIComponent(period)}&lifecycle=published&_limit=100`,
 			)
-			const resp = await fetch(url, {
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-			})
-			if (!resp.ok) {
-				return
+			const rows = await this.fetchRows(url)
+			if (rows !== null) {
+				this.periodEntries = rows
 			}
-
-			const json = await resp.json()
-			this.periodEntries = json.results ?? json.objects ?? []
 		},
 
 		/**
@@ -471,16 +536,29 @@ export default {
 			const url = generateUrl(
 				`/apps/openregister/api/objects/learniq/final-grade?learnerId=${encodeURIComponent(learnerId)}&curriculumPlanId=${encodeURIComponent(curriculumPlanId)}&_limit=1`,
 			)
+			const rows = await this.fetchRows(url)
+			if (rows !== null) {
+				this.finalGrade = rows[0] ?? null
+			}
+		},
+
+		/**
+		 * The rows of a list answer (its `results`, else its `objects`), or
+		 * null when the read is refused.
+		 *
+		 * @param {string} url The list's URL.
+		 * @return {Promise<Array<object>|null>}
+		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-30
+		 */
+		async fetchRows(url) {
 			const resp = await fetch(url, {
 				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
 			})
 			if (!resp.ok) {
-				return
+				return null
 			}
-
 			const json = await resp.json()
-			const results = json.results ?? json.objects ?? []
-			this.finalGrade = results[0] ?? null
+			return json.results ?? json.objects ?? []
 		},
 
 		/**
@@ -521,23 +599,12 @@ export default {
 </script>
 
 <style scoped>
-.grade-impact {
-	max-width: 640px;
-	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
 .grade-impact__loading,
 .grade-impact__error {
 	display: flex;
 	align-items: center;
 	gap: var(--default-grid-baseline, 8px);
 	padding: calc(var(--default-grid-baseline, 8px) * 2);
-}
-
-.grade-impact__header {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
 }
 
 .grade-impact__meta {
@@ -577,13 +644,6 @@ export default {
 	color: var(--color-main-background);
 }
 
-.grade-impact__section {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-	padding: calc(var(--default-grid-baseline, 8px) * 2);
-	border: 1px solid var(--color-border);
-	border-radius: 6px;
-}
-
 .grade-impact__dl {
 	margin: 0;
 }
@@ -613,6 +673,18 @@ export default {
 .grade-impact__value {
 	font-weight: bold;
 	font-size: 1.1em !important;
+}
+
+.grade-impact__forecast-hint {
+	color: var(--color-text-maxcontrast);
+	margin-bottom: 8px;
+}
+
+.grade-impact__forecast-inputs {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	margin-bottom: 8px;
 }
 
 .grade-impact__pass {

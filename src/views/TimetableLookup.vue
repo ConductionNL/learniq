@@ -12,11 +12,9 @@
  @spec openspec/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
 -->
 <template>
-	<div class="timetables">
+	<div class="timetables lq-board-page">
 		<header>
-			<h2 class="timetables__title">
-				{{ t('learniq', 'Timetables') }}
-			</h2>
+			<CnPageHeader :title="t('learniq', 'Timetables')" />
 			<p class="timetables__intro">
 				{{
 					t(
@@ -27,68 +25,44 @@
 			</p>
 		</header>
 
-		<div class="timetables__controls">
-			<div
-				class="timetables__kind"
-				role="group"
-				:aria-label="t('learniq', 'Kind of timetable')">
-				<NcButton
-					v-for="option in kinds"
-					:key="option.value"
-					:variant="kind === option.value ? 'primary' : 'secondary'"
-					@click="setKind(option.value)">
-					{{ option.label }}
-				</NcButton>
+		<CnDetailCard>
+			<div class="timetables__controls">
+				<div
+					class="timetables__kind"
+					role="group"
+					:aria-label="t('learniq', 'Kind of timetable')">
+					<NcButton
+						v-for="option in kinds"
+						:key="option.value"
+						:variant="kind === option.value ? 'primary' : 'secondary'"
+						@click="setKind(option.value)">
+						{{ option.label }}
+					</NcButton>
+				</div>
+				<NcSelect
+					v-model="selectedId"
+					:options="options"
+					:reduce="(o) => o.id"
+					label="label"
+					:inputLabel="pickerLabel"
+					:loading="loadingOptions" />
+				<div class="timetables__week">
+					<NcButton
+						variant="tertiary"
+						:aria-label="t('learniq', 'Previous week')"
+						@click="shiftWeek(-1)">
+						‹
+					</NcButton>
+					<span>{{ rangeLabel }}</span>
+					<NcButton
+						variant="tertiary"
+						:aria-label="t('learniq', 'Next week')"
+						@click="shiftWeek(1)">
+						›
+					</NcButton>
+				</div>
 			</div>
-			<NcSelect
-				v-model="selectedId"
-				:options="options"
-				:reduce="(o) => o.id"
-				label="label"
-				:inputLabel="pickerLabel"
-				:loading="loadingOptions" />
-			<div class="timetables__week">
-				<NcButton
-					variant="tertiary"
-					:aria-label="t('learniq', 'Previous week')"
-					@click="shiftWeek(-1)">
-					‹
-				</NcButton>
-				<span>{{ rangeLabel }}</span>
-				<NcButton
-					variant="tertiary"
-					:aria-label="t('learniq', 'Next week')"
-					@click="shiftWeek(1)">
-					›
-				</NcButton>
-			</div>
-		</div>
-
-		<details v-if="policy && canEditPolicy" class="timetables__policy">
-			<summary>{{ t('learniq', 'Timetable visibility') }}</summary>
-			<p class="timetables__intro">
-				{{
-					t(
-						'learniq',
-						'Choose which timetables learners and teachers may open. Team leads and compliance officers always see all.',
-					)
-				}}
-			</p>
-			<NcSelect
-				v-for="field in policyFields"
-				:key="field.key"
-				v-model="policy[field.key]"
-				:options="field.options"
-				:reduce="(o) => o.value"
-				:clearable="false"
-				:inputLabel="field.label" />
-			<NcButton variant="primary" @click="savePolicy">
-				{{ t('learniq', 'Save visibility') }}
-			</NcButton>
-			<NcNoteCard v-if="policyMessage" :type="policyMessageType">
-				{{ policyMessage }}
-			</NcNoteCard>
-		</details>
+		</CnDetailCard>
 
 		<NcNoteCard v-if="!loadingOptions && options.length === 0" type="info">
 			{{
@@ -102,7 +76,7 @@
 		<NcNoteCard v-else-if="error" type="error">
 			{{ error }}
 		</NcNoteCard>
-		<template v-else-if="selectedId">
+		<CnDetailCard v-else-if="selectedId" :title="selectedTitle">
 			<NcEmptyContent
 				v-if="sessions.length === 0"
 				:name="t('learniq', 'No lessons this week')" />
@@ -129,11 +103,12 @@
 					</li>
 				</ul>
 			</section>
-		</template>
+		</CnDetailCard>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import {
@@ -159,7 +134,7 @@ function mondayOf(date) {
 export default {
 	name: 'TimetableLookup',
 
-	components: { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard, NcSelect },
+	components: { CnDetailCard, CnPageHeader, NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard, NcSelect },
 
 	data() {
 		return {
@@ -171,11 +146,6 @@ export default {
 			error: '',
 			sessions: [],
 			weekStart: mondayOf(new Date()),
-			policy: null,
-			policyId: null,
-			canEditPolicy: false,
-			policyMessage: '',
-			policyMessageType: 'success',
 		}
 	},
 
@@ -195,46 +165,14 @@ export default {
 		},
 
 		/**
-		 * The policy settings with their choices.
+		 * The open timetable's card title, naming the chosen group, teacher or room.
 		 *
-		 * @return {Array<{key: string, label: string, options: Array<{value: string, label: string}>}>}
-		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-school-sets-whose-timetables-each-role-may-see
+		 * @return {string}
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
 		 */
-		policyFields() {
-			const own = { value: 'own', label: t('learniq', 'Their own') }
-			const related = {
-				value: 'related',
-				label: t('learniq', 'Those of their own lessons'),
-			}
-			const all = { value: 'all', label: t('learniq', 'All') }
-			const none = { value: 'none', label: t('learniq', 'None') }
-			return [
-				{
-					key: 'learnerSeesGroups',
-					label: t('learniq', 'Learners see groups'),
-					options: [own, all],
-				},
-				{
-					key: 'learnerSeesTeachers',
-					label: t('learniq', 'Learners see teachers'),
-					options: [none, related, all],
-				},
-				{
-					key: 'learnerSeesRooms',
-					label: t('learniq', 'Learners see rooms'),
-					options: [none, related, all],
-				},
-				{
-					key: 'instructorSeesGroups',
-					label: t('learniq', 'Teachers see groups'),
-					options: [own, all],
-				},
-				{
-					key: 'instructorSeesTeachers',
-					label: t('learniq', 'Teachers see teachers'),
-					options: [own, all],
-				},
-			]
+		selectedTitle() {
+			const option = this.options.find((o) => o.id === this.selectedId)
+			return option ? t('learniq', 'Timetable of {name}', { name: option.label }) : ''
 		},
 
 		/**
@@ -321,7 +259,6 @@ export default {
 	 */
 	mounted() {
 		this.loadOptions()
-		this.loadPolicy()
 	},
 
 	methods: {
@@ -407,60 +344,6 @@ export default {
 		},
 
 		/**
-		 * Load the school's policy and whether the caller may change it.
-		 *
-		 * @return {Promise<void>}
-		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-school-sets-whose-timetables-each-role-may-see
-		 */
-		async loadPolicy() {
-			try {
-				const res = await axios.get(
-					generateUrl('/apps/learniq/api/timetable/visibility-policy'),
-				)
-				this.policy = { ...res.data.policy }
-				this.policyId = res.data.policyId
-				this.canEditPolicy = res.data.canEdit === true
-			} catch {
-				this.policy = null
-			}
-		},
-
-		/**
-		 * Save the policy: update the school's policy, or create it the first time.
-		 *
-		 * @return {Promise<void>}
-		 * @spec openspec/specs/personal-timetable/spec.md#scenario-a-school-lets-learners-see-every-room
-		 */
-		async savePolicy() {
-			this.policyMessage = ''
-			const base =
-				'/apps/openregister/api/objects/learniq/timetable-visibility-policy'
-			try {
-				if (this.policyId) {
-					await axios.patch(
-						generateUrl(base + '/' + encodeURIComponent(this.policyId)),
-						this.policy,
-					)
-				} else {
-					await axios.post(generateUrl(base), this.policy)
-				}
-				await this.loadPolicy()
-				await this.loadOptions()
-				this.policyMessage = t(
-					'learniq',
-					'The timetable visibility is saved.',
-				)
-				this.policyMessageType = 'success'
-			} catch {
-				this.policyMessage = t(
-					'learniq',
-					'The timetable visibility could not be saved.',
-				)
-				this.policyMessageType = 'error'
-			}
-		},
-
-		/**
 		 * Move the viewed week.
 		 *
 		 * @param {number} delta Weeks to move.
@@ -500,17 +383,6 @@ export default {
 </script>
 
 <style scoped>
-.timetables {
-	padding: 16px;
-	display: flex;
-	flex-direction: column;
-	gap: 16px;
-}
-
-.timetables__title {
-	margin: 0;
-}
-
 .timetables__intro {
 	margin: 4px 0 0;
 	color: var(--color-text-maxcontrast);
@@ -528,12 +400,6 @@ export default {
 .timetables__controls {
 	gap: 16px;
 	align-items: flex-end;
-}
-
-.timetables__policy {
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
 }
 
 .timetables__lessons {

@@ -3,6 +3,9 @@
 /**
  * Learniq RenameDutchColumns Repair Step
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V.
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Moves stored data from the Dutch columns to the English ones the shillinq
  * register now declares. Covers every vocabulary cluster migrated so far, not
  * only amounts — the class was renamed from RenameDutchAmountColumns when the
@@ -33,9 +36,6 @@
  *     and a re-run is a no-op;
  *   - two sources targeting one destination in a table are REFUSED, not merged;
  *   - nothing is deleted.
- *
- * SPDX-License-Identifier: EUPL-1.2
- * SPDX-FileCopyrightText: 2026 Conduction B.V.
  *
  * @category Repair
  * @package  OCA\Learniq\Repair
@@ -153,54 +153,116 @@ class RenameDutchColumns implements IRepairStep {
 			return;
 		}
 
-		$renamed = 0;
-		$copied = 0;
-		$refused = 0;
-
-		foreach ($tables as $table) {
-			$columns = $this->columnsOf(table: $table);
-			$qTable = $this->quote(identifier: $table);
-
-			foreach (self::COLUMN_MAP as $old => $new) {
-				if (in_array($old, $columns, true) === false) {
-					continue;
-				}
-
-				if ($this->hasCollision(columns: $columns, target: $new) === true) {
-					$this->logger->warning(
-						'RenameDutchColumns: two sources target one destination; migrating neither.',
-						['table' => $table, 'source' => $old, 'destination' => $new]
-					);
-					$refused++;
-					continue;
-				}
-
-				if (in_array($new, $columns, true) === false) {
-					$sql = 'ALTER TABLE ' . $qTable . ' RENAME COLUMN '
-						. $this->quote(identifier: $old) . ' TO ' . $this->quote(identifier: $new);
-					if ($this->exec(sql: $sql) === true) {
-						$renamed++;
-					}
-
-					continue;
-				}
-
-				$qNew = $this->quote(identifier: $new);
-				$qOld = $this->quote(identifier: $old);
-				$sql = 'UPDATE ' . $qTable . ' SET ' . $qNew . ' = ' . $qOld
-					. ' WHERE ' . $qNew . ' IS NULL AND ' . $qOld . ' IS NOT NULL';
-				if ($this->exec(sql: $sql) === true) {
-					$copied++;
-				}
-			}//end foreach
-		}//end foreach
-
+		$tally = $this->migrateTables(tables: $tables);
 		$output->info(
-			'RenameDutchColumns: ' . $renamed . ' renamed, ' . $copied . ' back-filled, '
-			. $refused . ' refused, across ' . count($tables) . ' shard table(s).'
+			'RenameDutchColumns: ' . $tally['renamed'] . ' renamed, ' . $tally['copied'] . ' back-filled, '
+			. $tally['refused'] . ' refused, across ' . count($tables) . ' shard table(s).'
 		);
-
 	}//end run()
+
+	/**
+	 * Move the mapped columns of every table, counting each outcome.
+	 *
+	 * A failed statement is logged where it fails and left out of the report.
+	 *
+	 * @param array<int, string> $tables The shard tables.
+	 *
+	 * @return array<string, int> Count per outcome: renamed, copied, refused, failed.
+	 */
+	private function migrateTables(array $tables): array {
+		$tally = ['renamed' => 0, 'copied' => 0, 'refused' => 0, 'failed' => 0];
+		foreach ($tables as $table) {
+			foreach ($this->migrateTable(table: $table) as $outcome) {
+				$tally[$outcome]++;
+			}
+		}
+
+		return $tally;
+	}//end migrateTables()
+
+	/**
+	 * Move every mapped column the table carries, in map order.
+	 *
+	 * @param string $table The shard table.
+	 *
+	 * @return array<int, string> One outcome per mapped column found: renamed, copied, refused or failed.
+	 */
+	private function migrateTable(string $table): array {
+		$shard    = new ShardTableColumns(table: $table, columns: $this->columnsOf(table: $table));
+		$outcomes = [];
+		foreach (array_keys(self::COLUMN_MAP) as $old) {
+			if (in_array($old, $shard->columns, true) === true) {
+				$outcomes[] = $this->migrateColumn(shard: $shard, old: $old);
+			}
+		}
+
+		return $outcomes;
+	}//end migrateTable()
+
+	/**
+	 * Move one Dutch column: refuse a shared destination, rename when the
+	 * English column is absent, else back-fill it.
+	 *
+	 * @param ShardTableColumns $shard The table and its columns.
+	 * @param string            $old   The Dutch column, present in the table.
+	 *
+	 * @return string renamed, copied, refused or failed.
+	 */
+	private function migrateColumn(ShardTableColumns $shard, string $old): string {
+		$new = self::COLUMN_MAP[$old];
+		if ($this->hasCollision(columns: $shard->columns, target: $new) === true) {
+			$this->logger->warning(
+				'RenameDutchColumns: two sources target one destination; migrating neither.',
+				['table' => $shard->table, 'source' => $old, 'destination' => $new]
+			);
+			return 'refused';
+		}
+
+		if (in_array($new, $shard->columns, true) === false) {
+			return $this->renameColumn(shard: $shard, old: $old);
+		}
+
+		return $this->backfillColumn(shard: $shard, old: $old);
+	}//end migrateColumn()
+
+	/**
+	 * Rename the Dutch column to its English name.
+	 *
+	 * @param ShardTableColumns $shard The table and its columns.
+	 * @param string            $old   The Dutch column.
+	 *
+	 * @return string renamed or failed.
+	 */
+	private function renameColumn(ShardTableColumns $shard, string $old): string {
+		$sql = 'ALTER TABLE ' . $this->quote(identifier: $shard->table) . ' RENAME COLUMN '
+			. $this->quote(identifier: $old) . ' TO ' . $this->quote(identifier: self::COLUMN_MAP[$old]);
+		if ($this->exec(sql: $sql) === true) {
+			return 'renamed';
+		}
+
+		return 'failed';
+	}//end renameColumn()
+
+	/**
+	 * Copy the Dutch column into the empty cells of its English one, leaving
+	 * the Dutch column in place.
+	 *
+	 * @param ShardTableColumns $shard The table and its columns.
+	 * @param string            $old   The Dutch column.
+	 *
+	 * @return string copied or failed.
+	 */
+	private function backfillColumn(ShardTableColumns $shard, string $old): string {
+		$qNew = $this->quote(identifier: self::COLUMN_MAP[$old]);
+		$qOld = $this->quote(identifier: $old);
+		$sql  = 'UPDATE ' . $this->quote(identifier: $shard->table) . ' SET ' . $qNew . ' = ' . $qOld
+			. ' WHERE ' . $qNew . ' IS NULL AND ' . $qOld . ' IS NOT NULL';
+		if ($this->exec(sql: $sql) === true) {
+			return 'copied';
+		}
+
+		return 'failed';
+	}//end backfillColumn()
 
 	/**
 	 * Whether another mapped source already targets the same destination here.
@@ -244,11 +306,35 @@ class RenameDutchColumns implements IRepairStep {
 			return [];
 		}
 
+		return $this->tablesWithMarker(names: $names, markers: $this->markersOf(ids: $ids));
+	}//end shardTables()
+
+	/**
+	 * The shard-table marker of each register id.
+	 *
+	 * @param array<int, mixed> $ids Register ids.
+	 *
+	 * @return array<int, string>
+	 */
+	private function markersOf(array $ids): array {
 		$markers = [];
 		foreach ($ids as $id) {
 			$markers[] = 'openregister_table_' . ((int)$id) . '_';
 		}
 
+		return $markers;
+	}//end markersOf()
+
+	/**
+	 * The names that carry one of the markers followed by a numeric schema id,
+	 * each once.
+	 *
+	 * @param array<int, string> $names   Table names.
+	 * @param array<int, string> $markers Register markers.
+	 *
+	 * @return array<int, string>
+	 */
+	private function tablesWithMarker(array $names, array $markers): array {
 		$tables = [];
 		foreach ($names as $name) {
 			foreach ($markers as $marker) {
@@ -260,7 +346,7 @@ class RenameDutchColumns implements IRepairStep {
 		}
 
 		return array_values(array_unique($tables));
-	}
+	}//end tablesWithMarker()
 
 	/**
 	 * Ids of every register whose slug starts with the prefix.
@@ -322,7 +408,7 @@ class RenameDutchColumns implements IRepairStep {
 		}
 
 		return $names;
-	}//end shardTables()
+	}//end openRegisterTableNames()
 
 	/**
 	 * List the column names of a table.

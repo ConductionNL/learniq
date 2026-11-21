@@ -30,6 +30,7 @@ use OCP\IAppConfig;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use RuntimeException;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * An invited trainer may assess, the evidence says who and how sure, and a
@@ -86,7 +87,11 @@ class PortalWerkprocesAssessmentTest extends TestCase {
 			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $this->store->findAll($config, $_rbac, $_multitenancy)
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null) use ($failWrites) {
+			function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) use ($failWrites) {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
+				$uuid = $options->uuid;
 				if ($failWrites === true) {
 					throw new RuntimeException('SQLSTATE secret table name');
 				}
@@ -225,6 +230,7 @@ class PortalWerkprocesAssessmentTest extends TestCase {
 
 		$incomplete = $this->service()->submit(trainerRef: self::TRAINER, trust: 'low', body: []);
 		self::assertSame(422, $incomplete->status);
+		self::assertSame(expected: ['bpvPlacementId' => ''], actual: $incomplete->body['errors']);
 		self::assertSame([], $this->store->saves);
 	}//end testOnlyHerOwnPlacementIsAccepted()
 
@@ -288,7 +294,11 @@ class PortalWerkprocesAssessmentTest extends TestCase {
 		);
 		$saved = [];
 		$objectService->method('saveObject')->willReturnCallback(
-			static function (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null) use (&$saved) {
+			static function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) use (&$saved) {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
+				$uuid = $options->uuid;
 				$saved[] = $object;
 				// The real saveObject() answers an entity, never an array.
 				return OrEntityFactory::make(['id' => 'assessment-1'], 'werkproces-assessment');

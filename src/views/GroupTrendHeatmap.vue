@@ -25,11 +25,9 @@
 -->
 
 <template>
-	<div class="group-trend-heatmap">
+	<div class="group-trend-heatmap lq-board-page">
 		<header class="group-trend-heatmap__header">
-			<h2 class="group-trend-heatmap__title">
-				{{ t('learniq', 'Group trend heat map') }}
-			</h2>
+			<CnPageHeader :title="t('learniq', 'Group trend heat map')" />
 			<p class="group-trend-heatmap__subtitle">
 				{{
 					t(
@@ -69,47 +67,52 @@
 		</div>
 
 		<!-- Heat map grid -->
-		<div v-else class="group-trend-heatmap__table-wrap">
-			<table class="group-trend-heatmap__table">
-				<thead>
-					<tr>
-						<th scope="col">
-							{{ t('learniq', 'Cohort') }}
-						</th>
-						<th v-for="period in periods" :key="period" scope="col">
-							{{ t('learniq', 'Period {period}', { period }) }}
-						</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr v-for="row in cohortRows" :key="row.cohortId">
-						<th scope="row" class="group-trend-heatmap__cohort-name">
-							{{ row.cohortName }}
-						</th>
-						<td
-							v-for="period in periods"
-							:key="period"
-							class="group-trend-heatmap__cell"
-							:class="cellClass(row.averagesByPeriod[period])">
-							<span v-if="row.averagesByPeriod[period] !== undefined">
-								{{ formatAverage(row.averagesByPeriod[period]) }}
-							</span>
-							<span v-else class="group-trend-heatmap__cell-empty"
-								>—</span
-							>
-						</td>
-					</tr>
-				</tbody>
-			</table>
-		</div>
+		<CnDetailCard v-else :title="t('learniq', 'Heat map of your groups')">
+			<div class="group-trend-heatmap__table-wrap">
+				<table class="group-trend-heatmap__table">
+					<thead>
+						<tr>
+							<th scope="col">
+								{{ t('learniq', 'Cohort') }}
+							</th>
+							<th v-for="period in periods" :key="period" scope="col">
+								{{ t('learniq', 'Period {period}', { period }) }}
+							</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr v-for="row in cohortRows" :key="row.cohortId">
+							<th scope="row" class="group-trend-heatmap__cohort-name">
+								{{ row.cohortName }}
+							</th>
+							<td
+								v-for="period in periods"
+								:key="period"
+								class="group-trend-heatmap__cell"
+								:class="cellClass(row.averagesByPeriod[period])">
+								<span v-if="row.averagesByPeriod[period] !== undefined">
+									{{ formatAverage(row.averagesByPeriod[period]) }}
+								</span>
+								<span v-else class="group-trend-heatmap__cell-empty"
+									>—</span
+								>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</CnDetailCard>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { generateUrl } from '@nextcloud/router'
+import { assertOk, listOf, readAll, runLoad } from '../utils/objectListing.js'
 
 export default {
 	name: 'GroupTrendHeatmap',
+	components: { CnDetailCard, CnPageHeader },
 
 	data() {
 		return {
@@ -219,62 +222,51 @@ export default {
 		 * @return {Promise<void>}
 		 * @spec openspec/specs/student-analytics/spec.md#scenario-teacher-views-the-cohort-trend-heat-map
 		 */
-		async loadData() {
-			this.loading = true
-			this.error = null
+		loadData() {
+			return runLoad(this, {
+				read: () => this.readCohortsAndEntries(),
+				fail: (err) => this.reportLoadFailure(err),
+			})
+		},
 
-			try {
-				const [cohortsResp, entriesResp] = await Promise.all([
-					fetch(
-						generateUrl(
-							'/apps/openregister/api/objects/learniq/Cohort?_limit=200',
-						),
-						{
-							headers: {
-								'OCS-APIREQUEST': 'true',
-								Accept: 'application/json',
-							},
-						},
-					),
-					fetch(
-						generateUrl(
-							'/apps/openregister/api/objects/learniq/grade-entry?_limit=500&lifecycle=published',
-						),
-						{
-							headers: {
-								'OCS-APIREQUEST': 'true',
-								Accept: 'application/json',
-							},
-						},
-					),
-				])
+		/**
+		 * Read the Cohorts and the published GradeEntries that carry a cohortId;
+		 * rejects when either read fails.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/student-analytics/spec.md#scenario-teacher-views-the-cohort-trend-heat-map
+		 */
+		async readCohortsAndEntries() {
+			const [cohortsResp, entriesResp] = await readAll([
+				generateUrl('/apps/openregister/api/objects/learniq/Cohort?_limit=200'),
+				generateUrl('/apps/openregister/api/objects/learniq/grade-entry?_limit=500&lifecycle=published'),
+			])
+			assertOk(cohortsResp, 'Cohort fetch failed')
+			assertOk(entriesResp, 'GradeEntry fetch failed')
 
-				if (!cohortsResp.ok)
-					throw new Error(`Cohort fetch failed: ${cohortsResp.status}`)
-				if (!entriesResp.ok)
-					throw new Error(`GradeEntry fetch failed: ${entriesResp.status}`)
+			const cohortsJson = await cohortsResp.json()
+			const entriesJson = await entriesResp.json()
 
-				const cohortsJson = await cohortsResp.json()
-				const entriesJson = await entriesResp.json()
+			this.cohorts = listOf(cohortsJson)
+			this.gradeEntries = listOf(entriesJson).filter(
+				(e) => e.lifecycle === 'published' && !!e.cohortId,
+			)
+		},
 
-				this.cohorts =
-					cohortsJson.results ?? cohortsJson.objects ?? cohortsJson ?? []
-				this.gradeEntries = (
-					entriesJson.results
-					?? entriesJson.objects
-					?? entriesJson
-					?? []
-				).filter((e) => e.lifecycle === 'published' && !!e.cohortId)
-			} catch (err) {
-				this.error = this.t(
-					'learniq',
-					'Failed to load grade trend data. Please try again.',
-				)
-				// eslint-disable-next-line no-console
-				console.error('[GroupTrendHeatmap] loadData error', err)
-			} finally {
-				this.loading = false
-			}
+		/**
+		 * Tell the teacher the heat map could not load, and log why.
+		 *
+		 * @param {Error} err The failure
+		 * @return {void}
+		 * @spec openspec/specs/student-analytics/spec.md#scenario-teacher-views-the-cohort-trend-heat-map
+		 */
+		reportLoadFailure(err) {
+			this.error = this.t(
+				'learniq',
+				'Failed to load grade trend data. Please try again.',
+			)
+			// eslint-disable-next-line no-console
+			console.error('[GroupTrendHeatmap] loadData error', err)
 		},
 
 		/**
@@ -309,22 +301,6 @@ export default {
 </script>
 
 <style scoped>
-.group-trend-heatmap {
-	max-width: 1100px;
-	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
-.group-trend-heatmap__header {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-}
-
-.group-trend-heatmap__title {
-	font-size: var(--default-font-size, 15px);
-	font-weight: bold;
-}
-
 .group-trend-heatmap__subtitle {
 	color: var(--color-text-maxcontrast);
 	font-size: 0.9em;

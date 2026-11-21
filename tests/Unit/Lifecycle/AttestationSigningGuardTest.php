@@ -25,6 +25,7 @@ use OCA\Learniq\Lifecycle\AttestationSigningGuard;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\OpenRegister\Service\TenantKeyService;
+use OCA\Learniq\Tests\Support\CapturingLogger;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
@@ -64,7 +65,11 @@ class AttestationSigningGuardTest extends TestCase {
 	 * @return AttestationSigningGuard
 	 */
 	private function makeGuard(ObjectService $objectService, TenantKeyService $tenantKeyService): AttestationSigningGuard {
-		return new AttestationSigningGuard($objectService, $tenantKeyService, $this->createMock(LoggerInterface::class));
+		return new AttestationSigningGuard(
+			objectService: $objectService,
+			tenantKeyService: $tenantKeyService,
+			logger: $this->createMock(originalClassName: LoggerInterface::class)
+		);
 	}//end makeGuard()
 
 	/**
@@ -73,9 +78,12 @@ class AttestationSigningGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testImplementsTheOpenRegisterGuardInterface(): void {
-		$guard = $this->makeGuard($this->createMock(ObjectService::class), $this->createMock(TenantKeyService::class));
+		$guard = $this->makeGuard(
+			objectService: $this->createMock(originalClassName: ObjectService::class),
+			tenantKeyService: $this->createMock(originalClassName: TenantKeyService::class)
+		);
 
-		$this->assertInstanceOf(LifecycleGuardInterface::class, $guard);
+		$this->assertInstanceOf(expected: LifecycleGuardInterface::class, actual: $guard);
 	}//end testImplementsTheOpenRegisterGuardInterface()
 
 	/**
@@ -84,15 +92,18 @@ class AttestationSigningGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testCompletionAndKeyAllowSigning(): void {
-		$objectService = $this->createMock(ObjectService::class);
+		$objectService = $this->createMock(originalClassName: ObjectService::class);
 		$objectService->method('findAll')->willReturn([['uuid' => 'xapi-1', 'verb' => ['id' => 'http://adlnet.gov/expapi/verbs/completed']]]);
 
-		$tenantKeyService = $this->createMock(TenantKeyService::class);
+		$tenantKeyService = $this->createMock(originalClassName: TenantKeyService::class);
 		$tenantKeyService->method('getCurrentTenantKey')->willReturn('super-secret-key');
 
-		$result = $this->makeGuard($objectService, $tenantKeyService)->check($this->attestationObject(), 'sign', 'learner-7');
+		$result = $this->makeGuard(
+			objectService: $objectService,
+			tenantKeyService: $tenantKeyService
+		)->check($this->attestationObject(), 'sign', 'hr-officer');
 
-		$this->assertTrue($result->isAllowed());
+		$this->assertTrue(condition: $result->isAllowed());
 	}//end testCompletionAndKeyAllowSigning()
 
 	/**
@@ -101,16 +112,19 @@ class AttestationSigningGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testMissingCompletionIsDenied(): void {
-		$objectService = $this->createMock(ObjectService::class);
+		$objectService = $this->createMock(originalClassName: ObjectService::class);
 		$objectService->method('findAll')->willReturn([]);
 
-		$tenantKeyService = $this->createMock(TenantKeyService::class);
+		$tenantKeyService = $this->createMock(originalClassName: TenantKeyService::class);
 		$tenantKeyService->expects($this->never())->method('getCurrentTenantKey');
 
-		$result = $this->makeGuard($objectService, $tenantKeyService)->check($this->attestationObject(), 'sign', 'learner-7');
+		$result = $this->makeGuard(
+			objectService: $objectService,
+			tenantKeyService: $tenantKeyService
+		)->check($this->attestationObject(), 'sign', 'hr-officer');
 
-		$this->assertFalse($result->isAllowed());
-		$this->assertNotSame('', (string)$result->getMessage());
+		$this->assertFalse(condition: $result->isAllowed());
+		$this->assertNotSame(expected: '', actual: (string)$result->getMessage());
 	}//end testMissingCompletionIsDenied()
 
 	/**
@@ -119,22 +133,22 @@ class AttestationSigningGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testCompletionLookupIsTenantScoped(): void {
-		$objectService = $this->createMock(ObjectService::class);
+		$objectService = $this->createMock(originalClassName: ObjectService::class);
 		$objectService->expects($this->atLeastOnce())
 			->method('findAll')
 			->with(
 				$this->callback(
-					static fn (array $config): bool => ($config['filters']['verified_actor_id'] ?? null) === 'learner-7'
+					callback: static fn (array $config): bool => ($config['filters']['verified_actor_id'] ?? null) === 'learner-7'
 						&& ($config['filters']['lessonId'] ?? null) === 'lesson-3'
 						&& ($config['filters']['tenant_id'] ?? null) === 'tenant-a'
 				)
 			)
 			->willReturn([['uuid' => 'xapi-1', 'verb' => ['id' => 'http://adlnet.gov/expapi/verbs/completed']]]);
 
-		$tenantKeyService = $this->createMock(TenantKeyService::class);
+		$tenantKeyService = $this->createMock(originalClassName: TenantKeyService::class);
 		$tenantKeyService->method('getCurrentTenantKey')->willReturn('k');
 
-		$this->makeGuard($objectService, $tenantKeyService)->check($this->attestationObject(), 'sign', 'learner-7');
+		$this->makeGuard(objectService: $objectService, tenantKeyService: $tenantKeyService)->check($this->attestationObject(), 'sign', 'hr-officer');
 	}//end testCompletionLookupIsTenantScoped()
 
 	/**
@@ -143,15 +157,18 @@ class AttestationSigningGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testUnavailableTenantKeyIsDenied(): void {
-		$objectService = $this->createMock(ObjectService::class);
+		$objectService = $this->createMock(originalClassName: ObjectService::class);
 		$objectService->method('findAll')->willReturn([['uuid' => 'xapi-1', 'verb' => ['id' => 'http://adlnet.gov/expapi/verbs/completed']]]);
 
-		$tenantKeyService = $this->createMock(TenantKeyService::class);
+		$tenantKeyService = $this->createMock(originalClassName: TenantKeyService::class);
 		$tenantKeyService->method('getCurrentTenantKey')->willReturn('');
 
-		$result = $this->makeGuard($objectService, $tenantKeyService)->check($this->attestationObject(), 'sign', 'learner-7');
+		$result = $this->makeGuard(
+			objectService: $objectService,
+			tenantKeyService: $tenantKeyService
+		)->check($this->attestationObject(), 'sign', 'hr-officer');
 
-		$this->assertFalse($result->isAllowed());
+		$this->assertFalse(condition: $result->isAllowed());
 	}//end testUnavailableTenantKeyIsDenied()
 
 	/**
@@ -160,13 +177,155 @@ class AttestationSigningGuardTest extends TestCase {
 	 * @return void
 	 */
 	public function testMissingIdentifiersAreDenied(): void {
-		$objectService = $this->createMock(ObjectService::class);
+		$objectService = $this->createMock(originalClassName: ObjectService::class);
 		$objectService->expects($this->never())->method('findAll');
 
 		$object = ['id' => 'attestation-1', 'tenant_id' => 'tenant-a', 'lifecycle' => 'signed'];
 
-		$result = $this->makeGuard($objectService, $this->createMock(TenantKeyService::class))->check($object, 'sign', 'learner-7');
+		$result = $this->makeGuard(
+			objectService: $objectService,
+			tenantKeyService: $this->createMock(originalClassName: TenantKeyService::class)
+		)->check($object, 'sign', 'hr-officer');
 
-		$this->assertFalse($result->isAllowed());
+		$this->assertFalse(condition: $result->isAllowed());
 	}//end testMissingIdentifiersAreDenied()
+	/**
+	 * Every outcome with its message, the statement query and the log lines,
+	 * recorded: completed, passed, an entity row, another verb only, no
+	 * statements, no tenant, no lesson, no key.
+	 *
+	 * @return void
+	 */
+	public function testEachOutcomeAsRecorded(): void {
+		$completed = ['uuid' => 'x1', 'verb' => ['id' => 'http://adlnet.gov/expapi/verbs/completed']];
+		$entity = new class() implements \JsonSerializable {
+			/**
+			 * A passed statement, as an entity serialises.
+			 *
+			 * @return array<string, mixed>
+			 */
+			public function jsonSerialize(): array {
+				return ['uuid' => 'x3', 'verb' => ['id' => 'http://adlnet.gov/expapi/verbs/passed']];
+			}//end jsonSerialize()
+		};
+		$cases = [
+			'completed' => [$this->attestationObject(), [$completed], 'k'],
+			'passed after another verb' => [
+				$this->attestationObject(),
+				[['verb' => ['id' => 'x:attempted']], ['verb' => ['id' => 'http://adlnet.gov/expapi/verbs/passed']]],
+				'k'
+			],
+			'an entity row' => [$this->attestationObject(), [$entity], 'k'],
+			'another verb only' => [$this->attestationObject(), [['verb' => ['id' => 'x:attempted']], ['verb' => []]], 'k'],
+			'no statements' => [$this->attestationObject(), [], 'k'],
+			'no tenant' => [array_merge($this->attestationObject(), ['tenant_id' => '']), [$completed], 'k'],
+			'no lesson' => [array_merge($this->attestationObject(), ['lessonId' => '']), [$completed], 'k'],
+			'no key' => [$this->attestationObject(), [$completed], ''],
+		];
+
+		$actual = [];
+		foreach ($cases as $name => [$object, $statements, $key]) {
+			$queries = [];
+			$objectService = $this->createMock(originalClassName: ObjectService::class);
+			$objectService->method('findAll')->willReturnCallback(
+				function (array $config) use (&$queries, $statements): array {
+					$queries[] = $config;
+					return $statements;
+				}
+			);
+			$tenantKeyService = $this->createMock(originalClassName: TenantKeyService::class);
+			$tenantKeyService->method('getCurrentTenantKey')->willReturn($key);
+			$logger = new CapturingLogger();
+
+			$result = (
+				new AttestationSigningGuard(objectService: $objectService, tenantKeyService: $tenantKeyService, logger: $logger)
+			)->check($object, 'sign', 'hr-officer');
+			$actual[$name] = ['allowed' => $result->isAllowed(), 'message' => $result->getMessage(), 'queries' => $queries, 'log' => $logger->dump()];
+		}
+
+		$golden = __DIR__ . '/golden/AttestationSigningGuard.json';
+		if (getenv('RECORD_GOLDEN') === '1') {
+			file_put_contents($golden, json_encode($actual, (JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)) . "\n");
+		}
+
+		self::assertSame(expected: json_decode((string)file_get_contents($golden), true), actual: json_decode((string)json_encode($actual), true));
+	}//end testEachOutcomeAsRecorded()
+
+	/**
+	 * A guard whose learner completed the lesson and whose tenant has a key.
+	 *
+	 * @return AttestationSigningGuard
+	 */
+	private function completedGuard(): AttestationSigningGuard {
+		$objectService = $this->createMock(originalClassName: ObjectService::class);
+		$objectService->method('findAll')->willReturn([['uuid' => 'xapi-1', 'verb' => ['id' => 'http://adlnet.gov/expapi/verbs/completed']]]);
+		$tenantKeyService = $this->createMock(originalClassName: TenantKeyService::class);
+		$tenantKeyService->method('getCurrentTenantKey')->willReturn('super-secret-key');
+
+		return $this->makeGuard(objectService: $objectService, tenantKeyService: $tenantKeyService);
+	}//end completedGuard()
+
+	/**
+	 * Scenario: a learner who finished the training confirms and signs their own attestation.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/compliance-audit/spec.md#scenario-a-learner-signs-after-finishing-the-training
+	 */
+	public function testTheLearnerSignsTheirOwnAttestationOnceTheyConfirm(): void {
+		$attestation = array_merge($this->attestationObject(), ['readAndUnderstood' => true]);
+
+		$this->assertTrue(condition: $this->completedGuard()->check($attestation, 'sign', 'learner-7')->isAllowed());
+	}//end testTheLearnerSignsTheirOwnAttestationOnceTheyConfirm()
+
+	/**
+	 * A learner who does not confirm they read and understood the training cannot sign.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/compliance-audit/spec.md#requirement-a-learner-confirms-and-signs-their-own-attestation-after-the-training
+	 */
+	public function testTheLearnerCannotSignWithoutConfirming(): void {
+		foreach ([null, false, 'true', 1] as $confirmation) {
+			$attestation = array_merge($this->attestationObject(), ['readAndUnderstood' => $confirmation]);
+
+			$result = $this->completedGuard()->check($attestation, 'sign', 'learner-7');
+
+			$this->assertFalse(condition: $result->isAllowed());
+			$this->assertSame(expected: 'Confirm that you read and understood the training before you sign.', actual: $result->getMessage());
+		}
+	}//end testTheLearnerCannotSignWithoutConfirming()
+
+	/**
+	 * Scenario: a learner without a completion statement is refused, saying the lesson is not completed.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/compliance-audit/spec.md#scenario-a-learner-who-has-not-finished-cannot-sign
+	 */
+	public function testALearnerWhoHasNotFinishedCannotSign(): void {
+		$objectService = $this->createMock(originalClassName: ObjectService::class);
+		$objectService->method('findAll')->willReturn([]);
+		$attestation = array_merge($this->attestationObject(), ['readAndUnderstood' => true]);
+
+		$result = $this->makeGuard(
+			objectService: $objectService,
+			tenantKeyService: $this->createMock(originalClassName: TenantKeyService::class)
+		)->check($attestation, 'sign', 'learner-7');
+
+		$this->assertFalse(condition: $result->isAllowed());
+		$this->assertSame(
+			expected: 'The learner has not completed this lesson yet, so the attestation can not be signed.',
+			actual: $result->getMessage()
+		);
+	}//end testALearnerWhoHasNotFinishedCannotSign()
+
+	/**
+	 * Staff signing on the learner's behalf are not asked for the learner's confirmation.
+	 *
+	 * @return void
+	 */
+	public function testStaffSigningIsNotAskedForTheLearnersConfirmation(): void {
+		$this->assertTrue(condition: $this->completedGuard()->check($this->attestationObject(), 'sign', 'hr-officer')->isAllowed());
+	}//end testStaffSigningIsNotAskedForTheLearnersConfirmation()
 }//end class

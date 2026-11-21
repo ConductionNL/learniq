@@ -152,66 +152,73 @@ The system MUST NOT expose an `App health` page or menu entry inside the Scholiq
 - **WHEN** the manifest `pages[]` and `menu[]` and `src/registry.js` are inspected
 - **THEN** there is no `AdminHealth` page, no `AdminHealthMenu` menu entry, and no `ScholiqAdminHealth` registry entry or import
 
-### Requirement: The app opens on a top-level Dashboard and the Insight group is dissolved
-The system MUST land each user on the role-aware `Dashboard` page (route `/`, component `ScholiqDashboards`) at app root, MUST surface `Dashboard` as a top-level navigation item, and MUST surface `Compliance` as a top-level navigation item. The `GroupInsight` group MUST NOT appear as a navigation group once emptied; the relocation MUST be expressed in `src/menu-layout.json#relocations` (`Dashboard` and `Compliance` → top level).
+### Requirement: The app opens on Vandaag at the top of a role-grouped sidebar
+The system MUST land each user on the role-aware dashboard (route `/`, component `ScholiqDashboards`) at app root. The sidebar MUST show it as its first item, "Vandaag", in an unlabelled top block with "Mijn leren" (and "Groepen" for the roles that teach groups). The remaining items MUST sit in labelled groups named after what the role works on: "Onderwijs", then "Leerlingen" for the roles that work with pupils. No `Insight` group, and no `Dashboard`, `Learning` or `People` parent, MUST appear in the sidebar. The labels above are the Dutch ones the board `learniq/LqDashboard` draws.
 
-#### Scenario: Dashboard and Compliance are top-level items
-- **GIVEN** an authenticated user opens the Scholiq app
-- **WHEN** the left navigation renders
-- **THEN** `Dashboard` appears as a top-level navigation item and `Compliance` appears as a top-level navigation item (subject to its existing role gating)
-- **AND** no `Insight` group is shown
+#### Scenario: A teacher sees the top block and two groups
+@e2e exclude Menu layout; pinned by the manifest unit test against the drawn sidebar of learniq/LqDashboard, not a browser-observable behaviour of its own.
+- **GIVEN** an authenticated teacher opens the app
+- **WHEN** the sidebar renders
+- **THEN** its unlabelled top block reads "Vandaag", "Mijn leren", "Groepen"
+- **AND** below it follow the group "Onderwijs" and the group "Leerlingen"
+- **AND** no `Insight` group and no `Dashboard`, `Learning` or `People` parent is shown
 
-#### Scenario: App root lands on the dashboard
+#### Scenario: App root lands on Vandaag
+@e2e exclude Menu layout; pinned by the manifest unit test against the drawn sidebar of learniq/LqDashboard, not a browser-observable behaviour of its own.
 - **GIVEN** an authenticated user
-- **WHEN** they open the Scholiq app root
-- **THEN** the role-aware `ScholiqDashboards` page renders and the active navigation item is the top-level `Dashboard`
+- **WHEN** they open the app root
+- **THEN** the role-aware `ScholiqDashboards` page renders and the active sidebar item is "Vandaag"
 
-### Requirement: Learning is a navigable domain dashboard with collapsible sub-children
-The `GroupLearning` menu entry MUST be a parent that is both navigable (a `route` landing on the `LearningDashboard` domain dashboard, `/learning`) and collapsible over its six child leaves. The six leaves (`Courses`, `Curriculum`, `LearningPlans`, `Assignments`, `Assessments`, `Grades`) MUST be removed from `src/menu-layout.json#removals` so they render as sub-items, and the `learning-dashboard.json` fragment MUST repoint `GroupLearning.route` at the `LearningDashboard` page. The former `LearningCards` tile-grid landing MUST be retired.
+### Requirement: Learning pages are flat items in the Onderwijs group
+The "Onderwijs" group MUST list its items one level deep: no item in it MUST be a navigable parent or carry a disclosure control. For a teacher the group reads "Mijn rooster", "Lessen en opdrachten", "Cijfers"; for a learner it reads "Mijn rooster", "Cursuscatalogus", "Mijn leerdossier", "Inchecken", "Mijn werkgroepen", "Mijn evaluaties", "Keuzelessen", "Vakken kiezen". The former Learning leaves (`Courses`, `Curriculum`, `LearningPlans`, `Assignments`, `Assessments`, `Grades`) that no drawn item opens MUST stay routable and MUST be reachable as a card or link on the page of the item that covers them. The `LearningCards` tile-grid landing stays retired.
 
-#### Scenario: Learning parent is navigable and expandable
-- **GIVEN** an authenticated user opens the Scholiq app
-- **WHEN** the left navigation renders
-- **THEN** `Learning` shows a disclosure control and, when activated as a link, navigates to `/learning` (the `LearningDashboard`)
-- **AND** expanding `Learning` reveals its six sub-items: Courses, Curriculum, Learning plans, Assignments, Assessments, Grades
+#### Scenario: The teacher's Onderwijs group has no sub-items
+@e2e exclude Menu layout; pinned by the manifest unit test against the drawn sidebar of learniq/LqDashboard, not a browser-observable behaviour of its own.
+- **GIVEN** an authenticated teacher opens the app
+- **WHEN** the sidebar renders
+- **THEN** the group "Onderwijs" lists "Mijn rooster", "Lessen en opdrachten" and "Cijfers"
+- **AND** none of them shows a disclosure control
 
-#### Scenario: Learning sub-items navigate to their existing routes
-- **GIVEN** the `Learning` group is expanded
-- **WHEN** the user activates the `Courses` sub-item
-- **THEN** the browser navigates to the `Courses` route (`/courses`)
-- **AND** activating the `Grades` sub-item navigates to the `GradeEntries` route
+#### Scenario: A former Learning leaf still opens
+@e2e exclude Menu layout; pinned by the manifest unit test against the drawn sidebar of learniq/LqDashboard, not a browser-observable behaviour of its own.
+- **GIVEN** the sidebar shows no item for `Courses`
+- **WHEN** a user opens `/courses` directly
+- **THEN** the courses page renders without error
 
-### Requirement: People is a navigable domain dashboard with collapsible sub-children
-The `GroupPeople` menu entry MUST be a parent that is both navigable (a `route` landing on the `PeopleDashboard` domain dashboard, `/people`) and collapsible over its four child leaves. The four leaves (`LearnerProfilesMenu`, `Enrolments`, `Attendance`, `Credentials`) MUST be removed from `src/menu-layout.json#removals` so they render as sub-items, and the `people-dashboard.json` fragment MUST repoint `GroupPeople.route` at the `PeopleDashboard` page. The former `PeopleCards` tile-grid landing MUST be retired.
+### Requirement: Pupil pages are flat items in the Leerlingen group
+The "Leerlingen" group MUST list its items one level deep, with no navigable parent and no disclosure control, and MUST only render for the roles the boards draw it for. For a teacher, coordinator or study adviser it reads "Leerlingen", "Aanwezigheid", "Voortgang", "Zorg en dossier"; for hr and administrators "Leerlingen", "Aanwezigheid", "Personen", "Compliance"; for a compliance officer "Compliance"; for a team lead "Voortgang", "Aanmeldverzoeken"; for a confidential counsellor or care coordinator "Vertrouwelijke notities", "Vertrouwelijke meldingen". The former People leaves (`LearnerProfilesMenu`, `Enrolments`, `Attendance`, `Credentials`) MUST stay routable; the ones no drawn item opens MUST be reachable as a card or link on the page of the item that covers them. The `PeopleCards` tile-grid landing stays retired.
 
-#### Scenario: People parent is navigable and expandable
-- **GIVEN** an authenticated user opens the Scholiq app
-- **WHEN** the left navigation renders
-- **THEN** `People` shows a disclosure control and, when activated as a link, navigates to `/people` (the `PeopleDashboard`)
-- **AND** expanding `People` reveals its four sub-items: Learners, Enrolments, Attendance, Credentials
+#### Scenario: The teacher's Leerlingen group has no sub-items
+@e2e exclude Menu layout; pinned by the manifest unit test against the drawn sidebar of learniq/LqDashboard, not a browser-observable behaviour of its own.
+- **GIVEN** an authenticated teacher opens the app
+- **WHEN** the sidebar renders
+- **THEN** the group "Leerlingen" lists "Leerlingen", "Aanwezigheid", "Voortgang" and "Zorg en dossier"
+- **AND** none of them shows a disclosure control
 
-#### Scenario: People sub-items navigate to their existing routes
-- **GIVEN** the `People` group is expanded
-- **WHEN** the user activates the `Learners` sub-item
-- **THEN** the browser navigates to the `LearnerProfiles` route
-- **AND** activating the `Credentials` sub-item navigates to the `Credentials` route (`/credentials`)
+#### Scenario: A learner has no Leerlingen group
+@e2e exclude Menu layout; pinned by the manifest unit test against the drawn sidebar of learniq/LqDashboard, not a browser-observable behaviour of its own.
+- **GIVEN** an authenticated learner opens the app
+- **WHEN** the sidebar renders
+- **THEN** it shows the top block and the group "Onderwijs" only
 
-### Requirement: Features & roadmap lives in the footer beside Documentation
-The `FeaturesRoadmapMenu` entry MUST be removed from `src/menu-layout.json#settingsSection` so it falls back to its base-manifest `section:"footer"` placement beside `Documentation`, matching the fleet convention (pipelinq/opencatalogi/docudesk).
+### Requirement: Features & roadmap lives in the settings foldout, under Over de app
+The `FeaturesRoadmapMenu` entry MUST stay in `src/menu-layout.json#settingsSection`. The foldout MUST show it as "Functies en roadmap" under "Over de app", next to "Marktplaats". The footer of the sidebar MUST hold only "Hulp en uitleg".
 
-#### Scenario: Features & roadmap renders in the footer
-- **GIVEN** an authenticated user opens the Scholiq app
-- **WHEN** the left navigation renders
-- **THEN** `Features & roadmap` appears in the footer section next to `Documentation`
-- **AND** it is not present in the settings foldout
+#### Scenario: Features & roadmap renders in the foldout
+<!-- @e2e exclude Menu layout; pinned by the manifest unit test against the drawn foldout of learniq/LqSchooljaar, not a browser-observable behaviour of its own. -->
+- **GIVEN** an authenticated user opens the Learniq app
+- **WHEN** they open the settings foldout
+- **THEN** "Functies en roadmap" appears under "Over de app", next to "Marktplaats"
+- **AND** the footer of the sidebar shows only "Hulp en uitleg"
 
 ### Requirement: School-year rollover lives in the Settings foldout
-The `Rollover` entry (route `RolloverWizard`, admin-gated) MUST be added to `src/menu-layout.json#settingsSection` so it renders inside the Nextcloud settings foldout (gear icon) rather than as a top-level item.
+The `Rollover` entry (route `RolloverWizard`, admin-gated) MUST be added to `src/menu-layout.json#settingsSection` so it renders inside the settings foldout rather than as a top-level item. The foldout MUST show it as "Jaarovergang" under "De app inrichten".
 
 #### Scenario: Rollover renders in the settings foldout for an admin
-- **GIVEN** an authenticated admin user opens the Scholiq app
+<!-- @e2e exclude Menu layout; pinned by the manifest unit test against the drawn foldout of learniq/LqSchooljaar, not a browser-observable behaviour of its own. -->
+- **GIVEN** an authenticated admin user opens the Learniq app
 - **WHEN** they open the settings foldout
-- **THEN** `School-year rollover` appears inside the foldout
+- **THEN** "Jaarovergang" appears under "De app inrichten"
 - **AND** it is not present as a top-level navigation item
 
 ### Requirement: INVARIANT — all retained routes and deep links remain reachable after the restructure
@@ -229,31 +236,43 @@ The restructure MUST NOT remove or rename any retained `pages[]` route, and MUST
 - **THEN** every `urlTemplate` targets a route that still exists in `pages[]`
 - **AND** none targets the removed `AdminHealth` (`/admin/health`) route
 
-### Requirement: The Top-Level Nav Presents Six Named Destinations Plus Two Pending Extractions
+### Requirement: The sidebar shows the items drawn for the signed-in role
 
-Scholiq's main navigation SHALL present exactly the following top-level destinations after this change: `Dashboard`, `Learning`, `People`, `Progress`, `Compliance`, `My learning`, `Data exchange`, `Payments`. No other top-level main-nav item SHALL exist (footer and settings-foldout items are governed separately, unchanged by this requirement). `Data exchange` and `Payments` remain only because their extraction is owned by other changes (`openconnector-flow-migration` and a future pipelinq change respectively) — a future change that completes both extractions SHALL reduce this list to six without requiring a `MODIFIED` to this requirement's structure, only to the enumerated list.
+The main sidebar SHALL show, for each primary role, exactly the items its board draws, in three blocks: an unlabelled top block, the group "Onderwijs" and, where drawn, the group "Leerlingen". Footer and settings-foldout items are governed separately and are not part of this list.
 
-#### Scenario: Exactly eight top-level main-nav items post-change
+| Role | Top block | Onderwijs | Leerlingen |
+|---|---|---|---|
+| teacher, study adviser | Vandaag, Mijn leren, Groepen | Mijn rooster, Lessen en opdrachten, Cijfers | Leerlingen, Aanwezigheid, Voortgang, Zorg en dossier |
+| coordinator | Vandaag, Mijn leren, Groepen | Mijn rooster, Roosters, Lessen en opdrachten | Leerlingen, Aanwezigheid, Voortgang, Zorg en dossier |
+| learner | Vandaag, Mijn leren | Mijn rooster, Cursuscatalogus, Mijn leerdossier, Inchecken, Mijn werkgroepen, Mijn evaluaties, Keuzelessen, Vakken kiezen | none |
+| guardian | Vandaag, Leren van <child> | Rooster van <child>, Leerdossier van <child>, Vakken kiezen, Gesprek boeken | none |
+| compliance officer | Vandaag, Mijn leren | Mijn rooster, Roosters, Cursuscatalogus, Mijn leerdossier | Compliance |
+| team lead, manager | Vandaag, Mijn leren | Mijn rooster, Roosters, Cursuscatalogus, Mijn leerdossier | Voortgang, Aanmeldverzoeken |
+| hr, administration, admin | Vandaag, Mijn leren | Mijn rooster, Cursuscatalogus, Mijn leerdossier | Leerlingen, Aanwezigheid, Personen, Compliance |
+| confidential counsellor, care coordinator | Vandaag, Mijn leren | Mijn rooster, Mijn leerdossier | Vertrouwelijke notities, Vertrouwelijke meldingen |
 
-- GIVEN the effective manifest computed by `buildManifest()` after this change
-- WHEN the top-level `menu[]` entries with `section` unset (i.e. not footer, not settings) are counted
-- THEN there are exactly 8: `Dashboard`, `Learning`, `People`, `Progress`, `Compliance`, `My learning`, `Data exchange`, `Payments`
+#### Scenario: A teacher's sidebar holds ten items in three blocks
+
+@e2e exclude Menu layout; pinned by the manifest unit test against the drawn sidebar of learniq/LqDashboard, not a browser-observable behaviour of its own.
+- GIVEN the effective manifest computed by `buildManifest()` for a teacher
+- WHEN the main sidebar items (not footer, not settings) are counted
+- THEN there are exactly 10, in the blocks and order of the table's teacher row
 
 #### Scenario: GroupInsight no longer exists
 
-- GIVEN the effective manifest computed by `buildManifest()` after this change
+- GIVEN the effective manifest computed by `buildManifest()`
 - WHEN the menu tree is searched for an id `GroupInsight`
-- THEN it is absent — its 8 children have all been relocated (Dashboard leaves retired, Compliance-flavoured leaves moved under the new `Compliance` group), and `buildManifest`'s existing empty-shell pruning drops the now-childless node
+- THEN it is absent
 
 ### Requirement: The Dashboard Entry Resolves by Role Instead of Three Separate Rows
 
-The top-level nav SHALL present exactly one `Dashboard` entry, routed to the existing role-aware `Dashboard` page (route `/`, component `ScholiqDashboards`). The three previously-separate role-gated rows (`DashboardAdmin`/"Administration", `DashboardTeacher`/"Teaching", `DashboardStudent`/"My learning") SHALL NOT appear in the nav; their pages SHALL remain routable at their existing routes (`/dashboards/admin`, `/dashboards/teaching`, `/dashboards/my-learning`) for deep links and e2e targets.
+The top-level nav SHALL present exactly one dashboard entry, "Vandaag", routed to the existing role-aware `Dashboard` page (route `/`, component `ScholiqDashboards`). The three previously-separate role-gated rows (`DashboardAdmin`/"Administration", `DashboardTeacher`/"Teaching", `DashboardStudent`/"My learning") SHALL NOT appear in the nav; their pages SHALL remain routable at their existing routes (`/dashboards/admin`, `/dashboards/teaching`, `/dashboards/my-learning`) for deep links and e2e targets.
 
 #### Scenario: One Dashboard entry replaces three role rows
 
 - GIVEN an admin, a teacher, and a learner, each viewing the top-level nav
 - WHEN they look for a dashboard entry
-- THEN each sees exactly one `Dashboard` item (not three, not zero), landing on the shared role-aware `ScholiqDashboards` component
+- THEN each sees exactly one "Vandaag" item (not three, not zero), landing on the shared role-aware `ScholiqDashboards` component
 
 #### Scenario: Retired dashboard leaves stay deep-linkable
 
@@ -261,21 +280,23 @@ The top-level nav SHALL present exactly one `Dashboard` entry, routed to the exi
 - WHEN it is opened directly (not via nav click-through)
 - THEN the page renders normally — the route was never removed from `pages[]`, only its nav leaf
 
-### Requirement: Groups-With-Children Preserve Their Identity When Folded Into a New Parent
+### Requirement: The sidebar has one level of grouping
 
-When a source top-level group that itself has `children[]` (e.g. `GroupEngagement`, `GroupAdmissions`) is folded into one of the six named destinations, its own label and identity SHALL be preserved as a nested, labeled sub-group of the new parent — never flattened into an undifferentiated sibling list of its former children. This is achieved by declaring the desired nested structure directly in the owning `manifest.d/*.json` fragment(s) rather than via `menu-layout.json#relocations` (which dissolves a relocated group by design — see design.md for the source-verified mechanism).
+The sidebar SHALL group items one level deep: a group label ("Onderwijs", "Leerlingen") with flat items under it. A former group that has its own `children[]` (for example `GroupEngagement`, `GroupAdmissions`) SHALL NOT render as a nested sub-group or as a list of its former children in the sidebar. Its pages SHALL stay routable and SHALL be reached from the page of the drawn item that covers them, for example "Voortgang" for the engagement and study-progress pages, or "Aanmeldverzoeken" for admissions.
 
-#### Scenario: Engagement survives as a labeled sub-group under Progress
+#### Scenario: No sidebar item has children of its own
 
+@e2e exclude Menu layout; pinned by the manifest unit test against the drawn sidebar of learniq/LqDashboard, not a browser-observable behaviour of its own.
 - GIVEN the effective manifest after this change
-- WHEN the `GroupProgress` node's children are inspected
-- THEN `GroupEngagement` (with its own label "Engagement" and its own 6 children `Leaderboard`/`Point rules`/`Levels`/`Leaderboards (config)`/`Point awards`/`Learner engagement`) appears as one nested child — not as 6 ungrouped siblings mixed with the other five folded groups' children
+- WHEN the items under "Onderwijs" and "Leerlingen" are inspected
+- THEN none of them has a `children[]` array
 
-#### Scenario: A flattened list is never produced for a many-child fold
+#### Scenario: A former engagement page still opens
 
-- GIVEN any of the seven groups folded into `GroupProgress` (Engagement, Course evaluation, Competencies, Progress & analytics, Portfolios, Study progress, BPV)
-- WHEN the effective `GroupProgress.children` array is inspected
-- THEN it has exactly 7 entries (one per folded group), not the ~28 that a flattening merge would produce
+@e2e exclude Menu layout; pinned by the manifest unit test against the drawn sidebar of learniq/LqDashboard, not a browser-observable behaviour of its own.
+- GIVEN the sidebar shows no item for `Leaderboard`
+- WHEN a user opens its route directly
+- THEN the page renders without error
 
 ### Requirement: No Page or Route Is Dropped by the Six-Group Collapse
 
@@ -336,17 +357,168 @@ The menu MUST offer the absence reports list (`ExcuseRequests`) exactly once to 
 #### Scenario: A group teacher opens the absence reports from the menu
 @e2e exclude Menu gating; pinned by tests/unit-js/absenceReportsMenu.test.mjs (every role that reads absence reports finds them in the menu, once), built with the library's buildManifest and visibleIf evaluator.
 - **GIVEN** `po-leerkracht-09` is a group teacher in a primary school
-- **WHEN** they open the People group in the menu
-- **THEN** it lists "Absence reports", which opens `/attendance/excuses`
+- **WHEN** they open "Aanwezigheid" in the group "Leerlingen"
+- **THEN** it lists "Afwezigheidsmeldingen", which opens `/attendance/excuses`
 
 #### Scenario: A compliance officer finds the reports under Compliance
 @e2e exclude Menu gating; pinned by tests/unit-js/absenceReportsMenu.test.mjs (every role that reads absence reports finds them in the menu, once).
-- **GIVEN** a compliance officer, who does not see the People group
-- **WHEN** they open the Compliance group
-- **THEN** it lists "Absence reports"
+- **GIVEN** a compliance officer, whose group "Leerlingen" holds only "Compliance"
+- **WHEN** they open "Compliance"
+- **THEN** it lists "Afwezigheidsmeldingen"
 
 #### Scenario: Roles without read access get no entry
 @e2e exclude Menu gating; pinned by tests/unit-js/absenceReportsMenu.test.mjs (roles the register does not let read a report get no entry; every school segment shows the entry).
 - **GIVEN** a user whose primary role is `hr`, `team-lead`, `learner` or `guardian`, or a school that chose `corporate`
 - **WHEN** they open the menu
 - **THEN** no entry opens the absence reports
+
+### Requirement: REQ-SSP-001 Two structures are built from one manifest
+
+learniq MUST build a simple structure and a full structure from the same manifest and the same fragments. The full structure MUST be exactly what `buildManifest` makes from the manifest, the fragments and `src/menu-layout.json`. Neither structure may add or remove a page or a route.
+
+#### Scenario: The full structure is unchanged
+@e2e exclude An equality between two built manifests, asserted in tests/unit-js/structureProfile.test.mjs against the library's real buildManifest.
+- **GIVEN** `menu_structure` is `full`
+- **WHEN** the manifest is built
+- **THEN** it MUST equal what `buildManifest` makes from the manifest, the fragments and `src/menu-layout.json`
+- **AND** the menu MUST count 108 entries: 100 in the main list, 4 in the footer and 4 in settings
+
+#### Scenario: Every page keeps its route
+@e2e exclude A comparison of two page lists, asserted in tests/unit-js/structureProfile.test.mjs.
+- **GIVEN** either structure
+- **WHEN** the manifest is built
+- **THEN** it MUST hold the same 350 pages, with the same ids, in the same order
+
+### Requirement: REQ-SSP-002 The simple menu shows at most ten entries per role under three captions
+
+In the simple structure the main menu MUST be flat and MUST sit under the captions Home, Teaching and Learners. Each primary role MUST see at most ten main entries. A Nextcloud administrator MUST see at most twelve. A user who is also the confidential counsellor or a line manager MAY see two more. A gate written in the simple profile MUST NOT show a role a page the full menu does not show that role.
+
+#### Scenario: An administrator opens learniq on the simple structure
+- **GIVEN** `menu_structure` is unset or `simple`
+- **WHEN** a Nextcloud administrator opens learniq
+- **THEN** the main menu MUST show, in this order: the caption Home with Dashboard, My learning and Groups; the caption Teaching with My timetable, Timetables, Lessons and assignments and Grades; the caption Learners with Learners, Attendance, Progress, Care and dossier and Compliance
+- **AND** it MUST NOT show Courses, Assignments, Today's register or Enrolments as menu entries
+
+#### Scenario: A teacher sees the teacher's ten
+@e2e exclude Menu gating per role; asserted in tests/unit-js/structureProfile.test.mjs, which builds the menu with the library's buildManifest and visibleIf evaluator for every role.
+- **GIVEN** a user whose primary role is `instructor`
+- **WHEN** the simple menu is built
+- **THEN** it MUST show Dashboard, My learning, Groups, My timetable, Lessons and assignments, Grades, Learners, Attendance, Progress and Care and dossier, and nothing else in the main list
+
+#### Scenario: A learner keeps their own entries
+@e2e exclude Menu gating per role; asserted in tests/unit-js/structureProfile.test.mjs.
+- **GIVEN** a user whose primary role is `learner`
+- **WHEN** the simple menu is built
+- **THEN** it MUST show Dashboard, My learning, My timetable, Course catalogue, My learning record, Check in, My work groups, My evaluations, Optional lessons and Pick electives
+
+#### Scenario: No role goes over the ceiling in any segment
+@e2e exclude A count over ten roles and seven workspace states; asserted in tests/unit-js/structureProfile.test.mjs.
+- **GIVEN** any primary role and any chosen segment, or none
+- **WHEN** the simple menu is built
+- **THEN** the role MUST see at most ten main entries, an administrator at most twelve
+
+#### Scenario: The simple menu never widens a gate
+@e2e exclude A comparison of two built menus per role; asserted in tests/unit-js/structureProfile.test.mjs.
+- **GIVEN** any primary role
+- **WHEN** both menus are built
+- **THEN** every page a simple menu entry opens for that role MUST be a page the full menu opens for that role, except Cohorts, which had no entry
+
+### Requirement: REQ-SSP-003 What leaves the menu is linked or named
+
+Every entry the full menu offers a role MUST, in the simple structure, be in the menu, in settings or in the footer for that role, or be linked from a page the simple menu opens for that role, or be named for that role in the list of unlinked entries the test holds. That list MUST be exact: it fails when an entry is unlinked and not named, and when an entry is named and linked.
+
+#### Scenario: A list that left the menu is one link away
+- **GIVEN** the simple structure
+- **WHEN** somebody opens Attendance
+- **THEN** the page MUST offer a link to Today's register
+- **AND** a page that left the menu MUST still open by its own address
+
+#### Scenario: The set-up lists are in settings
+@e2e exclude A reading of the built menu; asserted in tests/unit-js/structureProfile.test.mjs.
+- **GIVEN** the simple structure
+- **WHEN** the manifest is built
+- **THEN** the settings section MUST hold what it holds in the full structure
+- **AND** it MUST hold the templates, periods, rooms, screens, locations, schools, staff, fees, rounds and the import, export and exchange tools
+
+#### Scenario: The links exist in the simple structure only
+@e2e exclude A comparison of two built pages; asserted in tests/unit-js/structureProfile.test.mjs.
+- **GIVEN** the full structure
+- **WHEN** the manifest is built
+- **THEN** every page MUST equal the manifest's page
+
+#### Scenario: An unlinked entry is named
+@e2e exclude An exact comparison per role; asserted in tests/unit-js/structureProfile.test.mjs.
+- **GIVEN** a role and an entry of the full menu that nothing in the simple structure links for that role
+- **WHEN** the test runs
+- **THEN** the entry MUST be in the list of unlinked entries for that role
+
+### Requirement: REQ-SSP-004 The structure is an app setting and simple is the default
+
+learniq MUST show the simple structure unless the app setting `menu_structure` holds the word `full`. The admin settings page MUST offer the choice between Simple and Full. The page controller MUST provide the setting as initial state, so the menu is right on the first render. Only an administrator may change it.
+
+#### Scenario: An administrator brings the full menu back
+@e2e exclude The e2e instance runs on the full structure for the whole suite (tests/e2e/ci-seed.sh sets it through the same endpoint); MenuStructureTest and tests/unit-js/structureProfile.test.mjs cover the setting and the save.
+- **GIVEN** an administrator on the admin settings page
+- **WHEN** they choose Full under Menu structure
+- **THEN** `menu_structure` MUST be stored as `full`
+- **AND** the next time somebody opens learniq the menu MUST be the full one
+
+#### Scenario: A stored value that is not a structure
+@e2e exclude A rule on a string, covered by MenuStructureTest and tests/unit-js/structureProfile.test.mjs.
+- **GIVEN** `menu_structure` holds `ful`
+- **WHEN** somebody opens learniq
+- **THEN** the menu MUST be the simple one
+
+#### Scenario: A save the server did not keep is not reported as saved
+@e2e exclude A rule on a response body, covered by tests/unit-js/structureProfile.test.mjs and MenuStructureTest.
+- **GIVEN** the settings write answers success without the stored word
+- **WHEN** the admin page saves a structure
+- **THEN** it MUST report that the menu was not saved
+
+#### Scenario: The start page survives a setting it cannot read
+@e2e exclude A rule on a failing container, covered by MenuStructureTest.
+- **GIVEN** the setting cannot be resolved
+- **WHEN** somebody opens learniq
+- **THEN** the page MUST render with the simple structure
+
+### Requirement: REQ-SSP-005 A profile may change a page and never add or remove one
+
+A structure profile MAY overlay a page by id. An overlay that names a page the manifest does not have MUST be skipped and reported. In this change an overlay MUST only append header links to a list page or cards to the Reports page, and each link MUST name an existing page whose address needs no parameter.
+
+#### Scenario: An overlay only appends
+@e2e exclude A comparison of built pages; asserted in tests/unit-js/structureProfile.test.mjs.
+- **GIVEN** the simple structure
+- **WHEN** a page with an overlay is built
+- **THEN** every item the page had MUST still be there, unchanged and in the same place
+
+### Requirement: REQ-SSP-006 The simple navigation carries the brand of the instance and one primary action
+
+In the simple structure the navigation MUST open with a brand block (the instance's logo, the app name and the instance's name as caption) and, for the roles the Today dashboard is for, a primary button that opens the register of today. The instance's name MUST come from the theming capabilities at boot, and the logo MUST be the active set's emblem (thematiq's `nldesign.logos.emblem`) or, without one, the theming logo; the app MUST NOT name a school. A value the instance does not answer MUST stay empty. A reader the button's gate does not pass for, or whose gate nothing can judge, MUST NOT get the button. The full structure MUST keep the navigation without them.
+
+#### Scenario: The brand block names the instance
+@e2e exclude A reading of the built nav, asserted in structureProfile.test.mjs.
+- **GIVEN** the simple structure on an instance whose theming capabilities name it
+- **WHEN** the manifest is built
+- **THEN** `nav.brand` MUST carry the app name, the instance's name as caption and its logo
+
+#### Scenario: The button follows the role
+@e2e exclude A reading of the built nav per role, asserted in structureProfile.test.mjs.
+- **GIVEN** the simple structure
+- **WHEN** the manifest is built for a teacher
+- **THEN** `nav.primaryAction` MUST open the Today's register page
+- **WHEN** the manifest is built for a learner, or without an evaluator for the gate
+- **THEN** there MUST be no `nav.primaryAction`
+
+#### Scenario: The instance has no theming answer
+@e2e exclude A reading of the built nav, asserted in structureProfile.test.mjs.
+- **GIVEN** the simple structure on an instance without theming capabilities
+- **WHEN** the manifest is built
+- **THEN** the caption and the logo MUST be empty strings, not a guess
+
+#### Scenario: The brand block shows the emblem, not the wordmark
+@e2e exclude A reading of the built nav, asserted in the structure profile unit tests.
+- **GIVEN** the simple structure on an instance whose thematiq set ships an emblem
+- **WHEN** the manifest is built
+- **THEN** `nav.brand.logo` MUST be that emblem
+- **WHEN** the set ships no emblem
+- **THEN** `nav.brand.logo` MUST be the theming logo

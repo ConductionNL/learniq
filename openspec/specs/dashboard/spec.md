@@ -13,7 +13,7 @@ openspec_changes:
 
 ## Purpose
 
-Present per-role dashboard surfaces (ADR-009 §6) as **three group-gated menu items** — Administration / Teaching / My learning — each routing to the shared dashboard component in its role view (admin / teacher / student); menu visibility follows `scholiq-{role}` Nextcloud group membership (admins see all three) and there is no in-page role switcher. Built exclusively on `@conduction/nextcloud-vue` dashboard primitives. Exactly one `CnDashboardPage` renders per route (no dashboard-in-dashboard nesting), and heavy cross-tenant analytics deep-link into launchpad rather than being reimplemented.
+Present per-role dashboard surfaces (ADR-009 §6) as **three group-gated menu items** — Administration / Teaching / My learning — each routing to the shared dashboard component in its role view (admin / teacher / student); menu visibility follows `scholiq-{role}` Nextcloud group membership (admins see all three). The one "Vandaag" item carries the role choice the board learniq/LqDashboard draws (Docent, Mentor) on the page. Built exclusively on `@conduction/nextcloud-vue` dashboard primitives. Exactly one `CnDashboardPage` renders per route (no dashboard-in-dashboard nesting), and heavy cross-tenant analytics deep-link into launchpad rather than being reimplemented.
 
 ## Why
 "Analytics dashboard" (#17, 39 demand) and "Student Analytics" (#18, 34 demand) score in the top 20 canonical features. Insight #16: OSS LMS leaders share dated UX — a modern Vue / NL-Design dashboard surface is the structural differentiator. Eight stories across six roles (mentor pattern view, manager team progress, board compliance %, board renewal report, principal Cito overview, parent grade digest, pupil grade-impact view, civil-servant RADIO progress) anchor this spec.
@@ -37,27 +37,33 @@ Per-role landing dashboards composed via `@conduction/nextcloud-vue` primitives 
 ## Requirements
 
 ### Requirement: Per-role group-gated dashboard menu items
-The system MUST present a **separate top-level dashboard menu item per role** — Administration (admin), Teaching (teacher), My learning (student) — per ADR-009 §6. Each item MUST be visible only to users whose resolved dashboard-view set includes that role, derived server-side from `scholiq-{role}` Nextcloud group membership (with the NC admin group short-circuiting to all three); an admin therefore sees all three items, and the view set always includes `student` so every Scholiq user reaches their own My-learning view. The system MUST NOT render an in-page role switcher. Each menu item routes to the shared dashboard component rendering that role's view (exactly one `CnDashboardPage` per route). The application root route MUST land each user on the dashboard view matching their resolved `primaryRole`; when the role cannot be resolved the system MUST fall back to the least-privileged (student) view.
+The system MUST present one dashboard menu item, "Vandaag", for every role (the boards learniq/LqDashboard and the Vandaag boards per role). A user with more than one role chooses the view on the page with the role choice the board draws (Docent, Mentor); a user with one role gets that view without a choice. Per ADR-009 §6 the view is still resolved per role. Each item MUST be visible only to users whose resolved dashboard-view set includes that role, derived server-side from `scholiq-{role}` Nextcloud group membership (with the NC admin group short-circuiting to all three); an admin therefore sees all three items, and the view set always includes `student` so every Scholiq user reaches their own My-learning view. In the simple structure the role choice is the Today page's view switch: "Docent" holds the Today grid and "Mentor" the open attendance flags of the pupils the reader mentors (`AttendanceFlag.mentorId`), with their count. Each menu item routes to the shared dashboard component rendering that role's view (exactly one `CnDashboardPage` per route). The application root route MUST land each user on the dashboard view matching their resolved `primaryRole`; when the role cannot be resolved the system MUST fall back to the least-privileged (student) view.
 
 #### Scenario: Learner sees only the My learning item and lands on it
 - **GIVEN** a signed-in user in the `scholiq-student` group only
 - **WHEN** they open the Scholiq app
-- **THEN** the navigation shows a single **My learning** dashboard item (no Administration or Teaching item)
+- **THEN** the navigation shows "Vandaag" and no role choice
 - **AND** the app root lands on the student dashboard (my enrolments, my grades, due assignments, mandatory training)
 <!-- @e2e exclude Group-gated nav visibility requires provisioning a `scholiq-student`-only Nextcloud user and logging in as them; the scholiq e2e harness runs a single admin session and cannot switch group membership per test. Verified live instead. -->
 
 #### Scenario: Instructor sees Teaching + My learning
 - **GIVEN** a signed-in user in the `scholiq-teacher` group
 - **WHEN** they open the navigation
-- **THEN** a **Teaching** item and a **My learning** item are shown (no Administration item)
+- **THEN** "Vandaag" opens the teacher view, with the role choice offering the views this user has (Docent, and Mentor when they mentor a group)
 - **AND** the Teaching item renders the teacher dashboard (my courses, assignments to grade, sessions to mark, my cohorts)
 <!-- @e2e exclude Requires a `scholiq-teacher` group member session (multi-user / per-test group membership) that the single-admin scholiq e2e harness cannot provision. Verified live instead. -->
+
+#### Scenario: A teacher switches Today to the mentor view
+<!-- @e2e exclude The Today overlay applies to the teaching roles only, and the learniq e2e harness runs a single admin session on the full structure; covered by tests/unit-js/structureProfile.test.mjs ("Today offers the role choice", "the Mentor view counts and lists the same signals"). -->
+- **GIVEN** a teacher who mentors 3B, on "Vandaag" in the simple structure
+- **WHEN** they choose "Mentor" in the role choice
+- **THEN** the page shows the open attendance flags of the pupils whose mentor they are, with their count, and the choice is kept for their next visit
 
 #### Scenario: Admin sees all three dashboard items
 - **GIVEN** a signed-in user in the Nextcloud admin group
 - **WHEN** they open the navigation
-- **THEN** **Administration**, **Teaching** and **My learning** items are all shown
-- **AND** each routes to its own dashboard view without any in-page role switcher
+- **THEN** "Vandaag" opens the administrator view
+- **AND** the role choice on the page switches to the teacher and learner views; there is no menu item per role
 <!-- @e2e exclude Asserts three group-gated nav items are simultaneously visible to an NC-admin-group member; the admin short-circuit is a server-side group resolution not reproducible as a pure scholiq DOM flow in the current e2e harness. Verified live instead. -->
 
 ### Requirement: Use @conduction/nextcloud-vue dashboard components
@@ -328,6 +334,7 @@ new top-level menu entry is added.
   lives only on the existing People dashboard page
 
 ### Requirement: The engagement tiles of a group teacher count only their own groups
+The boards draw the engagement tiles school-wide on learniq/LqTlVandaag (team leader); the teacher's own-groups version and the no-number case have no board yet.
 When the user's primary role is `instructor`, the teacher dashboard's "Avg. engagement score" and "Open engagement flags" tiles MUST aggregate only engagement rows whose `learnerId` is listed in `learnerIds` of a cohort whose `teacherIds` lists the user. Any other role that reaches the teacher view MUST keep the school-wide tiles. While the scope is loading, and when the scope holds no pupils, a tile MUST NOT ask the server for an unfiltered aggregate.
 
 #### Scenario: The teacher of Groep 7 sees the engagement of Groep 7
@@ -350,6 +357,32 @@ When the user's primary role is `instructor`, the teacher dashboard's "Avg. enga
 - **THEN** both tiles show no number
 - **AND** the dashboard never asks for an unfiltered engagement aggregate
 
+### Requirement: The HR Today subtitle names the school
+
+The Today page MUST end an HR employee's subtitle with the name of the school when the instance holds exactly one `school` row the reader can see. With no school, several schools or a failed read, the subtitle MUST stay the line without a name. The page MUST read the school only for a role whose manifest config has a line that names it.
+
+#### Scenario: One school
+- **GIVEN** an instance with the one school Zuiddrecht College
+- **WHEN** an HR employee opens Today in Dutch
+- **THEN** the line after the date reads "hr-medewerker · schoolbreed, alle locaties van Zuiddrecht College"
+- @e2e exclude covered by `tests/unit-js/schoolName.test.mjs`; measured live on LqHrVandaag
+
+#### Scenario: Several schools
+- **GIVEN** an instance with two schools
+- **WHEN** an HR employee opens Today in Dutch
+- **THEN** the line after the date reads "hr-medewerker · schoolbreed, alle locaties"
+- @e2e exclude covered by `tests/unit-js/schoolName.test.mjs`
+
+### Requirement: HR reads learners, enrolments, attendance and diplomas on one searchable page
+
+The People dashboard MUST show counts and short lists of learners, enrolments, attendance and certificates for the whole school, and a search across them. The menu entry MUST be visible to `hr` among the staff groups.
+
+#### Scenario: An HR officer searches the People dashboard
+
+- **GIVEN** an HR officer
+- **WHEN** they open the People dashboard and type a learner's name
+- **THEN** the page shows the four counts and the matching learner
+
 ## Standards
 NL Design System, WCAG 2.1 AA, Schema.org `Dataset` / `Observation`, Caliper Analytics for event source.
 
@@ -360,3 +393,84 @@ See `docs/ARCHITECTURE.md`. Uses: `RoleAssignment`, `DashboardPreference`. Reads
 - Custom-report builder (V2; launchpad territory).
 - Cross-tenant benchmarking / sectoraal vergelijken (launchpad + Specter feeds).
 - Mobile-native apps (responsive Vue is MVP).
+
+### Requirement: REQ-STD-001 The start page is Today for the teaching roles in the simple structure
+
+In the simple structure the page at `/` MUST be a typed dashboard titled Today for a user whose primary role is `instructor`, `coordinator`, `administration-manager` or `admin`. For every other role, and in the full structure, the page MUST be the role dashboard the manifest declares. The page MUST keep its id and its address, and MUST hold library widgets only.
+
+#### Scenario: An administrator opens learniq on the simple structure and lands on Today
+- **GIVEN** `menu_structure` is unset or `simple`
+- **WHEN** a Nextcloud administrator opens learniq
+- **THEN** the page MUST be titled Today
+- **AND** it MUST show "Mijn lessen vandaag" with a link to "Weekrooster", and the counters "Lessen vandaag", "Deze week", "In te leveren", "Ongeoorloofd", "Na te kijken" and "Aanwezig vandaag"
+- **AND** the Teaching dashboard MUST be one card away
+
+#### Scenario: A school's teacher reads the counters of her own day
+@e2e exclude Example-set wording; the boards wilgenboom/LqVandaag and vaartveld/LqVandaag are the reference.
+- **GIVEN** a teacher in an example school set
+- **WHEN** she opens Today
+- **THEN** in the primary school she reads "Verwacht in de klas" and "Wacht op u"
+- **AND** in the secondary school she reads "Na te kijken" and "Afwezig gemeld"
+
+#### Scenario: A learner keeps the role dashboard
+@e2e exclude A comparison of built pages per role; asserted in tests/unit-js/structureProfile.test.mjs with the library's buildManifest and visibleIf evaluator.
+- **GIVEN** a user whose primary role is not one of the four
+- **WHEN** the simple structure is built
+- **THEN** the page at `/` MUST equal the manifest's page
+
+#### Scenario: The full structure is unchanged
+@e2e exclude A comparison of built pages per role; asserted in tests/unit-js/structureProfile.test.mjs.
+- **GIVEN** `menu_structure` is `full`
+- **WHEN** the manifest is built for any role
+- **THEN** the page at `/` MUST equal the manifest's page
+
+#### Scenario: A condition nobody can judge leaves the page alone
+@e2e exclude A rule on the build function; asserted in tests/unit-js/structureProfile.test.mjs.
+- **GIVEN** an overlay with a `when` and no evaluator
+- **WHEN** the manifest is built
+- **THEN** the overlay MUST be skipped
+
+### Requirement: REQ-STD-002 Every number on Today opens the list it counts
+
+Each of the four counts "Lessen vandaag", "Deze week", "In te leveren" and "Ongeoorloofd" MUST be a filter on fields the schema has, and MUST open a list of the same schema with the same filter: either a list that carries that filter itself, or a list opened with the filter in the address. "Na te kijken" and "Aanwezig vandaag" are figures and open nothing. A tile label MUST be at most eighteen characters. The First today card MUST show only when its count is above zero, and its button MUST open exactly the records it counts.
+
+#### Scenario: A tile and its list agree
+@e2e exclude A comparison of each tile's filter with its list's filter or address; asserted in tests/unit-js/structureProfile.test.mjs against the register.
+- **GIVEN** a count on Today
+- **WHEN** its filter and its link are read
+- **THEN** every field in the filter MUST exist on the schema
+- **AND** the list it opens MUST show the same schema with the same filter
+
+#### Scenario: Nothing open, no card
+@e2e exclude A reading of the card's condition; asserted in tests/unit-js/structureProfile.test.mjs. The live card depends on seeded attendance flags.
+- **GIVEN** no attendance flag is open
+- **WHEN** Today renders
+- **THEN** the First today card MUST NOT show
+
+### Requirement: REQ-STD-003 Today links no page a role could not already reach
+
+Every page Today links for a role MUST be a page the full menu puts within one step for that role.
+
+#### Scenario: The links follow the role
+@e2e exclude A comparison per role; asserted in tests/unit-js/structureProfile.test.mjs.
+- **GIVEN** one of the four roles
+- **WHEN** the links on Today are read
+- **THEN** each MUST open a page the full menu offers that role, in the menu or one step from it
+
+### Requirement: REQ-STD-004 Today is laid out in two columns as the board draws it
+
+Under the attention card, Today MUST show a main column with "Mijn lessen vandaag" and "Signalen in mijn groepen", and a side column with the six counters in two columns, then "Nakijken" and "Berichten van ouders", so no label is cut. The lessons list MUST read sessions that start today and open a lesson and the Lessons today list; the flags list MUST read open flags and open a flag and the Attendance flags list with the same filter. Both lists MUST be library widgets. Other dashboards MUST follow below at full width.
+
+#### Scenario: The two lists open what they show
+@e2e exclude A reading of the two widgets against the pages, asserted in structureProfile.test.mjs.
+- **GIVEN** the Today dashboard
+- **WHEN** its lists are read
+- **THEN** each row opens a detail page of the schema the list reads
+- **AND** "View all" opens an index page of that schema with the same filter
+
+#### Scenario: The columns hold what the board draws
+@e2e exclude A reading of the layout, asserted in structureProfile.test.mjs.
+- **GIVEN** the Today dashboard
+- **WHEN** its layout is read
+- **THEN** the lessons and the signals sit at the left
+- **AND** the six counters sit at the right in two columns, with "Nakijken" and "Berichten van ouders" under them

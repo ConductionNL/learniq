@@ -23,20 +23,27 @@
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
  * @link https://conduction.nl
+ *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
-use OCA\Learniq\AppInfo\Registrar\EventListenerWiring;
+use OCA\Learniq\Listener\Registrar\EventListenerWiring;
 use OCA\Learniq\Listener\CorrectionAppliedHandler;
 use OCA\Learniq\Listener\GradeRollupHandler;
 use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Tests\Support\ContractImplementations;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\Learniq\Tests\Support\TransitionScope;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\RegisterSchemaRef;
+use OCA\OpenRegister\Service\Lifecycle\TransitionActor;
+use OCA\OpenRegister\Service\Lifecycle\TransitionMove;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -49,6 +56,7 @@ use ReflectionMethod;
 use ReflectionNamedType;
 use RuntimeException;
 use Throwable;
+use OCA\Learniq\Tests\Support\LegacyObjectArgs;
 
 class CorrectionAppliedAfterRollupFailureTest extends TestCase {
 
@@ -120,6 +128,7 @@ class CorrectionAppliedAfterRollupFailureTest extends TestCase {
 		$objects = $this->createMock(ObjectService::class);
 		$objects->method('find')->willReturnCallback(
 			function (mixed ...$args) use ($systemReadFails): ?ObjectEntity {
+				$args = LegacyObjectArgs::positional(method: 'find', args: $args);
 				$named = self::named(method: 'find', args: $args);
 				if (($named['schema'] ?? null) !== 'curriculum-plan') {
 					return null;
@@ -151,6 +160,7 @@ class CorrectionAppliedAfterRollupFailureTest extends TestCase {
 		);
 		$objects->method('saveObject')->willReturnCallback(
 			function (mixed ...$args): ObjectEntity {
+				$args = LegacyObjectArgs::positional(method: 'saveObject', args: $args);
 				$named = self::named(method: 'saveObject', args: $args);
 				$object = $named['object'];
 				$data = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
@@ -172,7 +182,7 @@ class CorrectionAppliedAfterRollupFailureTest extends TestCase {
 	 */
 	private static function named(string $method, array $args): array {
 		$named = [];
-		foreach ((new ReflectionMethod(ObjectService::class, $method))->getParameters() as $position => $parameter) {
+		foreach (LegacyObjectArgs::parameters(ObjectService::class, $method) as $position => $parameter) {
 			if (array_key_exists($position, $args) === true) {
 				$named[$parameter->getName()] = $args[$position];
 			}
@@ -190,6 +200,7 @@ class CorrectionAppliedAfterRollupFailureTest extends TestCase {
 	 * @return object
 	 */
 	private function build(string $class, array $known): object {
+		$class = ContractImplementations::concrete($class);
 		if (isset($known[$class]) === true) {
 			return $known[$class];
 		}
@@ -227,7 +238,7 @@ class CorrectionAppliedAfterRollupFailureTest extends TestCase {
 			ListenerSchemaResolver::class => TransitionScope::resolver(),
 			LoggerInterface::class        => new NullLogger(),
 		];
-		$event = new ObjectTransitionedEvent(OrEntityFactory::make(self::ENTRY, 'grade-entry'), 'republish', 'revised', 'published', 'lp-teacher', 'learniq', 'grade-entry');
+		$event = new ObjectTransitionedEvent(object: OrEntityFactory::make(self::ENTRY, 'grade-entry'), move: new TransitionMove(action: 'republish', from: 'revised', to: 'published'), scope: new RegisterSchemaRef(register: 'learniq', schema: 'grade-entry'), actor: new TransitionActor(userId: 'lp-teacher'));
 
 		try {
 			foreach ($this->transitionedListeners() as $class) {

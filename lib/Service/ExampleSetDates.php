@@ -30,10 +30,15 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\ExampleSetDatesInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\SavePolicy;
+use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IAppConfig;
-use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
@@ -42,7 +47,7 @@ use Throwable;
  *
  * @spec openspec/changes/demo-dates-follow-the-load-week/specs/example-sets/spec.md#requirement-a-reload-in-another-week-moves-what-exists-and-a-reload-in-the-same-week-writes-nothing
  */
-class ExampleSetDates {
+class ExampleSetDates implements ExampleSetDatesInterface {
 
 	/**
 	 * The app config key, per set, of the offset its dates carry.
@@ -55,7 +60,7 @@ class ExampleSetDates {
 	 * @param IAppConfig         $appConfig  Remembers the offset per set.
 	 * @param ITimeFactory       $time       Today.
 	 * @param LoadedExampleSets  $loadedSets Whether a set was loaded before offsets were kept.
-	 * @param ContainerInterface $container  Resolves OpenRegister's object service.
+	 * @param ObjectService      $objects    OpenRegister's object service, to read and write the set's rows.
 	 * @param LoggerInterface    $logger     Records what moved.
 	 * @param DemoDates          $demoDates  Moves the dates.
 	 *
@@ -65,7 +70,7 @@ class ExampleSetDates {
 		private readonly IAppConfig $appConfig,
 		private readonly ITimeFactory $time,
 		private readonly LoadedExampleSets $loadedSets,
-		private readonly ContainerInterface $container,
+		private readonly ObjectService $objects,
 		private readonly LoggerInterface $logger,
 		private readonly DemoDates $demoDates=new DemoDates(),
 	) {
@@ -94,7 +99,7 @@ class ExampleSetDates {
 	 * @spec openspec/changes/demo-dates-follow-the-load-week/specs/example-sets/spec.md#requirement-a-reload-in-another-week-moves-what-exists-and-a-reload-in-the-same-week-writes-nothing
 	 */
 	public function appliedOffset(string $setId): ?int {
-		$stored = $this->appConfig->getValueString(Application::APP_ID, self::KEY_PREFIX . $setId, '');
+		$stored = $this->appConfig->getValueString(AppIdentity::APP_ID, self::KEY_PREFIX . $setId, '');
 		if (preg_match('/^-?\d+$/', $stored) === 1) {
 			return (int)$stored;
 		}
@@ -143,7 +148,7 @@ class ExampleSetDates {
 	 * @spec openspec/changes/demo-dates-follow-the-load-week/specs/example-sets/spec.md#requirement-a-reload-in-another-week-moves-what-exists-and-a-reload-in-the-same-week-writes-nothing
 	 */
 	public function remember(string $setId, int $offset): void {
-		$this->appConfig->setValueString(Application::APP_ID, self::KEY_PREFIX . $setId, (string)$offset);
+		$this->appConfig->setValueString(AppIdentity::APP_ID, self::KEY_PREFIX . $setId, (string)$offset);
 	}//end remember()
 
 	/**
@@ -156,7 +161,7 @@ class ExampleSetDates {
 	 * @spec openspec/changes/demo-dates-follow-the-load-week/specs/example-sets/spec.md#requirement-a-reload-in-another-week-moves-what-exists-and-a-reload-in-the-same-week-writes-nothing
 	 */
 	public function forget(string $setId): void {
-		$this->appConfig->deleteKey(Application::APP_ID, self::KEY_PREFIX . $setId);
+		$this->appConfig->deleteKey(AppIdentity::APP_ID, self::KEY_PREFIX . $setId);
 	}//end forget()
 
 	/**
@@ -176,9 +181,8 @@ class ExampleSetDates {
 			return $counts;
 		}
 
-		$service = $this->container->get('OCA\OpenRegister\Service\ObjectService');
 		foreach ($objects as $object) {
-			$outcome = $this->moveOne(service: $service, object: $object, days: $days);
+			$outcome = $this->moveOne(object: $object, days: $days);
 			$counts[$outcome]++;
 		}
 
@@ -193,13 +197,12 @@ class ExampleSetDates {
 	/**
 	 * Move one object.
 	 *
-	 * @param object               $service OpenRegister's object service.
-	 * @param array<string, mixed> $object  The descriptor object.
-	 * @param int                  $days    The days.
+	 * @param array<string, mixed> $object The descriptor object.
+	 * @param int                  $days   The days.
 	 *
 	 * @return string `moved`, `unchanged`, `missing` or `failed`.
 	 */
-	private function moveOne(object $service, array $object, int $days): string {
+	private function moveOne(array $object, int $days): string {
 		$uuid     = (string)($object['uuid'] ?? '');
 		$register = (string)($object['@self']['register'] ?? '');
 		$schema   = (string)($object['@self']['schema'] ?? '');
@@ -208,36 +211,7 @@ class ExampleSetDates {
 		}
 
 		try {
-			$entity = $service->find(
-				id: $uuid,
-				register: $register,
-				schema: $schema,
-				_rbac: false,
-				_multitenancy: false,
-				_render: false,
-				_audit: false
-			);
-			if ($entity === null) {
-				return 'missing';
-			}
-
-			$data  = (array)$entity->getObject();
-			$moved = $this->demoDates->shift(value: $data, days: $days);
-			if ($moved === $data) {
-				return 'unchanged';
-			}
-
-			$service->saveObject(
-				object: $moved,
-				register: $register,
-				schema: $schema,
-				uuid: $uuid,
-				_rbac: false,
-				_multitenancy: false,
-				silent: true,
-				_validation: false
-			);
-			return 'moved';
+			return $this->moveStored(target: ['uuid' => $uuid, 'register' => $register, 'schema' => $schema], days: $days);
 		} catch (Throwable $exception) {
 			$this->logger->warning(
 				'[ExampleSetDates] could not move {uuid}: {msg}',
@@ -246,4 +220,42 @@ class ExampleSetDates {
 			return 'failed';
 		}//end try
 	}//end moveOne()
+
+	/**
+	 * Move the dates of one stored object and save it when any moved.
+	 *
+	 * @param array{uuid: string, register: string, schema: string} $target Where the object is stored.
+	 * @param int                                                  $days   The days.
+	 *
+	 * @return string `moved`, `unchanged` or `missing`.
+	 */
+	private function moveStored(array $target, int $days): string {
+		$entity = $this->objects->find(
+			id: $target['uuid'],
+			options: new ObjectFindOptions(register: $target['register'], schema: $target['schema'], render: false, audit: false),
+			_rbac: false,
+			_multitenancy: false
+		);
+		if ($entity === null) {
+			return 'missing';
+		}
+
+		$data  = (array)$entity->getObject();
+		$moved = $this->demoDates->shift(value: $data, days: $days);
+		if ($moved === $data) {
+			return 'unchanged';
+		}
+
+		$this->objects->saveObject(
+			object: $moved,
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: $target['register'], schema: $target['schema']),
+				uuid: $target['uuid'],
+				policy: new SavePolicy(silent: true, validation: false)
+			),
+			_rbac: false,
+			_multitenancy: false
+		);
+		return 'moved';
+	}//end moveStored()
 }//end class

@@ -3,6 +3,9 @@
 /**
  * Learniq Check-in Service
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * A learner checks in to a lesson with the code on the teacher's screen
  * (attendance-self-check-in). Every rule is checked here before anything is
  * written: the window exists, is open and has not passed its close time or
@@ -28,8 +31,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -44,9 +45,13 @@ namespace OCA\Learniq\Service\CheckIn;
 use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
+use OCA\Learniq\Kernel\Contracts\CheckInServiceInterface;
 use OCA\Learniq\Service\Portal\PortalOutcome;
+use OCA\Learniq\Support\FindOrNull;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
-use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IUser;
@@ -57,7 +62,8 @@ use Throwable;
  *
  * @spec openspec/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
  */
-class CheckInService {
+class CheckInService implements CheckInServiceInterface {
+	use FindOrNull;
 
 	private const REGISTER = 'learniq';
 	private const WINDOW_SCHEMA = 'check-in-window';
@@ -125,7 +131,11 @@ class CheckInService {
 			'tenant_id' => (string)($window['tenant_id'] ?? ($session['tenant_id'] ?? '')),
 		];
 
-		$write = fn () => $this->objects->saveObject(object: $record, register: self::REGISTER, schema: self::RECORD_SCHEMA, _rbac: false);
+		$write = fn () => $this->objects->saveObject(
+			object: $record,
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: self::RECORD_SCHEMA)),
+			_rbac: false
+		);
 		if ($runAs === null) {
 			$write();
 			return new PortalOutcome(status: Http::STATUS_OK, body: ['status' => $status, 'sessionId' => (string)$session['id']]);
@@ -253,25 +263,46 @@ class CheckInService {
 	 * @return PortalOutcome|array{0: array<string, mixed>, 1: array<string, mixed>}
 	 */
 	private function context(string $windowId, string $userId): PortalOutcome|array {
-		$notFound = new PortalOutcome(status: Http::STATUS_NOT_FOUND, body: ['error' => 'not_found'], reason: 'not-found');
 		$window = $this->read(schema: self::WINDOW_SCHEMA, id: $windowId);
 		if ($window === null || $userId === '') {
-			return $notFound;
+			return $this->notFound();
 		}
 
 		$session = $this->read(schema: 'session', id: (string)($window['sessionId'] ?? ''));
 		if ($session === null) {
-			return $notFound;
+			return $this->notFound();
 		}
 
 		$cohort = $this->read(schema: 'cohort', id: (string)($session['cohortId'] ?? ''));
-		$learners = ($cohort['learnerIds'] ?? []);
-		if (is_array($learners) === false || in_array($userId, $learners, true) === false) {
+		if ($this->listsLearner(cohort: $cohort, userId: $userId) === false) {
 			return new PortalOutcome(status: Http::STATUS_FORBIDDEN, body: ['error' => 'not_in_group'], reason: 'not-in-group');
 		}
 
 		return [$window, $session];
 	}//end context()
+
+	/**
+	 * The answer for a window, lesson or user that is not there.
+	 *
+	 * @return PortalOutcome
+	 */
+	private function notFound(): PortalOutcome {
+		return new PortalOutcome(status: Http::STATUS_NOT_FOUND, body: ['error' => 'not_found'], reason: 'not-found');
+	}//end notFound()
+
+	/**
+	 * Whether a group lists this user among its learners.
+	 *
+	 * @param array<string, mixed>|null $cohort The group, or null when it cannot be read.
+	 * @param string                    $userId The user.
+	 *
+	 * @return bool
+	 */
+	private function listsLearner(?array $cohort, string $userId): bool {
+		$learners = ($cohort['learnerIds'] ?? []);
+
+		return is_array($learners) === true && in_array($userId, $learners, true) === true;
+	}//end listsLearner()
 
 	/**
 	 * Whether the window is open now: lifecycle open, after `opensAt`, before
@@ -293,7 +324,19 @@ class CheckInService {
 			return false;
 		}
 
-		foreach ([($window['closesAt'] ?? null), ($session['endsAt'] ?? null)] as $bound) {
+		return $this->beforeEveryEnd(ends: [($window['closesAt'] ?? null), ($session['endsAt'] ?? null)], now: $now);
+	}//end isOpen()
+
+	/**
+	 * Whether now is not after any of these ends; an end that is not a date bounds nothing.
+	 *
+	 * @param array<int, mixed> $ends The ends: the window's close and the lesson's end.
+	 * @param DateTimeImmutable $now  Now.
+	 *
+	 * @return bool
+	 */
+	private function beforeEveryEnd(array $ends, DateTimeImmutable $now): bool {
+		foreach ($ends as $bound) {
 			$end = $this->date(value: $bound);
 			if ($end !== null && $now > $end) {
 				return false;
@@ -301,7 +344,7 @@ class CheckInService {
 		}
 
 		return true;
-	}//end isOpen()
+	}//end beforeEveryEnd()
 
 	/**
 	 * `late` after the lesson start plus the grace minutes, else `present`.
@@ -365,20 +408,12 @@ class CheckInService {
 			return null;
 		}
 
-		try {
-			$object = $this->objects->find(id: $id, register: self::REGISTER, schema: $schema, _rbac: false, _render: false);
-		} catch (DoesNotExistException) {
-			return null;
-		}
-
-		$row = $object?->jsonSerialize();
-		if (is_array($row) === false) {
-			return null;
-		}
-
-		$row['id'] = (string)($row['id'] ?? ($row['@self']['id'] ?? $id));
-
-		return $row;
+		$find = fn () => $this->objects->find(
+			id: $id,
+			options: new ObjectFindOptions(register: self::REGISTER, schema: $schema, render: false),
+			_rbac: false
+		);
+		return $this->findRowWithIdOrNull(find: $find, id: $id);
 	}//end read()
 
 	/**

@@ -39,6 +39,7 @@ use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Service\LessonReleaseEvaluator;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\TestCase;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 
 /**
  * Tests for LessonReleaseEvaluator::evaluate().
@@ -90,7 +91,11 @@ class LessonReleaseEvaluatorTest extends TestCase {
 		// register/schema pair sits at positions 4 and 5 — and the return value
 		// must be an ObjectEntity, never the raw fixture row.
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) {
+			function (int|string $id, ?ObjectFindOptions $options = null) {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				foreach (($this->db[(string)$schema] ?? []) as $rec) {
 					if (($rec['id'] ?? null) === $id) {
 						return OrEntityFactory::make($rec, (string)$schema);
@@ -345,6 +350,48 @@ class LessonReleaseEvaluatorTest extends TestCase {
 		self::assertTrue($result['available']);
 
 	}//end testMetAssessmentMinScoreConditionIsAvailable()
+
+	/**
+	 * Each response adds its numeric autoScore, else its numeric manualScore,
+	 * else nothing; numeric strings count, other values and non-responses do not.
+	 *
+	 * @return void
+	 */
+	public function testTheScoreSumCountsOnlyNumericScores(): void {
+		$this->seed('exam', ['id' => 'assessment-a', 'title' => 'Quiz A']);
+		$this->seed(
+			'assessment-result',
+			[
+				'assessmentId' => 'assessment-a',
+				'learnerId' => 'learner-1',
+				'lifecycle' => 'graded',
+				'tenant_id' => 'tenant-a',
+				'responses' => [
+					['itemId' => 'i1', 'autoScore' => '7.5', 'manualScore' => 100],
+					['itemId' => 'i2', 'autoScore' => 'x', 'manualScore' => 2.5],
+					'not a response',
+					['itemId' => 'i3', 'manualScore' => 'abc'],
+				],
+			]
+		);
+		$evaluator = $this->makeEvaluator();
+		$available = static fn (float $minScore): bool => $evaluator->evaluate(
+			item: [
+				'id' => 'lesson-b',
+				'tenant_id' => 'tenant-a',
+				'releaseConditions' => [
+					['kind' => 'assessment-min-score', 'assessmentId' => 'assessment-a', 'minScore' => $minScore],
+				],
+			],
+			itemSchema: 'lesson',
+			learnerId: 'learner-1',
+			enrolment: []
+		)['available'];
+
+		// 7.5 + 2.5 = 10.
+		self::assertTrue($available(10.0));
+		self::assertFalse($available(10.01));
+	}//end testTheScoreSumCountsOnlyNumericScores()
 
 	/**
 	 * With multiple graded attempts, the BEST (highest) summed score is used.

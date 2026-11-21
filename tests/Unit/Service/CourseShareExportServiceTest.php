@@ -30,12 +30,14 @@ use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * @covers \OCA\Learniq\Service\CourseShareExportService
  * @uses   \OCA\Learniq\Exception\SharingBlockedException
  * @uses   \OCA\Learniq\Service\CourseSharingGate
  * @uses   \OCA\Learniq\Service\CourseSharePackageBuilder
+ * @uses   \OCA\Learniq\Support\TextValue
  */
 class CourseShareExportServiceTest extends TestCase {
 
@@ -84,7 +86,10 @@ class CourseShareExportServiceTest extends TestCase {
 
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array $object, ?array $extend=[], $register=null, $schema=null) use ($failToSave) {
+			function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) use ($failToSave) {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
 				if ($failToSave === true) {
 					throw new RuntimeException('database down');
 				}

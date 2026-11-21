@@ -6,7 +6,8 @@
 		"adr": "ADR-037 modular manifest fragment — never edit src/manifest.json",
 		"description": "ExternalTraining only — Compliance itself stays inside GroupInsight/dashboard.json per Decision 1 (no cross-file children split); see design.md \"Why compliance.json is nearly empty today\".",
 		"menuNotes": {
-			"AbsenceReportsComplianceMenu": "Compliance officers read every absence report (ExcuseRequest grants compliance-officers), but the People group that holds AbsenceReportsMenu does not reach them. menu-layout.json relocates this entry into GroupCompliance. Only compliance-officer: the admin reaches the page under People, and hr has no read on ExcuseRequest."
+			"AbsenceReportsComplianceMenu": "Compliance officers read every absence report (ExcuseRequest grants compliance-officers), but the People group that holds AbsenceReportsMenu does not reach them. menu-layout.json relocates this entry into GroupCompliance. Only compliance-officer: the admin reaches the page under People, and hr has no read on ExcuseRequest.",
+			"ProctoringReviewComplianceMenu": "proctoring-flag-review-page: compliance officers decide proctoring flags (ProctoringSession grants compliance-officers read and update), but GroupLearning, which holds ProctoringReviewMenu, does not reach them. menu-layout.json relocates this entry into GroupCompliance."
 		}
 	},
 	"menu": [
@@ -90,6 +91,20 @@
 			}
 		},
 		{
+			"id": "ProctoringReviewComplianceMenu",
+			"label": "Proctoring review",
+			"icon": "ShieldAlertOutline",
+			"route": "ProctoringReviewQueue",
+			"order": 56,
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"compliance-officer"
+					]
+				}
+			}
+		},
+		{
 			"id": "RequestExemptionMenu",
 			"label": "Request an exemption",
 			"icon": "ShieldOffOutline",
@@ -120,6 +135,7 @@
 			"type": "index",
 			"title": "External training",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "external-training-record",
 				"headerActions": [
@@ -264,9 +280,138 @@
 			"type": "index",
 			"title": "Privacy requests",
 			"config": {
+				"headerButtons": [
+					{
+						"action": "export",
+						"label": "Download",
+						"icon": "TrayArrowDown"
+					},
+					{
+						"action": "add",
+						"label": "New request",
+						"variant": "primary",
+						"icon": "Plus"
+					}
+				],
+				"showTitle": true,
 				"register": "data-subject-requests",
 				"schema": "dataSubjectRequest",
-				"_note": "privacy-reuse-openregister-register (D20): reads OpenRegister's shared data-subject-requests register through the generic objects API. Learniq no longer ships its own DataSubjectRequest schema; MigrateDataSubjectRequestsToOpenRegister moved the existing rows here."
+				"_note": "privacy-reuse-openregister-register (D20): reads OpenRegister's shared data-subject-requests register through the generic objects API. Learniq no longer ships its own DataSubjectRequest schema; MigrateDataSubjectRequestsToOpenRegister moved the existing rows here.",
+				"countText": "{shown} of {total} requests",
+				"searchPlaceholder": "Search by data subject or kind",
+				"quickFilters": [
+					{
+						"label": "All",
+						"filter": {},
+						"showCount": true,
+						"default": true
+					},
+					{
+						"label": "Ongoing",
+						"filter": {
+							"status": [
+								"received",
+								"verifying",
+								"in-progress",
+								"evidence-collection",
+								"denial-drafted"
+							]
+						},
+						"showCount": true
+					},
+					{
+						"label": "Almost overdue",
+						"filter": {
+							"escalationTier": [
+								"reminder",
+								"escalation"
+							]
+						},
+						"showCount": true
+					}
+				],
+				"columns": [
+					{
+						"key": "subjectId",
+						"label": "Data subject"
+					},
+					{
+						"key": "type",
+						"label": "Kind",
+						"enum": [
+							"access",
+							"rectification",
+							"erasure",
+							"restriction",
+							"portability",
+							"objection"
+						],
+						"enumLabels": {
+							"access": "Access",
+							"rectification": "Rectification",
+							"erasure": "Erasure",
+							"restriction": "Restriction",
+							"portability": "Portability",
+							"objection": "Objection"
+						}
+					},
+					{
+						"key": "receivedAt",
+						"label": "Received",
+						"formatter": "date"
+					},
+					{
+						"key": "dueAt",
+						"label": "Due by",
+						"formatter": "date"
+					},
+					{
+						"key": "status",
+						"label": "Status",
+						"enum": [
+							"received",
+							"verifying",
+							"in-progress",
+							"evidence-collection",
+							"denial-drafted",
+							"fulfilled",
+							"refused",
+							"closed"
+						],
+						"enumLabels": {
+							"received": "Received",
+							"verifying": "Checking identity",
+							"in-progress": "In progress",
+							"evidence-collection": "Collecting data",
+							"denial-drafted": "Refusal drafted",
+							"fulfilled": "Handled",
+							"refused": "Refused",
+							"closed": "Closed"
+						},
+						"colorMap": {
+							"received": "default",
+							"verifying": "info",
+							"in-progress": "info",
+							"evidence-collection": "info",
+							"denial-drafted": "warning",
+							"fulfilled": "success",
+							"refused": "default",
+							"closed": "default"
+						}
+					},
+					{
+						"key": "daysRemaining",
+						"label": "Remaining",
+						"widget": "number",
+						"widgetProps": {
+							"unit": {
+								"one": "{count} day",
+								"other": "{count} days"
+							}
+						}
+					}
+				],
+				"allowSavedViews": true
 			}
 		},
 		{
@@ -277,48 +422,200 @@
 			"config": {
 				"register": "data-subject-requests",
 				"schema": "dataSubjectRequest",
-				"_note": "privacy-reuse-openregister-register (D20): an OpenRegister dataSubjectRequest case (six AVG rights, the art-12 deadline, escalation), read through the generic objects API. Body leads with the case data; no Related/Files leaves. The lifecycle field is OpenRegister's `status`. Sidebar keeps metadata and the audit trail as History.",
+				"_note": "Boards LqCfInzageverzoek and LqCfPrivacyverzoek (G2): the request as a card (kind, subject, received, statutory term, handler, request) with the note on data about others for an access request; days left as a header pill. The copy assembly table waits on the backend (lane E).",
 				"lifecycleActions": {
 					"field": "status"
 				},
+				"statusPill": {
+					"field": "status",
+					"labels": {
+						"received": "Received",
+						"verifying": "Verifying identity",
+						"in-progress": "In progress",
+						"evidence-collection": "Collecting data",
+						"denial-drafted": "Refusal drafted",
+						"fulfilled": "Handled",
+						"refused": "Refused",
+						"closed": "Closed"
+					},
+					"colorMap": {
+						"in-progress": "purple",
+						"fulfilled": "success",
+						"refused": "error"
+					}
+				},
+				"typePill": {
+					"field": "escalationTier",
+					"labels": {
+						"on-track": "On track",
+						"reminder": "Term ends soon",
+						"escalation": "Term almost over",
+						"breached": "Term exceeded"
+					},
+					"colorMap": {
+						"reminder": "warning",
+						"escalation": "warning",
+						"breached": "error"
+					}
+				},
+				"breadcrumb": {
+					"label": "Privacy requests",
+					"route": "DataSubjectRequests"
+				},
+				"headerMeta": "received {receivedAt|longdate}",
 				"widgets": [
 					{
-						"id": "dsr-data",
-						"type": "data",
-						"title": "Data",
+						"id": "dsr-facts",
+						"type": "facts",
+						"title": "Request",
 						"content": {
-							"columns": 2
-						},
-						"icon": "AccountAlertOutline"
-					}
-				],
-				"layout": [
-					{
-						"id": "1",
-						"widgetId": "dsr-data",
-						"gridX": 0,
-						"gridY": 0,
-						"gridWidth": 12,
-						"gridHeight": 6,
-						"showTitle": false
-					}
-				],
-				"sidebar": {
-					"enabled": true,
-					"showMetadata": true,
-					"tabs": [
-						{
-							"id": "audit",
-							"label": "History",
-							"icon": "History",
-							"widgets": [
+							"fields": [
 								{
-									"type": "audit"
+									"path": "type",
+									"label": "Kind",
+									"map": {
+										"access": "Access (right of access, GDPR article 15)",
+										"rectification": "Correction (GDPR article 16)",
+										"erasure": "Erasure (right to be forgotten)",
+										"restriction": "Restriction of processing",
+										"portability": "Data portability",
+										"objection": "Objection"
+									}
+								},
+								{
+									"path": "subjectId",
+									"label": "Data subject"
+								},
+								{
+									"path": "receivedAt",
+									"label": "Received",
+									"format": "longdate"
+								},
+								{
+									"path": "dueAt",
+									"label": "Statutory term",
+									"format": "longdate"
+								},
+								{
+									"path": "extendedUntil",
+									"label": "Extended until",
+									"format": "longdate"
+								},
+								{
+									"path": "handler",
+									"label": "Handler",
+									"format": "user"
+								},
+								{
+									"path": "outcome",
+									"label": "Outcome"
+								},
+								{
+									"as": "line",
+									"text": "Data about others (classmates in a note, a mentor) stays out of the copy. Only what is about the data subject goes along; record in the note what you redacted.",
+									"when": {
+										"field": "type",
+										"op": "eq",
+										"value": "access"
+									}
+								}
+							],
+							"columns": 2
+						}
+					},
+					{
+						"id": "dsr-notes",
+						"type": "facts",
+						"title": "Notes",
+						"content": {
+							"fields": [
+								{
+									"as": "text",
+									"path": "notes"
 								}
 							]
 						}
+					},
+					{
+						"id": "board-history",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 50,
+							"layout": "stacked"
+						}
+					},
+					{
+						"id": "board-tabs",
+						"type": "tabs",
+						"title": "Panels",
+						"content": {
+							"ariaLabel": "Details",
+							"tabs": [
+								{
+									"label": "Overview",
+									"widgetIds": [
+										"dsr-facts"
+									]
+								},
+								{
+									"label": "Notes",
+									"widgetId": "dsr-notes"
+								},
+								{
+									"widgetId": "board-history",
+									"label": "Record history"
+								}
+							]
+						}
+					}
+				],
+				"sideColumn": [
+					{
+						"id": "board-history-card",
+						"type": "audit-trail",
+						"title": "Record history",
+						"icon": "History",
+						"content": {
+							"excludeActions": [
+								"read"
+							],
+							"maxDisplay": 5,
+							"layout": "stacked"
+						}
+					}
+				],
+				"board": {
+					"tabs": [
+						{
+							"label": "Overview",
+							"widgetIds": [
+								"dsr-facts"
+							]
+						},
+						{
+							"label": "Notes",
+							"widgetId": "dsr-notes"
+						}
 					]
-				}
+				},
+				"follow": false,
+				"showWidgetActions": false,
+				"layout": [
+					{
+						"id": "1",
+						"widgetId": "board-tabs",
+						"gridX": 0,
+						"gridY": 0,
+						"gridWidth": 12,
+						"gridHeight": 18,
+						"showTitle": false
+					}
+				]
 			}
 		},
 		{
@@ -327,9 +624,78 @@
 			"type": "index",
 			"title": "Partner approvals",
 			"config": {
+				"headerButtons": [
+					{
+						"action": "export",
+						"label": "Download",
+						"icon": "TrayArrowDown"
+					},
+					{
+						"action": "add",
+						"label": "New connection",
+						"variant": "primary",
+						"icon": "Plus"
+					}
+				],
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "exchange-partner-approval",
-				"_note": "privacy-governance-surfaces P-new-7 (\"Koppelingsgegevens inzien\"): every standing partner link per data exchange target, with its status and shared fields. Since data-exchange-to-integriq each row is an ExchangePartnerApproval with its own approve and reject lifecycle (detail page PartnerApprovalDetail), and learniq's exchange gate reads it before integriq runs a job."
+				"_note": "privacy-governance-surfaces P-new-7 (\"Koppelingsgegevens inzien\"): every standing partner link per data exchange target, with its status and shared fields. Since data-exchange-to-integriq each row is an ExchangePartnerApproval with its own approve and reject lifecycle (detail page PartnerApprovalDetail), and learniq's exchange gate reads it before integriq runs a job.",
+				"countText": "{shown} of {total} connections",
+				"searchPlaceholder": "Search by connection or partner",
+				"quickFilters": [
+					{
+						"label": "All",
+						"filter": {},
+						"showCount": true,
+						"default": true
+					},
+					{
+						"label": "Pending",
+						"filter": {
+							"status": "pending"
+						},
+						"showCount": true
+					},
+					{
+						"label": "Approved",
+						"filter": {
+							"status": "approved"
+						},
+						"showCount": true
+					},
+					{
+						"label": "Rejected",
+						"filter": {
+							"status": "rejected"
+						},
+						"showCount": true
+					}
+				],
+				"columns": [
+					{
+						"key": "target",
+						"label": "Connection"
+					},
+					{
+						"key": "partnerName",
+						"label": "Partner"
+					},
+					{
+						"key": "dataSharedFields",
+						"label": "Shared data"
+					},
+					{
+						"key": "status",
+						"label": "Status"
+					},
+					{
+						"key": "decidedBy",
+						"label": "Decided by",
+						"template": "{decidedBy|user}, {decidedAt|date}"
+					}
+				],
+				"allowSavedViews": true
 			}
 		},
 		{
@@ -525,9 +891,24 @@
 			"type": "index",
 			"title": "Exemptions",
 			"config": {
+				"showTitle": true,
 				"register": "learniq",
 				"schema": "regulation-exemption",
-				"_note": "Reached by compliance officers, hr and admin through RegulationExemptionsMenu, and by a line manager through RequestExemptionMenu (user.managesLearners; its notIn list is the roles that already reach RegulationExemptionsMenu, so nobody sees the entry twice). The read rule narrows a line manager's list to the requests they made; RegulationExemptionRequestStamp refuses a person who does not report to them."
+				"_note": "Reached by compliance officers, hr and admin through RegulationExemptionsMenu, and by a line manager through RequestExemptionMenu (user.managesLearners; its notIn list is the roles that already reach RegulationExemptionsMenu, so nobody sees the entry twice). The read rule narrows a line manager's list to the requests they made; RegulationExemptionRequestStamp refuses a person who does not report to them.",
+				"actions": [
+					{
+						"id": "decide-regulation-exemption",
+						"label": "Decide",
+						"icon": "Gavel",
+						"type": "open-modal",
+						"target": "RegulationExemptionDecisionDialog",
+						"visibleWhen": {
+							"field": "lifecycle",
+							"op": "eq",
+							"value": "requested"
+						}
+					}
+				]
 			}
 		},
 		{
@@ -579,7 +960,24 @@
 							]
 						}
 					]
-				}
+				},
+				"headerActions": [
+					{
+						"id": "decide-regulation-exemption",
+						"label": "Decide",
+						"icon": "Gavel",
+						"type": "open-modal",
+						"target": "RegulationExemptionDecisionDialog",
+						"props": {
+							"objectId": "@objectId"
+						},
+						"visibleWhen": {
+							"field": "lifecycle",
+							"op": "eq",
+							"value": "requested"
+						}
+					}
+				]
 			}
 		}
 	]

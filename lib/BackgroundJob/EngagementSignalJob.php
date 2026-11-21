@@ -21,14 +21,13 @@ declare(strict_types=1);
 namespace OCA\Learniq\BackgroundJob;
 
 use DateTimeImmutable;
-use OCA\Learniq\Service\EngagementScoreEvaluator;
-use OCA\OpenRegister\BackgroundJob\ActorForwardedJob;
+use OCA\Learniq\Kernel\Contracts\EngagementScoreEvaluatorInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\Deferral\DeferredListenerContext;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\OpenRegister\Service\OrganisationService;
 use OCP\AppFramework\Utility\ITimeFactory;
-use OCP\IUserManager;
-use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -54,7 +53,7 @@ use Psr\Log\LoggerInterface;
  *  evaluation moved verbatim out of the listener; splitting it further is a
  *  separate change from moving it off the write path.
  */
-class EngagementSignalJob extends ActorForwardedJob {
+class EngagementSignalJob extends ForwardedJob {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const ENGAGEMENT_SCORE_SCHEMA = 'engagement-score';
@@ -72,32 +71,20 @@ class EngagementSignalJob extends ActorForwardedJob {
 
 
 	/**
-	 * @param ITimeFactory             $time          Clock, for the base job.
-	 * @param IUserSession             $userSession   Actor forwarding, for the base job.
-	 * @param IUserManager             $userManager   Actor forwarding, for the base job.
-	 * @param OrganisationService      $organisation  Tenant context, for the base job.
+	 * @param ActorForwarding $forwarding Clock, session, user manager and tenant context.
 	 * @param LoggerInterface          $logger        Logger; the base declares it protected.
 	 * @param ObjectService            $objectService OR object access.
-	 * @param EngagementScoreEvaluator $evaluator     Score calculation engine.
+	 * @param EngagementScoreEvaluatorInterface $evaluator     Score calculation engine.
 	 * @param ITimeFactory             $timeFactory   Clock for the written timestamps.
 	 */
 	public function __construct(
-		ITimeFactory $time,
-		IUserSession $userSession,
-		IUserManager $userManager,
-		OrganisationService $organisation,
+		ActorForwarding $forwarding,
 		LoggerInterface $logger,
 		private readonly ObjectService $objectService,
-		private readonly EngagementScoreEvaluator $evaluator,
+		private readonly EngagementScoreEvaluatorInterface $evaluator,
 		private readonly ITimeFactory $timeFactory,
 	) {
-		parent::__construct(
-			time: $time,
-			userSession: $userSession,
-			userManager: $userManager,
-			organisation: $organisation,
-			logger: $logger
-		);
+		parent::__construct(forwarding: $forwarding, logger: $logger);
 	}//end __construct()
 
 	/**
@@ -182,9 +169,8 @@ class EngagementSignalJob extends ActorForwardedJob {
 		);
 
 		$saved = $this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::ENGAGEMENT_SCORE_SCHEMA,
-			object: $data
+			object: $data,
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::ENGAGEMENT_SCORE_SCHEMA))
 		);
 
 		return $saved->jsonSerialize();
@@ -250,21 +236,43 @@ class EngagementSignalJob extends ActorForwardedJob {
 			]
 		);
 
+		$scope = ['learnerId' => $learnerId, 'courseId' => $courseId, 'tenantId' => $tenantId, 'engagementScore' => $engagementScore];
 		foreach ($thresholds as $threshold) {
 			if (is_array($threshold) === false) {
 				$threshold = $threshold->jsonSerialize();
 			}
 
-			$this->checkThreshold(
-				threshold: $threshold,
-				learnerId: $learnerId,
-				courseId: $courseId,
-				tenantId: $tenantId,
-				engagementScore: $engagementScore
-			);
+			$this->checkThreshold(threshold: $threshold, scope: $scope);
 		}
 
 	}//end checkThresholds()
+
+	/**
+	 * Whether a threshold applies to the learner (no cohort, or the learner's
+	 * cohort) and the just-recomputed score crosses its limit.
+	 *
+	 * @param array<string, mixed> $threshold EngagementRiskThreshold data.
+	 * @param array<string, mixed> $scope     As checkThreshold() takes it.
+	 *
+	 * @return bool
+	 *
+	 * @spec openspec/specs/student-analytics/spec.md#scenario-a-resolved-flag-does-not-block-re-flagging-on-a-later-relapse
+	 */
+	private function thresholdCrossed(array $threshold, array $scope): bool {
+		$cohortId = $threshold['cohortId'] ?? null;
+		if ($cohortId !== null && $this->learnerInCohort(learnerId: $scope['learnerId'], cohortId: $cohortId) === false) {
+			// Threshold is scoped to a Cohort the learner does not belong to.
+			return false;
+		}
+
+		$metric = $threshold['metric'] ?? '';
+		$limit = $threshold['limit'] ?? null;
+		if ($limit === null) {
+			return false;
+		}
+
+		return $this->isCrossed(metric: $metric, limit: (float)$limit, engagementScore: $scope['engagementScore']);
+	}//end thresholdCrossed()
 
 	/**
 	 * Evaluate a single EngagementRiskThreshold for a learner and create a
@@ -272,39 +280,20 @@ class EngagementSignalJob extends ActorForwardedJob {
 	 * exists for this learner+threshold.
 	 *
 	 * @param array<string, mixed> $threshold EngagementRiskThreshold data.
-	 * @param string $learnerId NC user ID of the learner.
-	 * @param string $courseId UUID of the Course in context.
-	 * @param string $tenantId Tenant identifier.
-	 * @param array<string, mixed> $engagementScore The just-recomputed EngagementScore data.
+	 * @param array<string, mixed> $scope     `learnerId` (NC user ID), `courseId` (the Course in context),
+	 *                                        `tenantId` and `engagementScore` (the just-recomputed EngagementScore data).
 	 *
 	 * @return void
 	 *
 	 * @spec openspec/specs/student-analytics/spec.md#scenario-a-resolved-flag-does-not-block-re-flagging-on-a-later-relapse
 	 */
-	private function checkThreshold(
-		array $threshold,
-		string $learnerId,
-		string $courseId,
-		string $tenantId,
-		array $engagementScore,
-	): void {
-		$cohortId = $threshold['cohortId'] ?? null;
-		if ($cohortId !== null && $this->learnerInCohort(learnerId: $learnerId, cohortId: $cohortId) === false) {
-			// Threshold is scoped to a Cohort the learner does not belong to.
+	private function checkThreshold(array $threshold, array $scope): void {
+		['learnerId' => $learnerId, 'courseId' => $courseId, 'tenantId' => $tenantId, 'engagementScore' => $engagementScore] = $scope;
+		if ($this->thresholdCrossed(threshold: $threshold, scope: $scope) === false) {
 			return;
 		}
 
 		$metric = $threshold['metric'] ?? '';
-		$limit = $threshold['limit'] ?? null;
-		if ($limit === null) {
-			return;
-		}
-
-		$crossed = $this->isCrossed(metric: $metric, limit: (float)$limit, engagementScore: $engagementScore);
-		if ($crossed === false) {
-			return;
-		}
-
 		$thresholdId = $threshold['id'] ?? ($threshold['uuid'] ?? '');
 		if ($thresholdId === '') {
 			return;
@@ -322,8 +311,6 @@ class EngagementSignalJob extends ActorForwardedJob {
 		$engagementScoreId = $engagementScore['id'] ?? ($engagementScore['uuid'] ?? null);
 
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::ENGAGEMENT_RISK_FLAG_SCHEMA,
 			object: [
 				'learnerId' => $learnerId,
 				'courseId' => $courseId,
@@ -333,7 +320,11 @@ class EngagementSignalJob extends ActorForwardedJob {
 				'flaggedAt' => $now->format(\DATE_ATOM),
 				'lifecycle' => 'open',
 				'tenant_id' => $tenantId,
-			]
+			],
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(
+					register: self::LEARNIQ_REGISTER,
+					schema: self::ENGAGEMENT_RISK_FLAG_SCHEMA
+				))
 		);
 
 	}//end checkThreshold()
@@ -396,13 +387,8 @@ class EngagementSignalJob extends ActorForwardedJob {
 	 * @return int|null
 	 */
 	private function recencyDaysNow(?string $lastActivityAt): ?int {
-		if ($lastActivityAt === null || $lastActivityAt === '') {
-			return null;
-		}
-
-		try {
-			$last = new DateTimeImmutable($lastActivityAt);
-		} catch (\Exception) {
+		$last = self::lastActivity(value: $lastActivityAt);
+		if ($last === null) {
 			return null;
 		}
 
@@ -410,6 +396,36 @@ class EngagementSignalJob extends ActorForwardedJob {
 
 		return (int)floor(($now->getTimestamp() - $last->getTimestamp()) / 86400);
 	}//end recencyDaysNow()
+
+	/**
+	 * The last activity as a moment, or null when there is none.
+	 *
+	 * @param string|null $value ISO-8601 timestamp, or null.
+	 *
+	 * @return DateTimeImmutable|null
+	 */
+	private static function lastActivity(?string $value): ?DateTimeImmutable {
+		if ($value === null || $value === '') {
+			return null;
+		}
+
+		return self::momentOf(value: $value);
+	}//end lastActivity()
+
+	/**
+	 * A timestamp as a moment, or null when it does not parse.
+	 *
+	 * @param string $value ISO-8601 timestamp.
+	 *
+	 * @return DateTimeImmutable|null
+	 */
+	private static function momentOf(string $value): ?DateTimeImmutable {
+		try {
+			return new DateTimeImmutable($value);
+		} catch (\Exception) {
+			return null;
+		}
+	}//end momentOf()
 
 	/**
 	 * Check whether a learner is a member of a Cohort (Cohort.learnerIds).
@@ -422,8 +438,7 @@ class EngagementSignalJob extends ActorForwardedJob {
 	private function learnerInCohort(string $learnerId, string $cohortId): bool {
 		$cohort = $this->objectService->find(
 			id: $cohortId,
-			register: self::LEARNIQ_REGISTER,
-			schema: self::COHORT_SCHEMA
+			options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::COHORT_SCHEMA)
 		);
 
 		if ($cohort === null) {

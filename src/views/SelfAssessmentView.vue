@@ -1,4 +1,7 @@
 <!--
+  SPDX-License-Identifier: EUPL-1.2
+  Copyright (C) 2026 Conduction B.V.
+
   SelfAssessmentView.vue
   Custom page component for the SelfAssessmentView manifest page (type: custom).
 
@@ -29,19 +32,16 @@
   Uses Options API + direct fetch calls (no custom Pinia store modules),
   mirroring MarkSubmissionView / PeerReviewMarkingView.
 
-  SPDX-License-Identifier: EUPL-1.2
-  Copyright (C) 2026 Conduction B.V.
-
   @spec openspec/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
   @spec openspec/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-after-submitting
 -->
 
 <template>
-	<div class="self-assessment-view">
+	<div class="self-assessment-view lq-board-page">
 		<!-- Loading -->
 		<div v-if="loading" class="self-assessment-view__loading" aria-live="polite">
 			<span class="icon-loading" aria-hidden="true" />
-			<span>{{ t('learniq', 'Loading self-assessment...') }}</span>
+			<span>{{ t('learniq', 'Loading self-assessment…') }}</span>
 		</div>
 
 		<!-- Error -->
@@ -57,7 +57,7 @@
 			role="status"
 			aria-live="polite">
 			<span class="icon-checkmark" aria-hidden="true" />
-			<h2>{{ t('learniq', 'Self-assessment submitted') }}</h2>
+			<CnPageHeader :title="t('learniq', 'Self-assessment submitted')" />
 			<p>
 				{{
 					t('learniq', 'Score: {score} / {max}', {
@@ -71,7 +71,7 @@
 		<!-- Marking form -->
 		<template v-else-if="submission">
 			<header class="self-assessment-view__header">
-				<h2>{{ t('learniq', 'Self-assessment') }}</h2>
+				<CnPageHeader :title="t('learniq', 'Self-assessment')" />
 				<p class="self-assessment-view__meta">
 					{{
 						t('learniq', 'Assignment: {title}', {
@@ -81,77 +81,29 @@
 				</p>
 			</header>
 
-			<section
+			<CnDetailCard
 				v-if="rubric && rubric.criteria && rubric.criteria.length > 0"
+				:title="t('learniq', 'Rubric: {name}', { name: rubric.name || '' })"
 				class="self-assessment-view__rubric">
-				<h3>
-					{{ t('learniq', 'Rubric: {name}', { name: rubric.name || '' }) }}
-				</h3>
+				<RubricPicker
+					v-model:selectedLevels="selectedLevels"
+					:rubric="rubric"
+					:maxPoints="assignment.maxPoints || 0"
+					:disabled="saving" />
+			</CnDetailCard>
 
-				<div
-					v-for="criterion in rubric.criteria"
-					:key="criterion.criterionId"
-					class="self-assessment-view__criterion">
-					<h4 class="self-assessment-view__criterion-label">
-						{{ criterion.label }}
-						<span class="self-assessment-view__criterion-weight">
-							{{
-								t('learniq', '(weight: {w})', {
-									w: criterion.weight,
-								})
-							}}
-						</span>
-					</h4>
-					<div class="self-assessment-view__levels">
-						<label
-							v-for="level in criterion.levels"
-							:key="level.levelId"
-							class="self-assessment-view__level">
-							<input
-								type="radio"
-								:name="criterion.criterionId"
-								:value="level.levelId"
-								:checked="
-									getSelectedLevel(criterion.criterionId)
-									=== level.levelId
-								"
-								:disabled="saving"
-								@change="selectLevel(criterion, level)" />
-							<span class="self-assessment-view__level-label">{{
-								level.label
-							}}</span>
-							<span class="self-assessment-view__level-points">
-								{{
-									t('learniq', '{pts} pts', { pts: level.points })
-								}}
-							</span>
-						</label>
-					</div>
-				</div>
-
-				<div class="self-assessment-view__score-total">
-					<strong>{{
-						t('learniq', 'Score: {score} / {max}', {
-							score: computedScore,
-							max: assignment.maxPoints || '?',
-						})
-					}}</strong>
-				</div>
-			</section>
-
-			<section class="self-assessment-view__comments">
-				<h3 id="self-assessment-comments-label">
-					{{ t('learniq', 'Your reflection') }}
-				</h3>
+			<CnDetailCard
+				:title="t('learniq', 'Your reflection')"
+				class="self-assessment-view__comments">
 				<textarea
 					id="self-assessment-comments"
 					v-model="comments"
 					class="self-assessment-view__comments-input"
-					aria-labelledby="self-assessment-comments-label"
-					:placeholder="t('learniq', 'Reflect on your own work...')"
+					:aria-label="t('learniq', 'Your reflection')"
+					:placeholder="t('learniq', 'Reflect on your own work…')"
 					:disabled="saving"
 					rows="5" />
-			</section>
+			</CnDetailCard>
 
 			<div class="self-assessment-view__actions">
 				<button
@@ -173,12 +125,26 @@
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import { getCurrentUser } from '@nextcloud/auth'
 import { generateUrl } from '@nextcloud/router'
+import RubricPicker from '../components/RubricPicker.vue'
 import { transitionUrl as objectTransitionUrl } from '../utils/customPages.js'
+import {
+	readFirstRow,
+	readObject,
+	readRequiredObject,
+	restoreLevels,
+	rubricComplete,
+	rubricPoints,
+	rubricScoresOf,
+	sendJsonOrThrow,
+	SUBMIT_TRANSITION,
+} from '../utils/registerRequests.js'
 
 export default {
 	name: 'SelfAssessmentView',
+	components: { CnDetailCard, CnPageHeader, RubricPicker },
 
 	props: {
 		/**
@@ -232,10 +198,7 @@ export default {
 		 * @spec openspec/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
 		 */
 		computedScore() {
-			return Object.values(this.selectedLevels).reduce(
-				(sum, sel) => sum + (sel.points || 0),
-				0,
-			)
+			return rubricPoints(this.selectedLevels)
 		},
 
 		/**
@@ -246,16 +209,7 @@ export default {
 		 * @spec openspec/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
 		 */
 		canSubmit() {
-			if (
-				!this.rubric
-				|| !this.rubric.criteria
-				|| this.rubric.criteria.length === 0
-			) {
-				return true
-			}
-			return this.rubric.criteria.every(
-				(c) => this.selectedLevels[c.criterionId] != null,
-			)
+			return rubricComplete(this.rubric, this.selectedLevels)
 		},
 
 		/**
@@ -316,13 +270,10 @@ export default {
 				await this.loadExistingSelfAssessment(submissionId)
 
 				if (this.selfAssessment) {
-					const existingScores = this.selfAssessment.rubricScores ?? []
-					for (const score of existingScores) {
-						this.selectedLevels[score.criterionId] = {
-							levelId: score.levelId,
-							points: score.points,
-						}
-					}
+					restoreLevels(
+						this.selectedLevels,
+						this.selfAssessment.rubricScores ?? [],
+					)
 					this.comments = this.selfAssessment.comments ?? ''
 				}
 			} catch (err) {
@@ -345,17 +296,10 @@ export default {
 		 * @spec openspec/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
 		 */
 		async loadSubmission(submissionId) {
-			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/Submission/${submissionId}`,
+			this.submission = await readRequiredObject(
+				generateUrl(`/apps/openregister/api/objects/learniq/Submission/${submissionId}`),
+				'Submission fetch failed',
 			)
-			const resp = await fetch(url, {
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-			})
-			if (!resp.ok) {
-				throw new Error(`Submission fetch failed: ${resp.status}`)
-			}
-			const json = await resp.json()
-			this.submission = json.object ?? json ?? {}
 		},
 
 		/**
@@ -366,17 +310,10 @@ export default {
 		 * @spec openspec/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
 		 */
 		async loadAssignment(assignmentId) {
-			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/Assignment/${assignmentId}`,
+			this.assignment = await readRequiredObject(
+				generateUrl(`/apps/openregister/api/objects/learniq/Assignment/${assignmentId}`),
+				'Assignment fetch failed',
 			)
-			const resp = await fetch(url, {
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-			})
-			if (!resp.ok) {
-				throw new Error(`Assignment fetch failed: ${resp.status}`)
-			}
-			const json = await resp.json()
-			this.assignment = json.object ?? json ?? {}
 		},
 
 		/**
@@ -387,18 +324,13 @@ export default {
 		 * @spec openspec/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
 		 */
 		async loadRubric(rubricId) {
-			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/Rubric/${rubricId}`,
+			const read = await readObject(
+				generateUrl(`/apps/openregister/api/objects/learniq/Rubric/${rubricId}`),
 			)
-			const resp = await fetch(url, {
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-			})
-			if (!resp.ok) {
-				// Non-fatal — fall back to no rubric display.
-				return
+			// A rubric that cannot be read is not fatal: the page shows none.
+			if (read.ok) {
+				this.rubric = read.object ?? null
 			}
-			const json = await resp.json()
-			this.rubric = json.object ?? json ?? null
 		},
 
 		/**
@@ -412,45 +344,11 @@ export default {
 		async loadExistingSelfAssessment(submissionId) {
 			const uid = getCurrentUser()?.uid ?? ''
 			const url = generateUrl(
-				`/apps/openregister/api/objects/learniq/self-assessment?filters[submissionId]=${submissionId}&filters[learnerId]=${uid}&_limit=1`,
+				`/apps/openregister/api/objects/learniq/self-assessment?submissionId=${submissionId}&learnerId=${uid}&_limit=1`,
 			)
-			const resp = await fetch(url, {
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-			})
-			if (!resp.ok) {
-				return
-			}
-			const json = await resp.json()
-			const results =
-				json.results ?? json.objects ?? (Array.isArray(json) ? json : [])
-			this.selfAssessment = results.length > 0 ? results[0] : null
-		},
-
-		/**
-		 * Get the currently selected levelId for a criterion.
-		 *
-		 * @param {string} criterionId Criterion identifier
-		 * @return {string|undefined}
-		 */
-		getSelectedLevel(criterionId) {
-			return this.selectedLevels[criterionId]?.levelId
-		},
-
-		/**
-		 * Record the learner's level selection for a criterion.
-		 *
-		 * @param {object} criterion Rubric criterion object
-		 * @param {object} level     Selected level object
-		 * @return {void}
-		 * @spec openspec/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
-		 */
-		selectLevel(criterion, level) {
-			this.selectedLevels = {
-				...this.selectedLevels,
-				[criterion.criterionId]: {
-					levelId: level.levelId,
-					points: level.points,
-				},
+			const read = await readFirstRow(url)
+			if (read.ok) {
+				this.selfAssessment = read.row
 			}
 		},
 
@@ -461,11 +359,7 @@ export default {
 		 * @spec openspec/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
 		 */
 		buildRubricScores() {
-			return Object.entries(this.selectedLevels).map(([criterionId, sel]) => ({
-				criterionId,
-				levelId: sel.levelId,
-				points: sel.points,
-			}))
+			return rubricScoresOf(this.selectedLevels)
 		},
 
 		/**
@@ -483,72 +377,16 @@ export default {
 			this.saving = true
 			this.saveError = null
 
-			const rubricScores = this.buildRubricScores()
-			const totalScore = this.computedScore
-			const uid = getCurrentUser()?.uid ?? ''
+			const scores = this.learnerScores()
 
 			try {
-				const payload = {
-					assignmentId: this.assignment.id ?? this.assignmentId,
-					submissionId: this.id,
-					learnerId: uid,
-					timing: this.timing,
-					rubricScores,
-					totalScore,
-					comments: this.comments,
-					tenant_id: this.submission.tenant_id ?? '',
-				}
-
-				const isUpdate = this.selfAssessment != null
-				const saveUrl = isUpdate
-					? generateUrl(
-							`/apps/openregister/api/objects/learniq/self-assessment/${this.selfAssessment.id}`,
-						)
-					: generateUrl(
-							'/apps/openregister/api/objects/learniq/self-assessment',
-						)
-
-				const saveResp = await fetch(saveUrl, {
-					method: isUpdate ? 'PUT' : 'POST',
-					headers: {
-						'OCS-APIREQUEST': 'true',
-						Accept: 'application/json',
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify(
-						isUpdate
-							? { ...payload, id: this.selfAssessment.id }
-							: payload,
-					),
-				})
-				if (!saveResp.ok) {
-					throw new Error(`SelfAssessment save failed: ${saveResp.status}`)
-				}
-
-				const savedJson = await saveResp.json()
-				const saved = savedJson.object ?? savedJson ?? {}
-				const selfAssessmentId = saved.id ?? this.selfAssessment?.id
-
-				if (!selfAssessmentId) {
-					throw new Error('SelfAssessment save did not return an id')
-				}
-
-				const transitionUrl = generateUrl(
-					objectTransitionUrl(selfAssessmentId),
+				const selfAssessmentId = await this.saveSelfAssessment(
+					this.selfAssessmentPayload(scores),
 				)
-				const transResp = await fetch(transitionUrl, {
-					method: 'POST',
-					headers: {
-						'OCS-APIREQUEST': 'true',
-						Accept: 'application/json',
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({ action: 'submit' }),
-				})
-				if (!transResp.ok) {
-					throw new Error(`Submit transition failed: ${transResp.status}`)
-				}
-
+				await sendJsonOrThrow(
+					generateUrl(objectTransitionUrl(selfAssessmentId)),
+					SUBMIT_TRANSITION,
+				)
 				this.submitted = true
 			} catch (err) {
 				this.saveError = this.t(
@@ -561,18 +399,87 @@ export default {
 				this.saving = false
 			}
 		},
+
+		/**
+		 * The learner's rubric scores, their total and who they are.
+		 *
+		 * @return {{rubricScores: Array<object>, totalScore: number, learnerId: string}} The scores.
+		 * @spec openspec/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
+		 */
+		learnerScores() {
+			return {
+				rubricScores: this.buildRubricScores(),
+				totalScore: this.computedScore,
+				learnerId: getCurrentUser()?.uid ?? '',
+			}
+		},
+
+		/**
+		 * The SelfAssessment to save.
+		 *
+		 * @param {{rubricScores: Array<object>, totalScore: number, learnerId: string}} scores The learner's scores.
+		 * @return {object} The SelfAssessment.
+		 * @spec openspec/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
+		 */
+		selfAssessmentPayload(scores) {
+			return {
+				assignmentId: this.assignment.id ?? this.assignmentId,
+				submissionId: this.id,
+				learnerId: scores.learnerId,
+				timing: this.timing,
+				rubricScores: scores.rubricScores,
+				totalScore: scores.totalScore,
+				comments: this.comments,
+				tenant_id: this.submission.tenant_id ?? '',
+			}
+		},
+
+		/**
+		 * The request that saves the SelfAssessment: a create, or an update of
+		 * the draft already there.
+		 *
+		 * @param {object} payload The SelfAssessment.
+		 * @return {{url: string, method: string, body: object}} The request.
+		 * @spec openspec/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
+		 */
+		selfAssessmentRequest(payload) {
+			const isUpdate = this.selfAssessment != null
+			const collection = '/apps/openregister/api/objects/learniq/self-assessment'
+			const path = isUpdate ? `${collection}/${this.selfAssessment.id}` : collection
+			return {
+				url: generateUrl(path),
+				method: isUpdate ? 'PUT' : 'POST',
+				body: isUpdate ? { ...payload, id: this.selfAssessment.id } : payload,
+			}
+		},
+
+		/**
+		 * Save the SelfAssessment.
+		 *
+		 * @param {object} payload The SelfAssessment.
+		 * @return {Promise<string>} Its id.
+		 * @spec openspec/specs/assignments/spec.md#scenario-a-learner-completes-a-self-assessment-before-submitting
+		 */
+		async saveSelfAssessment(payload) {
+			const request = this.selfAssessmentRequest(payload)
+			const saveResp = await sendJsonOrThrow(request.url, {
+				method: request.method,
+				body: request.body,
+				failure: 'SelfAssessment save failed',
+			})
+			const savedJson = await saveResp.json()
+			const saved = savedJson.object ?? savedJson ?? {}
+			const selfAssessmentId = saved.id ?? this.selfAssessment?.id
+			if (!selfAssessmentId) {
+				throw new Error('SelfAssessment save did not return an id')
+			}
+			return selfAssessmentId
+		},
 	},
 }
 </script>
 
 <style scoped>
-.self-assessment-view {
-	max-width: 860px;
-	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
 .self-assessment-view__loading,
 .self-assessment-view__error {
 	display: flex;
@@ -581,72 +488,18 @@ export default {
 	padding: calc(var(--default-grid-baseline, 8px) * 2);
 }
 
-.self-assessment-view__header {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-}
-
 .self-assessment-view__meta {
 	color: var(--color-text-maxcontrast);
 	font-size: 0.9em;
 }
 
-.self-assessment-view__rubric,
-.self-assessment-view__comments {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-}
 
-.self-assessment-view__criterion {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 2);
-	padding: var(--default-grid-baseline, 8px);
-	border: 1px solid var(--color-border);
-	border-radius: 4px;
-}
 
-.self-assessment-view__criterion-label {
-	font-weight: bold;
-	margin-bottom: var(--default-grid-baseline, 8px);
-}
 
-.self-assessment-view__criterion-weight {
-	font-weight: normal;
-	color: var(--color-text-maxcontrast);
-	font-size: 0.85em;
-	margin-left: 4px;
-}
 
-.self-assessment-view__levels {
-	display: flex;
-	flex-wrap: wrap;
-	gap: var(--default-grid-baseline, 8px);
-}
 
-.self-assessment-view__level {
-	display: flex;
-	align-items: center;
-	gap: 4px;
-	cursor: pointer;
-	padding: 4px 8px;
-	border: 1px solid var(--color-border);
-	border-radius: 4px;
-	background: var(--color-main-background);
-}
 
-.self-assessment-view__level:has(input:checked) {
-	background: var(--color-primary-element-light);
-	border-color: var(--color-primary);
-}
 
-.self-assessment-view__level-points {
-	color: var(--color-text-maxcontrast);
-	font-size: 0.85em;
-}
-
-.self-assessment-view__score-total {
-	margin-top: calc(var(--default-grid-baseline, 8px) * 2);
-	padding: var(--default-grid-baseline, 8px);
-	background: var(--color-background-hover);
-	border-radius: 4px;
-}
 
 .self-assessment-view__comments-input {
 	width: 100%;

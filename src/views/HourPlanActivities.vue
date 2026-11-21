@@ -14,11 +14,9 @@
  @spec openspec/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
 -->
 <template>
-	<div class="hour-plan-activities">
+	<div class="hour-plan-activities lq-board-page">
 		<header class="hour-plan-activities__header">
-			<h2 class="hour-plan-activities__title">
-				{{ t('learniq', 'Teaching activities') }}
-			</h2>
+			<CnPageHeader :title="t('learniq', 'Teaching activities')" />
 			<p class="hour-plan-activities__intro">
 				{{
 					t(
@@ -67,18 +65,16 @@
 					)
 				" />
 
-			<section
+			<CnDetailCard
 				v-for="group in groups"
 				:key="group.cohortId"
+				:title="
+					t('learniq', '{group}, year {n} of the programme', {
+						group: group.cohortName,
+						n: group.programmeYear,
+					})
+				"
 				class="hour-plan-activities__group">
-				<h3>
-					{{
-						t('learniq', '{group}, year {n} of the programme', {
-							group: group.cohortName,
-							n: group.programmeYear,
-						})
-					}}
-				</h3>
 				<table class="hour-plan-activities__table">
 					<thead>
 						<tr>
@@ -123,12 +119,13 @@
 						</tr>
 					</tbody>
 				</table>
-			</section>
+			</CnDetailCard>
 		</template>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import {
@@ -138,27 +135,39 @@ import {
 	NcNoteCard,
 	NcSelect,
 } from '@nextcloud/vue'
-import { activitiesCsv, nextSchoolYear } from '../utils/hourPlan.js'
+import { activitiesCsv } from '../utils/hourPlan.js'
 
 /**
- * The school year a date falls in, with 1 August as the first day.
+ * The school years around one: the two before, it, and the two after.
  *
- * @param {Date} date The date.
- * @return {string} `YYYY-YYYY`.
+ * @param {string} year `YYYY-YYYY`, or '' before the server has named it.
+ * @return {string[]} The years.
+ * @spec openspec/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
  */
-function schoolYearOf(date) {
-	const start = date.getMonth() >= 7 ? date.getFullYear() : date.getFullYear() - 1
-	return `${start}-${start + 1}`
+function yearsAround(year) {
+	const match = /^(\d{4})-\d{4}$/.exec(year || '')
+	if (!match) {
+		return []
+	}
+	const out = []
+	for (let offset = -2; offset <= 2; offset++) {
+		const first = Number(match[1]) + offset
+		out.push(`${first}-${first + 1}`)
+	}
+	return out
 }
 
 export default {
 	name: 'HourPlanActivities',
 
-	components: { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard, NcSelect },
+	components: { CnDetailCard, CnPageHeader, NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard, NcSelect },
 
 	data() {
 		return {
-			academicYear: nextSchoolYear(schoolYearOf(new Date())),
+			// Empty until the server answers: it counts the year from the
+			// school's own first day (school_year_start) and answers the next one.
+			academicYear: '',
+			currentAcademicYear: '',
 			loading: false,
 			error: '',
 			activities: [],
@@ -174,16 +183,7 @@ export default {
 		 * @spec openspec/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
 		 */
 		yearOptions() {
-			const now = new Date()
-			const out = []
-			for (let offset = -2; offset <= 2; offset++) {
-				out.push(
-					schoolYearOf(
-						new Date(now.getFullYear() + offset, now.getMonth(), 1),
-					),
-				)
-			}
-			return out
+			return yearsAround(this.currentAcademicYear)
 		},
 
 		/**
@@ -215,10 +215,16 @@ export default {
 		/**
 		 * Reload when the school year changes.
 		 *
+		 * @param {string} value The year chosen.
+		 * @param {string} previous The year before.
 		 * @return {void}
 		 * @spec openspec/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
 		 */
-		academicYear() {
+		academicYear(value, previous) {
+			// The first answer fills the year in; that answer is already shown.
+			if (previous === '') {
+				return
+			}
 			this.load()
 		},
 	},
@@ -250,6 +256,10 @@ export default {
 					generateUrl('/apps/learniq/api/hour-plans/activities'),
 					{ params: { academicYear: this.academicYear } },
 				)
+				this.currentAcademicYear = res.data?.currentAcademicYear || this.currentAcademicYear
+				if (this.academicYear === '') {
+					this.academicYear = res.data?.academicYear || ''
+				}
 				this.activities = res.data?.activities || []
 				this.withoutPlan = res.data?.cohortsWithoutPlan || []
 			} catch (e) {
@@ -318,17 +328,6 @@ export default {
 </script>
 
 <style scoped>
-.hour-plan-activities {
-	padding: 16px;
-	display: flex;
-	flex-direction: column;
-	gap: 16px;
-}
-
-.hour-plan-activities__title {
-	margin: 0;
-}
-
 .hour-plan-activities__intro {
 	margin: 4px 0 0;
 	color: var(--color-text-maxcontrast);

@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\BackgroundJob;
 
+use OCA\Learniq\BackgroundJob\ActorForwarding;
 use OCA\Learniq\BackgroundJob\EnrolmentProgressRollupJob;
 use OCA\Learniq\Service\EnrolmentProgressEvaluator;
 use OCA\OpenRegister\Service\Deferral\DeferredListenerContext;
@@ -21,6 +22,7 @@ use OCP\IUserManager;
 use OCP\IUserSession;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * The work `EnrolmentProgressRollupHandler` used to do inside the
@@ -53,7 +55,10 @@ class EnrolmentProgressRollupJobTest extends TestCase {
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('findAll')->willReturn($enrolments);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (mixed $object = null, ?array $extend = [], mixed $register = null, mixed $schema = null): mixed {
+			function (mixed $object = null, ObjectSaveOptions $options = new ObjectSaveOptions()): mixed {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
 				$this->saved[] = ['schema' => (string)$schema, 'object' => $object];
 				return $object;
 			}
@@ -65,10 +70,12 @@ class EnrolmentProgressRollupJobTest extends TestCase {
 		);
 
 		return new EnrolmentProgressRollupJob(
-			$this->createMock(ITimeFactory::class),
-			$this->createMock(IUserSession::class),
-			$this->createMock(IUserManager::class),
-			$this->createMock(OrganisationService::class),
+			new ActorForwarding(
+				time: $this->createMock(ITimeFactory::class),
+				userSession: $this->createMock(IUserSession::class),
+				userManager: $this->createMock(IUserManager::class),
+				organisation: $this->createMock(OrganisationService::class)
+			),
 			new NullLogger(),
 			$objectService,
 			$evaluator
@@ -147,7 +154,10 @@ class EnrolmentProgressRollupJobTest extends TestCase {
 		$objectService->method('findAll')->willReturn([['id' => 'enrolment-1']]);
 		$calls = 0;
 		$objectService->method('saveObject')->willReturnCallback(
-			function (mixed $object = null, ?array $extend = [], mixed $register = null, mixed $schema = null) use (&$calls): mixed {
+			function (mixed $object = null, ObjectSaveOptions $options = new ObjectSaveOptions()) use (&$calls): mixed {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
 				$calls++;
 				if ($calls === 1) {
 					throw new \RuntimeException('write failed');
@@ -164,10 +174,12 @@ class EnrolmentProgressRollupJobTest extends TestCase {
 		);
 
 		$job = new EnrolmentProgressRollupJob(
-			$this->createMock(ITimeFactory::class),
-			$this->createMock(IUserSession::class),
-			$this->createMock(IUserManager::class),
-			$this->createMock(OrganisationService::class),
+			new ActorForwarding(
+				time: $this->createMock(ITimeFactory::class),
+				userSession: $this->createMock(IUserSession::class),
+				userManager: $this->createMock(IUserManager::class),
+				organisation: $this->createMock(OrganisationService::class)
+			),
 			new NullLogger(),
 			$objectService,
 			$evaluator
@@ -195,7 +207,10 @@ class EnrolmentProgressRollupJobTest extends TestCase {
 		);
 		$objectService->method('findAll')->willReturn([['id' => 'enrol-active']]);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (mixed $object = null, ?array $extend = [], mixed $register = null, mixed $schema = null): mixed {
+			function (mixed $object = null, ObjectSaveOptions $options = new ObjectSaveOptions()): mixed {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
 				$this->saved[] = ['schema' => (string)$schema, 'object' => $object];
 				return $object;
 			}
@@ -211,10 +226,12 @@ class EnrolmentProgressRollupJobTest extends TestCase {
 		);
 
 		$job = new EnrolmentProgressRollupJob(
-			$this->createMock(ITimeFactory::class),
-			$this->createMock(IUserSession::class),
-			$this->createMock(IUserManager::class),
-			$this->createMock(OrganisationService::class),
+			new ActorForwarding(
+				time: $this->createMock(ITimeFactory::class),
+				userSession: $this->createMock(IUserSession::class),
+				userManager: $this->createMock(IUserManager::class),
+				organisation: $this->createMock(OrganisationService::class)
+			),
 			new NullLogger(),
 			$objectService,
 			$evaluator

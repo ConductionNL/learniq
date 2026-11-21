@@ -13,7 +13,9 @@
 	<CnDashboardPage
 		:title="t('learniq', 'My learning')"
 		:widgets="widgets"
-		:layout="layout">
+		:layout="layout"
+		:showActionsMenu="false"
+		:showWidgetActions="false">
 		<template #widget-my-mandatory-training>
 			<MyMandatoryTrainingWidget />
 		</template>

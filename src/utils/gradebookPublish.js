@@ -58,6 +58,47 @@ export function publishable(scoped) {
 }
 
 /**
+ * One band per whole point from the floor of `low` up to `high`.
+ *
+ * @param {number} low Lowest value of the range.
+ * @param {number} high Highest value of the range.
+ * @return {Array<{from: number, to: number}>}
+ */
+function wholePointBands(low, high) {
+	const bands = []
+	for (let from = Math.floor(low); from < high; from++) {
+		bands.push({ from, to: Math.min(from + 1, high) })
+	}
+	return bands
+}
+
+/**
+ * Five equal bands from `low` to `high`; the last one ends exactly on `high`.
+ *
+ * @param {number} low Lowest value of the range.
+ * @param {number} high Highest value of the range.
+ * @return {Array<{from: number, to: number}>}
+ */
+function fiveEqualBands(low, high) {
+	const width = (high - low) / 5
+	return Array.from({ length: 5 }, (_, i) => ({
+		from: low + i * width,
+		to: i === 4 ? high : low + (i + 1) * width,
+	}))
+}
+
+/**
+ * Whether two finite bounds form a range, lowest first.
+ *
+ * @param {number} low Lowest value of the range.
+ * @param {number} high Highest value of the range.
+ * @return {boolean}
+ */
+function isOrderedRange(low, high) {
+	return Number.isFinite(low) && Number.isFinite(high) && high >= low
+}
+
+/**
  * Histogram bands for a scale: one per whole point when the scale spans ten
  * points or fewer (the Dutch 1 to 10), else five equal bands.
  *
@@ -67,21 +108,100 @@ export function publishable(scoped) {
  * @spec openspec/specs/grading/spec.md#requirement-a-teacher-previews-and-batch-publishes-a-cohorts-concept-grades
  */
 export function bandsFor(low, high) {
-	if (!Number.isFinite(low) || !Number.isFinite(high) || high < low) return []
+	if (!isOrderedRange(low, high)) return []
 	const span = high - low
 	if (span === 0) return [{ from: low, to: high }]
-	if (span <= 10) {
-		const bands = []
-		for (let from = Math.floor(low); from < high; from++) {
-			bands.push({ from, to: Math.min(from + 1, high) })
-		}
-		return bands
+	if (span <= 10) return wholePointBands(low, high)
+	return fiveEqualBands(low, high)
+}
+
+/**
+ * The spread of an empty scope.
+ *
+ * @return {{count: number, average: null, lowest: null, highest: null, passing: null, bands: Array}}
+ */
+function emptyDistribution() {
+	return {
+		count: 0,
+		average: null,
+		lowest: null,
+		highest: null,
+		passing: null,
+		bands: [],
 	}
-	const width = span / 5
-	return Array.from({ length: 5 }, (_, i) => ({
-		from: low + i * width,
-		to: i === 4 ? high : low + (i + 1) * width,
+}
+
+/**
+ * A scale bound when it is set and numeric, else the given fallback.
+ *
+ * @param {number|string|null|undefined} bound The scale's `min` or `max`.
+ * @param {number} fallback The lowest or highest mark.
+ * @return {number}
+ */
+function scaleBound(bound, fallback) {
+	return Number.isFinite(Number(bound)) && bound !== null
+		? Number(bound)
+		: fallback
+}
+
+/**
+ * Each band with the number of marks in it; the last band is closed.
+ *
+ * @param {number[]} values The marks.
+ * @param {Array<{from: number, to: number}>} bands Output of bandsFor().
+ * @return {Array<{from: number, to: number, count: number}>}
+ */
+function countBands(values, bands) {
+	return bands.map((band, i, all) => ({
+		...band,
+		count: values.filter((v) =>
+			i === all.length - 1
+				? v >= band.from && v <= band.to
+				: v >= band.from && v < band.to,
+		).length,
 	}))
+}
+
+/**
+ * The counted bands over the scale, widened to the marks outside it.
+ *
+ * @param {number[]} values The marks; at least one.
+ * @param {object|null} scale The plan's GradeScale.
+ * @return {Array<{from: number, to: number, count: number}>}
+ */
+function bandsOver(values, scale) {
+	const lowest = Math.min(...values)
+	const highest = Math.max(...values)
+	const low = scaleBound(scale?.min, lowest)
+	const high = scaleBound(scale?.max, highest)
+	return countBands(values, bandsFor(Math.min(low, lowest), Math.max(high, highest)))
+}
+
+/**
+ * How many marks reach the pass threshold, or null without one.
+ *
+ * @param {number[]} values The marks.
+ * @param {object|null} scale The plan's GradeScale.
+ * @return {number|null}
+ */
+function passingCount(values, scale) {
+	const threshold = Number(scale?.passThreshold)
+	const hasThreshold =
+		scale?.passThreshold !== null
+		&& scale?.passThreshold !== undefined
+		&& Number.isFinite(threshold)
+	return hasThreshold ? values.filter((v) => v >= threshold).length : null
+}
+
+/**
+ * The mean of the marks, rounded to two decimals.
+ *
+ * @param {number[]} values The marks; at least one.
+ * @return {number}
+ */
+function roundedAverage(values) {
+	const average = values.reduce((sum, v) => sum + v, 0) / values.length
+	return Math.round(average * 100) / 100
 }
 
 /**
@@ -95,49 +215,14 @@ export function bandsFor(low, high) {
  */
 export function distribution(scoped, scale = null) {
 	const values = (scoped ?? []).filter(hasMark).map((e) => Number(e.value))
-	if (values.length === 0) {
-		return {
-			count: 0,
-			average: null,
-			lowest: null,
-			highest: null,
-			passing: null,
-			bands: [],
-		}
-	}
-	const lowest = Math.min(...values)
-	const highest = Math.max(...values)
-	const threshold = Number(scale?.passThreshold)
-	const hasThreshold =
-		scale?.passThreshold !== null
-		&& scale?.passThreshold !== undefined
-		&& Number.isFinite(threshold)
-	const low =
-		Number.isFinite(Number(scale?.min)) && scale?.min !== null
-			? Number(scale.min)
-			: lowest
-	const high =
-		Number.isFinite(Number(scale?.max)) && scale?.max !== null
-			? Number(scale.max)
-			: highest
-	const bands = bandsFor(Math.min(low, lowest), Math.max(high, highest)).map(
-		(band, i, all) => ({
-			...band,
-			count: values.filter((v) =>
-				i === all.length - 1
-					? v >= band.from && v <= band.to
-					: v >= band.from && v < band.to,
-			).length,
-		}),
-	)
-	const average = values.reduce((sum, v) => sum + v, 0) / values.length
+	if (values.length === 0) return emptyDistribution()
 	return {
 		count: values.length,
-		average: Math.round(average * 100) / 100,
-		lowest,
-		highest,
-		passing: hasThreshold ? values.filter((v) => v >= threshold).length : null,
-		bands,
+		average: roundedAverage(values),
+		lowest: Math.min(...values),
+		highest: Math.max(...values),
+		passing: passingCount(values, scale),
+		bands: bandsOver(values, scale),
 	}
 }
 

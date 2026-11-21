@@ -1,0 +1,188 @@
+{
+    "all": [
+        {
+            "uid": "g@learniq",
+            "start": "2026-01-08T09:00:00+00:00",
+            "end": "2026-01-08T10:00:00+00:00",
+            "summary": "Biology",
+            "location": "B2",
+            "description": "",
+            "cancelled": false,
+            "url": "https://meet.example/x"
+        },
+        {
+            "uid": "h@learniq",
+            "start": "2026-01-08T09:00:00+00:00",
+            "end": "2026-01-08T10:00:00+00:00",
+            "summary": "Cancelled: Maths",
+            "location": "",
+            "description": "This lesson is cancelled.\nReason: teacher absent",
+            "cancelled": true,
+            "url": ""
+        },
+        {
+            "uid": "i@learniq",
+            "start": "2026-01-08T09:00:00+00:00",
+            "end": "2026-01-08T10:00:00+00:00",
+            "summary": "Art",
+            "location": "",
+            "description": "Substitute teacher: sam\nYou cover this lesson.",
+            "cancelled": false,
+            "url": ""
+        },
+        {
+            "uid": "j@learniq",
+            "start": "2026-01-08T09:00:00+00:00",
+            "end": "2026-01-08T10:00:00+00:00",
+            "summary": "Gym",
+            "location": "",
+            "description": "",
+            "cancelled": false,
+            "url": ""
+        },
+        {
+            "uid": "k@learniq",
+            "start": "2026-01-08T09:00:00+00:00",
+            "end": "2026-01-08T10:00:00+00:00",
+            "summary": "Music",
+            "location": "",
+            "description": "Substitute teacher: sam\nReason: other",
+            "cancelled": false,
+            "url": ""
+        },
+        {
+            "uid": "l@learniq",
+            "start": "",
+            "end": "",
+            "summary": "Untitled lesson",
+            "location": "",
+            "description": "",
+            "cancelled": false,
+            "url": ""
+        }
+    ],
+    "named": [
+        {
+            "uid": "g@learniq",
+            "start": "2026-01-08T09:00:00+00:00",
+            "end": "2026-01-08T10:00:00+00:00",
+            "summary": "Biology",
+            "location": "B2",
+            "description": "",
+            "cancelled": false,
+            "url": "https://meet.example/x"
+        },
+        {
+            "uid": "h@learniq",
+            "start": "2026-01-08T09:00:00+00:00",
+            "end": "2026-01-08T10:00:00+00:00",
+            "summary": "Cancelled: Maths",
+            "location": "",
+            "description": "This lesson is cancelled.\nReason: teacher absent",
+            "cancelled": true,
+            "url": ""
+        },
+        {
+            "uid": "i@learniq",
+            "start": "2026-01-08T09:00:00+00:00",
+            "end": "2026-01-08T10:00:00+00:00",
+            "summary": "Art",
+            "location": "",
+            "description": "Substitute teacher: Sam de Vries\nYou cover this lesson.",
+            "cancelled": false,
+            "url": ""
+        },
+        {
+            "uid": "j@learniq",
+            "start": "2026-01-08T09:00:00+00:00",
+            "end": "2026-01-08T10:00:00+00:00",
+            "summary": "Gym",
+            "location": "",
+            "description": "",
+            "cancelled": false,
+            "url": ""
+        },
+        {
+            "uid": "k@learniq",
+            "start": "2026-01-08T09:00:00+00:00",
+            "end": "2026-01-08T10:00:00+00:00",
+            "summary": "Music",
+            "location": "",
+            "description": "Substitute teacher: Sam de Vries\nReason: other",
+            "cancelled": false,
+            "url": ""
+        },
+        {
+            "uid": "l@learniq",
+            "start": "",
+            "end": "",
+            "summary": "Untitled lesson",
+            "location": "",
+            "description": "",
+            "cancelled": false,
+            "url": ""
+        }
+    ],
+    "none": [
+        {
+            "uid": "g@learniq",
+            "start": "2026-01-08T09:00:00+00:00",
+            "end": "2026-01-08T10:00:00+00:00",
+            "summary": "Biology",
+            "location": "B2",
+            "description": "",
+            "cancelled": false,
+            "url": "https://meet.example/x"
+        },
+        {
+            "uid": "h@learniq",
+            "start": "2026-01-08T09:00:00+00:00",
+            "end": "2026-01-08T10:00:00+00:00",
+            "summary": "Cancelled: Maths",
+            "location": "",
+            "description": "This lesson is cancelled.\nReason: teacher absent",
+            "cancelled": true,
+            "url": ""
+        },
+        {
+            "uid": "i@learniq",
+            "start": "2026-01-08T09:00:00+00:00",
+            "end": "2026-01-08T10:00:00+00:00",
+            "summary": "Art",
+            "location": "",
+            "description": "A substitute teacher covers this lesson.\nYou cover this lesson.",
+            "cancelled": false,
+            "url": ""
+        },
+        {
+            "uid": "j@learniq",
+            "start": "2026-01-08T09:00:00+00:00",
+            "end": "2026-01-08T10:00:00+00:00",
+            "summary": "Gym",
+            "location": "",
+            "description": "",
+            "cancelled": false,
+            "url": ""
+        },
+        {
+            "uid": "k@learniq",
+            "start": "2026-01-08T09:00:00+00:00",
+            "end": "2026-01-08T10:00:00+00:00",
+            "summary": "Music",
+            "location": "",
+            "description": "A substitute teacher covers this lesson.\nReason: other",
+            "cancelled": false,
+            "url": ""
+        },
+        {
+            "uid": "l@learniq",
+            "start": "",
+            "end": "",
+            "summary": "Untitled lesson",
+            "location": "",
+            "description": "",
+            "cancelled": false,
+            "url": ""
+        }
+    ]
+}

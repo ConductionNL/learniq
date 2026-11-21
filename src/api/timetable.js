@@ -17,6 +17,66 @@ import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 
 /**
+ * The query for a time window: only the ends that are given.
+ *
+ * @param {string} [from] Inclusive ISO 8601 window start.
+ * @param {string} [to]   Exclusive ISO 8601 window end.
+ *
+ * @return {{from?: string, to?: string}} The query.
+ */
+function windowParams(from, to) {
+	const params = {}
+	if (from) {
+		params.from = from
+	}
+	if (to) {
+		params.to = to
+	}
+	return params
+}
+
+/**
+ * A list from the answer, or an empty one.
+ *
+ * @param {Array<object>|object|string|null} value The answered value.
+ *
+ * @return {Array<object>} The list.
+ */
+function listOf(value) {
+	return Array.isArray(value) ? value : []
+}
+
+/**
+ * A window end as the server echoed it, else as requested, else ''.
+ *
+ * @param {string} [echoed]    The end the server answered with.
+ * @param {string} [requested] The end that was asked for.
+ *
+ * @return {string} The end.
+ */
+function windowEnd(echoed, requested) {
+	return echoed || requested || ''
+}
+
+/**
+ * The sessions, window and source of a timetable answer.
+ *
+ * @param {object|null} body      The response body.
+ * @param {{from?: string, to?: string}} requested The window that was asked for.
+ *
+ * @return {{sessions: Array<object>, from: string, to: string, source: string}} The timetable.
+ */
+function timetableOf(body, requested) {
+	const data = body || {}
+	return {
+		sessions: listOf(data.sessions),
+		from: windowEnd(data.from, requested.from),
+		to: windowEnd(data.to, requested.to),
+		source: data.source || 'learniq',
+	}
+}
+
+/**
  * Fetch the signed-in caller's own sessions for a time window.
  *
  * When `from`/`to` are omitted the backend defaults to the current ISO week.
@@ -36,24 +96,15 @@ import { generateUrl } from '@nextcloud/router'
  *   timetable source (`learniq` or `planninq`).
  */
 export async function fetchMyTimetable(from, to) {
-	const params = {}
-	if (from) {
-		params.from = from
-	}
-	if (to) {
-		params.to = to
-	}
+	const params = windowParams(from, to)
 
 	const url = generateUrl('/apps/learniq/api/timetable/mine')
 	const response = await axios.get(url, { params })
 
-	const data = response.data || {}
+	const timetable = timetableOf(response.data, { from, to })
 	return {
-		sessions: Array.isArray(data.sessions) ? data.sessions : [],
-		from: data.from || from || '',
-		to: data.to || to || '',
-		changes: Array.isArray(data.changes) ? data.changes : [],
-		source: data.source || 'learniq',
+		...timetable,
+		changes: listOf(response.data?.changes),
 	}
 }
 
@@ -74,26 +125,14 @@ export async function fetchMyTimetable(from, to) {
  * @spec openspec/specs/timetable-source/spec.md#requirement-both-timetable-pages-read-through-the-adapter-req-005
  */
 export async function fetchCohortTimetable(cohortId, from, to) {
-	const params = {}
-	if (from) {
-		params.from = from
-	}
-	if (to) {
-		params.to = to
-	}
+	const params = windowParams(from, to)
 
 	const url = generateUrl('/apps/learniq/api/timetable/cohort/{cohortId}', {
 		cohortId,
 	})
 	const response = await axios.get(url, { params })
 
-	const data = response.data || {}
-	return {
-		sessions: Array.isArray(data.sessions) ? data.sessions : [],
-		from: data.from || from || '',
-		to: data.to || to || '',
-		source: data.source || 'learniq',
-	}
+	return timetableOf(response.data, { from, to })
 }
 
 /**
@@ -123,24 +162,12 @@ export function isLearniqSession(session) {
  * @spec openspec/specs/personal-timetable/spec.md#requirement-a-user-opens-another-timetable-the-school-allows
  */
 export async function fetchTimetableOf(kind, id, from, to) {
-	const params = { kind, id }
-	if (from) {
-		params.from = from
-	}
-	if (to) {
-		params.to = to
-	}
+	const params = { kind, id, ...windowParams(from, to) }
 
 	const response = await axios.get(generateUrl('/apps/learniq/api/timetable/of'), {
 		params,
 	})
-	const data = response.data || {}
-	return {
-		sessions: Array.isArray(data.sessions) ? data.sessions : [],
-		from: data.from || from || '',
-		to: data.to || to || '',
-		source: data.source || 'learniq',
-	}
+	return timetableOf(response.data, { from, to })
 }
 
 /**

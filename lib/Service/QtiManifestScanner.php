@@ -38,6 +38,7 @@ namespace OCA\Learniq\Service;
 
 use DOMDocument;
 use DOMElement;
+use DOMNode;
 use DOMXPath;
 
 /**
@@ -46,6 +47,20 @@ use DOMXPath;
  * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-4
  */
 class QtiManifestScanner {
+
+	/**
+	 * Manifest signatures in the order they are tried: the package type, and
+	 * the strings of which any one marks it.
+	 */
+	private const SIGNATURES = [
+		['qti3', ['imsqtiasi_v3p0', 'imsqti_v3p0']],
+		['qti2', ['imsqti_v2p', 'imsqti_v2p1']],
+		// IMS Common Cartridge 1.x signature.
+		['cc', ['imscc_xmlv1', 'imsccv1']],
+		// Fallback: look for QTI 3.0 namespace in any XML.
+		['qti3', ['imsglobal.org/xsd/imsqtiasi_v3p0']],
+	];
+
 	/**
 	 * Detect the package type from the extracted manifest.
 	 *
@@ -63,26 +78,32 @@ class QtiManifestScanner {
 		}
 
 		$content = (string)file_get_contents($manifest);
-		if (str_contains($content, 'imsqtiasi_v3p0') === true || str_contains($content, 'imsqti_v3p0') === true) {
-			return 'qti3';
-		}
-
-		if (str_contains($content, 'imsqti_v2p') === true || str_contains($content, 'imsqti_v2p1') === true) {
-			return 'qti2';
-		}
-
-		// IMS Common Cartridge 1.x signature.
-		if (str_contains($content, 'imscc_xmlv1') === true || str_contains($content, 'imsccv1') === true) {
-			return 'cc';
-		}
-
-		// Fallback: look for QTI 3.0 namespace in any XML.
-		if (str_contains($content, 'imsglobal.org/xsd/imsqtiasi_v3p0') === true) {
-			return 'qti3';
+		foreach (self::SIGNATURES as [$type, $needles]) {
+			if (self::mentionsAny(content: $content, needles: $needles) === true) {
+				return $type;
+			}
 		}
 
 		return 'unknown';
 	}//end detectPackageType()
+
+	/**
+	 * Whether the content contains any of the strings.
+	 *
+	 * @param string       $content The manifest text.
+	 * @param list<string> $needles The strings.
+	 *
+	 * @return bool
+	 */
+	private static function mentionsAny(string $content, array $needles): bool {
+		foreach ($needles as $needle) {
+			if (str_contains($content, $needle) === true) {
+				return true;
+			}
+		}
+
+		return false;
+	}//end mentionsAny()
 
 	/**
 	 * Collect paths of all item XML files in the extracted package.
@@ -109,7 +130,7 @@ class QtiManifestScanner {
 			return [];
 		}
 
-		$paths = $this->pathsFromManifest(xml: $xml, dir: $dir, packageType: $packageType);
+		$paths = $this->pathsFromManifest(xml: $xml, package: ['dir' => $dir, 'type' => $packageType]);
 
 		// If no items found via manifest, look for XML files with QTI namespaces.
 		if (empty($paths) === true) {
@@ -139,14 +160,32 @@ class QtiManifestScanner {
 	/**
 	 * Collect the item XML paths the manifest's `<resource>` entries declare.
 	 *
-	 * @param DOMDocument $xml Parsed manifest document.
-	 * @param string $dir Extracted package directory.
-	 * @param string $packageType Package type string.
+	 * @param DOMDocument                       $xml     Parsed manifest document.
+	 * @param array{dir: string, type: string} $package Extracted package directory and package type.
 	 *
 	 * @return string[] Absolute paths to item XML files.
 	 */
-	private function pathsFromManifest(DOMDocument $xml, string $dir, string $packageType): array {
+	private function pathsFromManifest(DOMDocument $xml, array $package): array {
 		$paths = [];
+		foreach (self::resources(xml: $xml) as $node) {
+			$itemPath = $this->itemPath(node: $node, package: $package);
+			if ($itemPath !== null) {
+				$paths[] = $itemPath;
+			}
+		}
+
+		return $paths;
+	}//end pathsFromManifest()
+
+	/**
+	 * The manifest's typed `<resource>` elements in the content-packaging
+	 * namespace, or else every `<resource>` element.
+	 *
+	 * @param DOMDocument $xml Parsed manifest document.
+	 *
+	 * @return iterable<DOMNode>
+	 */
+	private static function resources(DOMDocument $xml): iterable {
 		$xpath = new DOMXPath($xml);
 		$xpath->registerNamespace('imscp', 'http://www.imsglobal.org/xsd/imscp_v1p1');
 
@@ -157,28 +196,29 @@ class QtiManifestScanner {
 			$resourceNodes = $xml->getElementsByTagName('resource');
 		}
 
-		foreach ($resourceNodes as $node) {
-			if (($node instanceof DOMElement) === false) {
-				continue;
-			}
+		return $resourceNodes;
+	}//end resources()
 
-			if ($this->isItemResource(node: $node, packageType: $packageType) === false) {
-				continue;
-			}
+	/**
+	 * The item file an item resource points at inside the package, or null.
+	 *
+	 * @param DOMNode                           $node    A resource node.
+	 * @param array{dir: string, type: string} $package Extracted package directory and package type.
+	 *
+	 * @return string|null
+	 */
+	private function itemPath(DOMNode $node, array $package): ?string {
+		if (($node instanceof DOMElement) === false || $this->isItemResource(node: $node, packageType: $package['type']) === false) {
+			return null;
+		}
 
-			$href = $this->resolveResourceHref(node: $node);
-			if ($href === '') {
-				continue;
-			}
+		$href = $this->resolveResourceHref(node: $node);
+		if ($href === '') {
+			return null;
+		}
 
-			$itemPath = $this->resolveItemPath(dir: $dir, href: $href);
-			if ($itemPath !== null) {
-				$paths[] = $itemPath;
-			}
-		}//end foreach
-
-		return $paths;
-	}//end pathsFromManifest()
+		return $this->resolveItemPath(dir: $package['dir'], href: $href);
+	}//end itemPath()
 
 	/**
 	 * Whether a manifest `<resource>` declares a QTI item this importer handles.

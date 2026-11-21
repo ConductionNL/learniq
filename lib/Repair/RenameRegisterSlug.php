@@ -3,6 +3,9 @@
 /**
  * Learniq RenameRegisterSlug Repair Step
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V.
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Rename-to-learniq boundary 3 (register-slug migration): renames the app's
  * single OpenRegister register row from slug `scholiq` to slug `learniq`.
  *
@@ -28,9 +31,6 @@
  *   - a collision guard refuses (logs + skips) rather than merges or
  *     overwrites when a row with slug 'learniq' already exists;
  *   - no DELETE, ever; a re-run finds no matching row and is a no-op.
- *
- * SPDX-License-Identifier: EUPL-1.2
- * SPDX-FileCopyrightText: 2026 Conduction B.V.
  *
  * @category Repair
  * @package  OCA\Learniq\Repair

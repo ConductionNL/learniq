@@ -1,0 +1,124 @@
+{
+    "all of 2026": {
+        "query": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "external-training-record",
+                    "regulationSlug": "bhv",
+                    "lifecycle": "verified",
+                    "tenant_id": "t-1"
+                },
+                "sort": {
+                    "completedAt": "ASC"
+                }
+            }
+        ],
+        "csv": [
+            "learner_id,title,provider,kind,regulation_slug,completed_at,valid_until,verified_by,verified_at,credential_id,evidence_files",
+            "anna,\"BHV basis\",NIBHV,course,bhv,2026-03-15T10:00:00Z,2027-03-15,jan,2026-03-16T09:00:00Z,cred-1,\"cert.pdf; foto; 42; los.txt; \"",
+            "\"\t=cmd()\",\"BHV herhaling, \"\"deel 2\"\"\",,,,2026-03-15T23:59:59Z,,,,,",
+            "bert,\"Na middernacht\",,,,2026-03-16T00:00:00Z,,,,,",
+            "carla,\"Zonder datum\",,,,,,,,,",
+            "dirk,Vroeg,,,,2026-02-28,,,,,fallback.pdf",
+            "eva,Begin,,\"\t+meer",
+            "regels\",,2026-03-01,,,,,",
+            ""
+        ]
+    },
+    "march only": {
+        "query": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "external-training-record",
+                    "regulationSlug": "bhv",
+                    "lifecycle": "verified",
+                    "tenant_id": "t-1"
+                },
+                "sort": {
+                    "completedAt": "ASC"
+                }
+            }
+        ],
+        "csv": [
+            "learner_id,title,provider,kind,regulation_slug,completed_at,valid_until,verified_by,verified_at,credential_id,evidence_files",
+            "anna,\"BHV basis\",NIBHV,course,bhv,2026-03-15T10:00:00Z,2027-03-15,jan,2026-03-16T09:00:00Z,cred-1,\"cert.pdf; foto; 42; los.txt; \"",
+            "\"\t=cmd()\",\"BHV herhaling, \"\"deel 2\"\"\",,,,2026-03-15T23:59:59Z,,,,,",
+            "bert,\"Na middernacht\",,,,2026-03-16T00:00:00Z,,,,,",
+            "carla,\"Zonder datum\",,,,,,,,,",
+            "eva,Begin,,\"\t+meer",
+            "regels\",,2026-03-01,,,,,",
+            ""
+        ]
+    },
+    "last day, end of day": {
+        "query": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "external-training-record",
+                    "regulationSlug": "bhv",
+                    "lifecycle": "verified",
+                    "tenant_id": "t-2"
+                },
+                "sort": {
+                    "completedAt": "ASC"
+                }
+            }
+        ],
+        "csv": [
+            "learner_id,title,provider,kind,regulation_slug,completed_at,valid_until,verified_by,verified_at,credential_id,evidence_files",
+            "anna,\"BHV basis\",NIBHV,course,bhv,2026-03-15T10:00:00Z,2027-03-15,jan,2026-03-16T09:00:00Z,cred-1,\"cert.pdf; foto; 42; los.txt; \"",
+            "\"\t=cmd()\",\"BHV herhaling, \"\"deel 2\"\"\",,,,2026-03-15T23:59:59Z,,,,,",
+            "carla,\"Zonder datum\",,,,,,,,,",
+            ""
+        ]
+    },
+    "nothing in range": {
+        "query": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "external-training-record",
+                    "regulationSlug": "vca",
+                    "lifecycle": "verified",
+                    "tenant_id": ""
+                },
+                "sort": {
+                    "completedAt": "ASC"
+                }
+            }
+        ],
+        "csv": [
+            "learner_id,title,provider,kind,regulation_slug,completed_at,valid_until,verified_by,verified_at,credential_id,evidence_files",
+            "carla,\"Zonder datum\",,,,,,,,,",
+            ""
+        ]
+    },
+    "reversed window": {
+        "query": [
+            {
+                "filters": {
+                    "register": "learniq",
+                    "schema": "external-training-record",
+                    "regulationSlug": "bhv",
+                    "lifecycle": "verified",
+                    "tenant_id": "t-1"
+                },
+                "sort": {
+                    "completedAt": "ASC"
+                }
+            }
+        ],
+        "csv": [
+            "learner_id,title,provider,kind,regulation_slug,completed_at,valid_until,verified_by,verified_at,credential_id,evidence_files",
+            "carla,\"Zonder datum\",,,,,,,,,",
+            ""
+        ]
+    },
+    "no records": [
+        "learner_id,title,provider,kind,regulation_slug,completed_at,valid_until,verified_by,verified_at,credential_id,evidence_files",
+        ""
+    ]
+}

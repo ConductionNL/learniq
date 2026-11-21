@@ -1,7 +1,7 @@
 # personal-timetable Specification
 
 ## Purpose
-TBD - created by archiving change personal-timetable. Update Purpose after archive.
+Show each signed-in user their own lessons and today's changes, with room, substitute and cancellation. The school sets whose timetables each role may open, and a display screen shows today's lessons without personal data.
 
 ## Requirements
 

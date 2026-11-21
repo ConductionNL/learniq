@@ -17,57 +17,40 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/school-portals-use-the-new-blocks/specs/portal-contribution/spec.md#requirement-the-guardian-menu-lists-each-child-with-its-group-and-teacher
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-the-guardian-menu-lists-each-child-with-its-group-and-teacher
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\BackgroundJob;
 
-use OCA\Learniq\Service\LearnerGroupLabelRestamp;
-use OCA\OpenRegister\BackgroundJob\ActorForwardedJob;
+use OCA\Learniq\Kernel\Contracts\LearnerGroupLabelRestampInterface;
 use OCA\OpenRegister\Service\Deferral\DeferredListenerContext;
-use OCA\OpenRegister\Service\OrganisationService;
-use OCP\AppFramework\Utility\ITimeFactory;
-use OCP\IUserManager;
-use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
 /**
  * Writes the group line of the pupils whose enrolment changed. LearnerGroupLabelCascade
  * buffers the pupils during the request; this job runs after it (ADR-078).
  *
- * @spec openspec/changes/school-portals-use-the-new-blocks/specs/portal-contribution/spec.md#requirement-the-guardian-menu-lists-each-child-with-its-group-and-teacher
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-the-guardian-menu-lists-each-child-with-its-group-and-teacher
  */
-class LearnerGroupLabelRestampJob extends ActorForwardedJob {
+class LearnerGroupLabelRestampJob extends ForwardedJob {
 
 	/**
 	 * Constructor.
 	 *
-	 * @param ITimeFactory             $time         Clock.
-	 * @param IUserSession             $userSession  The acting user, forwarded.
-	 * @param IUserManager             $userManager  Resolves the forwarded user.
-	 * @param OrganisationService      $organisation The acting organisation, forwarded.
+	 * @param ActorForwarding $forwarding Clock, session, user manager and tenant context.
 	 * @param LoggerInterface          $logger       Logger.
-	 * @param LearnerGroupLabelRestamp $restamp      Writes one profile's line.
+	 * @param LearnerGroupLabelRestampInterface $restamp      Writes one profile's line.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		ITimeFactory $time,
-		IUserSession $userSession,
-		IUserManager $userManager,
-		OrganisationService $organisation,
+		ActorForwarding $forwarding,
 		LoggerInterface $logger,
-		private readonly LearnerGroupLabelRestamp $restamp,
+		private readonly LearnerGroupLabelRestampInterface $restamp,
 	) {
-		parent::__construct(
-			time: $time,
-			userSession: $userSession,
-			userManager: $userManager,
-			organisation: $organisation,
-			logger: $logger
-		);
+		parent::__construct(forwarding: $forwarding, logger: $logger);
 	}//end __construct()
 
 	/**
@@ -77,7 +60,7 @@ class LearnerGroupLabelRestampJob extends ActorForwardedJob {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/school-portals-use-the-new-blocks/specs/portal-contribution/spec.md#requirement-the-guardian-menu-lists-each-child-with-its-group-and-teacher
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-guardian-menu-lists-each-child-with-its-group-and-teacher
 	 */
 	protected function runDeferred(DeferredListenerContext $context): void {
 		$refs = [];

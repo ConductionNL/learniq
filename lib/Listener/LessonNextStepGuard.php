@@ -28,10 +28,11 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -53,13 +54,13 @@ class LessonNextStepGuard implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param ListenerSchemaResolver $schemaResolver Resolves the event entity's schema slug.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Resolves the event entity's schema slug.
 	 * @param ObjectService          $objectService  Reads the target lessons.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ListenerSchemaResolver $schemaResolver,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
 		private readonly ObjectService $objectService,
 	) {
 	}//end __construct()
@@ -135,7 +136,11 @@ class LessonNextStepGuard implements IEventListener {
 	 */
 	private function courseOf(string $lessonId): ?string {
 		try {
-			$object = $this->objectService->find(id: $lessonId, register: self::REGISTER, schema: self::LESSON_SCHEMA, _rbac: false);
+			$object = $this->objectService->find(
+				id: $lessonId,
+				options: new ObjectFindOptions(register: self::REGISTER, schema: self::LESSON_SCHEMA),
+				_rbac: false
+			);
 		} catch (Throwable) {
 			return null;
 		}
@@ -155,11 +160,7 @@ class LessonNextStepGuard implements IEventListener {
 	 * @return ObjectEntity The object as it will be stored.
 	 */
 	private function writtenEntity(ObjectCreatingEvent|ObjectUpdatingEvent $event): ObjectEntity {
-		if ($event instanceof ObjectUpdatingEvent === true) {
-			return $event->getNewObject();
-		}
-
-		return $event->getObject();
+		return (new WrittenObject())->entityOf(event: $event);
 	}//end writtenEntity()
 
 	/**

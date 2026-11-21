@@ -466,7 +466,7 @@ OC.L10N.register(
         "How each assessment item performed, question by question.": "Kaip pasirodė kiekvienas vertinimo klausimas, klausimas po klausimo.",
         "What course evaluations said, per course.": "Ką pasakė kursų vertinimai, pagal kursą.",
         "What was found on placement visits.": "Kas nustatyta darbo vietos vizitų metu.",
-        "Store": "Parduotuvė",
+        "Marketplace": "Parduotuvė",
         "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Įdiekite registrus, schemas ir srautus, kuriuos paskelbė kitos organizacijos.",
         "Enter the access code you were given to start this assessment.": "Įveskite gautą prieigos kodą, kad pradėtumėte šį vertinimą.",
         "Access code": "Prieigos kodas",

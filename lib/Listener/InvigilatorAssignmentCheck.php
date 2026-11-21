@@ -29,8 +29,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\ExamSittingOverview;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\ExamSittingOverviewInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -61,15 +61,15 @@ class InvigilatorAssignmentCheck implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param ListenerSchemaResolver $schemaResolver Entity schema id to slug.
-	 * @param ExamSittingOverview $overview Sittings, bookings and availability.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Entity schema id to slug.
+	 * @param ExamSittingOverviewInterface $overview Sittings, bookings and availability.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ListenerSchemaResolver $schemaResolver,
-		private readonly ExamSittingOverview $overview,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
+		private readonly ExamSittingOverviewInterface $overview,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
@@ -98,6 +98,21 @@ class InvigilatorAssignmentCheck implements IEventListener {
 
 		$request = array_merge(($event->getObject()->getObject() ?? []), $event->getModifiedData());
 
+		$this->pendOrRefuse(event: $event, request: $request);
+	}//end handle()
+
+	/**
+	 * Create the invigilation request as pending, or refuse it with the reason it
+	 * cannot be granted.
+	 *
+	 * @param ObjectCreatingEvent $event   The invigilation request being created.
+	 * @param array<string,mixed> $request The request as it will be saved.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/exam-schedule/spec.md#requirement-invigilator-assignment
+	 */
+	private function pendOrRefuse(ObjectCreatingEvent $event, array $request): void {
 		try {
 			$reason = $this->refusal(request: $request);
 		} catch (Throwable $exception) {
@@ -113,7 +128,7 @@ class InvigilatorAssignmentCheck implements IEventListener {
 		}
 
 		$event->setModifiedData(array_merge($event->getModifiedData(), ['lifecycle' => 'pending']));
-	}//end handle()
+	}//end pendOrRefuse()
 
 	/**
 	 * Why this request cannot be made, or null.

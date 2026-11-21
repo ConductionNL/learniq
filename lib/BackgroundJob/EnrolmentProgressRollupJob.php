@@ -20,14 +20,12 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\BackgroundJob;
 
-use OCA\Learniq\Service\EnrolmentProgressEvaluator;
-use OCA\OpenRegister\BackgroundJob\ActorForwardedJob;
+use OCA\Learniq\Kernel\Contracts\EnrolmentProgressEvaluatorInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\Deferral\DeferredListenerContext;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\OpenRegister\Service\OrganisationService;
-use OCP\AppFramework\Utility\ITimeFactory;
-use OCP\IUserManager;
-use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -51,7 +49,7 @@ use Psr\Log\LoggerInterface;
  * @psalm-suppress UnusedClass Enqueued by ListenerDeferralService at request
  *  shutdown, never constructed by name — psalm reads PHP and sees no caller.
  */
-class EnrolmentProgressRollupJob extends ActorForwardedJob {
+class EnrolmentProgressRollupJob extends ForwardedJob {
 
 	/**
 	 * The register these objects live in.
@@ -68,30 +66,18 @@ class EnrolmentProgressRollupJob extends ActorForwardedJob {
 	private const ENROLMENT_SCHEMA = 'enrolment';
 
 	/**
-	 * @param ITimeFactory               $time          Clock, for the base job.
-	 * @param IUserSession               $userSession   Actor forwarding, for the base job.
-	 * @param IUserManager               $userManager   Actor forwarding, for the base job.
-	 * @param OrganisationService        $organisation  Tenant context, for the base job.
+	 * @param ActorForwarding $forwarding Clock, session, user manager and tenant context.
 	 * @param LoggerInterface            $logger        Logger; the base declares it protected.
 	 * @param ObjectService              $objectService OR object access.
-	 * @param EnrolmentProgressEvaluator $evaluator     progressPercent calculation engine.
+	 * @param EnrolmentProgressEvaluatorInterface $evaluator     progressPercent calculation engine.
 	 */
 	public function __construct(
-		ITimeFactory $time,
-		IUserSession $userSession,
-		IUserManager $userManager,
-		OrganisationService $organisation,
+		ActorForwarding $forwarding,
 		LoggerInterface $logger,
 		private readonly ObjectService $objectService,
-		private readonly EnrolmentProgressEvaluator $evaluator,
+		private readonly EnrolmentProgressEvaluatorInterface $evaluator,
 	) {
-		parent::__construct(
-			time: $time,
-			userSession: $userSession,
-			userManager: $userManager,
-			organisation: $organisation,
-			logger: $logger
-		);
+		parent::__construct(forwarding: $forwarding, logger: $logger);
 	}//end __construct()
 
 	/**
@@ -133,9 +119,8 @@ class EnrolmentProgressRollupJob extends ActorForwardedJob {
 				$result = $this->evaluator->evaluate(learnerId: $learnerId, courseId: $courseId, enrolment: $enrolment);
 
 				$this->objectService->saveObject(
-					register: self::LEARNIQ_REGISTER,
-					schema: self::ENROLMENT_SCHEMA,
-					object: array_merge($enrolment, ['progressPercent' => $result['progressPercent']])
+					object: array_merge($enrolment, ['progressPercent' => $result['progressPercent']]),
+					options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::ENROLMENT_SCHEMA))
 				);
 			} catch (\Throwable $e) {
 				$this->logger->warning(
@@ -168,7 +153,10 @@ class EnrolmentProgressRollupJob extends ActorForwardedJob {
 	private function resolveEnrolment(string $learnerId, string $courseId, string $enrolmentId): ?array {
 		if ($enrolmentId !== '') {
 			try {
-				$named = $this->objectService->find(id: $enrolmentId, register: self::LEARNIQ_REGISTER, schema: self::ENROLMENT_SCHEMA);
+				$named = $this->objectService->find(
+					id: $enrolmentId,
+					options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::ENROLMENT_SCHEMA)
+				);
 			} catch (\Throwable $e) {
 				$named = null;
 			}
