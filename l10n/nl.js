@@ -6363,7 +6363,11 @@ OC.L10N.register(
         "What comes first today could not be read. Try again.": "Wat vandaag eerst komt kon niet worden gelezen. Probeer het opnieuw.",
         "Report to the compulsory education office": "Melding bij leerplicht",
         "Exchange status": "Status uitwisseling",
-        "No report sent to the compulsory education office yet": "Nog geen melding bij leerplicht verstuurd"
+        "No report sent to the compulsory education office yet": "Nog geen melding bij leerplicht verstuurd",
+        "BPV (beroepspraktijkvorming) is the part of the training the student learns at your company.": "BPV (beroepspraktijkvorming) is het deel van de opleiding dat de student bij uw bedrijf leert.",
+        "A werkproces is one task from the student's qualification that you see the student do at work.": "Een werkproces is een taak uit de kwalificatie van de student, die u de student op het werk ziet doen.",
+        "The kwalificatiedossier is the national description of what a student of this training must be able to do.": "Het kwalificatiedossier is de landelijke beschrijving van wat een student van deze opleiding moet kunnen.",
+        "Praktijkovereenkomst (POK): the agreements between you, the student and the school.": "Praktijkovereenkomst (POK): de afspraken tussen u, de student en school."
     },
     "nplurals=2; plural=(n != 1);"
 )

@@ -25,7 +25,8 @@ Built in waves. A key is declared only once portaliq development keeps it; porta
   - the placement cards still name the company; the student names stand on their own cards since T1
 - [x] **T7**: the manifest through `PortalLabelTranslator`; Dutch "u" entries
   - PHPUnit `PortalLabelTranslatorTest`; `npm run check:l10n`
-- [ ] **T7b**: a one-line explanation beside each school term (praktijkovereenkomst, werkproces, BPV) on first use
+- [x] **T7b**: a one-line explanation beside each school term (praktijkovereenkomst, werkproces, BPV) on first use
+  - Built: `TrainerSitePages::SCHOOL_TERMS` holds one line each for BPV, werkproces, kwalificatiedossier and praktijkovereenkomst, shown as the `help` of the first field of her forms that names the term (the week to approve, the work process code, the kwalificatiedossier code, the placement agreement); Dutch in the "u" form through `PortalLabelTranslator`. PHPUnit `TrainerSchoolTermsTest`. A collection or cta block carries no help text on portaliq, so the overview's own headings are not explained.
 - [x] **T8**: a praktijkopleider can be given a portal account (`occ learniq:portal:invite-trainer`); the mbo set already seeds 36 trainers and 151 placements (`invite-a-trainer-and-an-assessor`)
   - PHPUnit `BpvPortalInvitationTest`; `python3 scripts/example-sets/mbo.py --check`
 - [ ] **T9**: e2e: the trainer opens a student, saves an assessment halfway and finishes it later

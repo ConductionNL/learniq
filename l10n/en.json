@@ -5934,7 +5934,11 @@
         "What comes first today could not be read. Try again.": "What comes first today could not be read. Try again.",
         "Report to the compulsory education office": "Report to the compulsory education office",
         "Exchange status": "Exchange status",
-        "No report sent to the compulsory education office yet": "No report sent to the compulsory education office yet"
+        "No report sent to the compulsory education office yet": "No report sent to the compulsory education office yet",
+        "BPV (beroepspraktijkvorming) is the part of the training the student learns at your company.": "BPV (beroepspraktijkvorming) is the part of the training the student learns at your company.",
+        "A werkproces is one task from the student's qualification that you see the student do at work.": "A werkproces is one task from the student's qualification that you see the student do at work.",
+        "The kwalificatiedossier is the national description of what a student of this training must be able to do.": "The kwalificatiedossier is the national description of what a student of this training must be able to do.",
+        "Praktijkovereenkomst (POK): the agreements between you, the student and the school.": "Praktijkovereenkomst (POK): the agreements between you, the student and the school."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

@@ -41,10 +41,25 @@ namespace OCA\Learniq\Portal;
  * Builds the trainer's own-assessment collection, her overview and her menu.
  *
  * @spec openspec/changes/site-workplace-trainer-portal-design/specs/portal-contribution/spec.md#requirement-a-workplace-trainer-lands-on-what-is-waiting-for-her
+ * @spec openspec/changes/site-workplace-trainer-portal-design/specs/portal-contribution/spec.md#requirement-every-trainer-label-on-the-site-reads-in-dutch-school-terms-explained
  */
 class TrainerSitePages {
 
 	private const REGISTER = 'learniq';
+
+	/**
+	 * One line per school term a workplace trainer meets on her forms, shown
+	 * as the help text of the first field that names the term. Dutch through
+	 * `PortalLabelTranslator` (`help` is a visible key).
+	 *
+	 * @spec openspec/changes/site-workplace-trainer-portal-design/specs/portal-contribution/spec.md#requirement-every-trainer-label-on-the-site-reads-in-dutch-school-terms-explained
+	 */
+	public const SCHOOL_TERMS = [
+		'bpv' => 'BPV (beroepspraktijkvorming) is the part of the training the student learns at your company.',
+		'werkproces' => 'A werkproces is one task from the student\'s qualification that you see the student do at work.',
+		'kwalificatiedossier' => 'The kwalificatiedossier is the national description of what a student of this training must be able to do.',
+		'praktijkovereenkomst' => 'Praktijkovereenkomst (POK): the agreements between you, the student and the school.',
+	];
 
 	private const PO_WERKPROCES_ASSESSMENTS_FIELDS = [
 		'bpvPlacementId',
@@ -321,7 +336,8 @@ class TrainerSitePages {
 
 	private const CREATE_WERKPROCES_ASSESSMENT_FIELD_CONFIGS = [
 		'bpvPlacementId' => ['label' => 'The placement', 'required' => true],
-		'werkprocesCode' => ['label' => 'Work process code', 'required' => true],
+		'kwalificatiedossierCode' => ['help' => self::SCHOOL_TERMS['kwalificatiedossier']],
+		'werkprocesCode' => ['label' => 'Work process code', 'required' => true, 'help' => self::SCHOOL_TERMS['werkproces']],
 		'werkprocesLabel' => ['label' => 'Work process', 'required' => true],
 		'assessment' => [
 			'label' => 'Your judgement',
@@ -378,7 +394,7 @@ class TrainerSitePages {
 			],
 		],
 		'fieldConfigs' => [
-			'hourWeekId' => ['label' => 'The week you are approving', 'required' => true],
+			'hourWeekId' => ['label' => 'The week you are approving', 'required' => true, 'help' => self::SCHOOL_TERMS['bpv']],
 			'outcome' => ['label' => 'Your decision', 'widget' => 'choices'],
 			// Left empty, she approves the hours the student wrote.
 			'hoursApproved' => ['label' => 'Hours you approve'],
@@ -445,6 +461,9 @@ class TrainerSitePages {
 			'assuranceLevel',
 			'method',
 			'evidenceRef',
+		],
+		'fieldConfigs' => [
+			'subjectId' => ['help' => self::SCHOOL_TERMS['praktijkovereenkomst']],
 		],
 	];
 
