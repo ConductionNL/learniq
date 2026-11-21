@@ -17,7 +17,7 @@ import {
  * @param {string} url The settings endpoint.
  * @return {Promise<string>} `simple` or `full`.
  *
- * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-004-the-structure-is-an-app-setting-and-simple-is-the-default
+ * @spec openspec/specs/navigation/spec.md#requirement-req-ssp-004-the-structure-is-an-app-setting-and-simple-is-the-default
  */
 export async function loadMenuStructure(http, url) {
 	const { data } = await http.get(url)
@@ -41,7 +41,7 @@ export async function loadMenuStructure(http, url) {
  * @param {string} structure `simple` or `full`.
  * @return {Promise<string>} The structure the server stored.
  *
- * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-004-the-structure-is-an-app-setting-and-simple-is-the-default
+ * @spec openspec/specs/navigation/spec.md#requirement-req-ssp-004-the-structure-is-an-app-setting-and-simple-is-the-default
  */
 export async function saveMenuStructure(http, url, structure) {
 	const wanted = resolveStructureProfile(structure)

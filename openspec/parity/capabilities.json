@@ -10708,7 +10708,7 @@
         "evidence": "lib/Service/Settings/MenuStructure.php, src/menu-layout.simple.json",
         "owner": "ConductionNL/learniq",
         "change": "simple-structure-profile",
-        "requirement": "openspec/changes/simple-structure-profile/specs/navigation :: REQ-SSP-002 The simple menu shows at most ten entries per role under three captions"
+        "requirement": "openspec/specs/navigation :: REQ-SSP-002 The simple menu shows at most ten entries per role under three captions"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -10736,11 +10736,11 @@
       "origin": "change",
       "built": {
         "state": "building",
-        "evidence": "Partly built through openspec/changes/simple-today-dashboard; its open tasks carry the rest.",
+        "evidence": "Partly built through openspec/changes/archive/2026-11-21-simple-today-dashboard (Today in src/menu-layout.simple.json); the First today card per role, the marking count and the signals per pupil are planned in today-first-per-school-role.",
         "owner": "ConductionNL/learniq",
         "change": "simple-today-dashboard",
-        "requirement": "openspec/changes/simple-today-dashboard/specs/dashboard :: REQ-STD-001 The start page is Today for the teaching roles in the simple structure",
-        "plan": "openspec/changes/simple-today-dashboard"
+        "requirement": "openspec/specs/dashboard :: REQ-STD-001 The start page is Today for the teaching roles in the simple structure",
+        "plan": "openspec/changes/today-first-per-school-role"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",

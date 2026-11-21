@@ -117,7 +117,7 @@ test.describe('The simple structure', () => {
 		await api.dispose()
 	})
 
-	// @e2e openspec/changes/simple-structure-profile/specs/navigation/spec.md#an-administrator-opens-learniq-on-the-simple-structure
+	// @e2e openspec/specs/navigation/spec.md#an-administrator-opens-learniq-on-the-simple-structure
 	test('the menu shows the daily entries under three captions', async ({
 		page,
 	}) => {
@@ -149,7 +149,7 @@ test.describe('The simple structure', () => {
 		}
 	})
 
-	// @e2e openspec/changes/simple-today-dashboard/specs/dashboard/spec.md#an-administrator-opens-learniq-on-the-simple-structure-and-lands-on-today
+	// @e2e openspec/specs/dashboard/spec.md#an-administrator-opens-learniq-on-the-simple-structure-and-lands-on-today
 	test('the start page is the Today dashboard', async ({ page }) => {
 		await page.goto(`${APP_BASE}/`, { waitUntil: 'domcontentloaded' })
 		await expect(page.locator('[data-testid="cn-nav"]')).toBeVisible({
@@ -197,7 +197,7 @@ test.describe('The simple structure', () => {
 		await expect(page).toHaveURL(/\/dashboards\/teaching/, { timeout: 30_000 })
 	})
 
-	// @e2e openspec/changes/simple-structure-profile/specs/navigation/spec.md#a-list-that-left-the-menu-is-one-link-away
+	// @e2e openspec/specs/navigation/spec.md#a-list-that-left-the-menu-is-one-link-away
 	test("today's register is one link away from Attendance, and a page still opens by address", async ({
 		page,
 	}) => {

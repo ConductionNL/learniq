@@ -7,7 +7,7 @@
 //
 // Run via `node --test tests/unit-js/` (package.json `test:js-unit`).
 //
-// @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md
+// @spec openspec/specs/navigation/spec.md
 
 import assert from 'node:assert/strict'
 import { test } from 'node:test'

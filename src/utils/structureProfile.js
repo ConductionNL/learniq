@@ -50,7 +50,7 @@
  * Nothing here deletes anything. The pages, the routes and the fragments are
  * the same in both profiles, which is what keeps every deep link working.
  *
- * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md
+ * @spec openspec/specs/navigation/spec.md
  */
 
 /** The profile a fresh instance gets. */
@@ -86,7 +86,7 @@ const PAGE_KEYS = ['type', 'title', 'component']
  * @param {unknown} raw The stored setting, as initial state hands it over.
  * @return {string} `simple` or `full`.
  *
- * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-004-the-structure-is-an-app-setting-and-simple-is-the-default
+ * @spec openspec/specs/navigation/spec.md#requirement-req-ssp-004-the-structure-is-an-app-setting-and-simple-is-the-default
  */
 export function resolveStructureProfile(raw) {
 	return raw === STRUCTURE_FULL ? STRUCTURE_FULL : STRUCTURE_SIMPLE
@@ -99,7 +99,7 @@ export function resolveStructureProfile(raw) {
  * @param {string} key The key.
  * @return {Array} The list.
  *
- * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-005-a-profile-may-change-a-page-and-never-add-or-remove-one
+ * @spec openspec/specs/navigation/spec.md#requirement-req-ssp-005-a-profile-may-change-a-page-and-never-add-or-remove-one
  */
 function listAt(source, key) {
 	return Array.isArray(source[key]) ? source[key] : []
@@ -113,7 +113,7 @@ function listAt(source, key) {
  * @param {object} byName The changes by item name.
  * @return {unknown} The item, changed or not.
  *
- * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-005-a-profile-may-change-a-page-and-never-add-or-remove-one
+ * @spec openspec/specs/navigation/spec.md#requirement-req-ssp-005-a-profile-may-change-a-page-and-never-add-or-remove-one
  */
 function patchedItem(item, byName) {
 	const change = byName[overlayItemName(item)]
@@ -130,7 +130,7 @@ function patchedItem(item, byName) {
  * @param {object|undefined} patch The overlay's `configPatch`.
  * @return {void}
  *
- * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-005-a-profile-may-change-a-page-and-never-add-or-remove-one
+ * @spec openspec/specs/navigation/spec.md#requirement-req-ssp-005-a-profile-may-change-a-page-and-never-add-or-remove-one
  */
 function patchConfig(config, patch) {
 	for (const key of Object.keys(patch || {})) {
@@ -148,7 +148,7 @@ function patchConfig(config, patch) {
  * @param {object|undefined} append The overlay's `configAppend`.
  * @return {void}
  *
- * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-005-a-profile-may-change-a-page-and-never-add-or-remove-one
+ * @spec openspec/specs/navigation/spec.md#requirement-req-ssp-005-a-profile-may-change-a-page-and-never-add-or-remove-one
  */
 function appendConfig(config, append) {
 	for (const key of Object.keys(append || {})) {
@@ -163,7 +163,7 @@ function appendConfig(config, append) {
  * @param {Array<string>} names The names that lead.
  * @return {Array} The reordered list.
  *
- * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-005-a-profile-may-change-a-page-and-never-add-or-remove-one
+ * @spec openspec/specs/navigation/spec.md#requirement-req-ssp-005-a-profile-may-change-a-page-and-never-add-or-remove-one
  */
 function leadWith(current, names) {
 	const lead = names
@@ -179,7 +179,7 @@ function leadWith(current, names) {
  * @param {object|undefined} order The overlay's `configOrder`.
  * @return {void}
  *
- * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-005-a-profile-may-change-a-page-and-never-add-or-remove-one
+ * @spec openspec/specs/navigation/spec.md#requirement-req-ssp-005-a-profile-may-change-a-page-and-never-add-or-remove-one
  */
 function orderConfig(config, order) {
 	for (const key of Object.keys(order || {})) {
@@ -195,7 +195,7 @@ function orderConfig(config, order) {
  * @param {object} overlay The page overlay.
  * @return {object} A new config.
  *
- * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-005-a-profile-may-change-a-page-and-never-add-or-remove-one
+ * @spec openspec/specs/navigation/spec.md#requirement-req-ssp-005-a-profile-may-change-a-page-and-never-add-or-remove-one
  */
 function overlayConfig(page, overlay) {
 	const config = { ...(page.config || {}), ...(overlay.config || {}) }
@@ -212,7 +212,7 @@ function overlayConfig(page, overlay) {
  * @param {object} own The overlay's `page` block.
  * @return {void}
  *
- * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-005-a-profile-may-change-a-page-and-never-add-or-remove-one
+ * @spec openspec/specs/navigation/spec.md#requirement-req-ssp-005-a-profile-may-change-a-page-and-never-add-or-remove-one
  */
 function applyPageKeys(out, own) {
 	for (const key of PAGE_KEYS) {
@@ -232,7 +232,7 @@ function applyPageKeys(out, own) {
  *   The order is fixed: replace keys, patch items by name, append, then order.
  * @return {object} A new page object.
  *
- * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-005-a-profile-may-change-a-page-and-never-add-or-remove-one
+ * @spec openspec/specs/navigation/spec.md#requirement-req-ssp-005-a-profile-may-change-a-page-and-never-add-or-remove-one
  */
 export function applyPageOverlay(page, overlay) {
 	const out = { ...page, config: overlayConfig(page, overlay) }
@@ -255,7 +255,7 @@ export function applyPageOverlay(page, overlay) {
  * @param {unknown} item A list item from a page config.
  * @return {string|undefined} Its name, or undefined when it has none.
  *
- * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-005-a-profile-may-change-a-page-and-never-add-or-remove-one
+ * @spec openspec/specs/navigation/spec.md#requirement-req-ssp-005-a-profile-may-change-a-page-and-never-add-or-remove-one
  */
 export function overlayItemName(item) {
 	if (typeof item === 'string') {
@@ -276,7 +276,7 @@ export function overlayItemName(item) {
  * @return {object} Nextcloud's theming block plus `emblem`, '' when the set
  *   ships none.
  *
- * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-006-the-simple-navigation-carries-the-brand-of-the-instance-and-one-primary-action
+ * @spec openspec/specs/navigation/spec.md#requirement-req-ssp-006-the-simple-navigation-carries-the-brand-of-the-instance-and-one-primary-action
  */
 export function navTheming(capabilities) {
 	const theming = capabilities?.theming ?? {}
@@ -295,7 +295,7 @@ const THEMING_PLACEHOLDER = '@theming.'
  * @param {object|null} theming The theming capabilities.
  * @return {string} The answer.
  *
- * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-006-the-simple-navigation-carries-the-brand-of-the-instance-and-one-primary-action
+ * @spec openspec/specs/navigation/spec.md#requirement-req-ssp-006-the-simple-navigation-carries-the-brand-of-the-instance-and-one-primary-action
  */
 function themingAnswer(placeholder, theming) {
 	const key = placeholder.slice(THEMING_PLACEHOLDER.length)
@@ -311,7 +311,7 @@ function themingAnswer(placeholder, theming) {
  * @param {object|null} theming The theming capabilities.
  * @return {unknown} The resolved value.
  *
- * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-006-the-simple-navigation-carries-the-brand-of-the-instance-and-one-primary-action
+ * @spec openspec/specs/navigation/spec.md#requirement-req-ssp-006-the-simple-navigation-carries-the-brand-of-the-instance-and-one-primary-action
  */
 function resolveNavValue(value, theming) {
 	if (typeof value !== 'string' || !value.startsWith(THEMING_PLACEHOLDER)) {
@@ -338,7 +338,7 @@ function resolveNavValue(value, theming) {
  * @param {object|null} theming The theming capabilities.
  * @return {unknown} The resolved entry.
  *
- * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-006-the-simple-navigation-carries-the-brand-of-the-instance-and-one-primary-action
+ * @spec openspec/specs/navigation/spec.md#requirement-req-ssp-006-the-simple-navigation-carries-the-brand-of-the-instance-and-one-primary-action
  */
 function resolveNavEntry(value, theming) {
 	if (!value || typeof value !== 'object' || Array.isArray(value)) {
@@ -368,7 +368,7 @@ function resolveNavEntry(value, theming) {
  * @param {object|null} theming The theming capabilities (`name`, `logo`, ...).
  * @return {object} A new nav block with every placeholder resolved.
  *
- * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-006-the-simple-navigation-carries-the-brand-of-the-instance-and-one-primary-action
+ * @spec openspec/specs/navigation/spec.md#requirement-req-ssp-006-the-simple-navigation-carries-the-brand-of-the-instance-and-one-primary-action
  */
 export function resolveNavPlaceholders(nav, theming) {
 	const out = {}
@@ -391,7 +391,7 @@ export function resolveNavPlaceholders(nav, theming) {
  * @param {{runtime: object, passes: (((predicate: object, runtime: object) => boolean)|undefined)}} reader The reader.
  * @return {void}
  *
- * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-006-the-simple-navigation-carries-the-brand-of-the-instance-and-one-primary-action
+ * @spec openspec/specs/navigation/spec.md#requirement-req-ssp-006-the-simple-navigation-carries-the-brand-of-the-instance-and-one-primary-action
  */
 function gatePrimaryAction(resolved, reader) {
 	const { visibleIf, ...rest } = resolved.primaryAction
@@ -419,7 +419,7 @@ function gatePrimaryAction(resolved, reader) {
  *   `passesContextPredicates` and the theming capabilities.
  * @return {object} The nav block for this reader.
  *
- * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-006-the-simple-navigation-carries-the-brand-of-the-instance-and-one-primary-action
+ * @spec openspec/specs/navigation/spec.md#requirement-req-ssp-006-the-simple-navigation-carries-the-brand-of-the-instance-and-one-primary-action
  */
 export function resolveProfileNav(nav, reader) {
 	const resolved = resolveNavPlaceholders(nav, reader.theming)
@@ -436,7 +436,7 @@ export function resolveProfileNav(nav, reader) {
  * @param {object} file The profile's layout file.
  * @return {object} The layout.
  *
- * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-005-a-profile-may-change-a-page-and-never-add-or-remove-one
+ * @spec openspec/specs/navigation/spec.md#requirement-req-ssp-005-a-profile-may-change-a-page-and-never-add-or-remove-one
  */
 function profileLayout(file) {
 	const layout = {}
@@ -456,7 +456,7 @@ function profileLayout(file) {
  * @param {object} file The profile's layout file.
  * @return {object} The base to build.
  *
- * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-005-a-profile-may-change-a-page-and-never-add-or-remove-one
+ * @spec openspec/specs/navigation/spec.md#requirement-req-ssp-005-a-profile-may-change-a-page-and-never-add-or-remove-one
  */
 function baseWithProfileMenu(base, file) {
 	const profileMenu = listAt(file, 'menu')
@@ -480,7 +480,7 @@ function baseWithProfileMenu(base, file) {
  * @param {{base: object, passes: (((predicate: object, runtime: object) => boolean)|undefined), theming: (object|null)}} run The build.
  * @return {{runtime: object, passes: (((predicate: object, runtime: object) => boolean)|undefined), theming: (object|null)}} The reader.
  *
- * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-006-the-simple-navigation-carries-the-brand-of-the-instance-and-one-primary-action
+ * @spec openspec/specs/navigation/spec.md#requirement-req-ssp-006-the-simple-navigation-carries-the-brand-of-the-instance-and-one-primary-action
  */
 function navReader(run) {
 	return {
@@ -497,7 +497,7 @@ function navReader(run) {
  * @param {{file: object, base: object, passes: (((predicate: object, runtime: object) => boolean)|undefined), theming: (object|null)}} run The build.
  * @return {object} The manifest, or `builtPages` when the profile has no nav.
  *
- * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-006-the-simple-navigation-carries-the-brand-of-the-instance-and-one-primary-action
+ * @spec openspec/specs/navigation/spec.md#requirement-req-ssp-006-the-simple-navigation-carries-the-brand-of-the-instance-and-one-primary-action
  */
 function withProfileNav(builtPages, run) {
 	if (!run.file.nav || typeof run.file.nav !== 'object') {
@@ -520,7 +520,7 @@ function withProfileNav(builtPages, run) {
  * @param {object} overlay The page overlay.
  * @return {number} The index, -1 when there is no such page.
  *
- * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-005-a-profile-may-change-a-page-and-never-add-or-remove-one
+ * @spec openspec/specs/navigation/spec.md#requirement-req-ssp-005-a-profile-may-change-a-page-and-never-add-or-remove-one
  */
 function overlaidPageIndex(pages, overlay) {
 	const at = pages.findIndex((page) => page.id === overlay?.id)
@@ -542,7 +542,7 @@ function overlaidPageIndex(pages, overlay) {
  * @param {{base: object, passes: (((predicate: object, runtime: object) => boolean)|undefined)}} run The build.
  * @return {boolean} True when it applies.
  *
- * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-005-a-profile-may-change-a-page-and-never-add-or-remove-one
+ * @spec openspec/specs/navigation/spec.md#requirement-req-ssp-005-a-profile-may-change-a-page-and-never-add-or-remove-one
  */
 function overlayApplies(overlay, run) {
 	const passes = run.passes
@@ -559,7 +559,7 @@ function overlayApplies(overlay, run) {
  * @param {{file: object, base: object, passes: (((predicate: object, runtime: object) => boolean)|undefined)}} run The build.
  * @return {Array<object>} The pages.
  *
- * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-005-a-profile-may-change-a-page-and-never-add-or-remove-one
+ * @spec openspec/specs/navigation/spec.md#requirement-req-ssp-005-a-profile-may-change-a-page-and-never-add-or-remove-one
  */
 function overlaidPages(manifest, run) {
 	const pages = [...(manifest.pages || [])]
@@ -580,7 +580,7 @@ function overlaidPages(manifest, run) {
  * @param {{file: object, base: object, passes: (((predicate: object, runtime: object) => boolean)|undefined)}} run The build.
  * @return {object} The manifest.
  *
- * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-005-a-profile-may-change-a-page-and-never-add-or-remove-one
+ * @spec openspec/specs/navigation/spec.md#requirement-req-ssp-005-a-profile-may-change-a-page-and-never-add-or-remove-one
  */
 function applyPageOverlays(manifest, run) {
 	if (listAt(run.file, 'pages').length === 0) {
@@ -595,7 +595,7 @@ function applyPageOverlays(manifest, run) {
  * @param {object} build What to build from (see buildProfiledManifest).
  * @return {{file: object, base: object, passes: (((predicate: object, runtime: object) => boolean)|undefined), theming: (object|null)}} The run.
  *
- * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-005-a-profile-may-change-a-page-and-never-add-or-remove-one
+ * @spec openspec/specs/navigation/spec.md#requirement-req-ssp-005-a-profile-may-change-a-page-and-never-add-or-remove-one
  */
 function profileRun(build) {
 	return {
@@ -632,7 +632,7 @@ function profileRun(build) {
  *     placeholders a profile's `nav` block may carry.
  * @return {object} The built manifest.
  *
- * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-005-a-profile-may-change-a-page-and-never-add-or-remove-one
+ * @spec openspec/specs/navigation/spec.md#requirement-req-ssp-005-a-profile-may-change-a-page-and-never-add-or-remove-one
  */
 export function buildProfiledManifest(build) {
 	const run = profileRun(build)
@@ -660,7 +660,7 @@ export function buildProfiledManifest(build) {
  * @param {object} built The built manifest.
  * @param {object|undefined} defaults The profile file's `pageDefaults`.
  * @return {object} The manifest with the defaults filled in.
- * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-005-a-profile-may-change-a-page-and-never-add-or-remove-one
+ * @spec openspec/specs/navigation/spec.md#requirement-req-ssp-005-a-profile-may-change-a-page-and-never-add-or-remove-one
  */
 export function applyPageDefaults(built, defaults) {
 	if (
