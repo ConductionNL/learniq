@@ -121,7 +121,7 @@ SCHOOL_EVENTS = [
     ("Kamp groep 8", "2026-06-24", "2026-06-26", "trip", ["Groep 8"], "Drie dagen op kamp in de bossen."),
     ("Sportdag", "2026-05-29", None, "sports-day", None, "De sportdag voor alle groepen."),
     ("Opening Kinderboekenweek", "2026-09-30T08:30:00+02:00", "2026-09-30T09:15:00+02:00", "event", None, "Op het plein, ouders zijn welkom."),
-    ("Schoolfotograaf", "2026-10-07", None, "event", None, "In de ochtend, voor het uitje. Individuele foto's en groepsfoto's."),
+    ("Schoolfotograaf", "2026-10-07", None, "event", None, "In de ochtend, voor het uitje."),
     ("Excursie Rijksmuseum", "2026-11-12T09:00:00+01:00", "2026-11-12T15:00:00+01:00", "trip", ["Groep 7", "Groep 8"], "Met de trein naar Amsterdam. Begeleiders gezocht."),
     ("Sinterklaasviering", "2026-12-04", None, "celebration", None, "Sinterklaas komt op school. De leerlingen zijn om 12.00 uur vrij."),
     ("Kerstdiner", "2026-12-17T17:30:00+01:00", "2026-12-17T19:00:00+01:00", "celebration", None, "Kerstdiner in de klas."),
@@ -1157,6 +1157,16 @@ class HulstkampStory:
                     "location": "Lokaal " + name.lower(), "roomId": cohort["_room"],
                     "lifecycle": "in-progress" if day == STORY_TODAY else "completed",
                 })
+
+        # Vera's gym lesson today (boards MijnOverzicht and Detail: "Gym om 13.15 uur"), in the gym with the
+        # subject teacher's course. Added after the school days, so no earlier uuid moves.
+        gym_room = next(r for r in self.b.buckets["room"] if r["code"] == "GYM")
+        gym_course = next(c for c in self.b.buckets["course"] if c["code"] == "PO-BEW")
+        self.b.add("session", {
+            "cohortId": self.group7["uuid"], "courseId": gym_course["uuid"], "title": "Gym",
+            "startsAt": stamp(STORY_TODAY, 13, 15), "endsAt": stamp(STORY_TODAY, 14, 0),
+            "location": gym_room["name"], "roomId": gym_room["uuid"], "lifecycle": "scheduled",
+        })
 
     def excuse(self, child_ref: str, child_nc: str, day: dt.date, reason: str, kind: str, decided_by: str | None,
                decided_at: str | None, submitted_at_note: str | None = None) -> dict:
