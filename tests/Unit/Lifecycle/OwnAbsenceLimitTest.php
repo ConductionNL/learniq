@@ -132,21 +132,25 @@ class OwnAbsenceLimitTest extends TestCase {
 	 * @return void
 	 */
 	private function checkEach(array $thresholds, float $hours, int $reports): void {
-		$objects = $this->createMock(ObjectService::class);
+		$objects = $this->createMock(originalClassName: ObjectService::class);
 		$objects->method('findAll')->willReturn([]);
 		$objects->method('saveObject')->willReturnCallback(
 			function (array|ObjectEntity $object, ObjectSaveOptions $options=new ObjectSaveOptions()): ObjectEntity {
-				$data          = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
+				$data = $object;
+				if ($object instanceof ObjectEntity) {
+					$data = $object->jsonSerialize();
+				}
+
 				$this->flags[] = $data;
-				return OrEntityFactory::make($data, (string)$options->target->schema, 'learniq', 'flag-'.count($this->flags));
+				return OrEntityFactory::make(data: $data, schema: (string)$options->target->schema, register: 'learniq', uuid: 'flag-'.count(value: $this->flags));
 			}
 		);
 
-		$integriq = $this->createMock(IntegriqExchangeClient::class);
-		$integriq->expects($this->exactly($reports))->method('requestJob')->willReturn('job-1');
+		$integriq = $this->createMock(originalClassName: IntegriqExchangeClient::class);
+		$integriq->expects($this->exactly(count: $reports))->method('requestJob')->willReturn('job-1');
 
 		$guard   = new AttendanceThresholdCrossingGuard(logger: new NullLogger());
-		$handler = new AttendanceFlagCreationHandler($objects, $integriq, new NullLogger(), TransitionScope::resolver());
+		$handler = new AttendanceFlagCreationHandler(objectService: $objects, integriq: $integriq, logger: new NullLogger(), schemas: TransitionScope::resolver());
 
 		foreach ($thresholds as $threshold) {
 			$object = self::checked(threshold: $threshold, hours: $hours);
@@ -155,7 +159,7 @@ class OwnAbsenceLimitTest extends TestCase {
 				continue;
 			}
 
-			$handler->handle($this->transitioned(threshold: $object));
+			$handler->handle(event: $this->transitioned(threshold: $object));
 		}
 	}//end checkEach()
 
@@ -167,10 +171,10 @@ class OwnAbsenceLimitTest extends TestCase {
 	 * @return ObjectTransitionedEvent
 	 */
 	private function transitioned(array $threshold): ObjectTransitionedEvent {
-		$entity = $this->createMock(ObjectEntity::class);
+		$entity = $this->createMock(originalClassName: ObjectEntity::class);
 		$entity->method('jsonSerialize')->willReturn($threshold);
 
-		$event = $this->createMock(ObjectTransitionedEvent::class);
+		$event = $this->createMock(originalClassName: ObjectTransitionedEvent::class);
 		$event->method('getObject')->willReturn($entity);
 		$event->method('getRegister')->willReturn('learniq');
 		$event->method('getSchema')->willReturn('attendance-threshold');
@@ -190,12 +194,12 @@ class OwnAbsenceLimitTest extends TestCase {
 	public function testASchoolWarnsAtEightHours(): void {
 		$this->checkEach(thresholds: [self::statutory(), self::ownLimit()], hours: 9.0, reports: 0);
 
-		$this->assertCount(1, $this->flags, 'one flag, from the school\'s own threshold only');
-		$this->assertSame('threshold-own', $this->flags[0]['attendanceThresholdId']);
-		$this->assertSame(self::LEARNER, $this->flags[0]['learnerId']);
-		$this->assertSame(9.0, $this->flags[0]['metricValue']);
-		$this->assertNull($this->flags[0]['dataExchangeJobId'], 'no report goes to the authority');
-		$this->assertArrayNotHasKey('flagKind', $this->flags[0], 'not a statutory absence signal');
+		$this->assertCount(expectedCount: 1, haystack: $this->flags, message: 'one flag, from the school\'s own threshold only');
+		$this->assertSame(expected: 'threshold-own', actual: $this->flags[0]['attendanceThresholdId']);
+		$this->assertSame(expected: self::LEARNER, actual: $this->flags[0]['learnerId']);
+		$this->assertSame(expected: 9.0, actual: $this->flags[0]['metricValue']);
+		$this->assertNull(actual: $this->flags[0]['dataExchangeJobId'], message: 'no report goes to the authority');
+		$this->assertArrayNotHasKey(key: 'flagKind', array: $this->flags[0], message: 'not a statutory absence signal');
 	}//end testASchoolWarnsAtEightHours()
 
 	/**
@@ -209,10 +213,10 @@ class OwnAbsenceLimitTest extends TestCase {
 		$this->checkEach(thresholds: [self::statutory(), self::ownLimit()], hours: 17.0, reports: 1);
 
 		$this->assertSame(
-			['threshold-statutory', 'threshold-own'],
-			array_values(array_unique(array_column($this->flags, 'attendanceThresholdId')))
+			expected: ['threshold-statutory', 'threshold-own'],
+			actual: array_values(array: array_unique(array: array_column(array: $this->flags, column_key: 'attendanceThresholdId')))
 		);
-		$this->assertSame('signal-verzuim', $this->flags[0]['flagKind']);
+		$this->assertSame(expected: 'signal-verzuim', actual: $this->flags[0]['flagKind']);
 	}//end testPastTheStatutoryLimitOnlyTheStatutoryThresholdReports()
 
 	/**
@@ -224,9 +228,9 @@ class OwnAbsenceLimitTest extends TestCase {
 	 */
 	public function testTheSchoolLowersItsLimit(): void {
 		$this->checkEach(thresholds: [self::ownLimit(limit: 10)], hours: 9.0, reports: 0);
-		$this->assertSame([], $this->flags, 'below the old limit of 10 nothing is flagged');
+		$this->assertSame(expected: [], actual: $this->flags, message: 'below the old limit of 10 nothing is flagged');
 
 		$this->checkEach(thresholds: [self::ownLimit(limit: 8)], hours: 9.0, reports: 0);
-		$this->assertCount(1, $this->flags, 'the check reads the changed limit of 8');
+		$this->assertCount(expectedCount: 1, haystack: $this->flags, message: 'the check reads the changed limit of 8');
 	}//end testTheSchoolLowersItsLimit()
 }//end class

@@ -121,19 +121,21 @@ class ElectiveBoardTest extends TestCase {
 			'sessionIds' => ['lesson-thu'], 'eligibleCohortIds' => ['cohort-h4'], 'windowMode' => 'relative',
 			'opensDaysBefore' => 7, 'closesHoursBefore' => 12,
 		];
-		$objects = $this->createMock(ObjectService::class);
-		$objects->method('find')->willReturn(OrEntityFactory::make($offer, 'elective-offer'));
+		$objects = $this->createMock(originalClassName: ObjectService::class);
+		$objects->method('find')->willReturn(OrEntityFactory::make(data: $offer, schema: 'elective-offer'));
 		$objects->method('findAll')->willReturnCallback(
 			static fn (array $config): array => match ($config['filters']['schema'] ?? '') {
 				'elective-offer' => [$offer],
-				'session' => [['id' => 'lesson-thu', 'title' => 'Donderdag 15', 'startsAt' => '2026-10-15T10:15:00+02:00', 'endsAt' => '2026-10-15T11:05:00+02:00']],
+				'session' => [
+					['id' => 'lesson-thu', 'title' => 'Donderdag 15', 'startsAt' => '2026-10-15T10:15:00+02:00', 'endsAt' => '2026-10-15T11:05:00+02:00'],
+				],
 				'cohort' => [['id' => 'cohort-h4', 'learnerIds' => ['j.bakker', 't.smit']]],
 				'elective-sign-up' => $signUps,
 				default => [],
 			}
 		);
 
-		return new ElectiveBoard(new ElectiveService($objects));
+		return new ElectiveBoard(electives: new ElectiveService(objectService: $objects));
 	}//end thursdayBoard()
 
 	/**
@@ -144,18 +146,18 @@ class ElectiveBoardTest extends TestCase {
 	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/enrolment/spec.md#scenario-a-learner-withdraws-inside-the-window
 	 */
 	public function testALearnerWithdrawsInsideTheWindow(): void {
-		$now    = new DateTimeImmutable('2026-10-12T12:00:00+02:00');
+		$now    = new DateTimeImmutable(datetime: '2026-10-12T12:00:00+02:00');
 		$signUp = ['id' => 'su-9', 'offerId' => 'offer-2', 'sessionId' => 'lesson-thu', 'learnerId' => 'j.bakker', 'status' => 'signed-up'];
 
-		$before = $this->thursdayBoard(signUps: [$signUp])->forLearner('j.bakker', $now)[0]['lessons'][0];
-		self::assertSame(12, $before['freePlaces']);
-		self::assertSame('su-9', $before['mySignUpId'], 'signed up, so the screen offers Withdraw');
-		self::assertTrue($before['windowOpen']);
+		$before = $this->thursdayBoard(signUps: [$signUp])->forLearner(learnerId: 'j.bakker', now: $now)[0]['lessons'][0];
+		self::assertSame(expected: 12, actual: $before['freePlaces']);
+		self::assertSame(expected: 'su-9', actual: $before['mySignUpId'], message: 'signed up, so the screen offers Withdraw');
+		self::assertTrue(condition: $before['windowOpen']);
 
-		$after = $this->thursdayBoard(signUps: [array_merge($signUp, ['status' => 'withdrawn'])])->forLearner('j.bakker', $now)[0]['lessons'][0];
-		self::assertSame(13, $after['freePlaces'], 'the withdrawn sign-up frees its place');
-		self::assertNull($after['mySignUpId'], 'no sign-up of his, so the screen offers Sign up again');
-		self::assertTrue($after['windowOpen']);
+		$after = $this->thursdayBoard(signUps: [array_merge($signUp, ['status' => 'withdrawn'])])->forLearner(learnerId: 'j.bakker', now: $now)[0]['lessons'][0];
+		self::assertSame(expected: 13, actual: $after['freePlaces'], message: 'the withdrawn sign-up frees its place');
+		self::assertNull(actual: $after['mySignUpId'], message: 'no sign-up of his, so the screen offers Sign up again');
+		self::assertTrue(condition: $after['windowOpen']);
 	}//end testALearnerWithdrawsInsideTheWindow()
 
 	/**
@@ -166,10 +168,10 @@ class ElectiveBoardTest extends TestCase {
 	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/enrolment/spec.md#scenario-the-window-has-not-opened-yet
 	 */
 	public function testTheWindowHasNotOpenedYet(): void {
-		$lesson = $this->thursdayBoard(signUps: [])->forLearner('j.bakker', new DateTimeImmutable('2026-10-05T10:15:00+02:00'))[0]['lessons'][0];
+		$lesson = $this->thursdayBoard(signUps: [])->forLearner(learnerId: 'j.bakker', now: new DateTimeImmutable(datetime: '2026-10-05T10:15:00+02:00'))[0]['lessons'][0];
 
-		self::assertFalse($lesson['windowOpen'], 'no button while the window is closed');
-		self::assertSame('2026-10-08T10:15:00+02:00', $lesson['opensAt'], 'sign-up opens seven days before the lesson, three days from now');
-		self::assertNull($lesson['mySignUpId']);
+		self::assertFalse(condition: $lesson['windowOpen'], message: 'no button while the window is closed');
+		self::assertSame(expected: '2026-10-08T10:15:00+02:00', actual: $lesson['opensAt'], message: 'sign-up opens seven days before the lesson, three days from now');
+		self::assertNull(actual: $lesson['mySignUpId']);
 	}//end testTheWindowHasNotOpenedYet()
 }//end class
