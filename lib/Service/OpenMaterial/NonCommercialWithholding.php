@@ -59,6 +59,8 @@ class NonCommercialWithholding {
 	 * @param ObjectService         $objectService Reads the course and its materials, writes the mark.
 	 * @param CommercialCourseCheck $commercial    Tells whether the course is paid or corporate.
 	 * @param LoggerInterface       $logger        Logs reads and writes that fail.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#scenario-non-commercial-material-is-flagged-in-a-paid-course
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
@@ -139,6 +141,8 @@ class NonCommercialWithholding {
 	 * @param string               $reason   The reason it should carry.
 	 *
 	 * @return bool True when the material was written.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#scenario-non-commercial-material-is-flagged-in-a-paid-course
 	 */
 	private function apply(array $material, string $reason): bool {
 		$uuid = ($material['id'] ?? ($material['uuid'] ?? null));
@@ -179,6 +183,8 @@ class NonCommercialWithholding {
 	 * @param array<string, mixed> $config The findAll config without register and schema.
 	 *
 	 * @return array<string, mixed>|null The serialised row.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#scenario-non-commercial-material-is-flagged-in-a-paid-course
 	 */
 	private function first(string $schema, array $config): ?array {
 		return ($this->rows(schema: $schema, config: $config)[0] ?? null);
@@ -191,6 +197,8 @@ class NonCommercialWithholding {
 	 * @param array<string, mixed> $config The findAll config without register and schema.
 	 *
 	 * @return array<int, array<string, mixed>> The serialised rows.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#scenario-non-commercial-material-is-flagged-in-a-paid-course
 	 */
 	private function rows(string $schema, array $config): array {
 		$config['filters'] = array_merge(

@@ -49,6 +49,8 @@ final class ImportDecision {
 	 *
 	 * @param string $mode   link, copy or refused.
 	 * @param string $reason The reason code, such as `no-derivatives`.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#requirement-licence-rules-are-enforced-on-the-server
 	 */
 	public function __construct(
 		public readonly string $mode,

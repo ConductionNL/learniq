@@ -71,6 +71,8 @@ Code is generic (decision 182): no Edurep-specific class names outside the integ
 
 ## 6. Verify
 
-- [ ] 6.1 Diff check while building; one `composer check:strict` with openregister development beside it,
+- [x] 6.1 Diff check while building; one `composer check:strict` with openregister development beside it,
       `npm run lint`, vitest, build at the end; exit codes in the PR body.
-- [ ] 6.2 `@spec openspec/specs/open-learning-material/spec.md` on every changed method.
+  - Run 21 Nov 2026 on the 6.2 branch, exit codes in its PR body: diff check 1 (only the repo-wide tenant-class gate finding, inherited; no new phpmd), `composer check:strict` 1 with the same PHPUnit failing set as development (the unit bootstrap stubs OpenRegister, so a checkout beside it changes nothing), `npm run lint` 0, `npm run test:js-unit` 1 (9 inherited failures, none in open material), `npm run build` 0. 2.3 and 4.3 stay open.
+- [x] 6.2 `@spec openspec/specs/open-learning-material/spec.md` on every changed method.
+  - Every method of the change's PHP classes (`lib/Service/OpenMaterial/*`, `OpenMaterialController`, `NonCommercialWithholdingJob`, `NonCommercialWithholdingCascade`, `MaterialImportRefusedException`) and of its frontend (`src/components/openMaterial/*`, `OpenMaterialSearchModal.vue`, `src/services/openMaterial.js`, `OpenMaterialSettingsSection.vue`) now carries a tag; the ones that had none take the requirement their class already names. Vue `data()` initialisers carry none, as elsewhere in the app.

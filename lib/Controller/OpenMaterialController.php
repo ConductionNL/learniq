@@ -61,6 +61,8 @@ class OpenMaterialController extends Controller {
 	 * @param CallerActions             $caller  The user session and the action matrix.
 	 * @param OpenMaterialSearchInterface        $search  Searches the source.
 	 * @param OpenMaterialImportServiceInterface $imports Adds a record as a Material.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#requirement-the-search-panel-shows-results-with-facets-and-three-states
 	 */
 	public function __construct(
 		IRequest $request,
@@ -154,6 +156,8 @@ class OpenMaterialController extends Controller {
 	 * Refuse a search when nobody is signed in or the source is switched off.
 	 *
 	 * @return JSONResponse|null The refusal, or null to go on.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#requirement-the-search-panel-shows-results-with-facets-and-three-states
 	 */
 	private function deniedSearch(): ?JSONResponse {
 		if ($this->caller->userSession->getUser() === null) {
@@ -173,6 +177,8 @@ class OpenMaterialController extends Controller {
 	 * @param IUser|null $user The caller.
 	 *
 	 * @return JSONResponse|null The refusal, or null to go on.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#requirement-the-search-panel-shows-results-with-facets-and-three-states
 	 */
 	private function deniedImport(?IUser $user): ?JSONResponse {
 		$denied = $this->deniedSearch();
@@ -195,6 +201,8 @@ class OpenMaterialController extends Controller {
 	 * @param callable(): array<string, mixed> $call The call.
 	 *
 	 * @return JSONResponse The answer.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#requirement-the-search-panel-shows-results-with-facets-and-three-states
 	 */
 	private function answered(callable $call): JSONResponse {
 		try {
@@ -214,6 +222,8 @@ class OpenMaterialController extends Controller {
 	 * The search request from the query string.
 	 *
 	 * @return array<string, mixed> query, page, filters, includeCollectionsOff and facets.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#requirement-the-search-panel-shows-results-with-facets-and-three-states
 	 */
 	private function searchRequest(): array {
 		$request = ['query' => (string)$this->request->getParam('query', ''), 'page' => (int)$this->request->getParam('page', 1)];
@@ -231,6 +241,8 @@ class OpenMaterialController extends Controller {
 	 * The add request from the body: only the record id, the target and the mode.
 	 *
 	 * @return array<string, string> sourceId, lessonId, courseId and mode.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#requirement-the-search-panel-shows-results-with-facets-and-three-states
 	 */
 	private function addRequest(): array {
 		$request = [];
@@ -248,6 +260,8 @@ class OpenMaterialController extends Controller {
 	 * @param int    $status  The HTTP status.
 	 *
 	 * @return JSONResponse The answer.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#requirement-the-search-panel-shows-results-with-facets-and-three-states
 	 */
 	private function error(string $message, int $status): JSONResponse {
 		return new JSONResponse(data: ['error' => $message], statusCode: $status);

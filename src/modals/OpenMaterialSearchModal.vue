@@ -241,6 +241,8 @@ export default {
 		 *
 		 * @param {boolean} keepFacets Whether the current counts stay.
 		 * @return {Promise<void>}
+		 *
+		 * @spec openspec/specs/open-learning-material/spec.md#requirement-the-search-panel-shows-results-with-facets-and-three-states
 		 */
 		async showSearch(keepFacets) {
 			const found = await searchMaterial(axios, generateUrl, { ...this.$data, facets: !keepFacets })
@@ -337,6 +339,8 @@ export default {
 		/**
 		 * @param {string} value A licence.
 		 * @return {string} Its label, or that it is no open licence.
+		 *
+		 * @spec openspec/specs/open-learning-material/spec.md#requirement-the-search-panel-shows-results-with-facets-and-three-states
 		 */
 		licenceFacetLabel(value) {
 			return licenceLabel(value) || this.t('learniq', 'No open licence')
@@ -345,6 +349,8 @@ export default {
 		/**
 		 * @param {string} value A collection.
 		 * @return {string} Its name; KlasCement is named as Flemish.
+		 *
+		 * @spec openspec/specs/open-learning-material/spec.md#requirement-the-search-panel-shows-results-with-facets-and-three-states
 		 */
 		collectionFacetLabel(value) {
 			return value === 'KlasCement' ? this.t('learniq', 'KlasCement (Flanders)') : collectionName(value)
@@ -353,6 +359,8 @@ export default {
 		/**
 		 * @param {string} value A format.
 		 * @return {string} Its name, in words for a webpage or a video.
+		 *
+		 * @spec openspec/specs/open-learning-material/spec.md#requirement-the-search-panel-shows-results-with-facets-and-three-states
 		 */
 		formatFacetLabel(value) {
 			return { webpage: this.t('learniq', 'Webpage'), video: this.t('learniq', 'Video') }[formatName(value)] || formatName(value)

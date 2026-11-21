@@ -50,6 +50,8 @@ class MaterialLicenceRules {
 	 * Constructor.
 	 *
 	 * @param LicenceTerms $terms Reads what a licence code allows.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#requirement-licence-rules-are-enforced-on-the-server
 	 */
 	public function __construct(
 		private readonly LicenceTerms $terms = new LicenceTerms(),
@@ -100,6 +102,8 @@ class MaterialLicenceRules {
 	 * @param array<int, string>   $linkCollections Link-allowed collections.
 	 *
 	 * @return ImportDecision The decision.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#requirement-licence-rules-are-enforced-on-the-server
 	 */
 	private function baseDecision(array $record, array $linkCollections): ImportDecision {
 		$licence = (string)($record['license'] ?? 'unknown');
@@ -129,6 +133,8 @@ class MaterialLicenceRules {
 	 * @param array<int, string>   $linkCollections Link-allowed collections.
 	 *
 	 * @return ImportDecision The decision.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#requirement-licence-rules-are-enforced-on-the-server
 	 */
 	private function withoutOpenLicence(array $record, array $linkCollections): ImportDecision {
 		if ($this->isClosed(accessRights: $record['accessRights'] ?? null) === true) {
@@ -149,6 +155,8 @@ class MaterialLicenceRules {
 	 * @param array<string, mixed> $record The record, for its access rights and type.
 	 *
 	 * @return bool True when the file may land in Nextcloud.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#requirement-licence-rules-are-enforced-on-the-server
 	 */
 	private function isCopyable(array $file, array $record): bool {
 		$access = ($file['accessRights'] ?? $record['accessRights'] ?? null);
@@ -166,6 +174,8 @@ class MaterialLicenceRules {
 	 * @param mixed $accessRights The record's access rights.
 	 *
 	 * @return bool True for restricted or closed access.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#requirement-licence-rules-are-enforced-on-the-server
 	 */
 	private function isClosed(mixed $accessRights): bool {
 		return in_array($accessRights, self::CLOSED_ACCESS, true) === true;

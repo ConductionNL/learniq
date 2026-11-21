@@ -65,6 +65,8 @@ class NonCommercialWithholdingCascade implements IEventListener {
 	 * @param ListenerDeferralService         $deferral       Queues the sync for after the request.
 	 *
 	 * @return void
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#scenario-non-commercial-material-is-flagged-in-a-paid-course
 	 */
 	public function __construct(
 		private readonly ListenerSchemaResolverInterface $schemaResolver,
@@ -120,6 +122,8 @@ class NonCommercialWithholdingCascade implements IEventListener {
 	 * @param Event $event The dispatched event.
 	 *
 	 * @return array<int, ObjectEntity> The entities, empty for another event.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#scenario-non-commercial-material-is-flagged-in-a-paid-course
 	 */
 	private function entitiesOf(Event $event): array {
 		if ($event instanceof ObjectUpdatedEvent === true) {
@@ -140,6 +144,8 @@ class NonCommercialWithholdingCascade implements IEventListener {
 	 * @param string|null  $property The property naming the course; null when the object is the course.
 	 *
 	 * @return string The course UUID, or '' when there is none.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#scenario-non-commercial-material-is-flagged-in-a-paid-course
 	 */
 	private function courseIdOf(ObjectEntity $entity, ?string $property): string {
 		if ($property === null) {

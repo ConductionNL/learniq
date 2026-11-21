@@ -38,6 +38,8 @@ class MaterialFromRecord {
 	 * Constructor.
 	 *
 	 * @param LicenceTerms $terms Reads what a licence code allows.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#requirement-material-carries-its-source-and-attribution
 	 */
 	public function __construct(
 		private readonly LicenceTerms $terms = new LicenceTerms(),

@@ -217,6 +217,8 @@ export function resultNote(record) {
  *
  * @param {object} record A search result with its server decision.
  * @return {string} nd-nc, nd, nc or ''.
+ *
+ * @spec openspec/specs/open-learning-material/spec.md#requirement-licence-rules-are-enforced-on-the-server
  */
 function licenceNote(record) {
 	const tone = licenceTone(record?.license)
@@ -233,6 +235,8 @@ function licenceNote(record) {
  * @param {Array<{value: string, count: number}>} entries The facet entries.
  * @param {function(string): string} nameOf The row a value belongs to.
  * @return {Array<{value: string, values: Array<string>, count: number, filterable: boolean}>} The rows.
+ *
+ * @spec openspec/specs/open-learning-material/spec.md#requirement-the-search-panel-shows-results-with-facets-and-three-states
  */
 function mergedRows(entries, nameOf) {
 	const rows = new Map()
@@ -307,6 +311,8 @@ const FILTER_LISTS = ['levels', 'excludeLicenses', 'excludeFormats', 'excludeCol
  *
  * @param {object} state The search state.
  * @return {object} The lists by parameter name.
+ *
+ * @spec openspec/specs/open-learning-material/spec.md#requirement-the-search-panel-shows-results-with-facets-and-three-states
  */
 function chosenFilterLists(state) {
 	return Object.fromEntries(FILTER_LISTS.map((key) => [key, state[key] || []]))

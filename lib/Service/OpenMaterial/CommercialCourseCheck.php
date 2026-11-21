@@ -45,6 +45,8 @@ class CommercialCourseCheck {
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService Reads the course's fee items.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#scenario-non-commercial-material-is-flagged-in-a-paid-course
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
@@ -80,6 +82,8 @@ class CommercialCourseCheck {
 	 * @param string $courseId The course UUID.
 	 *
 	 * @return array<int, array<string, mixed>> The serialised fee items.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#scenario-non-commercial-material-is-flagged-in-a-paid-course
 	 */
 	private function feeItems(string $courseId): array {
 		if ($courseId === '') {
@@ -100,6 +104,8 @@ class CommercialCourseCheck {
 	 * @param mixed $row The row.
 	 *
 	 * @return array<string, mixed> The serialised row.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#scenario-non-commercial-material-is-flagged-in-a-paid-course
 	 */
 	private function rowOf(mixed $row): array {
 		if (is_object($row) === true && method_exists($row, 'jsonSerialize') === true) {
@@ -115,6 +121,8 @@ class CommercialCourseCheck {
 	 * @param array<string, mixed> $fee The serialised fee item.
 	 *
 	 * @return bool True when a learner must pay for the course.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#scenario-non-commercial-material-is-flagged-in-a-paid-course
 	 */
 	private function chargesForTheCourse(array $fee): bool {
 		return in_array(($fee['kind'] ?? null), self::COURSE_FEE_KINDS, true) === true

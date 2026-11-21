@@ -63,6 +63,8 @@ class OpenMaterialImportService implements OpenMaterialImportServiceInterface {
 	 * @param MaterialImportTarget     $targets       Resolves the lesson or course.
 	 * @param ObjectService            $objectService Writes the Material.
 	 * @param MaterialFromRecord       $materials     Builds the Material from the record.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#requirement-licence-rules-are-enforced-on-the-server
 	 */
 	public function __construct(
 		private readonly OpenMaterialSourceClient $client,
@@ -118,6 +120,8 @@ class OpenMaterialImportService implements OpenMaterialImportServiceInterface {
 	 * @return array<string, mixed> The normalised record.
 	 *
 	 * @throws MaterialImportRefusedException When the source has no such record.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#requirement-licence-rules-are-enforced-on-the-server
 	 */
 	private function record(string $sourceId): array {
 		$record = null;
@@ -141,6 +145,8 @@ class OpenMaterialImportService implements OpenMaterialImportServiceInterface {
 	 * @return ImportDecision The decision to carry out.
 	 *
 	 * @throws MaterialImportRefusedException When the add is refused.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#requirement-licence-rules-are-enforced-on-the-server
 	 */
 	private function decision(array $record, array $request): ImportDecision {
 		$decision = $this->offered(decision: $this->rules->decide(record: $record, linkCollections: $this->settings->linkCollections()));
@@ -164,6 +170,8 @@ class OpenMaterialImportService implements OpenMaterialImportServiceInterface {
 	 * @return ImportDecision The decision to carry out.
 	 *
 	 * @throws MaterialImportRefusedException When a copy is asked for a link-only record.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#requirement-licence-rules-are-enforced-on-the-server
 	 */
 	private function narrowed(ImportDecision $decision, string $mode): ImportDecision {
 		if ($mode === ImportDecision::COPY && $decision->mode === ImportDecision::LINK) {
@@ -179,6 +187,8 @@ class OpenMaterialImportService implements OpenMaterialImportServiceInterface {
 	 * @param string $reason The rules' reason for the link.
 	 *
 	 * @return string no-derivatives or link-only.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#requirement-licence-rules-are-enforced-on-the-server
 	 */
 	private function linkOnlyReason(string $reason): string {
 		if ($reason === 'no-derivatives') {
@@ -195,6 +205,8 @@ class OpenMaterialImportService implements OpenMaterialImportServiceInterface {
 	 * @param ImportDecision $decision The rules' decision.
 	 *
 	 * @return ImportDecision The decision to offer.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#requirement-licence-rules-are-enforced-on-the-server
 	 */
 	private function offered(ImportDecision $decision): ImportDecision {
 		if ($decision->mode !== ImportDecision::COPY) {
@@ -212,6 +224,8 @@ class OpenMaterialImportService implements OpenMaterialImportServiceInterface {
 	 * @param array<string, mixed> $material The Material object.
 	 *
 	 * @return array<string, mixed> The saved Material.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#requirement-licence-rules-are-enforced-on-the-server
 	 */
 	private function save(array $material): array {
 		return $this->objectService->saveObject(
@@ -228,6 +242,8 @@ class OpenMaterialImportService implements OpenMaterialImportServiceInterface {
 	 * @return never
 	 *
 	 * @throws MaterialImportRefusedException Always.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#requirement-licence-rules-are-enforced-on-the-server
 	 */
 	private function refuse(string $code): never {
 		throw new MaterialImportRefusedException(reasonCode: $code, reason: (self::REASONS[$code] ?? 'This material cannot be added.'));
