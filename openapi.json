@@ -428,6 +428,10 @@
             "description": "The pupil list endpoint."
         },
         {
+            "name": "today-first",
+            "description": "The First today card of the signed-in user."
+        },
+        {
             "name": "portal-elective",
             "description": "Receives portaliq's optional-lesson sign-up forward for one pupil."
         }
@@ -8779,6 +8783,52 @@
                 "description": "The pupils of a group, as list rows with the saved views' counts. Needs a signed-in Nextcloud user.",
                 "tags": [
                     "pupil-list"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The request succeeded.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    },
+                    "503": {
+                        "$ref": "#/components/responses/Problem503"
+                    }
+                }
+            }
+        },
+        "/today/first": {
+            "get": {
+                "operationId": "today-first-show",
+                "summary": "The First today card: the first rule of the user's role that has a row",
+                "description": "The First today card of the signed-in user: the first rule of her role's ordered list that has a row, with its count and what the card names, or rule null when nothing is first. Query parameter view: '' or mentor. Needs a signed-in Nextcloud user.",
+                "tags": [
+                    "today-first"
+                ],
+                "parameters": [
+                    {
+                        "name": "view",
+                        "in": "query",
+                        "required": false,
+                        "description": "The view: empty for the user's own role, mentor for the Mentor view.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "",
+                                "mentor"
+                            ]
+                        }
+                    }
                 ],
                 "responses": {
                     "200": {

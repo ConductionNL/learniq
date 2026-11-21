@@ -408,6 +408,8 @@ return \OCA\Learniq\Middleware\Support\ApiPathAliases::withVersionedAliases([
         ['name' => 'pupilConversation#show', 'url' => '/api/pupils/{learnerId}/conversation', 'verb' => 'GET'],
         ['name' => 'pupilConversation#reply', 'url' => '/api/pupils/{learnerId}/conversation', 'verb' => 'POST'],
         ['name' => 'pupilList#index', 'url' => '/api/pupil-list', 'verb' => 'GET'],
+        // The First today card (today-first-per-school-role T1) of the signed-in user (the first rule of her role's ordered list that has a row).
+        ['name' => 'todayFirst#show', 'url' => '/api/today/first', 'verb' => 'GET'],
         // Course catalogue (enrolment-catalogue-self-signup): the signed-in
         // learner lists what they may sign up for, signs up for a course or a
         // programme, and withdraws an own sign-up; every write is for the

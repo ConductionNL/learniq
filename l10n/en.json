@@ -5930,7 +5930,8 @@
         "Activity": "Activity",
         "Open for sign-up": "Open for sign-up",
         "The activity is open for sign-up.": "The activity is open for sign-up.",
-        "Only the staff who run the school's activities see them.": "Only the staff who run the school's activities see them."
+        "Only the staff who run the school's activities see them.": "Only the staff who run the school's activities see them.",
+        "What comes first today could not be read. Try again.": "What comes first today could not be read. Try again."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

@@ -6359,7 +6359,8 @@ OC.L10N.register(
         "Activity": "Activiteit",
         "Open for sign-up": "Openzetten voor aanmelden",
         "The activity is open for sign-up.": "De activiteit staat open voor aanmelden.",
-        "Only the staff who run the school's activities see them.": "Alleen medewerkers die de activiteiten van de school verzorgen zien ze."
+        "Only the staff who run the school's activities see them.": "Alleen medewerkers die de activiteiten van de school verzorgen zien ze.",
+        "What comes first today could not be read. Try again.": "Wat vandaag eerst komt kon niet worden gelezen. Probeer het opnieuw."
     },
     "nplurals=2; plural=(n != 1);"
 )
