@@ -297,6 +297,65 @@ class AssessmentDrawResolverTest extends TestCase {
 	}//end testRandomDrawDrawsConfiguredCountFromFilteredPool()
 
 	/**
+	 * Two learners starting the same random-draw test each get their own five
+	 * items from a pool of twenty: every attempt stores its own set, and the
+	 * sets are drawn independently, so over ten pairs they do not always match.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/assessment/spec.md#requirement-each-learner-gets-their-own-random-draw-from-the-item-pool
+	 */
+	public function testTwoLearnersEachGetTheirOwnDraw(): void {
+		$this->seed(
+			'exam',
+			[
+				'id' => 'assessment-1',
+				'uuid' => 'assessment-1',
+				'tenant_id' => 'tenant-a',
+				'itemSelectionMode' => 'random-draw',
+				'itemPoolConfig' => ['itemBankId' => 'bank-1', 'drawCount' => 5],
+				'shuffleItemOrder' => false,
+				'shuffleAnswerOptions' => false,
+			]
+		);
+		$pool = [];
+		for ($i = 1; $i <= 20; $i++) {
+			$pool[] = "item-$i";
+			$this->seed(
+				'item',
+				['id' => "item-$i", 'uuid' => "item-$i", 'tenant_id' => 'tenant-a', 'itemBankId' => 'bank-1', 'lifecycle' => 'published', 'maxScore' => 1]
+			);
+		}
+
+		$pairsThatDiffer = 0;
+		for ($pair = 0; $pair < 10; $pair++) {
+			$sets = [];
+			foreach (['learner-a', 'learner-b'] as $learner) {
+				$this->savedObjects = [];
+				$this->makeResolver()->handle(
+					$this->makeResultEvent(
+						['id' => "result-$pair-$learner", 'assessmentId' => 'assessment-1', 'learnerId' => $learner, 'tenant_id' => 'tenant-a']
+					)
+				);
+				$drawn = $this->savedDrawnItemRefs();
+				self::assertIsArray($drawn, 'every attempt stores its own drawnItemRefs');
+				$ids = array_column($drawn, 'itemId');
+				self::assertCount(5, $ids);
+				self::assertSame($ids, array_values(array_unique($ids)));
+				self::assertSame([], array_diff($ids, $pool));
+				sort($ids);
+				$sets[] = $ids;
+			}
+
+			if ($sets[0] !== $sets[1]) {
+				$pairsThatDiffer++;
+			}
+		}
+
+		self::assertGreaterThan(0, $pairsThatDiffer, 'ten pairs of independent draws of 5 from 20 never all match');
+	}//end testTwoLearnersEachGetTheirOwnDraw()
+
+	/**
 	 * A drawn set never includes two items from the same variant group —
 	 * repeated draws always contain at most one of A/B.
 	 *

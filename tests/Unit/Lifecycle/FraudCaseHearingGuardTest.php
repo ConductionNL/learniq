@@ -79,4 +79,41 @@ class FraudCaseHearingGuardTest extends TestCase {
 		self::assertDenied($this->makeGuard()->check($object, 'scheduleHearing', ''));
 
 	}//end testBlankHearingDateBlocks()
+
+	/**
+	 * The register's FraudCase lifecycle runs reported, hearing-scheduled
+	 * (this guard on the way in) and then heard.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/exam-board/spec.md#requirement-a-fraud-case-moves-from-report-to-a-scheduled-and-held-hearing
+	 */
+	public function testAHearingIsScheduledAndThenHeld(): void {
+		$register    = json_decode((string)file_get_contents(__DIR__.'/../../../lib/Settings/learniq_register.json'), true);
+		$lifecycle   = $register['components']['schemas']['FraudCase']['x-openregister-lifecycle'];
+		$transitions = $lifecycle['transitions'];
+
+		self::assertSame('reported', $lifecycle['initial']);
+		self::assertSame(['reported', 'hearing-scheduled'], [$transitions['scheduleHearing']['from'], $transitions['scheduleHearing']['to']]);
+		self::assertSame(FraudCaseHearingGuard::class, $transitions['scheduleHearing']['requires']);
+		self::assertSame(['hearingDate'], array_column($transitions['scheduleHearing']['inputs'], 'field'));
+		self::assertSame(['hearing-scheduled', 'heard'], [$transitions['holdHearing']['from'], $transitions['holdHearing']['to']]);
+
+		$scheduled = ['id' => 'case-1', 'hearingDate' => '2027-03-14T10:00:00Z', 'lifecycle' => 'hearing-scheduled'];
+		self::assertAllowed($this->makeGuard()->check($scheduled, 'scheduleHearing', 'board-1'));
+	}//end testAHearingIsScheduledAndThenHeld()
+
+	/**
+	 * Scheduling without a date is refused with a message that the hearing needs one.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/exam-board/spec.md#requirement-a-fraud-case-moves-from-report-to-a-scheduled-and-held-hearing
+	 */
+	public function testAHearingWithoutADateIsRefusedInWords(): void {
+		$verdict = $this->makeGuard()->check(['id' => 'case-1', 'lifecycle' => 'hearing-scheduled'], 'scheduleHearing', 'board-1');
+
+		self::assertFalse($verdict->isAllowed());
+		self::assertSame('A hearing date is needed to schedule the hearing.', $verdict->getMessage());
+	}//end testAHearingWithoutADateIsRefusedInWords()
 }//end class
