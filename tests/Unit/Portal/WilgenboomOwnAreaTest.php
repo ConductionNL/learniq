@@ -1,0 +1,96 @@
+<?php
+
+/**
+ * De Wilgenboom's own area: the menu, the phone chrome and the e-mail prompt as its boards draw them.
+ *
+ * @category Tests
+ * @package  OCA\Learniq\Tests\Unit\Portal
+ *
+ * @author    Conduction Development Team <dev@conduction.nl>
+ * @copyright 2026 Conduction B.V.
+ * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * SPDX-License-Identifier: EUPL-1.2
+ *
+ * @version GIT: <git-id>
+ *
+ * @link https://conduction.nl
+ *
+ * @spec openspec/changes/wilgenboom-own-area-menu/specs/example-sets/spec.md
+ */
+
+declare(strict_types=1);
+
+namespace OCA\Learniq\Tests\Unit\Portal;
+
+use OCA\Learniq\Portal\ExamplePortalDeclarations;
+use OCA\Learniq\Portal\PortalContributionProvider;
+use PHPUnit\Framework\TestCase;
+
+/**
+ * Reads the shipped lib/Settings/portals/po.json and the guardian's real manifest.
+ */
+class WilgenboomOwnAreaTest extends TestCase {
+
+	/**
+	 * The portal record of the po declaration.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private static function portal(): array {
+		$declaration = (new ExamplePortalDeclarations())->forSet(setId: 'po');
+		self::assertNotNull(actual: $declaration);
+		return $declaration['portal'];
+	}//end portal()
+
+	/**
+	 * The menu follows board MijnMenu: five groups in its order, "Berichten"
+	 * for the conversations, and every learniq page it names exists in the
+	 * guardian's manifest.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/wilgenboom-own-area-menu/specs/example-sets/spec.md#requirement-the-wilgenboom-own-area-follows-its-menu-and-phone-boards
+	 */
+	public function testTheMenuFollowsTheBoard(): void {
+		$menu = self::portal()['residentMenu'];
+		self::assertSame(
+			expected: ['Mijn Wilgenboom', 'Mijn kinderen', 'Regelen', 'Van school', 'Uw gegevens'],
+			actual: array_column($menu['groups'], 'title')
+		);
+		self::assertSame(expected: ['item' => 'messages', 'label' => 'Berichten'], actual: $menu['groups'][0]['items'][1]);
+		self::assertSame(expected: ['berichten' => 'messages'], actual: $menu['routes']);
+		self::assertContains(needle: 'inbox', haystack: $menu['leaveOut'], message: 'the school messages stand on the conversations page');
+
+		$manifest = (new PortalContributionProvider())->getContribution(['audience' => 'parent']);
+		$pages    = array_column($manifest['pages'], 'id');
+		foreach ($menu['groups'] as $group) {
+			foreach ($group['items'] as $item) {
+				$name = $item;
+				if (is_array($item) === true) {
+					$name = $item['item'];
+				}
+
+				if (str_starts_with($name, 'learniq:') === true) {
+					self::assertContains(needle: substr($name, 8), haystack: $pages, message: $name . ' is a page of the guardian');
+				}
+			}
+		}
+	}//end testTheMenuFollowsTheBoard()
+
+	/**
+	 * On a phone the header shows Fatima's initials and the page ends in the
+	 * short footer (board MobielHome); no board shows the e-mail prompt.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/wilgenboom-own-area-menu/specs/example-sets/spec.md#requirement-the-wilgenboom-own-area-follows-its-menu-and-phone-boards
+	 */
+	public function testThePhoneChromeAndThePrompt(): void {
+		$portal = self::portal();
+		self::assertSame(expected: 'person', actual: $portal['residentMenu']['phoneHeader']);
+		self::assertSame(expected: 'Telefoon: [telefoonnummer]', actual: $portal['footer']['compact']['text']);
+		self::assertSame(expected: ['Toegankelijkheid', 'Privacy'], actual: array_column($portal['footer']['compact']['links'], 'label'));
+		self::assertSame(expected: ['show' => false], actual: $portal['contactPrompt']);
+	}//end testThePhoneChromeAndThePrompt()
+}//end class
