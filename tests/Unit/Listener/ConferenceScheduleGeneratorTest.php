@@ -515,4 +515,55 @@ class ConferenceScheduleGeneratorTest extends TestCase {
 		$generator->handle($this->makeEvent(['id' => 'round-d', 'bookingMode' => 'direct', 'slotDurationMinutes' => 10]));
 
 	}//end testADirectRoundIsNotPlanned()
+
+	/**
+	 * The generator walks a signup's teachers in the order the guardian asked
+	 * for them: the first teacher of `requestedTeacherIds` gets the earliest
+	 * slot, and the next one the first slot after it.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/parent-conferences/spec.md#requirement-a-guardian-chooses-which-teachers-they-want-to-speak-to-in-a-signup
+	 */
+	public function testTheGeneratorWalksTheRequestedTeachersInOrder(): void {
+		$block = [['startsAt' => '2026-09-01T09:00:00+00:00', 'endsAt' => '2026-09-01T09:20:00+00:00']];
+		$this->fixtures['teacher-availability'] = [
+			['id' => 'ta-mentor', 'conferenceRoundId' => 'round-1', 'lifecycle' => 'submitted', 'teacherId' => 'mentor', 'blocks' => $block],
+			['id' => 'ta-maths', 'conferenceRoundId' => 'round-1', 'lifecycle' => 'submitted', 'teacherId' => 'maths', 'blocks' => $block],
+		];
+		$this->fixtures['conference-slot'] = [];
+		$round = ['id' => 'round-1', 'tenant_id' => 'tenant-a', 'slotDurationMinutes' => 10, 'bufferMinutes' => 0];
+
+		$startsPerOrder = [];
+		foreach ([['mentor', 'maths'], ['maths', 'mentor']] as $order) {
+			$this->savedObjects = [];
+			$this->fixtures['conference-signup'] = [
+				[
+					'id' => 'signup-vera', 'conferenceRoundId' => 'round-1', 'lifecycle' => 'submitted', 'learnerId' => 'vera',
+					'requestedTeacherIds' => $order, 'createdAt' => '2026-08-01T08:00:00+00:00',
+				],
+			];
+
+			$this->makeGenerator()->handle(event: $this->makeEvent(roundData: $round));
+
+			$slots = $this->savedSlots();
+			self::assertSame(expected: $order, actual: array_column(array: $slots, column_key: 'teacherId'), message: 'the slots follow the order asked for');
+			$startsPerOrder[implode(separator: ',', array: $order)] = array_combine(
+				keys: array_column(array: $slots, column_key: 'teacherId'),
+				values: array_column(array: $slots, column_key: 'startsAt')
+			);
+		}
+
+		self::assertSame(
+			expected: '2026-09-01T09:00:00+00:00',
+			actual: $startsPerOrder['mentor,maths']['mentor'],
+			message: 'the mentor, asked first, gets the earliest slot'
+		);
+		self::assertSame(
+			expected: '2026-09-01T09:00:00+00:00',
+			actual: $startsPerOrder['maths,mentor']['maths'],
+			message: 'the maths teacher, asked first, gets it'
+		);
+		self::assertNotSame(expected: $startsPerOrder['mentor,maths']['maths'], actual: $startsPerOrder['mentor,maths']['mentor']);
+	}//end testTheGeneratorWalksTheRequestedTeachersInOrder()
 }//end class
