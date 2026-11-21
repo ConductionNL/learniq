@@ -111,6 +111,13 @@ class CredentialIssuanceHandlerTest extends TestCase {
 	private array $warnings = [];
 
 	/**
+	 * Errors the handler logged, as [message, context].
+	 *
+	 * @var array<int, array{0: string, 1: array<string, mixed>}>
+	 */
+	private array $errors = [];
+
+	/**
 	 * PEM private key of the test tenant.
 	 *
 	 * @var string
@@ -147,6 +154,7 @@ class CredentialIssuanceHandlerTest extends TestCase {
 		$this->publicKeyPem = (string)$details['key'];
 		$this->saved = [];
 		$this->warnings = [];
+		$this->errors = [];
 		$this->learnerHasProfile = true;
 		$this->courseExtra = [];
 		$this->regulations = [];
@@ -302,6 +310,47 @@ class CredentialIssuanceHandlerTest extends TestCase {
 	}//end testNoCredentialIsSavedWhenTheTenantHasNoSigningKey()
 
 	/**
+	 * Completing the enrolment issues the certificate with no staff action: the
+	 * credential is saved as issued (the Credential lifecycle's initial state,
+	 * which the handler does not override) at the moment the enrolment completed.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/certification/spec.md#requirement-completing-a-course-issues-its-certificate-without-a-staff-action
+	 */
+	public function testTheCertificateIsIssuedAtTheCompletionMoment(): void {
+		$json      = (string)file_get_contents(filename: __DIR__.'/../../../lib/Settings/learniq_register.json');
+		$register  = json_decode(json: $json, associative: true);
+		$lifecycle = $register['components']['schemas']['Credential']['x-openregister-lifecycle'];
+		self::assertSame(expected: 'issued', actual: $lifecycle['initial']);
+
+		$this->buildHandler(tenantHasKey: true)->handle(event: $this->completionEvent());
+
+		self::assertCount(expectedCount: 1, haystack: $this->saved);
+		$credential = $this->saved[0]['object'];
+		self::assertArrayNotHasKey(key: 'lifecycle', array: $credential, message: 'The state is left to the initial issued.');
+		self::assertSame(expected: $this->completedAt, actual: $credential['issuedAt']);
+		self::assertSame(expected: 'auto', actual: $credential['source']);
+		self::assertSame(expected: 'certificate', actual: $credential['kind']);
+	}//end testTheCertificateIsIssuedAtTheCompletionMoment()
+
+	/**
+	 * Without a signing key nothing is saved and the log names the missing key.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/certification/spec.md#requirement-completing-a-course-issues-its-certificate-without-a-staff-action
+	 */
+	public function testWithoutASigningKeyTheLogNamesTheMissingKey(): void {
+		$this->buildHandler(tenantHasKey: false)->handle(event: $this->completionEvent());
+
+		self::assertSame(expected: [], actual: $this->saved);
+		self::assertCount(expectedCount: 1, haystack: $this->errors);
+		self::assertStringContainsString(needle: 'signing key', haystack: $this->errors[0][0]);
+		self::assertSame(expected: self::TENANT, actual: $this->errors[0][1]['tenant']);
+	}//end testWithoutASigningKeyTheLogNamesTheMissingKey()
+
+	/**
 	 * The credential names the learner by LearnerProfile uuid, as its schema
 	 * declares, and carries the Nextcloud user id as learnerUserId. Red before
 	 * the fix: the enrolment's user id was copied into learnerId, which fails
@@ -355,7 +404,7 @@ class CredentialIssuanceHandlerTest extends TestCase {
 	}//end testNoCredentialIsIssuedToALearnerWithoutAProfile()
 
 	/**
-	 * A logger that records warnings.
+	 * A logger that records warnings and errors.
 	 *
 	 * @return LoggerInterface
 	 */
@@ -364,6 +413,11 @@ class CredentialIssuanceHandlerTest extends TestCase {
 		$logger->method('warning')->willReturnCallback(
 			function (string|\Stringable $message, array $context = []): void {
 				$this->warnings[] = [(string)$message, $context];
+			}
+		);
+		$logger->method('error')->willReturnCallback(
+			function (string|\Stringable $message, array $context = []): void {
+				$this->errors[] = [(string)$message, $context];
 			}
 		);
 

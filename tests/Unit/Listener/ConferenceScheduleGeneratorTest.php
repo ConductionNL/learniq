@@ -272,6 +272,52 @@ class ConferenceScheduleGeneratorTest extends TestCase {
 	}//end testConflictFreeGenerationAcrossTeachersAndSignups()
 
 	/**
+	 * A teacher's availability that is still draft makes no slot: only the
+	 * submitted one is planned, and a signup for the draft teacher waits.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/parent-conferences/spec.md#requirement-a-teacher-enters-and-submits-their-own-free-times-for-a-conference-round
+	 */
+	public function testADraftAvailabilityIsNotUsed(): void {
+		$block = [['startsAt' => '2026-11-12T18:00:00+01:00', 'endsAt' => '2026-11-12T20:00:00+01:00']];
+		$this->fixtures['teacher-availability'] = [
+			['id' => 'ta-sent', 'conferenceRoundId' => 'round-1', 'lifecycle' => 'submitted', 'teacherId' => 'teacher-a', 'blocks' => $block],
+			['id' => 'ta-draft', 'conferenceRoundId' => 'round-1', 'lifecycle' => 'draft', 'teacherId' => 'teacher-b', 'blocks' => $block],
+		];
+		$this->fixtures['conference-signup'] = [
+			[
+				'id' => 'signup-a',
+				'conferenceRoundId' => 'round-1',
+				'lifecycle' => 'submitted',
+				'learnerId' => 'learner-1',
+				'requestedTeacherIds' => ['teacher-a'],
+				'createdAt' => '2026-11-01T08:00:00+00:00',
+			],
+			[
+				'id' => 'signup-b',
+				'conferenceRoundId' => 'round-1',
+				'lifecycle' => 'submitted',
+				'learnerId' => 'learner-2',
+				'requestedTeacherIds' => ['teacher-b'],
+				'createdAt' => '2026-11-01T08:01:00+00:00',
+			],
+		];
+		$this->fixtures['conference-slot'] = [];
+		$round = ['id' => 'round-1', 'tenant_id' => 'tenant-a', 'slotDurationMinutes' => 10, 'bufferMinutes' => 0];
+
+		$this->makeGenerator()->handle(event: $this->makeEvent(roundData: $round));
+
+		$slots = $this->savedSlots();
+		self::assertCount(expectedCount: 1, haystack: $slots);
+		self::assertSame(expected: 'teacher-a', actual: $slots[0]['teacherId']);
+
+		$byId = array_column(array: $this->savedSignups(), column_key: null, index_key: 'id');
+		self::assertSame(expected: 'scheduled', actual: $byId['signup-a']['lifecycle']);
+		self::assertSame(expected: 'waitlisted', actual: $byId['signup-b']['lifecycle']);
+	}//end testADraftAvailabilityIsNotUsed()
+
+	/**
 	 * `regenerate` after a signup cancellation frees exactly that signup's
 	 * minutes (the freed interval is reused by a still-waitlisted signup
 	 * requesting the same teacher) and leaves `confirmed` slots for other
