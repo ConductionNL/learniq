@@ -128,6 +128,56 @@ class TenantSignatureActionTest extends TestCase {
 	}//end testARevocationReasonIsLeftOutOfTheSignature()
 
 	/**
+	 * A negative study decision is signed on decide and keeps the credits and
+	 * warnings it rests on: the decided record stores 38 against 45 and [w1],
+	 * and a later change to any of them breaks the signature.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/study-progress/spec.md#requirement-a-decided-study-decision-keeps-the-credits-and-warnings-it-rests-on
+	 */
+	public function testADecidedStudyDecisionKeepsItsCreditsAndWarnings(): void {
+		$json     = (string)file_get_contents(filename: __DIR__.'/../../../../lib/Settings/learniq_register.json');
+		$register = json_decode(json: $json, associative: true);
+		$decide   = $register['components']['schemas']['BsaDecision']['x-openregister-lifecycle']['transitions']['decide'];
+		$this->assertSame(expected: 'decided', actual: $decide['to']);
+		$this->assertContains(needle: ['action' => TenantSignatureAction::class], haystack: $decide['actions']);
+
+		$decision = [
+			'id' => 'decision-daan',
+			'learnerId' => 'daan',
+			'outcome' => 'negative',
+			'ectsAchieved' => 38,
+			'ectsNormRequired' => 45,
+			'warningIds' => ['w1'],
+			'tenant_id' => 'tenant-a',
+			'lifecycle' => 'decided',
+		];
+		$action   = $this->makeAction(key: 'super-secret-key');
+		$context  = static fn (array $data): LifecycleActionContext => new LifecycleActionContext(
+			objectData: $data,
+			previousData: [],
+			parameters: [],
+			actionName: TenantSignatureAction::class
+		);
+		$decided  = $action->execute(context: $context($decision));
+
+		$this->assertSame(expected: 38, actual: $decided['ectsAchieved']);
+		$this->assertSame(expected: 45, actual: $decided['ectsNormRequired']);
+		$this->assertSame(expected: ['w1'], actual: $decided['warningIds']);
+		$this->assertNotEmpty(actual: $decided['signature']);
+
+		foreach (['ectsAchieved' => 45, 'ectsNormRequired' => 38, 'warningIds' => []] as $field => $changed) {
+			$tampered = array_merge($decision, [$field => $changed]);
+			$this->assertNotSame(
+				expected: $decided['signature'],
+				actual: $action->execute(context: $context($tampered))['signature'],
+				message: $field.' is part of the signed payload'
+			);
+		}
+	}//end testADecidedStudyDecisionKeepsItsCreditsAndWarnings()
+
+	/**
 	 * Stale signature fields and the lifecycle value do not change the digest.
 	 *
 	 * @return void
