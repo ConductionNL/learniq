@@ -53,20 +53,20 @@ class TrainerSchoolTermsTest extends TestCase {
 		$actions = self::actions();
 
 		self::assertSame(
-			TrainerSitePages::SCHOOL_TERMS['bpv'],
-			$actions['approveHourWeek']['fieldConfigs']['hourWeekId']['help']
+			expected: TrainerSitePages::SCHOOL_TERMS['bpv'],
+			actual: $actions['approveHourWeek']['fieldConfigs']['hourWeekId']['help']
 		);
 		self::assertSame(
-			TrainerSitePages::SCHOOL_TERMS['werkproces'],
-			$actions['createWerkprocesAssessment']['fieldConfigs']['werkprocesCode']['help']
+			expected: TrainerSitePages::SCHOOL_TERMS['werkproces'],
+			actual: $actions['createWerkprocesAssessment']['fieldConfigs']['werkprocesCode']['help']
 		);
 		self::assertSame(
-			TrainerSitePages::SCHOOL_TERMS['kwalificatiedossier'],
-			$actions['createWerkprocesAssessment']['fieldConfigs']['kwalificatiedossierCode']['help']
+			expected: TrainerSitePages::SCHOOL_TERMS['kwalificatiedossier'],
+			actual: $actions['createWerkprocesAssessment']['fieldConfigs']['kwalificatiedossierCode']['help']
 		);
 		self::assertSame(
-			TrainerSitePages::SCHOOL_TERMS['praktijkovereenkomst'],
-			$actions['signPraktijkovereenkomst']['fieldConfigs']['subjectId']['help']
+			expected: TrainerSitePages::SCHOOL_TERMS['praktijkovereenkomst'],
+			actual: $actions['signPraktijkovereenkomst']['fieldConfigs']['subjectId']['help']
 		);
 	}//end testEachTermIsExplainedWhereItFirstAppears()
 
@@ -79,7 +79,7 @@ class TrainerSchoolTermsTest extends TestCase {
 	public function testATermIsExplainedOncePerForm(): void {
 		foreach (self::actions() as $id => $action) {
 			$helps = array_column($action['fieldConfigs'] ?? [], 'help');
-			self::assertSame(array_values(array_unique($helps)), $helps, $id);
+			self::assertSame(expected: array_values(array_unique($helps)), actual: $helps, message: $id);
 		}
 	}//end testATermIsExplainedOncePerForm()
 
@@ -91,7 +91,7 @@ class TrainerSchoolTermsTest extends TestCase {
 	public function testEveryExplainedFieldIsOnItsForm(): void {
 		foreach (self::actions() as $id => $action) {
 			foreach (array_keys($action['fieldConfigs'] ?? []) as $field) {
-				self::assertContains($field, $action['fields'], $id.'.'.$field);
+				self::assertContains(needle: $field, haystack: $action['fields'], message: $id.'.'.$field);
 			}
 		}
 	}//end testEveryExplainedFieldIsOnItsForm()
@@ -103,24 +103,24 @@ class TrainerSchoolTermsTest extends TestCase {
 	 */
 	public function testTheExplanationsReadDutch(): void {
 		$dutch = json_decode((string) file_get_contents(dirname(__DIR__, 3).'/l10n/nl.json'), true)['translations'];
-		$l10n = $this->createMock(IL10N::class);
+		$l10n = $this->createMock(originalClassName: IL10N::class);
 		$l10n->method('t')->willReturnCallback(static fn (string $text): string => ($dutch[$text] ?? $text));
-		$factory = $this->createMock(IFactory::class);
+		$factory = $this->createMock(originalClassName: IFactory::class);
 		$factory->method('get')->with('learniq')->willReturn($l10n);
 
 		$manifest = (new PortalContributionProvider(l10nFactory: $factory))->getContribution(['audience' => 'praktijkopleider']);
 		$actions = array_column($manifest['actions'], null, 'id');
 
 		self::assertSame(
-			'Praktijkovereenkomst (POK): de afspraken tussen u, de student en school.',
-			$actions['signPraktijkovereenkomst']['fieldConfigs']['subjectId']['help']
+			expected: 'Praktijkovereenkomst (POK): de afspraken tussen u, de student en school.',
+			actual: $actions['signPraktijkovereenkomst']['fieldConfigs']['subjectId']['help']
 		);
 		self::assertSame(
-			'BPV (beroepspraktijkvorming) is het deel van de opleiding dat de student bij uw bedrijf leert.',
-			$actions['approveHourWeek']['fieldConfigs']['hourWeekId']['help']
+			expected: 'BPV (beroepspraktijkvorming) is het deel van de opleiding dat de student bij uw bedrijf leert.',
+			actual: $actions['approveHourWeek']['fieldConfigs']['hourWeekId']['help']
 		);
 		foreach (TrainerSitePages::SCHOOL_TERMS as $term => $line) {
-			self::assertArrayHasKey($line, $dutch, $term);
+			self::assertArrayHasKey(key: $line, array: $dutch, message: $term);
 		}
 	}//end testTheExplanationsReadDutch()
 }//end class
