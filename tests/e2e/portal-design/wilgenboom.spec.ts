@@ -13,6 +13,10 @@
  * @spec openspec/changes/portal-board-checks-run-on-a-real-instance/specs/example-sets/spec.md#requirement-the-board-checks-run-against-any-instance-that-loaded-the-sets
  * @spec openspec/changes/absence-reports-seen-and-ended/specs/portal-contribution/spec.md#requirement-the-guardian-reads-that-the-school-saw-her-report
  * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-each-school-audience-offers-its-own-documents-grouped-per-record
+ * @spec openspec/changes/leave-requests-decided-by-the-school/specs/portal-contribution/spec.md
+ *
+ * Covers:
+ *   @e2e openspec/changes/leave-requests-decided-by-the-school/specs/portal-contribution/spec.md#scenario-fatima-asks-leave-for-vera
  */
 
 import type { Page } from '@playwright/test'
@@ -20,8 +24,9 @@ import type { Page } from '@playwright/test'
 import { expect, request, test } from '@playwright/test'
 import * as path from 'node:path'
 import { baseUrl } from '../base-url.ts'
-import { siteUrl, waitForAccountPage } from '../helpers/portal-fixture.ts'
+import { SITE_TOKEN_KEY, siteUrl, waitForAccountPage } from '../helpers/portal-fixture.ts'
 import { ACR_SUBSTANTIAL } from '../helpers/stub-digid.ts'
+import { apiAs, LiveFixtures } from '../live-fixtures.ts'
 import {
 	ADMIN_CREDENTIALS,
 	boardShot,
@@ -284,5 +289,95 @@ test.describe('wilgenboom: Mijn Wilgenboom (Fatima Hulstkamp)', () => {
 		}
 		await expectNoSeriousAxeFinding(parent)
 		await boardShot(parent, PORTAL, 'Documenten', info)
+	})
+
+	// Playwright needs the fixtures argument destructured; these tests read the shared signed-in page.
+	// eslint-disable-next-line no-empty-pattern
+	test('Verlof: Fatima asks, the directeur allows, she reads the decision', async ({}, info) => {
+		// leave-requests-decided-by-the-school T7. The request is the run's own:
+		// two school days a few weeks ahead, removed afterwards. The directeur is a
+		// temporary member of the deciders' group (LeaveDecisionGuard::DECIDERS).
+		test.skip(
+			info.project.name === 'phone',
+			'the flow writes a request once; the desktop project runs it',
+		)
+		const fx = new LiveFixtures()
+		const admin = await fx.api()
+		try {
+			const profiles = await admin.get(
+				'/index.php/apps/openregister/api/objects/learniq/learner-profile?givenName=Vera&familyName=Hulstkamp&_limit=5',
+			)
+			expect(profiles.status(), await profiles.text()).toBe(200)
+			const vera = ((await profiles.json()).results ?? [])[0]
+			expect(vera, "Vera Hulstkamp's profile").toBeTruthy()
+			const veraRef = String(vera.id ?? vera.uuid)
+
+			// A Monday and Tuesday at least three weeks ahead.
+			const monday = new Date()
+			monday.setUTCDate(monday.getUTCDate() + 21)
+			monday.setUTCDate(monday.getUTCDate() + ((8 - monday.getUTCDay()) % 7))
+			const tuesday = new Date(monday)
+			tuesday.setUTCDate(monday.getUTCDate() + 1)
+			const ymd = (d: Date): string => d.toISOString().slice(0, 10)
+			const reason = `De bruiloft van haar tante in Marokko (${fx.run})`
+
+			// Fatima asks for leave for Vera, with her own bearer.
+			const token =
+				(await parent.evaluate((key) => sessionStorage.getItem(key), SITE_TOKEN_KEY)) ?? ''
+			expect(token, "Fatima's bearer").not.toBe('')
+			const asked = await parent.request.post(
+				'/apps/portaliq/portal/api/actions/learniq/requestLeave',
+				{
+					headers: { Authorization: `Bearer ${token}` },
+					data: {
+						learnerRef: veraRef,
+						dateFrom: ymd(monday),
+						dateTo: ymd(tuesday),
+						kind: 'wedding',
+						reason,
+					},
+				},
+			)
+			expect(asked.status(), await asked.text()).toBeLessThan(300)
+
+			const stored = await admin.get(
+				`/index.php/apps/openregister/api/objects/learniq/leave-request?learnerRef=${veraRef}&_limit=200`,
+			)
+			expect(stored.status(), await stored.text()).toBe(200)
+			const row = ((await stored.json()).results ?? []).find(
+				(r: Record<string, any>) => r.reason === reason,
+			)
+			expect(row, 'her request, as stored').toBeTruthy()
+			const requestId = String(row.id ?? row.uuid)
+			fx.adopt('leave-request', requestId)
+			expect(row.lifecycle).toBe('submitted')
+			expect(Number(row.schoolDays)).toBe(2)
+
+			// It waits for the school on her overview's leave page.
+			await parent.goto(
+				`${siteUrl(PORTAL)}&route=${encodeURIComponent('/mijn/learniq/parentLeave')}`,
+			)
+			await waitForAccountPage(parent)
+			await expectTexts(parent, ['Uw verlofaanvragen', 'Bruiloft', 'Ingediend'])
+
+			// The directeur allows it, with a short explanation.
+			const directeur = await fx.user('directeur', ['administration-managers'])
+			const api = await apiAs(directeur.id, directeur.password)
+			const note = `Veel plezier op de bruiloft (${fx.run})`
+			const allowed = await api.post(
+				`/index.php/apps/openregister/api/objects/${requestId}/transition`,
+				{ data: { action: 'allow', decisionNote: note } },
+			)
+			expect(allowed.status(), await allowed.text()).toBe(200)
+			await api.dispose()
+
+			// Fatima reads the decision and the school's explanation.
+			await parent.reload()
+			await waitForAccountPage(parent)
+			await expectTexts(parent, ['Toegestaan', note])
+			await boardShot(parent, PORTAL, 'Verlof', info)
+		} finally {
+			await fx.teardown()
+		}
 	})
 })

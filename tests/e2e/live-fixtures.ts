@@ -36,6 +36,7 @@ const LEARNIQ_GROUPS = new Set([
 	'team-leads',
 	'hr',
 	'compliance-officers',
+	'administration-managers',
 ])
 
 export interface TempUser {

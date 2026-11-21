@@ -11,10 +11,18 @@
  * @spec openspec/changes/site-pupil-portal-design/specs/portal-contribution/spec.md#requirement-the-pupil-overview-follows-the-designed-board
  * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-each-school-audience-offers-its-own-documents-grouped-per-record
  * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-a-pupil-asks-for-a-proof-of-enrolment
+ * @spec openspec/changes/pupil-books-support-lessons-and-mentor-talks/specs/portal-contribution/spec.md
+ *
+ * Covers:
+ *   @e2e openspec/changes/pupil-books-support-lessons-and-mentor-talks/specs/portal-contribution/spec.md#scenario-noor-signs-up-for-tuesday
+ *   @e2e openspec/changes/pupil-books-support-lessons-and-mentor-talks/specs/portal-contribution/spec.md#scenario-noor-picks-tuesday-1630
  */
 
+import type { PortalLogin } from '../helpers/portal-fixture.ts'
+
 import { expect, test } from '@playwright/test'
-import { siteUrl } from '../helpers/portal-fixture.ts'
+import { portalRows, SITE_TOKEN_KEY, siteUrl } from '../helpers/portal-fixture.ts'
+import { LiveFixtures } from '../live-fixtures.ts'
 import {
 	boardShot,
 	dated,
@@ -197,5 +205,145 @@ test.describe('vaartveld: Mijn Zuiddrecht (Fenna de Jong)', () => {
 		}
 		await expectNoSeriousAxeFinding(page)
 		await boardShot(page, PORTAL, 'Documenten', info)
+	})
+})
+
+/**
+ * pupil-books-support-lessons-and-mentor-talks T6: Fenna (the change's Noor,
+ * renamed with the redrawn vo boards) signs up for the steunles wiskunde and
+ * books her own mentor talk on Tuesday 13 October at 16.30.
+ *
+ * The set seeds the steunles with 6 of 12 places taken and the mentor-talk
+ * round of 3HV-B with `pupilMayBook`. The run's sign-up and booking are
+ * removed afterwards and the time is set free again. Her father's portal
+ * read of the talk needs a DigiD sign-in at substantial
+ * (`parentConferenceSignups`); this suite checks the stored booking that
+ * collection reads instead: about her, booked by herself, with no guardian
+ * on it. Desktop only: the two projects would otherwise book twice.
+ */
+test.describe.serial('vaartveld: Fenna books a steunles and her mentor talk', () => {
+	const fx = new LiveFixtures()
+	let fenna: PortalLogin | undefined
+	let offerId = ''
+	let placesBefore = 0
+	let slotId = ''
+
+	/** One portal action, with her own bearer. */
+	const act = async (action: string, data: Record<string, unknown>) =>
+		await fenna!.page.request.post(
+			`/apps/portaliq/portal/api/actions/learniq/${action}`,
+			{ headers: { Authorization: `Bearer ${fenna!.token}` }, data },
+		)
+
+	test.beforeAll(async ({ browser }, info) => {
+		test.skip(
+			info.project.name === 'phone',
+			'the flow books once; the desktop project runs it',
+		)
+		await ensurePortalAccount(
+			NOOR.user,
+			'student',
+			{ learnerRef: NOOR.ref },
+			NOOR.name,
+		)
+		const page = await signInAs(browser, PORTAL, NOOR.user, {
+			width: 1440,
+			height: 1000,
+		})
+		const token =
+			(await page.evaluate((key) => sessionStorage.getItem(key), SITE_TOKEN_KEY)) ?? ''
+		expect(token, "Fenna's bearer").not.toBe('')
+		fenna = { page, token }
+	})
+
+	test.afterAll(async () => {
+		const admin = await fx.api()
+		if (slotId !== '') {
+			// Deleting her booking does not have to free the time; set it free as the set loaded it.
+			await admin
+				.patch(`/index.php/apps/openregister/api/objects/learniq/conference-slot/${slotId}`, {
+					data: { lifecycle: 'free', learnerId: null, learnerRef: null, guardianRef: null, bookedAt: null },
+				})
+				.catch(() => null)
+		}
+		await fx.teardown()
+		await fenna?.page.close()
+	})
+
+	test('she reads the steunles with its places left and signs up', async () => {
+		const offers = await portalRows(fenna!, 'elective-offer', 'studentElectiveOffers')
+		const offer = offers.find((o) => o.name === 'Steunles wiskunde')
+		expect(offer, 'the steunles wiskunde among her support lessons').toBeTruthy()
+		offerId = String(offer!.id ?? offer!.uuid)
+		placesBefore = Number(offer!.placesLeft)
+		expect(placesBefore, 'a place left').toBeGreaterThan(0)
+
+		await fenna!.page.goto(
+			`${siteUrl(PORTAL)}&route=${encodeURIComponent('/mijn/learniq/studentElectiveOffers')}`,
+		)
+		await expectTexts(fenna!.page, [
+			'Steunles wiskunde',
+			'Meneer Bos',
+			`Nog ${placesBefore} plekken`,
+		])
+
+		const signed = await act('signUpForElective', { offerId })
+		expect(signed.status(), await signed.text()).toBeLessThan(300)
+
+		const mine = await portalRows(fenna!, 'elective-sign-up', 'studentElectiveSignUps')
+		const signUp = mine.find((r) => String(r.offerId) === offerId)
+		expect(signUp, 'her sign-up').toBeTruthy()
+		fx.adopt('elective-sign-up', String(signUp!.id ?? signUp!.uuid))
+		expect(signUp!.status).toBe('signed-up')
+
+		// The line on the offer counts her place.
+		await expect
+			.poll(
+				async () =>
+					(await portalRows(fenna!, 'elective-offer', 'studentElectiveOffers')).find(
+						(o) => String(o.id ?? o.uuid) === offerId,
+					)?.placesLeftLine,
+				{ timeout: 20_000 },
+			)
+			.toBe(`Nog ${placesBefore - 1} plekken`)
+
+		// A second sign-up for the same offer is refused.
+		const again = await act('signUpForElective', { offerId })
+		expect(again.status()).toBeGreaterThanOrEqual(400)
+	})
+
+	test('she books Tuesday 13 October 16.30 with her mentor', async () => {
+		const times = await portalRows(fenna!, 'conference-slot', 'studentConferenceTimes')
+		const tuesday = times.find((t) => /^2026-10-13T16:30/.test(String(t.startsAt)))
+		expect(tuesday, 'the free time on Tuesday 13 October at 16.30').toBeTruthy()
+		slotId = String(tuesday!.id ?? tuesday!.uuid)
+
+		const booked = await act('bookConferenceSlotAsPupil', { slotId })
+		expect(booked.status(), await booked.text()).toBeLessThan(300)
+
+		const talks = await portalRows(fenna!, 'conference-signup', 'studentConferenceSignups')
+		const talk = talks.find((r) => String(r.slotId) === slotId)
+		expect(talk, 'her talk').toBeTruthy()
+		fx.adopt('conference-signup', String(talk!.id ?? talk!.uuid))
+
+		// The time is hers, booked by herself: no guardian on it, so her
+		// father reads it through his children's bookings.
+		const admin = await fx.api()
+		const slot = await admin.get(
+			`/index.php/apps/openregister/api/objects/learniq/conference-slot/${slotId}`,
+		)
+		expect(slot.status(), await slot.text()).toBe(200)
+		const stored = await slot.json()
+		expect(stored.lifecycle).toBe('booked')
+		expect(String(stored.learnerRef)).toBe(NOOR.ref)
+		expect(stored.guardianRef ?? null).toBeNull()
+
+		// The time has left her free times, and her talks list it.
+		const left = await portalRows(fenna!, 'conference-slot', 'studentConferenceTimes')
+		expect(left.find((t) => String(t.id ?? t.uuid) === slotId)).toBeFalsy()
+		await fenna!.page.goto(
+			`${siteUrl(PORTAL)}&route=${encodeURIComponent('/mijn/learniq/studentConferenceSignups')}`,
+		)
+		await expectTexts(fenna!.page, ['Mijn mentorgesprekken', /13-10-2026 16:30/])
 	})
 })
