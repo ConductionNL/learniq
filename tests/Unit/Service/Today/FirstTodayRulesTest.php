@@ -35,7 +35,12 @@ class FirstTodayRulesTest extends TestCase {
 			expected: ['leave-past-half', 'over-limit-not-reported', 'registers-not-filled-at-930'],
 			actual: FirstTodayRules::ORDER['head']
 		);
-		self::assertCount(expectedCount: 12, haystack: (new FirstTodayRules())->allRules());
+		self::assertSame(
+			expected: ['placement-without-company', 'visit-without-date', 'hours-waiting'],
+			actual: FirstTodayRules::ORDER['bpv-coach']
+		);
+		self::assertSame(expected: ['objection-past-half', 'results-waiting'], actual: FirstTodayRules::ORDER['exam-committee']);
+		self::assertCount(expectedCount: 17, haystack: (new FirstTodayRules())->allRules());
 	}//end testEachRoleReadsItsRulesInTheDesignsOrder()
 
 	/**
@@ -56,6 +61,11 @@ class FirstTodayRulesTest extends TestCase {
 		self::assertNull(actual: $rules->roleFor(primaryRole: 'learner', segment: 'vo'));
 		self::assertNull(actual: $rules->inView(role: $rules->roleFor(primaryRole: 'hr', segment: 'corporate'), view: 'mentor'));
 		self::assertSame(expected: 'head', actual: $rules->inView(role: 'head', view: 'mentor'));
+		self::assertSame(expected: 'bpv-coach', actual: $rules->inView(role: 'subject-teacher', view: 'bpv'));
+		self::assertSame(expected: 'head', actual: $rules->inView(role: 'head', view: 'bpv'));
+		self::assertSame(expected: 'exam-committee', actual: $rules->roleFor(primaryRole: 'compliance-officer', segment: 'mbo'));
+		self::assertSame(expected: 'exam-committee', actual: $rules->roleFor(primaryRole: 'compliance-officer', segment: 'vo'));
+		self::assertNull(actual: $rules->roleFor(primaryRole: 'compliance-officer', segment: 'corporate'));
 		self::assertSame(expected: 'group-teacher', actual: $rules->inView(role: 'group-teacher', view: ''));
 	}//end testTheRoleFollowsThePrimaryRoleTheSchoolKindAndTheView()
 
