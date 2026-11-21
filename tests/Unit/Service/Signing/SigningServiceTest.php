@@ -214,6 +214,30 @@ class SigningServiceTest extends TestCase {
 	}//end testARoleTheSignerDoesNotHoldIsRefused()
 
 	/**
+	 * Only the plan's own learner signs as learner: someone else asking for that
+	 * role is answered 403 and no Signature is recorded.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/learning-plan/spec.md#requirement-the-learners-own-signature-is-required-and-counted-when-the-template-asks-for-it
+	 */
+	public function testSomeoneElseCannotSignAsTheLearner(): void {
+		$service = $this->service(records: $this->plan(), groups: ['instructors' => ['teach']], profileParents: ['mum']);
+
+		foreach (['mallory', 'teach', 'mum', 'co'] as $userId) {
+			$request = new SignatureRequest(subject: 'learning-plan', id: 'plan-1', role: 'learner', capture: self::TYPED);
+			$refusal = $this->refusalOf(call: static fn () => $service->sign(userId: $userId, request: $request));
+			self::assertSame(expected: 403, actual: $refusal->getStatus(), message: $userId);
+		}
+
+		self::assertSame(expected: [], actual: $this->saved);
+
+		$request = new SignatureRequest(subject: 'learning-plan', id: 'plan-1', role: 'learner', capture: self::TYPED);
+		self::assertSame(expected: 'learner', actual: $service->sign(userId: 'lea', request: $request)['signerRole']);
+		self::assertSame(expected: 'lea', actual: $this->saved[0]['row']['signerId']);
+	}//end testSomeoneElseCannotSignAsTheLearner()
+
+	/**
 	 * Without a role the first role held is taken; a role outside the subject's roles is refused.
 	 *
 	 * @return void

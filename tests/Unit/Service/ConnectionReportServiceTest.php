@@ -454,6 +454,28 @@ class ConnectionReportServiceTest extends TestCase {
 	}//end testTheLtiRowFollowsIntegriqsLaunchEvent()
 
 	/**
+	 * A working LTI connection says what is left to set: it reads configured,
+	 * with the message that grades come back once the grade subscription is set.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/integrations/spec.md#requirement-each-connection-on-the-integrations-page-says-what-it-is-missing
+	 */
+	public function testAWorkingLtiRowSaysWhatIsLeftToSet(): void {
+		$service = $this->service();
+		$service->observeLti();
+		$service->reportObservations();
+
+		$lti = array_values(array: array_filter(array: $this->sent, callback: static fn (object $sent): bool => $sent->key === 'lti'));
+		$this->assertCount(expectedCount: 1, haystack: $lti);
+		$this->assertSame(expected: 'configured', actual: $lti[0]->status);
+		$this->assertStringContainsString(
+			needle: 'Grades come back once the grade subscription is set in the LTI section.',
+			haystack: $lti[0]->message
+		);
+	}//end testAWorkingLtiRowSaysWhatIsLeftToSet()
+
+	/**
 	 * Every stored shape: only a JSON object with string status, reason and
 	 * since is reported, key by key in the declared order; a key whose send
 	 * fails is logged and the next key is still reported.
