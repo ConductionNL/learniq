@@ -24,6 +24,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Controller;
 
 use OCA\OpenRegister\Service\ObjectService;
+use OCA\Learniq\Service\CallerGroups;
 use OCA\Learniq\Controller\PeerReviewController;
 use OCA\Learniq\Service\PeerReviewAllocationService;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
@@ -34,6 +35,7 @@ use OCP\IRequest;
 use OCP\IUser;
 use OCP\IUserSession;
 use PHPUnit\Framework\TestCase;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 
 /**
  * Tests for PeerReviewController::allocate().
@@ -65,7 +67,11 @@ class PeerReviewControllerTest extends TestCase {
 		// and returns ?ObjectEntity. willReturnCallback() hands the closure the
 		// mock's arguments POSITIONALLY, so the closure must mirror that order.
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($assignment, $cohort, $session) {
+			function (int|string $id, ?ObjectFindOptions $options = null) use ($assignment, $cohort, $session) {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				if ($schema === 'assignment' && $assignment !== null) {
 					return OrEntityFactory::make($assignment, 'assignment');
 				}
@@ -98,10 +104,12 @@ class PeerReviewControllerTest extends TestCase {
 
 		return new PeerReviewController(
 			request: $this->createMock(IRequest::class),
-			userSession: $userSession,
-			groupManager: $groupManager,
+			caller: new CallerGroups(
+				userSession: $userSession,
+				groupManager: $groupManager
+			),
 			objectService: $objectService,
-			allocationService: $allocationService,
+			allocationService: $allocationService
 		);
 	}//end makeController()
 
@@ -270,10 +278,12 @@ class PeerReviewControllerTest extends TestCase {
 
 		$controller = new PeerReviewController(
 			request: $this->createMock(IRequest::class),
-			userSession: $userSession,
-			groupManager: $groupManager,
+			caller: new CallerGroups(
+				userSession: $userSession,
+				groupManager: $groupManager
+			),
 			objectService: $objectService,
-			allocationService: $this->createMock(PeerReviewAllocationService::class),
+			allocationService: $this->createMock(PeerReviewAllocationService::class)
 		);
 
 		$response = $controller->allocate(self::ASSIGNMENT_ID);

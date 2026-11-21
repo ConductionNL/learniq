@@ -341,4 +341,113 @@ class PrivacyGovernanceControllerTest extends TestCase {
 		);
 
 	}//end buildController()
+
+	/**
+	 * The approval read and its counting: one bounded read of the partner
+	 * approvals; a row without a status counts as pending, an unknown status
+	 * and anything that is not a row count nowhere; a failing read is logged.
+	 *
+	 * @return void
+	 */
+	public function testApprovalCountsAtEveryEdge(): void {
+		$groupManager = $this->createMock(IGroupManager::class);
+		$groupManager->method('get')->willReturn(null);
+		$queries = [];
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('findAll')->willReturnCallback(
+			static function (array $config) use (&$queries): array {
+				$queries[] = $config;
+				return [
+					['target' => 'swv'],
+					['status' => 'rejected'],
+					['status' => 'approved'],
+					['status' => null],
+					'not a row',
+					7,
+					new \stdClass(),
+				];
+			}
+		);
+
+		$data = $this->buildController(groupManager: $groupManager, objectService: $objectService)->overview()->getData();
+
+		self::assertSame(['pending' => 2, 'approved' => 1, 'rejected' => 1], $data['dataExchange']);
+		self::assertSame(
+			[['filters' => ['register' => 'learniq', 'schema' => 'exchange-partner-approval'], 'limit' => 500]],
+			$queries
+		);
+	}//end testApprovalCountsAtEveryEdge()
+
+	/**
+	 * The two-factor read across groups: missing groups are skipped, a user
+	 * in several groups counts once, a user counts as enabled when any
+	 * provider is on; a failure of either read is logged once with its reason.
+	 *
+	 * @return void
+	 */
+	public function testTwoFactorAcrossGroupsAndLoggedFailures(): void {
+		$users = [];
+		foreach (['a', 'b', 'c'] as $uid) {
+			$users[$uid] = $this->createMock(IUser::class);
+			$users[$uid]->method('getUID')->willReturn($uid);
+		}
+
+		$first = $this->createMock(IGroup::class);
+		$first->method('getUsers')->willReturn([$users['a'], $users['b']]);
+		$second = $this->createMock(IGroup::class);
+		$second->method('getUsers')->willReturn([$users['b'], $users['c']]);
+		$groupManager = $this->createMock(IGroupManager::class);
+		$groupManager->method('get')->willReturnCallback(
+			static fn (string $groupId): ?IGroup => match ($groupId) {
+				'instructors' => $first,
+				'hr' => $second,
+				default => null,
+			}
+		);
+		$registry = $this->createMock(IRegistry::class);
+		$registry->method('getProviderStates')->willReturnCallback(
+			static fn (IUser $user): array => match ($user->getUID()) {
+				'a' => ['totp' => false, 'u2f' => true],
+				'b' => [],
+				default => ['totp' => false],
+			}
+		);
+
+		$data = $this->buildController(groupManager: $groupManager, registry: $registry)->overview()->getData();
+		self::assertSame(['eligibleCount' => 3, 'enabledCount' => 1], $data['twoFactor']);
+
+		$messages = [];
+		$logger = $this->createMock(LoggerInterface::class);
+		$logger->method('info')->willReturnCallback(
+			static function (string $message, array $context) use (&$messages): void {
+				$messages[] = strtr($message, ['{message}' => $context['message']]);
+			}
+		);
+		$unreadable = $this->createMock(IGroup::class);
+		$unreadable->method('count')->willReturn(1);
+		$unreadable->method('getUsers')->willThrowException(new \RuntimeException('groups down'));
+		$failingGroups = $this->createMock(IGroupManager::class);
+		$failingGroups->method('get')->willReturn($unreadable);
+		$failingStore = $this->createMock(ObjectService::class);
+		$failingStore->method('findAll')->willThrowException(new \RuntimeException('store down'));
+		$user = $this->createMock(IUser::class);
+		$session = $this->createMock(IUserSession::class);
+		$session->method('getUser')->willReturn($user);
+		$controller = new PrivacyGovernanceController(
+			request: $this->createMock(IRequest::class),
+			userSession: $session,
+			groupManager: $failingGroups,
+			twoFactorRegistry: $registry,
+			objectService: $failingStore,
+			logger: $logger
+		);
+
+		$controller->overview();
+
+		self::assertContains(
+			'[PrivacyGovernanceController] Two-factor adoption read failed (groups down); returning unknown rather than a fabricated zero.',
+			$messages
+		);
+		self::assertContains('[PrivacyGovernanceController] Partner approval read failed (store down); returning unknown counts.', $messages);
+	}//end testTwoFactorAcrossGroupsAndLoggedFailures()
 }//end class

@@ -29,6 +29,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Portal;
 
+use OCA\Learniq\Kernel\Contracts\EmployerBookingStepsInterface;
 use OCP\IL10N;
 use OCP\L10N\IFactory;
 use Psr\Log\LoggerInterface;
@@ -39,7 +40,7 @@ use Throwable;
  *
  * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
  */
-class EmployerBookingSteps {
+class EmployerBookingSteps implements EmployerBookingStepsInterface {
 
 	/**
 	 * Constructor.

@@ -38,12 +38,14 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\ItemPoolFilterInterface;
+
 /**
  * Filters and variant-groups a candidate Item pool.
  *
  * @spec openspec/specs/assessment/spec.md#requirement-assessment-supports-a-pooled-random-item-draw-as-an-alternative-to-a-fixed-item-list
  */
-class ItemPoolFilter {
+class ItemPoolFilter implements ItemPoolFilterInterface {
 	/**
 	 * Filter the ItemBank's `published` Items by itemPoolConfig's
 	 * subjectTags/difficulty filters and group the survivors by

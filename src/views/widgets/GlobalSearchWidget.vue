@@ -165,31 +165,61 @@ export default {
 				return
 			}
 
+			await this.searchAll(requests)
+		},
+
+		/**
+		 * Run every request and show the grouped hits, unless a newer search
+		 * started in the meantime.
+		 *
+		 * @param {Array<object>} requests Output of buildGlobalSearchRequests().
+		 * @return {Promise<void>}
+		 */
+		async searchAll(requests) {
 			const token = ++this.requestToken
 			this.loading = true
 			try {
-				const responses = await Promise.all(
-					requests.map((req) => this.fetchOne(req)),
-				)
+				const responses = await this.fetchAll(requests)
 				if (token !== this.requestToken) {
 					// A newer keystroke's search has already superseded this one.
 					return
 				}
-				// buildGlobalSearchRequests() always returns [people, cohorts] in
-				// that fixed order (see its own tests), so responses line up
-				// positionally with no need to search by `kind` here.
-				const peopleIndex = requests.findIndex((r) => r.kind === 'people')
-				const cohortsIndex = requests.findIndex((r) => r.kind === 'cohorts')
-				const peopleResults = peopleIndex >= 0 ? responses[peopleIndex] : []
-				const cohortResults =
-					cohortsIndex >= 0 ? responses[cohortsIndex] : []
-				this.results = groupGlobalSearchResults(peopleResults, cohortResults)
-				this.hasSearched = true
+				this.showGroupedResults(requests, responses)
 			} finally {
 				if (token === this.requestToken) {
 					this.loading = false
 				}
 			}
+		},
+
+		/**
+		 * Fetch every request at once.
+		 *
+		 * @param {Array<object>} requests The request descriptors.
+		 * @return {Promise<Array<object[]>>} The rows per request, in order.
+		 */
+		fetchAll(requests) {
+			return Promise.all(requests.map((req) => this.fetchOne(req)))
+		},
+
+		/**
+		 * Group the people and cohort hits into the result lists.
+		 *
+		 * @param {Array<object>} requests The request descriptors.
+		 * @param {Array<object[]>} responses The rows per request.
+		 * @return {void}
+		 */
+		showGroupedResults(requests, responses) {
+			// buildGlobalSearchRequests() always returns [people, cohorts] in
+			// that fixed order (see its own tests), so responses line up
+			// positionally with no need to search by `kind` here.
+			const peopleIndex = requests.findIndex((r) => r.kind === 'people')
+			const cohortsIndex = requests.findIndex((r) => r.kind === 'cohorts')
+			const peopleResults = peopleIndex >= 0 ? responses[peopleIndex] : []
+			const cohortResults =
+				cohortsIndex >= 0 ? responses[cohortsIndex] : []
+			this.results = groupGlobalSearchResults(peopleResults, cohortResults)
+			this.hasSearched = true
 		},
 
 		/**

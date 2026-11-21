@@ -466,7 +466,7 @@ OC.L10N.register(
         "How each assessment item performed, question by question.": "Kako se svaka stavka procjene ponašala, pitanje po pitanje.",
         "What course evaluations said, per course.": "Što su rekle evaluacije tečaja, po tečaju.",
         "What was found on placement visits.": "Što je utvrđeno tijekom posjeta radnom mjestu.",
-        "Store": "Trgovina",
+        "Marketplace": "Trgovina",
         "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Instalirajte registre, sheme i tokove koje su objavile druge organizacije.",
         "Enter the access code you were given to start this assessment.": "Unesite pristupni kod koji ste dobili kako biste započeli ovu provjeru.",
         "Access code": "Pristupni kod",

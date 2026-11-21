@@ -40,6 +40,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\PeerReviewWorkProjectionInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\FileService;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Files\File;
@@ -52,7 +54,7 @@ use Throwable;
  *
  * @spec openspec/specs/assignments/spec.md#requirement-a-reviewer-reads-the-work-through-a-server-side-projection
  */
-class PeerReviewWorkProjection {
+class PeerReviewWorkProjection implements PeerReviewWorkProjectionInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const PEER_REVIEW_SCHEMA = 'peer-review';
@@ -61,19 +63,9 @@ class PeerReviewWorkProjection {
 	private const DOUBLE_BLIND = 'double-blind';
 
 	/**
-	 * Verdict: the caller may see the projection.
-	 */
-	public const ALLOWED = 'allowed';
-
-	/**
 	 * Verdict: no such PeerReview (or its Submission is gone).
 	 */
 	public const NOT_FOUND = 'not-found';
-
-	/**
-	 * Verdict: the caller is neither the reviewer nor an admin.
-	 */
-	public const FORBIDDEN = 'forbidden';
 
 	/**
 	 * Constructor.
@@ -284,8 +276,7 @@ class PeerReviewWorkProjection {
 		try {
 			$object = $this->objectService->find(
 				id: $id,
-				register: self::LEARNIQ_REGISTER,
-				schema: $schema,
+				options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: $schema),
 				_rbac: false
 			);
 		} catch (Throwable $exception) {

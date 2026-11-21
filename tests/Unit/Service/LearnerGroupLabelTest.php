@@ -17,7 +17,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/school-portals-use-the-new-blocks/specs/portal-contribution/spec.md#requirement-the-guardian-menu-lists-each-child-with-its-group-and-teacher
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-the-guardian-menu-lists-each-child-with-its-group-and-teacher
  */
 
 declare(strict_types=1);
@@ -39,6 +39,7 @@ use OCA\OpenRegister\Service\ObjectService;
 use OCP\IUserManager;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * "Groep 7 · Meester Daan" on Vera's profile.
@@ -75,7 +76,7 @@ class LearnerGroupLabelTest extends TestCase {
 			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $this->store->findAll($config, $_rbac, $_multitenancy)
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			fn (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null) => $this->store->save((string)$schema, $object, $uuid)
+			fn (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) => $this->store->save((string)($options->target->schema), $object, ($options->uuid))
 		);
 		return $objectService;
 	}//end objects()
@@ -109,6 +110,22 @@ class LearnerGroupLabelTest extends TestCase {
 	}//end testTheLineNamesTheActiveGroupAndItsTeacher()
 
 	/**
+	 * The child's page names the group's teacher and whom its message goes to;
+	 * a teacher without a display name, or no group, gives neither.
+	 *
+	 * @return void
+	 */
+	public function testTheTeacherIsNamedWithTheUserTheMessageGoesTo(): void {
+		$label = new LearnerGroupLabel(objectService: $this->objects(), users: $this->users());
+
+		self::assertSame(['teacherName' => 'Meester Daan', 'teacherRef' => 'po-leerkracht-09'], $label->teacher(['id' => self::VERA, 'roles' => ['learner']]));
+		self::assertSame(['teacherName' => null, 'teacherRef' => null], $label->teacher(['id' => 'guardian', 'roles' => ['parent']]));
+
+		$this->store->rows['cohort'][1]['teacherIds'] = ['po-leerkracht-10'];
+		self::assertSame(['teacherName' => null, 'teacherRef' => null], $label->teacher(['id' => self::VERA, 'roles' => ['learner']]));
+	}//end testTheTeacherIsNamedWithTheUserTheMessageGoesTo()
+
+	/**
 	 * The readable-copy stamp carries the line for a learner profile.
 	 *
 	 * @return void
@@ -117,7 +134,10 @@ class LearnerGroupLabelTest extends TestCase {
 		$copies = new ReadableCopies(objectService: $this->objects(), users: $this->users());
 
 		self::assertTrue($copies->covers('learner-profile'));
-		self::assertSame(['groupLabel' => 'Groep 7 · Meester Daan', 'fullName' => null], $copies->derive('learner-profile', ['id' => self::VERA, 'roles' => ['learner']]));
+		self::assertSame(
+			['groupLabel' => 'Groep 7 · Meester Daan', 'fullName' => null, 'teacherName' => 'Meester Daan', 'teacherRef' => 'po-leerkracht-09'],
+			$copies->derive('learner-profile', ['id' => self::VERA, 'roles' => ['learner']])
+		);
 	}//end testTheReadableCopiesCoverTheLearnerProfile()
 
 	/**
@@ -131,6 +151,8 @@ class LearnerGroupLabelTest extends TestCase {
 		self::assertTrue($restamp->restamp(self::VERA));
 		$vera = array_values(array_filter($this->store->rows['learner-profile'], static fn (array $r): bool => ($r['id'] ?? '') === self::VERA))[0];
 		self::assertSame('Groep 7 · Meester Daan', $vera['groupLabel']);
+		self::assertSame('Meester Daan', $vera['teacherName']);
+		self::assertSame('po-leerkracht-09', $vera['teacherRef']);
 		self::assertSame('Vera', $vera['givenName'], 'the rest of the profile is kept');
 		self::assertFalse($restamp->restamp(self::VERA), 'a line that already holds is not written again');
 	}//end testTheRestampWritesOnlyAMovedLine()

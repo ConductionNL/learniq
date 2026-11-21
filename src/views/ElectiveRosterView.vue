@@ -8,20 +8,20 @@
  @spec openspec/specs/enrolment/spec.md#requirement-a-coordinator-places-learners-who-missed-the-window
 -->
 <template>
-	<div class="elective-roster">
-		<h2>{{ roster.name || t('learniq', 'Optional lessons') }}</h2>
+	<div class="elective-roster lq-board-page">
+		<CnPageHeader :title="roster.name || t('learniq', 'Optional lessons')" />
 		<NcNoteCard v-if="error" type="error">
 			{{ error }}
 		</NcNoteCard>
 		<p v-if="loading">
 			{{ t('learniq', 'Loading…') }}
 		</p>
-		<section
+		<CnDetailCard
 			v-for="lesson in roster.lessons || []"
 			:key="lesson.key"
+			:title="formatDate(lesson.startsAt) + ' ' + lesson.title"
 			class="elective-roster__lesson"
 			data-testid="roster-lesson">
-			<h3>{{ formatDate(lesson.startsAt) }} {{ lesson.title }}</h3>
 			<p>
 				{{
 					n(
@@ -61,20 +61,28 @@
 					</ul>
 				</div>
 			</div>
-		</section>
+		</CnDetailCard>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { translatePlural as n, translate as t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcNoteCard } from '@nextcloud/vue'
+import {
+	lessonDateTime,
+	lessonReference,
+	refusalReason,
+} from '../utils/electiveLessons.js'
 
 export default {
 	name: 'ElectiveRosterView',
 
 	components: {
+		CnDetailCard,
+		CnPageHeader,
 		NcButton,
 		NcNoteCard,
 	},
@@ -141,9 +149,7 @@ export default {
 		async place(lesson, learnerId) {
 			this.busy = true
 			this.error = ''
-			const where = lesson.sessionId
-				? { sessionId: lesson.sessionId }
-				: { timetableSessionRef: lesson.timetableSessionRef }
+			const where = lessonReference(lesson)
 			try {
 				await axios.post(
 					generateUrl('/apps/learniq/api/electives/{id}/place', {
@@ -167,15 +173,7 @@ export default {
 		 * @spec openspec/specs/enrolment/spec.md#requirement-a-coordinator-places-learners-who-missed-the-window
 		 */
 		formatDate(iso) {
-			const date = new Date(iso)
-			if (!iso || Number.isNaN(date.getTime())) return ''
-			return date.toLocaleString(undefined, {
-				weekday: 'short',
-				day: 'numeric',
-				month: 'short',
-				hour: '2-digit',
-				minute: '2-digit',
-			})
+			return lessonDateTime(iso)
 		},
 
 		/**
@@ -186,26 +184,13 @@ export default {
 		 * @spec openspec/specs/enrolment/spec.md#requirement-a-coordinator-places-learners-who-missed-the-window
 		 */
 		reason(e) {
-			return (
-				e?.response?.data?.error
-				|| t('learniq', 'Something went wrong. Try again.')
-			)
+			return refusalReason(e, t)
 		},
 	},
 }
 </script>
 
 <style scoped>
-.elective-roster {
-	padding: 16px;
-	max-width: 1000px;
-}
-
-.elective-roster__lesson {
-	padding-block: 12px;
-	border-bottom: 1px solid var(--color-border);
-}
-
 .elective-roster__columns {
 	display: grid;
 	grid-template-columns: 1fr 1fr;

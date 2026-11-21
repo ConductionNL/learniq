@@ -36,10 +36,12 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Service\StaffGroupCheck;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -72,7 +74,7 @@ class LessonNoteAuthorGuard implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param ListenerSchemaResolver $schemaResolver Resolves the event entity's schema slug.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Resolves the event entity's schema slug.
 	 * @param IUserSession           $userSession    The acting user.
 	 * @param IGroupManager          $groupManager   Admin and staff checks.
 	 * @param ObjectService          $objectService  Reads the lesson and its cohort.
@@ -81,7 +83,7 @@ class LessonNoteAuthorGuard implements IEventListener {
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ListenerSchemaResolver $schemaResolver,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
 		private readonly IUserSession $userSession,
 		private readonly IGroupManager $groupManager,
 		private readonly ObjectService $objectService,
@@ -195,17 +197,7 @@ class LessonNoteAuthorGuard implements IEventListener {
 	 * @return bool
 	 */
 	private function isStaff(string $uid): bool {
-		if ($this->groupManager->isAdmin($uid) === true) {
-			return true;
-		}
-
-		foreach (self::STAFF_GROUPS as $group) {
-			if ($this->groupManager->isInGroup($uid, $group) === true) {
-				return true;
-			}
-		}
-
-		return false;
+		return (new StaffGroupCheck(groupManager: $this->groupManager, staffGroups: self::STAFF_GROUPS))->isStaff(uid: $uid);
 	}//end isStaff()
 
 	/**
@@ -219,7 +211,7 @@ class LessonNoteAuthorGuard implements IEventListener {
 	 */
 	private function load(string $schema, string $id): ?array {
 		try {
-			$object = $this->objectService->find(id: $id, register: self::REGISTER, schema: $schema, _rbac: false);
+			$object = $this->objectService->find(id: $id, options: new ObjectFindOptions(register: self::REGISTER, schema: $schema), _rbac: false);
 		} catch (Throwable $exception) {
 			$this->logger->debug(
 				'[LessonNoteAuthorGuard] {schema} {id} not readable: {msg}',
@@ -260,10 +252,6 @@ class LessonNoteAuthorGuard implements IEventListener {
 	 * @return ObjectEntity The object as it will be stored.
 	 */
 	private function writtenEntity(ObjectCreatingEvent|ObjectUpdatingEvent $event): ObjectEntity {
-		if ($event instanceof ObjectUpdatingEvent === true) {
-			return $event->getNewObject();
-		}
-
-		return $event->getObject();
+		return (new WrittenObject())->entityOf(event: $event);
 	}//end writtenEntity()
 }//end class

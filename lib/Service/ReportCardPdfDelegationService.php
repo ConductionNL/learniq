@@ -3,18 +3,18 @@
 /**
  * Learniq Report Card PDF Delegation Service
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Lifecycle guard for the ReportCard schema's `renderToPdf`
  * (finalised -> finalised) and `rerenderToPdf` (published-to-parents ->
- * published-to-parents) self-loop transitions. POSTs a **proposed, not-yet-
- * verified** docudesk REST contract
- * (`POST /apps/docudesk/api/v1/documents/render`) — no docudesk endpoint,
- * controller, or PHP call exists anywhere in this repo to reference
- * (verified: `grep -rni docudesk` across every non-vendor file returns only
- * prose mentions). The docudesk-side endpoint implementation is an explicit,
- * tracked follow-up leaf, mirroring `bpv-praktijkovereenkomst`'s POK-PDF
- * precedent: the `ReportCard` OpenRegister object, its `subjectGrades[]`,
- * and its `mentorComment` are the legally complete record regardless of
- * whether a rendered PDF exists.
+ * published-to-parents) self-loop transitions. POSTs the card to filinq's
+ * `POST /apps/filinq/api/v1/documents/render` (filinq `ReportRenderService`),
+ * which renders the school's template to PDF/A, stores it in Files and answers
+ * its `documentRef`. The `ReportCard` OpenRegister object, its
+ * `subjectGrades[]`, and its `mentorComment` stay the legally complete record
+ * regardless of whether a rendered PDF exists; `ReportCardPdfAttacher` copies
+ * the rendered PDF onto the card (report-card-pdf-to-guardians).
  *
  * FAIL-SOFT BY DESIGN (per spec): a PDF-render failure is logged and
  * recorded in `docudeskRenderError`, and MUST NOT block any ReportCard
@@ -43,8 +43,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -59,7 +57,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\ReportCardPdfDelegationServiceInterface;
 use OCA\Learniq\Support\FleetAppId;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
@@ -74,8 +74,7 @@ use Throwable;
  * Guards the ReportCard `renderToPdf`/`rerenderToPdf` self-loop transitions
  * (as an additional `requires` hook, fail-soft).
  *
- * POSTs the ReportCard's rendering payload to the proposed docudesk
- * endpoint. On a confirmed 2xx with a document reference, sets
+ * POSTs the ReportCard's rendering payload to filinq's render endpoint. On a confirmed 2xx with a document reference, sets
  * `docudeskRenderStatus=rendered`, stamps `docudeskDocumentRef`, and clears
  * `docudeskRenderError`. On any failure (missing config, HTTP error, thrown
  * exception, non-2xx, malformed body) sets `docudeskRenderStatus=failed` +
@@ -83,17 +82,10 @@ use Throwable;
  *
  * @spec openspec/specs/report-card/spec.md#requirement-docudesk-pdf-rendering-is-fail-soft-non-blocking-and-its-contract-is-explicitly-proposed
  */
-class ReportCardPdfDelegationService implements LifecycleGuardInterface {
+class ReportCardPdfDelegationService implements LifecycleGuardInterface, ReportCardPdfDelegationServiceInterface {
 
 	/**
-	 * Proposed, not-yet-verified docudesk REST contract for rendering a
-	 * report card to PDF. No docudesk endpoint exists in this repo to
-	 * confirm the path against — filed as an explicit follow-up leaf.
-	 *
-	 * @var string
-	 */
-	/**
-	 * Path AFTER the app segment; the segment is resolved at call time.
+	 * filinq's render path AFTER the app segment; the segment is resolved at call time.
 	 *
 	 * @var string
 	 */
@@ -233,7 +225,7 @@ class ReportCardPdfDelegationService implements LifecycleGuardInterface {
 	}//end render()
 
 	/**
-	 * Call docudesk's proposed render endpoint.
+	 * Call filinq's render endpoint.
 	 *
 	 * @param array<string,mixed> $reportCard The ReportCard data array.
 	 *
@@ -307,8 +299,10 @@ class ReportCardPdfDelegationService implements LifecycleGuardInterface {
 		try {
 			$template = $this->objectService->find(
 				id: (string)$templateId,
-				register: self::LEARNIQ_REGISTER,
-				schema: self::REPORT_CARD_TEMPLATE_SCHEMA
+				options: new ObjectFindOptions(
+					register: self::LEARNIQ_REGISTER,
+					schema: self::REPORT_CARD_TEMPLATE_SCHEMA
+				)
 			);
 		} catch (Throwable $exception) {
 			$this->logger->warning(

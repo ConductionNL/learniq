@@ -466,7 +466,7 @@ OC.L10N.register(
         "How each assessment item performed, question by question.": "Hvordan hvert vurderingselement presterte, spørsmål for spørsmål.",
         "What course evaluations said, per course.": "Hva kursevalueringene sa, per kurs.",
         "What was found on placement visits.": "Hva som ble funnet ved arbeidsplassbesøk.",
-        "Store": "Butikk",
+        "Marketplace": "Butikk",
         "Install learning configurations that other organisations have published: a course structure, a report-card layout, or the flows behind them.": "Installer registre, skjemaer og flyter som andre organisasjoner har publisert.",
         "Enter the access code you were given to start this assessment.": "Skriv inn tilgangskoden du har fått for å starte denne prøven.",
         "Access code": "Tilgangskode",

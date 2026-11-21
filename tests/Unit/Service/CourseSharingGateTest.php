@@ -26,6 +26,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * @covers \OCA\Learniq\Service\CourseSharingGate
+ * @uses \OCA\Learniq\Support\TextValue
  */
 class CourseSharingGateTest extends TestCase {
 

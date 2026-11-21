@@ -40,6 +40,12 @@ export const STAFF_ROLES = Object.freeze([
 	'inspector',
 ])
 
+/** The schemas the fast-finder searches, in result order. */
+const SEARCH_TARGETS = Object.freeze([
+	{ kind: 'people', schema: 'learner-profile' },
+	{ kind: 'cohorts', schema: 'cohort' },
+])
+
 /**
  * Build the per-kind OpenRegister request descriptors for a raw search term.
  * Returns an empty array for a blank/whitespace-only term (never issues a
@@ -56,22 +62,23 @@ export function buildGlobalSearchRequests(term, options = {}) {
 	if (!trimmed) {
 		return []
 	}
-	const limit =
-		Number.isFinite(options.limit) && options.limit > 0 ? options.limit : 8
-	return [
-		{
-			kind: 'people',
-			register: 'learniq',
-			schema: 'learner-profile',
-			params: { _search: trimmed, _limit: limit },
-		},
-		{
-			kind: 'cohorts',
-			register: 'learniq',
-			schema: 'cohort',
-			params: { _search: trimmed, _limit: limit },
-		},
-	]
+	const limit = searchLimit(options)
+	return SEARCH_TARGETS.map(({ kind, schema }) => ({
+		kind,
+		register: 'learniq',
+		schema,
+		params: { _search: trimmed, _limit: limit },
+	}))
+}
+
+/**
+ * The per-request limit: the caller's when it is a positive number, else 8.
+ *
+ * @param {{limit?: number}} options The search options.
+ * @return {number}
+ */
+function searchLimit(options) {
+	return Number.isFinite(options.limit) && options.limit > 0 ? options.limit : 8
 }
 
 /**
@@ -122,21 +129,57 @@ export function groupGlobalSearchResults(
 	const learners = []
 	const staff = []
 	for (const item of learnerProfileResults) {
-		const row = {
-			id: item.id || item._id || item.uuid || item['@self']?.id,
-			label: personResultLabel(item),
-			route: { path: `/learner-profiles/${item.id || item._id || item.uuid}` },
-		}
-		if (classifyPersonKind(item.roles) === 'staff') {
-			staff.push(row)
-		} else {
-			learners.push(row)
-		}
+		const group = classifyPersonKind(item.roles) === 'staff' ? staff : learners
+		group.push(personRow(item))
 	}
-	const cohorts = (cohortResults || []).map((item) => ({
-		id: item.id || item._id || item.uuid || item['@self']?.id,
-		label: item.name || item['@self']?.name || item.id,
-		route: { path: `/cohorts/${item.id || item._id || item.uuid}` },
-	}))
+	const cohorts = (cohortResults || []).map(cohortRow)
 	return { learners, staff, cohorts }
+}
+
+/**
+ * A search hit's id, whichever key OpenRegister returned it under.
+ *
+ * @param {object} item A search hit.
+ * @return {string|undefined}
+ */
+function resultId(item) {
+	return item.id || item._id || item.uuid || item['@self']?.id
+}
+
+/**
+ * The id a search hit's route names.
+ *
+ * @param {object} item A search hit.
+ * @return {string|undefined}
+ */
+function routeId(item) {
+	return item.id || item._id || item.uuid
+}
+
+/**
+ * The result row of a learner-profile hit.
+ *
+ * @param {object} item A learner-profile hit.
+ * @return {{id: string, label: string, route: {path: string}}}
+ */
+function personRow(item) {
+	return {
+		id: resultId(item),
+		label: personResultLabel(item),
+		route: { path: `/learner-profiles/${routeId(item)}` },
+	}
+}
+
+/**
+ * The result row of a cohort hit.
+ *
+ * @param {object} item A cohort hit.
+ * @return {{id: string, label: string, route: {path: string}}}
+ */
+function cohortRow(item) {
+	return {
+		id: resultId(item),
+		label: item.name || item['@self']?.name || item.id,
+		route: { path: `/cohorts/${routeId(item)}` },
+	}
 }

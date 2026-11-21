@@ -34,7 +34,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\CheckIn;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\CheckInCodeServiceInterface;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IConfig;
 use OCP\Security\ISecureRandom;
@@ -44,7 +45,7 @@ use OCP\Security\ISecureRandom;
  *
  * @spec openspec/specs/attendance/spec.md#requirement-the-check-in-code-changes-every-thirty-seconds-in-the-room
  */
-class CheckInCodeService {
+class CheckInCodeService implements CheckInCodeServiceInterface {
 
 	/**
 	 * Seconds one rotating code lives.
@@ -177,10 +178,10 @@ class CheckInCodeService {
 	 * @return string
 	 */
 	private function secret(): string {
-		$secret = $this->config->getAppValue(Application::APP_ID, self::SECRET_KEY, '');
+		$secret = $this->config->getAppValue(AppIdentity::APP_ID, self::SECRET_KEY, '');
 		if ($secret === '') {
 			$secret = $this->random->generate(64);
-			$this->config->setAppValue(Application::APP_ID, self::SECRET_KEY, $secret);
+			$this->config->setAppValue(AppIdentity::APP_ID, self::SECRET_KEY, $secret);
 		}
 
 		return $secret;

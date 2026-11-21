@@ -1,0 +1,3657 @@
+{
+    "build 1": {
+        "statement": {
+            "id": "st-1",
+            "channelTitle": null,
+            "status": "partial",
+            "evaluationMethod": null,
+            "evaluationDate": null,
+            "researchReportUrl": null,
+            "standardApplied": null,
+            "feedbackContact": null,
+            "escalationRoute": null,
+            "lastReviewedAt": null
+        },
+        "summary": {
+            "pass": 0,
+            "fail": 1,
+            "not-applicable": 2,
+            "not-tested": 47,
+            "total": 50
+        },
+        "criteria": [
+            {
+                "criterion": "1.1.1",
+                "level": "A",
+                "title": "Non-text Content",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.2.1",
+                "level": "A",
+                "title": "Audio-only and Video-only (Prerecorded)",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.2.2",
+                "level": "A",
+                "title": "Captions (Prerecorded)",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": "2026-08-10",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.2.3",
+                "level": "A",
+                "title": "Audio Description or Media Alternative (Prerecorded)",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.2.4",
+                "level": "AA",
+                "title": "Captions (Live)",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.2.5",
+                "level": "AA",
+                "title": "Audio Description (Prerecorded)",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.3.1",
+                "level": "A",
+                "title": "Info and Relationships",
+                "result": "not-tested",
+                "method": "automated",
+                "evidenceReference": null,
+                "testedOn": "2026-07-11",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.3.2",
+                "level": "A",
+                "title": "Meaningful Sequence",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.3.3",
+                "level": "A",
+                "title": "Sensory Characteristics",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.3.4",
+                "level": "AA",
+                "title": "Orientation",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.3.5",
+                "level": "AA",
+                "title": "Identify Input Purpose",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.1",
+                "level": "A",
+                "title": "Use of Color",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.2",
+                "level": "A",
+                "title": "Audio Control",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.3",
+                "level": "AA",
+                "title": "Contrast (Minimum)",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.4",
+                "level": "AA",
+                "title": "Resize text",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.5",
+                "level": "AA",
+                "title": "Images of Text",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.10",
+                "level": "AA",
+                "title": "Reflow",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.11",
+                "level": "AA",
+                "title": "Non-text Contrast",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.12",
+                "level": "AA",
+                "title": "Text Spacing",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.13",
+                "level": "AA",
+                "title": "Content on Hover or Focus",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.1.1",
+                "level": "A",
+                "title": "Keyboard",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": "https://evidence/4",
+                "testedOn": "2026-05-10",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.1.2",
+                "level": "A",
+                "title": "No Keyboard Trap",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.1.4",
+                "level": "A",
+                "title": "Character Key Shortcuts",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.2.1",
+                "level": "A",
+                "title": "Timing Adjustable",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.2.2",
+                "level": "A",
+                "title": "Pause, Stop, Hide",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.3.1",
+                "level": "A",
+                "title": "Three Flashes or Below Threshold",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.4.1",
+                "level": "A",
+                "title": "Bypass Blocks",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.4.2",
+                "level": "A",
+                "title": "Page Titled",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.4.3",
+                "level": "A",
+                "title": "Focus Order",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.4.4",
+                "level": "A",
+                "title": "Link Purpose (In Context)",
+                "result": "fail",
+                "method": "automated",
+                "evidenceReference": "https://evidence/5",
+                "testedOn": "2026-05-16",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.4.5",
+                "level": "AA",
+                "title": "Multiple Ways",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.4.6",
+                "level": "AA",
+                "title": "Headings and Labels",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.4.7",
+                "level": "AA",
+                "title": "Focus Visible",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.5.1",
+                "level": "A",
+                "title": "Pointer Gestures",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.5.2",
+                "level": "A",
+                "title": "Pointer Cancellation",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.5.3",
+                "level": "A",
+                "title": "Label in Name",
+                "result": "not-applicable",
+                "method": "automated",
+                "evidenceReference": null,
+                "testedOn": "2026-01-12",
+                "limitationId": "lim-2",
+                "limitation": "7"
+            },
+            {
+                "criterion": "2.5.4",
+                "level": "A",
+                "title": "Motion Actuation",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.1.1",
+                "level": "A",
+                "title": "Language of Page",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.1.2",
+                "level": "AA",
+                "title": "Language of Parts",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.2.1",
+                "level": "A",
+                "title": "On Focus",
+                "result": "not-applicable",
+                "method": "manual",
+                "evidenceReference": "https://evidence/0",
+                "testedOn": "2026-03-11",
+                "limitationId": "lim-0",
+                "limitation": null
+            },
+            {
+                "criterion": "3.2.2",
+                "level": "A",
+                "title": "On Input",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.2.3",
+                "level": "AA",
+                "title": "Consistent Navigation",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.2.4",
+                "level": "AA",
+                "title": "Consistent Identification",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.3.1",
+                "level": "A",
+                "title": "Error Identification",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.3.2",
+                "level": "A",
+                "title": "Labels or Instructions",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.3.3",
+                "level": "AA",
+                "title": "Error Suggestion",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.3.4",
+                "level": "AA",
+                "title": "Error Prevention (Legal, Financial, Data)",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "4.1.1",
+                "level": "A",
+                "title": "Parsing",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "4.1.2",
+                "level": "A",
+                "title": "Name, Role, Value",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "4.1.3",
+                "level": "AA",
+                "title": "Status Messages",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            }
+        ]
+    },
+    "failures 1": {
+        "unlinked": [
+            "2.4.4"
+        ],
+        "reads": [
+            {
+                "filters": {
+                    "accessibilityStatementId": "st-1",
+                    "tenant_id": "t-1",
+                    "result": "fail",
+                    "register": "learniq",
+                    "schema": "accessibility-criterion-result"
+                }
+            },
+            {
+                "filters": {
+                    "accessibilityStatementId": "st-1",
+                    "tenant_id": "t-1",
+                    "register": "learniq",
+                    "schema": "accessibility-limitation"
+                }
+            }
+        ]
+    },
+    "build 2": {
+        "statement": {
+            "id": "st-2",
+            "channelTitle": null,
+            "status": null,
+            "evaluationMethod": null,
+            "evaluationDate": null,
+            "researchReportUrl": null,
+            "standardApplied": null,
+            "feedbackContact": null,
+            "escalationRoute": null,
+            "lastReviewedAt": null
+        },
+        "summary": {
+            "pass": 2,
+            "fail": 5,
+            "not-applicable": 1,
+            "not-tested": 42,
+            "total": 50
+        },
+        "criteria": [
+            {
+                "criterion": "1.1.1",
+                "level": "A",
+                "title": "Non-text Content",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.2.1",
+                "level": "A",
+                "title": "Audio-only and Video-only (Prerecorded)",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.2.2",
+                "level": "A",
+                "title": "Captions (Prerecorded)",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.2.3",
+                "level": "A",
+                "title": "Audio Description or Media Alternative (Prerecorded)",
+                "result": "fail",
+                "method": "automated",
+                "evidenceReference": "https://evidence/12",
+                "testedOn": "2026-08-11",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.2.4",
+                "level": "AA",
+                "title": "Captions (Live)",
+                "result": "pass",
+                "method": "manual",
+                "evidenceReference": null,
+                "testedOn": "2026-06-11",
+                "limitationId": "lim-2",
+                "limitation": null
+            },
+            {
+                "criterion": "1.2.5",
+                "level": "AA",
+                "title": "Audio Description (Prerecorded)",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.3.1",
+                "level": "A",
+                "title": "Info and Relationships",
+                "result": "fail",
+                "method": "automated",
+                "evidenceReference": null,
+                "testedOn": "2026-04-18",
+                "limitationId": "lim-1",
+                "limitation": null
+            },
+            {
+                "criterion": "1.3.2",
+                "level": "A",
+                "title": "Meaningful Sequence",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.3.3",
+                "level": "A",
+                "title": "Sensory Characteristics",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.3.4",
+                "level": "AA",
+                "title": "Orientation",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.3.5",
+                "level": "AA",
+                "title": "Identify Input Purpose",
+                "result": "fail",
+                "method": null,
+                "evidenceReference": "https://evidence/1",
+                "testedOn": "2026-02-10",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.1",
+                "level": "A",
+                "title": "Use of Color",
+                "result": "pass",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": "2026-03-11",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.2",
+                "level": "A",
+                "title": "Audio Control",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.3",
+                "level": "AA",
+                "title": "Contrast (Minimum)",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.4",
+                "level": "AA",
+                "title": "Resize text",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.5",
+                "level": "AA",
+                "title": "Images of Text",
+                "result": "not-tested",
+                "method": "manual",
+                "evidenceReference": null,
+                "testedOn": "2026-03-11",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.10",
+                "level": "AA",
+                "title": "Reflow",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.11",
+                "level": "AA",
+                "title": "Non-text Contrast",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.12",
+                "level": "AA",
+                "title": "Text Spacing",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.13",
+                "level": "AA",
+                "title": "Content on Hover or Focus",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.1.1",
+                "level": "A",
+                "title": "Keyboard",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.1.2",
+                "level": "A",
+                "title": "No Keyboard Trap",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.1.4",
+                "level": "A",
+                "title": "Character Key Shortcuts",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.2.1",
+                "level": "A",
+                "title": "Timing Adjustable",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": "2026-02-16",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.2.2",
+                "level": "A",
+                "title": "Pause, Stop, Hide",
+                "result": "fail",
+                "method": "manual",
+                "evidenceReference": null,
+                "testedOn": "2026-05-13",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.3.1",
+                "level": "A",
+                "title": "Three Flashes or Below Threshold",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.4.1",
+                "level": "A",
+                "title": "Bypass Blocks",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.4.2",
+                "level": "A",
+                "title": "Page Titled",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.4.3",
+                "level": "A",
+                "title": "Focus Order",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.4.4",
+                "level": "A",
+                "title": "Link Purpose (In Context)",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.4.5",
+                "level": "AA",
+                "title": "Multiple Ways",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.4.6",
+                "level": "AA",
+                "title": "Headings and Labels",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.4.7",
+                "level": "AA",
+                "title": "Focus Visible",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.5.1",
+                "level": "A",
+                "title": "Pointer Gestures",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": "2026-02-16",
+                "limitationId": "lim-1",
+                "limitation": null
+            },
+            {
+                "criterion": "2.5.2",
+                "level": "A",
+                "title": "Pointer Cancellation",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.5.3",
+                "level": "A",
+                "title": "Label in Name",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.5.4",
+                "level": "A",
+                "title": "Motion Actuation",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.1.1",
+                "level": "A",
+                "title": "Language of Page",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.1.2",
+                "level": "AA",
+                "title": "Language of Parts",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.2.1",
+                "level": "A",
+                "title": "On Focus",
+                "result": "not-applicable",
+                "method": "manual",
+                "evidenceReference": null,
+                "testedOn": "2026-02-18",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.2.2",
+                "level": "A",
+                "title": "On Input",
+                "result": "fail",
+                "method": null,
+                "evidenceReference": "https://evidence/8",
+                "testedOn": "2026-08-12",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.2.3",
+                "level": "AA",
+                "title": "Consistent Navigation",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.2.4",
+                "level": "AA",
+                "title": "Consistent Identification",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.3.1",
+                "level": "A",
+                "title": "Error Identification",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.3.2",
+                "level": "A",
+                "title": "Labels or Instructions",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.3.3",
+                "level": "AA",
+                "title": "Error Suggestion",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.3.4",
+                "level": "AA",
+                "title": "Error Prevention (Legal, Financial, Data)",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "4.1.1",
+                "level": "A",
+                "title": "Parsing",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "4.1.2",
+                "level": "A",
+                "title": "Name, Role, Value",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "4.1.3",
+                "level": "AA",
+                "title": "Status Messages",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            }
+        ]
+    },
+    "failures 2": {
+        "unlinked": [
+            "1.3.5",
+            "1.3.1",
+            "3.2.2",
+            "1.2.3",
+            "2.2.2"
+        ],
+        "reads": [
+            {
+                "filters": {
+                    "accessibilityStatementId": "st-1",
+                    "tenant_id": "t-1",
+                    "result": "fail",
+                    "register": "learniq",
+                    "schema": "accessibility-criterion-result"
+                }
+            },
+            {
+                "filters": {
+                    "accessibilityStatementId": "st-1",
+                    "tenant_id": "t-1",
+                    "register": "learniq",
+                    "schema": "accessibility-limitation"
+                }
+            }
+        ]
+    },
+    "build 3": {
+        "statement": {
+            "id": "st-3",
+            "channelTitle": null,
+            "status": "partial",
+            "evaluationMethod": null,
+            "evaluationDate": null,
+            "researchReportUrl": null,
+            "standardApplied": null,
+            "feedbackContact": null,
+            "escalationRoute": null,
+            "lastReviewedAt": null
+        },
+        "summary": {
+            "pass": 2,
+            "fail": 5,
+            "not-applicable": 2,
+            "not-tested": 41,
+            "total": 50
+        },
+        "criteria": [
+            {
+                "criterion": "1.1.1",
+                "level": "A",
+                "title": "Non-text Content",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.2.1",
+                "level": "A",
+                "title": "Audio-only and Video-only (Prerecorded)",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.2.2",
+                "level": "A",
+                "title": "Captions (Prerecorded)",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.2.3",
+                "level": "A",
+                "title": "Audio Description or Media Alternative (Prerecorded)",
+                "result": "not-tested",
+                "method": "automated",
+                "evidenceReference": null,
+                "testedOn": "2026-04-17",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.2.4",
+                "level": "AA",
+                "title": "Captions (Live)",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.2.5",
+                "level": "AA",
+                "title": "Audio Description (Prerecorded)",
+                "result": "fail",
+                "method": null,
+                "evidenceReference": "https://evidence/12",
+                "testedOn": "2026-04-12",
+                "limitationId": "lim-1",
+                "limitation": null
+            },
+            {
+                "criterion": "1.3.1",
+                "level": "A",
+                "title": "Info and Relationships",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.3.2",
+                "level": "A",
+                "title": "Meaningful Sequence",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.3.3",
+                "level": "A",
+                "title": "Sensory Characteristics",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.3.4",
+                "level": "AA",
+                "title": "Orientation",
+                "result": "not-tested",
+                "method": "manual",
+                "evidenceReference": null,
+                "testedOn": "2026-08-10",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.3.5",
+                "level": "AA",
+                "title": "Identify Input Purpose",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.1",
+                "level": "A",
+                "title": "Use of Color",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.2",
+                "level": "A",
+                "title": "Audio Control",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.3",
+                "level": "AA",
+                "title": "Contrast (Minimum)",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.4",
+                "level": "AA",
+                "title": "Resize text",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.5",
+                "level": "AA",
+                "title": "Images of Text",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.10",
+                "level": "AA",
+                "title": "Reflow",
+                "result": "pass",
+                "method": "automated",
+                "evidenceReference": "https://evidence/1",
+                "testedOn": "2026-07-15",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.11",
+                "level": "AA",
+                "title": "Non-text Contrast",
+                "result": "not-applicable",
+                "method": "manual",
+                "evidenceReference": null,
+                "testedOn": "2026-07-14",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.12",
+                "level": "AA",
+                "title": "Text Spacing",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.13",
+                "level": "AA",
+                "title": "Content on Hover or Focus",
+                "result": "not-tested",
+                "method": "automated",
+                "evidenceReference": null,
+                "testedOn": "2026-02-12",
+                "limitationId": "lim-0",
+                "limitation": "7"
+            },
+            {
+                "criterion": "2.1.1",
+                "level": "A",
+                "title": "Keyboard",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.1.2",
+                "level": "A",
+                "title": "No Keyboard Trap",
+                "result": "not-applicable",
+                "method": "manual",
+                "evidenceReference": null,
+                "testedOn": "2026-04-15",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.1.4",
+                "level": "A",
+                "title": "Character Key Shortcuts",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.2.1",
+                "level": "A",
+                "title": "Timing Adjustable",
+                "result": "fail",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": "2026-04-16",
+                "limitationId": "lim-1",
+                "limitation": null
+            },
+            {
+                "criterion": "2.2.2",
+                "level": "A",
+                "title": "Pause, Stop, Hide",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.3.1",
+                "level": "A",
+                "title": "Three Flashes or Below Threshold",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.4.1",
+                "level": "A",
+                "title": "Bypass Blocks",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.4.2",
+                "level": "A",
+                "title": "Page Titled",
+                "result": "not-tested",
+                "method": "manual",
+                "evidenceReference": "https://evidence/15",
+                "testedOn": "2026-04-16",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.4.3",
+                "level": "A",
+                "title": "Focus Order",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.4.4",
+                "level": "A",
+                "title": "Link Purpose (In Context)",
+                "result": "not-tested",
+                "method": "automated",
+                "evidenceReference": null,
+                "testedOn": "2026-07-12",
+                "limitationId": "lim-1",
+                "limitation": null
+            },
+            {
+                "criterion": "2.4.5",
+                "level": "AA",
+                "title": "Multiple Ways",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.4.6",
+                "level": "AA",
+                "title": "Headings and Labels",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.4.7",
+                "level": "AA",
+                "title": "Focus Visible",
+                "result": "not-tested",
+                "method": "automated",
+                "evidenceReference": "https://evidence/10",
+                "testedOn": "2026-05-11",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.5.1",
+                "level": "A",
+                "title": "Pointer Gestures",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": "https://evidence/2",
+                "testedOn": "2026-03-15",
+                "limitationId": "lim-3",
+                "limitation": null
+            },
+            {
+                "criterion": "2.5.2",
+                "level": "A",
+                "title": "Pointer Cancellation",
+                "result": "pass",
+                "method": "manual",
+                "evidenceReference": "https://evidence/5",
+                "testedOn": "2026-09-10",
+                "limitationId": "lim-2",
+                "limitation": "7"
+            },
+            {
+                "criterion": "2.5.3",
+                "level": "A",
+                "title": "Label in Name",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.5.4",
+                "level": "A",
+                "title": "Motion Actuation",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.1.1",
+                "level": "A",
+                "title": "Language of Page",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.1.2",
+                "level": "AA",
+                "title": "Language of Parts",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.2.1",
+                "level": "A",
+                "title": "On Focus",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.2.2",
+                "level": "A",
+                "title": "On Input",
+                "result": "fail",
+                "method": "automated",
+                "evidenceReference": "https://evidence/20",
+                "testedOn": "2026-05-11",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.2.3",
+                "level": "AA",
+                "title": "Consistent Navigation",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.2.4",
+                "level": "AA",
+                "title": "Consistent Identification",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.3.1",
+                "level": "A",
+                "title": "Error Identification",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.3.2",
+                "level": "A",
+                "title": "Labels or Instructions",
+                "result": "not-tested",
+                "method": "automated",
+                "evidenceReference": null,
+                "testedOn": "2026-01-10",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.3.3",
+                "level": "AA",
+                "title": "Error Suggestion",
+                "result": "fail",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": "2026-07-11",
+                "limitationId": "lim-1",
+                "limitation": null
+            },
+            {
+                "criterion": "3.3.4",
+                "level": "AA",
+                "title": "Error Prevention (Legal, Financial, Data)",
+                "result": "fail",
+                "method": null,
+                "evidenceReference": "https://evidence/19",
+                "testedOn": "2026-05-16",
+                "limitationId": "lim-2",
+                "limitation": "7"
+            },
+            {
+                "criterion": "4.1.1",
+                "level": "A",
+                "title": "Parsing",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "4.1.2",
+                "level": "A",
+                "title": "Name, Role, Value",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "4.1.3",
+                "level": "AA",
+                "title": "Status Messages",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            }
+        ]
+    },
+    "failures 3": {
+        "unlinked": [
+            "2.4.7",
+            "2.2.1",
+            "3.3.3",
+            "3.3.3",
+            "1.2.5",
+            "1.3.4",
+            "3.3.4",
+            "3.2.2"
+        ],
+        "reads": [
+            {
+                "filters": {
+                    "accessibilityStatementId": "st-1",
+                    "result": "fail",
+                    "register": "learniq",
+                    "schema": "accessibility-criterion-result"
+                }
+            },
+            {
+                "filters": {
+                    "accessibilityStatementId": "st-1",
+                    "register": "learniq",
+                    "schema": "accessibility-limitation"
+                }
+            }
+        ]
+    },
+    "build 4": {
+        "statement": {
+            "id": "st-4",
+            "channelTitle": null,
+            "status": null,
+            "evaluationMethod": null,
+            "evaluationDate": null,
+            "researchReportUrl": null,
+            "standardApplied": null,
+            "feedbackContact": null,
+            "escalationRoute": null,
+            "lastReviewedAt": null
+        },
+        "summary": {
+            "pass": 4,
+            "fail": 6,
+            "not-applicable": 1,
+            "not-tested": 39,
+            "total": 50
+        },
+        "criteria": [
+            {
+                "criterion": "1.1.1",
+                "level": "A",
+                "title": "Non-text Content",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": "https://evidence/8",
+                "testedOn": "2026-05-10",
+                "limitationId": "lim-1",
+                "limitation": "7"
+            },
+            {
+                "criterion": "1.2.1",
+                "level": "A",
+                "title": "Audio-only and Video-only (Prerecorded)",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.2.2",
+                "level": "A",
+                "title": "Captions (Prerecorded)",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.2.3",
+                "level": "A",
+                "title": "Audio Description or Media Alternative (Prerecorded)",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.2.4",
+                "level": "AA",
+                "title": "Captions (Live)",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.2.5",
+                "level": "AA",
+                "title": "Audio Description (Prerecorded)",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.3.1",
+                "level": "A",
+                "title": "Info and Relationships",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.3.2",
+                "level": "A",
+                "title": "Meaningful Sequence",
+                "result": "fail",
+                "method": "manual",
+                "evidenceReference": null,
+                "testedOn": "2026-05-13",
+                "limitationId": "lim-4",
+                "limitation": null
+            },
+            {
+                "criterion": "1.3.3",
+                "level": "A",
+                "title": "Sensory Characteristics",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.3.4",
+                "level": "AA",
+                "title": "Orientation",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.3.5",
+                "level": "AA",
+                "title": "Identify Input Purpose",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.1",
+                "level": "A",
+                "title": "Use of Color",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.2",
+                "level": "A",
+                "title": "Audio Control",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.3",
+                "level": "AA",
+                "title": "Contrast (Minimum)",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.4",
+                "level": "AA",
+                "title": "Resize text",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": "2026-09-11",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.5",
+                "level": "AA",
+                "title": "Images of Text",
+                "result": "fail",
+                "method": "manual",
+                "evidenceReference": null,
+                "testedOn": "2026-04-13",
+                "limitationId": "lim-3",
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.10",
+                "level": "AA",
+                "title": "Reflow",
+                "result": "not-tested",
+                "method": "automated",
+                "evidenceReference": null,
+                "testedOn": "2026-01-12",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.11",
+                "level": "AA",
+                "title": "Non-text Contrast",
+                "result": "fail",
+                "method": "automated",
+                "evidenceReference": null,
+                "testedOn": "2026-07-12",
+                "limitationId": "lim-1",
+                "limitation": "7"
+            },
+            {
+                "criterion": "1.4.12",
+                "level": "AA",
+                "title": "Text Spacing",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.13",
+                "level": "AA",
+                "title": "Content on Hover or Focus",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.1.1",
+                "level": "A",
+                "title": "Keyboard",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.1.2",
+                "level": "A",
+                "title": "No Keyboard Trap",
+                "result": "fail",
+                "method": "manual",
+                "evidenceReference": "https://evidence/12",
+                "testedOn": "2026-03-18",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.1.4",
+                "level": "A",
+                "title": "Character Key Shortcuts",
+                "result": "not-tested",
+                "method": "automated",
+                "evidenceReference": "https://evidence/2",
+                "testedOn": "2026-03-10",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.2.1",
+                "level": "A",
+                "title": "Timing Adjustable",
+                "result": "not-tested",
+                "method": "automated",
+                "evidenceReference": null,
+                "testedOn": "2026-06-18",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.2.2",
+                "level": "A",
+                "title": "Pause, Stop, Hide",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.3.1",
+                "level": "A",
+                "title": "Three Flashes or Below Threshold",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": "2026-09-15",
+                "limitationId": "lim-3",
+                "limitation": null
+            },
+            {
+                "criterion": "2.4.1",
+                "level": "A",
+                "title": "Bypass Blocks",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.4.2",
+                "level": "A",
+                "title": "Page Titled",
+                "result": "pass",
+                "method": "automated",
+                "evidenceReference": null,
+                "testedOn": "2026-05-12",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.4.3",
+                "level": "A",
+                "title": "Focus Order",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.4.4",
+                "level": "A",
+                "title": "Link Purpose (In Context)",
+                "result": "fail",
+                "method": "automated",
+                "evidenceReference": null,
+                "testedOn": "2026-08-15",
+                "limitationId": "lim-3",
+                "limitation": null
+            },
+            {
+                "criterion": "2.4.5",
+                "level": "AA",
+                "title": "Multiple Ways",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.4.6",
+                "level": "AA",
+                "title": "Headings and Labels",
+                "result": "pass",
+                "method": "automated",
+                "evidenceReference": null,
+                "testedOn": "2026-04-11",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.4.7",
+                "level": "AA",
+                "title": "Focus Visible",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": "2026-09-15",
+                "limitationId": "lim-1",
+                "limitation": "7"
+            },
+            {
+                "criterion": "2.5.1",
+                "level": "A",
+                "title": "Pointer Gestures",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.5.2",
+                "level": "A",
+                "title": "Pointer Cancellation",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.5.3",
+                "level": "A",
+                "title": "Label in Name",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": "2026-02-10",
+                "limitationId": "lim-0",
+                "limitation": null
+            },
+            {
+                "criterion": "2.5.4",
+                "level": "A",
+                "title": "Motion Actuation",
+                "result": "not-applicable",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": "2026-04-10",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.1.1",
+                "level": "A",
+                "title": "Language of Page",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.1.2",
+                "level": "AA",
+                "title": "Language of Parts",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.2.1",
+                "level": "A",
+                "title": "On Focus",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.2.2",
+                "level": "A",
+                "title": "On Input",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.2.3",
+                "level": "AA",
+                "title": "Consistent Navigation",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.2.4",
+                "level": "AA",
+                "title": "Consistent Identification",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": "2026-01-13",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.3.1",
+                "level": "A",
+                "title": "Error Identification",
+                "result": "pass",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": "2026-08-17",
+                "limitationId": "lim-0",
+                "limitation": null
+            },
+            {
+                "criterion": "3.3.2",
+                "level": "A",
+                "title": "Labels or Instructions",
+                "result": "pass",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": "2026-01-18",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.3.3",
+                "level": "AA",
+                "title": "Error Suggestion",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.3.4",
+                "level": "AA",
+                "title": "Error Prevention (Legal, Financial, Data)",
+                "result": "fail",
+                "method": "manual",
+                "evidenceReference": "https://evidence/24",
+                "testedOn": "2026-08-11",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "4.1.1",
+                "level": "A",
+                "title": "Parsing",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "4.1.2",
+                "level": "A",
+                "title": "Name, Role, Value",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "4.1.3",
+                "level": "AA",
+                "title": "Status Messages",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            }
+        ]
+    },
+    "failures 4": {
+        "unlinked": [
+            "?",
+            "?",
+            "1.4.5",
+            "2.1.2",
+            "1.4.11",
+            "1.3.2",
+            "2.4.4",
+            "3.3.4"
+        ],
+        "reads": [
+            {
+                "filters": {
+                    "accessibilityStatementId": "st-1",
+                    "tenant_id": "t-1",
+                    "result": "fail",
+                    "register": "learniq",
+                    "schema": "accessibility-criterion-result"
+                }
+            },
+            {
+                "filters": {
+                    "accessibilityStatementId": "st-1",
+                    "tenant_id": "t-1",
+                    "register": "learniq",
+                    "schema": "accessibility-limitation"
+                }
+            }
+        ]
+    },
+    "build 5": {
+        "statement": {
+            "id": "st-5",
+            "channelTitle": null,
+            "status": "partial",
+            "evaluationMethod": null,
+            "evaluationDate": null,
+            "researchReportUrl": null,
+            "standardApplied": null,
+            "feedbackContact": null,
+            "escalationRoute": null,
+            "lastReviewedAt": null
+        },
+        "summary": {
+            "pass": 4,
+            "fail": 10,
+            "not-applicable": 2,
+            "not-tested": 34,
+            "total": 50
+        },
+        "criteria": [
+            {
+                "criterion": "1.1.1",
+                "level": "A",
+                "title": "Non-text Content",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.2.1",
+                "level": "A",
+                "title": "Audio-only and Video-only (Prerecorded)",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.2.2",
+                "level": "A",
+                "title": "Captions (Prerecorded)",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.2.3",
+                "level": "A",
+                "title": "Audio Description or Media Alternative (Prerecorded)",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.2.4",
+                "level": "AA",
+                "title": "Captions (Live)",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": "https://evidence/6",
+                "testedOn": "2026-05-13",
+                "limitationId": "lim-0",
+                "limitation": null
+            },
+            {
+                "criterion": "1.2.5",
+                "level": "AA",
+                "title": "Audio Description (Prerecorded)",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.3.1",
+                "level": "A",
+                "title": "Info and Relationships",
+                "result": "fail",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": "2026-08-14",
+                "limitationId": "lim-2",
+                "limitation": "7"
+            },
+            {
+                "criterion": "1.3.2",
+                "level": "A",
+                "title": "Meaningful Sequence",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.3.3",
+                "level": "A",
+                "title": "Sensory Characteristics",
+                "result": "fail",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": "2026-03-11",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.3.4",
+                "level": "AA",
+                "title": "Orientation",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.3.5",
+                "level": "AA",
+                "title": "Identify Input Purpose",
+                "result": "pass",
+                "method": null,
+                "evidenceReference": "https://evidence/29",
+                "testedOn": "2026-04-14",
+                "limitationId": "lim-1",
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.1",
+                "level": "A",
+                "title": "Use of Color",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.2",
+                "level": "A",
+                "title": "Audio Control",
+                "result": "fail",
+                "method": "manual",
+                "evidenceReference": "https://evidence/28",
+                "testedOn": "2026-04-11",
+                "limitationId": "lim-1",
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.3",
+                "level": "AA",
+                "title": "Contrast (Minimum)",
+                "result": "pass",
+                "method": "manual",
+                "evidenceReference": null,
+                "testedOn": "2026-09-18",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.4",
+                "level": "AA",
+                "title": "Resize text",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.5",
+                "level": "AA",
+                "title": "Images of Text",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.10",
+                "level": "AA",
+                "title": "Reflow",
+                "result": "fail",
+                "method": "automated",
+                "evidenceReference": null,
+                "testedOn": "2026-06-13",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.11",
+                "level": "AA",
+                "title": "Non-text Contrast",
+                "result": "fail",
+                "method": "automated",
+                "evidenceReference": null,
+                "testedOn": "2026-09-12",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.12",
+                "level": "AA",
+                "title": "Text Spacing",
+                "result": "fail",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": "2026-05-17",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.13",
+                "level": "AA",
+                "title": "Content on Hover or Focus",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": "2026-07-15",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.1.1",
+                "level": "A",
+                "title": "Keyboard",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": "2026-03-16",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.1.2",
+                "level": "A",
+                "title": "No Keyboard Trap",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.1.4",
+                "level": "A",
+                "title": "Character Key Shortcuts",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.2.1",
+                "level": "A",
+                "title": "Timing Adjustable",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.2.2",
+                "level": "A",
+                "title": "Pause, Stop, Hide",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.3.1",
+                "level": "A",
+                "title": "Three Flashes or Below Threshold",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.4.1",
+                "level": "A",
+                "title": "Bypass Blocks",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.4.2",
+                "level": "A",
+                "title": "Page Titled",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.4.3",
+                "level": "A",
+                "title": "Focus Order",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.4.4",
+                "level": "A",
+                "title": "Link Purpose (In Context)",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.4.5",
+                "level": "AA",
+                "title": "Multiple Ways",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.4.6",
+                "level": "AA",
+                "title": "Headings and Labels",
+                "result": "fail",
+                "method": "manual",
+                "evidenceReference": null,
+                "testedOn": "2026-05-13",
+                "limitationId": "lim-3",
+                "limitation": null
+            },
+            {
+                "criterion": "2.4.7",
+                "level": "AA",
+                "title": "Focus Visible",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.5.1",
+                "level": "A",
+                "title": "Pointer Gestures",
+                "result": "not-applicable",
+                "method": "automated",
+                "evidenceReference": null,
+                "testedOn": "2026-06-16",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.5.2",
+                "level": "A",
+                "title": "Pointer Cancellation",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.5.3",
+                "level": "A",
+                "title": "Label in Name",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.5.4",
+                "level": "A",
+                "title": "Motion Actuation",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.1.1",
+                "level": "A",
+                "title": "Language of Page",
+                "result": "not-applicable",
+                "method": "manual",
+                "evidenceReference": null,
+                "testedOn": "2026-04-11",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.1.2",
+                "level": "AA",
+                "title": "Language of Parts",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.2.1",
+                "level": "A",
+                "title": "On Focus",
+                "result": "pass",
+                "method": "automated",
+                "evidenceReference": "https://evidence/14",
+                "testedOn": "2026-08-12",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.2.2",
+                "level": "A",
+                "title": "On Input",
+                "result": "fail",
+                "method": "manual",
+                "evidenceReference": null,
+                "testedOn": "2026-01-14",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.2.3",
+                "level": "AA",
+                "title": "Consistent Navigation",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.2.4",
+                "level": "AA",
+                "title": "Consistent Identification",
+                "result": "fail",
+                "method": "automated",
+                "evidenceReference": null,
+                "testedOn": "2026-01-18",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.3.1",
+                "level": "A",
+                "title": "Error Identification",
+                "result": "pass",
+                "method": "automated",
+                "evidenceReference": "https://evidence/8",
+                "testedOn": "2026-09-15",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.3.2",
+                "level": "A",
+                "title": "Labels or Instructions",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.3.3",
+                "level": "AA",
+                "title": "Error Suggestion",
+                "result": "not-tested",
+                "method": "automated",
+                "evidenceReference": null,
+                "testedOn": "2026-08-15",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.3.4",
+                "level": "AA",
+                "title": "Error Prevention (Legal, Financial, Data)",
+                "result": "fail",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": "2026-07-16",
+                "limitationId": "lim-3",
+                "limitation": null
+            },
+            {
+                "criterion": "4.1.1",
+                "level": "A",
+                "title": "Parsing",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": "2026-09-18",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "4.1.2",
+                "level": "A",
+                "title": "Name, Role, Value",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "4.1.3",
+                "level": "AA",
+                "title": "Status Messages",
+                "result": "not-tested",
+                "method": "manual",
+                "evidenceReference": null,
+                "testedOn": "2026-06-14",
+                "limitationId": null,
+                "limitation": null
+            }
+        ]
+    },
+    "failures 5": {
+        "unlinked": [
+            "3.2.4",
+            "1.4.10",
+            "3.2.2",
+            "?",
+            "1.4.12",
+            "3.2.2",
+            "1.3.3",
+            "1.3.1",
+            "1.4.2",
+            "2.4.6",
+            "1.4.11",
+            "3.3.4"
+        ],
+        "reads": [
+            {
+                "filters": {
+                    "accessibilityStatementId": "st-1",
+                    "tenant_id": "t-1",
+                    "result": "fail",
+                    "register": "learniq",
+                    "schema": "accessibility-criterion-result"
+                }
+            },
+            {
+                "filters": {
+                    "accessibilityStatementId": "st-1",
+                    "tenant_id": "t-1",
+                    "register": "learniq",
+                    "schema": "accessibility-limitation"
+                }
+            }
+        ]
+    },
+    "build 6": {
+        "statement": {
+            "id": "st-6",
+            "channelTitle": null,
+            "status": null,
+            "evaluationMethod": null,
+            "evaluationDate": null,
+            "researchReportUrl": null,
+            "standardApplied": null,
+            "feedbackContact": null,
+            "escalationRoute": null,
+            "lastReviewedAt": null
+        },
+        "summary": {
+            "pass": 2,
+            "fail": 7,
+            "not-applicable": 7,
+            "not-tested": 34,
+            "total": 50
+        },
+        "criteria": [
+            {
+                "criterion": "1.1.1",
+                "level": "A",
+                "title": "Non-text Content",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.2.1",
+                "level": "A",
+                "title": "Audio-only and Video-only (Prerecorded)",
+                "result": "not-tested",
+                "method": "automated",
+                "evidenceReference": null,
+                "testedOn": "2026-03-16",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.2.2",
+                "level": "A",
+                "title": "Captions (Prerecorded)",
+                "result": "not-tested",
+                "method": "automated",
+                "evidenceReference": null,
+                "testedOn": "2026-08-13",
+                "limitationId": "lim-4",
+                "limitation": null
+            },
+            {
+                "criterion": "1.2.3",
+                "level": "A",
+                "title": "Audio Description or Media Alternative (Prerecorded)",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.2.4",
+                "level": "AA",
+                "title": "Captions (Live)",
+                "result": "not-tested",
+                "method": "manual",
+                "evidenceReference": null,
+                "testedOn": "2026-02-16",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.2.5",
+                "level": "AA",
+                "title": "Audio Description (Prerecorded)",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.3.1",
+                "level": "A",
+                "title": "Info and Relationships",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.3.2",
+                "level": "A",
+                "title": "Meaningful Sequence",
+                "result": "fail",
+                "method": "manual",
+                "evidenceReference": null,
+                "testedOn": "2026-06-11",
+                "limitationId": "lim-3",
+                "limitation": null
+            },
+            {
+                "criterion": "1.3.3",
+                "level": "A",
+                "title": "Sensory Characteristics",
+                "result": "not-applicable",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": "2026-01-10",
+                "limitationId": "lim-3",
+                "limitation": null
+            },
+            {
+                "criterion": "1.3.4",
+                "level": "AA",
+                "title": "Orientation",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.3.5",
+                "level": "AA",
+                "title": "Identify Input Purpose",
+                "result": "not-applicable",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": "2026-06-18",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.1",
+                "level": "A",
+                "title": "Use of Color",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": "https://evidence/24",
+                "testedOn": "2026-07-15",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.2",
+                "level": "A",
+                "title": "Audio Control",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.3",
+                "level": "AA",
+                "title": "Contrast (Minimum)",
+                "result": "pass",
+                "method": "automated",
+                "evidenceReference": null,
+                "testedOn": "2026-08-17",
+                "limitationId": "lim-4",
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.4",
+                "level": "AA",
+                "title": "Resize text",
+                "result": "not-tested",
+                "method": "manual",
+                "evidenceReference": null,
+                "testedOn": "2026-02-13",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.5",
+                "level": "AA",
+                "title": "Images of Text",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.10",
+                "level": "AA",
+                "title": "Reflow",
+                "result": "fail",
+                "method": "automated",
+                "evidenceReference": null,
+                "testedOn": "2026-01-13",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.11",
+                "level": "AA",
+                "title": "Non-text Contrast",
+                "result": "not-applicable",
+                "method": "automated",
+                "evidenceReference": null,
+                "testedOn": "2026-01-18",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.12",
+                "level": "AA",
+                "title": "Text Spacing",
+                "result": "not-applicable",
+                "method": "manual",
+                "evidenceReference": "https://evidence/1",
+                "testedOn": "2026-04-10",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "1.4.13",
+                "level": "AA",
+                "title": "Content on Hover or Focus",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.1.1",
+                "level": "A",
+                "title": "Keyboard",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.1.2",
+                "level": "A",
+                "title": "No Keyboard Trap",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.1.4",
+                "level": "A",
+                "title": "Character Key Shortcuts",
+                "result": "pass",
+                "method": "manual",
+                "evidenceReference": "https://evidence/32",
+                "testedOn": "2026-01-11",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.2.1",
+                "level": "A",
+                "title": "Timing Adjustable",
+                "result": "fail",
+                "method": "manual",
+                "evidenceReference": "https://evidence/30",
+                "testedOn": "2026-02-15",
+                "limitationId": "lim-4",
+                "limitation": null
+            },
+            {
+                "criterion": "2.2.2",
+                "level": "A",
+                "title": "Pause, Stop, Hide",
+                "result": "not-applicable",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": "2026-07-17",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.3.1",
+                "level": "A",
+                "title": "Three Flashes or Below Threshold",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.4.1",
+                "level": "A",
+                "title": "Bypass Blocks",
+                "result": "not-tested",
+                "method": "manual",
+                "evidenceReference": null,
+                "testedOn": "2026-02-10",
+                "limitationId": "lim-3",
+                "limitation": null
+            },
+            {
+                "criterion": "2.4.2",
+                "level": "A",
+                "title": "Page Titled",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.4.3",
+                "level": "A",
+                "title": "Focus Order",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.4.4",
+                "level": "A",
+                "title": "Link Purpose (In Context)",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.4.5",
+                "level": "AA",
+                "title": "Multiple Ways",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.4.6",
+                "level": "AA",
+                "title": "Headings and Labels",
+                "result": "fail",
+                "method": "manual",
+                "evidenceReference": null,
+                "testedOn": "2026-09-16",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.4.7",
+                "level": "AA",
+                "title": "Focus Visible",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.5.1",
+                "level": "A",
+                "title": "Pointer Gestures",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": "2026-09-11",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.5.2",
+                "level": "A",
+                "title": "Pointer Cancellation",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.5.3",
+                "level": "A",
+                "title": "Label in Name",
+                "result": "not-applicable",
+                "method": "manual",
+                "evidenceReference": "https://evidence/18",
+                "testedOn": "2026-09-13",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "2.5.4",
+                "level": "A",
+                "title": "Motion Actuation",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.1.1",
+                "level": "A",
+                "title": "Language of Page",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.1.2",
+                "level": "AA",
+                "title": "Language of Parts",
+                "result": "not-tested",
+                "method": "manual",
+                "evidenceReference": null,
+                "testedOn": "2026-03-18",
+                "limitationId": "lim-3",
+                "limitation": null
+            },
+            {
+                "criterion": "3.2.1",
+                "level": "A",
+                "title": "On Focus",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.2.2",
+                "level": "A",
+                "title": "On Input",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.2.3",
+                "level": "AA",
+                "title": "Consistent Navigation",
+                "result": "not-applicable",
+                "method": "manual",
+                "evidenceReference": null,
+                "testedOn": "2026-07-15",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.2.4",
+                "level": "AA",
+                "title": "Consistent Identification",
+                "result": "fail",
+                "method": "manual",
+                "evidenceReference": null,
+                "testedOn": "2026-05-16",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.3.1",
+                "level": "A",
+                "title": "Error Identification",
+                "result": "fail",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": "2026-09-13",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.3.2",
+                "level": "A",
+                "title": "Labels or Instructions",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.3.3",
+                "level": "AA",
+                "title": "Error Suggestion",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "3.3.4",
+                "level": "AA",
+                "title": "Error Prevention (Legal, Financial, Data)",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": null,
+                "testedOn": null,
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "4.1.1",
+                "level": "A",
+                "title": "Parsing",
+                "result": "not-tested",
+                "method": null,
+                "evidenceReference": "https://evidence/36",
+                "testedOn": "2026-02-16",
+                "limitationId": "lim-4",
+                "limitation": null
+            },
+            {
+                "criterion": "4.1.2",
+                "level": "A",
+                "title": "Name, Role, Value",
+                "result": "fail",
+                "method": "automated",
+                "evidenceReference": null,
+                "testedOn": "2026-07-12",
+                "limitationId": null,
+                "limitation": null
+            },
+            {
+                "criterion": "4.1.3",
+                "level": "AA",
+                "title": "Status Messages",
+                "result": "not-tested",
+                "method": "manual",
+                "evidenceReference": null,
+                "testedOn": "2026-04-12",
+                "limitationId": "lim-3",
+                "limitation": null
+            }
+        ]
+    },
+    "failures 6": {
+        "unlinked": [
+            "4.1.2",
+            "?",
+            "1.4.1",
+            "1.4.10",
+            "?",
+            "2.2.1",
+            "1.3.2",
+            "3.3.1",
+            "3.2.4",
+            "2.4.6"
+        ],
+        "reads": [
+            {
+                "filters": {
+                    "accessibilityStatementId": "st-1",
+                    "result": "fail",
+                    "register": "learniq",
+                    "schema": "accessibility-criterion-result"
+                }
+            },
+            {
+                "filters": {
+                    "accessibilityStatementId": "st-1",
+                    "register": "learniq",
+                    "schema": "accessibility-limitation"
+                }
+            }
+        ]
+    },
+    "failures handcrafted": {
+        "unlinked": [
+            "1.2.1",
+            "1.2.2"
+        ],
+        "reads": [
+            {
+                "filters": {
+                    "accessibilityStatementId": "st-1",
+                    "tenant_id": "t-1",
+                    "result": "fail",
+                    "register": "learniq",
+                    "schema": "accessibility-criterion-result"
+                }
+            },
+            {
+                "filters": {
+                    "accessibilityStatementId": "st-1",
+                    "tenant_id": "t-1",
+                    "register": "learniq",
+                    "schema": "accessibility-limitation"
+                }
+            }
+        ]
+    },
+    "failures none": {
+        "unlinked": [],
+        "reads": [
+            {
+                "filters": {
+                    "accessibilityStatementId": "st-1",
+                    "tenant_id": "t-1",
+                    "result": "fail",
+                    "register": "learniq",
+                    "schema": "accessibility-criterion-result"
+                }
+            }
+        ]
+    }
+}

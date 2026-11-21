@@ -154,4 +154,45 @@ XML;
 		self::assertSame('Question four', $presented['prompt']);
 		self::assertStringNotContainsString('SECRET', (string)json_encode($presented));
 	}//end testAnUnreadableBodyFallsBackToTheTitle()
+	/**
+	 * An empty prompt element falls back to the body's own text, an empty
+	 * body to the title, and a document without a body to the title too.
+	 *
+	 * @return void
+	 */
+	public function testThePromptFallsBackStepByStep(): void {
+		$presenter = new PortalItemPresenter();
+		$present = static fn (string $body): string => $presenter->present(
+			item: ['id' => 'i', 'title' => 'Titel', 'interactionType' => 'textEntry', 'qtiBody' => $body],
+			drawnRef: []
+		)['prompt'];
+
+		self::assertSame('Lees de tekst.', $present('<item><prompt>  </prompt><itemBody><p>Lees   de tekst.</p><textEntryInteraction><prompt>x</prompt></textEntryInteraction></itemBody></item>'));
+		self::assertSame('Titel', $present('<item><itemBody><choiceInteraction><simpleChoice identifier="A">A</simpleChoice></choiceInteraction></itemBody></item>'));
+		self::assertSame('Titel', $present('<item><p>Buiten de body</p></item>'));
+		self::assertSame('Vraag', $present('<item><qti-prompt>Vraag</qti-prompt><qti-item-body><p>Body</p></qti-item-body></item>'));
+	}//end testThePromptFallsBackStepByStep()
+
+	/**
+	 * The drawn order lists known options first; unknown, repeated and
+	 * non-string ids are ignored, unlisted options follow in body order, and
+	 * no order keeps the body order.
+	 *
+	 * @return void
+	 */
+	public function testTheDrawnOrderAndTheRest(): void {
+		$presenter = new PortalItemPresenter();
+		$choices = static fn (mixed $order): array => array_column(
+			$presenter->present(
+				item: ['id' => 'item-1', 'title' => 'Capital', 'interactionType' => 'order', 'qtiBody' => self::QTI2_CHOICE],
+				drawnRef: ['optionOrder' => $order]
+			)['choices'],
+			'id'
+		);
+
+		self::assertSame(['C', 'A', 'SECRET_B'], $choices(['C', 'X', 'C', 7, 'A']));
+		self::assertSame(['A', 'SECRET_B', 'C'], $choices([]));
+		self::assertSame(['A', 'SECRET_B', 'C'], $choices('C,A'));
+		self::assertSame(['A', 'SECRET_B', 'C'], $choices(null));
+	}//end testTheDrawnOrderAndTheRest()
 }//end class

@@ -224,4 +224,36 @@ class RenameRegisterSlugTest extends TestCase {
 		self::assertStringContainsString('scholiq', $name);
 		self::assertStringContainsString('learniq', $name);
 	}//end testGetNameDescribesTheRename()
+
+	/**
+	 * A failing UPDATE is logged, leaves the register as it was and reports
+	 * zero renamed rather than aborting the upgrade.
+	 *
+	 * @return void
+	 */
+	public function testAFailingUpdateIsLoggedAndReportsZero(): void {
+		$db = $this->createMock(IDBConnection::class);
+		$db->method('executeQuery')->willReturnCallback(
+			function (string $sql, array $params): IResult {
+				$result = $this->createMock(IResult::class);
+				$result->method('fetchOne')->willReturn(($params[0] ?? null) === 'scholiq' ? 1 : 0);
+				return $result;
+			}
+		);
+		$db->expects(self::once())
+			->method('executeStatement')
+			->with('UPDATE `*PREFIX*openregister_registers` SET slug = ? WHERE slug = ?', ['learniq', 'scholiq'])
+			->willThrowException(new DbException('deadlock'));
+
+		$logger = $this->createMock(LoggerInterface::class);
+		$logger->expects(self::once())
+			->method('warning')
+			->with('RenameRegisterSlug: the slug UPDATE failed; leaving the register as it was.', ['exception' => 'deadlock']);
+
+		$output = $this->createMock(IOutput::class);
+		$output->expects(self::once())->method('info')->with('RenameRegisterSlug: 0 register(s) renamed.');
+		$output->expects(self::never())->method('warning');
+
+		(new RenameRegisterSlug($db, $logger))->run($output);
+	}//end testAFailingUpdateIsLoggedAndReportsZero()
 }//end class

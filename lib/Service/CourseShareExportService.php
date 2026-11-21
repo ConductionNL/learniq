@@ -31,21 +31,20 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service;
 
 use OCA\Learniq\Exception\SharingBlockedException;
+use OCA\Learniq\Kernel\Contracts\CourseShareExportServiceInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use RuntimeException;
 
 /**
  * Gate, strip, record, return.
  */
-class CourseShareExportService {
+class CourseShareExportService implements CourseShareExportServiceInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 
 	public const CONSENT_SCHEMA = 'course-share-consent';
-
-	public const PURPOSE_DOWNLOAD = 'download';
-
-	public const PURPOSE_STORE = 'store';
 
 	/**
 	 * Constructor.
@@ -103,7 +102,15 @@ class CourseShareExportService {
 		$sharedAt = gmdate('c');
 		$package  = $this->builder->build(payload: $this->exporter->toScholiqPayload(tree: $tree), sharedAt: $sharedAt);
 
-		$this->recordConsent(course: (array)$tree['course'], courseId: $courseId, userId: $userId, sharedAt: $sharedAt, purpose: $purpose);
+		$this->recordConsent(
+			course: (array)$tree['course'],
+			args: [
+				'courseId' => $courseId,
+				'userId' => $userId,
+				'sharedAt' => $sharedAt,
+				'purpose' => $purpose,
+			]
+		);
 
 		return $package;
 
@@ -143,16 +150,18 @@ class CourseShareExportService {
 	 * Write the CourseShareConsent; fail when it cannot be written.
 	 *
 	 * @param array<string, mixed> $course   The course object.
-	 * @param string               $courseId UUID of the course.
-	 * @param string               $userId   Nextcloud user id of whoever confirmed.
-	 * @param string               $sharedAt ISO 8601 moment of sharing.
-	 * @param string               $purpose  `download` or `store`.
+	 * @param array{courseId: string, userId: string, sharedAt: string, purpose: string} $args The courseId, userId, sharedAt, purpose.
 	 *
 	 * @return void
 	 *
 	 * @throws RuntimeException When the record is not saved.
 	 */
-	private function recordConsent(array $course, string $courseId, string $userId, string $sharedAt, string $purpose): void {
+	private function recordConsent(array $course, array $args): void {
+		$courseId = $args['courseId'];
+		$userId = $args['userId'];
+		$sharedAt = $args['sharedAt'];
+		$purpose = $args['purpose'];
+
 		$record = [
 			'courseId'      => $courseId,
 			'courseName'    => (string)($course['name'] ?? ''),
@@ -169,9 +178,8 @@ class CourseShareExportService {
 
 		try {
 			$this->objectService->saveObject(
-				register: self::LEARNIQ_REGISTER,
-				schema: self::CONSENT_SCHEMA,
-				object: $record
+				object: $record,
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::CONSENT_SCHEMA))
 			);
 		} catch (\Throwable $e) {
 			throw new RuntimeException(

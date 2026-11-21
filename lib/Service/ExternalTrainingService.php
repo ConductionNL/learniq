@@ -36,8 +36,13 @@ namespace OCA\Learniq\Service;
 use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
+use OCA\Learniq\Kernel\Contracts\ExternalTrainingServiceInterface;
+use OCA\Learniq\Support\FindOrNull;
+use OCA\Learniq\Support\ObjectRow;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
-use OCP\AppFramework\Db\DoesNotExistException;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -45,7 +50,9 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
  */
-class ExternalTrainingService {
+class ExternalTrainingService implements ExternalTrainingServiceInterface {
+	use FindOrNull;
+
 	/**
 	 * OpenRegister register slug Learniq objects live in.
 	 */
@@ -57,6 +64,13 @@ class ExternalTrainingService {
 	private const SCHEMA = 'external-training-record';
 
 	/**
+	 * Turns one OpenRegister result into a plain array.
+	 *
+	 * @var ObjectRow
+	 */
+	private readonly ObjectRow $objectRow;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OR object query/persistence service.
@@ -66,6 +80,7 @@ class ExternalTrainingService {
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
 	) {
+		$this->objectRow = new ObjectRow();
 	}//end __construct()
 
 	/**
@@ -185,6 +200,20 @@ class ExternalTrainingService {
 			}
 		}
 
+		return $this->recordBatch(learnerIds: $learnerIds, shared: $shared);
+	}//end bulkRecord()
+
+	/**
+	 * Record the training for each learner under one new batch id.
+	 *
+	 * @param array<int,string>   $learnerIds The learners, without blanks or doubles.
+	 * @param array<string,mixed> $shared     The training fields every record shares.
+	 *
+	 * @return string The generated batchId (empty when nothing was created).
+	 *
+	 * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
+	 */
+	private function recordBatch(array $learnerIds, array $shared): string {
 		$batchId = $this->generateBatchId();
 
 		foreach ($learnerIds as $learnerId) {
@@ -214,14 +243,13 @@ class ExternalTrainingService {
 			// Do NOT set lifecycle — OR defaults it to 'submitted' and fires the
 			// 'created' notification rule.
 			$this->objectService->saveObject(
-				register: self::LEARNIQ_REGISTER,
-				schema: self::SCHEMA,
-				object: $record
+				object: $record,
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::SCHEMA))
 			);
 		}//end foreach
 
 		return $batchId;
-	}//end bulkRecord()
+	}//end recordBatch()
 
 	/**
 	 * Build the manual Credential payload to issue on verification.
@@ -272,17 +300,14 @@ class ExternalTrainingService {
 			return null;
 		}
 
-		try {
-			$profile = $this->objectService->find(
+		$find = fn () => $this->objectService
+			->find(
 				id: $profileId,
-				register: self::LEARNIQ_REGISTER,
-				schema: 'learner-profile',
+				options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: 'learner-profile'),
 				_rbac: false,
 				_multitenancy: false
 			);
-		} catch (DoesNotExistException) {
-			return null;
-		}
+		$profile = $this->findOrNull(find: $find);
 
 		$ncUserId = ($profile?->jsonSerialize()['ncUserId'] ?? null);
 		if (is_string($ncUserId) === false || $ncUserId === '') {
@@ -422,15 +447,7 @@ class ExternalTrainingService {
 	 * @return array<string,mixed> The row as an associative array.
 	 */
 	private function toArray(mixed $row): array {
-		if (is_array($row) === true) {
-			return $row;
-		}
-
-		if (is_object($row) === true && method_exists($row, 'jsonSerialize') === true) {
-			return (array)$row->jsonSerialize();
-		}
-
-		return [];
+		return $this->objectRow->asArray(object: $row);
 	}//end toArray()
 
 	/**
