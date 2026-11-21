@@ -6,8 +6,10 @@
 // when nothing is sent, and what the screen shows after a refusal.
 //
 // @spec openspec/specs/portable-learning-record/spec.md#scenario-a-learner-creates-a-share-with-a-mandatory-expiry
+// @spec openspec/changes/capability-rows-say-what-they-do/specs/portable-learning-record/spec.md#requirement-a-learner-downloads-the-signed-bundle-of-their-record-and-it-carries-a-verifiable-signature
 
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 import { test } from 'node:test'
 import { loadSfcScript } from './sfcScript.mjs'
 
@@ -231,4 +233,21 @@ test('a revoke posts the transition, reloads the shares and reports a refusal', 
 		assert.equal(vm.shareError, error)
 		assert.equal(logged.length, error ? 1 : 0)
 	}
+})
+
+test('Scenario "A learner takes their record to a new school": the page names where the signed bundle is in her Files', async () => {
+	const vm = screen({ record: {}, periodFrom: '2026-01-01' })
+	const generated = { id: 'e4', lifecycle: 'generated', bundleRef: 'Leerdossier/leerdossier-2026.json' }
+	stubFetch([answer(201, { uuid: 'e4' }), answer(200, { object: generated })])
+	await vm.generateExport()
+	assert.equal(vm.latestExport.bundleRef, 'Leerdossier/leerdossier-2026.json', 'the generated export keeps where its bundle is')
+
+	const sfc = readFileSync(new URL('../../src/views/MyLearningRecordView.vue', import.meta.url), 'utf8')
+	const message = 'Export generated. The signed bundle is stored at {ref} in your Files.'
+	const branch = sfc.slice(sfc.indexOf("v-if=\"latestExport.lifecycle === 'generated'\""), sfc.indexOf('v-else-if="latestExport.errorMessage"'))
+	assert.ok(branch.includes(message), 'a generated export shows the message')
+	assert.ok(branch.includes('{ ref: latestExport.bundleRef }'), 'the message names the bundle\'s place in Files')
+
+	const dutch = JSON.parse(readFileSync(new URL('../../l10n/nl.json', import.meta.url), 'utf8')).translations
+	assert.match(dutch[message], /\{ref\}.*Bestanden/, 'and says so in Dutch too')
 })
