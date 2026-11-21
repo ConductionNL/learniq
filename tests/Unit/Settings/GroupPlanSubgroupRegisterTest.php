@@ -173,7 +173,12 @@ class GroupPlanSubgroupRegisterTest extends TestCase {
 		$this->assertTrue(
 			condition: self::validates(
 				schema: $plan,
-				payload: ['cohortId' => '7c8d9e0f-1a2b-4c3d-8e4f-5a6b7c8d9e0f', 'subject' => 'Rekenen', 'coordinatorId' => 'po-ib-01', 'tenant_id' => self::TENANT]
+				payload: [
+					'cohortId' => '7c8d9e0f-1a2b-4c3d-8e4f-5a6b7c8d9e0f',
+					'subject' => 'Rekenen',
+					'coordinatorId' => 'po-ib-01',
+					'tenant_id' => self::TENANT,
+				]
 			),
 			message: 'a group plan for a cohort and a subject'
 		);
