@@ -286,21 +286,35 @@ class ConferenceScheduleGeneratorTest extends TestCase {
 			['id' => 'ta-draft', 'conferenceRoundId' => 'round-1', 'lifecycle' => 'draft', 'teacherId' => 'teacher-b', 'blocks' => $block],
 		];
 		$this->fixtures['conference-signup'] = [
-			['id' => 'signup-a', 'conferenceRoundId' => 'round-1', 'lifecycle' => 'submitted', 'learnerId' => 'learner-1', 'requestedTeacherIds' => ['teacher-a'], 'createdAt' => '2026-11-01T08:00:00+00:00'],
-			['id' => 'signup-b', 'conferenceRoundId' => 'round-1', 'lifecycle' => 'submitted', 'learnerId' => 'learner-2', 'requestedTeacherIds' => ['teacher-b'], 'createdAt' => '2026-11-01T08:01:00+00:00'],
+			[
+				'id' => 'signup-a',
+				'conferenceRoundId' => 'round-1',
+				'lifecycle' => 'submitted',
+				'learnerId' => 'learner-1',
+				'requestedTeacherIds' => ['teacher-a'],
+				'createdAt' => '2026-11-01T08:00:00+00:00',
+			],
+			[
+				'id' => 'signup-b',
+				'conferenceRoundId' => 'round-1',
+				'lifecycle' => 'submitted',
+				'learnerId' => 'learner-2',
+				'requestedTeacherIds' => ['teacher-b'],
+				'createdAt' => '2026-11-01T08:01:00+00:00',
+			],
 		];
 		$this->fixtures['conference-slot'] = [];
+		$round = ['id' => 'round-1', 'tenant_id' => 'tenant-a', 'slotDurationMinutes' => 10, 'bufferMinutes' => 0];
 
-		$this->makeGenerator()->handle($this->makeEvent(['id' => 'round-1', 'tenant_id' => 'tenant-a', 'slotDurationMinutes' => 10, 'bufferMinutes' => 0]));
+		$this->makeGenerator()->handle(event: $this->makeEvent(roundData: $round));
 
 		$slots = $this->savedSlots();
-		self::assertCount(1, $slots);
-		self::assertSame('teacher-a', $slots[0]['teacherId']);
-		self::assertSame([], array_filter($slots, static fn (array $slot): bool => ($slot['teacherId'] ?? null) === 'teacher-b'));
+		self::assertCount(expectedCount: 1, haystack: $slots);
+		self::assertSame(expected: 'teacher-a', actual: $slots[0]['teacherId']);
 
-		$byId = array_column($this->savedSignups(), null, 'id');
-		self::assertSame('scheduled', $byId['signup-a']['lifecycle']);
-		self::assertSame('waitlisted', $byId['signup-b']['lifecycle']);
+		$byId = array_column(array: $this->savedSignups(), column_key: null, index_key: 'id');
+		self::assertSame(expected: 'scheduled', actual: $byId['signup-a']['lifecycle']);
+		self::assertSame(expected: 'waitlisted', actual: $byId['signup-b']['lifecycle']);
 	}//end testADraftAvailabilityIsNotUsed()
 
 	/**

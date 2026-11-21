@@ -248,15 +248,15 @@ class SubmissionWindowGuardTest extends TestCase {
 	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/assignments/spec.md#requirement-a-hand-in-after-the-deadline-is-refused-when-late-work-is-not-accepted
 	 */
 	public function testALateHandInIsRefusedWithTheReason(): void {
-		$guard = $this->makeGuard($this->assignment('-1 hour', false));
+		$guard = $this->makeGuard(assignment: $this->assignment(offset: '-1 hour', allowLate: false));
 
 		foreach (['submit' => 'submitted', 'submitLate' => 'late'] as $transition => $state) {
-			$verdict = $guard->check($this->submission($state), $transition, 'alice');
-			self::assertFalse($verdict->isAllowed(), $transition);
+			$verdict = $guard->check(object: $this->submission(target: $state), action: $transition, userId: 'alice');
+			self::assertFalse(condition: $verdict->isAllowed(), message: $transition);
 			self::assertSame(
-				'The deadline has passed and this assignment does not accept late work.',
-				$verdict->getMessage(),
-				$transition
+				expected: 'The deadline has passed and this assignment does not accept late work.',
+				actual: $verdict->getMessage(),
+				message: $transition
 			);
 		}
 	}//end testALateHandInIsRefusedWithTheReason()

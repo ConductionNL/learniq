@@ -319,18 +319,19 @@ class CredentialIssuanceHandlerTest extends TestCase {
 	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/certification/spec.md#requirement-completing-a-course-issues-its-certificate-without-a-staff-action
 	 */
 	public function testTheCertificateIsIssuedAtTheCompletionMoment(): void {
-		$register  = json_decode((string)file_get_contents(__DIR__.'/../../../lib/Settings/learniq_register.json'), true);
+		$json      = (string)file_get_contents(filename: __DIR__.'/../../../lib/Settings/learniq_register.json');
+		$register  = json_decode(json: $json, associative: true);
 		$lifecycle = $register['components']['schemas']['Credential']['x-openregister-lifecycle'];
-		self::assertSame('issued', $lifecycle['initial']);
+		self::assertSame(expected: 'issued', actual: $lifecycle['initial']);
 
-		$this->buildHandler(tenantHasKey: true)->handle($this->completionEvent());
+		$this->buildHandler(tenantHasKey: true)->handle(event: $this->completionEvent());
 
-		self::assertCount(1, $this->saved);
+		self::assertCount(expectedCount: 1, haystack: $this->saved);
 		$credential = $this->saved[0]['object'];
-		self::assertArrayNotHasKey('lifecycle', $credential, 'The handler leaves the state to the lifecycle\'s initial issued.');
-		self::assertSame($this->completedAt, $credential['issuedAt']);
-		self::assertSame('auto', $credential['source']);
-		self::assertSame('certificate', $credential['kind']);
+		self::assertArrayNotHasKey(key: 'lifecycle', array: $credential, message: 'The state is left to the initial issued.');
+		self::assertSame(expected: $this->completedAt, actual: $credential['issuedAt']);
+		self::assertSame(expected: 'auto', actual: $credential['source']);
+		self::assertSame(expected: 'certificate', actual: $credential['kind']);
 	}//end testTheCertificateIsIssuedAtTheCompletionMoment()
 
 	/**
@@ -341,12 +342,12 @@ class CredentialIssuanceHandlerTest extends TestCase {
 	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/certification/spec.md#requirement-completing-a-course-issues-its-certificate-without-a-staff-action
 	 */
 	public function testWithoutASigningKeyTheLogNamesTheMissingKey(): void {
-		$this->buildHandler(tenantHasKey: false)->handle($this->completionEvent());
+		$this->buildHandler(tenantHasKey: false)->handle(event: $this->completionEvent());
 
-		self::assertSame([], $this->saved);
-		self::assertCount(1, $this->errors);
-		self::assertStringContainsString('signing key', $this->errors[0][0]);
-		self::assertSame(self::TENANT, $this->errors[0][1]['tenant']);
+		self::assertSame(expected: [], actual: $this->saved);
+		self::assertCount(expectedCount: 1, haystack: $this->errors);
+		self::assertStringContainsString(needle: 'signing key', haystack: $this->errors[0][0]);
+		self::assertSame(expected: self::TENANT, actual: $this->errors[0][1]['tenant']);
 	}//end testWithoutASigningKeyTheLogNamesTheMissingKey()
 
 	/**

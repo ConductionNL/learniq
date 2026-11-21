@@ -307,8 +307,8 @@ class AssessmentDrawResolverTest extends TestCase {
 	 */
 	public function testTwoLearnersEachGetTheirOwnDraw(): void {
 		$this->seed(
-			'exam',
-			[
+			schema: 'exam',
+			record: [
 				'id' => 'assessment-1',
 				'uuid' => 'assessment-1',
 				'tenant_id' => 'tenant-a',
@@ -322,8 +322,15 @@ class AssessmentDrawResolverTest extends TestCase {
 		for ($i = 1; $i <= 20; $i++) {
 			$pool[] = "item-$i";
 			$this->seed(
-				'item',
-				['id' => "item-$i", 'uuid' => "item-$i", 'tenant_id' => 'tenant-a', 'itemBankId' => 'bank-1', 'lifecycle' => 'published', 'maxScore' => 1]
+				schema: 'item',
+				record: [
+					'id' => "item-$i",
+					'uuid' => "item-$i",
+					'tenant_id' => 'tenant-a',
+					'itemBankId' => 'bank-1',
+					'lifecycle' => 'published',
+					'maxScore' => 1,
+				]
 			);
 		}
 
@@ -332,18 +339,15 @@ class AssessmentDrawResolverTest extends TestCase {
 			$sets = [];
 			foreach (['learner-a', 'learner-b'] as $learner) {
 				$this->savedObjects = [];
-				$this->makeResolver()->handle(
-					$this->makeResultEvent(
-						['id' => "result-$pair-$learner", 'assessmentId' => 'assessment-1', 'learnerId' => $learner, 'tenant_id' => 'tenant-a']
-					)
-				);
+				$attempt = ['id' => "result-$pair-$learner", 'assessmentId' => 'assessment-1', 'learnerId' => $learner, 'tenant_id' => 'tenant-a'];
+				$this->makeResolver()->handle(event: $this->makeResultEvent(data: $attempt));
 				$drawn = $this->savedDrawnItemRefs();
-				self::assertIsArray($drawn, 'every attempt stores its own drawnItemRefs');
-				$ids = array_column($drawn, 'itemId');
-				self::assertCount(5, $ids);
-				self::assertSame($ids, array_values(array_unique($ids)));
-				self::assertSame([], array_diff($ids, $pool));
-				sort($ids);
+				self::assertIsArray(actual: $drawn, message: 'every attempt stores its own drawnItemRefs');
+				$ids = array_column(array: $drawn, column_key: 'itemId');
+				self::assertCount(expectedCount: 5, haystack: $ids);
+				self::assertSame(expected: $ids, actual: array_values(array: array_unique(array: $ids)));
+				self::assertSame(expected: [], actual: array_diff($ids, $pool));
+				sort(array: $ids);
 				$sets[] = $ids;
 			}
 
@@ -352,7 +356,7 @@ class AssessmentDrawResolverTest extends TestCase {
 			}
 		}
 
-		self::assertGreaterThan(0, $pairsThatDiffer, 'ten pairs of independent draws of 5 from 20 never all match');
+		self::assertGreaterThan(expected: 0, actual: $pairsThatDiffer, message: 'ten pairs of independent draws never all match');
 	}//end testTwoLearnersEachGetTheirOwnDraw()
 
 	/**

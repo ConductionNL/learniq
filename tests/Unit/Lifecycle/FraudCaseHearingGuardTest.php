@@ -89,18 +89,21 @@ class FraudCaseHearingGuardTest extends TestCase {
 	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/exam-board/spec.md#requirement-a-fraud-case-moves-from-report-to-a-scheduled-and-held-hearing
 	 */
 	public function testAHearingIsScheduledAndThenHeld(): void {
-		$register    = json_decode((string)file_get_contents(__DIR__.'/../../../lib/Settings/learniq_register.json'), true);
+		$json        = (string)file_get_contents(filename: __DIR__.'/../../../lib/Settings/learniq_register.json');
+		$register    = json_decode(json: $json, associative: true);
 		$lifecycle   = $register['components']['schemas']['FraudCase']['x-openregister-lifecycle'];
-		$transitions = $lifecycle['transitions'];
+		$schedule    = $lifecycle['transitions']['scheduleHearing'];
+		$hold        = $lifecycle['transitions']['holdHearing'];
+		$scheduledAt = '2027-03-14T10:00:00Z';
 
-		self::assertSame('reported', $lifecycle['initial']);
-		self::assertSame(['reported', 'hearing-scheduled'], [$transitions['scheduleHearing']['from'], $transitions['scheduleHearing']['to']]);
-		self::assertSame(FraudCaseHearingGuard::class, $transitions['scheduleHearing']['requires']);
-		self::assertSame(['hearingDate'], array_column($transitions['scheduleHearing']['inputs'], 'field'));
-		self::assertSame(['hearing-scheduled', 'heard'], [$transitions['holdHearing']['from'], $transitions['holdHearing']['to']]);
+		self::assertSame(expected: 'reported', actual: $lifecycle['initial']);
+		self::assertSame(expected: ['reported', 'hearing-scheduled'], actual: [$schedule['from'], $schedule['to']]);
+		self::assertSame(expected: FraudCaseHearingGuard::class, actual: $schedule['requires']);
+		self::assertSame(expected: ['hearingDate'], actual: array_column(array: $schedule['inputs'], column_key: 'field'));
+		self::assertSame(expected: ['hearing-scheduled', 'heard'], actual: [$hold['from'], $hold['to']]);
 
-		$scheduled = ['id' => 'case-1', 'hearingDate' => '2027-03-14T10:00:00Z', 'lifecycle' => 'hearing-scheduled'];
-		self::assertAllowed($this->makeGuard()->check($scheduled, 'scheduleHearing', 'board-1'));
+		$scheduled = ['id' => 'case-1', 'hearingDate' => $scheduledAt, 'lifecycle' => 'hearing-scheduled'];
+		self::assertAllowed(verdict: $this->makeGuard()->check(object: $scheduled, action: 'scheduleHearing', userId: 'board-1'));
 	}//end testAHearingIsScheduledAndThenHeld()
 
 	/**
@@ -111,9 +114,10 @@ class FraudCaseHearingGuardTest extends TestCase {
 	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/exam-board/spec.md#requirement-a-fraud-case-moves-from-report-to-a-scheduled-and-held-hearing
 	 */
 	public function testAHearingWithoutADateIsRefusedInWords(): void {
-		$verdict = $this->makeGuard()->check(['id' => 'case-1', 'lifecycle' => 'hearing-scheduled'], 'scheduleHearing', 'board-1');
+		$object  = ['id' => 'case-1', 'lifecycle' => 'hearing-scheduled'];
+		$verdict = $this->makeGuard()->check(object: $object, action: 'scheduleHearing', userId: 'board-1');
 
-		self::assertFalse($verdict->isAllowed());
-		self::assertSame('A hearing date is needed to schedule the hearing.', $verdict->getMessage());
+		self::assertFalse(condition: $verdict->isAllowed());
+		self::assertSame(expected: 'A hearing date is needed to schedule the hearing.', actual: $verdict->getMessage());
 	}//end testAHearingWithoutADateIsRefusedInWords()
 }//end class
