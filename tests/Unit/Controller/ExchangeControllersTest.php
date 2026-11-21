@@ -190,15 +190,20 @@ class ExchangeControllersTest extends TestCase {
 	 *
 	 * @param IntegriqExchangeClient $integriq The client.
 	 * @param ObjectService|null     $objects  The store.
+	 * @param bool                   $allowed  Whether exchange.request is granted.
 	 *
 	 * @return ExchangeRequestController The controller.
 	 */
-	private function requestController(IntegriqExchangeClient $integriq, ?ObjectService $objects = null): ExchangeRequestController {
+	private function requestController(
+		IntegriqExchangeClient $integriq,
+		?ObjectService $objects = null,
+		bool $allowed = true
+	): ExchangeRequestController {
 		return new ExchangeRequestController(
 			request: $this->request(),
 			caller: new CallerActions(
 				userSession: $this->session(),
-				actionAuth: $this->actions(true, 'exchange.request')
+				actionAuth: $this->actions(allowed: $allowed, expected: 'exchange.request')
 			),
 			integriq: $integriq,
 			objectService: $objects ?? $this->createMock(ObjectService::class)
@@ -257,4 +262,51 @@ class ExchangeControllersTest extends TestCase {
 		$this->assertSame(Http::STATUS_CONFLICT, $response->getStatus());
 		$this->assertSame(['code' => 'mapping-missing', 'reason' => 'No mapping.'], $response->getData());
 	}//end testTheRequestRouteAnswersFailures()
+
+	/**
+	 * An administrator sends a cohort's pupil data to ROD: integriq is asked for
+	 * a bron-rod export job with the ROD mapping and the cohort, and the answer
+	 * carries the job id. No parent review opens for a cohort export.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/data-exchange/spec.md#requirement-a-user-requests-an-export-to-a-chosen-target-from-the-data-exchange-page
+	 */
+	public function testACohortIsSentToRod(): void {
+		$this->params = ['target' => 'bron-rod', 'cohortId' => 'cohort-4'];
+		$integriq     = $this->createMock(originalClassName: IntegriqExchangeClient::class);
+		$integriq->expects($this->once())->method('requestJob')->with(
+			'bron-rod',
+			'export',
+			'user/coordinator-1',
+			['schema' => 'learner-profile', 'filters' => [], 'cohortId' => 'cohort-4'],
+			'learniq-bron-rod-export-learner',
+			'coordinator-1'
+		)->willReturn('job-21');
+		$objects = $this->createMock(originalClassName: ObjectService::class);
+		$objects->expects($this->never())->method('saveObject');
+
+		$response = $this->requestController(integriq: $integriq, objects: $objects)->create();
+
+		$this->assertSame(expected: Http::STATUS_CREATED, actual: $response->getStatus());
+		$this->assertSame(expected: ['jobId' => 'job-21'], actual: $response->getData());
+	}//end testACohortIsSentToRod()
+
+	/**
+	 * A user the action matrix does not grant exchange.request is refused with
+	 * 403, and no job is asked for.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/data-exchange/spec.md#requirement-a-user-requests-an-export-to-a-chosen-target-from-the-data-exchange-page
+	 */
+	public function testAUserWithoutTheRightIsRefused(): void {
+		$this->params = ['target' => 'bron-rod'];
+		$integriq     = $this->createMock(originalClassName: IntegriqExchangeClient::class);
+		$integriq->expects($this->never())->method('requestJob');
+
+		$response = $this->requestController(integriq: $integriq, allowed: false)->create();
+
+		$this->assertSame(expected: Http::STATUS_FORBIDDEN, actual: $response->getStatus());
+	}//end testAUserWithoutTheRightIsRefused()
 }//end class
