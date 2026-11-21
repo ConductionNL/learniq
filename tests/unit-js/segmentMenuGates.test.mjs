@@ -198,6 +198,7 @@ const SCHOOL_ONLY_MENU = [
 	'LeaveRequestsMenu',
 	'SchoolEventsMenu',
 	'PermissionRequestsMenu',
+	'SchoolActivitiesMenu',
 ].map((id) => `menu:${id}`)
 
 test('the built structure has the surfaces this test reasons about', () => {

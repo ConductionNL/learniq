@@ -120,6 +120,7 @@ import HumanWheelchair from 'vue-material-design-icons/HumanWheelchair.vue'
 import InformationOutline from 'vue-material-design-icons/InformationOutline.vue'
 import LinkVariant from 'vue-material-design-icons/LinkVariant.vue'
 import Lock from 'vue-material-design-icons/Lock.vue'
+import LockOpenVariantOutline from 'vue-material-design-icons/LockOpenVariantOutline.vue'
 import LockOutline from 'vue-material-design-icons/LockOutline.vue'
 import MapMarker from 'vue-material-design-icons/MapMarker.vue'
 import MapMarkerCheckOutline from 'vue-material-design-icons/MapMarkerCheckOutline.vue'
@@ -145,6 +146,7 @@ import Plus from 'vue-material-design-icons/Plus.vue'
 import PodiumGold from 'vue-material-design-icons/PodiumGold.vue'
 import PowerPlugOutline from 'vue-material-design-icons/PowerPlugOutline.vue'
 import RobotOutline from 'vue-material-design-icons/RobotOutline.vue'
+import Run from 'vue-material-design-icons/Run.vue'
 import ScaleBalance from 'vue-material-design-icons/ScaleBalance.vue'
 import School from 'vue-material-design-icons/School.vue'
 import SchoolOutline from 'vue-material-design-icons/SchoolOutline.vue'
@@ -288,6 +290,7 @@ export default {
 	InformationOutline,
 	LinkVariant,
 	Lock,
+	LockOpenVariantOutline,
 	LockOutline,
 	MapMarker,
 	MapMarkerCheckOutline,
@@ -313,6 +316,7 @@ export default {
 	PodiumGold,
 	PowerPlugOutline,
 	RobotOutline,
+	Run,
 	ScaleBalance,
 	School,
 	SchoolOutline,

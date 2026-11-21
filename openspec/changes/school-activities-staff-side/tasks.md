@@ -1,6 +1,7 @@
 # Tasks: school-activities-staff-side
 
-- [ ] **T1**: the staff page `Activiteiten` in learniq's menu, drawn on `learniq/LqActiviteiten`: the activities of the school with their places, confirmed sign-ups and waiting list
+- [x] **T1**: the staff page `Activiteiten` in learniq's menu, drawn on `learniq/LqActiviteiten`: the activities of the school with their places, confirmed sign-ups and waiting list
+  - The index page `SchoolActivities` (`/school-activities`, `src/manifest.d/school-calendar.json`) reads its rows from `GET /api/school-activities` (`entitySource: endpoint`): activity, status, start, places, confirmed and waiting list, with "Open for sign-up" on a draft (`PUT /api/school-activities/{id}/open`). The menu entry `Activities` sits beside the School calendar, for the roles `activity.manage` is seeded for, and not for a company; the simple structure profile lists it among its removals. No Add, import or delete: guardians sign up on the portal. Test: `tests/unit-js/schoolActivitiesPage.test.mjs`.
 - [x] **T2**: open an activity: places are the lower of the capacity and the supervisors times the children per supervisor; an activity without a place is refused with `no_places` and stays a draft
   - `SchoolActivityStaff::open()` behind `PUT /api/school-activities/{id}/open`; places in `ActivityPlaces::placesFor()`.
 - [x] **T3**: the roster of one activity, with a photo consent mark per child when the activity takes photos

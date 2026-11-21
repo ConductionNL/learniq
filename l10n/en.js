@@ -5860,7 +5860,12 @@ OC.L10N.register(
         "Colleague who goes instead": "Colleague who goes instead",
         "The place stays on the booking. Until the working day before the course at 12.00.": "The place stays on the booking. Until the working day before the course at 12.00.",
         "Send this colleague": "Send this colleague",
-        "Your colleague takes the place. The participant you replaced gets a message.": "Your colleague takes the place. The participant you replaced gets a message."
+        "Your colleague takes the place. The participant you replaced gets a message.": "Your colleague takes the place. The participant you replaced gets a message.",
+        "Activities": "Activities",
+        "Activity": "Activity",
+        "Open for sign-up": "Open for sign-up",
+        "The activity is open for sign-up.": "The activity is open for sign-up.",
+        "Only the staff who run the school's activities see them.": "Only the staff who run the school's activities see them."
     },
     "nplurals=2; plural=(n != 1);"
 )

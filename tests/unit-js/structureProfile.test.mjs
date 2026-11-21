@@ -385,6 +385,7 @@ const KNOWN_UNLINKED = {
 		'PermissionRequestsMenu',
 		'ProctoringReviewMenu',
 		'RegulationExemptionsMenu',
+		'SchoolActivitiesMenu',
 		'SchoolAdviezenMenu',
 		'SchoolEventsMenu',
 		'StandbyPlanningMenu',
@@ -438,6 +439,7 @@ const KNOWN_UNLINKED = {
 		'DashboardTeacher',
 		'GradeCorrectionsMenu',
 		'PermissionRequestsMenu',
+		'SchoolActivitiesMenu',
 		'SchoolEventsMenu',
 	],
 	coordinator: [
@@ -453,6 +455,7 @@ const KNOWN_UNLINKED = {
 		'HourPlanActivitiesMenu',
 		'MyLearningRecordMenu',
 		'PermissionRequestsMenu',
+		'SchoolActivitiesMenu',
 		'SchoolAdviezenMenu',
 		'SchoolEventsMenu',
 		'StandbyPlanningMenu',
@@ -470,6 +473,7 @@ const KNOWN_UNLINKED = {
 		'MyLearningRecordMenu',
 		'PermissionRequestsMenu',
 		'ProctoringReviewMenu',
+		'SchoolActivitiesMenu',
 		'SubjectChoicesMenu',
 		'TeacherAvailabilitiesMenu',
 		'TimetablesMenu',
@@ -633,15 +637,17 @@ test('the full profile is exactly the plain manifest build', () => {
 	// 115 with Participants (training-provider-course-days T7); 116 since
 	// ai-disclosure-for-every-user added the AI processing disclosure to the
 	// footer for every signed-in user (footer 2 -> 3).
-	// 117 with Exam registrations (exam-registration-and-certificate-issue).
-	assert.equal(entries.length, 117)
-	// 28 top-level items: the AI disclosure is one of them.
-	assert.equal(plain.menu.length, 28)
+	// 117 with Exam registrations (exam-registration-and-certificate-issue);
+	// 118 since school-activities-staff-side added Activities at the top
+	// level, beside the School calendar and Permission slips.
+	assert.equal(entries.length, 118)
+	// 29 top-level items: the AI disclosure and Activities are two of them.
+	assert.equal(plain.menu.length, 29)
 	// 106 in main: Course days, Permission slips, Leave to decide and
-	// Participants each added one.
+	// Participants each added one; 108 with Exam registrations and Activities.
 	assert.deepEqual(
 		[count('main'), count('footer'), count('settings')],
-		[107, 3, 7],
+		[108, 3, 7],
 	)
 	// 347 since the four unreached pages (BulkEnrol, CohortTimetable,
 	// MarkAttendanceView, SubmitExcuseModal) became actions; 348 with
@@ -654,8 +660,9 @@ test('the full profile is exactly the plain manifest build', () => {
 	// 356 with company visits (bpv-coach-today-and-placement-board; its placement
 	// board is a view mode of BpvPlacements, not a page); 358 with
 	// CourseParticipants and CourseParticipantDetail (training-provider-course-days T7).
-	// One more with ExamRegistrations (exam-registration-and-certificate-issue).
-	assert.equal(plain.pages.length, 360)
+	// One more with ExamRegistrations (exam-registration-and-certificate-issue);
+	// 361 with SchoolActivities (school-activities-staff-side).
+	assert.equal(plain.pages.length, 361)
 })
 
 test('menu-layout.json holds no profile key, so the full profile cannot gain an overlay', () => {

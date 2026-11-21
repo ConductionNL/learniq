@@ -5966,6 +5966,10 @@ OC.L10N.register(
         "Contact for questions": "Contact voor vragen",
         "Explanation of {feature}": "Toelichting op {feature}",
         "Save text": "Tekst opslaan",
+        "Peer feedback": "Feedback van medestudenten",
+        "Average score {averageScore}": "Gemiddelde score {averageScore}",
+        "{reviewCount} released reviews": "{reviewCount} vrijgegeven beoordelingen",
+        "No peer feedback released yet": "Nog geen feedback van medestudenten vrijgegeven",
         "Student administration": "Leerlingadministratie",
         "Name, year, learners and teachers from": "Naam, jaar, leerlingen en docenten uit",
         "Last synced": "Laatst bijgewerkt",
@@ -6350,7 +6354,12 @@ OC.L10N.register(
         "Colleague who goes instead": "Collega die in de plaats gaat",
         "The place stays on the booking. Until the working day before the course at 12.00.": "De plek blijft op de boeking. Dit kan tot de werkdag voor de cursus om 12.00 uur.",
         "Send this colleague": "Deze collega sturen",
-        "Your colleague takes the place. The participant you replaced gets a message.": "Uw collega neemt de plek in. De deelnemer die u vervangt krijgt een bericht."
+        "Your colleague takes the place. The participant you replaced gets a message.": "Uw collega neemt de plek in. De deelnemer die u vervangt krijgt een bericht.",
+        "Activities": "Activiteiten",
+        "Activity": "Activiteit",
+        "Open for sign-up": "Openzetten voor aanmelden",
+        "The activity is open for sign-up.": "De activiteit staat open voor aanmelden.",
+        "Only the staff who run the school's activities see them.": "Alleen medewerkers die de activiteiten van de school verzorgen zien ze."
     },
     "nplurals=2; plural=(n != 1);"
 )
