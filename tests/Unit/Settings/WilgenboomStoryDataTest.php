@@ -69,7 +69,7 @@ class WilgenboomStoryDataTest extends TestCase {
 	 */
 	private static function one(string $schema, string $field, mixed $value): array {
 		$rows = array_values(array_filter(self::of(schema: $schema), static fn (array $row): bool => ($row[$field] ?? null) === $value));
-		self::assertCount(1, $rows, $schema . ' ' . $field . ' ' . (string)json_encode($value));
+		self::assertCount(expectedCount: 1, haystack: $rows, message: $schema . ' ' . $field . ' ' . (string)json_encode($value));
 		return $rows[0];
 	}//end one()
 
@@ -89,11 +89,16 @@ class WilgenboomStoryDataTest extends TestCase {
 		$lessons = array_values(
 			array_filter(
 				self::of(schema: 'session'),
-				static fn (array $s): bool => $s['cohortId'] === $group7['uuid'] && $s['courseId'] === $gym['uuid'] && str_starts_with($s['startsAt'], self::TODAY)
+				static fn (array $s): bool => $s['cohortId'] === $group7['uuid']
+					&& $s['courseId'] === $gym['uuid']
+					&& str_starts_with($s['startsAt'], self::TODAY)
 			)
 		);
-		self::assertCount(1, $lessons, 'one gym lesson for groep 7 today');
-		self::assertSame(['Gym', self::TODAY . 'T13:15:00+02:00', $room['uuid']], [$lessons[0]['title'], $lessons[0]['startsAt'], $lessons[0]['roomId']]);
+		self::assertCount(expectedCount: 1, haystack: $lessons, message: 'one gym lesson for groep 7 today');
+		self::assertSame(
+			expected: ['Gym', self::TODAY . 'T13:15:00+02:00', $room['uuid']],
+			actual: [$lessons[0]['title'], $lessons[0]['startsAt'], $lessons[0]['roomId']]
+		);
 	}//end testVerasGroupHasGymAtQuarterPastOneToday()
 
 	/**
@@ -105,6 +110,9 @@ class WilgenboomStoryDataTest extends TestCase {
 	 * @spec openspec/changes/wilgenboom-story-data/specs/example-sets/spec.md#requirement-the-po-set-holds-what-the-guardian-boards-show
 	 */
 	public function testThePhotographerLineIsTheBoards(): void {
-		self::assertSame('In de ochtend, voor het uitje.', self::one(schema: 'school-event', field: 'title', value: 'Schoolfotograaf')['description']);
+		self::assertSame(
+			expected: 'In de ochtend, voor het uitje.',
+			actual: self::one(schema: 'school-event', field: 'title', value: 'Schoolfotograaf')['description']
+		);
 	}//end testThePhotographerLineIsTheBoards()
 }//end class
