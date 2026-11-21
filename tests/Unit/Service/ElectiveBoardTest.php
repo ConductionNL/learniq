@@ -17,6 +17,7 @@
  * @link https://conduction.nl
  *
  * @spec openspec/specs/enrolment/spec.md#requirement-a-coordinator-places-learners-who-missed-the-window
+ * @spec openspec/changes/capability-rows-say-what-they-do/specs/enrolment/spec.md#requirement-a-learner-withdraws-from-an-optional-lesson-and-sees-when-sign-up-opens
  */
 
 declare(strict_types=1);
@@ -106,4 +107,69 @@ class ElectiveBoardTest extends TestCase {
 		self::assertFalse($roster['lessons'][0]['windowOpen']);
 		self::assertSame(['j.bakker', 'a.jansen'], $roster['lessons'][1]['notSignedUp']);
 	}//end testRosterListsWhoDidNotSignUp()
+
+	/**
+	 * One offer of 13 places on a Thursday lesson, over the given sign-ups.
+	 *
+	 * @param array<int, array<string, mixed>> $signUps The offer's sign-ups as stored.
+	 *
+	 * @return ElectiveBoard
+	 */
+	private function thursdayBoard(array $signUps): ElectiveBoard {
+		$offer = [
+			'id' => 'offer-2', 'name' => 'Steunles Nederlands', 'lifecycle' => 'open', 'capacityPerLesson' => 13,
+			'sessionIds' => ['lesson-thu'], 'eligibleCohortIds' => ['cohort-h4'], 'windowMode' => 'relative',
+			'opensDaysBefore' => 7, 'closesHoursBefore' => 12,
+		];
+		$objects = $this->createMock(ObjectService::class);
+		$objects->method('find')->willReturn(OrEntityFactory::make($offer, 'elective-offer'));
+		$objects->method('findAll')->willReturnCallback(
+			static fn (array $config): array => match ($config['filters']['schema'] ?? '') {
+				'elective-offer' => [$offer],
+				'session' => [['id' => 'lesson-thu', 'title' => 'Donderdag 15', 'startsAt' => '2026-10-15T10:15:00+02:00', 'endsAt' => '2026-10-15T11:05:00+02:00']],
+				'cohort' => [['id' => 'cohort-h4', 'learnerIds' => ['j.bakker', 't.smit']]],
+				'elective-sign-up' => $signUps,
+				default => [],
+			}
+		);
+
+		return new ElectiveBoard(new ElectiveService($objects));
+	}//end thursdayBoard()
+
+	/**
+	 * Scenario "A learner withdraws inside the window": 12 free with his sign-up, 13 and Sign up after it is withdrawn.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/enrolment/spec.md#scenario-a-learner-withdraws-inside-the-window
+	 */
+	public function testALearnerWithdrawsInsideTheWindow(): void {
+		$now    = new DateTimeImmutable('2026-10-12T12:00:00+02:00');
+		$signUp = ['id' => 'su-9', 'offerId' => 'offer-2', 'sessionId' => 'lesson-thu', 'learnerId' => 'j.bakker', 'status' => 'signed-up'];
+
+		$before = $this->thursdayBoard(signUps: [$signUp])->forLearner('j.bakker', $now)[0]['lessons'][0];
+		self::assertSame(12, $before['freePlaces']);
+		self::assertSame('su-9', $before['mySignUpId'], 'signed up, so the screen offers Withdraw');
+		self::assertTrue($before['windowOpen']);
+
+		$after = $this->thursdayBoard(signUps: [array_merge($signUp, ['status' => 'withdrawn'])])->forLearner('j.bakker', $now)[0]['lessons'][0];
+		self::assertSame(13, $after['freePlaces'], 'the withdrawn sign-up frees its place');
+		self::assertNull($after['mySignUpId'], 'no sign-up of his, so the screen offers Sign up again');
+		self::assertTrue($after['windowOpen']);
+	}//end testALearnerWithdrawsInsideTheWindow()
+
+	/**
+	 * Scenario "The window has not opened yet": three days before it opens, the lesson names the date and is closed.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/enrolment/spec.md#scenario-the-window-has-not-opened-yet
+	 */
+	public function testTheWindowHasNotOpenedYet(): void {
+		$lesson = $this->thursdayBoard(signUps: [])->forLearner('j.bakker', new DateTimeImmutable('2026-10-05T10:15:00+02:00'))[0]['lessons'][0];
+
+		self::assertFalse($lesson['windowOpen'], 'no button while the window is closed');
+		self::assertSame('2026-10-08T10:15:00+02:00', $lesson['opensAt'], 'sign-up opens seven days before the lesson, three days from now');
+		self::assertNull($lesson['mySignUpId']);
+	}//end testTheWindowHasNotOpenedYet()
 }//end class
