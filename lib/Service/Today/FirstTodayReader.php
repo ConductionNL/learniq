@@ -28,11 +28,12 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Today;
 
-use DateTimeZone;
+use DateTimeImmutable;
 use OCA\Learniq\Service\Attendance\RollCallAccess;
 use OCA\Learniq\Service\Attendance\RollCallException;
 use OCA\Learniq\Service\Attendance\RollCallReader;
 use OCA\OpenRegister\Service\ObjectService;
+use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IUser;
 
 /**
@@ -62,6 +63,7 @@ class FirstTodayReader {
 	 * @param ObjectService  $objectService OpenRegister object access.
 	 * @param RollCallAccess $access        Who may open which group, the time zone and today.
 	 * @param RollCallReader $reader        The groups, their lessons, marks and absence reports.
+	 * @param ITimeFactory   $time          The clock.
 	 *
 	 * @return void
 	 */
@@ -69,21 +71,24 @@ class FirstTodayReader {
 		private readonly ObjectService $objectService,
 		private readonly RollCallAccess $access,
 		private readonly RollCallReader $reader,
+		private readonly ITimeFactory $time,
 	) {
 	}//end __construct()
 
 	/**
-	 * The caller's time zone.
+	 * The caller and now, in her time zone.
 	 *
 	 * @param IUser $user The caller.
 	 *
-	 * @return DateTimeZone
+	 * @return TodayContext
 	 *
 	 * @spec openspec/changes/today-first-per-school-role/tasks.md#T1
 	 */
-	public function zone(IUser $user): DateTimeZone {
-		return $this->access->zone(user: $user);
-	}//end zone()
+	public function contextFor(IUser $user): TodayContext {
+		$now = (new DateTimeImmutable('@' . $this->time->getTime()))->setTimezone($this->access->zone(user: $user));
+
+		return new TodayContext(user: $user, now: $now);
+	}//end contextFor()
 
 	/**
 	 * Today's groups with their lessons, saved marks per lesson and absence reports.
@@ -92,23 +97,22 @@ class FirstTodayReader {
 	 * she may open (all current groups for school-wide staff). A caller who
 	 * may open no register gets no groups.
 	 *
-	 * @param IUser        $user  The caller.
-	 * @param bool         $own   Only the groups she teaches.
-	 * @param string       $today Today, `Y-m-d`.
-	 * @param DateTimeZone $zone  The school's time zone.
+	 * @param TodayContext $context The caller and now.
+	 * @param bool         $own     Only the groups she teaches.
 	 *
 	 * @return list<array<string, mixed>> Each `{cohort, sessions, records, reports}`.
 	 *
 	 * @spec openspec/changes/today-first-per-school-role/tasks.md#T1
 	 */
-	public function groupsToday(IUser $user, bool $own, string $today, DateTimeZone $zone): array {
+	public function groupsToday(TodayContext $context, bool $own): array {
 		try {
-			$cohorts = $this->access->cohortsFor(user: $user);
+			$cohorts = $this->access->cohortsFor(user: $context->user);
 		} catch (RollCallException) {
 			return [];
 		}
 
-		$uid = $user->getUID();
+		$uid = $context->uid();
+		$today = $context->today();
 		$groups = [];
 		foreach ($cohorts as $cohort) {
 			if ($own === true && in_array($uid, $this->reader->teachersOf(cohort: $cohort), true) === false) {
@@ -116,14 +120,16 @@ class FirstTodayReader {
 			}
 
 			$cohortId = (string)($cohort['id'] ?? ($cohort['uuid'] ?? ''));
-			$sessions = $this->reader->sessionsOn(cohortId: $cohortId, date: $today, zone: $zone);
+			$sessions = $this->reader->sessionsOn(cohortId: $cohortId, date: $today, zone: $context->zone());
 			$records = [];
 			foreach ($sessions as $session) {
 				$sessionId = (string)($session['id'] ?? ($session['uuid'] ?? ''));
 				$records[$sessionId] = count($this->reader->recordsOf(sessionId: $sessionId));
 			}
 
-			$learnerIds = array_values(array_filter((array)($cohort['learnerIds'] ?? []), static fn (mixed $id): bool => is_string($id) === true && $id !== ''));
+			$learnerIds = array_values(
+				array_filter((array)($cohort['learnerIds'] ?? []), static fn (mixed $id): bool => is_string($id) === true && $id !== '')
+			);
 			$groups[] = [
 				'cohort' => $cohort,
 				'sessions' => $sessions,

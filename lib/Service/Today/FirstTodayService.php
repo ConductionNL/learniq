@@ -27,12 +27,11 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Today;
 
-use DateTimeImmutable;
-use DateTimeZone;
 use OCA\Learniq\Kernel\Contracts\DashboardRoleServiceInterface;
 use OCA\Learniq\Kernel\Contracts\SegmentServiceInterface;
-use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IUser;
+use Psr\Log\LoggerInterface;
+use Throwable;
 
 /**
  * Answers the First today card for a user.
@@ -40,6 +39,34 @@ use OCP\IUser;
  * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
  */
 class FirstTodayService {
+
+	/**
+	 * The ordered rules per role.
+	 *
+	 * @var FirstTodayRules
+	 */
+	private readonly FirstTodayRules $rules;
+
+	/**
+	 * What the register rules count.
+	 *
+	 * @var RegisterFacts
+	 */
+	private readonly RegisterFacts $registers;
+
+	/**
+	 * What the attendance rules count.
+	 *
+	 * @var AttendanceFacts
+	 */
+	private readonly AttendanceFacts $attendance;
+
+	/**
+	 * What the follow-up rules count.
+	 *
+	 * @var FollowUpFacts
+	 */
+	private readonly FollowUpFacts $followUp;
 
 	/**
 	 * Today's groups already read in this request, by caller, kind and day.
@@ -53,8 +80,8 @@ class FirstTodayService {
 	 *
 	 * @param DashboardRoleServiceInterface $roles    The user's primary role.
 	 * @param SegmentServiceInterface       $segments The school kind.
-	 * @param FirstTodayReader              $reader   The reads behind each rule.
-	 * @param ITimeFactory                  $time     The clock.
+	 * @param FirstTodayReader              $reader   The reads behind each rule, and the clock.
+	 * @param LoggerInterface               $logger   Logger.
 	 *
 	 * @return void
 	 */
@@ -62,9 +89,37 @@ class FirstTodayService {
 		private readonly DashboardRoleServiceInterface $roles,
 		private readonly SegmentServiceInterface $segments,
 		private readonly FirstTodayReader $reader,
-		private readonly ITimeFactory $time,
+		private readonly LoggerInterface $logger,
 	) {
+		$this->rules      = new FirstTodayRules();
+		$this->registers  = new RegisterFacts();
+		$this->attendance = new AttendanceFacts();
+		$this->followUp   = new FollowUpFacts();
 	}//end __construct()
+
+	/**
+	 * The user's First today card, or null when it could not be read.
+	 *
+	 * @param IUser  $user The caller.
+	 * @param string $view The view asked for: '' or `mentor`.
+	 *
+	 * @return array<string, mixed>|null `role` (null when Today has no card for her), `rule` (null when nothing
+	 *                                   is first), `count` (0 when nothing is first) and the winning rule's facts.
+	 *
+	 * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
+	 * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-a-mentor-switches-today-to-her-mentor-class
+	 */
+	public function cardFor(IUser $user, string $view=''): ?array {
+		try {
+			return $this->forUser(user: $user, view: $view);
+		} catch (Throwable $exception) {
+			$this->logger->error(
+				'[FirstTodayService] The First today card could not be read: {msg}',
+				['msg' => $exception->getMessage(), 'exception' => $exception]
+			);
+			return null;
+		}
+	}//end cardFor()
 
 	/**
 	 * The user's First today card.
@@ -72,27 +127,21 @@ class FirstTodayService {
 	 * @param IUser  $user The caller.
 	 * @param string $view The view asked for: '' or `mentor`.
 	 *
-	 * @return array<string, mixed> `role` (null when Today has no card for her), `rule` (null when nothing is first),
-	 *                              `count` (0 when nothing is first) and the winning rule's facts.
+	 * @return array<string, mixed>
 	 *
 	 * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
-	 * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-a-mentor-switches-today-to-her-mentor-class
 	 */
 	public function forUser(IUser $user, string $view=''): array {
-		$role = FirstTodayRules::roleFor(
-			primaryRole: $this->roles->resolvePrimaryRole(user: $user),
-			segment: $this->segments->currentSegment(),
+		$role = $this->rules->inView(
+			role: $this->rules->roleFor(primaryRole: $this->roles->resolvePrimaryRole(user: $user), segment: $this->segments->currentSegment()),
 			view: $view
 		);
 		if ($role === null) {
 			return ['role' => null, 'rule' => null, 'count' => 0];
 		}
 
-		$zone = $this->reader->zone(user: $user);
-		$now = (new DateTimeImmutable('@' . $this->time->getTime()))->setTimezone($zone);
-		$context = ['user' => $user, 'now' => $now, 'today' => $now->format('Y-m-d'), 'zone' => $zone];
-
-		$first = FirstTodayRules::first(
+		$context = $this->reader->contextFor(user: $user);
+		$first = $this->rules->first(
 			role: $role,
 			probe: fn (string $rule): ?array => $this->facts(rule: $rule, context: $context)
 		);
@@ -103,93 +152,94 @@ class FirstTodayService {
 	/**
 	 * One rule's facts for the caller.
 	 *
-	 * @param string               $rule    A rule of FirstTodayRules.
-	 * @param array<string, mixed> $context `user`, `now`, `today` and `zone`.
+	 * @param string       $rule    A rule of FirstTodayRules.
+	 * @param TodayContext $context The caller and now.
 	 *
 	 * @return array<string, mixed>|null
 	 *
 	 * @spec openspec/changes/today-first-per-school-role/tasks.md#T1
 	 */
-	private function facts(string $rule, array $context): ?array {
-		/** @var IUser $user */
-		$user = $context['user'];
-		/** @var DateTimeImmutable $now */
-		$now = $context['now'];
-		$uid = $user->getUID();
+	private function facts(string $rule, TodayContext $context): ?array {
+		$uid = $context->uid();
+		$now = $context->now;
 
 		return match ($rule) {
-			FirstTodayRules::REGISTER_NOT_FILLED => FirstTodayFacts::registerNotFilled(
-				groups: $this->groups(context: $context, own: true),
-				now: $now
-			),
-			FirstTodayRules::REGISTERS_NOT_FILLED_AT_930 => FirstTodayFacts::registersNotFilledAt930(
+			FirstTodayRules::REGISTER_NOT_FILLED => $this->registers->registerNotFilled(groups: $this->groups(context: $context, own: true), now: $now),
+			FirstTodayRules::REGISTERS_NOT_FILLED_AT_930 => $this->registers->registersNotFilledAt930(
 				groups: $this->groups(context: $context, own: false),
 				now: $now
 			),
-			FirstTodayRules::LESSON_REGISTER_OPEN => FirstTodayFacts::lessonRegisterOpen(
-				sessions: $this->ownSessions(context: $context),
-				now: $now
-			),
-			FirstTodayRules::BOOKINGS_TO_CONFIRM => FirstTodayFacts::bookingsToConfirm(
-				slots: $this->reader->rows(schema: 'conference-slot', filters: ['teacherId' => $uid, 'lifecycle' => 'booked']),
-				uid: $uid
-			),
-			FirstTodayRules::NEARING_LIMIT => FirstTodayFacts::nearingLimit(
+			FirstTodayRules::LESSON_REGISTER_OPEN => $this->registers->lessonRegisterOpen(sessions: $this->ownSessions(context: $context), now: $now),
+			FirstTodayRules::NEARING_LIMIT => $this->attendance->nearingLimit(
 				summaries: $this->reader->rows(schema: 'attendance-summary', filters: ['thresholdNearing' => true]),
 				uid: $uid
 			),
-			FirstTodayRules::MISSING_HAND_INS => FirstTodayFacts::missingHandIns(
-				assignments: $this->reader->rows(schema: 'assignment', filters: ['lifecycle' => 'published']),
-				groupSizes: $this->groupSizes(context: $context),
-				today: (string)$context['today'],
-				zone: $context['zone']
-			),
-			FirstTodayRules::UNAUTHORISED_ABSENCE => FirstTodayFacts::unauthorisedAbsence(
+			FirstTodayRules::UNAUTHORISED_ABSENCE => $this->attendance->unauthorisedAbsence(
 				flags: $this->reader->rows(schema: 'attendance-flag', filters: ['mentorId' => $uid, 'lifecycle' => 'open']),
-				uid: $uid,
-				now: $now
+				context: $context
 			),
-			FirstTodayRules::MENTOR_TALKS_CLOSING => FirstTodayFacts::mentorTalksClosing(
-				rounds: $this->reader->rows(schema: 'conference-round'),
-				slots: $this->reader->rows(schema: 'conference-slot'),
-				uid: $uid,
-				now: $now
-			),
-			FirstTodayRules::PLAN_ENDING => FirstTodayFacts::planEnding(
-				groupPlans: $this->reader->rows(schema: 'group-plan', filters: ['lifecycle' => 'active']),
-				learningPlans: $this->reader->rows(schema: 'learning-plan', filters: ['lifecycle' => 'active']),
-				today: (string)$context['today']
-			),
-			FirstTodayRules::SIGNAL_NOT_TAKEN_UP => FirstTodayFacts::signalNotTakenUp(
-				requests: $this->reader->rows(schema: 'support-request', filters: ['lifecycle' => 'submitted'])
-			),
-			FirstTodayRules::LEAVE_PAST_HALF => FirstTodayFacts::leavePastHalf(
-				requests: $this->reader->rows(schema: 'leave-request', filters: ['lifecycle' => 'submitted']),
-				now: $now
-			),
-			FirstTodayRules::OVER_LIMIT_NOT_REPORTED => FirstTodayFacts::overLimitNotReported(
-				flags: $this->reader->rows(schema: 'attendance-flag')
-			),
-			default => null,
+			FirstTodayRules::OVER_LIMIT_NOT_REPORTED => $this->attendance->overLimitNotReported(flags: $this->reader->rows(schema: 'attendance-flag')),
+			default => $this->followUpFacts(rule: $rule, context: $context),
 		};
 	}//end facts()
 
 	/**
+	 * One follow-up rule's facts for the caller.
+	 *
+	 * @param string       $rule    A rule of FirstTodayRules.
+	 * @param TodayContext $context The caller and now.
+	 *
+	 * @return array<string, mixed>|null
+	 *
+	 * @spec openspec/changes/today-first-per-school-role/tasks.md#T1
+	 */
+	private function followUpFacts(string $rule, TodayContext $context): ?array {
+		$uid = $context->uid();
+
+		return match ($rule) {
+			FirstTodayRules::BOOKINGS_TO_CONFIRM => $this->followUp->bookingsToConfirm(
+				slots: $this->reader->rows(schema: 'conference-slot', filters: ['teacherId' => $uid, 'lifecycle' => 'booked']),
+				uid: $uid
+			),
+			FirstTodayRules::MISSING_HAND_INS => $this->followUp->missingHandIns(
+				assignments: $this->reader->rows(schema: 'assignment', filters: ['lifecycle' => 'published']),
+				groupSizes: $this->groupSizes(context: $context),
+				context: $context
+			),
+			FirstTodayRules::MENTOR_TALKS_CLOSING => $this->followUp->mentorTalksClosing(
+				conference: ['rounds' => $this->reader->rows(schema: 'conference-round'), 'slots' => $this->reader->rows(schema: 'conference-slot')],
+				context: $context
+			),
+			FirstTodayRules::PLAN_ENDING => $this->followUp->planEnding(
+				plans: [
+					'group-plan' => $this->reader->rows(schema: 'group-plan', filters: ['lifecycle' => 'active']),
+					'learning-plan' => $this->reader->rows(schema: 'learning-plan', filters: ['lifecycle' => 'active']),
+				],
+				today: $context->today()
+			),
+			FirstTodayRules::SIGNAL_NOT_TAKEN_UP => $this->followUp->signalNotTakenUp(
+				requests: $this->reader->rows(schema: 'support-request', filters: ['lifecycle' => 'submitted'])
+			),
+			FirstTodayRules::LEAVE_PAST_HALF => $this->followUp->leavePastHalf(
+				requests: $this->reader->rows(schema: 'leave-request', filters: ['lifecycle' => 'submitted']),
+				now: $context->now
+			),
+			default => null,
+		};
+	}//end followUpFacts()
+
+	/**
 	 * Today's groups of the caller, read once per request and kind.
 	 *
-	 * @param array<string, mixed> $context The request's context.
-	 * @param bool                 $own     Only the groups she teaches.
+	 * @param TodayContext $context The caller and now.
+	 * @param bool         $own     Only the groups she teaches.
 	 *
 	 * @return list<array<string, mixed>>
 	 */
-	private function groups(array $context, bool $own): array {
-		/** @var DateTimeZone $zone */
-		$zone = $context['zone'];
-		/** @var IUser $user */
-		$user = $context['user'];
-		$key = $user->getUID() . '|' . (int)$own . '|' . (string)$context['today'];
+	private function groups(TodayContext $context, bool $own): array {
+		$key = $context->uid() . '|' . (int)$own . '|' . $context->today();
 		if (isset($this->groupsRead[$key]) === false) {
-			$this->groupsRead[$key] = $this->reader->groupsToday(user: $user, own: $own, today: (string)$context['today'], zone: $zone);
+			$this->groupsRead[$key] = $this->reader->groupsToday(context: $context, own: $own);
 		}
 
 		return $this->groupsRead[$key];
@@ -198,11 +248,11 @@ class FirstTodayService {
 	/**
 	 * The caller's lessons of today, each with its number of saved marks.
 	 *
-	 * @param array<string, mixed> $context The request's context.
+	 * @param TodayContext $context The caller and now.
 	 *
 	 * @return list<array<string, mixed>>
 	 */
-	private function ownSessions(array $context): array {
+	private function ownSessions(TodayContext $context): array {
 		$sessions = [];
 		foreach ($this->groups(context: $context, own: true) as $group) {
 			foreach ((array)$group['sessions'] as $session) {
@@ -217,11 +267,11 @@ class FirstTodayService {
 	/**
 	 * The number of pupils per group the caller teaches.
 	 *
-	 * @param array<string, mixed> $context The request's context.
+	 * @param TodayContext $context The caller and now.
 	 *
 	 * @return array<string, int>
 	 */
-	private function groupSizes(array $context): array {
+	private function groupSizes(TodayContext $context): array {
 		$sizes = [];
 		foreach ($this->groups(context: $context, own: true) as $group) {
 			$cohort = (array)$group['cohort'];

@@ -19,16 +19,20 @@ use OCA\Learniq\Kernel\Contracts\DashboardRoleServiceInterface;
 use OCA\Learniq\Kernel\Contracts\SegmentServiceInterface;
 use OCA\Learniq\Service\Today\FirstTodayReader;
 use OCA\Learniq\Service\Today\FirstTodayService;
-use OCP\AppFramework\Utility\ITimeFactory;
+use OCA\Learniq\Service\Today\TodayContext;
 use OCP\IUser;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\NullLogger;
+use RuntimeException;
 
 /**
  * @covers \OCA\Learniq\Service\Today\FirstTodayService
  * @uses   \OCA\Learniq\Service\Today\FirstTodayRules
- * @uses   \OCA\Learniq\Service\Today\FirstTodayFacts
- * @uses   \OCA\Learniq\Service\Exam\WorkingDays
+ * @uses   \OCA\Learniq\Service\Today\RegisterFacts
+ * @uses   \OCA\Learniq\Service\Today\AttendanceFacts
+ * @uses   \OCA\Learniq\Service\Today\FollowUpFacts
+ * @uses   \OCA\Learniq\Service\Today\TodayContext
  */
 class FirstTodayServiceTest extends TestCase {
 
@@ -49,16 +53,19 @@ class FirstTodayServiceTest extends TestCase {
 	 * @return FirstTodayService
 	 */
 	private function service(string $role, string $segment, string $time='08:40'): FirstTodayService {
-		$roles = $this->createMock(DashboardRoleServiceInterface::class);
+		$roles = $this->createMock(originalClassName: DashboardRoleServiceInterface::class);
 		$roles->method('resolvePrimaryRole')->willReturn($role);
-		$segments = $this->createMock(SegmentServiceInterface::class);
+		$segments = $this->createMock(originalClassName: SegmentServiceInterface::class);
 		$segments->method('currentSegment')->willReturn($segment);
-		$this->reader = $this->createMock(FirstTodayReader::class);
-		$this->reader->method('zone')->willReturn(new DateTimeZone('Europe/Amsterdam'));
-		$clock = $this->createMock(ITimeFactory::class);
-		$clock->method('getTime')->willReturn((new DateTimeImmutable('2026-10-05T' . $time . ':00', new DateTimeZone('Europe/Amsterdam')))->getTimestamp());
+		$this->reader = $this->createMock(originalClassName: FirstTodayReader::class);
+		$this->reader->method('contextFor')->willReturnCallback(
+			static fn (IUser $user): TodayContext => new TodayContext(
+				user: $user,
+				now: new DateTimeImmutable('2026-10-05T' . $time . ':00', new DateTimeZone('Europe/Amsterdam'))
+			)
+		);
 
-		return new FirstTodayService(roles: $roles, segments: $segments, reader: $this->reader, time: $clock);
+		return new FirstTodayService(roles: $roles, segments: $segments, reader: $this->reader, logger: new NullLogger());
 	}//end service()
 
 	/**
@@ -67,7 +74,7 @@ class FirstTodayServiceTest extends TestCase {
 	 * @return IUser
 	 */
 	private function daan(): IUser {
-		$user = $this->createMock(IUser::class);
+		$user = $this->createMock(originalClassName: IUser::class);
 		$user->method('getUID')->willReturn('daan');
 		return $user;
 	}//end daan()
@@ -80,7 +87,7 @@ class FirstTodayServiceTest extends TestCase {
 	public function testMeesterDaanReadsTheOpenRegisterFirst(): void {
 		$service = $this->service(role: 'instructor', segment: 'po');
 		$this->reader->expects(self::once())->method('groupsToday')
-			->with(self::anything(), true, '2026-10-05', self::anything())
+			->with(self::callback(callback: static fn (TodayContext $context): bool => $context->today() === '2026-10-05'), true)
 			->willReturn(
 				[[
 					'cohort' => ['id' => 'groep-7', 'name' => 'Groep 7'],
@@ -94,11 +101,11 @@ class FirstTodayServiceTest extends TestCase {
 
 		$card = $service->forUser(user: $this->daan());
 
-		self::assertSame('group-teacher', $card['role']);
-		self::assertSame('register-not-filled', $card['rule']);
-		self::assertSame(1, $card['count']);
-		self::assertSame(2, $card['reportCount']);
-		self::assertSame('Groep 7', $card['cohortName']);
+		self::assertSame(expected: 'group-teacher', actual: $card['role']);
+		self::assertSame(expected: 'register-not-filled', actual: $card['rule']);
+		self::assertSame(expected: 1, actual: $card['count']);
+		self::assertSame(expected: 2, actual: $card['reportCount']);
+		self::assertSame(expected: 'Groep 7', actual: $card['cohortName']);
 	}//end testMeesterDaanReadsTheOpenRegisterFirst()
 
 	/**
@@ -109,9 +116,9 @@ class FirstTodayServiceTest extends TestCase {
 	public function testNothingFirstAnswersNoRule(): void {
 		$service = $this->service(role: 'instructor', segment: 'vo', time: '10:30');
 		$this->reader->expects(self::once())->method('groupsToday')->willReturn([]);
-		$this->reader->expects(self::exactly(2))->method('rows')->willReturn([]);
+		$this->reader->expects(self::exactly(count: 2))->method('rows')->willReturn([]);
 
-		self::assertSame(['role' => 'subject-teacher', 'rule' => null, 'count' => 0], $service->forUser(user: $this->daan()));
+		self::assertSame(expected: ['role' => 'subject-teacher', 'rule' => null, 'count' => 0], actual: $service->forUser(user: $this->daan()));
 	}//end testNothingFirstAnswersNoRule()
 
 	/**
@@ -127,9 +134,9 @@ class FirstTodayServiceTest extends TestCase {
 
 		$card = $service->forUser(user: $this->daan(), view: 'mentor');
 
-		self::assertSame('mentor', $card['role']);
-		self::assertSame('unauthorised-absence', $card['rule']);
-		self::assertSame('yusuf', $card['learnerId']);
+		self::assertSame(expected: 'mentor', actual: $card['role']);
+		self::assertSame(expected: 'unauthorised-absence', actual: $card['rule']);
+		self::assertSame(expected: 'yusuf', actual: $card['learnerId']);
 	}//end testTheMentorViewReadsTheMentorsRules()
 
 	/**
@@ -142,7 +149,7 @@ class FirstTodayServiceTest extends TestCase {
 		$this->reader->expects(self::never())->method('rows');
 		$this->reader->expects(self::never())->method('groupsToday');
 
-		self::assertSame(['role' => null, 'rule' => null, 'count' => 0], $service->forUser(user: $this->daan()));
+		self::assertSame(expected: ['role' => null, 'rule' => null, 'count' => 0], actual: $service->forUser(user: $this->daan()));
 	}//end testARoleWithoutACardReadsNothing()
 
 	/**
@@ -164,7 +171,31 @@ class FirstTodayServiceTest extends TestCase {
 
 		$card = $service->forUser(user: $this->daan());
 
-		self::assertSame('leave-past-half', $card['rule']);
-		self::assertSame(2, $card['count']);
+		self::assertSame(expected: 'leave-past-half', actual: $card['rule']);
+		self::assertSame(expected: 2, actual: $card['count']);
 	}//end testTheHeadReadsLeaveRequestsFirst()
+
+	/**
+	 * A failed read gives no card, so the endpoint can say it could not check.
+	 *
+	 * @return void
+	 */
+	public function testAFailedReadGivesNoCard(): void {
+		$service = $this->service(role: 'coordinator', segment: 'po');
+		$this->reader->method('rows')->willThrowException(new RuntimeException('database gone'));
+
+		self::assertNull(actual: $service->cardFor(user: $this->daan()));
+	}//end testAFailedReadGivesNoCard()
+
+	/**
+	 * The card comes back as forUser() answers it when the reads succeed.
+	 *
+	 * @return void
+	 */
+	public function testCardForAnswersTheCard(): void {
+		$service = $this->service(role: 'coordinator', segment: 'po');
+		$this->reader->method('rows')->willReturn([]);
+
+		self::assertSame(expected: ['role' => 'care-coordinator', 'rule' => null, 'count' => 0], actual: $service->cardFor(user: $this->daan()));
+	}//end testCardForAnswersTheCard()
 }//end class

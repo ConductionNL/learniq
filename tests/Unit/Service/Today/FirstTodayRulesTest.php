@@ -27,12 +27,15 @@ class FirstTodayRulesTest extends TestCase {
 	 * @return void
 	 */
 	public function testEachRoleReadsItsRulesInTheDesignsOrder(): void {
-		self::assertSame(['register-not-filled', 'bookings-to-confirm', 'nearing-limit'], FirstTodayRules::ORDER['group-teacher']);
-		self::assertSame(['lesson-register-open', 'nearing-limit', 'missing-hand-ins'], FirstTodayRules::ORDER['subject-teacher']);
-		self::assertSame(['unauthorised-absence', 'mentor-talks-closing'], FirstTodayRules::ORDER['mentor']);
-		self::assertSame(['plan-ending', 'signal-not-taken-up'], FirstTodayRules::ORDER['care-coordinator']);
-		self::assertSame(['leave-past-half', 'over-limit-not-reported', 'registers-not-filled-at-930'], FirstTodayRules::ORDER['head']);
-		self::assertCount(12, FirstTodayRules::allRules());
+		self::assertSame(expected: ['register-not-filled', 'bookings-to-confirm', 'nearing-limit'], actual: FirstTodayRules::ORDER['group-teacher']);
+		self::assertSame(expected: ['lesson-register-open', 'nearing-limit', 'missing-hand-ins'], actual: FirstTodayRules::ORDER['subject-teacher']);
+		self::assertSame(expected: ['unauthorised-absence', 'mentor-talks-closing'], actual: FirstTodayRules::ORDER['mentor']);
+		self::assertSame(expected: ['plan-ending', 'signal-not-taken-up'], actual: FirstTodayRules::ORDER['care-coordinator']);
+		self::assertSame(
+			expected: ['leave-past-half', 'over-limit-not-reported', 'registers-not-filled-at-930'],
+			actual: FirstTodayRules::ORDER['head']
+		);
+		self::assertCount(expectedCount: 12, haystack: (new FirstTodayRules())->allRules());
 	}//end testEachRoleReadsItsRulesInTheDesignsOrder()
 
 	/**
@@ -41,16 +44,19 @@ class FirstTodayRulesTest extends TestCase {
 	 * @return void
 	 */
 	public function testTheRoleFollowsThePrimaryRoleTheSchoolKindAndTheView(): void {
-		self::assertSame('group-teacher', FirstTodayRules::roleFor(primaryRole: 'instructor', segment: 'po', view: ''));
-		self::assertSame('subject-teacher', FirstTodayRules::roleFor(primaryRole: 'instructor', segment: 'vo', view: ''));
-		self::assertSame('subject-teacher', FirstTodayRules::roleFor(primaryRole: 'instructor', segment: 'mbo', view: ''));
-		self::assertSame('mentor', FirstTodayRules::roleFor(primaryRole: 'instructor', segment: 'vo', view: 'mentor'));
-		self::assertSame('care-coordinator', FirstTodayRules::roleFor(primaryRole: 'coordinator', segment: 'po', view: ''));
-		self::assertSame('head', FirstTodayRules::roleFor(primaryRole: 'administration-manager', segment: 'po', view: ''));
-		self::assertSame('head', FirstTodayRules::roleFor(primaryRole: 'team-lead', segment: 'vo', view: ''));
-		self::assertSame('head', FirstTodayRules::roleFor(primaryRole: 'admin', segment: 'vo', view: ''));
-		self::assertNull(FirstTodayRules::roleFor(primaryRole: 'learner', segment: 'vo', view: ''));
-		self::assertNull(FirstTodayRules::roleFor(primaryRole: 'hr', segment: 'corporate', view: 'mentor'));
+		$rules = new FirstTodayRules();
+		self::assertSame(expected: 'group-teacher', actual: $rules->roleFor(primaryRole: 'instructor', segment: 'po'));
+		self::assertSame(expected: 'subject-teacher', actual: $rules->roleFor(primaryRole: 'instructor', segment: 'vo'));
+		self::assertSame(expected: 'subject-teacher', actual: $rules->roleFor(primaryRole: 'instructor', segment: 'mbo'));
+		self::assertSame(expected: 'mentor', actual: $rules->inView(role: $rules->roleFor(primaryRole: 'instructor', segment: 'vo'), view: 'mentor'));
+		self::assertSame(expected: 'care-coordinator', actual: $rules->roleFor(primaryRole: 'coordinator', segment: 'po'));
+		self::assertSame(expected: 'head', actual: $rules->roleFor(primaryRole: 'administration-manager', segment: 'po'));
+		self::assertSame(expected: 'head', actual: $rules->roleFor(primaryRole: 'team-lead', segment: 'vo'));
+		self::assertSame(expected: 'head', actual: $rules->roleFor(primaryRole: 'admin', segment: 'vo'));
+		self::assertNull(actual: $rules->roleFor(primaryRole: 'learner', segment: 'vo'));
+		self::assertNull(actual: $rules->inView(role: $rules->roleFor(primaryRole: 'hr', segment: 'corporate'), view: 'mentor'));
+		self::assertSame(expected: 'head', actual: $rules->inView(role: 'head', view: 'mentor'));
+		self::assertSame(expected: 'group-teacher', actual: $rules->inView(role: 'group-teacher', view: ''));
 	}//end testTheRoleFollowsThePrimaryRoleTheSchoolKindAndTheView()
 
 	/**
@@ -60,16 +66,16 @@ class FirstTodayRulesTest extends TestCase {
 	 */
 	public function testTheFirstRuleWithARowWinsAndLaterRulesAreNotRead(): void {
 		$asked = [];
-		$first = FirstTodayRules::first(
+		$first = (new FirstTodayRules())->first(
 			role: 'group-teacher',
 			probe: static function (string $rule) use (&$asked): array {
 				$asked[] = $rule;
-				return ['count' => ($rule === 'bookings-to-confirm' ? 2 : 0)];
+				return ['count' => (int)($rule === 'bookings-to-confirm') * 2];
 			}
 		);
 
-		self::assertSame(['count' => 2, 'role' => 'group-teacher', 'rule' => 'bookings-to-confirm'], $first);
-		self::assertSame(['register-not-filled', 'bookings-to-confirm'], $asked);
+		self::assertSame(expected: ['count' => 2, 'role' => 'group-teacher', 'rule' => 'bookings-to-confirm'], actual: $first);
+		self::assertSame(expected: ['register-not-filled', 'bookings-to-confirm'], actual: $asked);
 	}//end testTheFirstRuleWithARowWinsAndLaterRulesAreNotRead()
 
 	/**
@@ -78,10 +84,10 @@ class FirstTodayRulesTest extends TestCase {
 	 * @return void
 	 */
 	public function testAnEarlierRuleWinsOverALaterOne(): void {
-		$first = FirstTodayRules::first(role: 'head', probe: static fn (string $rule): array => ['count' => 1, 'which' => $rule]);
+		$first = (new FirstTodayRules())->first(role: 'head', probe: static fn (string $rule): array => ['count' => 1, 'which' => $rule]);
 
-		self::assertSame('leave-past-half', $first['rule']);
-		self::assertSame('leave-past-half', $first['which']);
+		self::assertSame(expected: 'leave-past-half', actual: $first['rule']);
+		self::assertSame(expected: 'leave-past-half', actual: $first['which']);
 	}//end testAnEarlierRuleWinsOverALaterOne()
 
 	/**
@@ -90,8 +96,8 @@ class FirstTodayRulesTest extends TestCase {
 	 * @return void
 	 */
 	public function testNoRuleWithARowMeansNoCard(): void {
-		self::assertNull(FirstTodayRules::first(role: 'mentor', probe: static fn (string $rule): array => ['count' => 0]));
-		self::assertNull(FirstTodayRules::first(role: 'care-coordinator', probe: static fn (string $rule): ?array => null));
-		self::assertNull(FirstTodayRules::first(role: 'no-such-role', probe: static fn (string $rule): array => ['count' => 5]));
+		self::assertNull(actual: (new FirstTodayRules())->first(role: 'mentor', probe: static fn (string $rule): array => ['count' => 0]));
+		self::assertNull(actual: (new FirstTodayRules())->first(role: 'care-coordinator', probe: static fn (string $rule): ?array => null));
+		self::assertNull(actual: (new FirstTodayRules())->first(role: 'no-such-role', probe: static fn (string $rule): array => ['count' => 5]));
 	}//end testNoRuleWithARowMeansNoCard()
 }//end class

@@ -97,26 +97,19 @@ final class FirstTodayRules {
 	 * The role whose rules a user reads on Today, or null for a user Today has no card for.
 	 *
 	 * A teacher (`instructor`) is a group teacher in primary education and a
-	 * subject teacher elsewhere; in the Mentor view she reads the mentor's
-	 * rules. Mentor is a view, not a role (design.md): the server resolves no
-	 * mentor role. The care coordinator is `coordinator`; the directeur and the
-	 * teamleider are `administration-manager` and `team-lead`; an
-	 * administrator reads the head's rules.
+	 * subject teacher elsewhere. The care coordinator is `coordinator`; the
+	 * directeur and the teamleider are `administration-manager` and
+	 * `team-lead`; an administrator reads the head's rules.
 	 *
 	 * @param string $primaryRole The role DashboardRoleService resolves.
 	 * @param string $segment     The school kind (po, vo, mbo, ...).
-	 * @param string $view        The view asked for ('' or `mentor`).
 	 *
 	 * @return string|null
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-a-mentor-switches-today-to-her-mentor-class
+	 * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
 	 */
-	public static function roleFor(string $primaryRole, string $segment, string $view): ?string {
+	public function roleFor(string $primaryRole, string $segment): ?string {
 		if ($primaryRole === 'instructor') {
-			if ($view === self::VIEW_MENTOR) {
-				return self::ROLE_MENTOR;
-			}
-
 			if ($segment === 'po') {
 				return self::ROLE_GROUP_TEACHER;
 			}
@@ -130,6 +123,28 @@ final class FirstTodayRules {
 			default => null,
 		};
 	}//end roleFor()
+
+	/**
+	 * The role a view gives: a teacher in the Mentor view reads the mentor's rules.
+	 *
+	 * Mentor is a view, not a role (design.md): the server resolves no
+	 * mentor role, and a role that is no teacher's keeps its own rules.
+	 *
+	 * @param string|null $role The role roleFor() gave.
+	 * @param string      $view The view asked for ('' or `mentor`).
+	 *
+	 * @return string|null
+	 *
+	 * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-a-mentor-switches-today-to-her-mentor-class
+	 */
+	public function inView(?string $role, string $view): ?string {
+		$teacher = in_array($role, [self::ROLE_GROUP_TEACHER, self::ROLE_SUBJECT_TEACHER], true);
+		if ($teacher === true && $view === self::VIEW_MENTOR) {
+			return self::ROLE_MENTOR;
+		}
+
+		return $role;
+	}//end inView()
 
 	/**
 	 * The first rule of a role that has at least one row.
@@ -146,7 +161,7 @@ final class FirstTodayRules {
 	 *
 	 * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
 	 */
-	public static function first(string $role, callable $probe): ?array {
+	public function first(string $role, callable $probe): ?array {
 		foreach ((self::ORDER[$role] ?? []) as $rule) {
 			$facts = $probe($rule);
 			if (is_array($facts) === false || (int)($facts['count'] ?? 0) < 1) {
@@ -166,7 +181,7 @@ final class FirstTodayRules {
 	 *
 	 * @spec openspec/changes/today-first-per-school-role/tasks.md#T1
 	 */
-	public static function allRules(): array {
+	public function allRules(): array {
 		$rules = [];
 		foreach (self::ORDER as $list) {
 			foreach ($list as $rule) {

@@ -20,8 +20,6 @@ use OCP\IRequest;
 use OCP\IUser;
 use OCP\IUserSession;
 use PHPUnit\Framework\TestCase;
-use Psr\Log\NullLogger;
-use RuntimeException;
 
 /**
  * @covers \OCA\Learniq\Controller\TodayFirstController
@@ -38,14 +36,19 @@ class TodayFirstControllerTest extends TestCase {
 	 * @return TodayFirstController
 	 */
 	private function controller(FirstTodayService $service, bool $signedIn=true, array $params=[]): TodayFirstController {
-		$session = $this->createMock(IUserSession::class);
-		$session->method('getUser')->willReturn($signedIn === true ? $this->createMock(IUser::class) : null);
-		$l10n = $this->createMock(IL10N::class);
+		$session = $this->createMock(originalClassName: IUserSession::class);
+		$user = null;
+		if ($signedIn === true) {
+			$user = $this->createMock(originalClassName: IUser::class);
+		}
+
+		$session->method('getUser')->willReturn($user);
+		$l10n = $this->createMock(originalClassName: IL10N::class);
 		$l10n->method('t')->willReturnArgument(0);
-		$request = $this->createMock(IRequest::class);
+		$request = $this->createMock(originalClassName: IRequest::class);
 		$request->method('getParam')->willReturnCallback(static fn (string $key, mixed $default=null): mixed => ($params[$key] ?? $default));
 
-		return new TodayFirstController(request: $request, userSession: $session, firstToday: $service, logger: new NullLogger(), l10n: $l10n);
+		return new TodayFirstController(request: $request, userSession: $session, firstToday: $service, l10n: $l10n);
 	}//end controller()
 
 	/**
@@ -54,15 +57,15 @@ class TodayFirstControllerTest extends TestCase {
 	 * @return void
 	 */
 	public function testShowAnswersTheCardForTheViewAsked(): void {
-		$service = $this->createMock(FirstTodayService::class);
-		$service->expects(self::once())->method('forUser')
-			->with(self::isInstanceOf(IUser::class), 'mentor')
+		$service = $this->createMock(originalClassName: FirstTodayService::class);
+		$service->expects(self::once())->method('cardFor')
+			->with(self::isInstanceOf(className: IUser::class), 'mentor')
 			->willReturn(['role' => 'mentor', 'rule' => 'unauthorised-absence', 'count' => 1]);
 
 		$response = $this->controller(service: $service, params: ['view' => 'mentor'])->show();
 
-		self::assertSame(200, $response->getStatus());
-		self::assertSame('unauthorised-absence', $response->getData()['rule']);
+		self::assertSame(expected: 200, actual: $response->getStatus());
+		self::assertSame(expected: 'unauthorised-absence', actual: $response->getData()['rule']);
 	}//end testShowAnswersTheCardForTheViewAsked()
 
 	/**
@@ -71,10 +74,10 @@ class TodayFirstControllerTest extends TestCase {
 	 * @return void
 	 */
 	public function testANonStringViewIsTheDefault(): void {
-		$service = $this->createMock(FirstTodayService::class);
-		$service->expects(self::once())->method('forUser')->with(self::anything(), '')->willReturn(['role' => null, 'rule' => null, 'count' => 0]);
+		$service = $this->createMock(originalClassName: FirstTodayService::class);
+		$service->expects(self::once())->method('cardFor')->with(self::anything(), '')->willReturn(['role' => null, 'rule' => null, 'count' => 0]);
 
-		self::assertSame(200, $this->controller(service: $service, params: ['view' => ['x']])->show()->getStatus());
+		self::assertSame(expected: 200, actual: $this->controller(service: $service, params: ['view' => ['x']])->show()->getStatus());
 	}//end testANonStringViewIsTheDefault()
 
 	/**
@@ -83,24 +86,24 @@ class TodayFirstControllerTest extends TestCase {
 	 * @return void
 	 */
 	public function testSignedOutIsRefused(): void {
-		$service = $this->createMock(FirstTodayService::class);
-		$service->expects(self::never())->method('forUser');
+		$service = $this->createMock(originalClassName: FirstTodayService::class);
+		$service->expects(self::never())->method('cardFor');
 
-		self::assertSame(401, $this->controller(service: $service, signedIn: false)->show()->getStatus());
+		self::assertSame(expected: 401, actual: $this->controller(service: $service, signedIn: false)->show()->getStatus());
 	}//end testSignedOutIsRefused()
 
 	/**
-	 * A failed read answers 503 with a sentence, never the cause.
+	 * A card that could not be read answers 503 with a sentence, never the cause.
 	 *
 	 * @return void
 	 */
 	public function testAFailedReadAnswers503(): void {
-		$service = $this->createMock(FirstTodayService::class);
-		$service->method('forUser')->willThrowException(new RuntimeException('database gone'));
+		$service = $this->createMock(originalClassName: FirstTodayService::class);
+		$service->method('cardFor')->willReturn(null);
 
 		$response = $this->controller(service: $service)->show();
 
-		self::assertSame(503, $response->getStatus());
-		self::assertSame('What comes first today could not be read. Try again.', $response->getData()['error']);
+		self::assertSame(expected: 503, actual: $response->getStatus());
+		self::assertSame(expected: 'What comes first today could not be read. Try again.', actual: $response->getData()['error']);
 	}//end testAFailedReadAnswers503()
 }//end class

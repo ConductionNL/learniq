@@ -15,12 +15,18 @@ namespace OCA\Learniq\Tests\Unit\Service\Today;
 
 use DateTimeImmutable;
 use DateTimeZone;
-use OCA\Learniq\Service\Today\FirstTodayFacts;
+use OCA\Learniq\Service\Today\AttendanceFacts;
+use OCA\Learniq\Service\Today\FollowUpFacts;
+use OCA\Learniq\Service\Today\RegisterFacts;
+use OCA\Learniq\Service\Today\TodayContext;
+use OCP\IUser;
 use PHPUnit\Framework\TestCase;
 
 /**
- * @covers \OCA\Learniq\Service\Today\FirstTodayFacts
- * @uses   \OCA\Learniq\Service\Exam\WorkingDays
+ * @covers \OCA\Learniq\Service\Today\RegisterFacts
+ * @covers \OCA\Learniq\Service\Today\AttendanceFacts
+ * @covers \OCA\Learniq\Service\Today\FollowUpFacts
+ * @uses   \OCA\Learniq\Service\Today\TodayContext
  */
 class FirstTodayFactsTest extends TestCase {
 
@@ -34,6 +40,21 @@ class FirstTodayFactsTest extends TestCase {
 	private static function monday(string $time): DateTimeImmutable {
 		return new DateTimeImmutable('2026-10-05T' . $time . ':00', new DateTimeZone('Europe/Amsterdam'));
 	}//end monday()
+
+	/**
+	 * A user and Monday 5 October 2026 at a time.
+	 *
+	 * @param string $uid  The user.
+	 * @param string $time `H:i`.
+	 *
+	 * @return TodayContext
+	 */
+	private function context(string $uid, string $time): TodayContext {
+		$user = $this->createMock(originalClassName: IUser::class);
+		$user->method('getUID')->willReturn($uid);
+
+		return new TodayContext(user: $user, now: self::monday(time: $time));
+	}//end context()
 
 	/**
 	 * Groep 7 with its Monday: two lessons, marks per lesson, two parent reports.
@@ -60,9 +81,9 @@ class FirstTodayFactsTest extends TestCase {
 	 * @return void
 	 */
 	public function testTheRegisterOfTodayIsNotFilledAfterTheFirstLessonStarted(): void {
-		$facts = FirstTodayFacts::registerNotFilled(groups: [self::groep7(marks: 0)], now: self::monday(time: '08:40'));
+		$facts = (new RegisterFacts())->registerNotFilled(groups: [self::groep7(marks: 0)], now: self::monday(time: '08:40'));
 
-		self::assertSame(['count' => 1, 'cohortId' => 'groep-7', 'cohortName' => 'Groep 7', 'reportCount' => 2], $facts);
+		self::assertSame(expected: ['count' => 1, 'cohortId' => 'groep-7', 'cohortName' => 'Groep 7', 'reportCount' => 2], actual: $facts);
 	}//end testTheRegisterOfTodayIsNotFilledAfterTheFirstLessonStarted()
 
 	/**
@@ -71,9 +92,15 @@ class FirstTodayFactsTest extends TestCase {
 	 * @return void
 	 */
 	public function testARegisterBeforeTheFirstLessonOrFilledCountsNothing(): void {
-		self::assertSame(0, FirstTodayFacts::registerNotFilled(groups: [self::groep7(marks: 0)], now: self::monday(time: '08:15'))['count']);
-		self::assertSame(0, FirstTodayFacts::registerNotFilled(groups: [self::groep7(marks: 26)], now: self::monday(time: '10:00'))['count']);
-		self::assertSame(0, FirstTodayFacts::registerNotFilled(groups: [], now: self::monday(time: '10:00'))['count']);
+		self::assertSame(
+			expected: 0,
+			actual: (new RegisterFacts())->registerNotFilled(groups: [self::groep7(marks: 0)], now: self::monday(time: '08:15'))['count']
+		);
+		self::assertSame(
+			expected: 0,
+			actual: (new RegisterFacts())->registerNotFilled(groups: [self::groep7(marks: 26)], now: self::monday(time: '10:00'))['count']
+		);
+		self::assertSame(expected: 0, actual: (new RegisterFacts())->registerNotFilled(groups: [], now: self::monday(time: '10:00'))['count']);
 	}//end testARegisterBeforeTheFirstLessonOrFilledCountsNothing()
 
 	/**
@@ -85,8 +112,14 @@ class FirstTodayFactsTest extends TestCase {
 		$groep3 = array_merge(self::groep7(marks: 0), ['cohort' => ['id' => 'groep-3', 'name' => 'Groep 3']]);
 		$groups = [self::groep7(marks: 24), $groep3, ['cohort' => ['id' => 'none'], 'sessions' => [], 'records' => [], 'reports' => 0]];
 
-		self::assertSame(['count' => 0, 'total' => 2, 'cohortName' => ''], FirstTodayFacts::registersNotFilledAt930(groups: $groups, now: self::monday(time: '09:05')));
-		self::assertSame(['count' => 1, 'total' => 2, 'cohortName' => 'Groep 3'], FirstTodayFacts::registersNotFilledAt930(groups: $groups, now: self::monday(time: '09:35')));
+		self::assertSame(
+			expected: ['count' => 0, 'total' => 2, 'cohortName' => ''],
+			actual: (new RegisterFacts())->registersNotFilledAt930(groups: $groups, now: self::monday(time: '09:05'))
+		);
+		self::assertSame(
+			expected: ['count' => 1, 'total' => 2, 'cohortName' => 'Groep 3'],
+			actual: (new RegisterFacts())->registersNotFilledAt930(groups: $groups, now: self::monday(time: '09:35'))
+		);
 	}//end testTheHeadCountsUnfilledRegistersFromHalfPastNine()
 
 	/**
@@ -102,13 +135,13 @@ class FirstTodayFactsTest extends TestCase {
 			['id' => 'x', 'title' => 'Cancelled', 'endsAt' => '2026-10-05T09:00:00+02:00', 'markCount' => 0, 'lifecycle' => 'cancelled'],
 		];
 
-		$facts = FirstTodayFacts::lessonRegisterOpen(sessions: $sessions, now: self::monday(time: '10:30'));
+		$facts = (new RegisterFacts())->lessonRegisterOpen(sessions: $sessions, now: self::monday(time: '10:30'));
 
-		self::assertSame(1, $facts['count']);
-		self::assertSame('h5a-2', $facts['sessionId']);
-		self::assertSame('H5a wiskunde', $facts['sessionTitle']);
-		self::assertSame('h5a', $facts['cohortId']);
-		self::assertSame(0, FirstTodayFacts::lessonRegisterOpen(sessions: [], now: self::monday(time: '10:30'))['count']);
+		self::assertSame(expected: 1, actual: $facts['count']);
+		self::assertSame(expected: 'h5a-2', actual: $facts['sessionId']);
+		self::assertSame(expected: 'H5a wiskunde', actual: $facts['sessionTitle']);
+		self::assertSame(expected: 'h5a', actual: $facts['cohortId']);
+		self::assertSame(expected: 0, actual: (new RegisterFacts())->lessonRegisterOpen(sessions: [], now: self::monday(time: '10:30'))['count']);
 	}//end testALessonThatEndedWithoutARegisterCounts()
 
 	/**
@@ -124,8 +157,8 @@ class FirstTodayFactsTest extends TestCase {
 			['teacherId' => 'sanne', 'lifecycle' => 'booked'],
 		];
 
-		self::assertSame(['count' => 2], FirstTodayFacts::bookingsToConfirm(slots: $slots, uid: 'daan'));
-		self::assertSame(['count' => 0], FirstTodayFacts::bookingsToConfirm(slots: [], uid: 'daan'));
+		self::assertSame(expected: ['count' => 2], actual: (new FollowUpFacts())->bookingsToConfirm(slots: $slots, uid: 'daan'));
+		self::assertSame(expected: ['count' => 0], actual: (new FollowUpFacts())->bookingsToConfirm(slots: [], uid: 'daan'));
 	}//end testBookingsWaitingForTheTeachersConfirmation()
 
 	/**
@@ -142,8 +175,8 @@ class FirstTodayFactsTest extends TestCase {
 			['learnerId' => 'tess', 'thresholdNearing' => true, 'teacherIds' => ['sanne']],
 		];
 
-		self::assertSame(['count' => 2], FirstTodayFacts::nearingLimit(summaries: $summaries, uid: 'daan'));
-		self::assertSame(['count' => 0], FirstTodayFacts::nearingLimit(summaries: [], uid: 'daan'));
+		self::assertSame(expected: ['count' => 2], actual: (new AttendanceFacts())->nearingLimit(summaries: $summaries, uid: 'daan'));
+		self::assertSame(expected: ['count' => 0], actual: (new AttendanceFacts())->nearingLimit(summaries: [], uid: 'daan'));
 	}//end testPupilsNearingTheAttendanceLimitOfTheCallersGroups()
 
 	/**
@@ -153,17 +186,56 @@ class FirstTodayFactsTest extends TestCase {
 	 */
 	public function testAnAssignmentDueTodayWithMissingHandIns(): void {
 		$assignments = [
-			['id' => 'a-1', 'title' => 'Betoog', 'cohortId' => 'h5a', 'dueAt' => '2026-10-05T21:59:00Z', 'lifecycle' => 'published', 'submissionCount' => 20],
-			['id' => 'a-2', 'title' => 'Done', 'cohortId' => 'h5a', 'dueAt' => '2026-10-05T12:00:00Z', 'lifecycle' => 'published', 'submissionCount' => 28],
-			['id' => 'a-3', 'title' => 'Tomorrow', 'cohortId' => 'h5a', 'dueAt' => '2026-10-05T22:30:00Z', 'lifecycle' => 'published', 'submissionCount' => 0],
-			['id' => 'a-4', 'title' => 'Other group', 'cohortId' => 'h4b', 'dueAt' => '2026-10-05T12:00:00Z', 'lifecycle' => 'published', 'submissionCount' => 0],
-			['id' => 'a-5', 'title' => 'Draft', 'cohortId' => 'h5a', 'dueAt' => '2026-10-05T12:00:00Z', 'lifecycle' => 'draft', 'submissionCount' => 0],
+			[
+				'id' => 'a-1',
+				'title' => 'Betoog',
+				'cohortId' => 'h5a',
+				'dueAt' => '2026-10-05T21:59:00Z',
+				'lifecycle' => 'published',
+				'submissionCount' => 20,
+			],
+			[
+				'id' => 'a-2',
+				'title' => 'Done',
+				'cohortId' => 'h5a',
+				'dueAt' => '2026-10-05T12:00:00Z',
+				'lifecycle' => 'published',
+				'submissionCount' => 28,
+			],
+			[
+				'id' => 'a-3',
+				'title' => 'Tomorrow',
+				'cohortId' => 'h5a',
+				'dueAt' => '2026-10-05T22:30:00Z',
+				'lifecycle' => 'published',
+				'submissionCount' => 0,
+			],
+			[
+				'id' => 'a-4',
+				'title' => 'Other group',
+				'cohortId' => 'h4b',
+				'dueAt' => '2026-10-05T12:00:00Z',
+				'lifecycle' => 'published',
+				'submissionCount' => 0,
+			],
+			[
+				'id' => 'a-5',
+				'title' => 'Draft',
+				'cohortId' => 'h5a',
+				'dueAt' => '2026-10-05T12:00:00Z',
+				'lifecycle' => 'draft',
+				'submissionCount' => 0,
+			],
 		];
 
-		$facts = FirstTodayFacts::missingHandIns(assignments: $assignments, groupSizes: ['h5a' => 28], today: '2026-10-05', zone: new DateTimeZone('Europe/Amsterdam'));
+		$noon = $this->context(uid: 'anne', time: '12:00');
+		$facts = (new FollowUpFacts())->missingHandIns(assignments: $assignments, groupSizes: ['h5a' => 28], context: $noon);
 
-		self::assertSame(['count' => 1, 'missing' => 8, 'assignmentId' => 'a-1', 'assignmentTitle' => 'Betoog'], $facts);
-		self::assertSame(0, FirstTodayFacts::missingHandIns(assignments: $assignments, groupSizes: [], today: '2026-10-05', zone: new DateTimeZone('UTC'))['count']);
+		self::assertSame(expected: ['count' => 1, 'missing' => 8, 'assignmentId' => 'a-1', 'assignmentTitle' => 'Betoog'], actual: $facts);
+		self::assertSame(
+			expected: 0,
+			actual: (new FollowUpFacts())->missingHandIns(assignments: $assignments, groupSizes: [], context: $noon)['count']
+		);
 	}//end testAnAssignmentDueTodayWithMissingHandIns()
 
 	/**
@@ -180,8 +252,14 @@ class FirstTodayFactsTest extends TestCase {
 			['learnerId' => 'other', 'mentorId' => 'daan', 'lifecycle' => 'open', 'windowEnd' => '2026-10-02'],
 		];
 
-		self::assertSame(['count' => 1, 'learnerId' => 'yusuf'], FirstTodayFacts::unauthorisedAbsence(flags: $flags, uid: 'sanne', now: self::monday(time: '08:00')));
-		self::assertSame(['count' => 0, 'learnerId' => ''], FirstTodayFacts::unauthorisedAbsence(flags: [], uid: 'sanne', now: self::monday(time: '08:00')));
+		self::assertSame(
+			expected: ['count' => 1, 'learnerId' => 'yusuf'],
+			actual: (new AttendanceFacts())->unauthorisedAbsence(flags: $flags, context: $this->context(uid: 'sanne', time: '08:00'))
+		);
+		self::assertSame(
+			expected: ['count' => 0, 'learnerId' => ''],
+			actual: (new AttendanceFacts())->unauthorisedAbsence(flags: [], context: $this->context(uid: 'sanne', time: '08:00'))
+		);
 	}//end testUnauthorisedAbsenceOfTheMentorsPupilsInTheLastTwoWeeks()
 
 	/**
@@ -191,20 +269,55 @@ class FirstTodayFactsTest extends TestCase {
 	 */
 	public function testMentorTalksWhoseBookingClosesWithinTwoSchoolDays(): void {
 		$rounds = [
-			['id' => 'r-1', 'name' => 'Mentorgesprekken H4b', 'lifecycle' => 'booking-open', 'teacherIds' => ['sanne'], 'bookingClosesAt' => '2026-10-07T17:00:00+02:00', 'invitedLearnerIds' => ['a', 'b', 'c']],
-			['id' => 'r-2', 'name' => 'Later', 'lifecycle' => 'booking-open', 'teacherIds' => ['sanne'], 'bookingClosesAt' => '2026-10-20T17:00:00+02:00', 'invitedLearnerIds' => ['d']],
-			['id' => 'r-3', 'name' => 'Not hers', 'lifecycle' => 'booking-open', 'teacherIds' => ['daan'], 'bookingClosesAt' => '2026-10-06T17:00:00+02:00', 'invitedLearnerIds' => ['e']],
-			['id' => 'r-4', 'name' => 'Closed', 'lifecycle' => 'booking-closed', 'teacherIds' => ['sanne'], 'bookingClosesAt' => '2026-10-06T17:00:00+02:00', 'invitedLearnerIds' => ['f']],
+			[
+				'id' => 'r-1',
+				'name' => 'Mentorgesprekken H4b',
+				'lifecycle' => 'booking-open',
+				'teacherIds' => ['sanne'],
+				'bookingClosesAt' => '2026-10-07T17:00:00+02:00',
+				'invitedLearnerIds' => ['a', 'b', 'c'],
+			],
+			[
+				'id' => 'r-2',
+				'name' => 'Later',
+				'lifecycle' => 'booking-open',
+				'teacherIds' => ['sanne'],
+				'bookingClosesAt' => '2026-10-20T17:00:00+02:00',
+				'invitedLearnerIds' => ['d'],
+			],
+			[
+				'id' => 'r-3',
+				'name' => 'Not hers',
+				'lifecycle' => 'booking-open',
+				'teacherIds' => ['daan'],
+				'bookingClosesAt' => '2026-10-06T17:00:00+02:00',
+				'invitedLearnerIds' => ['e'],
+			],
+			[
+				'id' => 'r-4',
+				'name' => 'Closed',
+				'lifecycle' => 'booking-closed',
+				'teacherIds' => ['sanne'],
+				'bookingClosesAt' => '2026-10-06T17:00:00+02:00',
+				'invitedLearnerIds' => ['f'],
+			],
 		];
 		$slots = [
 			['conferenceRoundId' => 'r-1', 'learnerId' => 'a', 'lifecycle' => 'booked'],
 			['conferenceRoundId' => 'r-1', 'learnerId' => 'b', 'lifecycle' => 'free'],
 		];
 
-		$facts = FirstTodayFacts::mentorTalksClosing(rounds: $rounds, slots: $slots, uid: 'sanne', now: self::monday(time: '08:00'));
+		$monday = $this->context(uid: 'sanne', time: '08:00');
+		$facts = (new FollowUpFacts())->mentorTalksClosing(conference: ['rounds' => $rounds, 'slots' => $slots], context: $monday);
 
-		self::assertSame(['count' => 2, 'roundId' => 'r-1', 'roundName' => 'Mentorgesprekken H4b', 'closesAt' => '2026-10-07T17:00:00+02:00'], $facts);
-		self::assertSame(0, FirstTodayFacts::mentorTalksClosing(rounds: [], slots: [], uid: 'sanne', now: self::monday(time: '08:00'))['count']);
+		self::assertSame(
+			expected: ['count' => 2, 'roundId' => 'r-1', 'roundName' => 'Mentorgesprekken H4b', 'closesAt' => '2026-10-07T17:00:00+02:00'],
+			actual: $facts
+		);
+		self::assertSame(
+			expected: 0,
+			actual: (new FollowUpFacts())->mentorTalksClosing(conference: [], context: $this->context(uid: 'sanne', time: '08:00'))['count']
+		);
 	}//end testMentorTalksWhoseBookingClosesWithinTwoSchoolDays()
 
 	/**
@@ -222,10 +335,10 @@ class FirstTodayFactsTest extends TestCase {
 		$groupPlans = [['id' => 'gp-7', 'lifecycle' => 'active', 'periodEndDate' => '2026-10-12']];
 
 		self::assertSame(
-			['count' => 2, 'planId' => 'lp-tess', 'schema' => 'learning-plan', 'endsOn' => '2026-10-09'],
-			FirstTodayFacts::planEnding(groupPlans: $groupPlans, learningPlans: $learningPlans, today: '2026-10-05')
+			expected: ['count' => 2, 'planId' => 'lp-tess', 'schema' => 'learning-plan', 'endsOn' => '2026-10-09'],
+			actual: (new FollowUpFacts())->planEnding(plans: ['group-plan' => $groupPlans, 'learning-plan' => $learningPlans], today: '2026-10-05')
 		);
-		self::assertSame(0, FirstTodayFacts::planEnding(groupPlans: [], learningPlans: [], today: '2026-10-05')['count']);
+		self::assertSame(expected: 0, actual: (new FollowUpFacts())->planEnding(plans: [], today: '2026-10-05')['count']);
 	}//end testAPlanEndingWithinSevenDaysWithoutAnEvaluation()
 
 	/**
@@ -236,8 +349,8 @@ class FirstTodayFactsTest extends TestCase {
 	public function testASignalFromATeacherNotTakenUp(): void {
 		$requests = [['lifecycle' => 'submitted'], ['lifecycle' => 'in-deliberation'], ['lifecycle' => 'draft']];
 
-		self::assertSame(['count' => 1], FirstTodayFacts::signalNotTakenUp(requests: $requests));
-		self::assertSame(['count' => 0], FirstTodayFacts::signalNotTakenUp(requests: []));
+		self::assertSame(expected: ['count' => 1], actual: (new FollowUpFacts())->signalNotTakenUp(requests: $requests));
+		self::assertSame(expected: ['count' => 0], actual: (new FollowUpFacts())->signalNotTakenUp(requests: []));
 	}//end testASignalFromATeacherNotTakenUp()
 
 	/**
@@ -254,8 +367,14 @@ class FirstTodayFactsTest extends TestCase {
 			['lifecycle' => 'submitted', 'created' => '2026-09-01T10:00:00+02:00'],
 		];
 
-		self::assertSame(['count' => 2, 'decideBy' => '2026-10-06T10:00:00+02:00'], FirstTodayFacts::leavePastHalf(requests: $requests, now: self::monday(time: '08:00')));
-		self::assertSame(['count' => 0, 'decideBy' => null], FirstTodayFacts::leavePastHalf(requests: [], now: self::monday(time: '08:00')));
+		self::assertSame(
+			expected: ['count' => 2, 'decideBy' => '2026-10-06T10:00:00+02:00'],
+			actual: (new FollowUpFacts())->leavePastHalf(requests: $requests, now: self::monday(time: '08:00'))
+		);
+		self::assertSame(
+			expected: ['count' => 0, 'decideBy' => null],
+			actual: (new FollowUpFacts())->leavePastHalf(requests: [], now: self::monday(time: '08:00'))
+		);
 	}//end testLeaveRequestsPastHalfTheirDecisionTime()
 
 	/**
@@ -273,7 +392,7 @@ class FirstTodayFactsTest extends TestCase {
 			['learnerId' => 'e', 'flagKind' => 'attendance-requirement', 'lifecycle' => 'open'],
 		];
 
-		self::assertSame(['count' => 2], FirstTodayFacts::overLimitNotReported(flags: $flags));
-		self::assertSame(['count' => 0], FirstTodayFacts::overLimitNotReported(flags: []));
+		self::assertSame(expected: ['count' => 2], actual: (new AttendanceFacts())->overLimitNotReported(flags: $flags));
+		self::assertSame(expected: ['count' => 0], actual: (new AttendanceFacts())->overLimitNotReported(flags: []));
 	}//end testPupilsOverTheLimitNotYetReported()
 }//end class

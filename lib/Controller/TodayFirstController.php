@@ -36,8 +36,6 @@ use OCP\AppFramework\Http\JSONResponse;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IUserSession;
-use Psr\Log\LoggerInterface;
-use Throwable;
 
 /**
  * The First today card of the signed-in user.
@@ -51,8 +49,7 @@ class TodayFirstController extends Controller {
 	 *
 	 * @param IRequest          $request     The request.
 	 * @param IUserSession      $userSession The signed-in user.
-	 * @param FirstTodayService $firstToday  The First today rules.
-	 * @param LoggerInterface   $logger      Logger.
+	 * @param FirstTodayService $firstToday  The First today rules; it logs a failed read.
 	 * @param IL10N             $l10n        Translations.
 	 *
 	 * @return void
@@ -61,7 +58,6 @@ class TodayFirstController extends Controller {
 		IRequest $request,
 		private readonly IUserSession $userSession,
 		private readonly FirstTodayService $firstToday,
-		private readonly LoggerInterface $logger,
 		private readonly IL10N $l10n,
 	) {
 		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
@@ -87,17 +83,16 @@ class TodayFirstController extends Controller {
 		}
 
 		$view = $this->request->getParam('view', '');
-		try {
-			return new JSONResponse(data: $this->firstToday->forUser(user: $user, view: is_string($view) === true ? $view : ''));
-		} catch (Throwable $exception) {
-			$this->logger->error(
-				'[TodayFirstController] The First today card could not be read: {msg}',
-				['msg' => $exception->getMessage(), 'exception' => $exception]
-			);
-			return new JSONResponse(
-				data: ['error' => $this->l10n->t('What comes first today could not be read. Try again.')],
-				statusCode: Http::STATUS_SERVICE_UNAVAILABLE
-			);
+		if (is_string($view) === false) {
+			$view = '';
 		}
+
+		$card = $this->firstToday->cardFor(user: $user, view: $view);
+		if ($card === null) {
+			$message = $this->l10n->t('What comes first today could not be read. Try again.');
+			return new JSONResponse(data: ['error' => $message], statusCode: Http::STATUS_SERVICE_UNAVAILABLE);
+		}
+
+		return new JSONResponse(data: $card);
 	}//end show()
 }//end class
