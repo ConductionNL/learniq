@@ -154,7 +154,8 @@ class ElectiveBoardTest extends TestCase {
 		self::assertSame(expected: 'su-9', actual: $before['mySignUpId'], message: 'signed up, so the screen offers Withdraw');
 		self::assertTrue(condition: $before['windowOpen']);
 
-		$after = $this->thursdayBoard(signUps: [array_merge($signUp, ['status' => 'withdrawn'])])->forLearner(learnerId: 'j.bakker', now: $now)[0]['lessons'][0];
+		$withdrawn = array_merge($signUp, ['status' => 'withdrawn']);
+		$after     = $this->thursdayBoard(signUps: [$withdrawn])->forLearner(learnerId: 'j.bakker', now: $now)[0]['lessons'][0];
 		self::assertSame(expected: 13, actual: $after['freePlaces'], message: 'the withdrawn sign-up frees its place');
 		self::assertNull(actual: $after['mySignUpId'], message: 'no sign-up of his, so the screen offers Sign up again');
 		self::assertTrue(condition: $after['windowOpen']);
@@ -168,10 +169,15 @@ class ElectiveBoardTest extends TestCase {
 	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/enrolment/spec.md#scenario-the-window-has-not-opened-yet
 	 */
 	public function testTheWindowHasNotOpenedYet(): void {
-		$lesson = $this->thursdayBoard(signUps: [])->forLearner(learnerId: 'j.bakker', now: new DateTimeImmutable(datetime: '2026-10-05T10:15:00+02:00'))[0]['lessons'][0];
+		$threeDaysBefore = new DateTimeImmutable(datetime: '2026-10-05T10:15:00+02:00');
+		$lesson          = $this->thursdayBoard(signUps: [])->forLearner(learnerId: 'j.bakker', now: $threeDaysBefore)[0]['lessons'][0];
 
 		self::assertFalse(condition: $lesson['windowOpen'], message: 'no button while the window is closed');
-		self::assertSame(expected: '2026-10-08T10:15:00+02:00', actual: $lesson['opensAt'], message: 'sign-up opens seven days before the lesson, three days from now');
+		self::assertSame(
+			expected: '2026-10-08T10:15:00+02:00',
+			actual: $lesson['opensAt'],
+			message: 'sign-up opens seven days before the lesson, three days from now'
+		);
 		self::assertNull(actual: $lesson['mySignUpId']);
 	}//end testTheWindowHasNotOpenedYet()
 }//end class

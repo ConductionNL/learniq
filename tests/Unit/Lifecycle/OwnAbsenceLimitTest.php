@@ -142,7 +142,12 @@ class OwnAbsenceLimitTest extends TestCase {
 				}
 
 				$this->flags[] = $data;
-				return OrEntityFactory::make(data: $data, schema: (string)$options->target->schema, register: 'learniq', uuid: 'flag-'.count(value: $this->flags));
+				return OrEntityFactory::make(
+					data: $data,
+					schema: (string)$options->target->schema,
+					register: 'learniq',
+					uuid: 'flag-'.count(value: $this->flags)
+				);
 			}
 		);
 
@@ -150,7 +155,12 @@ class OwnAbsenceLimitTest extends TestCase {
 		$integriq->expects($this->exactly(count: $reports))->method('requestJob')->willReturn('job-1');
 
 		$guard   = new AttendanceThresholdCrossingGuard(logger: new NullLogger());
-		$handler = new AttendanceFlagCreationHandler(objectService: $objects, integriq: $integriq, logger: new NullLogger(), schemas: TransitionScope::resolver());
+		$handler = new AttendanceFlagCreationHandler(
+			objectService: $objects,
+			integriq: $integriq,
+			logger: new NullLogger(),
+			schemas: TransitionScope::resolver()
+		);
 
 		foreach ($thresholds as $threshold) {
 			$object = self::checked(threshold: $threshold, hours: $hours);
