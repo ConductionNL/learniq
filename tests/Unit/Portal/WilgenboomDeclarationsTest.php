@@ -46,7 +46,7 @@ class WilgenboomDeclarationsTest extends TestCase {
 	protected function setUp(): void {
 		parent::setUp();
 		$declaration = (new ExamplePortalDeclarations())->forSet(setId: 'po');
-		self::assertNotNull($declaration);
+		self::assertNotNull(actual: $declaration);
 		$this->declaration = $declaration;
 	}//end setUp()
 
@@ -70,13 +70,13 @@ class WilgenboomDeclarationsTest extends TestCase {
 	 * @spec openspec/changes/wilgenboom-public-pages-follow-the-boards/specs/example-sets/spec.md#requirement-the-wilgenboom-public-pages-use-the-options-their-boards-need
 	 */
 	public function testTheSearchPageFiltersByKindAndAudience(): void {
-		self::assertSame('page', $this->declaration['portal']['breadcrumb']);
+		self::assertSame(expected: 'page', actual: $this->declaration['portal']['breadcrumb']);
 
 		$catalogue = $this->widgets(route: '/zoeken')['wb-zoeken-03-nlcatalogue']['props'];
-		self::assertSame(['Soort', 'Voor wie'], [$catalogue['kindFacet'], $catalogue['audienceFacet']]);
-		self::assertSame(['Voor wie' => 'radio'], $catalogue['facetDisplay']);
-		self::assertTrue($catalogue['labelHidden']);
-		self::assertSame('Zoekterm', $catalogue['searchLabel']);
+		self::assertSame(expected: ['Soort', 'Voor wie'], actual: [$catalogue['kindFacet'], $catalogue['audienceFacet']]);
+		self::assertSame(expected: ['Voor wie' => 'radio'], actual: $catalogue['facetDisplay']);
+		self::assertTrue(condition: $catalogue['labelHidden']);
+		self::assertSame(expected: 'Zoekterm', actual: $catalogue['searchLabel']);
 	}//end testTheSearchPageFiltersByKindAndAudience()
 
 	/**
@@ -90,16 +90,19 @@ class WilgenboomDeclarationsTest extends TestCase {
 	public function testTheArticleRunsThroughNewsAndDocuments(): void {
 		$widgets = $this->widgets(route: '/nieuws');
 		$article = $widgets['wb-nieuws-01-nlnewsarticle']['props'];
-		self::assertSame(['/zoeken', 'Nieuws en documenten', 'Nieuws'], [$article['sectionHref'], $article['sectionLabel'], $article['kindLabel']]);
+		self::assertSame(
+			expected: ['/zoeken', 'Nieuws en documenten', 'Nieuws'],
+			actual: [$article['sectionHref'], $article['sectionLabel'], $article['kindLabel']]
+		);
 
 		$card = $widgets['wb-nieuws-03-nlsignin'];
 		$more = $widgets['wb-nieuws-02-nlnewslist'];
-		self::assertSame([8, 4, 'light'], [$card['gridX'], $card['gridWidth'], $card['props']['tone']]);
-		self::assertSame(8, $more['gridX']);
-		self::assertLessThan($more['gridY'], $card['gridY'], 'the card stands above "Meer nieuws"');
+		self::assertSame(expected: [8, 4, 'light'], actual: [$card['gridX'], $card['gridWidth'], $card['props']['tone']]);
+		self::assertSame(expected: 8, actual: $more['gridX']);
+		self::assertLessThan(expected: $more['gridY'], actual: $card['gridY'], message: 'the card stands above "Meer nieuws"');
 
 		$news = array_column($this->declaration['news'], null, 'title')['De Kinderboekenweek is begonnen'];
-		self::assertStringEndsWith('Stuur de leerkracht van uw kind een bericht in Mijn Wilgenboom.', $news['body']);
+		self::assertStringEndsWith(suffix: 'Stuur de leerkracht van uw kind een bericht in Mijn Wilgenboom.', string: $news['body']);
 	}//end testTheArticleRunsThroughNewsAndDocuments()
 
 	/**
@@ -112,20 +115,28 @@ class WilgenboomDeclarationsTest extends TestCase {
 	 */
 	public function testTheAbsencePageHoldsItsButtonInTheCallout(): void {
 		$widgets = $this->widgets(route: '/praktisch/afwezig-melden');
-		self::assertSame(['label' => 'Afwezig melden', 'href' => '/mijn'], $widgets['wb-afwezig-03-nlalert']['props']['action']);
-		self::assertSame([], array_values(array_filter($widgets, static fn (array $w): bool => $w['widgetKey'] === 'nlButtonLink')), 'no button of its own under the cards');
+		self::assertSame(expected: ['label' => 'Afwezig melden', 'href' => '/mijn'], actual: $widgets['wb-afwezig-03-nlalert']['props']['action']);
+		self::assertSame(
+			expected: [],
+			actual: array_values(array_filter($widgets, static fn (array $w): bool => $w['widgetKey'] === 'nlButtonLink')),
+			message: 'no button of its own under the cards'
+		);
 
 		$call = $widgets['wb-afwezig-04-nlalert']['props'];
-		self::assertSame('plain', $call['kind']);
-		self::assertStringContainsString('**[telefoonnummer]**', $call['text']);
+		self::assertSame(expected: 'plain', actual: $call['kind']);
+		self::assertStringContainsString(needle: '**[telefoonnummer]**', haystack: $call['text']);
 
-		self::assertTrue($widgets['wb-afwezig-06-nltable']['props']['rowHeaders']);
+		self::assertTrue(condition: $widgets['wb-afwezig-06-nltable']['props']['rowHeaders']);
 
 		$warning = $widgets['wb-afwezig-09-nlalert'];
-		self::assertSame('warning', $warning['props']['kind']);
-		self::assertStringStartsWith('Is uw kind afwezig zonder melding?', $warning['props']['text']);
-		self::assertStringNotContainsString('zonder melding', $widgets['wb-afwezig-07-markdown']['props']['markdown'], 'said once');
-		self::assertSame(max(array_column($widgets, 'gridY')), $warning['gridY'], 'the warning closes the page');
+		self::assertSame(expected: 'warning', actual: $warning['props']['kind']);
+		self::assertStringStartsWith(prefix: 'Is uw kind afwezig zonder melding?', string: $warning['props']['text']);
+		self::assertStringNotContainsString(
+			needle: 'zonder melding',
+			haystack: $widgets['wb-afwezig-07-markdown']['props']['markdown'],
+			message: 'said once'
+		);
+		self::assertSame(expected: max(array_column($widgets, 'gridY')), actual: $warning['gridY'], message: 'the warning closes the page');
 	}//end testTheAbsencePageHoldsItsButtonInTheCallout()
 
 	/**
@@ -139,9 +150,9 @@ class WilgenboomDeclarationsTest extends TestCase {
 	public function testTheHomeTilesAndAgendaFollowTheBoard(): void {
 		$widgets = $this->widgets(route: '/');
 		$tiles   = array_column($widgets['wb-home-03-nlquicktasks']['props']['items'], 'icon', 'label');
-		self::assertSame('document', $tiles['Verlof aanvragen']);
+		self::assertSame(expected: 'document', actual: $tiles['Verlof aanvragen']);
 
 		$agenda = array_column($widgets['wb-home-06-nleventlist']['props']['items'], null, 'title');
-		self::assertArrayNotHasKey('href', $agenda['Ouderavond']);
+		self::assertArrayNotHasKey(key: 'href', array: $agenda['Ouderavond']);
 	}//end testTheHomeTilesAndAgendaFollowTheBoard()
 }//end class
