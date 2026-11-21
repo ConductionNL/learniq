@@ -39,7 +39,7 @@ class WilgenboomOwnAreaTest extends TestCase {
 	 */
 	private static function portal(): array {
 		$declaration = (new ExamplePortalDeclarations())->forSet(setId: 'po');
-		self::assertNotNull($declaration);
+		self::assertNotNull(actual: $declaration);
 		return $declaration['portal'];
 	}//end portal()
 
@@ -54,18 +54,25 @@ class WilgenboomOwnAreaTest extends TestCase {
 	 */
 	public function testTheMenuFollowsTheBoard(): void {
 		$menu = self::portal()['residentMenu'];
-		self::assertSame(['Mijn Wilgenboom', 'Mijn kinderen', 'Regelen', 'Van school', 'Uw gegevens'], array_column($menu['groups'], 'title'));
-		self::assertSame(['item' => 'messages', 'label' => 'Berichten'], $menu['groups'][0]['items'][1]);
-		self::assertSame(['berichten' => 'messages'], $menu['routes']);
-		self::assertContains('inbox', $menu['leaveOut'], 'the school messages stand on the conversations page');
+		self::assertSame(
+			expected: ['Mijn Wilgenboom', 'Mijn kinderen', 'Regelen', 'Van school', 'Uw gegevens'],
+			actual: array_column($menu['groups'], 'title')
+		);
+		self::assertSame(expected: ['item' => 'messages', 'label' => 'Berichten'], actual: $menu['groups'][0]['items'][1]);
+		self::assertSame(expected: ['berichten' => 'messages'], actual: $menu['routes']);
+		self::assertContains(needle: 'inbox', haystack: $menu['leaveOut'], message: 'the school messages stand on the conversations page');
 
 		$manifest = (new PortalContributionProvider())->getContribution(['audience' => 'parent']);
 		$pages    = array_column($manifest['pages'], 'id');
 		foreach ($menu['groups'] as $group) {
 			foreach ($group['items'] as $item) {
-				$name = is_array($item) === true ? $item['item'] : $item;
+				$name = $item;
+				if (is_array($item) === true) {
+					$name = $item['item'];
+				}
+
 				if (str_starts_with($name, 'learniq:') === true) {
-					self::assertContains(substr($name, 8), $pages, $name . ' is a page of the guardian');
+					self::assertContains(needle: substr($name, 8), haystack: $pages, message: $name . ' is a page of the guardian');
 				}
 			}
 		}
@@ -81,9 +88,9 @@ class WilgenboomOwnAreaTest extends TestCase {
 	 */
 	public function testThePhoneChromeAndThePrompt(): void {
 		$portal = self::portal();
-		self::assertSame('person', $portal['residentMenu']['phoneHeader']);
-		self::assertSame('Telefoon: [telefoonnummer]', $portal['footer']['compact']['text']);
-		self::assertSame(['Toegankelijkheid', 'Privacy'], array_column($portal['footer']['compact']['links'], 'label'));
-		self::assertSame(['show' => false], $portal['contactPrompt']);
+		self::assertSame(expected: 'person', actual: $portal['residentMenu']['phoneHeader']);
+		self::assertSame(expected: 'Telefoon: [telefoonnummer]', actual: $portal['footer']['compact']['text']);
+		self::assertSame(expected: ['Toegankelijkheid', 'Privacy'], actual: array_column($portal['footer']['compact']['links'], 'label'));
+		self::assertSame(expected: ['show' => false], actual: $portal['contactPrompt']);
 	}//end testThePhoneChromeAndThePrompt()
 }//end class

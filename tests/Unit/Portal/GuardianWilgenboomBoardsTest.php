@@ -86,7 +86,11 @@ class GuardianWilgenboomBoardsTest extends TestCase {
 		$pages = array_column($this->manifest['pages'], 'id');
 		foreach (array_merge(...array_column($groups, 'items')) as $entry) {
 			// A menu entry is a page name, or an object that relabels one (wilgenboom-own-area-menu).
-			$name = is_array($entry) === true ? (string)$entry['item'] : (string)$entry;
+			$name = (string)$entry;
+			if (is_array($entry) === true) {
+				$name = (string)$entry['item'];
+			}
+
 			if (str_starts_with($name, 'learniq:') === true) {
 				self::assertContains(substr($name, 8), $pages, $name);
 			}
