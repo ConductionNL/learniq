@@ -288,7 +288,7 @@ test.describe('declarative frontends with named custom views', () => {
 		await expect(page.locator('.timetable-conflict-queue')).toBeVisible({
 			timeout: 20_000,
 		})
-		await expect(page.locator('.timetable-conflict-queue__title')).toHaveText(
+		await expect(page.locator('.timetable-conflict-queue h1')).toHaveText(
 			/Timetable conflicts/i,
 		)
 

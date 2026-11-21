@@ -31,6 +31,7 @@ use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCP\EventDispatcher\Event;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Tests for SubjectChoiceEnrolmentBridge::handle() on SubjectChoice approved -> locked.
@@ -83,7 +84,11 @@ class SubjectChoiceEnrolmentBridgeTest extends TestCase {
 		);
 
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null, $uuid = null, bool $_rbac = true): ObjectEntity {
+			function (array|ObjectEntity $object, ObjectSaveOptions $options = new ObjectSaveOptions(), bool $_rbac = true): ObjectEntity {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
+				$uuid = $options->uuid;
 				$this->rbacWrites[] = ['schema' => (string)$schema, 'rbac' => $_rbac];
 				$data = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
 				$this->savedObjects[] = [
@@ -276,4 +281,31 @@ class SubjectChoiceEnrolmentBridgeTest extends TestCase {
 			self::assertFalse($write['rbac'], 'enrolment is written with _rbac: false');
 		}
 	}//end testEnrolmentsAreWrittenAsTheSystem()
+
+	/**
+	 * Only an approved -> locked transition of a learniq subject choice
+	 * enrols: another target state or another register enrols nobody, while
+	 * the same choice under approved -> locked does.
+	 *
+	 * @return void
+	 */
+	public function testOnlyLockingAnApprovedChoiceInLearniqEnrols(): void {
+		$choice = ['id' => 'sc-9', 'learnerId' => 'ann', 'selectedElectiveCourseIds' => ['course-a'], 'tenant_id' => 't-1'];
+		foreach ([['learniq', 'approved', 'rejected'], ['elsewhere', 'approved', 'locked']] as [$register, $from, $to]) {
+			$objectEntity = $this->createMock(ObjectEntity::class);
+			$objectEntity->method('jsonSerialize')->willReturn($choice);
+			$event = $this->createMock(ObjectTransitionedEvent::class);
+			$event->method('getObject')->willReturn($objectEntity);
+			$event->method('getRegister')->willReturn($register);
+			$event->method('getSchema')->willReturn('subject-choice');
+			$event->method('getFrom')->willReturn($from);
+			$event->method('getTo')->willReturn($to);
+
+			$this->makeHandler(existingEnrolments: [])->handle($event);
+			self::assertCount(0, $this->savedObjects, $register . ' ' . $from . ' -> ' . $to);
+		}
+
+		$this->makeHandler(existingEnrolments: [])->handle($this->makeEvent(choiceData: $choice));
+		self::assertCount(1, $this->savedObjects);
+	}//end testOnlyLockingAnApprovedChoiceInLearniqEnrols()
 }//end class

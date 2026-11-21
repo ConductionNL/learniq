@@ -35,6 +35,8 @@ use OCA\Learniq\Service\CoursePackage\CommonCartridgeResourceRouter;
 use OCA\Learniq\Service\CoursePackage\CoursePackageFileWriter;
 use OCA\Learniq\Service\CoursePackage\CoursePackageImportReporter;
 use OCA\Learniq\Service\CoursePackage\CoursePackageObjectWriter;
+use OCA\Learniq\Service\CoursePackage\CoursePackageImporters;
+use OCA\Learniq\Service\CoursePackage\CoursePackageOutput;
 use OCA\Learniq\Service\CoursePackage\MoodleActivityRouter;
 use OCA\Learniq\Service\CoursePackage\MoodleCourseImporter;
 use OCA\Learniq\Service\CoursePackage\PackageXmlValueReader;
@@ -53,6 +55,8 @@ use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Round-trip smoke test: export → re-import → diff.
@@ -70,7 +74,11 @@ class CoursePackageRoundTripTest extends TestCase {
 		// --- Seed source object graph (mocked ObjectService, export side). ---
 		$exportObjectService = $this->createMock(ObjectService::class);
 		$exportObjectService->method('find')->willReturnCallback(
-			static function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) {
+			static function (int|string $id, ?ObjectFindOptions $options = null) {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				$row = match ([$schema, $id]) {
 					['course', 'course-source'] => ['id' => 'course-source', 'name' => 'Physics 101', 'tenant_id' => 't1'],
 					['rubric', 'rubric-source'] => ['id' => 'rubric-source', 'name' => 'Essay rubric', 'criteria' => [], 'maxPoints' => 20],
@@ -121,7 +129,10 @@ class CoursePackageRoundTripTest extends TestCase {
 		$savedByschema = [];
 		$importObjectService = $this->createMock(ObjectService::class);
 		$importObjectService->method('saveObject')->willReturnCallback(
-			static function (array $object, ?array $extend = [], $register = null, $schema = null) use (&$savedByschema) {
+			static function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) use (&$savedByschema) {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
 				$schemaSlug = (string)$schema;
 
 				$savedByschema[$schemaSlug] ??= [];
@@ -154,30 +165,22 @@ class CoursePackageRoundTripTest extends TestCase {
 		$xmlReader = new PackageXmlValueReader();
 
 		$importService = new CoursePackageImportService(
-			new CommonCartridgeCourseImporter(
-				new QtiImportService($importObjectService, $importLogger),
-				new CommonCartridgeParser(),
-				new CommonCartridgeResourceRouter($objectWriter, $fileWriter, $reporter, $xmlReader, $importLogger),
-				$objectWriter,
-				$reporter,
+			new CoursePackageImporters(new CommonCartridgeCourseImporter(
+				new QtiImportService($importObjectService, $importLogger), new CommonCartridgeParser(),
+				new CommonCartridgeResourceRouter(new CoursePackageOutput($objectWriter, $fileWriter, $reporter), $xmlReader, $importLogger),
+				new CoursePackageOutput($objectWriter, $fileWriter, $reporter),
 			),
 			new MoodleCourseImporter(
 				new MbzExtractor(),
 				new MoodleBackupParser(),
 				new MoodleActivityRouter(
-					new MoodleQuizQuestionMapper(),
-					$objectWriter,
-					$fileWriter,
-					$reporter,
+					new MoodleQuizQuestionMapper(), new CoursePackageOutput($objectWriter, $fileWriter, $reporter),
 					$xmlReader,
 					$importLogger
 				),
-				$objectWriter,
-				$reporter,
-			),
-			new LearniqJsonCourseImporter($objectWriter, $fileWriter, $reporter),
-			$fileWriter,
-			$reporter,
+				new CoursePackageOutput($objectWriter, $fileWriter, $reporter),
+			), new LearniqJsonCourseImporter($objectWriter, $fileWriter, $reporter)),
+			new CoursePackageOutput($objectWriter, $fileWriter, $reporter),
 			$importLogger,
 		);
 

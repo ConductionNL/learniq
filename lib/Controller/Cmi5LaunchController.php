@@ -33,9 +33,10 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Service\Cmi5LaunchTokenService;
-use OCA\Learniq\Service\Cmi5LaunchSessions;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\Cmi5LaunchSessionsInterface;
+use OCA\Learniq\Kernel\Contracts\Cmi5LaunchTokenServiceInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -62,19 +63,19 @@ class Cmi5LaunchController extends Controller {
 	 * @param IRequest               $request       The current request.
 	 * @param IUserSession           $userSession   The signed-in learner.
 	 * @param ObjectService          $objectService Reads the lesson with the caller's rights.
-	 * @param Cmi5LaunchTokenService $tokens        Mints the launch token.
-	 * @param Cmi5LaunchSessions     $sessions      Writes LMS.LaunchData and holds the one-time fetch codes.
+	 * @param Cmi5LaunchTokenServiceInterface $tokens        Mints the launch token.
+	 * @param Cmi5LaunchSessionsInterface     $sessions      Writes LMS.LaunchData and holds the one-time fetch codes.
 	 * @param IURLGenerator          $urlGenerator  Builds the absolute endpoint URLs.
 	 */
 	public function __construct(
 		IRequest $request,
 		private readonly IUserSession $userSession,
 		private readonly ObjectService $objectService,
-		private readonly Cmi5LaunchTokenService $tokens,
-		private readonly Cmi5LaunchSessions $sessions,
+		private readonly Cmi5LaunchTokenServiceInterface $tokens,
+		private readonly Cmi5LaunchSessionsInterface $sessions,
 		private readonly IURLGenerator $urlGenerator,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -181,7 +182,7 @@ class Cmi5LaunchController extends Controller {
 	 */
 	private function findLesson(string $lessonId): ?array {
 		try {
-			$lesson = $this->objectService->find(id: $lessonId, register: 'learniq', schema: 'lesson');
+			$lesson = $this->objectService->find(id: $lessonId, options: new ObjectFindOptions(register: 'learniq', schema: 'lesson'));
 		} catch (Throwable $e) {
 			return null;
 		}

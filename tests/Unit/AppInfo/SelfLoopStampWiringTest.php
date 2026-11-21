@@ -21,7 +21,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\AppInfo;
 
-use OCA\Learniq\AppInfo\Registrar\EventListenerWiring;
+use OCA\Learniq\Listener\Registrar\EventListenerWiring;
 use OCA\Learniq\Listener\MunicipalityFeedbackStampListener;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;

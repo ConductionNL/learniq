@@ -41,9 +41,12 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\IntegriqExchangeClient;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\IntegriqExchangeClientInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Kernel\Contracts\SupportRequestSubmitHandlerInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -56,7 +59,7 @@ use Throwable;
  *
  * @spec openspec/specs/data-exchange/spec.md#requirement-learniq-asks-integriq-to-carry-an-exchange
  */
-class SupportRequestSubmitHandler implements IEventListener {
+class SupportRequestSubmitHandler implements IEventListener, SupportRequestSubmitHandlerInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const SUPPORT_REQUEST_SCHEMA = 'support-request';
@@ -65,27 +68,22 @@ class SupportRequestSubmitHandler implements IEventListener {
 	public const SWV_MAPPING = 'learniq-swv-export-zorgvraag';
 
 	/**
-	 * App config key naming the integriq SWV receiver (`swv-kindkans`, `swv-ldos`).
-	 */
-	public const RECEIVER_CONFIG_KEY = 'swv_receiver_id';
-
-	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService          $objectService OR object access service.
-	 * @param IntegriqExchangeClient $integriq      Asks integriq for the job.
+	 * @param IntegriqExchangeClientInterface $integriq      Asks integriq for the job.
 	 * @param IAppConfig             $appConfig     Reads the school's SWV receiver.
 	 * @param LoggerInterface        $logger        PSR logger.
-	 * @param ListenerSchemaResolver $schemas Resolves the transition event's register and schema ids to slugs.
+	 * @param ListenerSchemaResolverInterface $schemas Resolves the transition event's register and schema ids to slugs.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly IntegriqExchangeClient $integriq,
+		private readonly IntegriqExchangeClientInterface $integriq,
 		private readonly IAppConfig $appConfig,
 		private readonly LoggerInterface $logger,
-		private readonly ListenerSchemaResolver $schemas,
+		private readonly ListenerSchemaResolverInterface $schemas,
 	) {
 	}//end __construct()
 
@@ -164,18 +162,17 @@ class SupportRequestSubmitHandler implements IEventListener {
 		}
 
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::SUPPORT_REQUEST_SCHEMA,
 			object: array_merge($supportRequest, ['dataExchangeJobId' => $jobId]),
-			uuid: $supportRequestId
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::SUPPORT_REQUEST_SCHEMA),
+				uuid: $supportRequestId
+			)
 		);
 
 		// System context (dossier-review): hr, compliance officers and team leads may submit a
 		// support request, and DossierReview create is administration managers, coordinators and
 		// instructors only.
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::DOSSIER_REVIEW_SCHEMA,
 			object: [
 				'exchangeJobId' => $jobId,
 				'target' => self::SWV_TARGET,
@@ -183,6 +180,7 @@ class SupportRequestSubmitHandler implements IEventListener {
 				'status' => 'pending',
 				'tenant_id' => $tenantId,
 			],
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::DOSSIER_REVIEW_SCHEMA)),
 			_rbac: false
 		);
 

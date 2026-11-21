@@ -34,7 +34,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Settings\AdminSettings;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -53,7 +53,14 @@ class StoreRegistrySettingsController extends Controller {
 
 	public const KEY_REGISTER = 'registry_register';
 
-	public const KEY_TOKEN = 'registry_token';
+	public const KEY_REGISTRY_AUTH = 'registry_token';
+
+	/**
+	 * Former name of KEY_REGISTRY_AUTH.
+	 *
+	 * @deprecated Use KEY_REGISTRY_AUTH.
+	 */
+	public const KEY_TOKEN = self::KEY_REGISTRY_AUTH;
 
 	/**
 	 * A register segment: lowercase slug, as registers are named.
@@ -72,7 +79,7 @@ class StoreRegistrySettingsController extends Controller {
 		private readonly IAppConfig $appConfig,
 		private readonly IL10N $l10n,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 
 	}//end __construct()
 
@@ -107,8 +114,8 @@ class StoreRegistrySettingsController extends Controller {
 			return new JSONResponse(data: ['error' => $error], statusCode: Http::STATUS_BAD_REQUEST);
 		}
 
-		$this->appConfig->setValueString(Application::APP_ID, self::KEY_URL, $url);
-		$this->appConfig->setValueString(Application::APP_ID, self::KEY_REGISTER, $register);
+		$this->appConfig->setValueString(AppIdentity::APP_ID, self::KEY_URL, $url);
+		$this->appConfig->setValueString(AppIdentity::APP_ID, self::KEY_REGISTER, $register);
 		$this->saveToken();
 
 		return new JSONResponse(data: $this->current());
@@ -151,13 +158,13 @@ class StoreRegistrySettingsController extends Controller {
 	 */
 	private function saveToken(): void {
 		if (filter_var($this->request->getParam('clearToken', false), FILTER_VALIDATE_BOOLEAN) === true) {
-			$this->appConfig->deleteKey(Application::APP_ID, self::KEY_TOKEN);
+			$this->appConfig->deleteKey(AppIdentity::APP_ID, self::KEY_REGISTRY_AUTH);
 			return;
 		}
 
 		$token = $this->request->getParam('token');
 		if (is_string($token) === true && trim($token) !== '') {
-			$this->appConfig->setValueString(Application::APP_ID, self::KEY_TOKEN, trim($token), sensitive: true);
+			$this->appConfig->setValueString(AppIdentity::APP_ID, self::KEY_REGISTRY_AUTH, trim($token), sensitive: true);
 		}
 
 	}//end saveToken()
@@ -169,9 +176,9 @@ class StoreRegistrySettingsController extends Controller {
 	 */
 	private function current(): array {
 		return [
-			'url'      => $this->appConfig->getValueString(Application::APP_ID, self::KEY_URL, ''),
-			'register' => $this->appConfig->getValueString(Application::APP_ID, self::KEY_REGISTER, ''),
-			'tokenSet' => $this->appConfig->getValueString(Application::APP_ID, self::KEY_TOKEN, '') !== '',
+			'url'      => $this->appConfig->getValueString(AppIdentity::APP_ID, self::KEY_URL, ''),
+			'register' => $this->appConfig->getValueString(AppIdentity::APP_ID, self::KEY_REGISTER, ''),
+			'tokenSet' => $this->appConfig->getValueString(AppIdentity::APP_ID, self::KEY_REGISTRY_AUTH, '') !== '',
 		];
 
 	}//end current()

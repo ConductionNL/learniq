@@ -72,6 +72,332 @@ class StudentPortalPages {
 		'room-unavailable' => 'Other room',
 		'teacher-absence'  => 'Other teacher',
 		'timetable-change' => 'Changed',
+		'other'            => 'Changed',
+	];
+
+	private const STUDENT_SESSIONS_FIELDS = [
+		'cohortId',
+		'courseId',
+		'title',
+		'startsAt',
+		'endsAt',
+		'location',
+		'changeReasonKind',
+		'changeReason',
+		'lifecycle',
+	];
+
+	private const STUDENT_SESSIONS_VIA = [
+		'register' => self::REGISTER,
+		'schema' => 'enrolment',
+		'scopeField' => 'learnerRef',
+		'targetField' => 'cohortId',
+		'match' => 'scopeField',
+		'when' => ['field' => 'lifecycle', 'in' => ['active']],
+	];
+
+	private const STUDENT_SESSIONS_COLUMNS = [
+		['field' => 'startsAt', 'label' => 'Starts at', 'render' => 'datetime'],
+		['field' => 'title', 'label' => 'Subject'],
+		['field' => 'location', 'label' => 'Room'],
+	];
+
+	private const STUDENT_SESSIONS_FIELD_CONFIGS = [
+		'changeReasonKind' => ['label' => 'Change', 'valueLabels' => self::LESSON_CHANGE],
+	];
+
+	private const TIMETABLE_BLOCK_SOURCES = [
+		[
+			'collection' => 'studentSessions',
+			'startField' => 'startsAt',
+			'endField' => 'endsAt',
+			'titleField' => 'title',
+			'metaField' => 'location',
+			'noteField' => 'changeReason',
+			'statusField' => 'changeReasonKind',
+			'cancelledWhen' => ['field' => 'lifecycle', 'in' => ['cancelled']],
+		],
+	];
+
+	private const STUDENT_HOMEWORK_COLUMNS = [
+		['field' => 'title', 'label' => 'To do'],
+		['field' => 'dueAt', 'label' => 'Hand in by', 'render' => 'date'],
+	];
+
+	private const STUDENT_BPV_PLACEMENTS = [
+		// Her own placement, so her hours have something to be about.
+		// Without it the week form could only ask her to type a uuid:
+		// portaliq fills a `collection` option provider from the
+		// subject-scoped collection over that schema, and a pupil had
+		// none (internship-hours).
+		'id' => 'studentBpvPlacements',
+		'register' => self::REGISTER,
+		'schema' => 'bpv-placement',
+		'scopeField' => 'learnerRef',
+		'scopeClaim' => 'learnerRef',
+		'label' => 'My placement',
+		'listable' => true,
+		'minTrust' => 'low',
+		// Followed like a case: the placement has steps (placement-steps-and-assessment-draft).
+		'kind' => 'cases',
+		'steps' => ['label' => 'Where do you stand?', 'provider' => 'bpvPlacementSteps'],
+		// The school's own people and the SBB payload stay out, the same
+		// projection her trainer reads.
+		'fields' => [
+			'learnerRef',
+			'trainingCompanyName',
+			'periodFrom',
+			'periodTo',
+			'agreedHours',
+			'hoursApprovedTotal',
+			// The bar on her hours page: approved, waiting and sent back (bpv-hours-match-the-board).
+			'hoursWaitingTotal',
+			'hoursReturnedTotal',
+			'lifecycle',
+			// The agreements on the board (Detail, "Afspraken"; board-data-the-schemas-lacked).
+			'workdaysLabel',
+			'workplaceAddress',
+			'qualificationName',
+			'crebo',
+		],
+		'columns' => [
+			['field' => 'trainingCompanyName', 'label' => 'Training company'],
+			['field' => 'hoursApprovedTotal', 'label' => 'Hours approved'],
+			['field' => 'agreedHours', 'label' => 'Agreed hours'],
+		],
+		// Words on the record, never field keys such as "Period From" (REPORT-2, item 8).
+		'fieldConfigs' => [
+			'trainingCompanyName' => ['label' => 'Training company'],
+			'periodFrom'          => ['label' => 'From'],
+			'periodTo'            => ['label' => 'Until'],
+			'agreedHours'         => ['label' => 'Agreed hours'],
+			'hoursApprovedTotal'  => ['label' => 'Hours approved'],
+			'hoursWaitingTotal'   => ['label' => 'Waiting for approval'],
+			'hoursReturnedTotal'  => ['label' => 'Sent back'],
+			'lifecycle'           => ['label' => 'Status', 'valueLabels' => PortalValueLabels::PLACEMENT_STATUS],
+			'workdaysLabel'       => ['label' => 'Workdays'],
+			'workplaceAddress'    => ['label' => 'Address'],
+			'qualificationName'   => ['label' => 'Qualification'],
+			'crebo'               => ['label' => 'Crebo'],
+		],
+	];
+
+	private const STUDENT_HOUR_WEEKS_FIELDS = [
+		'learnerRef',
+		'bpvPlacementId',
+		'isoWeek',
+		'hoursSubmitted',
+		'submittedAt',
+		'hoursApproved',
+		'approvedByName',
+		'approvedAt',
+		'note',
+		'lifecycle',
+	];
+
+	private const STUDENT_HOUR_WEEKS_COLUMNS = [
+		['field' => 'isoWeek', 'label' => 'Week'],
+		['field' => 'hoursSubmitted', 'label' => 'Hours you entered'],
+		// When she sent it, which is what answers "have I actually
+		// handed in week 39?" while the week waits.
+		['field' => 'submittedAt', 'label' => 'Sent on', 'render' => 'date'],
+		['field' => 'hoursApproved', 'label' => 'Hours approved'],
+		// A corrected week says so in words. Reading "approved"
+		// over a number she did not write is exactly how a
+		// correction becomes silent.
+		['field' => 'lifecycle', 'label' => 'Status', 'valueLabels' => PortalValueLabels::HOUR_WEEK_STATUS],
+	];
+
+	private const STUDENT_SCHOOL_COACHES = [
+		'id' => 'studentSchoolCoaches',
+		'register' => self::REGISTER,
+		'schema' => 'staff',
+		'scopeField' => 'ncUserId',
+		'scopeClaim' => 'learnerRef',
+		// Reverse join: a staff row counts when its user id is the
+		// schoolCoachId of a placement of this student.
+		'via' => [
+			'register' => self::REGISTER,
+			'schema' => 'bpv-placement',
+			'scopeField' => 'learnerRef',
+			'targetField' => 'schoolCoachId',
+			'match' => 'scopeField',
+		],
+		'label' => 'Your BPV supervisor at school',
+		'listable' => false,
+		'minTrust' => 'low',
+		'fields' => ['ncUserId'],
+		'columns' => [
+			['field' => 'ncUserId', 'label' => 'BPV supervisor', 'render' => 'user'],
+		],
+	];
+
+	private const STUDENT_TRAINERS = [
+		'id' => 'studentTrainers',
+		'register' => self::REGISTER,
+		'schema' => 'praktijkopleider',
+		// Not read in forward join mode; portaliq matches the row's own id.
+		'scopeField' => 'trainingCompanyName',
+		'scopeClaim' => 'learnerRef',
+		// Forward join: a trainer counts when her own id is a placement's
+		// practicalTrainerId of a placement of this student.
+		'via' => [
+			'register' => self::REGISTER,
+			'schema' => 'bpv-placement',
+			'scopeField' => 'learnerRef',
+			'targetField' => 'practicalTrainerId',
+		],
+		'label' => 'Your trainer',
+		'listable' => false,
+		'minTrust' => 'low',
+		'fields' => ['givenName', 'familyName', 'trainingCompanyName'],
+	];
+
+	private const STUDENT_WORK_PROCESSES_COLUMNS = [
+		['field' => 'werkprocesCode', 'label' => 'Code'],
+		['field' => 'werkprocesLabel', 'label' => 'Work process'],
+		['field' => 'hoursSpent', 'label' => 'Hours'],
+		['field' => 'selfAssessment', 'label' => 'Your estimate', 'valueLabels' => PortalValueLabels::SELF_ASSESSMENT],
+	];
+
+	private const SUBMIT_HOUR_WEEK_CROSS_REFS = [
+		'bpvPlacementId' => [
+			'register' => self::REGISTER,
+			'schema' => 'bpv-placement',
+			'scopeField' => 'learnerRef',
+			'scopeClaim' => 'learnerRef',
+			'required' => true,
+		],
+	];
+
+	/**
+	 * The student's placements to choose from, by the company's name.
+	 */
+	public const PLACEMENT_OPTIONS = [
+		'type' => 'collection',
+		'register' => self::REGISTER,
+		'schema' => 'bpv-placement',
+		'labelField' => 'trainingCompanyName',
+		'valueField' => 'id',
+	];
+
+	private const SUBMIT_HOUR_WEEK_OPTIONS_PROVIDERS = [
+		'bpvPlacementId' => self::PLACEMENT_OPTIONS,
+	];
+
+	private const SUBMIT_HOUR_WEEK_FIELD_CONFIGS = [
+		'bpvPlacementId' => ['label' => 'Your placement', 'required' => true],
+		'isoWeek' => ['label' => 'The week, as 2026-W39', 'required' => true],
+		'hoursSubmitted' => ['label' => 'Hours you worked', 'required' => true],
+	];
+
+	/**
+	 * The phone form of one day (board MobielDetail): the placement and the
+	 * day, when she started and stopped, her break, what she did and the work
+	 * processes it belongs to, and whether she keeps the week or sends it.
+	 */
+	private const WRITE_HOUR_DAY_FIELDS = [
+		'bpvPlacementId',
+		'date',
+		'startTime',
+		'endTime',
+		'breakMinutes',
+		'description',
+		'werkprocesCodes',
+		'send',
+	];
+
+	private const WRITE_HOUR_DAY_OPTIONS_PROVIDERS = [
+		'bpvPlacementId' => self::PLACEMENT_OPTIONS,
+		'breakMinutes' => [
+			'type' => 'static',
+			'options' => [
+				['value' => '0', 'label' => 'No break'],
+				['value' => '30', 'label' => '30 minutes'],
+				['value' => '60', 'label' => '60 minutes'],
+			],
+		],
+		// Her own work process rows: portaliq fills a collection provider
+		// from her subject-scoped read of the schema.
+		'werkprocesCodes' => [
+			'type' => 'collection',
+			'register' => self::REGISTER,
+			'schema' => 'werkproces-progress',
+			'labelField' => 'werkprocesLabel',
+			'valueField' => 'werkprocesCode',
+		],
+		'send' => [
+			'type' => 'static',
+			'options' => [
+				['value' => 'keep', 'label' => 'Keep for later'],
+				['value' => 'send', 'label' => 'Send to your workplace trainer'],
+			],
+		],
+	];
+
+	private const WRITE_HOUR_DAY_FIELD_CONFIGS = [
+		'bpvPlacementId' => ['label' => 'Your placement', 'required' => true],
+		'date' => ['label' => 'Which day, as 2026-10-05', 'required' => true],
+		'startTime' => ['label' => 'Started at, as 08:00', 'required' => true],
+		'endTime' => ['label' => 'Stopped at, as 16:30', 'required' => true],
+		'breakMinutes' => ['label' => 'Break', 'widget' => 'choices'],
+		'description' => ['label' => 'What did you do?', 'size' => 'large'],
+		'werkprocesCodes' => ['label' => 'Which work process does this belong to? You may choose more than one.'],
+		'send' => ['label' => 'Send now or later?', 'required' => true, 'widget' => 'choices'],
+	];
+
+	/**
+	 * Work to hand in on the overview. Her own submission is looked up per
+	 * assignment; work handed in, handed in late or marked leaves the list,
+	 * a draft or no submission keeps it (portaliq REQ-SMO-025).
+	 *
+	 * @spec openspec/changes/site-pupil-portal-design/specs/portal-contribution/spec.md
+	 */
+	private const STUDENT_HOMEWORK_TASKS_BLOCK = [
+		'type' => 'tasks',
+		'label' => 'Homework and tests',
+		'display' => 'highlight',
+		'collection' => 'studentHomework',
+		'dueField' => 'dueAt',
+		'titleFields' => ['title'],
+		'lookups' => [
+			[
+				'as' => 'submission',
+				'collection' => 'studentSubmissions',
+				'matchField' => 'assignmentId',
+				'valueField' => 'lifecycle',
+			],
+		],
+		'excludeWhen' => ['lookup' => 'submission', 'in' => ['submitted', 'late', 'returned']],
+	];
+
+	private const STUDENT_LATEST_GRADES_BLOCK = [
+		'type' => 'collection',
+		'label' => 'Latest grades',
+		'collection' => 'studentGrades',
+		'limit' => 3,
+		'sort' => ['field' => 'gradedAt', 'direction' => 'desc'],
+	];
+
+	private const STUDENT_SUPERVISORS_BLOCK = [
+		'type' => 'collection',
+		'label' => 'Your supervisors',
+		'collection' => 'studentTrainers',
+		'display' => 'rows',
+		'titleFields' => ['givenName', 'familyName'],
+		'subtitleField' => 'trainingCompanyName',
+	];
+
+	private const HOURS_BAR_SEGMENTS = [
+		['field' => 'hoursApprovedTotal', 'label' => 'Approved', 'tone' => 'positive'],
+		['field' => 'hoursWaitingTotal', 'label' => 'Waiting', 'tone' => 'waiting'],
+		['field' => 'hoursReturnedTotal', 'label' => 'Sent back', 'tone' => 'warning'],
+	];
+
+	private const HOURS_BAR_CARDS = [
+		['field' => 'hoursApprovedTotal', 'label' => 'Approved', 'unit' => ['one' => 'hour', 'other' => 'hours']],
+		['field' => 'hoursWaitingTotal', 'label' => 'Waiting', 'unit' => ['one' => 'hour', 'other' => 'hours']],
+		['field' => 'hoursReturnedTotal', 'label' => 'Sent back', 'unit' => ['one' => 'hour', 'other' => 'hours'], 'highlight' => true],
 	];
 
 	/**
@@ -99,36 +425,13 @@ class StudentPortalPages {
 			'schema' => 'session',
 			'scopeField' => 'cohortId',
 			'scopeClaim' => 'learnerRef',
-			'via' => [
-				'register' => self::REGISTER,
-				'schema' => 'enrolment',
-				'scopeField' => 'learnerRef',
-				'targetField' => 'cohortId',
-				'match' => 'scopeField',
-				'when' => ['field' => 'lifecycle', 'in' => ['active']],
-			],
+			'via' => self::STUDENT_SESSIONS_VIA,
 			'label' => 'My timetable',
 			'listable' => true,
 			'minTrust' => 'low',
-			'fields' => [
-				'cohortId',
-				'courseId',
-				'title',
-				'startsAt',
-				'endsAt',
-				'location',
-				'changeReasonKind',
-				'changeReason',
-				'lifecycle',
-			],
-			'fieldConfigs' => [
-				'changeReasonKind' => ['label' => 'Change', 'valueLabels' => self::LESSON_CHANGE],
-			],
-			'columns' => [
-				['field' => 'startsAt', 'label' => 'Starts at', 'render' => 'datetime'],
-				['field' => 'title', 'label' => 'Subject'],
-				['field' => 'location', 'label' => 'Room'],
-			],
+			'fields' => self::STUDENT_SESSIONS_FIELDS,
+			'fieldConfigs' => self::STUDENT_SESSIONS_FIELD_CONFIGS,
+			'columns' => self::STUDENT_SESSIONS_COLUMNS,
 		];
 	}//end sessionsCollection()
 
@@ -152,18 +455,7 @@ class StudentPortalPages {
 			'display' => 'timetable',
 			'range' => $range,
 			'firstLabel' => 'Your first lesson',
-			'sources' => [
-				[
-					'collection' => 'studentSessions',
-					'startField' => 'startsAt',
-					'endField' => 'endsAt',
-					'titleField' => 'title',
-					'metaField' => 'location',
-					'noteField' => 'changeReason',
-					'statusField' => 'changeReasonKind',
-					'cancelledWhen' => ['field' => 'lifecycle', 'in' => ['cancelled']],
-				],
-			],
+			'sources' => self::TIMETABLE_BLOCK_SOURCES,
 		];
 	}//end timetableBlock()
 
@@ -188,10 +480,7 @@ class StudentPortalPages {
 			'listable' => true,
 			'minTrust' => 'low',
 			'fields' => ['title', 'instructions', 'dueAt', 'cohortId', 'allowLateSubmission', 'lifecycle'],
-			'columns' => [
-				['field' => 'title', 'label' => 'To do'],
-				['field' => 'dueAt', 'label' => 'Hand in by', 'render' => 'date'],
-			],
+			'columns' => self::STUDENT_HOMEWORK_COLUMNS,
 		];
 	}//end homeworkCollection()
 
@@ -229,67 +518,11 @@ class StudentPortalPages {
 	 *
 	 * @return array<int, array<string, mixed>> Two collections.
 	 *
-	 * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
+	 * @spec openspec/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
 	 */
 	public function bpvCollections(): array {
 		return [
-		[
-			// Her own placement, so her hours have something to be about.
-			// Without it the week form could only ask her to type a uuid:
-			// portaliq fills a `collection` option provider from the
-			// subject-scoped collection over that schema, and a pupil had
-			// none (internship-hours).
-			'id' => 'studentBpvPlacements',
-			'register' => self::REGISTER,
-			'schema' => 'bpv-placement',
-			'scopeField' => 'learnerRef',
-			'scopeClaim' => 'learnerRef',
-			'label' => 'My placement',
-			'listable' => true,
-			'minTrust' => 'low',
-			// Followed like a case: the placement has steps (placement-steps-and-assessment-draft).
-			'kind' => 'cases',
-			'steps' => ['label' => 'Where do you stand?', 'provider' => 'bpvPlacementSteps'],
-			// The school's own people and the SBB payload stay out, the same
-			// projection her trainer reads.
-			'fields' => [
-				'learnerRef',
-				'trainingCompanyName',
-				'periodFrom',
-				'periodTo',
-				'agreedHours',
-				'hoursApprovedTotal',
-				// The bar on her hours page: approved, waiting and sent back (bpv-hours-match-the-board).
-				'hoursWaitingTotal',
-				'hoursReturnedTotal',
-				'lifecycle',
-				// The agreements on the board (Detail, "Afspraken"; board-data-the-schemas-lacked).
-				'workdaysLabel',
-				'workplaceAddress',
-				'qualificationName',
-				'crebo',
-			],
-			'columns' => [
-				['field' => 'trainingCompanyName', 'label' => 'Training company'],
-				['field' => 'hoursApprovedTotal', 'label' => 'Hours approved'],
-				['field' => 'agreedHours', 'label' => 'Agreed hours'],
-			],
-			// Words on the record, never field keys such as "Period From" (REPORT-2, item 8).
-			'fieldConfigs' => [
-				'trainingCompanyName' => ['label' => 'Training company'],
-				'periodFrom'          => ['label' => 'From'],
-				'periodTo'            => ['label' => 'Until'],
-				'agreedHours'         => ['label' => 'Agreed hours'],
-				'hoursApprovedTotal'  => ['label' => 'Hours approved'],
-				'hoursWaitingTotal'   => ['label' => 'Waiting for approval'],
-				'hoursReturnedTotal'  => ['label' => 'Sent back'],
-				'lifecycle'           => ['label' => 'Status', 'valueLabels' => PortalValueLabels::PLACEMENT_STATUS],
-				'workdaysLabel'       => ['label' => 'Workdays'],
-				'workplaceAddress'    => ['label' => 'Address'],
-				'qualificationName'   => ['label' => 'Qualification'],
-				'crebo'               => ['label' => 'Crebo'],
-			],
-		],
+		self::STUDENT_BPV_PLACEMENTS,
 		$this->hourWeeksCollection(),
 		$this->workProcessesCollection(),
 		...$this->supervisorCollections(),
@@ -302,7 +535,7 @@ class StudentPortalPages {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
+	 * @spec openspec/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
 	 */
 	private function hourWeeksCollection(): array {
 		return [
@@ -324,30 +557,8 @@ class StudentPortalPages {
 			// it is a value that never varies and tells her nothing. It stays
 			// what the school reads afterwards, and the e2e asserts it from an
 			// admin read, where it is evidence that the stamp ran.
-			'fields' => [
-				'learnerRef',
-				'bpvPlacementId',
-				'isoWeek',
-				'hoursSubmitted',
-				'submittedAt',
-				'hoursApproved',
-				'approvedByName',
-				'approvedAt',
-				'note',
-				'lifecycle',
-			],
-			'columns' => [
-				['field' => 'isoWeek', 'label' => 'Week'],
-				['field' => 'hoursSubmitted', 'label' => 'Hours you entered'],
-				// When she sent it, which is what answers "have I actually
-				// handed in week 39?" while the week waits.
-				['field' => 'submittedAt', 'label' => 'Sent on', 'render' => 'date'],
-				['field' => 'hoursApproved', 'label' => 'Hours approved'],
-				// A corrected week says so in words. Reading "approved"
-				// over a number she did not write is exactly how a
-				// correction becomes silent.
-				['field' => 'lifecycle', 'label' => 'Status', 'valueLabels' => PortalValueLabels::HOUR_WEEK_STATUS],
-			],
+			'fields' => self::STUDENT_HOUR_WEEKS_FIELDS,
+			'columns' => self::STUDENT_HOUR_WEEKS_COLUMNS,
 		];
 	}//end hourWeeksCollection()
 
@@ -364,49 +575,8 @@ class StudentPortalPages {
 	 */
 	public function supervisorCollections(): array {
 		return [
-			[
-				'id' => 'studentTrainers',
-				'register' => self::REGISTER,
-				'schema' => 'praktijkopleider',
-				// Not read in forward join mode; portaliq matches the row's own id.
-				'scopeField' => 'trainingCompanyName',
-				'scopeClaim' => 'learnerRef',
-				// Forward join: a trainer counts when her own id is a placement's
-				// practicalTrainerId of a placement of this student.
-				'via' => [
-					'register' => self::REGISTER,
-					'schema' => 'bpv-placement',
-					'scopeField' => 'learnerRef',
-					'targetField' => 'practicalTrainerId',
-				],
-				'label' => 'Your trainer',
-				'listable' => false,
-				'minTrust' => 'low',
-				'fields' => ['givenName', 'familyName', 'trainingCompanyName'],
-			],
-			[
-				'id' => 'studentSchoolCoaches',
-				'register' => self::REGISTER,
-				'schema' => 'staff',
-				'scopeField' => 'ncUserId',
-				'scopeClaim' => 'learnerRef',
-				// Reverse join: a staff row counts when its user id is the
-				// schoolCoachId of a placement of this student.
-				'via' => [
-					'register' => self::REGISTER,
-					'schema' => 'bpv-placement',
-					'scopeField' => 'learnerRef',
-					'targetField' => 'schoolCoachId',
-					'match' => 'scopeField',
-				],
-				'label' => 'Your BPV supervisor at school',
-				'listable' => false,
-				'minTrust' => 'low',
-				'fields' => ['ncUserId'],
-				'columns' => [
-					['field' => 'ncUserId', 'label' => 'BPV supervisor', 'render' => 'user'],
-				],
-			],
+			self::STUDENT_TRAINERS,
+			self::STUDENT_SCHOOL_COACHES,
 		];
 	}//end supervisorCollections()
 
@@ -430,12 +600,7 @@ class StudentPortalPages {
 			'listable' => false,
 			'minTrust' => 'low',
 			'fields' => ['learnerRef', 'bpvPlacementId', 'werkprocesCode', 'werkprocesLabel', 'hoursSpent', 'selfAssessment'],
-			'columns' => [
-				['field' => 'werkprocesCode', 'label' => 'Code'],
-				['field' => 'werkprocesLabel', 'label' => 'Work process'],
-				['field' => 'hoursSpent', 'label' => 'Hours'],
-				['field' => 'selfAssessment', 'label' => 'Your estimate', 'valueLabels' => PortalValueLabels::SELF_ASSESSMENT],
-			],
+			'columns' => self::STUDENT_WORK_PROCESSES_COLUMNS,
 			// "Nu invullen" on each row: her own estimate, nothing else.
 			'rowActions' => [StudentSelfAssessment::ACTION],
 		];
@@ -450,7 +615,7 @@ class StudentPortalPages {
 	 *
 	 * @return array<string, mixed> The create action.
 	 *
-	 * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
+	 * @spec openspec/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
 	 */
 	public function hourWeekAction(): array {
 		return [
@@ -468,36 +633,50 @@ class StudentPortalPages {
 		// without this guard she could file hours against another
 		// student's placement and HourWeekTotalRollup would add them to
 		// that placement's total.
-		'crossRefs' => [
-			'bpvPlacementId' => [
-				'register' => self::REGISTER,
-				'schema' => 'bpv-placement',
-				'scopeField' => 'learnerRef',
-				'scopeClaim' => 'learnerRef',
-				'required' => true,
-			],
-		],
+		'crossRefs' => self::SUBMIT_HOUR_WEEK_CROSS_REFS,
 		// And she picks it from her own placements rather than typing a
 		// uuid, the way her guardian picks a child.
-		'optionsProviders' => [
-			'bpvPlacementId' => [
-				'type' => 'collection',
-				'register' => self::REGISTER,
-				'schema' => 'bpv-placement',
-				'labelField' => 'trainingCompanyName',
-				'valueField' => 'id',
-			],
-		],
-		'fieldConfigs' => [
-			'bpvPlacementId' => ['label' => 'Your placement', 'required' => true],
-			'isoWeek' => ['label' => 'The week, as 2026-W39', 'required' => true],
-			'hoursSubmitted' => ['label' => 'Hours you worked', 'required' => true],
-		],
+		'optionsProviders' => self::SUBMIT_HOUR_WEEK_OPTIONS_PROVIDERS,
+		'fieldConfigs' => self::SUBMIT_HOUR_WEEK_FIELD_CONFIGS,
 		'submitLabel' => 'Send these hours',
 		'successMessage' => 'Your hours are with your workplace trainer. You see her decision in the list.',
 		];
 
 	}//end hourWeekAction()
+
+	/**
+	 * She writes the hours of one day (board MobielDetail): the day becomes a
+	 * line of her week, created as a draft when she has none for it, and she
+	 * keeps the week for later or sends it to her workplace trainer.
+	 *
+	 * Through learniq's own endpoint, because a day is a line inside the week
+	 * that must be added or replaced, not a record of its own. The placement
+	 * is checked there to be hers, and the hours are worked out there, never
+	 * taken from the form. The photo of the board is not part of the form:
+	 * portaliq writes files only through its own upload into a record's
+	 * folder, and a day line is not a record.
+	 *
+	 * @return array<string, mixed> The endpoint-forward action.
+	 *
+	 * @spec openspec/changes/bpv-hours-per-day/specs/portal-contribution/spec.md#requirement-a-student-writes-hours-per-day-and-keeps-a-draft
+	 */
+	public function hourDayAction(): array {
+		return [
+			'id' => 'writeHourDay',
+			'type' => 'endpoint-forward',
+			'label' => 'Write the hours of a day',
+			'endpoint' => '/apps/learniq/api/portal/hour-weeks/day',
+			'method' => 'POST',
+			'minTrust' => 'low',
+			'subjectField' => 'learnerRef',
+			'scopeClaim' => 'learnerRef',
+			'fields' => self::WRITE_HOUR_DAY_FIELDS,
+			'optionsProviders' => self::WRITE_HOUR_DAY_OPTIONS_PROVIDERS,
+			'fieldConfigs' => self::WRITE_HOUR_DAY_FIELD_CONFIGS,
+			'submitLabel' => 'Save this day',
+			'successMessage' => 'Your day is saved. A week you sent is with your workplace trainer; a week you keep waits for you.',
+		];
+	}//end hourDayAction()
 
 	/**
 	 * The pupil's pages: the overview, the menu pages, then every other
@@ -525,13 +704,54 @@ class StudentPortalPages {
 			$pages[] = $this->collectionPage(collection: $collection, actions: $actions);
 		}
 
+		// The page her mentor-talk task opens.
+		if (in_array('studentConferenceInvitations', array_column($collections, 'id'), true) === true) {
+			$pages[] = (new StudentSelfBooking())->pickATimePage();
+		}
+
 		// Her self-assessment, where her work processes are read.
 		if (in_array('studentWorkProcesses', array_column($collections, 'id'), true) === true) {
 			$pages[] = (new StudentSelfAssessment())->page();
 		}
 
+		// Her documents, a group per enrolment (school-documents-on-the-portal T3).
+		if (in_array('studentEnrolments', array_column($collections, 'id'), true) === true) {
+			$pages[] = $this->documentsPage();
+		}
+
 		return $pages;
 	}//end pages()
+
+	/**
+	 * Her documents (vaartveld/Documenten, esdoornveen/Documenten): a group
+	 * per enrolment with her reports, statements, agreements and
+	 * certificates. Portaliq lists every group through the per-row route,
+	 * which proves the enrolment is hers before LearnerDocuments is asked.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-each-school-audience-offers-its-own-documents-grouped-per-record
+	 */
+	public function documentsPage(): array {
+		return [
+			'id' => 'studentDocuments',
+			'label' => 'Documents',
+			'icon' => 'FileDocumentMultipleOutline',
+			'group' => ParentSitePages::GROUP,
+			'blocks' => [
+				['type' => 'richText', 'markdown' => 'Your reports, choices, agreements and certificates. You can download and keep them all.'],
+				// A proof of enrolment for a side job or a travel card (school-documents-on-the-portal T4).
+				['type' => 'action', 'action' => 'requestProofOfEnrolment'],
+				[
+					'type' => 'documents',
+					'collection' => 'studentEnrolments',
+					'eachRecord' => true,
+					'titleFields' => ['cohortName'],
+					'emptyLabel' => 'There are no documents yet.',
+				],
+			],
+		];
+	}//end documentsPage()
 
 	/**
 	 * The overview, in the order of the board (school-design vaartveld,
@@ -560,21 +780,10 @@ class StudentPortalPages {
 				['type' => 'greeting'],
 				$this->timetableBlock(label: 'Your timetable today', range: 'day'),
 				['type' => 'cta', 'page' => 'studentSessions', 'label' => 'Whole week'],
-				[
-					'type' => 'tasks',
-					'label' => 'Homework and tests',
-					'display' => 'highlight',
-					'collection' => 'studentHomework',
-					'dueField' => 'dueAt',
-					'titleFields' => ['title'],
-				],
-				[
-					'type' => 'collection',
-					'label' => 'Latest grades',
-					'collection' => 'studentGrades',
-					'limit' => 3,
-					'sort' => ['field' => 'gradedAt', 'direction' => 'desc'],
-				],
+				self::STUDENT_HOMEWORK_TASKS_BLOCK,
+				// Her talk invitation links to the booking page (pupil-books-support-lessons-and-mentor-talks, D-5).
+				(new StudentSelfBooking())->invitationTasksBlock(),
+				self::STUDENT_LATEST_GRADES_BLOCK,
 				$this->absenceFigures(),
 				['type' => 'cta', 'action' => 'createSubmission', 'label' => 'Hand in work'],
 				['type' => 'cta', 'action' => 'createExcuseRequest', 'label' => 'Report an absence'],
@@ -617,59 +826,150 @@ class StudentPortalPages {
 	 */
 	private function collectionPage(array $collection, array $actions): array {
 		$id = (string)$collection['id'];
-		$schema = (string)($collection['schema'] ?? '');
-		if ($id === 'studentHomework') {
-			$schema = 'submission';
-		}
-
-		$blocks = [];
 		if ($id === 'studentSessions') {
 			// The timetable page is the week, not a table of every lesson.
-			return [
-				'id' => $id,
-				'label' => self::MENU_PAGES[$id],
-				'group' => ParentSitePages::GROUP,
-				'blocks' => [$this->timetableBlock(label: 'Timetable', range: 'week')],
-			];
+			return $this->timetablePage(id: $id);
 		}
 
+		$page = ['id' => $id, 'label' => (string)($collection['label'] ?? $id)];
+		// A collection with steps is a record page: the open row's steps under the list.
+		if (isset($collection['steps']) === true) {
+			$page['record'] = ['collection' => $id, 'titleFields' => ['trainingCompanyName']];
+		}
+
+		$page['blocks'] = $this->pageBlocks(collection: $collection, actions: $actions);
+
+		return $this->menuPage(page: $page);
+	}//end collectionPage()
+
+	/**
+	 * A collection page's blocks: the list, its steps, then the record tail.
+	 *
+	 * @param array<string, mixed>            $collection The collection.
+	 * @param array<int, array<string, mixed>> $actions    The audience's actions.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function pageBlocks(array $collection, array $actions): array {
+		return array_merge(
+			$this->listBlocks(collection: $collection, actions: $actions),
+			$this->stepBlocks(collection: $collection),
+			$this->recordTail(id: (string)$collection['id'])
+		);
+	}//end pageBlocks()
+
+	/**
+	 * The week timetable page of a student's lessons.
+	 *
+	 * @param string $id The collection id.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function timetablePage(string $id): array {
+		return [
+			'id' => $id,
+			'label' => self::MENU_PAGES[$id],
+			'group' => ParentSitePages::GROUP,
+			'blocks' => [$this->timetableBlock(label: 'Timetable', range: 'week')],
+		];
+	}//end timetablePage()
+
+	/**
+	 * The blocks above and of a collection's list: the hours bar of the hour
+	 * weeks, the collection's first create form, then the list itself.
+	 *
+	 * @param array<string, mixed>            $collection The collection.
+	 * @param array<int, array<string, mixed>> $actions    The audience's actions.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function listBlocks(array $collection, array $actions): array {
+		$id = (string)$collection['id'];
+		$blocks = [];
 		if ($id === 'studentHourWeeks') {
 			$blocks[] = $this->hoursBar(collection: 'studentBpvPlacements');
 		}
 
-		$form = $this->firstCreateFor(schema: $schema, actions: $actions);
+		$form = $this->firstCreateFor(schema: $this->formSchema(collection: $collection), actions: $actions);
 		if ($form !== null) {
 			$blocks[] = ['type' => 'action', 'action' => $form];
 		}
 
 		$blocks[] = ['type' => 'collection', 'collection' => $id];
-		$page = ['id' => $id, 'label' => (string)($collection['label'] ?? $id)];
-		// A collection with steps is a record page: the open row's steps under the list.
-		if (isset($collection['steps']) === true) {
-			$page['record'] = ['collection' => $id, 'titleFields' => ['trainingCompanyName']];
-			// "Volgende stap": the current step as a highlight card (portaliq #1409),
-			// its button "Zelfbeoordeling afmaken" opening her self-assessment of this placement.
-			$blocks[] = [
-				'type' => 'steps',
-				'collection' => $id,
-				'display' => 'highlight',
-				'eyebrow' => 'Next step',
-				'buttonLabel' => 'Finish your self-assessment',
-				'page' => StudentSelfAssessment::PAGE,
-				'withRecord' => true,
-			];
-			// Bars across, as the board's "Waar sta je?" (portaliq steps `display: bars`).
-			$blocks[] = ['type' => 'steps', 'collection' => $id, 'label' => (string)($collection['steps']['label'] ?? ''), 'display' => 'bars'];
+
+		return $blocks;
+	}//end listBlocks()
+
+	/**
+	 * The schema whose create form a collection page offers: homework is
+	 * handed in as a submission.
+	 *
+	 * @param array<string, mixed> $collection The collection.
+	 *
+	 * @return string
+	 */
+	private function formSchema(array $collection): string {
+		if ((string)$collection['id'] === 'studentHomework') {
+			return 'submission';
 		}
 
-		$blocks = array_merge($blocks, $this->recordTail(id: $id));
-		$page['blocks'] = $blocks;
-		if (isset(self::MENU_PAGES[$id]) === false) {
+		return (string)($collection['schema'] ?? '');
+	}//end formSchema()
+
+	/**
+	 * The step blocks of a collection with steps, none for any other.
+	 *
+	 * @param array<string, mixed> $collection The collection.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function stepBlocks(array $collection): array {
+		if (isset($collection['steps']) === false) {
+			return [];
+		}
+
+		$id = (string)$collection['id'];
+		return [
+			$this->nextStepBlock(id: $id),
+			// Bars across, as the board's "Waar sta je?" (portaliq steps `display: bars`).
+			['type' => 'steps', 'collection' => $id, 'label' => (string)($collection['steps']['label'] ?? ''), 'display' => 'bars'],
+		];
+	}//end stepBlocks()
+
+	/**
+	 * "Volgende stap": the current step as a highlight card (portaliq #1409),
+	 * its button "Zelfbeoordeling afmaken" opening her self-assessment of this placement.
+	 *
+	 * @param string $id The collection id.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function nextStepBlock(string $id): array {
+		return [
+			'type' => 'steps',
+			'collection' => $id,
+			'display' => 'highlight',
+			'eyebrow' => 'Next step',
+			'buttonLabel' => 'Finish your self-assessment',
+			'page' => StudentSelfAssessment::PAGE,
+			'withRecord' => true,
+		];
+	}//end nextStepBlock()
+
+	/**
+	 * A collection page in the menu under its menu label, or kept out of it.
+	 *
+	 * @param array<string, mixed> $page The page.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function menuPage(array $page): array {
+		if (isset(self::MENU_PAGES[$page['id']]) === false) {
 			return $page + ['menu' => false];
 		}
 
-		return array_merge($page, ['label' => self::MENU_PAGES[$id], 'group' => ParentSitePages::GROUP]);
-	}//end collectionPage()
+		return array_merge($page, ['label' => self::MENU_PAGES[$page['id']], 'group' => ParentSitePages::GROUP]);
+	}//end menuPage()
 
 	/**
 	 * The blocks under a collection page's list: the selected row's detail,
@@ -691,14 +991,7 @@ class StudentPortalPages {
 			$this->hoursBar(collection: $id),
 			['type' => 'collection', 'label' => 'Work processes', 'collection' => 'studentWorkProcesses', 'recordField' => 'bpvPlacementId'],
 			// "Je begeleiders": her trainer at the company and her coach at school.
-			[
-				'type' => 'collection',
-				'label' => 'Your supervisors',
-				'collection' => 'studentTrainers',
-				'display' => 'rows',
-				'titleFields' => ['givenName', 'familyName'],
-				'subtitleField' => 'trainingCompanyName',
-			],
+			self::STUDENT_SUPERVISORS_BLOCK,
 			['type' => 'collection', 'collection' => 'studentSchoolCoaches'],
 			['type' => 'detail', 'collection' => $id, 'label' => 'Agreements'],
 		];
@@ -714,7 +1007,7 @@ class StudentPortalPages {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-the-hours-bar-shows-approved-waiting-and-returned-hours
+	 * @spec openspec/specs/bpv/spec.md#requirement-the-hours-bar-shows-approved-waiting-and-returned-hours
 	 */
 	public function hoursBar(string $collection): array {
 		return [
@@ -722,18 +1015,10 @@ class StudentPortalPages {
 			'collection' => $collection,
 			'label' => 'My BPV hours',
 			'display' => 'segmented',
-			'segments' => [
-				['field' => 'hoursApprovedTotal', 'label' => 'Approved', 'tone' => 'positive'],
-				['field' => 'hoursWaitingTotal', 'label' => 'Waiting', 'tone' => 'waiting'],
-				['field' => 'hoursReturnedTotal', 'label' => 'Sent back', 'tone' => 'warning'],
-			],
+			'segments' => self::HOURS_BAR_SEGMENTS,
 			'totalField' => 'agreedHours',
 			'unit' => 'hours',
-			'cards' => [
-				['field' => 'hoursApprovedTotal', 'label' => 'Approved', 'unit' => ['one' => 'hour', 'other' => 'hours']],
-				['field' => 'hoursWaitingTotal', 'label' => 'Waiting', 'unit' => ['one' => 'hour', 'other' => 'hours']],
-				['field' => 'hoursReturnedTotal', 'label' => 'Sent back', 'unit' => ['one' => 'hour', 'other' => 'hours'], 'highlight' => true],
-			],
+			'cards' => self::HOURS_BAR_CARDS,
 		];
 	}//end hoursBar()
 

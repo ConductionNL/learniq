@@ -30,36 +30,23 @@
  * SPDX-License-Identifier: EUPL-1.2
  * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
  *
- * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-004-the-structure-is-an-app-setting-and-simple-is-the-default
+ * @spec openspec/specs/navigation/spec.md#requirement-req-ssp-004-the-structure-is-an-app-setting-and-simple-is-the-default
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Settings;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\MenuStructureInterface;
 use OCP\IAppConfig;
 
 /**
  * The structure setting: its key, its two values and how a stored value reads.
  *
- * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-004-the-structure-is-an-app-setting-and-simple-is-the-default
+ * @spec openspec/specs/navigation/spec.md#requirement-req-ssp-004-the-structure-is-an-app-setting-and-simple-is-the-default
  */
-class MenuStructure {
-
-	/**
-	 * The appconfig key, and the initial-state key the frontend reads.
-	 *
-	 * @var string
-	 */
-	public const KEY = 'menu_structure';
-
-	/**
-	 * The default structure.
-	 *
-	 * @var string
-	 */
-	public const SIMPLE = 'simple';
+class MenuStructure implements MenuStructureInterface {
 
 	/**
 	 * The structure as it was before the profile existed.
@@ -88,10 +75,10 @@ class MenuStructure {
 	 *
 	 * @return string `simple` or `full`.
 	 *
-	 * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-004-the-structure-is-an-app-setting-and-simple-is-the-default
+	 * @spec openspec/specs/navigation/spec.md#requirement-req-ssp-004-the-structure-is-an-app-setting-and-simple-is-the-default
 	 */
 	public function current(): string {
-		return self::normalise(stored: $this->appConfig->getValueString(Application::APP_ID, self::KEY, ''));
+		return self::normalise(stored: $this->appConfig->getValueString(AppIdentity::APP_ID, self::KEY, ''));
 	}//end current()
 
 	/**
@@ -105,7 +92,7 @@ class MenuStructure {
 	 *
 	 * @return string `simple` or `full`.
 	 *
-	 * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-004-the-structure-is-an-app-setting-and-simple-is-the-default
+	 * @spec openspec/specs/navigation/spec.md#requirement-req-ssp-004-the-structure-is-an-app-setting-and-simple-is-the-default
 	 */
 	public static function normalise(string $stored): string {
 		if (strtolower(trim($stored)) === self::FULL) {

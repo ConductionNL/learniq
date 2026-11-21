@@ -29,13 +29,15 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Service\HourPlanActivityService;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\HourPlanActivityServiceInterface;
+use OCA\Learniq\Service\Calendar\SchoolYear;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\JSONResponse;
+use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IGroupManager;
 use OCP\IRequest;
 use OCP\IUserSession;
@@ -58,7 +60,9 @@ class HourPlanController extends Controller {
 	 * @param IRequest                $request      HTTP request.
 	 * @param IUserSession            $userSession  The caller.
 	 * @param IGroupManager           $groupManager Group checks.
-	 * @param HourPlanActivityService $activities   Derives the activities.
+	 * @param HourPlanActivityServiceInterface $activities   Derives the activities.
+	 * @param SchoolYear              $schoolYear   The school's school year, which says the day it starts.
+	 * @param ITimeFactory            $time         Today.
 	 *
 	 * @return void
 	 */
@@ -66,19 +70,27 @@ class HourPlanController extends Controller {
 		IRequest $request,
 		private readonly IUserSession $userSession,
 		private readonly IGroupManager $groupManager,
-		private readonly HourPlanActivityService $activities,
+		private readonly HourPlanActivityServiceInterface $activities,
+		private readonly SchoolYear $schoolYear,
+		private readonly ITimeFactory $time,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
 	 * The teaching activities of a school year.
 	 *
-	 * @param string $academicYear The school year, `YYYY-YYYY`.
+	 * Without a school year it answers the next one, the year being planned,
+	 * counted from the day the school's year starts (`school_year_start`).
+	 * Every answer names `currentAcademicYear`, the year today falls in.
 	 *
-	 * @return JSONResponse 200 with `activities` and `cohortsWithoutPlan`; 400 for an unreadable year; 401 without a user; 403 outside the staff groups.
+	 * @param string $academicYear The school year, `YYYY-YYYY`; empty for the next one.
+	 *
+	 * @return JSONResponse 200 with `academicYear`, `currentAcademicYear`, `activities` and `cohortsWithoutPlan`;
+	 *                      400 for an unreadable year; 401 without a user; 403 outside the staff groups.
 	 *
 	 * @spec openspec/specs/school-structure/spec.md#requirement-learniq-lists-the-teaching-activities-a-school-year-needs
+	 * @spec openspec/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -95,11 +107,20 @@ class HourPlanController extends Controller {
 			);
 		}
 
+		$current = $this->schoolYear->yearOf(date: $this->time->getDateTime()->format('Y-m-d'));
+		if ($academicYear === '') {
+			$first = ((int)substr($current, 0, 4) + 1);
+			$academicYear = sprintf('%04d-%04d', $first, $first + 1);
+		}
+
 		if ($this->activities->intakeYearOf(academicYear: $academicYear, programmeYear: 1) === null) {
 			return new JSONResponse(data: ['error' => 'The school year must read like 2026-2027.'], statusCode: Http::STATUS_BAD_REQUEST);
 		}
 
-		return new JSONResponse(data: $this->activities->forYear(academicYear: $academicYear), statusCode: Http::STATUS_OK);
+		return new JSONResponse(
+			data: ($this->activities->forYear(academicYear: $academicYear) + ['currentAcademicYear' => $current]),
+			statusCode: Http::STATUS_OK
+		);
 	}//end activities()
 
 	/**

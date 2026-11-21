@@ -125,7 +125,7 @@
         {
           "title": "Mijn Wilgenboom",
           "items": [
-            "overview",
+            "learniq:parentOverview",
             {
               "item": "messages",
               "label": "Berichten"
@@ -150,10 +150,7 @@
           "title": "Van school",
           "items": [
             "news",
-            {
-              "item": "learniq:parentReportCards",
-              "label": "Rapporten en documenten"
-            }
+            "learniq:parentDocuments"
           ]
         },
         {

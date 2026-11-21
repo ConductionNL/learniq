@@ -35,6 +35,8 @@ use OCP\IConfig;
 use OCP\IUser;
 use OCP\Security\ISecureRandom;
 use PHPUnit\Framework\TestCase;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * The real code service and check-in service over a register-faithful store
@@ -104,10 +106,14 @@ class CheckInServiceTest extends TestCase {
 			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $this->store->findAll($config, $_rbac, $_multitenancy)
 		);
 		$objects->method('saveObject')->willReturnCallback(
-			fn (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null) => $this->store->save((string)$schema, $object, $uuid)
+			fn (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()) => $this->store->save((string)($options->target->schema), $object, ($options->uuid))
 		);
 		$objects->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null): ObjectEntity {
+			function (int|string $id, ?ObjectFindOptions $options = null): ObjectEntity {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				foreach (($this->store->rows[(string)$schema] ?? []) as $row) {
 					if ($row['id'] === $id) {
 						return OrEntityFactory::make($row, (string)$schema);
@@ -280,4 +286,35 @@ class CheckInServiceTest extends TestCase {
 		self::assertSame(200, $outcome->status);
 		self::assertSame('ses-1', $this->records()[0]['sessionId']);
 	}//end testACodeAloneFindsTheLearnersOpenWindow()
+
+	/**
+	 * Who may see a window and whether it is open: an empty user, an unknown
+	 * window or lesson are not found; a group that cannot be read or holds
+	 * no list refuses; a window is open from its opening until the earlier
+	 * of its close and the lesson's end, unless closed.
+	 *
+	 * @return void
+	 */
+	public function testWhoMaySeeAWindowAndWhenItIsOpen(): void {
+		self::assertSame('not-found', $this->service()->show(windowId: 'win-1', userId: '')->reason);
+		self::assertSame('not-found', $this->service(window: ['sessionId' => 'gone'])->show(windowId: 'win-1', userId: 'pupil-1')->reason);
+
+		$service = $this->service();
+		$this->store->rows['cohort'] = [['id' => 'coh-1', 'learnerIds' => 'pupil-1']];
+		self::assertSame('not-in-group', $service->show(windowId: 'win-1', userId: 'pupil-1')->reason);
+		$this->store->rows['cohort'] = [];
+		self::assertSame('not-in-group', $service->show(windowId: 'win-1', userId: 'pupil-1')->reason);
+
+		$open = static fn (CheckInService $service): bool => $service->show(windowId: 'win-1', userId: 'pupil-1')->body['open'];
+		self::assertTrue($open($this->service()));
+		self::assertTrue($open($this->service(window: ['lifecycle' => null, 'opensAt' => '', 'closesAt' => null])));
+		self::assertFalse($open($this->service(window: ['lifecycle' => 'cancelled'])));
+		self::assertFalse($open($this->service(window: ['opensAt' => '2026-09-29T08:33:00+00:00'])));
+		self::assertTrue($open($this->service(window: ['opensAt' => '2026-09-29T08:32:00+00:00', 'closesAt' => '2026-09-29T08:32:00+00:00'])));
+		self::assertFalse($open($this->service(window: ['closesAt' => '2026-09-29T08:31:59+00:00'])));
+
+		$late = $this->service(window: ['closesAt' => '2026-09-29T10:00:00+00:00']);
+		$this->store->rows['session'][0]['endsAt'] = '2026-09-29T08:31:00+00:00';
+		self::assertFalse($open($late));
+	}//end testWhoMaySeeAWindowAndWhenItIsOpen()
 }//end class

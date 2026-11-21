@@ -24,6 +24,7 @@ import { generateUrl } from '@nextcloud/router'
 import { createApp, h } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import App from './App.vue'
+import handlers from './handlers.js'
 import appIcons from './icons.js'
 import bundledManifest from './manifest.json'
 import menuLayoutFull from './menu-layout.json'
@@ -231,18 +232,18 @@ const structureProfile = resolveStructureProfile(
 const menuLayout =
 	structureProfile === STRUCTURE_FULL ? menuLayoutFull : menuLayoutSimple
 const mergedManifest = applyReportCardGates(
-	buildProfiledManifest(
+	buildProfiledManifest({
 		buildManifest,
-		bundledManifest,
+		base: bundledManifest,
 		fragments,
-		menuLayout,
+		profileFile: menuLayout,
 		// An overlay with a `when` (the Today dashboard) applies only for the
 		// roles it names, judged against the runtime built above.
-		passesContextPredicates,
+		passes: passesContextPredicates,
 		// The brand block names the school through the theming capabilities
 		// (`@theming.name`, `@theming.logo`): the app names no school itself.
-		{ theming: navTheming(getCapabilities()) },
-	),
+		theming: navTheming(getCapabilities()),
+	}),
 )
 
 // Who sees Install and Publish on the Store page is learniq's answer, resolved
@@ -296,7 +297,7 @@ tryLoadTranslations()
 // Cloning yields extensible objects without altering the values the lib
 // resolves at render time.
 const pageTypesProp = { ...defaultPageTypes }
-const registryProp = { ...registry }
+const registryProp = { ...registry, ...handlers }
 
 // The caller's tenant (CallerTenantResolver, via PageController) becomes
 // nextcloud-vue's tenant context, so the shared create dialog fills a hidden

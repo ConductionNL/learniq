@@ -182,20 +182,32 @@ class DataExchangePayloadBuilder {
 
 		$data = [];
 		foreach ($fields as $field) {
-			if ($field === 'schoolBrin') {
-				$data['schoolBrin'] = $this->transformer->applyTransform(
-					value: ($object['cohortId'] ?? null),
-					transform: 'cohort-to-brin',
-					object: $object
-				);
-				continue;
-			}
-
-			$data[$field] = ($object[$field] ?? null);
+			$data[$field] = $this->disclosedField(object: $object, field: $field);
 		}
 
 		return $data;
 	}//end disclose()
+
+	/**
+	 * One field of a mapping's list: the BRIN resolved from the cohort, any
+	 * other field as the object has it (null when absent).
+	 *
+	 * @param array<string, mixed> $object The source object.
+	 * @param string               $field  The field.
+	 *
+	 * @return mixed The field's value.
+	 */
+	private function disclosedField(array $object, string $field): mixed {
+		if ($field === 'schoolBrin') {
+			return $this->transformer->applyTransform(
+				value: ($object['cohortId'] ?? null),
+				transform: 'cohort-to-brin',
+				object: $object
+			);
+		}
+
+		return ($object[$field] ?? null);
+	}//end disclosedField()
 
 	/**
 	 * The objects a job's scope selects, tenant-forced and bounded.
@@ -213,6 +225,45 @@ class DataExchangePayloadBuilder {
 			return [];
 		}
 
+		$results = $this->objectService->findAll($this->scopeQuery(scope: $scope, tenantId: $tenantId));
+		if (count($results) >= self::QUERY_LIMIT) {
+			throw new RuntimeException(
+				'The exchange scope selects ' . self::QUERY_LIMIT . " or more '{$schema}' objects; narrow it so nothing is cut off."
+			);
+		}
+
+		return $this->wantedRecords(objects: array_map(static fn ($item): array => self::rowOf(object: $item), $results), scope: $scope);
+	}//end querySourceObjects()
+
+	/**
+	 * The bounded read of a job's scope: its filters in Learniq's register
+	 * and the scope's schema.
+	 *
+	 * @param array<string, mixed> $scope    The job scope, with a schema.
+	 * @param string               $tenantId Tenant to force on the read.
+	 *
+	 * @return array<string, mixed> The query.
+	 */
+	private function scopeQuery(array $scope, string $tenantId): array {
+		return [
+			'filters' => array_merge(
+				$this->scopeFilters(scope: $scope, tenantId: $tenantId),
+				['register' => self::LEARNIQ_REGISTER, 'schema' => (string)$scope['schema']]
+			),
+			'limit' => self::QUERY_LIMIT,
+		];
+	}//end scopeQuery()
+
+	/**
+	 * The filters a job's scope reads with: its own filters, its cohort, and
+	 * always the job's tenant.
+	 *
+	 * @param array<string, mixed> $scope    The job scope.
+	 * @param string               $tenantId Tenant to force on the read.
+	 *
+	 * @return array<string, mixed> The filters.
+	 */
+	private function scopeFilters(array $scope, string $tenantId): array {
 		$filters = $scope['filters'] ?? [];
 		if (is_array($filters) === false) {
 			$filters = [];
@@ -224,28 +275,19 @@ class DataExchangePayloadBuilder {
 		}
 
 		// #186: always force tenant_id so a scope naming another tenant reads nothing.
-		if ($tenantId !== '') {
-			$filters['tenant_id'] = $tenantId;
-		}
+		return array_merge($filters, $this->tenantFilters(tenantId: $tenantId));
+	}//end scopeFilters()
 
-		$results = $this->objectService->findAll(
-			[
-				'filters' => array_merge($filters, ['register' => self::LEARNIQ_REGISTER, 'schema' => $schema]),
-				'limit' => self::QUERY_LIMIT,
-			]
-		);
-
-		if (count($results) >= self::QUERY_LIMIT) {
-			throw new RuntimeException(
-				'The exchange scope selects ' . self::QUERY_LIMIT . " or more '{$schema}' objects; narrow it so nothing is cut off."
-			);
-		}
-
-		$objects = array_map(
-			static fn ($item): array => self::rowOf(object: $item),
-			$results
-		);
-
+	/**
+	 * The objects a scope's `recordIds` name (by id or uuid), or all of them
+	 * when it names none.
+	 *
+	 * @param array<int, array<string, mixed>> $objects The objects read.
+	 * @param array<string, mixed>             $scope   The job scope.
+	 *
+	 * @return array<int, array<string, mixed>> The objects, as a list.
+	 */
+	private function wantedRecords(array $objects, array $scope): array {
 		$wanted = $scope['recordIds'] ?? null;
 		if (is_array($wanted) === false || $wanted === []) {
 			return array_values($objects);
@@ -258,7 +300,7 @@ class DataExchangePayloadBuilder {
 				static fn (array $object): bool => in_array((string)($object['id'] ?? ($object['uuid'] ?? '')), $wanted, true)
 			)
 		);
-	}//end querySourceObjects()
+	}//end wantedRecords()
 
 	/**
 	 * Run the target's dossier composer over a record, when it has one.
@@ -402,33 +444,26 @@ class DataExchangePayloadBuilder {
 			return null;
 		}
 
-		$filters = ['ncUserId' => $learnerId];
-		if ($tenantId !== '') {
-			$filters['tenant_id'] = $tenantId;
-		}
-
-		$results = $this->objectService->findAll(
-			[
-				'filters' => array_merge(
-					$filters,
-					[
-						'register' => self::LEARNIQ_REGISTER,
-						'schema' => self::LEARNER_PROFILE_SCHEMA,
-					]
-				),
-				'limit' => 1,
-			]
+		$profile = $this->firstObject(
+			schema: self::LEARNER_PROFILE_SCHEMA,
+			query: ['filters' => array_merge(['ncUserId' => $learnerId], $this->tenantFilters(tenantId: $tenantId))]
 		);
-
-		if (empty($results) === true) {
+		if ($profile === null) {
 			return null;
 		}
 
-		$profile = $results[0];
-		if (is_array($results[0]) === false) {
-			$profile = $results[0]->jsonSerialize();
-		}
+		return $this->learnerWhitelistOf(profile: $profile);
 
+	}//end resolveLearnerWhitelist()
+
+	/**
+	 * The fields of a LearnerProfile the care-request dossier may carry.
+	 *
+	 * @param array<string, mixed> $profile The profile.
+	 *
+	 * @return array<string, mixed> The whitelisted fields.
+	 */
+	private function learnerWhitelistOf(array $profile): array {
 		// Explicit whitelist — never bsnEncrypted/bsnHash/email.
 		return [
 			'eckId' => $profile['eckId'] ?? null,
@@ -437,8 +472,7 @@ class DataExchangePayloadBuilder {
 			'birthDate' => $profile['birthDate'] ?? null,
 			'schoolId' => $profile['schoolId'] ?? null,
 		];
-
-	}//end resolveLearnerWhitelist()
+	}//end learnerWhitelistOf()
 
 	/**
 	 * Resolve a LearningPlan to the minimal-disclosure whitelist of context
@@ -454,32 +488,12 @@ class DataExchangePayloadBuilder {
 	 * @spec openspec/changes/archive/2026-07-13-zorgvraag-swv-tlv-chain/tasks.md#task-4.5
 	 */
 	private function resolveLearningPlanWhitelist(string $learningPlanId, string $tenantId): ?array {
-		$filters = [];
-		if ($tenantId !== '') {
-			$filters['tenant_id'] = $tenantId;
-		}
-
-		$results = $this->objectService->findAll(
-			[
-				'ids' => [$learningPlanId],
-				'filters' => array_merge(
-					$filters,
-					[
-						'register' => self::LEARNIQ_REGISTER,
-						'schema' => self::LEARNING_PLAN_SCHEMA,
-					]
-				),
-				'limit' => 1,
-			]
+		$plan = $this->firstObject(
+			schema: self::LEARNING_PLAN_SCHEMA,
+			query: ['ids' => [$learningPlanId], 'filters' => $this->tenantFilters(tenantId: $tenantId)]
 		);
-
-		if (empty($results) === true) {
+		if ($plan === null) {
 			return null;
-		}
-
-		$plan = $results[0];
-		if (is_array($results[0]) === false) {
-			$plan = $results[0]->jsonSerialize();
 		}
 
 		return [
@@ -503,47 +517,56 @@ class DataExchangePayloadBuilder {
 	 */
 	private function resolveAttendanceRecords(array $ids, string $tenantId): array {
 		$records = [];
-
-		foreach ($ids as $id) {
-			if (is_string($id) === false || $id === '') {
-				continue;
-			}
-
-			$filters = [];
-			if ($tenantId !== '') {
-				$filters['tenant_id'] = $tenantId;
-			}
-
-			$results = $this->objectService->findAll(
-				[
-					'ids' => [$id],
-					'filters' => array_merge(
-						$filters,
-						[
-							'register' => self::LEARNIQ_REGISTER,
-							'schema' => self::ATTENDANCE_RECORD_SCHEMA,
-						]
-					),
-					'limit' => 1,
-				]
+		foreach (array_filter($ids, static fn (mixed $id): bool => is_string($id) === true && $id !== '') as $id) {
+			$record = $this->firstObject(
+				schema: self::ATTENDANCE_RECORD_SCHEMA,
+				query: ['ids' => [$id], 'filters' => $this->tenantFilters(tenantId: $tenantId)]
 			);
-
-			if (empty($results) === true) {
-				continue;
+			if ($record !== null) {
+				unset($record['bsnEncrypted'], $record['bsnHash'], $record['email']);
+				$records[] = $record;
 			}
-
-			$recordData = $results[0];
-			if (is_array($results[0]) === false) {
-				$recordData = $results[0]->jsonSerialize();
-			}
-
-			unset($recordData['bsnEncrypted'], $recordData['bsnHash'], $recordData['email']);
-
-			$records[] = $recordData;
-		}//end foreach
+		}
 
 		return $records;
 	}//end resolveAttendanceRecords()
+
+	/**
+	 * The mandatory tenant filter, or none for an empty tenant.
+	 *
+	 * @param string $tenantId The tenant.
+	 *
+	 * @return array<string, string> The filter.
+	 */
+	private function tenantFilters(string $tenantId): array {
+		if ($tenantId === '') {
+			return [];
+		}
+
+		return ['tenant_id' => $tenantId];
+	}//end tenantFilters()
+
+	/**
+	 * The first object of one of Learniq's schemas a query finds, as a row,
+	 * or null when it finds none. The query's filters gain the register and
+	 * schema, and it reads one object.
+	 *
+	 * @param string               $schema The schema.
+	 * @param array<string, mixed> $query  The query, with its `filters`.
+	 *
+	 * @return array<string, mixed>|null The row.
+	 */
+	private function firstObject(string $schema, array $query): ?array {
+		$query['filters'] = array_merge($query['filters'], ['register' => self::LEARNIQ_REGISTER, 'schema' => $schema]);
+		$query['limit'] = 1;
+
+		$results = $this->objectService->findAll($query);
+		if (empty($results) === true) {
+			return null;
+		}
+
+		return self::rowOf(object: $results[0]);
+	}//end firstObject()
 
 	/**
 	 * One OpenRegister result as a plain row.

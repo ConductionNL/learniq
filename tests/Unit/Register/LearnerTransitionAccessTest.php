@@ -46,6 +46,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use ReflectionNamedType;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 
 /**
  * One test per schema: the learner's transition as the learner, and as another learner.
@@ -214,7 +215,7 @@ class LearnerTransitionAccessTest extends TestCase {
 		if ($type === ObjectService::class) {
 			$objects = $this->createMock(ObjectService::class);
 			$objects->method('find')->willReturnCallback(
-				static fn (int|string $id, ?array $_extend = [], bool $files = false, mixed $register = null, mixed $schema = null) => isset(self::LOOKUPS[(string)$schema]) === true ? OrEntityFactory::make(self::LOOKUPS[(string)$schema], (string)$schema) : null
+				static fn (int|string $id, ?ObjectFindOptions $options = null) => isset(self::LOOKUPS[(string)($options?->schema)]) === true ? OrEntityFactory::make(self::LOOKUPS[(string)($options?->schema)], (string)($options?->schema)) : null
 			);
 			$objects->method('findAll')->willReturn([]);
 			return $objects;

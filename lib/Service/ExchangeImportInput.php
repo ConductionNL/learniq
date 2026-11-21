@@ -126,17 +126,32 @@ class ExchangeImportInput {
 	 * @return int|null The id, or null when absent or not a number.
 	 */
 	private function fileIdOf(array $scope): ?int {
-		$fileId = $scope['fileId'] ?? null;
-		if (is_string($fileId) === true && ctype_digit($fileId) === true) {
-			$fileId = (int)$fileId;
-		}
-
-		if (is_int($fileId) === false || $fileId <= 0) {
+		$fileId = self::wholeNumber(value: ($scope['fileId'] ?? null));
+		if ($fileId === null || $fileId <= 0) {
 			return null;
 		}
 
 		return $fileId;
 	}//end fileIdOf()
+
+	/**
+	 * An integer, or a string of digits as one; null for anything else.
+	 *
+	 * @param mixed $value The value.
+	 *
+	 * @return int|null
+	 */
+	private static function wholeNumber(mixed $value): ?int {
+		if (is_int($value) === true) {
+			return $value;
+		}
+
+		if (is_string($value) === true && ctype_digit($value) === true) {
+			return (int)$value;
+		}
+
+		return null;
+	}//end wholeNumber()
 
 	/**
 	 * The rows of the requester's file, or the refusal code.
@@ -156,8 +171,19 @@ class ExchangeImportInput {
 			return self::REFUSAL_TOO_LARGE;
 		}
 
+		return $this->rowsIn(file: $file);
+	}//end rowsOf()
+
+	/**
+	 * The rows of a file within the size bound, or the refusal code.
+	 *
+	 * @param File $file The file.
+	 *
+	 * @return array<int, array<string, mixed>>|string The rows, or a refusal code.
+	 */
+	private function rowsIn(File $file): array|string {
 		try {
-			$rows = $this->parse(name: $file->getName(), content: (string)$file->getContent());
+			$rows = (new ImportFileRows())->rowsOf(name: $file->getName(), content: (string)$file->getContent());
 		} catch (Throwable $exception) {
 			unset($exception);
 			return self::REFUSAL_UNREADABLE;
@@ -172,7 +198,7 @@ class ExchangeImportInput {
 		}
 
 		return $rows;
-	}//end rowsOf()
+	}//end rowsIn()
 
 	/**
 	 * The file among the requester's own files.
@@ -187,13 +213,7 @@ class ExchangeImportInput {
 			return null;
 		}
 
-		try {
-			$node = $this->rootFolder->getUserFolder($requestedBy)->getFirstNodeById($fileId);
-		} catch (Throwable $exception) {
-			unset($exception);
-			return null;
-		}
-
+		$node = $this->nodeOf(fileId: $fileId, requestedBy: $requestedBy);
 		if ($node instanceof File === false) {
 			return null;
 		}
@@ -202,134 +222,21 @@ class ExchangeImportInput {
 	}//end fileOf()
 
 	/**
-	 * Rows of a file by its extension: JSON, XML, or else CSV.
+	 * The node with this id among the requester's files, or null when their files cannot be opened.
 	 *
-	 * @param string $name    The file name.
-	 * @param string $content The content.
+	 * @param int    $fileId      The Nextcloud file id.
+	 * @param string $requestedBy The requester.
 	 *
-	 * @return array<int, array<string, mixed>>|null The rows, or null when unreadable.
+	 * @return mixed
 	 */
-	private function parse(string $name, string $content): ?array {
-		if (trim($content) === '') {
+	private function nodeOf(int $fileId, string $requestedBy): mixed {
+		try {
+			return $this->rootFolder->getUserFolder($requestedBy)->getFirstNodeById($fileId);
+		} catch (Throwable $exception) {
+			unset($exception);
 			return null;
 		}
-
-		$extension = strtolower(pathinfo($name, PATHINFO_EXTENSION));
-		if ($extension === 'json') {
-			return $this->parseJson(content: $content);
-		}
-
-		if ($extension === 'xml') {
-			return $this->parseXml(content: $content);
-		}
-
-		return $this->parseCsv(content: $content);
-	}//end parse()
-
-	/**
-	 * JSON: a list of objects, `{records: [...]}`, or one object.
-	 *
-	 * @param string $content The content.
-	 *
-	 * @return array<int, array<string, mixed>>|null The rows.
-	 */
-	private function parseJson(string $content): ?array {
-		$decoded = json_decode($content, true);
-		if (is_array($decoded) === false) {
-			return null;
-		}
-
-		if (isset($decoded['records']) === true && is_array($decoded['records']) === true) {
-			$decoded = $decoded['records'];
-		}
-
-		if (array_is_list($decoded) === false) {
-			$decoded = [$decoded];
-		}
-
-		$rows = array_values(array_filter($decoded, 'is_array'));
-		if ($rows === []) {
-			return null;
-		}
-
-		return $rows;
-	}//end parseJson()
-
-	/**
-	 * XML: the whole document is one record (a received dossier).
-	 *
-	 * @param string $content The content.
-	 *
-	 * @return array<int, array<string, mixed>>|null The one row.
-	 */
-	private function parseXml(string $content): ?array {
-		$previous = libxml_use_internal_errors(true);
-		// LIBXML_NONET: never fetch a DTD or entity over the network.
-		$xml = simplexml_load_string($content, 'SimpleXMLElement', LIBXML_NONET);
-		libxml_clear_errors();
-		libxml_use_internal_errors($previous);
-		if ($xml === false) {
-			return null;
-		}
-
-		$row = json_decode((string)json_encode($xml), true);
-		if (is_array($row) === false || $row === []) {
-			return null;
-		}
-
-		return [$row];
-	}//end parseXml()
-
-	/**
-	 * CSV with a header row; the delimiter is `;`, `,` or a tab, whichever the header uses most.
-	 *
-	 * @param string $content The content.
-	 *
-	 * @return array<int, array<string, mixed>>|null The rows.
-	 */
-	private function parseCsv(string $content): ?array {
-		$lines = preg_split('/\r\n|\r|\n/', ltrim($content, "\xEF\xBB\xBF"));
-		if ($lines === false) {
-			return null;
-		}
-
-		$lines = array_values(array_filter($lines, static fn (string $line): bool => trim($line) !== ''));
-		if (count($lines) < 2) {
-			return null;
-		}
-
-		$delimiter = $this->delimiterOf(header: $lines[0]);
-		$header = array_map('trim', str_getcsv($lines[0], $delimiter, '"', ''));
-		$rows = [];
-		foreach (array_slice($lines, 1) as $line) {
-			$cells = str_getcsv($line, $delimiter, '"', '');
-			$row = [];
-			foreach ($header as $position => $field) {
-				if ($field === '') {
-					continue;
-				}
-
-				$row[$field] = trim((string)($cells[$position] ?? ''));
-			}
-
-			$rows[] = $row;
-		}
-
-		return $rows;
-	}//end parseCsv()
-
-	/**
-	 * The delimiter a header line uses most.
-	 *
-	 * @param string $header The header line.
-	 *
-	 * @return string The delimiter.
-	 */
-	private function delimiterOf(string $header): string {
-		$counts = [';' => substr_count($header, ';'), ',' => substr_count($header, ','), "\t" => substr_count($header, "\t")];
-		arsort($counts);
-		return (string)array_key_first($counts);
-	}//end delimiterOf()
+	}//end nodeOf()
 
 	/**
 	 * A refusal with no records and the reason people read.

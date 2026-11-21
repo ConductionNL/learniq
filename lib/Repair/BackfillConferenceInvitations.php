@@ -25,7 +25,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Repair;
 
-use OCA\Learniq\Service\ConferenceInvitations;
+use OCA\Learniq\Kernel\Contracts\ConferenceInvitationsInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Migration\IOutput;
 use OCP\Migration\IRepairStep;
@@ -51,14 +51,14 @@ class BackfillConferenceInvitations implements IRepairStep {
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService Reads the open rounds.
-	 * @param ConferenceInvitations $invitations Writes each round's invitation rows.
+	 * @param ConferenceInvitationsInterface $invitations Writes each round's invitation rows.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly ConferenceInvitations $invitations,
+		private readonly ConferenceInvitationsInterface $invitations,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()

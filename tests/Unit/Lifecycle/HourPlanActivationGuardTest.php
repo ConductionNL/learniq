@@ -24,6 +24,7 @@ namespace OCA\Learniq\Tests\Unit\Lifecycle;
 use OCA\Learniq\Lifecycle\HourPlanActivationGuard;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Service\ObjectService;
+use OCA\Learniq\Tests\Support\CapturingLogger;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use RuntimeException;
@@ -98,4 +99,52 @@ class HourPlanActivationGuardTest extends TestCase {
 		self::assertFalse($this->guard(plans: [])->check(['id' => 'hp-2', 'programmeId' => 'p'], 'activate', 'coord')->isAllowed());
 		self::assertFalse($this->guard(plans: [], fails: true)->check(['id' => 'hp-2', 'programmeId' => 'p', 'intakeYear' => '2026-2027'], 'activate', 'coord')->isAllowed());
 	}//end testIncompletePlanAndFailingReadAreRefused()
+	/**
+	 * Every outcome with its message, the query and the log lines, recorded:
+	 * no sibling, an active sibling with and without a name, an active
+	 * sibling of another intake, the plan itself by uuid, an array row, a
+	 * missing intake year and a failing read.
+	 *
+	 * @return void
+	 */
+	public function testEachOutcomeAsRecorded(): void {
+		$plan = ['id' => 'hp-2', 'programmeId' => 'p', 'intakeYear' => '2026-2027'];
+		$cases = [
+			'no sibling' => [$plan, [['id' => 'hp-1', 'programmeId' => 'p', 'intakeYear' => '2026-2027', 'lifecycle' => 'draft']], false],
+			'a named active sibling' => [$plan, [['id' => 'hp-1', 'name' => 'Havo 2026', 'programmeId' => 'p', 'intakeYear' => '2026-2027', 'lifecycle' => 'active']], false],
+			'an unnamed active sibling' => [$plan, [['uuid' => 'hp-3', 'programmeId' => 'p', 'intakeYear' => '2026-2027', 'lifecycle' => 'active']], false],
+			'active, another intake' => [$plan, [['id' => 'hp-4', 'programmeId' => 'p', 'intakeYear' => '2025-2026', 'lifecycle' => 'active']], false],
+			'itself by uuid' => [['uuid' => 'hp-5', 'programmeId' => 'p', 'intakeYear' => '2026-2027'], [['id' => 'hp-5', 'programmeId' => 'p', 'intakeYear' => '2026-2027', 'lifecycle' => 'active']], false],
+			'a row that is not an entity' => [$plan, ['x', null], false],
+			'no intake year' => [['id' => 'hp-2', 'programmeId' => 'p', 'intakeYear' => ''], [], false],
+			'a failing read' => [$plan, [], true],
+		];
+
+		$actual = [];
+		foreach ($cases as $name => [$object, $rows, $fails]) {
+			$queries = [];
+			$objects = $this->createMock(ObjectService::class);
+			$objects->method('findAll')->willReturnCallback(
+				function (array $config, ...$rest) use (&$queries, $rows, $fails): array {
+					$queries[] = [$config, $rest];
+					if ($fails === true) {
+						throw new RuntimeException('down');
+					}
+
+					return $rows;
+				}
+			);
+			$logger = new CapturingLogger();
+
+			$result = (new HourPlanActivationGuard($objects, $logger))->check($object, 'activate', 'coord');
+			$actual[$name] = ['allowed' => $result->isAllowed(), 'message' => $result->getMessage(), 'queries' => $queries, 'log' => $logger->dump()];
+		}
+
+		$golden = __DIR__ . '/golden/HourPlanActivationGuard.json';
+		if (getenv('RECORD_GOLDEN') === '1') {
+			file_put_contents($golden, json_encode($actual, (JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)) . "\n");
+		}
+
+		self::assertSame(json_decode((string)file_get_contents($golden), true), json_decode((string)json_encode($actual), true));
+	}//end testEachOutcomeAsRecorded()
 }//end class

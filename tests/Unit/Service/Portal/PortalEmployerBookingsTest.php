@@ -28,9 +28,11 @@ use OCA\Learniq\Service\Portal\EmployerBookingProjection;
 use OCA\Learniq\Service\Portal\PortalEmployerBookings;
 use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
 use OCA\OpenRegister\Service\ObjectService;
+use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IUserManager;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * PortalEmployerBookings over a store that behaves like OpenRegister.
@@ -80,10 +82,13 @@ class PortalEmployerBookingsTest extends TestCase {
 			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $this->store->findAll($config, false, false)
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			fn (array $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null): object => $this->store->save((string)$schema, $object, $uuid, false)
+			fn (array $object, ObjectSaveOptions $options = new ObjectSaveOptions()): object => $this->store->save((string)($options->target->schema), $object, ($options->uuid), false)
 		);
 
-		$projection = new EmployerBookingProjection(objectService: $objectService, users: $this->createMock(IUserManager::class));
+		// A fixed day before the edition, so the booking stays coming whatever the date the suite runs on.
+		$time = $this->createMock(ITimeFactory::class);
+		$time->method('now')->willReturn(new \DateTimeImmutable('2026-10-09 09:00', new \DateTimeZone('Europe/Amsterdam')));
+		$projection = new EmployerBookingProjection(objectService: $objectService, users: $this->createMock(IUserManager::class), time: $time);
 
 		return new PortalEmployerBookings(objectService: $objectService, projection: $projection, logger: new NullLogger());
 	}//end bookings()
@@ -175,4 +180,42 @@ class PortalEmployerBookingsTest extends TestCase {
 		self::assertSame('1988-06-12', array_column($this->store->rows['learner-profile'], null, 'id')['lp-tom']['birthDate']);
 		self::assertArrayNotHasKey('birthDate', array_column($this->store->rows['learner-profile'], null, 'id')['lp-youssef']);
 	}//end testABirthDateIsWrittenOnceAndOnlyForHerOwnPeople()
+
+	/**
+	 * Each refused answer is named by its field: an empty one in `errors`, one of the wrong kind
+	 * in `invalid`, so the portal's form says which field to change.
+	 *
+	 * @return void
+	 */
+	public function testARefusalNamesTheFieldsToChange(): void {
+		$service = $this->bookings();
+
+		$empty = $service->book(organisationRef: self::COMPANY, body: []);
+		self::assertSame(expected: 422, actual: $empty->status);
+		self::assertSame(expected: ['cohortId' => '', 'participantCount' => ''], actual: $empty->body['errors']);
+		self::assertArrayNotHasKey(key: 'invalid', array: $empty->body);
+
+		self::assertSame(
+			expected: ['participantCount' => 'integer'],
+			actual: $service->book(organisationRef: self::COMPANY, body: ['cohortId' => 'ed-1', 'participantCount' => 'twee'])->body['invalid']
+		);
+		$tooMany = $service->book(organisationRef: self::COMPANY, body: ['cohortId' => 'ed-1', 'participantCount' => '13']);
+		self::assertSame(expected: ['participantCount' => 'range'], actual: $tooMany->body['invalid']);
+		self::assertArrayNotHasKey(key: 'errors', array: $tooMany->body);
+
+		self::assertSame(
+			expected: ['bookingRef' => ''],
+			actual: $service->addParticipant(organisationRef: self::COMPANY, body: ['learnerRef' => 'lp-tom'])->body['errors']
+		);
+
+		$wrongDate = $service->supplyBirthDate(organisationRef: self::COMPANY, body: ['learnerRef' => 'lp-youssef', 'birthDate' => '14-03-1994']);
+		self::assertSame(expected: 'birth_date_invalid', actual: $wrongDate->body['error']);
+		self::assertSame(expected: ['birthDate' => 'date'], actual: $wrongDate->body['invalid']);
+		self::assertArrayNotHasKey(key: 'errors', array: $wrongDate->body);
+		self::assertSame(
+			expected: ['learnerRef' => '', 'birthDate' => ''],
+			actual: $service->supplyBirthDate(organisationRef: self::COMPANY, body: [])->body['errors']
+		);
+		self::assertSame(expected: [], actual: $this->store->rows['course-booking']);
+	}//end testARefusalNamesTheFieldsToChange()
 }//end class

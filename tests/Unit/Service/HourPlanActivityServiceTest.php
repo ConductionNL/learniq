@@ -42,6 +42,20 @@ class HourPlanActivityServiceTest extends TestCase {
 	private array $store = [];
 
 	/**
+	 * Every findAll config sent.
+	 *
+	 * @var list<array<string,mixed>>
+	 */
+	private array $queries = [];
+
+	/**
+	 * Recorded school-year activities and queries.
+	 *
+	 * @var string
+	 */
+	private const GOLDEN = __DIR__ . '/golden/HourPlanActivities.json';
+
+	/**
 	 * Build the service over the store.
 	 *
 	 * @return HourPlanActivityService
@@ -50,6 +64,7 @@ class HourPlanActivityServiceTest extends TestCase {
 		$objects = $this->createMock(ObjectService::class);
 		$objects->method('findAll')->willReturnCallback(
 			function (array $config): array {
+				$this->queries[] = $config;
 				$filters = $config['filters'];
 				$schema = $filters['schema'];
 				unset($filters['register'], $filters['schema']);
@@ -168,4 +183,95 @@ class HourPlanActivityServiceTest extends TestCase {
 		self::assertNull($bad->getResult());
 		self::assertNotNull($bad->getError());
 	}//end testQueryEventIsAnswered()
+
+	/**
+	 * Activities, cohorts without a plan and the reads for several school years match the recorded set.
+	 *
+	 * @return void
+	 */
+	public function testSchoolYearsMatchGolden(): void {
+		$this->store['cohort'] = array_merge(
+			$this->store['cohort'],
+			[
+				['id' => 'c-mv2b', 'name' => 'MV2B', 'programmeId' => 'p-mmc', 'programmeYear' => 2, 'academicYear' => '2026-2027'],
+				['uuid' => 'c-mv3a', 'name' => 'MV3A', 'programmeId' => 'p-mmc', 'programmeYear' => '3', 'academicYear' => '2026-2027'],
+				['id' => 'c-zero', 'name' => 'Nul', 'programmeId' => 'p-mmc', 'programmeYear' => 0, 'academicYear' => '2026-2027'],
+				['id' => 'c-noprog', 'name' => 'Zonder opleiding', 'programmeYear' => 1, 'academicYear' => '2026-2027'],
+				['id' => 'c-art', 'name' => 'ART1', 'programmeId' => 'p-art', 'programmeYear' => 1, 'academicYear' => '2025-2026'],
+			]
+		);
+		$this->store['hour-plan'][] = [
+			'id' => 'hp-2024', 'programmeId' => 'p-mmc', 'intakeYear' => '2024-2025', 'lifecycle' => 'active',
+			'lines' => [
+				['courseId' => 'co-ne', 'programmeYear' => 3, 'periodCode' => 'P2', 'contactHours' => '12.5', 'note' => 'examenjaar'],
+				['courseId' => 'co-ex', 'programmeYear' => 3, 'activityKind' => 'exam'],
+			],
+		];
+		$this->store['hour-plan'][] = [
+			'id' => 'hp-art', 'programmeId' => 'p-art', 'intakeYear' => '2025-2026', 'lifecycle' => 'active',
+			'lines' => [['courseId' => 'co-ne', 'programmeYear' => 1, 'contactHours' => 8]],
+		];
+		$this->store['subjectteacherassignment'][] = ['id' => 'sta-2', 'cohortId' => 'c-mv2b', 'courseId' => 'co-bpv', 'teacherId' => 'bpv-01'];
+		$this->store['subjectteacherassignment'][] = ['id' => 'sta-3', 'cohortId' => 'c-mv2b', 'courseId' => 'co-bpv', 'teacherId' => 'bpv-02'];
+		$cases = [];
+		foreach (['2026-2027', '2025-2026', '2027-2028', 'next'] as $year) {
+			$this->queries = [];
+			$cases[$year] = ['out' => $this->service()->forYear(academicYear: $year), 'queries' => $this->queries];
+		}
+
+		$actual = json_decode((string)json_encode($cases, JSON_PRESERVE_ZERO_FRACTION), true);
+		if (getenv('RECORD_GOLDEN') === '1') {
+			file_put_contents(self::GOLDEN, json_encode($actual, (JSON_PRETTY_PRINT | JSON_PRESERVE_ZERO_FRACTION)) . "\n");
+		}
+
+		foreach (json_decode((string)file_get_contents(self::GOLDEN), true) as $name => $expected) {
+			self::assertSame($expected, $actual[$name], $name);
+		}
+	}//end testSchoolYearsMatchGolden()
+
+	/**
+	 * The reads behind a school year, in order and exactly as sent; a plan
+	 * of the right programme and intake that is not active, or a row of
+	 * another programme the store answers anyway, is not the plan; a read
+	 * that fails is logged and reads as empty.
+	 *
+	 * @return void
+	 */
+	public function testTheReadsBehindASchoolYear(): void {
+		$this->store['hour-plan'][] = ['id' => 'hp-other', 'programmeId' => 'p-other', 'intakeYear' => '2025-2026', 'lifecycle' => 'active', 'lines' => []];
+		$this->service()->forYear(academicYear: '2026-2027');
+
+		$schemas = array_map(static fn (array $config): string => $config['filters']['schema'], $this->queries);
+		self::assertSame('cohort', $schemas[0]);
+		self::assertSame(['filters' => ['register' => 'learniq', 'schema' => 'cohort', 'academicYear' => '2026-2027']], $this->queries[0]);
+		self::assertContains(['filters' => ['register' => 'learniq', 'schema' => 'hour-plan', 'programmeId' => 'p-mmc', 'intakeYear' => '2025-2026']], $this->queries);
+		self::assertContains(['filters' => ['register' => 'learniq', 'schema' => 'subjectteacherassignment', 'cohortId' => 'c-mv2a']], $this->queries);
+		self::assertSame(['filters' => ['register' => 'learniq', 'schema' => 'course'], 'ids' => ['co-ne', 'co-bpv']], end($this->queries));
+
+		$plan = new \ReflectionMethod(HourPlanActivityService::class, 'activePlan');
+		$this->store['hour-plan'] = [
+			['id' => 'hp-draft', 'programmeId' => 'p-mmc', 'intakeYear' => '2025-2026', 'lifecycle' => 'draft'],
+			['id' => 'hp-other', 'programmeId' => 'p-other', 'intakeYear' => '2025-2026', 'lifecycle' => 'active'],
+			['id' => 'hp-year', 'programmeId' => 'p-mmc', 'intakeYear' => '2024-2025', 'lifecycle' => 'active'],
+		];
+		$loose = $this->createMock(ObjectService::class);
+		$loose->method('findAll')->willReturnCallback(fn (array $config): array => $this->store[$config['filters']['schema']]);
+		$service = new HourPlanActivityService($loose, new NullLogger());
+		self::assertNull($plan->invoke($service, 'p-mmc', '2025-2026'));
+		$this->store['hour-plan'][] = ['id' => 'hp-live', 'programmeId' => 'p-mmc', 'intakeYear' => '2025-2026', 'lifecycle' => 'active'];
+		self::assertSame('hp-live', $plan->invoke($service, 'p-mmc', '2025-2026')['id']);
+
+		$warnings = [];
+		$logger = $this->createMock(\Psr\Log\LoggerInterface::class);
+		$logger->method('warning')->willReturnCallback(
+			static function (string $message, array $context) use (&$warnings): void {
+				$warnings[] = [$message, $context];
+			}
+		);
+		$failing = $this->createMock(ObjectService::class);
+		$failing->method('findAll')->willThrowException(new \RuntimeException('down'));
+		$year = (new HourPlanActivityService($failing, $logger))->forYear(academicYear: '2026-2027');
+		self::assertSame([], $year['activities']);
+		self::assertSame([['[HourPlanActivityService] Could not read {schema}: {msg}', ['schema' => 'cohort', 'msg' => 'down']]], $warnings);
+	}//end testTheReadsBehindASchoolYear()
 }//end class

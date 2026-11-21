@@ -11,15 +11,10 @@
   the ItemRevisionFlag review queue itself stays a plain manifest list+detail
   page (mirrors AttendanceFlag/BsaProgressFlag/EngagementRiskFlag).
 
-  ItemStatistics/AssessmentReliability carry x-property-rbac restricting read
-  to admin/teacher/examboard — a learner MUST NOT see an item's difficulty/
-  discrimination statistics. That is enforced server-side by OR; this view
-  ALSO gates its content client-side. Note: like ExamCaseDossierView, this
-  register has no `examboard`/`teacher` membership flag exposed via
-  loadState at HEAD — `isAdmin` is used as the best available client-side
-  proxy (under-inclusive: a real examboard/teacher member without the admin
-  flag sees the denied state here even though the server would allow the
-  read; the server-side RBAC block is the actual security boundary either way).
+  ItemStatistics/AssessmentReliability are readable by staff only (the
+  schemas' authorization blocks); a learner MUST NOT see an item's difficulty/
+  discrimination statistics. The view shows its content to the teacher and
+  admin dashboard views (`dashboardRoles` initial state).
 
   Uses Options API + direct fetch calls (no custom Pinia store modules).
 
@@ -30,7 +25,7 @@
 -->
 
 <template>
-	<div class="item-analysis">
+	<div class="item-analysis lq-board-page">
 		<div v-if="!isStaff" class="item-analysis__denied" role="alert">
 			<span class="icon-error" aria-hidden="true" />
 			<p>
@@ -56,15 +51,13 @@
 
 			<template v-else>
 				<header class="item-analysis__header">
-					<h2 class="item-analysis__heading">
-						{{ itemTitle || t('learniq', 'Item analysis') }}
-					</h2>
+					<CnPageHeader :title="itemTitle || t('learniq', 'Item analysis')" />
 				</header>
 
-				<section v-if="itemId" class="item-analysis__section">
-					<h3 class="item-analysis__sub-heading">
-						{{ t('learniq', 'Statistics per assessment') }}
-					</h3>
+				<CnDetailCard
+					v-if="itemId"
+					:title="t('learniq', 'Statistics per assessment')"
+					class="item-analysis__section">
 					<p
 						v-if="itemStatisticsList.length === 0"
 						class="item-analysis__empty">
@@ -141,12 +134,12 @@
 							</li>
 						</ul>
 					</div>
-				</section>
+				</CnDetailCard>
 
-				<section v-if="assessmentId" class="item-analysis__section">
-					<h3 class="item-analysis__sub-heading">
-						{{ t('learniq', 'Assessment reliability') }}
-					</h3>
+				<CnDetailCard
+					v-if="assessmentId"
+					:title="t('learniq', 'Assessment reliability')"
+					class="item-analysis__section">
 					<p v-if="!reliability" class="item-analysis__empty">
 						{{ t('learniq', 'No reliability figure computed yet.') }}
 					</p>
@@ -172,18 +165,22 @@
 						<dt>{{ t('learniq', 'Item count') }}</dt>
 						<dd>{{ reliability.itemCount }}</dd>
 					</dl>
-				</section>
+				</CnDetailCard>
 			</template>
 		</template>
 	</div>
 </template>
 
 <script>
-import { getCurrentUser } from '@nextcloud/auth'
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
+import { loadState } from '@nextcloud/initial-state'
 import { generateUrl } from '@nextcloud/router'
+import { canSeeHandInStatus } from '../utils/handInStatus.js'
+import { readRequiredList } from '../utils/requiredListRead.js'
 
 export default {
 	name: 'ItemAnalysisView',
+	components: { CnDetailCard, CnPageHeader },
 
 	props: {
 		/**
@@ -220,14 +217,14 @@ export default {
 
 	computed: {
 		/**
-		 * Client-side proxy for "may view staff-only item statistics" — see
-		 * file-header note. The server-side x-property-rbac block is the
-		 * actual security boundary.
+		 * Whether the signed-in user is staff (teacher or admin view), who may
+		 * read item statistics.
 		 *
 		 * @return {boolean}
+		 * @spec openspec/specs/assessment/spec.md#requirement-item-and-assessment-statistics-are-read-restricted-to-staff-roles
 		 */
 		isStaff() {
-			return !!getCurrentUser()?.isAdmin
+			return canSeeHandInStatus(loadState('learniq', 'dashboardRoles', []))
 		},
 	},
 
@@ -313,17 +310,12 @@ export default {
 		 * @spec openspec/specs/assessment/spec.md#requirement-per-item-statistics-are-computed-from-graded-results-gated-by-a-minimum-sample-size
 		 */
 		async loadItemStatistics() {
-			const url = generateUrl(
-				'/apps/openregister/api/objects/learniq/item-statistics?_limit=200',
+			const all = await readRequiredList(
+				generateUrl(
+					'/apps/openregister/api/objects/learniq/item-statistics?_limit=200',
+				),
+				'ItemStatistics fetch failed',
 			)
-			const resp = await fetch(url, {
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-			})
-			if (!resp.ok) {
-				throw new Error(`ItemStatistics fetch failed: ${resp.status}`)
-			}
-			const json = await resp.json()
-			const all = json.results ?? json.objects ?? json ?? []
 			this.itemStatisticsList = all.filter((s) => s.itemId === this.itemId)
 		},
 
@@ -335,17 +327,12 @@ export default {
 		 * @spec openspec/specs/assessment/spec.md#requirement-per-assessment-reliability-cronbachs-alpha-is-computed-with-a-minimum-sample-size
 		 */
 		async loadReliability() {
-			const url = generateUrl(
-				'/apps/openregister/api/objects/learniq/assessment-reliability?_limit=200',
+			const all = await readRequiredList(
+				generateUrl(
+					'/apps/openregister/api/objects/learniq/assessment-reliability?_limit=200',
+				),
+				'AssessmentReliability fetch failed',
 			)
-			const resp = await fetch(url, {
-				headers: { 'OCS-APIREQUEST': 'true', Accept: 'application/json' },
-			})
-			if (!resp.ok) {
-				throw new Error(`AssessmentReliability fetch failed: ${resp.status}`)
-			}
-			const json = await resp.json()
-			const all = json.results ?? json.objects ?? json ?? []
 			this.reliability =
 				all.find((r) => r.assessmentId === this.assessmentId) ?? null
 		},
@@ -366,13 +353,6 @@ export default {
 </script>
 
 <style scoped>
-.item-analysis {
-	max-width: 800px;
-	margin: 0 auto;
-	padding: var(--default-grid-baseline, 8px)
-		calc(var(--default-grid-baseline, 8px) * 2);
-}
-
 .item-analysis__loading,
 .item-analysis__error,
 .item-analysis__denied {
@@ -380,21 +360,6 @@ export default {
 	align-items: center;
 	gap: var(--default-grid-baseline, 8px);
 	padding: calc(var(--default-grid-baseline, 8px) * 2);
-}
-
-.item-analysis__heading {
-	font-size: var(--default-font-size, 15px);
-	font-weight: bold;
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 2);
-}
-
-.item-analysis__section {
-	margin-bottom: calc(var(--default-grid-baseline, 8px) * 3);
-}
-
-.item-analysis__sub-heading {
-	font-weight: 600;
-	margin-bottom: var(--default-grid-baseline, 8px);
 }
 
 .item-analysis__stat-card {

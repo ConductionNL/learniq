@@ -82,7 +82,24 @@ class ExternalTrainingCsvBuilder {
 		string $dateTo,
 		string $tenantId,
 	): string {
-		$rows = $this->objectService->findAll(
+		$rows = $this->records(regulationSlug: $regulationSlug, tenantId: $tenantId);
+		if (empty($rows) === true) {
+			return self::HEADER;
+		}
+
+		return $this->csvOf(rows: $rows, window: [$dateFrom, $dateTo]);
+	}//end build()
+
+	/**
+	 * The verified records of one regulation and tenant, oldest completion first.
+	 *
+	 * @param string $regulationSlug Regulation slug.
+	 * @param string $tenantId       Tenant scope.
+	 *
+	 * @return array<int,mixed>
+	 */
+	private function records(string $regulationSlug, string $tenantId): array {
+		return $this->objectService->findAll(
 			[
 				'filters' => [
 					'register' => 'learniq',
@@ -94,42 +111,25 @@ class ExternalTrainingCsvBuilder {
 				'sort' => ['completedAt' => 'ASC'],
 			]
 		);
+	}//end records()
 
-		if (empty($rows) === true) {
-			return self::HEADER;
-		}
-
+	/**
+	 * The CSV of the records completed in the window, with its header row.
+	 *
+	 * @param array<int,mixed>         $rows   The records.
+	 * @param array{0:string,1:string} $window ISO date lower and upper bound (both inclusive) on completedAt.
+	 *
+	 * @return string
+	 */
+	private function csvOf(array $rows, array $window): string {
 		$handle = fopen('php://memory', 'r+');
 		if ($handle === false) {
 			return self::HEADER;
 		}
 
-		fputcsv(
-			$handle,
-			[
-				'learner_id',
-				'title',
-				'provider',
-				'kind',
-				'regulation_slug',
-				'completed_at',
-				'valid_until',
-				'verified_by',
-				'verified_at',
-				'credential_id',
-				'evidence_files',
-			]
-		);
-
-		foreach ($rows as $row) {
-			$rec = $this->normaliseRecord(row: $row);
-
-			$completedAt = (string)($rec['completedAt'] ?? '');
-			if ($this->completedAtInRange(completedAt: $completedAt, dateFrom: $dateFrom, dateTo: $dateTo) === false) {
-				continue;
-			}
-
-			fputcsv($handle, $this->csvRow(rec: $rec, completedAt: $completedAt));
+		fputcsv($handle, $this->columns());
+		foreach ($this->linesInWindow(rows: $rows, window: $window) as $line) {
+			fputcsv($handle, $line);
 		}
 
 		rewind($handle);
@@ -142,7 +142,52 @@ class ExternalTrainingCsvBuilder {
 		}
 
 		return $csv;
-	}//end build()
+	}//end csvOf()
+
+	/**
+	 * The header row.
+	 *
+	 * @return array<int,string>
+	 */
+	private function columns(): array {
+		return [
+			'learner_id',
+			'title',
+			'provider',
+			'kind',
+			'regulation_slug',
+			'completed_at',
+			'valid_until',
+			'verified_by',
+			'verified_at',
+			'credential_id',
+			'evidence_files',
+		];
+	}//end columns()
+
+	/**
+	 * The CSV cells of every record completed in the window.
+	 *
+	 * @param array<int,mixed>         $rows   The records.
+	 * @param array{0:string,1:string} $window ISO date lower and upper bound on completedAt.
+	 *
+	 * @return array<int,array<int,string>>
+	 */
+	private function linesInWindow(array $rows, array $window): array {
+		$lines = [];
+		foreach ($rows as $row) {
+			$rec = $this->normaliseRecord(row: $row);
+
+			$completedAt = (string)($rec['completedAt'] ?? '');
+			if ($this->completedAtInRange(completedAt: $completedAt, window: $window) === false) {
+				continue;
+			}
+
+			$lines[] = $this->csvRow(rec: $rec, completedAt: $completedAt);
+		}
+
+		return $lines;
+	}//end linesInWindow()
 
 	/**
 	 * Normalise one external-training row to a plain array.
@@ -171,15 +216,15 @@ class ExternalTrainingCsvBuilder {
 	 * `completedAt` is kept rather than dropped, so a record is never silently
 	 * excluded for lacking the field.
 	 *
-	 * @param string $completedAt Record completion timestamp ('' when absent).
-	 * @param string $dateFrom ISO date lower bound (inclusive).
-	 * @param string $dateTo ISO date upper bound (inclusive, end of day).
+	 * @param string                   $completedAt Record completion timestamp ('' when absent).
+	 * @param array{0:string,1:string} $window      ISO date lower bound (inclusive) and upper bound (inclusive, end of day).
 	 *
 	 * @return bool True when the record belongs in this pack.
 	 *
 	 * @spec openspec/changes/archive/2026-06-15-external-training-recording/tasks.md
 	 */
-	private function completedAtInRange(string $completedAt, string $dateFrom, string $dateTo): bool {
+	private function completedAtInRange(string $completedAt, array $window): bool {
+		[$dateFrom, $dateTo] = $window;
 		if ($completedAt === '') {
 			return true;
 		}

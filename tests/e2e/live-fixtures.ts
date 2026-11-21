@@ -25,6 +25,7 @@ import { request as playwrightRequest } from '@playwright/test'
 import { execFileSync } from 'child_process'
 import { randomBytes } from 'crypto'
 import { baseUrl } from './base-url.ts'
+import { occPrefix } from './shared-instance.ts'
 
 /** The groups learniq declares; the only ones a temporary user may join. */
 const LEARNIQ_GROUPS = new Set([
@@ -410,14 +411,13 @@ export async function signInAs(browser: Browser, user: TempUser): Promise<Page> 
 /**
  * The occ command, split into the executable and its leading arguments.
  *
+ * Resolved by the suite's own binding to the instance under test, never the
+ * shared developer container.
+ *
  * @return [command, ...prefix]
  */
-function occCommand(): string[] {
-	return (
-		process.env.LEARNIQ_E2E_OCC ?? 'docker exec -u www-data nextcloud php occ'
-	)
-		.split(/\s+/)
-		.filter((part) => part !== '')
+export function occCommand(): string[] {
+	return occPrefix()
 }
 
 /**
@@ -502,7 +502,7 @@ export function listJobs(
  * The shared instance runs no cron daemon, so a queued job (a certificate
  * reissue run, for one) only runs when someone executes it. This runs each
  * matching job once through `occ background-job:execute`, on the command
- * prefix in `LEARNIQ_E2E_OCC` (default: the dev container). It only ever
+ * occ prefix of the instance under test (occPrefix). It only ever
  * executes jobs of the learniq class it is given.
  *
  * @param jobClass The job class, e.g. `OCA\\Learniq\\BackgroundJob\\CredentialReissueJob`.

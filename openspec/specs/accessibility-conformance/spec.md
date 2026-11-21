@@ -1,7 +1,7 @@
 # accessibility-conformance Specification
 
 ## Purpose
-TBD - created by archiving change accessibility-conformance-statement. Update Purpose after archive.
+Publish the school's accessibility statement in the Dutch government model, backed by evaluation evidence. Anyone signed in can report a barrier, and the statement comes up for review every year.
 ## Requirements
 ### Requirement: Persist accessibility-conformance domain objects in OpenRegister
 
