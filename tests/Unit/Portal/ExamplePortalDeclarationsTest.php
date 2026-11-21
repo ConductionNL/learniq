@@ -276,7 +276,7 @@ class ExamplePortalDeclarationsTest extends TestCase {
 			self::assertSame(['nlLinkList', 0], [$side[0]['widgetKey'], $side[0]['gridY']], $set . ': the side list starts at the top');
 			// Under the list only plain cards (site-callouts-steps-and-tables-follow-the-boards).
 			foreach (array_slice($side, 1) as $card) {
-				self::assertSame(['nlAlert', 'plain'], [$card['widgetKey'], $card['props']['kind'] ?? null], $card['id']);
+				self::assertSame(expected: ['nlAlert', 'plain'], actual: [$card['widgetKey'], $card['props']['kind'] ?? null], message: $card['id']);
 			}
 			foreach ($pages[$sideRoute]['body']['widgets'] as $widget) {
 				if ($widget['gridX'] < 8) {

@@ -45,7 +45,7 @@ class EsdoornveenPublicPagesTest extends TestCase {
 	 */
 	protected function setUp(): void {
 		$declaration = (new ExamplePortalDeclarations())->forSet(setId: 'mbo');
-		self::assertNotNull($declaration);
+		self::assertNotNull(actual: $declaration);
 		$this->declaration = $declaration;
 	}//end setUp()
 
@@ -58,7 +58,7 @@ class EsdoornveenPublicPagesTest extends TestCase {
 	 */
 	private function widgets(string $route): array {
 		$pages = array_column($this->declaration['pages'], null, 'route');
-		self::assertArrayHasKey($route, $pages);
+		self::assertArrayHasKey(key: $route, array: $pages);
 		return array_column($pages[$route]['body']['widgets'], null, 'id');
 	}//end widgets()
 
@@ -72,11 +72,11 @@ class EsdoornveenPublicPagesTest extends TestCase {
 	 */
 	public function testThePortalNamesPagesByTitleAndSearchesProgrammes(): void {
 		$portal = $this->declaration['portal'];
-		self::assertSame('page', $portal['breadcrumb']);
-		self::assertSame('/opleidingen', $portal['headerSearch']['route']);
+		self::assertSame(expected: 'page', actual: $portal['breadcrumb']);
+		self::assertSame(expected: '/opleidingen', actual: $portal['headerSearch']['route']);
 		self::assertStringStartsWith(
-			'U heeft eHerkenning nodig op niveau [NIVEAU].',
-			$portal['authentication']['modeLabels']['eherkenning']['hint']
+			prefix: 'U heeft eHerkenning nodig op niveau [NIVEAU].',
+			string: $portal['authentication']['modeLabels']['eherkenning']['hint']
 		);
 	}//end testThePortalNamesPagesByTitleAndSearchesProgrammes()
 
@@ -90,12 +90,12 @@ class EsdoornveenPublicPagesTest extends TestCase {
 	public function testTheProgrammeSearchFollowsBoardZoeken(): void {
 		$catalogue = $this->widgets(route: '/opleidingen')['ev-opleidingen-03-nlcatalogue']['props'];
 		self::assertSame(
-			['relevance', 'meta', true, 5, ['programme']],
-			[$catalogue['sort'], $catalogue['cardStyle'], $catalogue['labelHidden'], $catalogue['pageSize'], $catalogue['types']]
+			expected: ['relevance', 'meta', true, 5, ['programme']],
+			actual: [$catalogue['sort'], $catalogue['cardStyle'], $catalogue['labelHidden'], $catalogue['pageSize'], $catalogue['types']]
 		);
 		$home  = $this->widgets(route: '/');
 		$tasks = array_values(array_filter($home, static fn (array $w): bool => $w['widgetKey'] === 'nlQuickTasks'))[0];
-		self::assertSame('plain', $tasks['props']['iconStyle']);
+		self::assertSame(expected: 'plain', actual: $tasks['props']['iconStyle']);
 	}//end testTheProgrammeSearchFollowsBoardZoeken()
 
 	/**
@@ -109,13 +109,13 @@ class EsdoornveenPublicPagesTest extends TestCase {
 	 */
 	public function testTheProgrammeArticleFollowsBoardArtikel(): void {
 		$widgets = $this->widgets(route: '/opleidingen/mechatronica');
-		self::assertTrue($widgets['ev-mechatronica-02-nlparagraph']['props']['lead']);
-		self::assertSame('Wat leer je?', $widgets['ev-mechatronica-04a-nlheading']['props']['text']);
-		self::assertSame('Zo ziet je week eruit', $widgets['ev-mechatronica-05a-nlheading']['props']['text']);
-		self::assertSame('boxed', $widgets['ev-mechatronica-05-nltable']['props']['display']);
+		self::assertTrue(condition: $widgets['ev-mechatronica-02-nlparagraph']['props']['lead']);
+		self::assertSame(expected: 'Wat leer je?', actual: $widgets['ev-mechatronica-04a-nlheading']['props']['text']);
+		self::assertSame(expected: 'Zo ziet je week eruit', actual: $widgets['ev-mechatronica-05a-nlheading']['props']['text']);
+		self::assertSame(expected: 'boxed', actual: $widgets['ev-mechatronica-05-nltable']['props']['display']);
 		self::assertSame(
-			[[0, 4], [4, 4]],
-			[
+			expected: [[0, 4], [4, 4]],
+			actual: [
 				[$widgets['ev-mechatronica-06-markdown']['gridX'], $widgets['ev-mechatronica-06-markdown']['gridWidth']],
 				[$widgets['ev-mechatronica-07-markdown']['gridX'], $widgets['ev-mechatronica-07-markdown']['gridWidth']],
 			]
@@ -123,16 +123,19 @@ class EsdoornveenPublicPagesTest extends TestCase {
 
 		$side = array_values(array_filter($widgets, static fn (array $w): bool => $w['gridX'] === 8));
 		usort($side, static fn (array $a, array $b): int => $a['gridY'] <=> $b['gridY']);
-		self::assertSame(['nlAlert', 'nlDescriptionList', 'nlLinkList', 'markdown'], array_column($side, 'widgetKey'));
+		self::assertSame(expected: ['nlAlert', 'nlDescriptionList', 'nlLinkList', 'markdown'], actual: array_column($side, 'widgetKey'));
 		self::assertSame(
-			['plain', 'Aanmelden', 'Aanmelden voor Mechatronica'],
-			[$side[0]['props']['kind'], $side[0]['props']['heading'], $side[0]['props']['action']['label']]
+			expected: ['plain', 'Aanmelden', 'Aanmelden voor Mechatronica'],
+			actual: [$side[0]['props']['kind'], $side[0]['props']['heading'], $side[0]['props']['action']['label']]
 		);
-		self::assertSame(['Lesgeld', 'Boeken en gereedschap'], array_column($side[1]['props']['items'], 'term'));
-		self::assertSame(['tinted', 'Meeloopdag aanvragen'], [$side[2]['props']['display'], $side[2]['props']['links'][0]['label']]);
+		self::assertSame(expected: ['Lesgeld', 'Boeken en gereedschap'], actual: array_column($side[1]['props']['items'], 'term'));
+		self::assertSame(
+			expected: ['tinted', 'Meeloopdag aanvragen'],
+			actual: [$side[2]['props']['display'], $side[2]['props']['links'][0]['label']]
+		);
 		foreach ($widgets as $widget) {
 			if ($widget['gridX'] < 8) {
-				self::assertLessThanOrEqual(8, $widget['gridX'] + $widget['gridWidth'], $widget['id']);
+				self::assertLessThanOrEqual(expected: 8, actual: $widget['gridX'] + $widget['gridWidth'], message: $widget['id']);
 			}
 		}
 	}//end testTheProgrammeArticleFollowsBoardArtikel()
@@ -148,20 +151,27 @@ class EsdoornveenPublicPagesTest extends TestCase {
 	 */
 	public function testTheSickReportPageFollowsBoardContentpagina(): void {
 		$widgets = $this->widgets(route: '/voor-studenten/ziek-melden');
-		self::assertTrue($widgets['ev-ziek-02-nlparagraph']['props']['lead']);
+		self::assertTrue(condition: $widgets['ev-ziek-02-nlparagraph']['props']['lead']);
 		$alert = $widgets['ev-ziek-03-nlalert']['props'];
-		self::assertSame(['', 'Inloggen en ziek melden', '/mijn'], [($alert['heading'] ?? ''), $alert['action']['label'], $alert['action']['href']]);
-		self::assertSame('Zo werkt het', $widgets['ev-ziek-04a-nlheading']['props']['text']);
-		self::assertSame('numbered', $widgets['ev-ziek-04-nllist']['props']['display']);
-		self::assertTrue($widgets['ev-ziek-05-nltable']['props']['rowHeaders']);
-		self::assertFalse($widgets['ev-ziek-05-nltable']['props']['captionVisible']);
-		self::assertStringStartsWith('### Ben je jonger dan 18?', $widgets['ev-ziek-06-markdown']['props']['markdown']);
-		self::assertSame('tinted', $widgets['ev-ziek-07-nllinklist']['props']['display']);
 		self::assertSame(
-			[8, 'plain', 'Lukt inloggen niet?'],
-			[$widgets['ev-ziek-09-nlalert']['gridX'], $widgets['ev-ziek-09-nlalert']['props']['kind'], $widgets['ev-ziek-09-nlalert']['props']['heading']]
+			expected: ['', 'Inloggen en ziek melden', '/mijn'],
+			actual: [($alert['heading'] ?? ''), $alert['action']['label'], $alert['action']['href']]
 		);
-		self::assertArrayNotHasKey('ev-ziek-03-nlbuttonlink', $widgets, 'the button lives in the melding');
+		self::assertSame(expected: 'Zo werkt het', actual: $widgets['ev-ziek-04a-nlheading']['props']['text']);
+		self::assertSame(expected: 'numbered', actual: $widgets['ev-ziek-04-nllist']['props']['display']);
+		self::assertTrue(condition: $widgets['ev-ziek-05-nltable']['props']['rowHeaders']);
+		self::assertFalse(condition: $widgets['ev-ziek-05-nltable']['props']['captionVisible']);
+		self::assertStringStartsWith(prefix: '### Ben je jonger dan 18?', string: $widgets['ev-ziek-06-markdown']['props']['markdown']);
+		self::assertSame(expected: 'tinted', actual: $widgets['ev-ziek-07-nllinklist']['props']['display']);
+		self::assertSame(
+			expected: [8, 'plain', 'Lukt inloggen niet?'],
+			actual: [
+				$widgets['ev-ziek-09-nlalert']['gridX'],
+				$widgets['ev-ziek-09-nlalert']['props']['kind'],
+				$widgets['ev-ziek-09-nlalert']['props']['heading'],
+			]
+		);
+		self::assertArrayNotHasKey(key: 'ev-ziek-03-nlbuttonlink', array: $widgets, message: 'the button lives in the melding');
 	}//end testTheSickReportPageFollowsBoardContentpagina()
 
 	/**
@@ -173,6 +183,9 @@ class EsdoornveenPublicPagesTest extends TestCase {
 	 */
 	public function testTheNewsArticleRunsThroughItsSection(): void {
 		$article = $this->widgets(route: '/nieuws')['ev-nieuws-01-nlnewsarticle']['props'];
-		self::assertSame(['/zoeken', 'Nieuws', 'Nieuws'], [$article['sectionHref'], $article['sectionLabel'], $article['kindLabel']]);
+		self::assertSame(
+			expected: ['/zoeken', 'Nieuws', 'Nieuws'],
+			actual: [$article['sectionHref'], $article['sectionLabel'], $article['kindLabel']]
+		);
 	}//end testTheNewsArticleRunsThroughItsSection()
 }//end class
