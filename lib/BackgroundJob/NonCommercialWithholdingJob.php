@@ -40,6 +40,8 @@ class NonCommercialWithholdingJob extends ForwardedJob {
 	 * @param ActorForwarding          $forwarding  Clock, session, user manager and tenant context.
 	 * @param LoggerInterface          $logger      Logger; the base declares it protected.
 	 * @param NonCommercialWithholding $withholding Marks or clears the course's NC materials.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#scenario-non-commercial-material-is-flagged-in-a-paid-course
 	 */
 	public function __construct(
 		ActorForwarding $forwarding,

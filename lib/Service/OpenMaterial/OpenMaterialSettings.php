@@ -60,6 +60,8 @@ class OpenMaterialSettings {
 	 * Constructor.
 	 *
 	 * @param IAppConfig $appConfig The app configuration.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#requirement-sources-are-connections-an-administrator-switches
 	 */
 	public function __construct(
 		private readonly IAppConfig $appConfig,
@@ -121,6 +123,8 @@ class OpenMaterialSettings {
 	 * @param string $fallback The default.
 	 *
 	 * @return string The value.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#requirement-sources-are-connections-an-administrator-switches
 	 */
 	private function read(string $key, string $fallback): string {
 		if ($this->appConfig->hasKey(AppIdentity::APP_ID, $key) === false) {
@@ -136,6 +140,8 @@ class OpenMaterialSettings {
 	 * @param string $value The stored value.
 	 *
 	 * @return array<int, string> The entries.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#requirement-sources-are-connections-an-administrator-switches
 	 */
 	private function listOf(string $value): array {
 		return array_values(array_filter(array_map('trim', explode(',', $value)), static fn (string $entry): bool => $entry !== ''));

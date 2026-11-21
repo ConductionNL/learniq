@@ -71,6 +71,8 @@ class OpenMaterialSearch implements OpenMaterialSearchInterface {
 	 * @param SegmentService            $segments The school profile.
 	 * @param ConnectionReportService   $reports  Records the source's status.
 	 * @param MaterialImportTarget      $targets  Tells whether a course is commercial.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#requirement-the-search-panel-shows-results-with-facets-and-three-states
 	 */
 	public function __construct(
 		private readonly OpenMaterialSourceClient $client,
@@ -177,6 +179,8 @@ class OpenMaterialSearch implements OpenMaterialSearchInterface {
 	 * @param array<string, mixed> $request The search request.
 	 *
 	 * @return array<string, array<int, string>> The filters.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#requirement-the-search-panel-shows-results-with-facets-and-three-states
 	 */
 	private function filters(array $request): array {
 		$filters = [];
@@ -200,6 +204,8 @@ class OpenMaterialSearch implements OpenMaterialSearchInterface {
 	 * @param mixed $value The value.
 	 *
 	 * @return array<int, string> The list.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#requirement-the-search-panel-shows-results-with-facets-and-three-states
 	 */
 	private function listOf(mixed $value): array {
 		return array_values(array_filter(array_map('strval', (array)$value)));
@@ -213,6 +219,8 @@ class OpenMaterialSearch implements OpenMaterialSearchInterface {
 	 * @return array<string, mixed> The call's result.
 	 *
 	 * @throws IntegriqUnavailableException When the source does not answer.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#requirement-the-search-panel-shows-results-with-facets-and-three-states
 	 */
 	private function reported(callable $call): array {
 		try {

@@ -43,6 +43,8 @@ class MaterialImportTarget {
 	 *
 	 * @param CallerTenantResolver  $tenants    Finds rows in the caller's tenant only.
 	 * @param CommercialCourseCheck $commercial Tells whether the course is commercial.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#requirement-material-carries-its-source-and-attribution
 	 */
 	public function __construct(
 		private readonly CallerTenantResolver $tenants,
@@ -86,6 +88,8 @@ class MaterialImportTarget {
 	 * @return array<string, mixed> The serialised course with its id.
 	 *
 	 * @throws MaterialImportRefusedException When the course is missing or not the caller's.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#requirement-material-carries-its-source-and-attribution
 	 */
 	private function course(IUser $user, string $courseId): array {
 		$course       = $this->owned(user: $user, ref: ['id' => $courseId, 'schema' => 'course']);
@@ -103,6 +107,8 @@ class MaterialImportTarget {
 	 * @return array<string, mixed> The serialised row.
 	 *
 	 * @throws MaterialImportRefusedException When the row is missing or not the caller's.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#requirement-material-carries-its-source-and-attribution
 	 */
 	private function owned(IUser $user, array $ref): array {
 		$row = null;

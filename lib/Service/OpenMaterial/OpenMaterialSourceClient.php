@@ -74,6 +74,8 @@ class OpenMaterialSourceClient {
 	 *
 	 * @param IEventDispatcher $dispatcher Dispatches integriq's event.
 	 * @param IAppManager      $appManager Tells whether integriq is enabled.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#requirement-the-search-panel-shows-results-with-facets-and-three-states
 	 */
 	public function __construct(
 		private readonly IEventDispatcher $dispatcher,
@@ -139,6 +141,8 @@ class OpenMaterialSourceClient {
 	 * @return array<string, mixed>|null The answer, null when the source has nothing.
 	 *
 	 * @throws IntegriqUnavailableException When nobody handled it, or integriq refused.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#requirement-the-search-panel-shows-results-with-facets-and-three-states
 	 */
 	private function ask(array $request): ?array {
 		$event = $this->newEvent(request: array_merge(['source' => self::SOURCE], $request));
@@ -164,6 +168,8 @@ class OpenMaterialSourceClient {
 	 * @return Event The event.
 	 *
 	 * @throws IntegriqUnavailableException When integriq or the event class is absent.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#requirement-the-search-panel-shows-results-with-facets-and-three-states
 	 */
 	private function newEvent(array $request): Event {
 		if ($this->isAvailable() === false) {
@@ -191,6 +197,8 @@ class OpenMaterialSourceClient {
 	 * @return void
 	 *
 	 * @throws IntegriqUnavailableException When integriq refused or the source did not answer.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#requirement-the-search-panel-shows-results-with-facets-and-three-states
 	 */
 	private function throwRefusal(mixed $refusal): void {
 		if (is_array($refusal) === false) {
@@ -208,6 +216,8 @@ class OpenMaterialSourceClient {
 	 * @param string $getter The getter's name.
 	 *
 	 * @return mixed The value, or null when the getter does not exist.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#requirement-the-search-panel-shows-results-with-facets-and-three-states
 	 */
 	private function read(Event $event, string $getter): mixed {
 		return (new EventGetter())->value(event: $event, getter: $getter);
@@ -217,6 +227,8 @@ class OpenMaterialSourceClient {
 	 * Integriq's request event class, kept a plain string for static analysis.
 	 *
 	 * @return string The class name.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#requirement-the-search-panel-shows-results-with-facets-and-three-states
 	 */
 	private function eventClass(): string {
 		return self::REQUEST_EVENT;

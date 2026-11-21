@@ -40,6 +40,8 @@ class MaterialImportRefusedException extends RuntimeException {
 	 *
 	 * @param string $reasonCode The machine-readable reason, such as `no-derivatives`.
 	 * @param string $reason     The reason in words.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#requirement-licence-rules-are-enforced-on-the-server
 	 */
 	public function __construct(
 		private readonly string $reasonCode,
