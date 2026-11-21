@@ -32,7 +32,7 @@
 		{
 			"id": "PermissionRequestsMenu",
 			"label": "Permission slips",
-			"icon": "FileSignOutline",
+			"icon": "FileSign",
 			"route": "PermissionRequests",
 			"order": 75,
 			"visibleIf": {
@@ -210,7 +210,7 @@
 						"content": {
 							"columns": 2
 						},
-						"icon": "FileSignOutline"
+						"icon": "FileSign"
 					}
 				],
 				"layout": [
