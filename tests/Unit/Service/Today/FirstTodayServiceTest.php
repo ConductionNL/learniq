@@ -33,6 +33,8 @@ use RuntimeException;
  * @uses   \OCA\Learniq\Service\Today\AttendanceFacts
  * @uses   \OCA\Learniq\Service\Today\FollowUpFacts
  * @uses   \OCA\Learniq\Service\Today\TodayContext
+ * @uses   \OCA\Learniq\Service\Today\PlacementFacts
+ * @uses   \OCA\Learniq\Service\Today\ExamFacts
  */
 class FirstTodayServiceTest extends TestCase {
 
@@ -198,4 +200,66 @@ class FirstTodayServiceTest extends TestCase {
 
 		self::assertSame(expected: ['role' => 'care-coordinator', 'rule' => null, 'count' => 0], actual: $service->cardFor(user: $this->daan()));
 	}//end testCardForAnswersTheCard()
+
+	/**
+	 * In the BPV view a teacher reads the BPV-begeleider's rules: a student without a company first.
+	 *
+	 * @return void
+	 */
+	public function testTheBpvViewReadsTheCoachsRules(): void {
+		$service = $this->service(role: 'instructor', segment: 'mbo');
+		$this->reader->expects(self::once())->method('rows')
+			->with('bpv-placement', ['schoolCoachId' => 'daan', 'phase' => 'searching'])
+			->willReturn([['learnerRef' => 'daan-smits', 'schoolCoachId' => 'daan', 'phase' => 'searching', 'periodFrom' => '2026-09-01']]);
+
+		$card = $service->forUser(user: $this->daan(), view: 'bpv');
+
+		self::assertSame(expected: 'bpv-coach', actual: $card['role']);
+		self::assertSame(expected: 'placement-without-company', actual: $card['rule']);
+		self::assertSame(expected: 'daan-smits', actual: $card['learnerRef']);
+	}//end testTheBpvViewReadsTheCoachsRules()
+
+	/**
+	 * The exam committee reads results waiting when no objection is past half its term.
+	 *
+	 * @return void
+	 */
+	public function testTheExamCommitteeReadsResultsWaitingAfterObjections(): void {
+		$service = $this->service(role: 'compliance-officer', segment: 'mbo');
+		$this->reader->method('rows')->willReturnCallback(
+			static fn (string $schema): array => match ($schema) {
+				'exam-objection' => [],
+				'grade-entry' => [['examSittingId' => 's-1', 'lifecycle' => 'published', 'gradedAt' => '2026-09-14T12:00:00+02:00']],
+				default => [],
+			}
+		);
+
+		$card = $service->forUser(user: $this->daan());
+
+		self::assertSame(expected: 'exam-committee', actual: $card['role']);
+		self::assertSame(expected: 'results-waiting', actual: $card['rule']);
+		self::assertSame(expected: 1, actual: $card['sittings']);
+	}//end testTheExamCommitteeReadsResultsWaitingAfterObjections()
+
+	/**
+	 * The coach's hours and visits are read only when no student is without a company.
+	 *
+	 * @return void
+	 */
+	public function testTheCoachReadsVisitsAndHoursInOrder(): void {
+		$service = $this->service(role: 'instructor', segment: 'mbo');
+		$asked = [];
+		$this->reader->method('rows')->willReturnCallback(
+			static function (string $schema, array $filters=[]) use (&$asked): array {
+				$asked[] = $schema;
+				return [];
+			}
+		);
+
+		self::assertSame(
+			expected: ['role' => 'bpv-coach', 'rule' => null, 'count' => 0],
+			actual: $service->forUser(user: $this->daan(), view: 'bpv')
+		);
+		self::assertSame(expected: ['bpv-placement', 'bpv-visit', 'bpv-placement', 'bpv-hour-week'], actual: $asked);
+	}//end testTheCoachReadsVisitsAndHoursInOrder()
 }//end class

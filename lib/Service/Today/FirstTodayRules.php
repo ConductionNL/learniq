@@ -41,6 +41,8 @@ final class FirstTodayRules {
 	public const ROLE_MENTOR = 'mentor';
 	public const ROLE_CARE_COORDINATOR = 'care-coordinator';
 	public const ROLE_HEAD = 'head';
+	public const ROLE_BPV_COACH = 'bpv-coach';
+	public const ROLE_EXAM_COMMITTEE = 'exam-committee';
 
 	public const REGISTER_NOT_FILLED = 'register-not-filled';
 	public const BOOKINGS_TO_CONFIRM = 'bookings-to-confirm';
@@ -54,6 +56,11 @@ final class FirstTodayRules {
 	public const LEAVE_PAST_HALF = 'leave-past-half';
 	public const OVER_LIMIT_NOT_REPORTED = 'over-limit-not-reported';
 	public const REGISTERS_NOT_FILLED_AT_930 = 'registers-not-filled-at-930';
+	public const PLACEMENT_WITHOUT_COMPANY = 'placement-without-company';
+	public const VISIT_WITHOUT_DATE = 'visit-without-date';
+	public const HOURS_WAITING = 'hours-waiting';
+	public const OBJECTION_PAST_HALF = 'objection-past-half';
+	public const RESULTS_WAITING = 'results-waiting';
 
 	/**
 	 * The view a mentor switches Today to.
@@ -61,6 +68,20 @@ final class FirstTodayRules {
 	 * @var string
 	 */
 	public const VIEW_MENTOR = 'mentor';
+
+	/**
+	 * The view a BPV-begeleider switches Today to (bpv-coach-today-and-placement-board).
+	 *
+	 * @var string
+	 */
+	public const VIEW_BPV = 'bpv';
+
+	/**
+	 * The school kinds that have an exam committee.
+	 *
+	 * @var list<string>
+	 */
+	private const EXAM_SCHOOLS = ['vo', 'mbo', 'he'];
 
 	/**
 	 * Each role's rules, first wins (design.md, "The First today card is one ordered list of rules per role").
@@ -91,6 +112,15 @@ final class FirstTodayRules {
 			self::OVER_LIMIT_NOT_REPORTED,
 			self::REGISTERS_NOT_FILLED_AT_930,
 		],
+		self::ROLE_BPV_COACH => [
+			self::PLACEMENT_WITHOUT_COMPANY,
+			self::VISIT_WITHOUT_DATE,
+			self::HOURS_WAITING,
+		],
+		self::ROLE_EXAM_COMMITTEE => [
+			self::OBJECTION_PAST_HALF,
+			self::RESULTS_WAITING,
+		],
 	];
 
 	/**
@@ -117,6 +147,10 @@ final class FirstTodayRules {
 			return self::ROLE_SUBJECT_TEACHER;
 		}
 
+		if ($primaryRole === 'compliance-officer') {
+			return $this->examCommittee(segment: $segment);
+		}
+
 		return match ($primaryRole) {
 			'coordinator' => self::ROLE_CARE_COORDINATOR,
 			'administration-manager', 'team-lead', 'admin' => self::ROLE_HEAD,
@@ -125,10 +159,32 @@ final class FirstTodayRules {
 	}//end roleFor()
 
 	/**
-	 * The role a view gives: a teacher in the Mentor view reads the mentor's rules.
+	 * The exam committee's role, for a school kind that has one.
 	 *
-	 * Mentor is a view, not a role (design.md): the server resolves no
-	 * mentor role, and a role that is no teacher's keeps its own rules.
+	 * In a school the compliance officers' group is the exam committee
+	 * (DashboardRoleService::EXAM_BOARD_GROUP); a company or training
+	 * provider has none, so its compliance officer gets no card.
+	 *
+	 * @param string $segment The school kind.
+	 *
+	 * @return string|null
+	 *
+	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#T3
+	 */
+	private function examCommittee(string $segment): ?string {
+		if (in_array($segment, self::EXAM_SCHOOLS, true) === true) {
+			return self::ROLE_EXAM_COMMITTEE;
+		}
+
+		return null;
+	}//end examCommittee()
+
+	/**
+	 * The role a view gives: a teacher in the Mentor view reads the mentor's
+	 * rules, in the BPV view the BPV-begeleider's.
+	 *
+	 * Mentor and BPV-begeleider are views, not roles (design.md): the server
+	 * resolves neither, and a role that is no teacher's keeps its own rules.
 	 *
 	 * @param string|null $role The role roleFor() gave.
 	 * @param string      $view The view asked for ('' or `mentor`).
@@ -136,14 +192,18 @@ final class FirstTodayRules {
 	 * @return string|null
 	 *
 	 * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-a-mentor-switches-today-to-her-mentor-class
+	 * @spec openspec/changes/bpv-coach-today-and-placement-board/tasks.md#T5
 	 */
 	public function inView(?string $role, string $view): ?string {
-		$teacher = in_array($role, [self::ROLE_GROUP_TEACHER, self::ROLE_SUBJECT_TEACHER], true);
-		if ($teacher === true && $view === self::VIEW_MENTOR) {
-			return self::ROLE_MENTOR;
+		if (in_array($role, [self::ROLE_GROUP_TEACHER, self::ROLE_SUBJECT_TEACHER], true) === false) {
+			return $role;
 		}
 
-		return $role;
+		return match ($view) {
+			self::VIEW_MENTOR => self::ROLE_MENTOR,
+			self::VIEW_BPV => self::ROLE_BPV_COACH,
+			default => $role,
+		};
 	}//end inView()
 
 	/**

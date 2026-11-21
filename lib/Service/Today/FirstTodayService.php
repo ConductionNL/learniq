@@ -69,6 +69,20 @@ class FirstTodayService {
 	private readonly FollowUpFacts $followUp;
 
 	/**
+	 * What the BPV-begeleider's rules count.
+	 *
+	 * @var PlacementFacts
+	 */
+	private readonly PlacementFacts $placements;
+
+	/**
+	 * What the exam committee's rules count.
+	 *
+	 * @var ExamFacts
+	 */
+	private readonly ExamFacts $exams;
+
+	/**
 	 * Today's groups already read in this request, by caller, kind and day.
 	 *
 	 * @var array<string, list<array<string, mixed>>>
@@ -95,6 +109,8 @@ class FirstTodayService {
 		$this->registers  = new RegisterFacts();
 		$this->attendance = new AttendanceFacts();
 		$this->followUp   = new FollowUpFacts();
+		$this->placements = new PlacementFacts();
+		$this->exams      = new ExamFacts();
 	}//end __construct()
 
 	/**
@@ -224,9 +240,51 @@ class FirstTodayService {
 				requests: $this->reader->rows(schema: 'leave-request', filters: ['lifecycle' => 'submitted']),
 				now: $context->now
 			),
-			default => null,
+			default => $this->programmeFacts(rule: $rule, context: $context),
 		};
 	}//end followUpFacts()
+
+	/**
+	 * One rule of the BPV-begeleider or the exam committee, for the caller.
+	 *
+	 * @param string       $rule    A rule of FirstTodayRules.
+	 * @param TodayContext $context The caller and now.
+	 *
+	 * @return array<string, mixed>|null
+	 *
+	 * @spec openspec/changes/bpv-coach-today-and-placement-board/tasks.md#T5
+	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#T3
+	 */
+	private function programmeFacts(string $rule, TodayContext $context): ?array {
+		$uid = $context->uid();
+
+		return match ($rule) {
+			FirstTodayRules::PLACEMENT_WITHOUT_COMPANY => $this->placements->placementWithoutCompany(
+				placements: $this->reader->rows(schema: 'bpv-placement', filters: ['schoolCoachId' => $uid, 'phase' => 'searching']),
+				context: $context
+			),
+			FirstTodayRules::VISIT_WITHOUT_DATE => $this->placements->visitWithoutDate(
+				visits: $this->reader->rows(schema: 'bpv-visit', filters: ['schoolCoachId' => $uid, 'lifecycle' => 'unplanned']),
+				uid: $uid
+			),
+			FirstTodayRules::HOURS_WAITING => $this->placements->hoursWaiting(
+				bpv: [
+					'placements' => $this->reader->rows(schema: 'bpv-placement', filters: ['schoolCoachId' => $uid]),
+					'weeks' => $this->reader->rows(schema: 'bpv-hour-week', filters: ['lifecycle' => 'submitted']),
+				],
+				context: $context
+			),
+			FirstTodayRules::OBJECTION_PAST_HALF => $this->exams->objectionPastHalf(
+				objections: $this->reader->rows(schema: 'exam-objection'),
+				now: $context->now
+			),
+			FirstTodayRules::RESULTS_WAITING => $this->exams->resultsWaiting(
+				results: $this->reader->rows(schema: 'grade-entry', filters: ['lifecycle' => 'published']),
+				now: $context->now
+			),
+			default => null,
+		};
+	}//end programmeFacts()
 
 	/**
 	 * Today's groups of the caller, read once per request and kind.
