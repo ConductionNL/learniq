@@ -2701,6 +2701,41 @@
 						}
 					},
 					{
+						"id": "flag-exchange-job",
+						"type": "facts",
+						"title": "Report to the compulsory education office",
+						"_note": "attendance-flag-report-actions 1.4 (D4): the exchange job this flag is reported through, read from integriq by dataExchangeJobId, with its exchangeStatus, so the reader sees what Mark as reported waits on. No job linked shows the empty text. @spec openspec/changes/attendance-flag-report-actions/specs/attendance/spec.md#requirement-marking-a-flag-as-reported-waits-for-the-exchange",
+						"content": {
+							"source": {
+								"register": "integriq",
+								"schema": "job",
+								"id": "@object.dataExchangeJobId"
+							},
+							"fields": [
+								{
+									"path": "exchangeStatus",
+									"label": "Exchange status"
+								},
+								{
+									"path": "requestedAt",
+									"label": "Requested",
+									"format": "longdate"
+								},
+								{
+									"path": "finishedAt",
+									"label": "Finished",
+									"format": "longdate",
+									"emptyValue": "not yet"
+								},
+								{
+									"path": "exchangeError",
+									"label": "Error"
+								}
+							],
+							"emptyText": "No report sent to the compulsory education office yet"
+						}
+					},
+					{
 						"id": "flag-actions",
 						"type": "record-list",
 						"title": "What the school already did",
@@ -2785,6 +2820,7 @@
 									"widgetIds": [
 										"flag-figures",
 										"flag-response",
+										"flag-exchange-job",
 										"flag-actions"
 									]
 								},

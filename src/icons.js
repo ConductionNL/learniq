@@ -22,6 +22,7 @@ import AccountClockOutline from 'vue-material-design-icons/AccountClockOutline.v
 import AccountGroup from 'vue-material-design-icons/AccountGroup.vue'
 import AccountGroupOutline from 'vue-material-design-icons/AccountGroupOutline.vue'
 import AccountHeartOutline from 'vue-material-design-icons/AccountHeartOutline.vue'
+import AccountMultiple from 'vue-material-design-icons/AccountMultiple.vue'
 import AccountMultipleOutline from 'vue-material-design-icons/AccountMultipleOutline.vue'
 import AccountOutline from 'vue-material-design-icons/AccountOutline.vue'
 import AccountPlusOutline from 'vue-material-design-icons/AccountPlusOutline.vue'
@@ -34,6 +35,7 @@ import AlertDecagramOutline from 'vue-material-design-icons/AlertDecagramOutline
 import AlertOctagonOutline from 'vue-material-design-icons/AlertOctagonOutline.vue'
 import AlertOutline from 'vue-material-design-icons/AlertOutline.vue'
 import ApplicationOutline from 'vue-material-design-icons/ApplicationOutline.vue'
+import ArrowRightCircleOutline from 'vue-material-design-icons/ArrowRightCircleOutline.vue'
 import Bandage from 'vue-material-design-icons/Bandage.vue'
 import BellOutline from 'vue-material-design-icons/BellOutline.vue'
 import BookAlertOutline from 'vue-material-design-icons/BookAlertOutline.vue'
@@ -192,6 +194,7 @@ export default {
 	AccountGroup,
 	AccountGroupOutline,
 	AccountHeartOutline,
+	AccountMultiple,
 	AccountMultipleOutline,
 	AccountOutline,
 	AccountPlusOutline,
@@ -204,6 +207,7 @@ export default {
 	AlertOctagonOutline,
 	AlertOutline,
 	ApplicationOutline,
+	ArrowRightCircleOutline,
 	Bandage,
 	BellOutline,
 	BookAlertOutline,
