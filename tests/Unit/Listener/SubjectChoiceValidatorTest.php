@@ -294,6 +294,26 @@ class SubjectChoiceValidatorTest extends TestCase {
 	}//end testBelowMinElectivesMovesToNeedsRevision()
 
 	/**
+	 * Against a plan that asks for exactly two electives, a choice with one
+	 * moves to needs-revision with an error naming the minimum.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/school-structure/spec.md#requirement-a-learner-picks-and-submits-their-electives-from-the-picker
+	 */
+	public function testTooFewElectivesNameTheMinimum(): void {
+		$plan    = ['id' => 'plan-1', 'electiveRules' => ['minElectives' => 2, 'maxElectives' => 2]];
+		$choice  = ['id' => 'choice-sem', 'curriculumPlanId' => 'plan-1', 'selectedElectiveCourseIds' => ['course-a'], 'tenant_id' => 'tenant-a'];
+		$handler = $this->makeHandler(plan: $plan);
+
+		$handler->handle(event: $this->makeEvent(choiceData: $choice));
+
+		$saved = $this->savedObjects[0]['object'];
+		self::assertSame(expected: 'needs-revision', actual: $saved['lifecycle']);
+		self::assertContains(needle: 'At least 2 elective(s) required (selected 1).', haystack: $saved['validationErrors']);
+	}//end testTooFewElectivesNameTheMinimum()
+
+	/**
 	 * A plan with no electiveRules set validates unconditionally.
 	 *
 	 * @return void
