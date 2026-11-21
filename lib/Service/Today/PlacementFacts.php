@@ -55,17 +55,13 @@ final class PlacementFacts {
 	 * @spec openspec/changes/bpv-coach-today-and-placement-board/tasks.md#T5
 	 */
 	public function placementWithoutCompany(array $placements, TodayContext $context): array {
-		$today = $context->today();
-		$searching = array_values(
-			array_filter(
-				$placements,
-				static fn (array $placement): bool => ($placement['schoolCoachId'] ?? null) === $context->uid()
-					&& ($placement['phase'] ?? '') === 'searching'
-					&& substr((string)($placement['periodFrom'] ?? ''), 0, 10) <= $today
-					&& ($placement['periodFrom'] ?? '') !== ''
-					&& (($placement['periodTo'] ?? '') === '' || substr((string)$placement['periodTo'], 0, 10) >= $today)
-			)
-		);
+		$searching = [];
+		foreach ($placements as $placement) {
+			$own = ($placement['schoolCoachId'] ?? null) === $context->uid() && ($placement['phase'] ?? '') === 'searching';
+			if ($own === true && self::runsOn(placement: $placement, today: $context->today()) === true) {
+				$searching[] = $placement;
+			}
+		}
 
 		return [
 			'count' => count($searching),
@@ -110,19 +106,16 @@ final class PlacementFacts {
 	 * @spec openspec/changes/bpv-coach-today-and-placement-board/tasks.md#T5
 	 */
 	public function hoursWaiting(array $bpv, TodayContext $context): array {
-		$mine = [];
-		foreach (($bpv['placements'] ?? []) as $placement) {
-			if (($placement['schoolCoachId'] ?? null) === $context->uid()) {
-				$mine[] = self::idOf(row: $placement);
-			}
-		}
-
+		$mine = array_map(
+			static fn (array $placement): string => self::idOf(row: $placement),
+			array_filter(($bpv['placements'] ?? []), static fn (array $placement): bool => ($placement['schoolCoachId'] ?? null) === $context->uid())
+		);
 		$since = $context->now->modify('-' . self::HOURS_WAIT_DAYS . ' days');
 		$waiting = [];
 		foreach (($bpv['weeks'] ?? []) as $week) {
-			$submitted = self::moment(value: ($week['submittedAt'] ?? null));
-			$ownWeek = in_array((string)($week['bpvPlacementId'] ?? ''), $mine, true);
-			if ($ownWeek === true && ($week['lifecycle'] ?? '') === 'submitted' && $submitted !== null && $submitted <= $since) {
+			$submitted = (self::moment(value: ($week['submittedAt'] ?? null)) ?? $context->now);
+			$ownWeek = in_array((string)($week['bpvPlacementId'] ?? ''), $mine, true) && ($week['lifecycle'] ?? '') === 'submitted';
+			if ($ownWeek === true && $submitted <= $since) {
 				$waiting[] = $week;
 			}
 		}
@@ -135,4 +128,19 @@ final class PlacementFacts {
 			'isoWeek' => (string)($waiting[0]['isoWeek'] ?? ''),
 		];
 	}//end hoursWaiting()
+
+	/**
+	 * Whether a placement's BPV period has started and not ended on a day.
+	 *
+	 * @param array<string, mixed> $placement The placement.
+	 * @param string               $today     The day, `Y-m-d`.
+	 *
+	 * @return bool
+	 */
+	private static function runsOn(array $placement, string $today): bool {
+		$from = substr((string)($placement['periodFrom'] ?? ''), 0, 10);
+		$until = substr((string)($placement['periodTo'] ?? ''), 0, 10);
+
+		return $from !== '' && $from <= $today && ($until === '' || $until >= $today);
+	}//end runsOn()
 }//end class

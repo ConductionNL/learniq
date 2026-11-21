@@ -71,9 +71,7 @@ final class ExamFacts {
 				continue;
 			}
 
-			$from = self::moment(value: ($objection['submittedAt'] ?? null));
-			$until = self::moment(value: ($objection['decideBy'] ?? null));
-			if ($from !== null && $until !== null && ($now->getTimestamp() * 2) >= ($from->getTimestamp() + $until->getTimestamp())) {
+			if (self::pastHalf(objection: $objection, now: $now) === true) {
 				$due[] = $objection;
 			}
 		}
@@ -99,19 +97,13 @@ final class ExamFacts {
 	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#T3
 	 */
 	public function resultsWaiting(array $results, DateTimeImmutable $now): array {
-		$cutoff = $now->setTime(0, 0);
-		for ($left = self::ESTABLISH_WAIT_WORKING_DAYS; $left > 0;) {
-			$cutoff = $cutoff->modify('-1 day');
-			$left -= (int)($cutoff->format('N') <= 5);
-		}
-
+		$cutoff = self::workingDaysBefore(day: $now, days: self::ESTABLISH_WAIT_WORKING_DAYS);
 		$sittings = [];
 		$count = 0;
 		foreach ($results as $result) {
-			$graded = self::moment(value: ($result['gradedAt'] ?? null));
 			$sitting = (string)($result['examSittingId'] ?? '');
-			$open = ($result['lifecycle'] ?? '') === 'published' && trim((string)($result['establishedAt'] ?? '')) === '';
-			if ($sitting !== '' && $open === true && $graded !== null && $graded < $cutoff) {
+			$graded = (self::moment(value: ($result['gradedAt'] ?? null)) ?? $now);
+			if ($sitting !== '' && self::unestablished(result: $result) === true && $graded < $cutoff) {
 				$count++;
 				$sittings[$sitting] = true;
 			}
@@ -119,4 +111,51 @@ final class ExamFacts {
 
 		return ['count' => $count, 'sittings' => count($sittings)];
 	}//end resultsWaiting()
+
+	/**
+	 * Whether an objection is past midway between its `submittedAt` and its `decideBy`.
+	 *
+	 * @param array<string, mixed> $objection The objection.
+	 * @param DateTimeImmutable    $now       Now.
+	 *
+	 * @return bool
+	 */
+	private static function pastHalf(array $objection, DateTimeImmutable $now): bool {
+		$from = self::moment(value: ($objection['submittedAt'] ?? null));
+		$until = self::moment(value: ($objection['decideBy'] ?? null));
+		if ($from === null || $until === null) {
+			return false;
+		}
+
+		return ($now->getTimestamp() * 2) >= ($from->getTimestamp() + $until->getTimestamp());
+	}//end pastHalf()
+
+	/**
+	 * Whether a result is published and not established yet.
+	 *
+	 * @param array<string, mixed> $result The grade entry.
+	 *
+	 * @return bool
+	 */
+	private static function unestablished(array $result): bool {
+		return ($result['lifecycle'] ?? '') === 'published' && trim((string)($result['establishedAt'] ?? '')) === '';
+	}//end unestablished()
+
+	/**
+	 * Midnight a number of working days before a day.
+	 *
+	 * @param DateTimeImmutable $day  The day.
+	 * @param int               $days The working days.
+	 *
+	 * @return DateTimeImmutable
+	 */
+	private static function workingDaysBefore(DateTimeImmutable $day, int $days): DateTimeImmutable {
+		$cutoff = $day->setTime(0, 0);
+		while ($days > 0) {
+			$cutoff = $cutoff->modify('-1 day');
+			$days -= (int)($cutoff->format('N') <= 5);
+		}
+
+		return $cutoff;
+	}//end workingDaysBefore()
 }//end class

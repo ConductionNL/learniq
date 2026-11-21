@@ -29,6 +29,7 @@ use RuntimeException;
 /**
  * @covers \OCA\Learniq\Service\Today\FirstTodayService
  * @uses   \OCA\Learniq\Service\Today\FirstTodayRules
+ * @uses   \OCA\Learniq\Service\Today\FirstTodayProbe
  * @uses   \OCA\Learniq\Service\Today\RegisterFacts
  * @uses   \OCA\Learniq\Service\Today\AttendanceFacts
  * @uses   \OCA\Learniq\Service\Today\FollowUpFacts
