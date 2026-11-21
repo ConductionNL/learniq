@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: EUPL-1.2
 // Copyright (C) 2026 Conduction B.V.
 //
-// The structure profile (openspec/changes/simple-structure-profile): two menus
+// The structure profile (openspec/changes/archive/2026-11-21-simple-structure-profile): two menus
 // built from one manifest, the simple one by default.
 //
 // 🔴 BOTH MENUS ARE BUILT, NOT READ. Every check below builds the manifest
@@ -22,7 +22,7 @@
 // Run by `npm run check:structure-profile`, which `check:specs` (a CI
 // frontend check) calls.
 //
-// @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md
+// @spec openspec/specs/navigation/spec.md
 
 import assert from 'node:assert/strict'
 import { readdirSync, readFileSync } from 'node:fs'

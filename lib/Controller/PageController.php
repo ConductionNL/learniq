@@ -156,7 +156,7 @@ class PageController extends Controller {
 	 *
 	 * @return string `simple` or `full`.
 	 *
-	 * @spec openspec/changes/simple-structure-profile/specs/navigation/spec.md#requirement-req-ssp-004-the-structure-is-an-app-setting-and-simple-is-the-default
+	 * @spec openspec/specs/navigation/spec.md#requirement-req-ssp-004-the-structure-is-an-app-setting-and-simple-is-the-default
 	 */
 	private function resolveMenuStructure(): string {
 		try {

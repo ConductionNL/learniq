@@ -21,7 +21,7 @@
 // Run by `npm run check:attention`, which `check:specs` (a CI frontend check)
 // calls.
 //
-// @spec openspec/changes/simple-today-dashboard/specs/dashboard/spec.md
+// @spec openspec/specs/dashboard/spec.md
 
 import assert from 'node:assert/strict'
 import { readdirSync, readFileSync } from 'node:fs'
