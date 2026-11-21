@@ -8,6 +8,7 @@
     "theme": "esdoornveen",
     "themeFallback": "example-college",
     "headerVariant": "double",
+    "breadcrumb": "page",
     "locales": [
       "nl",
       "en"
@@ -31,7 +32,7 @@
           "title": "Ik ben praktijkopleider",
           "text": "Voor praktijkopleiders. U keurt uren goed, vult beoordelingen in en tekent de praktijkovereenkomst.",
           "button": "Inloggen met eHerkenning",
-          "hint": "De beheerder van eHerkenning in uw bedrijf kan u machtigen."
+          "hint": "U heeft eHerkenning nodig op niveau [NIVEAU]. De beheerder van eHerkenning in uw bedrijf kan u machtigen."
         }
       },
       "signInPage": {
@@ -44,7 +45,7 @@
     },
     "headerSearch": {
       "label": "Zoeken op de website",
-      "route": "/zoeken",
+      "route": "/opleidingen",
       "placeholder": "Zoeken"
     },
     "footer": {
@@ -296,7 +297,8 @@
                   "href": "/contact",
                   "icon": "chat"
                 }
-              ]
+              ],
+              "iconStyle": "plain"
             }
           },
           {
@@ -516,7 +518,7 @@
             "gridX": 8,
             "gridY": 0,
             "gridWidth": 4,
-            "gridHeight": 16,
+            "gridHeight": 4,
             "props": {
               "heading": "Meer over aanwezigheid",
               "links": [
@@ -537,7 +539,20 @@
                   "href": "/vakanties"
                 }
               ],
-              "display": "accent"
+              "display": "tinted"
+            }
+          },
+          {
+            "id": "ev-ziek-09-nlalert",
+            "widgetKey": "nlAlert",
+            "gridX": 8,
+            "gridY": 4,
+            "gridWidth": 4,
+            "gridHeight": 2,
+            "props": {
+              "kind": "plain",
+              "heading": "Lukt inloggen niet?",
+              "text": "Bel de Servicedesk op [telefoonnummer]. Zij melden je ziek en helpen je met je account."
             }
           },
           {
@@ -548,31 +563,47 @@
             "gridWidth": 8,
             "gridHeight": 1,
             "props": {
-              "text": "Ben je ziek? Meld het voor 08.30 uur in Mijn Esdoornveen. Je docenten zien het meteen in hun presentielijst. Het kan vanaf je telefoon en kost een halve minuut."
+              "text": "Ben je ziek? Meld het voor 08.30 uur in Mijn Esdoornveen. Je docenten zien het meteen in hun presentielijst.",
+              "lead": true
             }
           },
           {
-            "id": "ev-ziek-03-nlbuttonlink",
-            "widgetKey": "nlButtonLink",
+            "id": "ev-ziek-03-nlalert",
+            "widgetKey": "nlAlert",
             "gridX": 0,
             "gridY": 2,
-            "gridWidth": 4,
+            "gridWidth": 8,
             "gridHeight": 1,
             "props": {
-              "label": "Inloggen en ziek melden",
-              "href": "/mijn",
-              "kind": "primary"
+              "kind": "info",
+              "text": "Het kan vanaf je telefoon en kost een halve minuut.",
+              "action": {
+                "label": "Inloggen en ziek melden",
+                "href": "/mijn"
+              }
+            }
+          },
+          {
+            "id": "ev-ziek-04a-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 3,
+            "gridWidth": 8,
+            "gridHeight": 1,
+            "props": {
+              "text": "Zo werkt het",
+              "level": 2
             }
           },
           {
             "id": "ev-ziek-04-nllist",
             "widgetKey": "nlList",
             "gridX": 0,
-            "gridY": 3,
+            "gridY": 4,
             "gridWidth": 8,
             "gridHeight": 3,
             "props": {
-              "display": "steps",
+              "display": "numbered",
               "ordered": true,
               "items": [
                 "Meld je ziek op de eerste dag, voor 08.30 uur. Je hoeft dat niet elke dag opnieuw te doen.",
@@ -585,7 +616,7 @@
             "id": "ev-ziek-05a-nlheading",
             "widgetKey": "nlHeading",
             "gridX": 0,
-            "gridY": 6,
+            "gridY": 7,
             "gridWidth": 8,
             "gridHeight": 1,
             "props": {
@@ -597,7 +628,7 @@
             "id": "ev-ziek-05-nltable",
             "widgetKey": "nlTable",
             "gridX": 0,
-            "gridY": 7,
+            "gridY": 8,
             "gridWidth": 8,
             "gridHeight": 4,
             "props": {
@@ -625,33 +656,19 @@
                 ]
               ],
               "display": "boxed",
-              "captionVisible": false
+              "captionVisible": false,
+              "rowHeaders": true
             }
           },
           {
-            "id": "ev-ziek-06-nlalert",
-            "widgetKey": "nlAlert",
+            "id": "ev-ziek-06-markdown",
+            "widgetKey": "markdown",
             "gridX": 0,
-            "gridY": 11,
-            "gridWidth": 8,
-            "gridHeight": 3,
-            "props": {
-              "kind": "info",
-              "heading": "Ben je jonger dan 18?",
-              "text": "Dan krijgt je ouder of verzorger een bericht van je ziekmelding. Mis je in vier weken 16 uur of meer zonder geldige reden, dan melden wij dat bij de leerplichtambtenaar van de gemeente Zuiddrecht."
-            }
-          },
-          {
-            "id": "ev-ziek-08-nlalert",
-            "widgetKey": "nlAlert",
-            "gridX": 0,
-            "gridY": 14,
+            "gridY": 12,
             "gridWidth": 8,
             "gridHeight": 2,
             "props": {
-              "kind": "info",
-              "heading": "Lukt inloggen niet?",
-              "text": "Bel de Servicedesk op [telefoonnummer]. Zij melden je ziek en helpen je met je account."
+              "markdown": "### Ben je jonger dan 18?\n\nDan krijgt je ouder of verzorger een bericht van je ziekmelding. Mis je in vier weken 16 uur of meer zonder geldige reden, dan melden wij dat bij de leerplichtambtenaar van de gemeente Zuiddrecht."
             }
           }
         ]
@@ -684,7 +701,7 @@
             "gridWidth": 12,
             "gridHeight": 1,
             "props": {
-              "text": "Zoek op een beroep of een vak. Kies hieronder een opleiding om te lezen wat je leert, hoe lang het duurt en hoe je je aanmeldt."
+              "text": "Zoek op een beroep of een vak. Met de filters kies je richting, niveau en leerweg."
             }
           },
           {
@@ -698,10 +715,13 @@
               "types": [
                 "programme"
               ],
-              "sort": "title",
+              "sort": "relevance",
               "countLabel": "{count} opleidingen",
               "searchLabel": "Zoek een opleiding",
-              "placeholder": "Bijvoorbeeld techniek"
+              "placeholder": "Bijvoorbeeld techniek",
+              "cardStyle": "meta",
+              "labelHidden": true,
+              "pageSize": 5
             }
           }
         ]
@@ -719,7 +739,7 @@
             "widgetKey": "nlHeading",
             "gridX": 0,
             "gridY": 0,
-            "gridWidth": 12,
+            "gridWidth": 8,
             "gridHeight": 1,
             "props": {
               "text": "Mechatronica",
@@ -731,10 +751,11 @@
             "widgetKey": "nlParagraph",
             "gridX": 0,
             "gridY": 1,
-            "gridWidth": 12,
+            "gridWidth": 8,
             "gridHeight": 1,
             "props": {
-              "text": "Je bouwt, test en onderhoudt machines waarin mechanica, elektronica en besturing samenkomen. Vanaf leerjaar 2 doe je dat drie dagen per week bij een leerbedrijf."
+              "text": "Je bouwt, test en onderhoudt machines waarin mechanica, elektronica en besturing samenkomen. Vanaf leerjaar 2 doe je dat drie dagen per week bij een leerbedrijf.",
+              "lead": true
             }
           },
           {
@@ -742,8 +763,8 @@
             "widgetKey": "nlDescriptionList",
             "gridX": 0,
             "gridY": 2,
-            "gridWidth": 6,
-            "gridHeight": 4,
+            "gridWidth": 8,
+            "gridHeight": 2,
             "props": {
               "items": [
                 {
@@ -774,12 +795,24 @@
             }
           },
           {
+            "id": "ev-mechatronica-04a-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 4,
+            "gridWidth": 8,
+            "gridHeight": 1,
+            "props": {
+              "text": "Wat leer je?",
+              "level": 2
+            }
+          },
+          {
             "id": "ev-mechatronica-04-nllist",
             "widgetKey": "nlList",
-            "gridX": 6,
-            "gridY": 2,
-            "gridWidth": 6,
-            "gridHeight": 4,
+            "gridX": 0,
+            "gridY": 5,
+            "gridWidth": 8,
+            "gridHeight": 2,
             "props": {
               "items": [
                 "Onderdelen maken en machines opbouwen uit een tekening.",
@@ -790,14 +823,26 @@
             }
           },
           {
+            "id": "ev-mechatronica-05a-nlheading",
+            "widgetKey": "nlHeading",
+            "gridX": 0,
+            "gridY": 7,
+            "gridWidth": 8,
+            "gridHeight": 1,
+            "props": {
+              "text": "Zo ziet je week eruit",
+              "level": 2
+            }
+          },
+          {
             "id": "ev-mechatronica-05-nltable",
             "widgetKey": "nlTable",
             "gridX": 0,
-            "gridY": 6,
-            "gridWidth": 12,
+            "gridY": 8,
+            "gridWidth": 8,
             "gridHeight": 3,
             "props": {
-              "caption": "Zo ziet je week eruit. Dit is de BOL. In de BBL werk je vier dagen en ga je één dag naar school.",
+              "caption": "Dit is de BOL. In de BBL werk je vier dagen en ga je één dag naar school.",
               "columns": [
                 "Leerjaar",
                 "Op school",
@@ -819,18 +864,98 @@
                   "1 dag per week",
                   "4 dagen per week, met je proeve van bekwaamheid"
                 ]
-              ]
+              ],
+              "display": "boxed",
+              "rowHeaders": true
             }
           },
           {
             "id": "ev-mechatronica-06-markdown",
             "widgetKey": "markdown",
             "gridX": 0,
-            "gridY": 9,
-            "gridWidth": 12,
-            "gridHeight": 5,
+            "gridY": 11,
+            "gridWidth": 4,
+            "gridHeight": 3,
             "props": {
-              "markdown": "## Toelating\n\nJe hebt een vmbo-diploma van de kaderberoepsgerichte, gemengde of theoretische leerweg. Of een mbo-diploma op niveau 3.\n\n## Na je diploma\n\nJe gaat aan het werk als mechatronicus of servicetechnicus. Of je studeert door op het hbo, bijvoorbeeld Mechatronica of Werktuigbouwkunde.\n\n## Aanmelden\n\nDe opleiding start in augustus 2027. Meld je aan voor 1 april 2027, dan heb je recht op een plek.\n\n## Eerst komen kijken?\n\nOpen dag: zaterdag 7 november 2026, 10.00 tot 14.00 uur. Of loop een dag mee met een tweedejaars.\n\nVraag over deze opleiding? Ruud Hermans, docent mechatronica, helpt je verder: [e-mailadres]"
+              "markdown": "## Toelating\n\nJe hebt een vmbo-diploma van de kaderberoepsgerichte, gemengde of theoretische leerweg. Of een mbo-diploma op niveau 3."
+            }
+          },
+          {
+            "id": "ev-mechatronica-07-markdown",
+            "widgetKey": "markdown",
+            "gridX": 4,
+            "gridY": 11,
+            "gridWidth": 4,
+            "gridHeight": 3,
+            "props": {
+              "markdown": "## Na je diploma\n\nJe gaat aan het werk als mechatronicus of servicetechnicus. Of je studeert door op het hbo, bijvoorbeeld Mechatronica of Werktuigbouwkunde."
+            }
+          },
+          {
+            "id": "ev-mechatronica-08-nlalert",
+            "widgetKey": "nlAlert",
+            "gridX": 8,
+            "gridY": 0,
+            "gridWidth": 4,
+            "gridHeight": 3,
+            "props": {
+              "kind": "plain",
+              "heading": "Aanmelden",
+              "text": "De opleiding start in augustus 2027. Meld je aan voor 1 april 2027, dan heb je recht op een plek.",
+              "action": {
+                "label": "Aanmelden voor Mechatronica",
+                "href": "/aanmelden"
+              }
+            }
+          },
+          {
+            "id": "ev-mechatronica-09-nldescriptionlist",
+            "widgetKey": "nlDescriptionList",
+            "gridX": 8,
+            "gridY": 3,
+            "gridWidth": 4,
+            "gridHeight": 1,
+            "props": {
+              "items": [
+                {
+                  "term": "Lesgeld",
+                  "description": "[LESGELD]"
+                },
+                {
+                  "term": "Boeken en gereedschap",
+                  "description": "[BEDRAG]"
+                }
+              ]
+            }
+          },
+          {
+            "id": "ev-mechatronica-10-nllinklist",
+            "widgetKey": "nlLinkList",
+            "gridX": 8,
+            "gridY": 4,
+            "gridWidth": 4,
+            "gridHeight": 3,
+            "props": {
+              "heading": "Eerst komen kijken?",
+              "display": "tinted",
+              "intro": "Open dag: zaterdag 7 november 2026, 10.00 tot 14.00 uur. Of loop een dag mee met een tweedejaars.",
+              "links": [
+                {
+                  "label": "Meeloopdag aanvragen",
+                  "href": "/aanmelden"
+                }
+              ]
+            }
+          },
+          {
+            "id": "ev-mechatronica-11-markdown",
+            "widgetKey": "markdown",
+            "gridX": 8,
+            "gridY": 7,
+            "gridWidth": 4,
+            "gridHeight": 2,
+            "props": {
+              "markdown": "### Vraag over deze opleiding?\n\nRuud Hermans, docent mechatronica, helpt je verder: [[e-mailadres]](mailto:info@example.org)"
             }
           }
         ]
@@ -851,7 +976,10 @@
             "gridWidth": 8,
             "gridHeight": 8,
             "props": {
-              "backLabel": "Terug naar het nieuws"
+              "backLabel": "Terug naar het nieuws",
+              "sectionHref": "/zoeken",
+              "sectionLabel": "Nieuws",
+              "kindLabel": "Nieuws"
             }
           },
           {
