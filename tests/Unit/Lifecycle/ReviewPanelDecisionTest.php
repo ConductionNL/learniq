@@ -46,14 +46,27 @@ class ReviewPanelDecisionTest extends TestCase {
 	}//end advice()
 
 	/**
+	 * The rule for the three-member panel.
+	 *
+	 * @return ReviewPanelDecision
+	 */
+	private function panel(): ReviewPanelDecision {
+		return new ReviewPanelDecision(panelMemberIds: self::PANEL);
+	}//end panel()
+
+	/**
 	 * Three members advise place: the panel placed the applicant.
 	 *
 	 * @return void
 	 */
 	public function testThreeMembersAdvisingPlaceLetThePlacementThrough(): void {
-		$rows = [$this->advice('anna', 'place'), $this->advice('bram', 'place'), $this->advice('cem', 'place')];
+		$rows = [
+			$this->advice(memberId: 'anna', advice: 'place'),
+			$this->advice(memberId: 'bram', advice: 'place'),
+			$this->advice(memberId: 'cem', advice: 'place'),
+		];
 
-		self::assertNull((new ReviewPanelDecision())->refusal(self::PANEL, $rows, 'placed'));
+		self::assertNull(actual: $this->panel()->refusal(adviceRows: $rows, target: 'placed'));
 	}//end testThreeMembersAdvisingPlaceLetThePlacementThrough()
 
 	/**
@@ -62,9 +75,9 @@ class ReviewPanelDecisionTest extends TestCase {
 	 * @return void
 	 */
 	public function testOneMemberCannotDecideAlone(): void {
-		$refusal = (new ReviewPanelDecision())->refusal(self::PANEL, [$this->advice('anna', 'place')], 'placed');
+		$refusal = $this->panel()->refusal(adviceRows: [$this->advice(memberId: 'anna', advice: 'place')], target: 'placed');
 
-		self::assertSame('The review panel has not decided yet: 1 of 3 members gave their advice.', $refusal);
+		self::assertSame(expected: 'The review panel has not decided yet: 1 of 3 members gave their advice.', actual: $refusal);
 	}//end testOneMemberCannotDecideAlone()
 
 	/**
@@ -73,17 +86,20 @@ class ReviewPanelDecisionTest extends TestCase {
 	 * @return void
 	 */
 	public function testTheMajorityOfThePanelDecides(): void {
-		$rows = [$this->advice('anna', 'place'), $this->advice('bram', 'place'), $this->advice('cem', 'waitlist')];
-		$rule = new ReviewPanelDecision();
+		$rows = [
+			$this->advice(memberId: 'anna', advice: 'place'),
+			$this->advice(memberId: 'bram', advice: 'place'),
+			$this->advice(memberId: 'cem', advice: 'waitlist'),
+		];
 
-		self::assertNull($rule->refusal(self::PANEL, $rows, 'placed'));
+		self::assertNull(actual: $this->panel()->refusal(adviceRows: $rows, target: 'placed'));
 		self::assertSame(
-			'The review panel did not advise this decision: 1 of 3 members advised it.',
-			$rule->refusal(self::PANEL, $rows, 'waitlisted')
+			expected: 'The review panel did not advise this decision: 1 of 3 members advised it.',
+			actual: $this->panel()->refusal(adviceRows: $rows, target: 'waitlisted')
 		);
 		self::assertSame(
-			'The review panel did not advise this decision: 0 of 3 members advised it.',
-			$rule->refusal(self::PANEL, $rows, 'rejected')
+			expected: 'The review panel did not advise this decision: 0 of 3 members advised it.',
+			actual: $this->panel()->refusal(adviceRows: $rows, target: 'rejected')
 		);
 	}//end testTheMajorityOfThePanelDecides()
 
@@ -93,11 +109,11 @@ class ReviewPanelDecisionTest extends TestCase {
 	 * @return void
 	 */
 	public function testATieIsNoDecision(): void {
-		$panel = ['anna', 'bram'];
-		$rows = [$this->advice('anna', 'place'), $this->advice('bram', 'reject')];
+		$panel = new ReviewPanelDecision(panelMemberIds: ['anna', 'bram']);
+		$rows = [$this->advice(memberId: 'anna', advice: 'place'), $this->advice(memberId: 'bram', advice: 'reject')];
 
-		self::assertNotNull((new ReviewPanelDecision())->refusal($panel, $rows, 'placed'));
-		self::assertNotNull((new ReviewPanelDecision())->refusal($panel, $rows, 'rejected'));
+		self::assertNotNull(actual: $panel->refusal(adviceRows: $rows, target: 'placed'));
+		self::assertNotNull(actual: $panel->refusal(adviceRows: $rows, target: 'rejected'));
 	}//end testATieIsNoDecision()
 
 	/**
@@ -107,15 +123,15 @@ class ReviewPanelDecisionTest extends TestCase {
 	 */
 	public function testAdviceFromOutsideThePanelIsNotCounted(): void {
 		$rows = [
-			$this->advice('anna', 'place'),
-			$this->advice('bram', 'place'),
-			$this->advice('dirk', 'place'),
-			$this->advice('cem', 'maybe'),
+			$this->advice(memberId: 'anna', advice: 'place'),
+			$this->advice(memberId: 'bram', advice: 'place'),
+			$this->advice(memberId: 'dirk', advice: 'place'),
+			$this->advice(memberId: 'cem', advice: 'maybe'),
 		];
 
 		self::assertSame(
-			'The review panel has not decided yet: 2 of 3 members gave their advice.',
-			(new ReviewPanelDecision())->refusal(self::PANEL, $rows, 'placed')
+			expected: 'The review panel has not decided yet: 2 of 3 members gave their advice.',
+			actual: $this->panel()->refusal(adviceRows: $rows, target: 'placed')
 		);
 	}//end testAdviceFromOutsideThePanelIsNotCounted()
 
@@ -125,11 +141,9 @@ class ReviewPanelDecisionTest extends TestCase {
 	 * @return void
 	 */
 	public function testWithoutAPanelThereIsNoRule(): void {
-		$rule = new ReviewPanelDecision();
-
-		self::assertNull($rule->refusal([], [], 'placed'));
-		self::assertNull($rule->refusal(null, [], 'placed'));
-		self::assertNull($rule->refusal(self::PANEL, [], 'converted'));
+		self::assertNull(actual: (new ReviewPanelDecision(panelMemberIds: []))->refusal(adviceRows: [], target: 'placed'));
+		self::assertNull(actual: (new ReviewPanelDecision(panelMemberIds: null))->refusal(adviceRows: [], target: 'placed'));
+		self::assertNull(actual: $this->panel()->refusal(adviceRows: [], target: 'converted'));
 	}//end testWithoutAPanelThereIsNoRule()
 
 	/**
@@ -138,7 +152,7 @@ class ReviewPanelDecisionTest extends TestCase {
 	 * @return void
 	 */
 	public function testMembersAreReadCleanly(): void {
-		self::assertSame(['anna', 'bram'], (new ReviewPanelDecision())->members(['anna', '', 'anna', 7, 'bram']));
-		self::assertSame([], (new ReviewPanelDecision())->members('anna'));
+		self::assertSame(expected: ['anna', 'bram'], actual: (new ReviewPanelDecision(panelMemberIds: ['anna', '', 'anna', 7, 'bram']))->members());
+		self::assertSame(expected: [], actual: (new ReviewPanelDecision(panelMemberIds: 'anna'))->members());
 	}//end testMembersAreReadCleanly()
 }//end class

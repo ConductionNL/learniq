@@ -36,7 +36,8 @@
  * - Review panel (any kind, place / waitlist / reject): when the round names
  *   panelMemberIds, the decision waits until every member has recorded their
  *   AdmissionAdvice and more than half advised that outcome
- *   (ReviewPanelDecision); the refusal says how far the panel is.
+ *   (ReviewPanelGate, ReviewPanelDecision); the refusal says how far the
+ *   panel is.
  *
  * Legitimate PHP per ADR-031 "Lifecycle guards" — every branch is a
  * cross-object read (the referenced AdmissionsRound, or a live count of
@@ -63,7 +64,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
-use OCA\Learniq\Service\SchemaRows;
+use OCA\Learniq\Service\AdmissionPanelReads;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
@@ -88,14 +89,6 @@ class AdmissionsDecisionGuard implements LifecycleGuardInterface {
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const ADMISSIONS_ROUND_SCHEMA = 'admissions-round';
 	private const APPLICATION_SCHEMA = 'admission';
-	private const ADVICE_SCHEMA = 'admission-advice';
-
-	/**
-	 * The decision transitions a review panel decides (not promote).
-	 *
-	 * @var string[]
-	 */
-	private const PANEL_DECISIONS = ['place', 'waitlist', 'reject'];
 
 	/**
 	 * The shared low->high schooladvies/doorstroomtoets ordinal (design.md
@@ -152,54 +145,14 @@ class AdmissionsDecisionGuard implements LifecycleGuardInterface {
 			return GuardResult::deny(self::DENIAL);
 		}
 
-		$panelRefusal = $this->panelRefusal(object: $object, action: $action);
+		$gate = new ReviewPanelGate(reads: new AdmissionPanelReads(objectService: $this->objectService, logger: $this->logger));
+		$panelRefusal = $gate->refusal(object: $object, action: $action);
 		if ($panelRefusal !== null) {
 			return GuardResult::deny($panelRefusal);
 		}
 
 		return GuardResult::allow();
 	}//end check()
-
-	/**
-	 * Review panel branch: a round that names a panel lets an application be
-	 * placed, waitlisted or rejected only once the panel reached that decision
-	 * ({@see ReviewPanelDecision}). The waiting list's promote is not a panel
-	 * decision: the panel already decided "waiting list", and a freed seat
-	 * moves the application on.
-	 *
-	 * @param array<string,mixed> $object The application at its target state.
-	 * @param string              $action The transition action.
-	 *
-	 * @return string|null The refusal in words, or null when the panel allows it.
-	 *
-	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/enrolment/spec.md#requirement-a-review-panel-decides-an-application-together
-	 */
-	private function panelRefusal(array $object, string $action): ?string {
-		if (in_array($action, self::PANEL_DECISIONS, true) === false) {
-			return null;
-		}
-
-		$round = $this->fetchRound(roundId: (string)($object['admissionsRoundId'] ?? ''));
-		$rule = new ReviewPanelDecision();
-		if ($rule->members(panelMemberIds: ($round['panelMemberIds'] ?? [])) === []) {
-			return null;
-		}
-
-		$applicationId = (string)($object['id'] ?? ($object['uuid'] ?? ''));
-		$adviceRows = [];
-		if ($applicationId !== '') {
-			$adviceRows = (new SchemaRows(objectService: $this->objectService, limit: 500))->serialised(
-				schema: self::ADVICE_SCHEMA,
-				filters: ['applicationId' => $applicationId]
-			);
-		}
-
-		return $rule->refusal(
-			panelMemberIds: ($round['panelMemberIds'] ?? []),
-			adviceRows: $adviceRows,
-			target: (string)($object['lifecycle'] ?? '')
-		);
-	}//end panelRefusal()
 
 	/**
 	 * Assert the pre-conditions for the target transition.

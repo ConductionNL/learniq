@@ -53,47 +53,59 @@ final class ReviewPanelDecision {
 	/**
 	 * The panel's member ids, without blanks or repeats.
 	 *
+	 * @var array<int,string>
+	 */
+	private readonly array $members;
+
+	/**
+	 * Constructor.
+	 *
 	 * @param mixed $panelMemberIds The round's panelMemberIds.
+	 *
+	 * @return void
+	 */
+	public function __construct(mixed $panelMemberIds) {
+		$members = [];
+		if (is_array($panelMemberIds) === true) {
+			foreach ($panelMemberIds as $memberId) {
+				if (is_string($memberId) === true && $memberId !== '' && in_array($memberId, $members, true) === false) {
+					$members[] = $memberId;
+				}
+			}
+		}
+
+		$this->members = $members;
+	}//end __construct()
+
+	/**
+	 * The panel's member ids; empty when the round names no panel.
 	 *
 	 * @return array<int,string>
 	 *
 	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/enrolment/spec.md#requirement-a-review-panel-decides-an-application-together
 	 */
-	public function members(mixed $panelMemberIds): array {
-		if (is_array($panelMemberIds) === false) {
-			return [];
-		}
-
-		$members = [];
-		foreach ($panelMemberIds as $memberId) {
-			if (is_string($memberId) === true && $memberId !== '' && in_array($memberId, $members, true) === false) {
-				$members[] = $memberId;
-			}
-		}
-
-		return $members;
+	public function members(): array {
+		return $this->members;
 	}//end members()
 
 	/**
 	 * Why the decision may not be recorded yet, or null when the panel reached it.
 	 *
-	 * @param mixed                          $panelMemberIds The round's panelMemberIds.
-	 * @param array<int,array<string,mixed>> $adviceRows     The application's advice rows.
-	 * @param string                         $target         The decision state: placed, waitlisted or rejected.
+	 * @param array<int,array<string,mixed>> $adviceRows The application's advice rows.
+	 * @param string                         $target     The decision state: placed, waitlisted or rejected.
 	 *
 	 * @return string|null The refusal in words, or null.
 	 *
 	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/enrolment/spec.md#requirement-a-review-panel-decides-an-application-together
 	 */
-	public function refusal(mixed $panelMemberIds, array $adviceRows, string $target): ?string {
-		$members = $this->members(panelMemberIds: $panelMemberIds);
+	public function refusal(array $adviceRows, string $target): ?string {
 		$wanted = (self::ADVICE_FOR[$target] ?? null);
-		if ($members === [] || $wanted === null) {
+		if ($this->members === [] || $wanted === null) {
 			return null;
 		}
 
-		$advice = $this->adviceByMember(members: $members, adviceRows: $adviceRows);
-		$total = count($members);
+		$advice = $this->adviceByMember(adviceRows: $adviceRows);
+		$total = count($this->members);
 
 		if (count($advice) < $total) {
 			return sprintf(
@@ -118,17 +130,16 @@ final class ReviewPanelDecision {
 	/**
 	 * Each panel member's advice, one per member; advice from anyone else is not counted.
 	 *
-	 * @param array<int,string>              $members    The panel.
 	 * @param array<int,array<string,mixed>> $adviceRows The advice rows.
 	 *
 	 * @return array<string,string> Advice per member id.
 	 */
-	private function adviceByMember(array $members, array $adviceRows): array {
+	private function adviceByMember(array $adviceRows): array {
 		$advice = [];
 		foreach ($adviceRows as $row) {
 			$memberId = (string)($row['memberId'] ?? '');
 			$value = (string)($row['advice'] ?? '');
-			if (in_array($memberId, $members, true) === false || in_array($value, self::ADVICE_FOR, true) === false) {
+			if (in_array($memberId, $this->members, true) === false || in_array($value, self::ADVICE_FOR, true) === false) {
 				continue;
 			}
 

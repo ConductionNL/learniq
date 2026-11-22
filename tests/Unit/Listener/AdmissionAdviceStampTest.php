@@ -24,7 +24,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Listener;
 
 use OCA\Learniq\Listener\AdmissionAdviceStamp;
-use OCA\Learniq\Listener\Registrar\IntegrityListenerRegistrar;
+use OCA\Learniq\Listener\Registrar\SchedulingListenerRegistrar;
+use OCA\Learniq\Service\AdmissionPanelReads;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
@@ -36,6 +37,7 @@ use OCP\IUser;
 use OCP\IUserSession;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use RuntimeException;
 
 /**
  * Only the round's panel members advise, once each, before the decision; the server names the member.
@@ -65,6 +67,46 @@ class AdmissionAdviceStampTest extends TestCase {
 	private array $stored = [];
 
 	/**
+	 * Whether every read fails, as a database outage would.
+	 *
+	 * @var boolean
+	 */
+	private bool $readsFail = false;
+
+	/**
+	 * The reads over a mocked ObjectService answering $objects and $stored.
+	 *
+	 * @return AdmissionPanelReads
+	 */
+	private function reads(): AdmissionPanelReads {
+		$objectService = $this->createMock(originalClassName: ObjectService::class);
+		$objectService->method('find')->willReturnCallback(
+			callback: function (int|string $id, ?ObjectFindOptions $options = null): mixed {
+				if ($this->readsFail === true) {
+					throw new RuntimeException(message: 'database gone');
+				}
+
+				$data = ($this->objects[(string)$options?->schema][(string)$id] ?? null);
+				if ($data === null) {
+					return null;
+				}
+
+				return OrEntityFactory::make(data: $data, schema: (string)$options?->schema);
+			}
+		);
+		$objectService->method('findAll')->willReturnCallback(
+			callback: function (array $config): array {
+				$applicationId = ($config['filters']['applicationId'] ?? '');
+				$rows = array_filter($this->stored, static fn (array $row): bool => $row['applicationId'] === $applicationId);
+
+				return array_map(static fn (array $row) => OrEntityFactory::make(data: $row, schema: 'admission-advice'), array_values($rows));
+			}
+		);
+
+		return new AdmissionPanelReads(objectService: $objectService, logger: new NullLogger());
+	}//end reads()
+
+	/**
 	 * Build the listener for a caller.
 	 *
 	 * @param string|null $uid  The signed-in user, or null for a system write.
@@ -73,46 +115,28 @@ class AdmissionAdviceStampTest extends TestCase {
 	 * @return AdmissionAdviceStamp
 	 */
 	private function stamp(?string $uid, string $slug = 'admission-advice'): AdmissionAdviceStamp {
-		$resolver = $this->createMock(ListenerSchemaResolver::class);
-		$resolver->method('guardSchemaSlug')->willReturn($slug);
+		$resolver = $this->createMock(originalClassName: ListenerSchemaResolver::class);
+		$resolver->method('guardSchemaSlug')->willReturn(value: $slug);
 
-		$session = $this->createMock(IUserSession::class);
+		$session = $this->createMock(originalClassName: IUserSession::class);
 		$user = null;
 		if ($uid !== null) {
-			$user = $this->createMock(IUser::class);
-			$user->method('getUID')->willReturn($uid);
-			$user->method('getDisplayName')->willReturn(ucfirst($uid) . ' de Vries');
+			$user = $this->createMock(originalClassName: IUser::class);
+			$user->method('getUID')->willReturn(value: $uid);
+			$displayName = ucfirst($uid) . ' de Vries';
+			if ($uid === 'cem') {
+				$displayName = '';
+			}
+
+			$user->method('getDisplayName')->willReturn(value: $displayName);
 		}
 
-		$session->method('getUser')->willReturn($user);
-
-		$objectService = $this->createMock(ObjectService::class);
-		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?ObjectFindOptions $options = null): mixed {
-				$data = ($this->objects[(string)$options?->schema][(string)$id] ?? null);
-				if ($data === null) {
-					return null;
-				}
-
-				return OrEntityFactory::make($data, (string)$options?->schema);
-			}
-		);
-		$objectService->method('findAll')->willReturnCallback(
-			function (array $config): array {
-				$filters = $config['filters'];
-				$rows = array_filter(
-					$this->stored,
-					static fn (array $row): bool => $row['applicationId'] === ($filters['applicationId'] ?? '') && $row['memberId'] === ($filters['memberId'] ?? '')
-				);
-
-				return array_map(static fn (array $row) => OrEntityFactory::make($row, 'admission-advice'), array_values($rows));
-			}
-		);
+		$session->method('getUser')->willReturn(value: $user);
 
 		return new AdmissionAdviceStamp(
 			schemaResolver: $resolver,
 			userSession: $session,
-			objectService: $objectService,
+			reads: $this->reads(),
 			logger: new NullLogger(),
 		);
 	}//end stamp()
@@ -125,7 +149,7 @@ class AdmissionAdviceStampTest extends TestCase {
 	 * @return ObjectCreatingEvent
 	 */
 	private function create(array $advice): ObjectCreatingEvent {
-		return new ObjectCreatingEvent(OrEntityFactory::make($advice, 'admission-advice'));
+		return new ObjectCreatingEvent(object: OrEntityFactory::make(data: $advice, schema: 'admission-advice'));
 	}//end create()
 
 	/**
@@ -137,7 +161,10 @@ class AdmissionAdviceStampTest extends TestCase {
 	 * @return ObjectUpdatingEvent
 	 */
 	private function update(array $old, array $new): ObjectUpdatingEvent {
-		return new ObjectUpdatingEvent(OrEntityFactory::make($new, 'admission-advice'), OrEntityFactory::make($old, 'admission-advice'));
+		return new ObjectUpdatingEvent(
+			newObject: OrEntityFactory::make(data: $new, schema: 'admission-advice'),
+			oldObject: OrEntityFactory::make(data: $old, schema: 'admission-advice')
+		);
 	}//end update()
 
 	/**
@@ -146,16 +173,30 @@ class AdmissionAdviceStampTest extends TestCase {
 	 * @return void
 	 */
 	public function testAPanelMemberAdvisesInHerOwnName(): void {
-		$event = $this->create(['id' => 'adv-1', 'applicationId' => 'app-1', 'advice' => 'place', 'memberId' => 'bram', 'memberName' => 'Someone']);
+		$event = $this->create(advice: ['id' => 'adv-1', 'applicationId' => 'app-1', 'advice' => 'place', 'memberId' => 'bram', 'memberName' => 'Someone']);
 
-		$this->stamp(uid: 'anna')->handle($event);
+		$this->stamp(uid: 'anna')->handle(event: $event);
 
-		self::assertFalse($event->isPropagationStopped());
+		self::assertFalse(condition: $event->isPropagationStopped());
 		$stored = $event->getObject()->getObject();
-		self::assertSame('anna', $stored['memberId']);
-		self::assertSame('Anna de Vries', $stored['memberName']);
-		self::assertSame('tenant-a', $stored['tenant_id']);
+		self::assertSame(expected: 'anna', actual: $stored['memberId']);
+		self::assertSame(expected: 'Anna de Vries', actual: $stored['memberName']);
+		self::assertSame(expected: 'tenant-a', actual: $stored['tenant_id']);
 	}//end testAPanelMemberAdvisesInHerOwnName()
+
+	/**
+	 * A member without a display name is named by her user id.
+	 *
+	 * @return void
+	 */
+	public function testAMemberWithoutADisplayNameIsNamedByHerId(): void {
+		$event = $this->create(advice: ['id' => 'adv-1', 'applicationId' => 'app-1', 'advice' => 'place', 'tenant_id' => 'tenant-b']);
+
+		$this->stamp(uid: 'cem')->handle(event: $event);
+
+		self::assertSame(expected: 'cem', actual: $event->getObject()->getObject()['memberName']);
+		self::assertSame(expected: 'tenant-b', actual: $event->getObject()->getObject()['tenant_id']);
+	}//end testAMemberWithoutADisplayNameIsNamedByHerId()
 
 	/**
 	 * Someone not on the round's panel gives no advice.
@@ -163,12 +204,12 @@ class AdmissionAdviceStampTest extends TestCase {
 	 * @return void
 	 */
 	public function testSomeoneOffThePanelIsRefused(): void {
-		$event = $this->create(['id' => 'adv-1', 'applicationId' => 'app-1', 'advice' => 'place']);
+		$event = $this->create(advice: ['id' => 'adv-1', 'applicationId' => 'app-1', 'advice' => 'place']);
 
-		$this->stamp(uid: 'dirk')->handle($event);
+		$this->stamp(uid: 'dirk')->handle(event: $event);
 
-		self::assertTrue($event->isPropagationStopped());
-		self::assertSame('admission-advice-not-on-panel', $event->getErrors()['reason']);
+		self::assertTrue(condition: $event->isPropagationStopped());
+		self::assertSame(expected: 'admission-advice-not-on-panel', actual: $event->getErrors()['reason']);
 	}//end testSomeoneOffThePanelIsRefused()
 
 	/**
@@ -177,15 +218,15 @@ class AdmissionAdviceStampTest extends TestCase {
 	 * @return void
 	 */
 	public function testADecidedApplicationTakesNoAdvice(): void {
-		$create = $this->create(['id' => 'adv-1', 'applicationId' => 'app-2', 'advice' => 'reject']);
-		$this->stamp(uid: 'anna')->handle($create);
-		self::assertSame('admission-advice-not-awaiting-decision', $create->getErrors()['reason']);
+		$create = $this->create(advice: ['id' => 'adv-1', 'applicationId' => 'app-2', 'advice' => 'reject']);
+		$this->stamp(uid: 'anna')->handle(event: $create);
+		self::assertSame(expected: 'admission-advice-not-awaiting-decision', actual: $create->getErrors()['reason']);
 
 		$old = ['id' => 'adv-2', 'applicationId' => 'app-2', 'advice' => 'place', 'memberId' => 'anna'];
-		$change = $this->update($old, array_merge($old, ['advice' => 'reject']));
-		$this->stamp(uid: 'anna')->handle($change);
-		self::assertTrue($change->isPropagationStopped());
-		self::assertSame('admission-advice-not-awaiting-decision', $change->getErrors()['reason']);
+		$change = $this->update(old: $old, new: array_merge($old, ['advice' => 'reject']));
+		$this->stamp(uid: 'anna')->handle(event: $change);
+		self::assertTrue(condition: $change->isPropagationStopped());
+		self::assertSame(expected: 'admission-advice-not-awaiting-decision', actual: $change->getErrors()['reason']);
 	}//end testADecidedApplicationTakesNoAdvice()
 
 	/**
@@ -194,12 +235,15 @@ class AdmissionAdviceStampTest extends TestCase {
 	 * @return void
 	 */
 	public function testAMemberAdvisesOnce(): void {
-		$this->stored = [['id' => 'adv-1', 'applicationId' => 'app-1', 'memberId' => 'anna', 'advice' => 'place']];
-		$event = $this->create(['id' => 'adv-9', 'applicationId' => 'app-1', 'advice' => 'reject']);
+		$this->stored = [
+			['id' => 'adv-0', 'applicationId' => 'app-1', 'memberId' => 'bram', 'advice' => 'place'],
+			['id' => 'adv-1', 'applicationId' => 'app-1', 'memberId' => 'anna', 'advice' => 'place'],
+		];
+		$event = $this->create(advice: ['id' => 'adv-9', 'applicationId' => 'app-1', 'advice' => 'reject']);
 
-		$this->stamp(uid: 'anna')->handle($event);
+		$this->stamp(uid: 'anna')->handle(event: $event);
 
-		self::assertSame('admission-advice-already-given', $event->getErrors()['reason']);
+		self::assertSame(expected: 'admission-advice-already-given', actual: $event->getErrors()['reason']);
 	}//end testAMemberAdvisesOnce()
 
 	/**
@@ -208,33 +252,46 @@ class AdmissionAdviceStampTest extends TestCase {
 	 * @return void
 	 */
 	public function testOnlyTheMemberChangesHerAdvice(): void {
-		$old = ['id' => 'adv-1', 'applicationId' => 'app-1', 'advice' => 'place', 'memberId' => 'anna', 'memberName' => 'Anna de Vries', 'tenant_id' => 'tenant-a'];
+		$old = [
+			'id' => 'adv-1',
+			'applicationId' => 'app-1',
+			'advice' => 'place',
+			'memberId' => 'anna',
+			'memberName' => 'Anna de Vries',
+			'tenant_id' => 'tenant-a',
+		];
+		$this->stored = [$old];
 
-		$own = $this->update($old, array_merge($old, ['advice' => 'waitlist']));
-		$this->stamp(uid: 'anna')->handle($own);
-		self::assertFalse($own->isPropagationStopped());
-		self::assertSame('waitlist', $own->getNewObject()->getObject()['advice']);
+		$own = $this->update(old: $old, new: array_merge($old, ['advice' => 'waitlist']));
+		$this->stamp(uid: 'anna')->handle(event: $own);
+		self::assertFalse(condition: $own->isPropagationStopped());
+		self::assertSame(expected: 'waitlist', actual: $own->getNewObject()->getObject()['advice']);
 
-		$other = $this->update($old, array_merge($old, ['advice' => 'reject']));
-		$this->stamp(uid: 'bram')->handle($other);
-		self::assertSame('admission-advice-not-yours', $other->getErrors()['reason']);
+		$other = $this->update(old: $old, new: array_merge($old, ['advice' => 'reject']));
+		$this->stamp(uid: 'bram')->handle(event: $other);
+		self::assertSame(expected: 'admission-advice-not-yours', actual: $other->getErrors()['reason']);
 
-		$moved = $this->update($old, array_merge($old, ['applicationId' => 'app-3']));
-		$this->stamp(uid: 'anna')->handle($moved);
-		self::assertSame('admission-advice-other-application', $moved->getErrors()['reason']);
+		$moved = $this->update(old: $old, new: array_merge($old, ['applicationId' => 'app-3']));
+		$this->stamp(uid: 'anna')->handle(event: $moved);
+		self::assertSame(expected: 'admission-advice-other-application', actual: $moved->getErrors()['reason']);
 	}//end testOnlyTheMemberChangesHerAdvice()
 
 	/**
-	 * Advice that names no existing application is refused.
+	 * Advice that names no existing application, or none, or one that cannot be read, is refused.
 	 *
 	 * @return void
 	 */
 	public function testAdviceOnAnUnknownApplicationIsRefused(): void {
-		$event = $this->create(['id' => 'adv-1', 'applicationId' => 'nope', 'advice' => 'place']);
+		foreach (['nope', ''] as $applicationId) {
+			$event = $this->create(advice: ['id' => 'adv-1', 'applicationId' => $applicationId, 'advice' => 'place']);
+			$this->stamp(uid: 'anna')->handle(event: $event);
+			self::assertSame(expected: 'admission-advice-unknown-application', actual: $event->getErrors()['reason']);
+		}
 
-		$this->stamp(uid: 'anna')->handle($event);
-
-		self::assertSame('admission-advice-unknown-application', $event->getErrors()['reason']);
+		$this->readsFail = true;
+		$event = $this->create(advice: ['id' => 'adv-1', 'applicationId' => 'app-1', 'advice' => 'place']);
+		$this->stamp(uid: 'anna')->handle(event: $event);
+		self::assertSame(expected: 'admission-advice-unknown-application', actual: $event->getErrors()['reason']);
 	}//end testAdviceOnAnUnknownApplicationIsRefused()
 
 	/**
@@ -243,15 +300,35 @@ class AdmissionAdviceStampTest extends TestCase {
 	 * @return void
 	 */
 	public function testSystemWritesAndOtherSchemasPass(): void {
-		$system = $this->create(['id' => 'adv-1', 'applicationId' => 'app-2', 'advice' => 'place', 'memberId' => 'anna']);
-		$this->stamp(uid: null)->handle($system);
-		self::assertFalse($system->isPropagationStopped());
-		self::assertSame('anna', $system->getObject()->getObject()['memberId']);
+		$system = $this->create(advice: ['id' => 'adv-1', 'applicationId' => 'app-2', 'advice' => 'place', 'memberId' => 'anna']);
+		$this->stamp(uid: null)->handle(event: $system);
+		self::assertFalse(condition: $system->isPropagationStopped());
+		self::assertSame(expected: 'anna', actual: $system->getObject()->getObject()['memberId']);
 
-		$other = $this->create(['id' => 'x', 'applicationId' => 'nope']);
-		$this->stamp(uid: 'dirk', slug: 'lesson-note')->handle($other);
-		self::assertFalse($other->isPropagationStopped());
+		$other = $this->create(advice: ['id' => 'x', 'applicationId' => 'nope']);
+		$this->stamp(uid: 'dirk', slug: 'lesson-note')->handle(event: $other);
+		self::assertFalse(condition: $other->isPropagationStopped());
 	}//end testSystemWritesAndOtherSchemasPass()
+
+	/**
+	 * A schema the resolver cannot name is not ours: the write passes.
+	 *
+	 * @return void
+	 */
+	public function testAnUnknownSchemaPasses(): void {
+		$resolver = $this->createMock(originalClassName: ListenerSchemaResolver::class);
+		$resolver->method('guardSchemaSlug')->willThrowException(exception: new RuntimeException(message: 'unknown schema'));
+		$user = $this->createMock(originalClassName: IUser::class);
+		$user->method('getUID')->willReturn(value: 'dirk');
+		$session = $this->createMock(originalClassName: IUserSession::class);
+		$session->method('getUser')->willReturn(value: $user);
+		$event = $this->create(advice: ['id' => 'x', 'applicationId' => 'nope']);
+
+		$stamp = new AdmissionAdviceStamp(schemaResolver: $resolver, userSession: $session, reads: $this->reads(), logger: new NullLogger());
+		$stamp->handle(event: $event);
+
+		self::assertFalse(condition: $event->isPropagationStopped());
+	}//end testAnUnknownSchemaPasses()
 
 	/**
 	 * The stamp is wired before every advice create and update.
@@ -260,16 +337,16 @@ class AdmissionAdviceStampTest extends TestCase {
 	 */
 	public function testTheStampIsRegistered(): void {
 		$registered = [];
-		$context = $this->createMock(IRegistrationContext::class);
+		$context = $this->createMock(originalClassName: IRegistrationContext::class);
 		$context->method('registerEventListener')->willReturnCallback(
-			static function (string $event, string $listener) use (&$registered): void {
+			callback: static function (string $event, string $listener) use (&$registered): void {
 				$registered[] = $event . ' => ' . $listener;
 			}
 		);
 
-		(new IntegrityListenerRegistrar())->register(context: $context);
+		(new SchedulingListenerRegistrar())->register(context: $context);
 
-		self::assertContains(ObjectCreatingEvent::class . ' => ' . AdmissionAdviceStamp::class, $registered);
-		self::assertContains(ObjectUpdatingEvent::class . ' => ' . AdmissionAdviceStamp::class, $registered);
+		self::assertContains(needle: ObjectCreatingEvent::class . ' => ' . AdmissionAdviceStamp::class, haystack: $registered);
+		self::assertContains(needle: ObjectUpdatingEvent::class . ' => ' . AdmissionAdviceStamp::class, haystack: $registered);
 	}//end testTheStampIsRegistered()
 }//end class
