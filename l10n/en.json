@@ -5938,7 +5938,20 @@
         "BPV (beroepspraktijkvorming) is the part of the training the student learns at your company.": "BPV (beroepspraktijkvorming) is the part of the training the student learns at your company.",
         "A werkproces is one task from the student's qualification that you see the student do at work.": "A werkproces is one task from the student's qualification that you see the student do at work.",
         "The kwalificatiedossier is the national description of what a student of this training must be able to do.": "The kwalificatiedossier is the national description of what a student of this training must be able to do.",
-        "Praktijkovereenkomst (POK): the agreements between you, the student and the school.": "Praktijkovereenkomst (POK): the agreements between you, the student and the school."
+        "Praktijkovereenkomst (POK): the agreements between you, the student and the school.": "Praktijkovereenkomst (POK): the agreements between you, the student and the school.",
+        "Review panel advice": "Review panel advice",
+        "Give my advice": "Give my advice",
+        "Panel member": "Panel member",
+        "Panel member name": "Panel member name",
+        "No panel member has given advice yet.": "No panel member has given advice yet.",
+        "Review panel": "Review panel",
+        "Admission advice": "Admission advice",
+        "Display name of the panel member, written by the server with memberId.": "Display name of the panel member, written by the server with memberId.",
+        "Nextcloud user id of the panel member who gave the advice. The server writes it from the session.": "Nextcloud user id of the panel member who gave the advice. The server writes it from the session.",
+        "Nextcloud user ids of the review panel that decides this round's applications together. Each member records their own advice (AdmissionAdvice); AdmissionsDecisionGuard then lets an application be placed, waitlisted or rejected only when every member has advised and more than half of them advised that outcome. Empty = no panel: one coordinator decides, as before.": "Nextcloud user ids of the review panel that decides this round's applications together. Each member records their own advice (AdmissionAdvice); AdmissionsDecisionGuard then lets an application be placed, waitlisted or rejected only when every member has advised and more than half of them advised that outcome. Empty = no panel: one coordinator decides, as before.",
+        "The application this advice is about.": "The application this advice is about.",
+        "What this member advises the panel to decide.": "What this member advises the panel to decide.",
+        "Why the member advises this.": "Why the member advises this."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

@@ -3393,8 +3393,8 @@
       "area": "enrolment",
       "name": "Let a review panel decide on applications together.",
       "built": {
-        "state": "specified",
-        "evidence": "src/manifest.d/admissions.json AdmissionsReviewBoard; lib/Lifecycle/AdmissionsDecisionGuard.php Not built: no panel, per-member advice or joint decision exists; one coordinator decides through AdmissionsDecisionGuard.",
+        "state": "built",
+        "evidence": "lib/Lifecycle/ReviewPanelDecision.php (every panel member advised and more than half advised the outcome); lib/Lifecycle/AdmissionsDecisionGuard.php (refuses place, waitlist and reject until the round's panel reached it); lib/Listener/AdmissionAdviceStamp.php (only panel members advise, once each, before the decision, stamped from the session); src/manifest.d/admissions.json ApplicationDetail 'Review panel' tab; tests/Unit/Lifecycle/AdmissionsDecisionGuardTest.php, tests/Unit/Lifecycle/ReviewPanelDecisionTest.php, tests/Unit/Listener/AdmissionAdviceStampTest.php",
         "owner": "ConductionNL/learniq",
         "change": "2026-07-16-admissions-and-subject-choice",
         "requirement": [

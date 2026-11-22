@@ -36,6 +36,7 @@ use OCA\Learniq\Listener\ExcuseRequestOwnerStamp;
 use OCA\Learniq\Listener\LeaveRequestPortalStamp;
 use OCA\Learniq\Listener\LeaveRequestSchoolDaysStamp;
 use OCA\Learniq\Listener\GradeEntryLearnerRefStamp;
+use OCA\Learniq\Listener\AdmissionAdviceStamp;
 use OCA\Learniq\Listener\LessonNoteAuthorGuard;
 use OCA\Learniq\Listener\HrFieldOwnershipGuard;
 use OCA\Learniq\Listener\ProfileScopeChangeHandler;
@@ -123,6 +124,17 @@ class IntegrityListenerRegistrar {
 		$context->registerEventListener(
 			event: ObjectUpdatingEvent::class,
 			listener: SyncedCohortGuard::class
+		);
+		// Review panel advice (capability-rows-say-what-they-do, enrolment):
+		// only the round's panel members advise, once each, before the
+		// decision; the member is stamped from the session.
+		$context->registerEventListener(
+			event: ObjectCreatingEvent::class,
+			listener: AdmissionAdviceStamp::class
+		);
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: AdmissionAdviceStamp::class
 		);
 
 		// HR-fed profiles (compliance-assign-from-hr-roles): the HR system

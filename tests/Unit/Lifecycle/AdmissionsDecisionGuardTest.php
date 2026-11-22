@@ -593,4 +593,109 @@ class AdmissionsDecisionGuardTest extends TestCase {
 			self::assertDenied($verdict, $name);
 		}
 	}//end testSchooladviesAtEveryBranch()
+
+	/**
+	 * Wire a round with a review panel and the application's advice rows.
+	 *
+	 * @param array<int,string>              $panel  The panel's member ids.
+	 * @param array<int,array<string,mixed>> $advice The advice rows on app-1.
+	 *
+	 * @return void
+	 */
+	private function wirePanel(array $panel, array $advice): void {
+		$this->wireRound(['kind' => 'generic', 'panelMemberIds' => $panel]);
+		$this->objectService->method('findAll')->willReturnCallback(
+			static function (array $config) use ($advice): array {
+				if (($config['filters']['schema'] ?? '') !== 'admission-advice') {
+					return [];
+				}
+
+				if (($config['filters']['applicationId'] ?? '') !== 'app-1') {
+					return [];
+				}
+
+				return array_map(static fn (array $row) => OrEntityFactory::make($row, 'admission-advice'), $advice);
+			}
+		);
+	}//end wirePanel()
+
+	/**
+	 * Scenario "Three panel members review one application": each member
+	 * advises place, so the application moves to placed.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/enrolment/spec.md#requirement-a-review-panel-decides-an-application-together
+	 */
+	public function testThreePanelMembersPlaceTheApplicantTogether(): void {
+		$this->wirePanel(
+			['anna', 'bram', 'cem'],
+			[
+				['id' => 'adv-1', 'applicationId' => 'app-1', 'memberId' => 'anna', 'advice' => 'place'],
+				['id' => 'adv-2', 'applicationId' => 'app-1', 'memberId' => 'bram', 'advice' => 'place'],
+				['id' => 'adv-3', 'applicationId' => 'app-1', 'memberId' => 'cem', 'advice' => 'place'],
+			]
+		);
+
+		$object = array_merge($this->application(), ['lifecycle' => 'placed']);
+
+		self::assertAllowed($this->makeGuard()->check($object, 'place', 'anna'));
+	}//end testThreePanelMembersPlaceTheApplicantTogether()
+
+	/**
+	 * Scenario "One member cannot decide alone": with one advice of three,
+	 * the placement is refused and the refusal says how far the panel is.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/enrolment/spec.md#requirement-a-review-panel-decides-an-application-together
+	 */
+	public function testOnePanelMemberCannotDecideAlone(): void {
+		$this->wirePanel(
+			['anna', 'bram', 'cem'],
+			[['id' => 'adv-1', 'applicationId' => 'app-1', 'memberId' => 'anna', 'advice' => 'place']]
+		);
+
+		$object = array_merge($this->application(), ['lifecycle' => 'placed']);
+		$verdict = $this->makeGuard()->check($object, 'place', 'anna');
+
+		self::assertDenied($verdict);
+		self::assertSame('The review panel has not decided yet: 1 of 3 members gave their advice.', $verdict->getMessage());
+	}//end testOnePanelMemberCannotDecideAlone()
+
+	/**
+	 * A decision the panel did not advise is refused, and the one it advised passes.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/enrolment/spec.md#requirement-a-review-panel-decides-an-application-together
+	 */
+	public function testThePanelsMajorityAdviceIsTheOnlyDecision(): void {
+		$advice = [
+			['id' => 'adv-1', 'applicationId' => 'app-1', 'memberId' => 'anna', 'advice' => 'waitlist'],
+			['id' => 'adv-2', 'applicationId' => 'app-1', 'memberId' => 'bram', 'advice' => 'waitlist'],
+			['id' => 'adv-3', 'applicationId' => 'app-1', 'memberId' => 'cem', 'advice' => 'place'],
+		];
+		$this->wirePanel(['anna', 'bram', 'cem'], $advice);
+
+		$placed = $this->makeGuard()->check(array_merge($this->application(), ['lifecycle' => 'placed']), 'place', 'cem');
+		self::assertDenied($placed);
+		self::assertSame('The review panel did not advise this decision: 1 of 3 members advised it.', $placed->getMessage());
+
+		self::assertAllowed($this->makeGuard()->check(array_merge($this->application(), ['lifecycle' => 'waitlisted']), 'waitlist', 'anna'));
+	}//end testThePanelsMajorityAdviceIsTheOnlyDecision()
+
+	/**
+	 * The waiting list's promote is not a panel decision: a freed seat moves
+	 * a waitlisted application on without new advice.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/enrolment/spec.md#requirement-a-review-panel-decides-an-application-together
+	 */
+	public function testPromotionFromTheWaitingListNeedsNoNewAdvice(): void {
+		$this->wirePanel(['anna', 'bram', 'cem'], []);
+
+		self::assertAllowed($this->makeGuard()->check(array_merge($this->application(), ['lifecycle' => 'placed']), 'promote', ''));
+	}//end testPromotionFromTheWaitingListNeedsNoNewAdvice()
 }//end class

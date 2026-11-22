@@ -6423,7 +6423,20 @@ OC.L10N.register(
         "Whether a guardian was notified of this incident.": "Of een ouder of verzorger over dit incident is geïnformeerd.",
         "Whether this is an ordinary teaching cohort, or a standing care/plusklas subgroup (finding 1.14) — a group that persists across periods rather than living inside a single GroupPlan's ephemeral instructieniveau subgroups (GroupPlanSubgroup). 'care' covers e.g. a remedial or sublesgroep; 'plusklas' covers gifted-education pull-out groups.": "Of dit een gewone lesgroep is of een vaste zorg- of plusklasgroep (bevinding 1.14): een groep die over perioden heen blijft bestaan, anders dan de tijdelijke instructiegroepen binnen één groepsplan. 'care' is bijvoorbeeld een remedial- of sublesgroep; 'plusklas' is een groep voor meer- en hoogbegaafde leerlingen buiten de klas.",
         "Whether this profile holds legal parental authority (gezag) over the child/children it is linked to as a guardian. Meaningful only on a profile carrying the 'parent' role (G-new-12/finding 2.4); null/unset on a learner's own profile. A single flag per guardian profile — it does not yet vary per linked child, a documented limitation for blended-family cases where gezag differs child by child.": "Of dit profiel het ouderlijk gezag heeft over de kinderen waaraan het als ouder of verzorger is gekoppeld. Alleen van betekenis bij een profiel met de rol 'parent' (G-new-12/bevinding 2.4); leeg bij het eigen profiel van een leerling. Eén vinkje per ouderprofiel: het verschilt nog niet per kind, een bekende beperking bij samengestelde gezinnen waar het gezag per kind anders is.",
-        "Which statutory concern this flag represents (finding 4.9). SWV notification, where applicable, reuses the existing dataExchangeJobId field rather than a new one.": "Welke wettelijke zorg dit signaal betreft (bevinding 4.9). Een melding aan het samenwerkingsverband gebruikt, waar van toepassing, het bestaande veld dataExchangeJobId en geen nieuw veld."
+        "Which statutory concern this flag represents (finding 4.9). SWV notification, where applicable, reuses the existing dataExchangeJobId field rather than a new one.": "Welke wettelijke zorg dit signaal betreft (bevinding 4.9). Een melding aan het samenwerkingsverband gebruikt, waar van toepassing, het bestaande veld dataExchangeJobId en geen nieuw veld.",
+        "Review panel advice": "Advies van de toelatingscommissie",
+        "Give my advice": "Mijn advies geven",
+        "Panel member": "Commissielid",
+        "Panel member name": "Naam commissielid",
+        "No panel member has given advice yet.": "Nog geen commissielid heeft advies gegeven.",
+        "Review panel": "Toelatingscommissie",
+        "Admission advice": "Toelatingsadvies",
+        "Display name of the panel member, written by the server with memberId.": "Weergavenaam van het commissielid, door de server geschreven samen met memberId.",
+        "Nextcloud user id of the panel member who gave the advice. The server writes it from the session.": "Nextcloud-gebruikers-id van het commissielid dat het advies gaf. De server schrijft het uit de sessie.",
+        "Nextcloud user ids of the review panel that decides this round's applications together. Each member records their own advice (AdmissionAdvice); AdmissionsDecisionGuard then lets an application be placed, waitlisted or rejected only when every member has advised and more than half of them advised that outcome. Empty = no panel: one coordinator decides, as before.": "Nextcloud-gebruikers-id's van de toelatingscommissie die samen over de aanmeldingen van deze ronde beslist. Elk lid legt een eigen advies vast (AdmissionAdvice); AdmissionsDecisionGuard laat een aanmelding pas plaatsen, op de wachtlijst zetten of afwijzen als elk lid advies gaf en meer dan de helft die uitkomst adviseerde. Leeg = geen commissie: één coördinator beslist, zoals voorheen.",
+        "The application this advice is about.": "De aanmelding waar dit advies over gaat.",
+        "What this member advises the panel to decide.": "Wat dit lid de commissie adviseert te beslissen.",
+        "Why the member advises this.": "Waarom het lid dit adviseert."
     },
     "nplurals=2; plural=(n != 1);"
 )
