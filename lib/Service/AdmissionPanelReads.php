@@ -77,21 +77,19 @@ class AdmissionPanelReads {
 			return null;
 		}
 
+		$found = null;
 		try {
-			$object = $this->objectService->find(id: $id, options: new ObjectFindOptions(register: self::REGISTER, schema: $schema), _rbac: false);
+			$found = $this->objectService->find(id: $id, options: new ObjectFindOptions(register: self::REGISTER, schema: $schema), _rbac: false);
 		} catch (Throwable $exception) {
-			$this->logger->debug(
-				'[AdmissionPanelReads] {schema} {id} not readable: {msg}',
-				['schema' => $schema, 'id' => $id, 'msg' => $exception->getMessage()]
-			);
+			// An unreadable object counts as absent: the panel rule then refuses.
+			$this->logger->debug('[AdmissionPanelReads] ' . $schema . ' ' . $id . ' not readable: ' . $exception->getMessage());
+		}
+
+		if ($found === null) {
 			return null;
 		}
 
-		if ($object === null) {
-			return null;
-		}
-
-		return (array)$object->jsonSerialize();
+		return (array)$found->jsonSerialize();
 	}//end object()
 
 	/**

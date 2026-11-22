@@ -5159,7 +5159,7 @@
             },
             "AdmissionAdvice": {
                 "slug": "admission-advice",
-                "icon": "AccountVoice",
+                "icon": "AccountGroupOutline",
                 "version": "0.1.0",
                 "title": "Admission advice",
                 "description": "One review panel member's advice on one application: place, waitlist or reject, with a note. AdmissionAdviceStamp writes the member from the session, refuses anyone not on the round's panel, refuses a second advice by the same member and any change once the application is decided. AdmissionsDecisionGuard reads these rows before the decision, so the advice stays beside the decision it led to.",

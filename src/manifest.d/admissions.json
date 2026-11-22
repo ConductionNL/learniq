@@ -544,7 +544,7 @@
 						"id": "app-panel-advice",
 						"type": "object-list",
 						"title": "Review panel advice",
-						"icon": "AccountVoice",
+						"icon": "AccountGroupOutline",
 						"_note": "capability-rows-say-what-they-do 2.3: each member of the round's review panel gives their advice here (Place, Waiting list, Reject, with a note). AdmissionAdviceStamp writes the member from the session and refuses anyone off the panel or a second advice; AdmissionsDecisionGuard refuses the decision until every member advised and more than half advised it, so the advice stays beside the decision.",
 						"content": {
 							"register": "learniq",

@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "learniq demo data",
-    "version": "1.1.53",
+    "version": "1.1.54",
     "description": "Demo data covering every schema this app supplies, offered as the first step of the app's setup walkthrough. Generated from the schemas themselves, so every object satisfies the schema that will validate it."
   },
   "x-openregister": {
@@ -1409,6 +1409,48 @@
         "studiekeuzeadviesGivenAt": "2026-03-03T09:00:00+00:00",
         "schoolAdviceLevel": "vmbo-kb",
         "progressionTestLevel": "vmbo-kb"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "admission-advice",
+          "slug": "admission-advice-admissionadvice-1-1",
+          "id": "ee00ffb1-0000-4000-8000-000000000001"
+        },
+        "applicationId": "ee000006-0000-4000-8000-000000000001",
+        "advice": "place",
+        "tenant_id": "00000000-0000-4000-8000-000000000000",
+        "note": "Voorbeeld Note 1",
+        "memberId": "Voorbeeld Memberid 1",
+        "memberName": "Voorbeeld Membername 1"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "admission-advice",
+          "slug": "admission-advice-admissionadvice-2-2",
+          "id": "ee00ffb1-0000-4000-8000-000000000002"
+        },
+        "applicationId": "ee000006-0000-4000-8000-000000000002",
+        "advice": "waitlist",
+        "tenant_id": "00000000-0000-4000-8000-000000000001",
+        "note": "Voorbeeld Note 2",
+        "memberId": "Voorbeeld Memberid 2",
+        "memberName": "Voorbeeld Membername 2"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "admission-advice",
+          "slug": "admission-advice-admissionadvice-3-3",
+          "id": "ee00ffb1-0000-4000-8000-000000000003"
+        },
+        "applicationId": "ee000006-0000-4000-8000-000000000003",
+        "advice": "reject",
+        "tenant_id": "00000000-0000-4000-8000-000000000002",
+        "note": "Voorbeeld Note 3",
+        "memberId": "Voorbeeld Memberid 3",
+        "memberName": "Voorbeeld Membername 3"
       },
       {
         "@self": {
