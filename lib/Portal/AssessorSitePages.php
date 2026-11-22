@@ -14,10 +14,10 @@
  * no heading, so the overview lists the shares with the longest access first
  * and each row names the date his access runs to.
  *
- * The exam day, the assessment form, offline tolerance, joint sign-off and the
- * exam documents are not here: no schema links an assessor to an exam. They
- * stay in the change's tasks, with `mbo-practical-exam-assessment` as the
- * proposed follow-up.
+ * His exam day (practical-exam-assessment) opens the overview: a day
+ * calendar over his own live assignments, so only today's exams show, each
+ * with its time span, candidate, exam and room. The list of all his exams
+ * follows it.
  *
  * @category Portal
  * @package  OCA\Learniq\Portal
@@ -54,9 +54,20 @@ class AssessorSitePages {
 	private const REGISTER = 'learniq';
 
 	private const EA_OVERVIEW_BLOCKS = [
-		// His exams first, earliest first: the mockup's day opens with the
-		// exams he assesses (practical-exam-assessment). Each row names the
-		// time, the candidate and the exam.
+		// His day first: today's exams he assesses, as a day calendar over his
+		// own assignments (practical-exam-assessment T5). The calendar's day
+		// range is what keeps it to today; each entry reads the time span, the
+		// candidate, and the exam with its room.
+		[
+			'type' => 'calendar',
+			'label' => 'Your exams today',
+			'display' => 'timetable',
+			'range' => 'day',
+			'firstLabel' => 'Your first exam',
+			'sources' => self::EXAMS_TODAY_SOURCES,
+		],
+		// Then all his exams, earliest first. Each row names the time, the
+		// candidate, the exam and the room.
 		[
 			'type' => 'collection',
 			'label' => 'Your exams',
@@ -75,6 +86,22 @@ class AssessorSitePages {
 			'sort' => ['field' => 'expiresAt', 'direction' => 'desc'],
 		],
 		['type' => 'inbox', 'label' => 'Messages', 'limit' => 2],
+	];
+
+	/**
+	 * The day calendar's source: his live assignments (`eaExams`), placed at
+	 * the sitting's start and end, titled by the candidate, with the exam as
+	 * the meta line and the room as the note.
+	 */
+	public const EXAMS_TODAY_SOURCES = [
+		[
+			'collection' => 'eaExams',
+			'startField' => 'sittingStartsAt',
+			'endField' => 'sittingEndsAt',
+			'titleField' => 'learnerName',
+			'metaField' => 'examTitle',
+			'noteField' => 'sittingRoom',
+		],
 	];
 
 	/**
@@ -252,11 +279,12 @@ class AssessorSitePages {
 			'minTrust' => 'low',
 			// A withdrawn assignment grants nothing.
 			'filter' => ['lifecycle' => 'assigned'],
-			'fields' => ['examSittingId', 'learnerRef', 'role', 'lifecycle', 'learnerName', 'sittingStartsAt', 'examTitle'],
+			'fields' => ['examSittingId', 'learnerRef', 'role', 'lifecycle', 'learnerName', 'sittingStartsAt', 'sittingEndsAt', 'examTitle', 'sittingRoom'],
 			'columns' => [
 				['field' => 'sittingStartsAt', 'label' => 'Time', 'render' => 'datetime'],
 				['field' => 'learnerName', 'label' => 'Candidate'],
 				['field' => 'examTitle', 'label' => 'Exam'],
+				['field' => 'sittingRoom', 'label' => 'Room'],
 				['field' => 'role', 'label' => 'As assessor'],
 			],
 		],
@@ -358,12 +386,13 @@ class AssessorSitePages {
 	}//end sharePage()
 
 	/**
-	 * The overview: how long his access runs, then every candidate shared with
-	 * him, then his messages.
+	 * The overview: his exams today, all his exams, then every candidate
+	 * shared with him and until when, then his messages.
 	 *
 	 * @return array<string, mixed>
 	 *
 	 * @spec openspec/changes/site-external-assessor-portal-design/specs/portal-contribution/spec.md#requirement-an-external-assessor-lands-on-what-is-shared-with-him-and-until-when
+	 * @spec openspec/changes/practical-exam-assessment/specs/exam-board/spec.md#requirement-an-assessor-is-linked-to-an-exam-sitting-by-a-record
 	 */
 	private function overviewPage(): array {
 		return [

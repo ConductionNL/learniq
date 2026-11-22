@@ -30,7 +30,9 @@ use OCA\Learniq\Service\ReadableCopies;
 use OCA\Learniq\Portal\AssessorSitePages;
 use OCA\Learniq\Portal\PortalContributionProvider;
 use OCA\Learniq\Portal\PortalLabelTranslator;
+use OCA\OpenRegister\Service\ObjectService;
 use OCP\IL10N;
+use OCP\IUserManager;
 use OCP\L10N\IFactory;
 use PHPUnit\Framework\TestCase;
 
@@ -195,6 +197,52 @@ class AssessorSitePagesTest extends TestCase {
 			self::assertNotContains($hidden, $entries['fields'], $hidden);
 		}
 	}//end testTheEntriesProjectOnlyWhatHeMayRead()
+
+	/**
+	 * His overview opens with his exams of today: a day calendar over his own
+	 * live assignments, each entry reading the time span, the candidate, the
+	 * exam and the room, every one of them a field the collection projects.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/practical-exam-assessment/specs/exam-board/spec.md#requirement-an-assessor-is-linked-to-an-exam-sitting-by-a-record
+	 */
+	public function testHisDayListsTodaysExamsWithTimeCandidateExamAndRoom(): void {
+		$contribution = (new AssessorSitePages())->contribution();
+		$overview = array_column($contribution['pages'], null, 'id')['eaOverview'];
+		$today = $overview['blocks'][0];
+
+		self::assertSame('calendar', $today['type']);
+		self::assertSame('day', $today['range']);
+		self::assertSame('Your exams today', $today['label']);
+		self::assertSame(
+			[
+				[
+					'collection' => 'eaExams',
+					'startField' => 'sittingStartsAt',
+					'endField' => 'sittingEndsAt',
+					'titleField' => 'learnerName',
+					'metaField' => 'examTitle',
+					'noteField' => 'sittingRoom',
+				],
+			],
+			$today['sources']
+		);
+
+		// The source is his own live assignments: scoped by his claim, a withdrawn one grants nothing.
+		$exams = self::collections()['eaExams'];
+		self::assertSame('externalAssessorId', $exams['scopeField']);
+		self::assertSame(['lifecycle' => 'assigned'], $exams['filter']);
+		foreach (['sittingStartsAt', 'sittingEndsAt', 'learnerName', 'examTitle', 'sittingRoom'] as $field) {
+			self::assertContains($field, $exams['fields'], $field);
+		}
+
+		// Every field the calendar reads is a readable copy the server stamps on the assignment.
+		$copies = new ReadableCopies(objectService: $this->createMock(ObjectService::class), users: $this->createMock(IUserManager::class));
+		foreach (['sittingStartsAt', 'sittingEndsAt', 'learnerName', 'examTitle', 'sittingRoom'] as $field) {
+			self::assertContains($field, $copies->fields('exam-assessor-assignment'), $field);
+		}
+	}//end testHisDayListsTodaysExamsWithTimeCandidateExamAndRoom()
 
 	/**
 	 * A share's own page says until when his access runs, has words for a share

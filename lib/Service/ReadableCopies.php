@@ -58,8 +58,9 @@ class ReadableCopies implements ReadableCopiesInterface {
 		'enrolment'       => ['cohortName' => null, 'learnerName' => null, 'courseName' => null, 'organisationRef' => null],
 		// The wholePortfolioId copy: the portfolio a share opens whole, for the assessor portal's second join (site-external-assessor-portal-design T3).
 		'portfolio-share' => ['portfolioTitle' => null, 'learnerName' => null, 'wholePortfolioId' => null],
-		// The assessor's exam list reads time, candidate and exam off the row (practical-exam-assessment).
-		'exam-assessor-assignment' => ['learnerName' => null, 'sittingStartsAt' => null, 'examTitle' => null],
+		// The assessor's exam list reads time, candidate and exam off the row (practical-exam-assessment);
+		// his day also reads when the sitting ends and its room.
+		'exam-assessor-assignment' => ['learnerName' => null, 'sittingStartsAt' => null, 'examTitle' => null, 'sittingEndsAt' => null, 'sittingRoom' => null],
 		'teacher-availability' => ['teacherName' => null],
 		// The line under a child's name in the guardian's menu (school-portals-use-the-new-blocks).
 		// With the group's teacher for the child page's "Bericht aan {teacherName}" (wilgenboom/Detail).
@@ -319,11 +320,11 @@ class ReadableCopies implements ReadableCopiesInterface {
 	}//end shareCopies()
 
 	/**
-	 * The candidate's name, the sitting's start and the exam's title, for an assessor assignment.
+	 * The candidate's name, the sitting's start, end and rooms and the exam's title, for an assessor assignment.
 	 *
 	 * @param array<string, mixed> $row The assignment as it will be stored.
 	 *
-	 * @return array{learnerName: string|null, sittingStartsAt: string|null, examTitle: string|null}
+	 * @return array{learnerName: string|null, sittingStartsAt: string|null, examTitle: string|null, sittingEndsAt: string|null, sittingRoom: string|null}
 	 *
 	 * @throws \Throwable When OpenRegister cannot be read.
 	 *
@@ -338,15 +339,46 @@ class ReadableCopies implements ReadableCopiesInterface {
 
 		$sitting = $this->read(schema: 'exam-sitting', id: $row['examSittingId'] ?? null);
 		if ($sitting === null) {
-			return ['learnerName' => $name, 'sittingStartsAt' => null, 'examTitle' => null];
+			return ['learnerName' => $name, 'sittingStartsAt' => null, 'examTitle' => null, 'sittingEndsAt' => null, 'sittingRoom' => null];
 		}
 
 		return [
 			'learnerName'     => $name,
 			'sittingStartsAt' => $this->orNull(value: trim($this->text(value: $sitting['startsAt'] ?? null))),
 			'examTitle'       => $this->nameOf(schema: 'assessment', id: $sitting['assessmentId'] ?? null, field: 'title'),
+			'sittingEndsAt'   => $this->orNull(value: trim($this->text(value: $sitting['endsAt'] ?? null))),
+			'sittingRoom'     => $this->roomNames(roomIds: $sitting['roomIds'] ?? null),
 		];
 	}//end assignmentCopies()
+
+	/**
+	 * The names of a sitting's rooms in the sitting's order, joined by a comma, or null.
+	 *
+	 * A room that cannot be read, or that has no name, is left out.
+	 *
+	 * @param mixed $roomIds The sitting's room pointers.
+	 *
+	 * @return string|null
+	 *
+	 * @throws \Throwable When OpenRegister cannot be read.
+	 *
+	 * @spec openspec/changes/practical-exam-assessment/specs/exam-board/spec.md#requirement-an-assessor-is-linked-to-an-exam-sitting-by-a-record
+	 */
+	private function roomNames(mixed $roomIds): ?string {
+		if (is_array($roomIds) === false) {
+			return null;
+		}
+
+		$names = [];
+		foreach ($roomIds as $roomId) {
+			$name = $this->nameOf(schema: 'room', id: $roomId, field: 'name');
+			if ($name !== null) {
+				$names[] = $name;
+			}
+		}
+
+		return $this->orNull(value: implode(', ', $names));
+	}//end roomNames()
 
 	/**
 	 * A Nextcloud user's display name, or null for an empty or unknown uid.
