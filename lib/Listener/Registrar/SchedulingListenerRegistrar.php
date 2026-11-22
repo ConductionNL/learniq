@@ -35,6 +35,8 @@ namespace OCA\Learniq\Listener\Registrar;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatedEvent;
+use OCA\OpenRegister\Event\ObjectUpdatingEvent;
+use OCA\Learniq\Listener\AdmissionAdviceStamp;
 use OCA\Learniq\Listener\AdmissionsWaitlistPromoter;
 use OCA\Learniq\Listener\ApplicationConversionHandler;
 use OCA\Learniq\Listener\ApplicationSubmittedAtStamp;
@@ -81,6 +83,9 @@ class SchedulingListenerRegistrar {
 		// prerequisite gate above, and for the same reason not narrowed
 		// through ObjectEventSubscription.
 		[ObjectCreatingEvent::class, AssessmentAttemptGateListener::class],
+		// Review panel advice: only the round's panel members advise, once each, before the decision.
+		[ObjectCreatingEvent::class, AdmissionAdviceStamp::class],
+		[ObjectUpdatingEvent::class, AdmissionAdviceStamp::class],
 	];
 
 	/**

@@ -33,6 +33,11 @@
  *   time (no materialised per-round counter — mirrors BsaTrajectory's
  *   rejected "materialised count" alternative in design.md, avoiding a race
  *   between concurrent placed transitions).
+ * - Review panel (any kind, place / waitlist / reject): when the round names
+ *   panelMemberIds, the decision waits until every member has recorded their
+ *   AdmissionAdvice and more than half advised that outcome
+ *   (ReviewPanelGate, ReviewPanelDecision); the refusal says how far the
+ *   panel is.
  *
  * Legitimate PHP per ADR-031 "Lifecycle guards" — every branch is a
  * cross-object read (the referenced AdmissionsRound, or a live count of
@@ -52,12 +57,14 @@
  * @spec openspec/specs/enrolment/spec.md#requirement-an-mbo-applicant-who-applies-by-the-deadline-and-completes-the-mandatory-intake-has-a-right-to-admission
  * @spec openspec/specs/enrolment/spec.md#requirement-a-vo-schooladvies-must-be-adjusted-upward-when-the-doorstroomtoets-scores-higher-unless-motivated
  * @spec openspec/specs/enrolment/spec.md#requirement-placement-capacity-is-enforced-and-a-waitlisted-application-is-auto-promoted-when-a-seat-frees-up
+ * @spec openspec/changes/capability-rows-say-what-they-do/specs/enrolment/spec.md#requirement-a-review-panel-decides-an-application-together
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\Learniq\Service\AdmissionPanelReads;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
@@ -68,6 +75,7 @@ use Psr\Log\LoggerInterface;
  * Guards the Application completeIntake / place / waitlist / reject / promote transitions.
  *
  * @spec openspec/specs/enrolment/spec.md#requirement-an-mbo-applicant-who-applies-by-the-deadline-and-completes-the-mandatory-intake-has-a-right-to-admission
+ * @spec openspec/changes/capability-rows-say-what-they-do/specs/enrolment/spec.md#requirement-a-review-panel-decides-an-application-together
  */
 class AdmissionsDecisionGuard implements LifecycleGuardInterface {
 
@@ -128,15 +136,22 @@ class AdmissionsDecisionGuard implements LifecycleGuardInterface {
 	 * @return GuardResult Allow, or deny with the reason shown to the caller.
 	 *
 	 * @spec openspec/specs/enrolment/spec.md#requirement-an-mbo-applicant-who-applies-by-the-deadline-and-completes-the-mandatory-intake-has-a-right-to-admission
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/enrolment/spec.md#requirement-a-review-panel-decides-an-application-together
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
 	public function check(array $object, string $action, string $userId): GuardResult {
-		if ($this->allows(object: $object) === true) {
-			return GuardResult::allow();
+		if ($this->allows(object: $object) === false) {
+			return GuardResult::deny(self::DENIAL);
 		}
 
-		return GuardResult::deny(self::DENIAL);
+		$gate = new ReviewPanelGate(reads: new AdmissionPanelReads(objectService: $this->objectService, logger: $this->logger));
+		$panelRefusal = $gate->refusal(object: $object, action: $action);
+		if ($panelRefusal !== null) {
+			return GuardResult::deny($panelRefusal);
+		}
+
+		return GuardResult::allow();
 	}//end check()
 
 	/**

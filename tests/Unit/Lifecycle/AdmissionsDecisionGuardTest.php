@@ -593,4 +593,140 @@ class AdmissionsDecisionGuardTest extends TestCase {
 			self::assertDenied($verdict, $name);
 		}
 	}//end testSchooladviesAtEveryBranch()
+
+	/**
+	 * Wire a round with a review panel and the application's advice rows.
+	 *
+	 * @param array<int,string>              $panel  The panel's member ids.
+	 * @param array<int,array<string,mixed>> $advice The advice rows on app-1.
+	 *
+	 * @return void
+	 */
+	private function wirePanel(array $panel, array $advice): void {
+		$this->wireRound(round: ['kind' => 'generic', 'panelMemberIds' => $panel]);
+		$this->objectService->method('findAll')->willReturnCallback(
+			callback: static function (array $config) use ($advice): array {
+				$isAdvice = (($config['filters']['schema'] ?? '') === 'admission-advice');
+				if ($isAdvice === false || ($config['filters']['applicationId'] ?? '') !== 'app-1') {
+					return [];
+				}
+
+				return array_map(static fn (array $row) => OrEntityFactory::make(data: $row, schema: 'admission-advice'), $advice);
+			}
+		);
+	}//end wirePanel()
+
+	/**
+	 * One member's advice on app-1.
+	 *
+	 * @param string $memberId The member.
+	 * @param string $advice   place, waitlist or reject.
+	 *
+	 * @return array<string,string>
+	 */
+	private function adviceOf(string $memberId, string $advice): array {
+		return ['id' => 'adv-' . $memberId, 'applicationId' => 'app-1', 'memberId' => $memberId, 'advice' => $advice];
+	}//end adviceOf()
+
+	/**
+	 * The application at a decision state.
+	 *
+	 * @param string $state placed, waitlisted or rejected.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private function decidedAs(string $state): array {
+		return array_merge($this->application(overrides: []), ['lifecycle' => $state]);
+	}//end decidedAs()
+
+	/**
+	 * Scenario "Three panel members review one application": each member
+	 * advises place, so the application moves to placed.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/enrolment/spec.md#requirement-a-review-panel-decides-an-application-together
+	 */
+	public function testThreePanelMembersPlaceTheApplicantTogether(): void {
+		$this->wirePanel(
+			panel: ['anna', 'bram', 'cem'],
+			advice: [
+				$this->adviceOf(memberId: 'anna', advice: 'place'),
+				$this->adviceOf(memberId: 'bram', advice: 'place'),
+				$this->adviceOf(memberId: 'cem', advice: 'place'),
+			]
+		);
+
+		self::assertAllowed(verdict: $this->makeGuard()->check(object: $this->decidedAs(state: 'placed'), action: 'place', userId: 'anna'));
+	}//end testThreePanelMembersPlaceTheApplicantTogether()
+
+	/**
+	 * Scenario "One member cannot decide alone": with one advice of three,
+	 * the placement is refused and the refusal says how far the panel is.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/enrolment/spec.md#requirement-a-review-panel-decides-an-application-together
+	 */
+	public function testOnePanelMemberCannotDecideAlone(): void {
+		$this->wirePanel(panel: ['anna', 'bram', 'cem'], advice: [$this->adviceOf(memberId: 'anna', advice: 'place')]);
+
+		$verdict = $this->makeGuard()->check(object: $this->decidedAs(state: 'placed'), action: 'place', userId: 'anna');
+
+		self::assertDenied(verdict: $verdict);
+		self::assertSame(expected: 'The review panel has not decided yet: 1 of 3 members gave their advice.', actual: $verdict->getMessage());
+	}//end testOnePanelMemberCannotDecideAlone()
+
+	/**
+	 * A decision the panel did not advise is refused, and the one it advised passes.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/enrolment/spec.md#requirement-a-review-panel-decides-an-application-together
+	 */
+	public function testThePanelsMajorityAdviceIsTheOnlyDecision(): void {
+		$this->wirePanel(
+			panel: ['anna', 'bram', 'cem'],
+			advice: [
+				$this->adviceOf(memberId: 'anna', advice: 'waitlist'),
+				$this->adviceOf(memberId: 'bram', advice: 'waitlist'),
+				$this->adviceOf(memberId: 'cem', advice: 'place'),
+			]
+		);
+
+		$placed = $this->makeGuard()->check(object: $this->decidedAs(state: 'placed'), action: 'place', userId: 'cem');
+		self::assertDenied(verdict: $placed);
+		self::assertSame(expected: 'The review panel did not advise this decision: 1 of 3 members advised it.', actual: $placed->getMessage());
+
+		self::assertAllowed(verdict: $this->makeGuard()->check(object: $this->decidedAs(state: 'waitlisted'), action: 'waitlist', userId: 'anna'));
+	}//end testThePanelsMajorityAdviceIsTheOnlyDecision()
+
+	/**
+	 * The waiting list's promote is not a panel decision: a freed seat moves
+	 * a waitlisted application on without new advice.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/enrolment/spec.md#requirement-a-review-panel-decides-an-application-together
+	 */
+	public function testPromotionFromTheWaitingListNeedsNoNewAdvice(): void {
+		$this->wirePanel(panel: ['anna', 'bram', 'cem'], advice: []);
+
+		self::assertAllowed(verdict: $this->makeGuard()->check(object: $this->decidedAs(state: 'placed'), action: 'promote', userId: ''));
+	}//end testPromotionFromTheWaitingListNeedsNoNewAdvice()
+
+	/**
+	 * An application without an id finds no advice, so a panel round refuses its decision.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/enrolment/spec.md#requirement-a-review-panel-decides-an-application-together
+	 */
+	public function testAnApplicationWithoutAnIdHasNoPanelAdvice(): void {
+		$this->wirePanel(panel: ['anna'], advice: [$this->adviceOf(memberId: 'anna', advice: 'place')]);
+		$object = $this->decidedAs(state: 'placed');
+		unset($object['id']);
+
+		self::assertDenied(verdict: $this->makeGuard()->check(object: $object, action: 'place', userId: 'anna'));
+	}//end testAnApplicationWithoutAnIdHasNoPanelAdvice()
 }//end class

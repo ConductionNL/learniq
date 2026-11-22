@@ -541,6 +541,41 @@
 						}
 					},
 					{
+						"id": "app-panel-advice",
+						"type": "object-list",
+						"title": "Review panel advice",
+						"icon": "AccountGroupOutline",
+						"_note": "capability-rows-say-what-they-do 2.3: each member of the round's review panel gives their advice here (Place, Waiting list, Reject, with a note). AdmissionAdviceStamp writes the member from the session and refuses anyone off the panel or a second advice; AdmissionsDecisionGuard refuses the decision until every member advised and more than half advised it, so the advice stays beside the decision.",
+						"content": {
+							"register": "learniq",
+							"schema": "admission-advice",
+							"filter": {
+								"applicationId": "@objectId"
+							},
+							"addLabel": "Give my advice",
+							"formExcludeFields": [
+								"memberId",
+								"memberName",
+								"tenant_id"
+							],
+							"columns": [
+								{
+									"key": "memberName",
+									"label": "Panel member"
+								},
+								{
+									"key": "advice",
+									"label": "Advice"
+								},
+								{
+									"key": "note",
+									"label": "Note"
+								}
+							],
+							"emptyText": "No panel member has given advice yet."
+						}
+					},
+					{
 						"id": "board-history",
 						"type": "audit-trail",
 						"title": "Record history",
@@ -570,6 +605,10 @@
 								{
 									"label": "Prior learning records",
 									"widgetId": "app-learning-record-imports"
+								},
+								{
+									"label": "Review panel",
+									"widgetId": "app-panel-advice"
 								},
 								{
 									"widgetId": "board-history",
@@ -649,6 +688,10 @@
 						{
 							"label": "Prior learning records",
 							"widgetId": "app-learning-record-imports"
+						},
+						{
+							"label": "Review panel",
+							"widgetId": "app-panel-advice"
 						}
 					]
 				},
