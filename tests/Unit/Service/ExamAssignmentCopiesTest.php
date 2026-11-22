@@ -1,7 +1,7 @@
 <?php
 
 /**
- * An assessor assignment reads its candidate, start and exam off the row.
+ * An assessor assignment reads its candidate, start, end, room and exam off the row.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Service
@@ -50,8 +50,22 @@ class ExamAssignmentCopiesTest extends TestCase {
 		$store = new RegisterFaithfulStore();
 		$store->rows = [
 			'learner-profile' => [['id' => self::DAAN, 'givenName' => 'Daan', 'familyName' => 'de Vries']],
-			'exam-sitting' => [['id' => self::SITTING, 'assessmentId' => 'as-1', 'startsAt' => '2026-11-16T09:00:00+01:00']],
+			'exam-sitting' => [
+				[
+					'id' => self::SITTING,
+					'assessmentId' => 'as-1',
+					'startsAt' => '2026-11-16T09:00:00+01:00',
+					'endsAt' => '2026-11-16T12:00:00+01:00',
+					'roomIds' => ['room-w2', 'room-gone', 'room-w3'],
+				],
+				['id' => 'sitting-no-rooms', 'assessmentId' => 'as-1', 'startsAt' => '2026-11-17T09:00:00+01:00', 'roomIds' => ['room-unnamed']],
+			],
 			'assessment' => [['id' => 'as-1', 'title' => 'Storingen zoeken aan warmtepompen']],
+			'room' => [
+				['id' => 'room-w2', 'name' => 'Werkplaats W2'],
+				['id' => 'room-w3', 'name' => 'Werkplaats W3'],
+				['id' => 'room-unnamed', 'name' => '  '],
+			],
 		];
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('findAll')->willReturnCallback(
@@ -70,12 +84,38 @@ class ExamAssignmentCopiesTest extends TestCase {
 		$copies = $this->copies();
 
 		self::assertTrue($copies->covers('exam-assessor-assignment'));
-		self::assertSame(['learnerName', 'sittingStartsAt', 'examTitle'], $copies->fields('exam-assessor-assignment'));
 		self::assertSame(
-			['learnerName' => 'Daan de Vries', 'sittingStartsAt' => '2026-11-16T09:00:00+01:00', 'examTitle' => 'Storingen zoeken aan warmtepompen'],
-			$copies->derive('exam-assessor-assignment', ['learnerRef' => self::DAAN, 'examSittingId' => self::SITTING, 'learnerName' => 'Sent by the client'])
+			expected: ['learnerName', 'sittingStartsAt', 'examTitle', 'sittingEndsAt', 'sittingRoom'],
+			actual: $copies->fields(slug: 'exam-assessor-assignment')
+		);
+		self::assertSame(
+			expected: [
+				'learnerName' => 'Daan de Vries',
+				'sittingStartsAt' => '2026-11-16T09:00:00+01:00',
+				'examTitle' => 'Storingen zoeken aan warmtepompen',
+				'sittingEndsAt' => '2026-11-16T12:00:00+01:00',
+				// The sitting's rooms in its own order; a room that cannot be read is left out.
+				'sittingRoom' => 'Werkplaats W2, Werkplaats W3',
+			],
+			actual: $copies->derive(
+				slug: 'exam-assessor-assignment',
+				row: ['learnerRef' => self::DAAN, 'examSittingId' => self::SITTING, 'learnerName' => 'Sent by the client', 'sittingRoom' => 'Sent by the client']
+			)
 		);
 	}//end testTheAssignmentReadsItsCandidateStartAndExam()
+
+	/**
+	 * A sitting without an end and with only a nameless room leaves both copies empty.
+	 *
+	 * @return void
+	 */
+	public function testASittingWithoutAnEndOrANamedRoomLeavesThoseCopiesEmpty(): void {
+		$derived = $this->copies()->derive(slug: 'exam-assessor-assignment', row: ['learnerRef' => self::DAAN, 'examSittingId' => 'sitting-no-rooms']);
+
+		self::assertSame(expected: '2026-11-17T09:00:00+01:00', actual: $derived['sittingStartsAt']);
+		self::assertNull(actual: $derived['sittingEndsAt']);
+		self::assertNull(actual: $derived['sittingRoom']);
+	}//end testASittingWithoutAnEndOrANamedRoomLeavesThoseCopiesEmpty()
 
 	/**
 	 * A sitting that names nothing leaves its copies empty; the candidate is still named.
@@ -84,11 +124,11 @@ class ExamAssignmentCopiesTest extends TestCase {
 	 */
 	public function testAnUnknownSittingLeavesItsCopiesEmpty(): void {
 		self::assertSame(
-			['learnerName' => 'Daan de Vries', 'sittingStartsAt' => null, 'examTitle' => null],
+			['learnerName' => 'Daan de Vries', 'sittingStartsAt' => null, 'examTitle' => null, 'sittingEndsAt' => null, 'sittingRoom' => null],
 			$this->copies()->derive('exam-assessor-assignment', ['learnerRef' => self::DAAN, 'examSittingId' => 'missing'])
 		);
 		self::assertSame(
-			['learnerName' => null, 'sittingStartsAt' => null, 'examTitle' => null],
+			['learnerName' => null, 'sittingStartsAt' => null, 'examTitle' => null, 'sittingEndsAt' => null, 'sittingRoom' => null],
 			$this->copies()->derive('exam-assessor-assignment', [])
 		);
 	}//end testAnUnknownSittingLeavesItsCopiesEmpty()

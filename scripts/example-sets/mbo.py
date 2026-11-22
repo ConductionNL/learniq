@@ -1775,11 +1775,12 @@ class SchoolYear:
             "title": "Proeve van bekwaamheid installeren", "description": "Praktijkexamen: de kandidaat installeert en meet na, twee beoordelaars kijken mee.",
             "scoringScheme": "passMark", "passMark": 5.5, "timeLimitMinutes": 180, "maxAttempts": 1, "lifecycle": "published",
         })
-        starts = stamp(dt.date(2026, 11, 16), 9, 0)
+        starts, ends = stamp(dt.date(2026, 11, 16), 9, 0), stamp(dt.date(2026, 11, 16), 12, 0)
+        room = self.rooms[candidates[0]["class"]]
         sitting = self.b.add("exam-sitting", {
             "examPeriodId": period["uuid"], "assessmentId": exam["uuid"], "cohortIds": period["cohortIds"],
-            "startsAt": starts, "endsAt": stamp(dt.date(2026, 11, 16), 12, 0),
-            "roomIds": [self.rooms[candidates[0]["class"]]["uuid"]], "headcount": len(candidates), "invigilatorsNeeded": 0,
+            "startsAt": starts, "endsAt": ends,
+            "roomIds": [room["uuid"]], "headcount": len(candidates), "invigilatorsNeeded": 0,
             "lifecycle": "planned",
         })
         for s in candidates:
@@ -1788,6 +1789,8 @@ class SchoolYear:
                     "examSittingId": sitting["uuid"], "externalAssessorId": assessor["uuid"], "learnerRef": s["profile"]["uuid"],
                     "role": role, "lifecycle": "assigned", "learnerName": f"{s['given']} {s['surname']}",
                     "sittingStartsAt": starts, "examTitle": exam["title"],
+                    # His day reads the sitting's end and room too (practical-exam-assessment T5).
+                    "sittingEndsAt": ends, "sittingRoom": room["name"],
                 })
 
 

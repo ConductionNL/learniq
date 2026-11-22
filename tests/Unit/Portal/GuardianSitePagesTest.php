@@ -676,12 +676,15 @@ class GuardianSitePagesTest extends TestCase {
 		$overview = $pages['eaOverview'];
 
 		self::assertTrue($overview['home']);
-		// His exams first, earliest first (practical-exam-assessment), then the shares.
-		self::assertSame(['collection', 'collection', 'inbox'], array_column($overview['blocks'], 'type'));
-		self::assertSame(['eaExams', 'eaSharedPortfolios'], array_column(array_slice($overview['blocks'], 0, 2), 'collection'));
-		self::assertSame(['field' => 'sittingStartsAt', 'direction' => 'asc'], $overview['blocks'][0]['sort']);
-		self::assertSame(['field' => 'expiresAt', 'direction' => 'desc'], $overview['blocks'][1]['sort']);
-		self::assertSame(expected: 'Shared with you', actual: $overview['blocks'][1]['label']);
+		// His exams today first, then all his exams, earliest first (practical-exam-assessment), then the shares.
+		self::assertSame(expected: ['calendar', 'collection', 'collection', 'inbox'], actual: array_column(array: $overview['blocks'], column_key: 'type'));
+		self::assertSame(
+			expected: ['eaExams', 'eaSharedPortfolios'],
+			actual: array_column(array: array_slice(array: $overview['blocks'], offset: 1, length: 2), column_key: 'collection')
+		);
+		self::assertSame(expected: ['field' => 'sittingStartsAt', 'direction' => 'asc'], actual: $overview['blocks'][1]['sort']);
+		self::assertSame(expected: ['field' => 'expiresAt', 'direction' => 'desc'], actual: $overview['blocks'][2]['sort']);
+		self::assertSame(expected: 'Shared with you', actual: $overview['blocks'][2]['label']);
 		self::assertSame(['eaOverview', 'eaSharedPortfolios', 'eaSharedPortfolioEntries', 'eaWholePortfolioEntries', 'eaExams', 'eaShare'], array_keys($pages));
 		// The menu is Overzicht, Gedeeld met mij and his exams; the entries and a share's own page stay out of it.
 		self::assertArrayNotHasKey('menu', $pages['eaSharedPortfolios']);

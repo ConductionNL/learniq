@@ -1011,7 +1011,10 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame('externalAssessorId', $exams['scopeField']);
 		$this->assertSame('externalAssessorId', $exams['scopeClaim']);
 		$this->assertSame(['lifecycle' => 'assigned'], $exams['filter']);
-		$this->assertSame(['sittingStartsAt', 'learnerName', 'examTitle', 'role'], array_column($exams['columns'], 'field'));
+		$this->assertSame(
+			expected: ['sittingStartsAt', 'learnerName', 'examTitle', 'sittingRoom', 'role'],
+			actual: array_column(array: $exams['columns'], column_key: 'field')
+		);
 		foreach (array_column($exams['columns'], 'field') as $field) {
 			$this->assertContains($field, $exams['fields'], $field);
 		}

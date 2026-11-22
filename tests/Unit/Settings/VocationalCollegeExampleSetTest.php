@@ -797,6 +797,7 @@ class VocationalCollegeExampleSetTest extends TestCase {
 		$exam = self::by(self::of('exam'), 'uuid')[$sitting['assessmentId']];
 		$learners = self::by(self::of('learner-profile'), 'uuid');
 		$assessors = self::by(self::of('external-assessor'), 'uuid');
+		$rooms = self::by(rows: self::of(schema: 'room'), field: 'uuid');
 
 		$roles = [];
 		foreach ($assignments as $assignment) {
@@ -806,6 +807,9 @@ class VocationalCollegeExampleSetTest extends TestCase {
 			self::assertSame($learner['givenName'] . ' ' . $learner['familyName'], $assignment['learnerName'], $assignment['slug']);
 			self::assertSame($sitting['startsAt'], $assignment['sittingStartsAt'], $assignment['slug']);
 			self::assertSame($exam['title'], $assignment['examTitle'], $assignment['slug']);
+			// His day reads the sitting's end and its room off the row (practical-exam-assessment T5).
+			self::assertSame(expected: $sitting['endsAt'], actual: $assignment['sittingEndsAt'], message: $assignment['slug']);
+			self::assertSame(expected: $rooms[$sitting['roomIds'][0]]['name'], actual: $assignment['sittingRoom'], message: $assignment['slug']);
 			$roles[$assignment['learnerRef']][$assignment['role']] = $assignment['externalAssessorId'];
 		}
 

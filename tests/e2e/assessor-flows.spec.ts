@@ -355,6 +355,7 @@ const EXAM_ASSESSOR = {
 	organisationName: `Examinering Zuiddrecht (${RUN})`,
 }
 const EXAM_TITLE = `Proeve installatietechniek (${RUN})`
+const ROOM_NAME = `Werkplaats W2 (${RUN})`
 
 test.describe('assessor: the practical exams he is assigned to', () => {
 	test.skip(
@@ -426,6 +427,14 @@ test.describe('assessor: the practical exams he is assigned to', () => {
 			tenant_id: TENANT,
 		})
 
+		// The room his day names beside each exam (practical-exam-assessment T5).
+		const room = await createRow(admin, created, 'learniq', 'room', {
+			name: ROOM_NAME,
+			code: `W2-${RUN}`,
+			capacity: 12,
+			tenant_id: TENANT,
+		})
+
 		// Three sittings today with an assignment for him, a fourth for the other assessor only.
 		for (const [index, hour] of ['09', '11', '13', '15'].entries()) {
 			const sitting = await createRow(admin, created, 'learniq', 'exam-sitting', {
@@ -433,7 +442,7 @@ test.describe('assessor: the practical exams he is assigned to', () => {
 				assessmentId: String(exam.id),
 				startsAt: `${today}T${hour}:00:00+01:00`,
 				endsAt: `${today}T${hour}:45:00+01:00`,
-				roomIds: [],
+				roomIds: [String(room.id)],
 				headcount: 1,
 				lifecycle: 'planned',
 				tenant_id: TENANT,
@@ -500,6 +509,9 @@ test.describe('assessor: the practical exams he is assigned to', () => {
 		expect(String(first?.examTitle ?? '')).toBe(EXAM_TITLE)
 		expect(String(first?.learnerName ?? '')).not.toBe('')
 		expect(String(first?.sittingStartsAt ?? '')).not.toBe('')
+		// His day also reads when the exam ends and where it is held.
+		expect(String(first?.sittingEndsAt ?? '')).not.toBe('')
+		expect(String(first?.sittingRoom ?? '')).toBe(ROOM_NAME)
 
 		await openRoute(examiner.page, PORTAL, 'learniq/eaExams')
 		await expect(examiner.page.getByText(EXAM_TITLE).first()).toBeVisible({ timeout: 20_000 })
