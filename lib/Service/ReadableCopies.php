@@ -60,7 +60,13 @@ class ReadableCopies implements ReadableCopiesInterface {
 		'portfolio-share' => ['portfolioTitle' => null, 'learnerName' => null, 'wholePortfolioId' => null],
 		// The assessor's exam list reads time, candidate and exam off the row (practical-exam-assessment);
 		// his day also reads when the sitting ends and its room.
-		'exam-assessor-assignment' => ['learnerName' => null, 'sittingStartsAt' => null, 'examTitle' => null, 'sittingEndsAt' => null, 'sittingRoom' => null],
+		'exam-assessor-assignment' => [
+			'learnerName'     => null,
+			'sittingStartsAt' => null,
+			'examTitle'       => null,
+			'sittingEndsAt'   => null,
+			'sittingRoom'     => null,
+		],
 		'teacher-availability' => ['teacherName' => null],
 		// The line under a child's name in the guardian's menu (school-portals-use-the-new-blocks).
 		// With the group's teacher for the child page's "Bericht aan {teacherName}" (wilgenboom/Detail).
@@ -324,7 +330,7 @@ class ReadableCopies implements ReadableCopiesInterface {
 	 *
 	 * @param array<string, mixed> $row The assignment as it will be stored.
 	 *
-	 * @return array{learnerName: string|null, sittingStartsAt: string|null, examTitle: string|null, sittingEndsAt: string|null, sittingRoom: string|null}
+	 * @return array<string, string|null> learnerName, sittingStartsAt, examTitle, sittingEndsAt and sittingRoom.
 	 *
 	 * @throws \Throwable When OpenRegister cannot be read.
 	 *

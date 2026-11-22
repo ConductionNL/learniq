@@ -84,9 +84,12 @@ class ExamAssignmentCopiesTest extends TestCase {
 		$copies = $this->copies();
 
 		self::assertTrue($copies->covers('exam-assessor-assignment'));
-		self::assertSame(['learnerName', 'sittingStartsAt', 'examTitle', 'sittingEndsAt', 'sittingRoom'], $copies->fields('exam-assessor-assignment'));
 		self::assertSame(
-			[
+			expected: ['learnerName', 'sittingStartsAt', 'examTitle', 'sittingEndsAt', 'sittingRoom'],
+			actual: $copies->fields(slug: 'exam-assessor-assignment')
+		);
+		self::assertSame(
+			expected: [
 				'learnerName' => 'Daan de Vries',
 				'sittingStartsAt' => '2026-11-16T09:00:00+01:00',
 				'examTitle' => 'Storingen zoeken aan warmtepompen',
@@ -94,9 +97,9 @@ class ExamAssignmentCopiesTest extends TestCase {
 				// The sitting's rooms in its own order; a room that cannot be read is left out.
 				'sittingRoom' => 'Werkplaats W2, Werkplaats W3',
 			],
-			$copies->derive(
-				'exam-assessor-assignment',
-				['learnerRef' => self::DAAN, 'examSittingId' => self::SITTING, 'learnerName' => 'Sent by the client', 'sittingRoom' => 'Sent by the client']
+			actual: $copies->derive(
+				slug: 'exam-assessor-assignment',
+				row: ['learnerRef' => self::DAAN, 'examSittingId' => self::SITTING, 'learnerName' => 'Sent by the client', 'sittingRoom' => 'Sent by the client']
 			)
 		);
 	}//end testTheAssignmentReadsItsCandidateStartAndExam()
@@ -107,11 +110,11 @@ class ExamAssignmentCopiesTest extends TestCase {
 	 * @return void
 	 */
 	public function testASittingWithoutAnEndOrANamedRoomLeavesThoseCopiesEmpty(): void {
-		$derived = $this->copies()->derive('exam-assessor-assignment', ['learnerRef' => self::DAAN, 'examSittingId' => 'sitting-no-rooms']);
+		$derived = $this->copies()->derive(slug: 'exam-assessor-assignment', row: ['learnerRef' => self::DAAN, 'examSittingId' => 'sitting-no-rooms']);
 
-		self::assertSame('2026-11-17T09:00:00+01:00', $derived['sittingStartsAt']);
-		self::assertNull($derived['sittingEndsAt']);
-		self::assertNull($derived['sittingRoom']);
+		self::assertSame(expected: '2026-11-17T09:00:00+01:00', actual: $derived['sittingStartsAt']);
+		self::assertNull(actual: $derived['sittingEndsAt']);
+		self::assertNull(actual: $derived['sittingRoom']);
 	}//end testASittingWithoutAnEndOrANamedRoomLeavesThoseCopiesEmpty()
 
 	/**

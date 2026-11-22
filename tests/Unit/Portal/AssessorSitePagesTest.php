@@ -209,14 +209,14 @@ class AssessorSitePagesTest extends TestCase {
 	 */
 	public function testHisDayListsTodaysExamsWithTimeCandidateExamAndRoom(): void {
 		$contribution = (new AssessorSitePages())->contribution();
-		$overview = array_column($contribution['pages'], null, 'id')['eaOverview'];
+		$overview = array_column(array: $contribution['pages'], column_key: null, index_key: 'id')['eaOverview'];
 		$today = $overview['blocks'][0];
 
-		self::assertSame('calendar', $today['type']);
-		self::assertSame('day', $today['range']);
-		self::assertSame('Your exams today', $today['label']);
+		self::assertSame(expected: 'calendar', actual: $today['type']);
+		self::assertSame(expected: 'day', actual: $today['range']);
+		self::assertSame(expected: 'Your exams today', actual: $today['label']);
 		self::assertSame(
-			[
+			expected: [
 				[
 					'collection' => 'eaExams',
 					'startField' => 'sittingStartsAt',
@@ -226,21 +226,24 @@ class AssessorSitePagesTest extends TestCase {
 					'noteField' => 'sittingRoom',
 				],
 			],
-			$today['sources']
+			actual: $today['sources']
 		);
 
 		// The source is his own live assignments: scoped by his claim, a withdrawn one grants nothing.
 		$exams = self::collections()['eaExams'];
-		self::assertSame('externalAssessorId', $exams['scopeField']);
-		self::assertSame(['lifecycle' => 'assigned'], $exams['filter']);
+		self::assertSame(expected: 'externalAssessorId', actual: $exams['scopeField']);
+		self::assertSame(expected: ['lifecycle' => 'assigned'], actual: $exams['filter']);
 		foreach (['sittingStartsAt', 'sittingEndsAt', 'learnerName', 'examTitle', 'sittingRoom'] as $field) {
-			self::assertContains($field, $exams['fields'], $field);
+			self::assertContains(needle: $field, haystack: $exams['fields'], message: $field);
 		}
 
 		// Every field the calendar reads is a readable copy the server stamps on the assignment.
-		$copies = new ReadableCopies(objectService: $this->createMock(ObjectService::class), users: $this->createMock(IUserManager::class));
+		$copies = new ReadableCopies(
+			objectService: $this->createMock(originalClassName: ObjectService::class),
+			users: $this->createMock(originalClassName: IUserManager::class)
+		);
 		foreach (['sittingStartsAt', 'sittingEndsAt', 'learnerName', 'examTitle', 'sittingRoom'] as $field) {
-			self::assertContains($field, $copies->fields('exam-assessor-assignment'), $field);
+			self::assertContains(needle: $field, haystack: $copies->fields(slug: 'exam-assessor-assignment'), message: $field);
 		}
 	}//end testHisDayListsTodaysExamsWithTimeCandidateExamAndRoom()
 
