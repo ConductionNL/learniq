@@ -3,8 +3,8 @@
 //
 // A user on the Dutch locale reads learniq in Dutch: every English string of
 // the catalogue has a Dutch value, in the server catalogue (nl.json) and the
-// browser catalogue (nl.js) alike; every schema name the catalogue carries
-// has a Dutch name; and every notification rule of the register carries an
+// browser catalogue (nl.js) alike; every schema name of the register
+// is in the catalogue with a Dutch name; and every notification rule of the register carries an
 // `nl` subject, which OpenRegister sends to a user whose language is Dutch.
 //
 // Run via `node --test tests/unit-js/` (package.json `test:js-unit`).
@@ -68,13 +68,15 @@ test('every string of the browser catalogue has a Dutch value, so the screens re
 	assert.deepEqual(untranslated(english, browserCatalogue('l10n/nl.js')), [])
 })
 
-test('every schema name in the catalogue has a Dutch name for its forms', () => {
+test('every schema name of the register is in the catalogue and has a Dutch name for its forms', () => {
 	const english = json('l10n/en.json').translations
 	const dutch = json('l10n/nl.json').translations
 	const schemas = Object.values(json('lib/Settings/learniq_register.json').components.schemas)
-	const named = schemas.map((schema) => schema.title).filter((title) => title in english)
-	assert.ok(named.length > 50, 'the register\'s schema names are read')
-	assert.deepEqual(named.filter((title) => !dutch[title]), [])
+	const titles = schemas.map((schema) => schema.title).filter((title) => typeof title === 'string' && title !== '')
+	assert.ok(titles.length > 150, 'the register\'s schema names are read')
+	// A title missing from the English catalogue is a key no translation is looked up for.
+	assert.deepEqual(titles.filter((title) => !(title in english)), [])
+	assert.deepEqual(titles.filter((title) => typeof dutch[title] !== 'string' || dutch[title].trim() === ''), [])
 })
 
 test('Scenario "A Dutch parent gets a notification": every notification rule carries an nl subject', () => {
