@@ -243,6 +243,22 @@
         [
             "registerEventListener",
             [
+                "OCA\\OpenRegister\\Event\\ObjectCreatingEvent",
+                "OCA\\Learniq\\Listener\\AdmissionAdviceStamp",
+                "int"
+            ]
+        ],
+        [
+            "registerEventListener",
+            [
+                "OCA\\OpenRegister\\Event\\ObjectUpdatingEvent",
+                "OCA\\Learniq\\Listener\\AdmissionAdviceStamp",
+                "int"
+            ]
+        ],
+        [
+            "registerEventListener",
+            [
                 "OCA\\OpenRegister\\Event\\ObjectUpdatingEvent",
                 "OCA\\Learniq\\Listener\\AssessmentAttemptTimeLimitListener",
                 "int"
