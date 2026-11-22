@@ -10,6 +10,7 @@
 
 - [x] 2.1a Add the Join action to `MyTimetable.vue`; the session detail and edit form show the field from the schema (design D3); the feed event carries it as `URL`. Verify: node test `tests/unit-js/onlineLesson.test.mjs`, `TimetableFeedControllerTest`.
 - [ ] 2.1b Verify: Playwright flow set a link, join from the timetable.
+  - Written: `tests/e2e/online-lesson-link.spec.ts` (Join opens the meeting in a new tab, a lesson without a link shows no Join, a `javascript:` link is refused on save). Not run here; tick after a run on an instance.
 
 ## 3. Close out
 

@@ -10,6 +10,7 @@
 
 - [x] 2.1a Show slots and the overlap warning in the picker (D4). Verify: node test `tests/unit-js/electiveSlots.test.mjs` for the overlap logic; `ElectiveSlotsControllerTest` for the slots route.
 - [ ] 2.1b Verify: Playwright flow choose two overlapping electives.
+  - Written: `tests/e2e/elective-overlap-picker.spec.ts` (two electives on Tuesday 10:30 warn in the picker, a chosen elective of another group shows in My timetable, a lesson reached through the group and an enrolment shows once, a withdrawn enrolment leaves). Not run here; tick after a run on an instance.
 
 ## 3. Close out
 
