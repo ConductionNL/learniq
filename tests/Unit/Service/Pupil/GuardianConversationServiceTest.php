@@ -118,6 +118,41 @@ class GuardianConversationServiceTest extends TestCase {
 	}//end testTheTeacherReadsTheConversationAboutThePupil()
 
 	/**
+	 * A thread the pupil started from her own enrolment shows beside her guardians' thread;
+	 * another pupil's enrolment thread does not.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/portal-message-contacts/tasks.md#T4
+	 */
+	public function testThePupilsOwnThreadFromHerEnrolmentShows(): void {
+		$this->reader->method('ofPupil')->with('enrolment', 'vera')->willReturn([['id' => 'enrolment-vera', 'learnerId' => 'vera']]);
+		$this->messages->method('threads')->with('daan')->willReturn([
+			['id' => 't-guardian', 'recordRef' => 'profile-vera'],
+			['id' => 't-pupil', 'recordRef' => 'enrolment-vera'],
+			['id' => 't-other', 'recordRef' => 'enrolment-other'],
+		]);
+		$this->messages->method('messages')->willReturnCallback(
+			static fn (string $threadId, string $staffRef): ?array => match ($threadId) {
+				't-guardian' => [
+					['id' => 'm1', 'senderRef' => 'guardian-fatima', 'body' => 'Moet Vera de topografie kennen?', 'sentAt' => '2026-09-27T19:00:00+00:00'],
+				],
+				't-pupil' => [
+					['id' => 'm2', 'senderRef' => 'vera', 'body' => 'Mag ik mijn spreekbeurt verschuiven?', 'sentAt' => '2026-09-28T08:00:00+00:00'],
+				],
+				default => [
+					['id' => 'm3', 'senderRef' => 'someone', 'body' => 'Niet over Vera.', 'sentAt' => '2026-09-28T10:00:00+00:00'],
+				],
+			}
+		);
+
+		$result = $this->service()->read(user: $this->user, learnerId: 'vera');
+
+		$this->assertSame(expected: ['m1', 'm2'], actual: array_column($result['messages'], 'id'));
+		$this->assertTrue(condition: $result['canReply']);
+	}//end testThePupilsOwnThreadFromHerEnrolmentShows()
+
+	/**
 	 * A member of staff who takes part in no thread about the pupil reads nothing and cannot reply.
 	 *
 	 * @return void
