@@ -312,8 +312,8 @@
       "type": "library",
       "name": "helper-create-class-features-plugin",
       "group": "@babel",
-      "version": "7.29.7",
-      "bom-ref": "learniq@0.1.0|@babel/helper-create-class-features-plugin@7.29.7",
+      "version": "7.29.13",
+      "bom-ref": "learniq@0.1.0|@babel/helper-create-class-features-plugin@7.29.13",
       "licenses": [
         {
           "license": {
@@ -321,15 +321,15 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40babel/helper-create-class-features-plugin@7.29.7",
+      "purl": "pkg:npm/%40babel/helper-create-class-features-plugin@7.29.13",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/@babel/helper-create-class-features-plugin/-/helper-create-class-features-plugin-7.29.7.tgz",
+          "url": "https://registry.npmjs.org/@babel/helper-create-class-features-plugin/-/helper-create-class-features-plugin-7.29.13.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "218dd90fd4e6a28aabdd35217370d45b18aea3cc71d4358b85de4cee143e65625a9aa33605b6a5ac125bd8c8ac48ba18a2b3a3ef9534dea50b0b141363daf786"
+              "content": "7e8f3f16be38fc3315ef51508e4fc70343699aeddba390c5a164c25b5761511f15c773457c055e132d136dc069b787be85dd9085d996826b291e8ffd8968fc44"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -686,8 +686,8 @@
       "type": "library",
       "name": "helper-skip-transparent-expression-wrappers",
       "group": "@babel",
-      "version": "7.29.7",
-      "bom-ref": "learniq@0.1.0|@babel/helper-skip-transparent-expression-wrappers@7.29.7",
+      "version": "7.29.13",
+      "bom-ref": "learniq@0.1.0|@babel/helper-skip-transparent-expression-wrappers@7.29.13",
       "licenses": [
         {
           "license": {
@@ -695,15 +695,15 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40babel/helper-skip-transparent-expression-wrappers@7.29.7",
+      "purl": "pkg:npm/%40babel/helper-skip-transparent-expression-wrappers@7.29.13",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/@babel/helper-skip-transparent-expression-wrappers/-/helper-skip-transparent-expression-wrappers-7.29.7.tgz",
+          "url": "https://registry.npmjs.org/@babel/helper-skip-transparent-expression-wrappers/-/helper-skip-transparent-expression-wrappers-7.29.13.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "6eb70c190695cc87946feebf6ecd40bf47fc62e34d8ca636272bdf442b05b85b1d29c70443919eb36cbbe03ef8359d51cfc94a27d92c2647eac10149fe2344c9"
+              "content": "01b9b8aca207d2d9826b224bc1ca1e3a4773a585298536cee767c78721011e7ed2d11fa78b87a934b23ff27ab52f40cdd81974bb9aa68169b63a0ff3e1f05bf9"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -1026,8 +1026,8 @@
       "type": "library",
       "name": "plugin-bugfix-safari-rest-destructuring-rhs-array",
       "group": "@babel",
-      "version": "7.29.7",
-      "bom-ref": "learniq@0.1.0|@babel/plugin-bugfix-safari-rest-destructuring-rhs-array@7.29.7",
+      "version": "7.29.13",
+      "bom-ref": "learniq@0.1.0|@babel/plugin-bugfix-safari-rest-destructuring-rhs-array@7.29.13",
       "licenses": [
         {
           "license": {
@@ -1035,15 +1035,15 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40babel/plugin-bugfix-safari-rest-destructuring-rhs-array@7.29.7",
+      "purl": "pkg:npm/%40babel/plugin-bugfix-safari-rest-destructuring-rhs-array@7.29.13",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/@babel/plugin-bugfix-safari-rest-destructuring-rhs-array/-/plugin-bugfix-safari-rest-destructuring-rhs-array-7.29.7.tgz",
+          "url": "https://registry.npmjs.org/@babel/plugin-bugfix-safari-rest-destructuring-rhs-array/-/plugin-bugfix-safari-rest-destructuring-rhs-array-7.29.13.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "a013550af9cee6d343fb14a8a56bd5f163467e94df80fe19aff6175d28fccdf99c3e4b69e4abbf69996c228c20483e1f8e68079fab06981f403d5b14e7339d84"
+              "content": "ed1a4480566af713511ec5b03cb150a633ce8b4644084d906563017acfaf80aec4d3692b8ce7cf898b671d32141769c20f278224fbd2023d003f835355fe21b3"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -1400,8 +1400,8 @@
       "type": "library",
       "name": "plugin-transform-block-scoping",
       "group": "@babel",
-      "version": "7.29.7",
-      "bom-ref": "learniq@0.1.0|@babel/plugin-transform-block-scoping@7.29.7",
+      "version": "7.29.15",
+      "bom-ref": "learniq@0.1.0|@babel/plugin-transform-block-scoping@7.29.15",
       "licenses": [
         {
           "license": {
@@ -1409,15 +1409,15 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40babel/plugin-transform-block-scoping@7.29.7",
+      "purl": "pkg:npm/%40babel/plugin-transform-block-scoping@7.29.15",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/@babel/plugin-transform-block-scoping/-/plugin-transform-block-scoping-7.29.7.tgz",
+          "url": "https://registry.npmjs.org/@babel/plugin-transform-block-scoping/-/plugin-transform-block-scoping-7.29.15.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "38dcabe3e01984a87cc8a5889d5c54f405c0f446ecc9e2dc2fa574749cba336ffadafbafa469b6f73ceeca66d3a5d738e75184a4321d0323cb3f7afe3fad7229"
+              "content": "8df25630d398c49510dd531d305d0aa663daba048a45bc0b62ac4cf141ce81aee32a795b85ed7cca104ac2202468e5abc66c5eb0e363021b44a93ca7dab076aa"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -1468,8 +1468,8 @@
       "type": "library",
       "name": "plugin-transform-class-static-block",
       "group": "@babel",
-      "version": "7.29.7",
-      "bom-ref": "learniq@0.1.0|@babel/plugin-transform-class-static-block@7.29.7",
+      "version": "7.29.14",
+      "bom-ref": "learniq@0.1.0|@babel/plugin-transform-class-static-block@7.29.14",
       "licenses": [
         {
           "license": {
@@ -1477,15 +1477,15 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40babel/plugin-transform-class-static-block@7.29.7",
+      "purl": "pkg:npm/%40babel/plugin-transform-class-static-block@7.29.14",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/@babel/plugin-transform-class-static-block/-/plugin-transform-class-static-block-7.29.7.tgz",
+          "url": "https://registry.npmjs.org/@babel/plugin-transform-class-static-block/-/plugin-transform-class-static-block-7.29.14.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "9226c982611d5f688cc2c1d8dad499343823f0fc08942433ec52bd2ae18a3bccecba8530484868367355a7f7a6296adb6381de3ba9245df74ca9128a297066d8"
+              "content": "e2bafa58a4aef43ccc62971395b8c7c3a845464d06932b370f9e26a8d138b4ec98405393adfdd10619ed607eb679cfdf6ef80611501387972a1998ccd9873783"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -1502,8 +1502,8 @@
       "type": "library",
       "name": "plugin-transform-classes",
       "group": "@babel",
-      "version": "7.29.7",
-      "bom-ref": "learniq@0.1.0|@babel/plugin-transform-classes@7.29.7",
+      "version": "7.29.11",
+      "bom-ref": "learniq@0.1.0|@babel/plugin-transform-classes@7.29.11",
       "licenses": [
         {
           "license": {
@@ -1511,15 +1511,15 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40babel/plugin-transform-classes@7.29.7",
+      "purl": "pkg:npm/%40babel/plugin-transform-classes@7.29.11",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/@babel/plugin-transform-classes/-/plugin-transform-classes-7.29.7.tgz",
+          "url": "https://registry.npmjs.org/@babel/plugin-transform-classes/-/plugin-transform-classes-7.29.11.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "a95d0e18605569c76ecd01c4eb8f49c829de38523f99a4fe60ab0ef8ae188b7c6fdb04cf36333f5b6a3681dcccc04019cfb7d73531c07b435c4a0df46c837af6"
+              "content": "7fc9130ccfe74efa4b79a7dbf932788dba05aff63705b0be43380fa4f1b348a26a58b9e3f4b5b458baafe17280d752d7e6cafe120bcb13a231dd8b0212eb2877"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -1570,8 +1570,8 @@
       "type": "library",
       "name": "plugin-transform-destructuring",
       "group": "@babel",
-      "version": "7.29.7",
-      "bom-ref": "learniq@0.1.0|@babel/plugin-transform-destructuring@7.29.7",
+      "version": "7.29.13",
+      "bom-ref": "learniq@0.1.0|@babel/plugin-transform-destructuring@7.29.13",
       "licenses": [
         {
           "license": {
@@ -1579,15 +1579,15 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40babel/plugin-transform-destructuring@7.29.7",
+      "purl": "pkg:npm/%40babel/plugin-transform-destructuring@7.29.13",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/@babel/plugin-transform-destructuring/-/plugin-transform-destructuring-7.29.7.tgz",
+          "url": "https://registry.npmjs.org/@babel/plugin-transform-destructuring/-/plugin-transform-destructuring-7.29.13.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "88f5fc683e87f73579b3b66ca9374da1c3cdfcc190e6c48c9c494aae4b718c944c9c1da337fd69dbe47b1a47c3e82018a1516acb90385e748851e1a0273216a6"
+              "content": "5f699e5c1dfd34e3cf9a6b21491273c9de74857f6e0b36ec70d4305428cb0adab7eb73d9209145c4921e64fa6001ec02e7bd2fa5d7862074dc96dc1dd1052526"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -1842,8 +1842,8 @@
       "type": "library",
       "name": "plugin-transform-for-of",
       "group": "@babel",
-      "version": "7.29.7",
-      "bom-ref": "learniq@0.1.0|@babel/plugin-transform-for-of@7.29.7",
+      "version": "7.29.15",
+      "bom-ref": "learniq@0.1.0|@babel/plugin-transform-for-of@7.29.15",
       "licenses": [
         {
           "license": {
@@ -1851,15 +1851,15 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40babel/plugin-transform-for-of@7.29.7",
+      "purl": "pkg:npm/%40babel/plugin-transform-for-of@7.29.15",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/@babel/plugin-transform-for-of/-/plugin-transform-for-of-7.29.7.tgz",
+          "url": "https://registry.npmjs.org/@babel/plugin-transform-for-of/-/plugin-transform-for-of-7.29.15.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "cde4881e1d3e135526d562515c21651d062eda278935d8af2cb8e5044a7e74806edd2e759fe4996662178f19c8b70ea9cf9e829fe2af2baf0120156cc6ad8989"
+              "content": "2476b441f5441b6de0a17c15d63f074f7d4410867c9d424128d4c9fd45350307d1a98fbbc5704483d33ad536f3eb4b312a8984d8c401037be8bc46e994bf7ae1"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -2046,8 +2046,8 @@
       "type": "library",
       "name": "plugin-transform-modules-amd",
       "group": "@babel",
-      "version": "7.29.7",
-      "bom-ref": "learniq@0.1.0|@babel/plugin-transform-modules-amd@7.29.7",
+      "version": "7.29.14",
+      "bom-ref": "learniq@0.1.0|@babel/plugin-transform-modules-amd@7.29.14",
       "licenses": [
         {
           "license": {
@@ -2055,15 +2055,15 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40babel/plugin-transform-modules-amd@7.29.7",
+      "purl": "pkg:npm/%40babel/plugin-transform-modules-amd@7.29.14",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/@babel/plugin-transform-modules-amd/-/plugin-transform-modules-amd-7.29.7.tgz",
+          "url": "https://registry.npmjs.org/@babel/plugin-transform-modules-amd/-/plugin-transform-modules-amd-7.29.14.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "7f1b50a07de6e72c144887da1f41460b35aee0c72c6289f96c3dcae179ec902edff8ec90323eebb0e322e0dbef989f375b00408385027bea2fe15665a84bf27b"
+              "content": "9f40b39905f7068c8fab7a77fae75635df7d61a83d3493ca03577fd92039c0b652d91adea7c05220feae5dfc33df274960bdb271720cb2e7b0da6b5261a706d4"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -2080,8 +2080,8 @@
       "type": "library",
       "name": "plugin-transform-modules-commonjs",
       "group": "@babel",
-      "version": "7.29.7",
-      "bom-ref": "learniq@0.1.0|@babel/plugin-transform-modules-commonjs@7.29.7",
+      "version": "7.29.14",
+      "bom-ref": "learniq@0.1.0|@babel/plugin-transform-modules-commonjs@7.29.14",
       "licenses": [
         {
           "license": {
@@ -2089,15 +2089,15 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40babel/plugin-transform-modules-commonjs@7.29.7",
+      "purl": "pkg:npm/%40babel/plugin-transform-modules-commonjs@7.29.14",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/@babel/plugin-transform-modules-commonjs/-/plugin-transform-modules-commonjs-7.29.7.tgz",
+          "url": "https://registry.npmjs.org/@babel/plugin-transform-modules-commonjs/-/plugin-transform-modules-commonjs-7.29.14.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "8f4bc295dc9b3c2e5be5dc0240e276d6e2ad1f3b7b8712f28094e0f5e17549c7da8a410335fce7f785e85b9162fac7814749c2c8bdb7c5a045164abb75333c5d"
+              "content": "99bbf6cb2e5da8fe9edc36eeb02c7ee40ca95e415bc890ff2611b8fd7840f812000cec39a3b5be5f47b04a9fe1df0ee044bde8479ca7cb6fcaf258e2c9d8f8b8"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -2148,8 +2148,8 @@
       "type": "library",
       "name": "plugin-transform-modules-umd",
       "group": "@babel",
-      "version": "7.29.7",
-      "bom-ref": "learniq@0.1.0|@babel/plugin-transform-modules-umd@7.29.7",
+      "version": "7.29.14",
+      "bom-ref": "learniq@0.1.0|@babel/plugin-transform-modules-umd@7.29.14",
       "licenses": [
         {
           "license": {
@@ -2157,15 +2157,15 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40babel/plugin-transform-modules-umd@7.29.7",
+      "purl": "pkg:npm/%40babel/plugin-transform-modules-umd@7.29.14",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/@babel/plugin-transform-modules-umd/-/plugin-transform-modules-umd-7.29.7.tgz",
+          "url": "https://registry.npmjs.org/@babel/plugin-transform-modules-umd/-/plugin-transform-modules-umd-7.29.14.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "0785246932b7429802c099ebc4a7cc3ca768f7608dece297025a4002733750fbb44349420a4e7bca503d0096d1cb6bfc74328e3c001672847a08cc9ea07c1108"
+              "content": "47d0daae03b211a5e1aec64db144e87f7454c59ba94a94a6c10e7c7a661b99d51afda32b644fe62e9784663cdee119e28d4ca2bf28c99cb6bf85b54407bb32df"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -2726,8 +2726,8 @@
       "type": "library",
       "name": "plugin-transform-spread",
       "group": "@babel",
-      "version": "7.29.8",
-      "bom-ref": "learniq@0.1.0|@babel/plugin-transform-spread@7.29.8",
+      "version": "7.29.15",
+      "bom-ref": "learniq@0.1.0|@babel/plugin-transform-spread@7.29.15",
       "licenses": [
         {
           "license": {
@@ -2735,15 +2735,15 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40babel/plugin-transform-spread@7.29.8",
+      "purl": "pkg:npm/%40babel/plugin-transform-spread@7.29.15",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/@babel/plugin-transform-spread/-/plugin-transform-spread-7.29.8.tgz",
+          "url": "https://registry.npmjs.org/@babel/plugin-transform-spread/-/plugin-transform-spread-7.29.15.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "e12f64b0c195594b21be02b498a7ef664cbb95eb86e7fba8155c0ca40a2627c6cca0326234745599cd44825c16fc2986552aaa5a911b5e6f4599b462b76daaa0"
+              "content": "a518d72fb6fd681973290ec1020cdde1f6a577ccfab4f0aba45ba7d6586774c624f24dbee5c7110d59450df82c9d52b99693fcf72c9dac274cab1079b0c36272"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -2998,8 +2998,8 @@
       "type": "library",
       "name": "preset-env",
       "group": "@babel",
-      "version": "7.29.7",
-      "bom-ref": "learniq@0.1.0|@babel/preset-env@7.29.7",
+      "version": "7.29.14",
+      "bom-ref": "learniq@0.1.0|@babel/preset-env@7.29.14",
       "licenses": [
         {
           "license": {
@@ -3007,15 +3007,15 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40babel/preset-env@7.29.7",
+      "purl": "pkg:npm/%40babel/preset-env@7.29.14",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/@babel/preset-env/-/preset-env-7.29.7.tgz",
+          "url": "https://registry.npmjs.org/@babel/preset-env/-/preset-env-7.29.14.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "198cd7dfa9f59ec72221bd2ec87d061f0c70b4dc0f408729c527a254b0ed1bf07b8c1e715e07219e62f57ff8c25f9a3ea709da0c1b4eeb438d4898440497f160"
+              "content": "562823e6f953bd0554533c3981e19113b48b437c040c758fd343ccc6633cd1e58d51f2cf0abbda2adb4df9baaabba7afe20f86276e082de978b2d50df833c053"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -6136,8 +6136,8 @@
       "type": "library",
       "name": "password-confirmation",
       "group": "@nextcloud",
-      "version": "6.1.0",
-      "bom-ref": "learniq@0.1.0|@nextcloud/password-confirmation@6.1.0",
+      "version": "6.2.1",
+      "bom-ref": "learniq@0.1.0|@nextcloud/password-confirmation@6.2.1",
       "licenses": [
         {
           "license": {
@@ -6145,15 +6145,15 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40nextcloud/password-confirmation@6.1.0",
+      "purl": "pkg:npm/%40nextcloud/password-confirmation@6.2.1",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/@nextcloud/password-confirmation/-/password-confirmation-6.1.0.tgz",
+          "url": "https://registry.npmjs.org/@nextcloud/password-confirmation/-/password-confirmation-6.2.1.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "3760a15c36cf7147100a80238f5c9ceb9cdf73ad7288aa5d337aa6ff2dd8ff2fff346ed758d348370060f3996a2764884a09954ada6c4357746e5a450a841791"
+              "content": "151450d0b02c513ec8f4e1b25103a0f3a4312322d354b98121b3d6ee57ddba3f5a0ed619cabaedc878d396df1c6947ddbb643fb42afcf2f85b17386f47db8c85"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -8390,8 +8390,8 @@
       "type": "library",
       "name": "compiler-core",
       "group": "@vue",
-      "version": "3.5.45",
-      "bom-ref": "learniq@0.1.0|@vue/compiler-core@3.5.45",
+      "version": "3.5.46",
+      "bom-ref": "learniq@0.1.0|@vue/compiler-core@3.5.46",
       "licenses": [
         {
           "license": {
@@ -8399,15 +8399,15 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40vue/compiler-core@3.5.45",
+      "purl": "pkg:npm/%40vue/compiler-core@3.5.46",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/@vue/compiler-core/-/compiler-core-3.5.45.tgz",
+          "url": "https://registry.npmjs.org/@vue/compiler-core/-/compiler-core-3.5.46.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "5c61c9acceae7d901101cff0fadc8eb304adc3db5d2a2a8228149c23880668dc43f9a686bbf1d05a0289f8922d8d12cfa9e9d0ee213b1bc0090bb4f97b0d69fa"
+              "content": "c9bf8df3f9a005ca1ea8224f572248fc3dcea612eb48c5e707765050d9912d4ff57ec316e1b15f74958d8bda088fbf8403750b28a90fedbfd50a97184187a2b9"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -8424,7 +8424,7 @@
           "type": "library",
           "name": "entities",
           "version": "7.0.1",
-          "bom-ref": "learniq@0.1.0|@vue/compiler-core@3.5.45|entities@7.0.1",
+          "bom-ref": "learniq@0.1.0|@vue/compiler-core@3.5.46|entities@7.0.1",
           "licenses": [
             {
               "license": {
@@ -8459,8 +8459,8 @@
       "type": "library",
       "name": "compiler-dom",
       "group": "@vue",
-      "version": "3.5.45",
-      "bom-ref": "learniq@0.1.0|@vue/compiler-dom@3.5.45",
+      "version": "3.5.46",
+      "bom-ref": "learniq@0.1.0|@vue/compiler-dom@3.5.46",
       "licenses": [
         {
           "license": {
@@ -8468,15 +8468,15 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40vue/compiler-dom@3.5.45",
+      "purl": "pkg:npm/%40vue/compiler-dom@3.5.46",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/@vue/compiler-dom/-/compiler-dom-3.5.45.tgz",
+          "url": "https://registry.npmjs.org/@vue/compiler-dom/-/compiler-dom-3.5.46.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "2db3f6775f4648e6063e6bcc04109525596fed32ad8ccd427decaeddc6226bbdb4a649d93fed5c2d7ec7e4c55ab6faee4fa32e26188fb8d6d0056fcc0e7fc4c0"
+              "content": "063de5092c370d09c3443c70d75e57a9d2c3774fb5f0d7ed96077c3974861beb9def8871248135ede62b33e556810ad332cbc96cb87d1f37f6324c00cebbb7e9"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -8493,8 +8493,8 @@
       "type": "library",
       "name": "compiler-sfc",
       "group": "@vue",
-      "version": "3.5.45",
-      "bom-ref": "learniq@0.1.0|@vue/compiler-sfc@3.5.45",
+      "version": "3.5.46",
+      "bom-ref": "learniq@0.1.0|@vue/compiler-sfc@3.5.46",
       "licenses": [
         {
           "license": {
@@ -8502,15 +8502,15 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40vue/compiler-sfc@3.5.45",
+      "purl": "pkg:npm/%40vue/compiler-sfc@3.5.46",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/@vue/compiler-sfc/-/compiler-sfc-3.5.45.tgz",
+          "url": "https://registry.npmjs.org/@vue/compiler-sfc/-/compiler-sfc-3.5.46.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "30a1636f6517d0cfe5fe385fcea30bac8f15338a5fbc5286de9a8566449914744bb4d95dfcee11b543d91564b086ba3fd78a8ff3c5101245b31f1019010d2db3"
+              "content": "86352f3311a1f902207a0c24b1fa7a05105895e13f6bcbde647bd347ab1afa8f9b3381d4f969eb5199613745fea4372c97c2e1c266eeef6c4fbcb324dd7530a2"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -8527,8 +8527,8 @@
       "type": "library",
       "name": "compiler-ssr",
       "group": "@vue",
-      "version": "3.5.45",
-      "bom-ref": "learniq@0.1.0|@vue/compiler-ssr@3.5.45",
+      "version": "3.5.46",
+      "bom-ref": "learniq@0.1.0|@vue/compiler-ssr@3.5.46",
       "licenses": [
         {
           "license": {
@@ -8536,15 +8536,15 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40vue/compiler-ssr@3.5.45",
+      "purl": "pkg:npm/%40vue/compiler-ssr@3.5.46",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/@vue/compiler-ssr/-/compiler-ssr-3.5.45.tgz",
+          "url": "https://registry.npmjs.org/@vue/compiler-ssr/-/compiler-ssr-3.5.46.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "445e6c6d939f633e402b4d2d389527d8fc055d1d9f4b5bb61d5cc8f03f5517dac6005c6e181aa0d9b075909dd91cca6ba9296d5e74fd31913522caa348cf287b"
+              "content": "a9e6c284bdda3f49b593e4e549ff9f656bcec007f77e50428b9a3e9f4d72911dc35f899321685e165b66a22435dbecfaebfe1c19e5ea6c1d8feec3d690685035"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -8663,8 +8663,8 @@
       "type": "library",
       "name": "reactivity",
       "group": "@vue",
-      "version": "3.5.45",
-      "bom-ref": "learniq@0.1.0|@vue/reactivity@3.5.45",
+      "version": "3.5.46",
+      "bom-ref": "learniq@0.1.0|@vue/reactivity@3.5.46",
       "licenses": [
         {
           "license": {
@@ -8672,15 +8672,15 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40vue/reactivity@3.5.45",
+      "purl": "pkg:npm/%40vue/reactivity@3.5.46",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/@vue/reactivity/-/reactivity-3.5.45.tgz",
+          "url": "https://registry.npmjs.org/@vue/reactivity/-/reactivity-3.5.46.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "5aa932b9b356a48e0e6013a2a52ae322cb0c7493bc2b58bd66db3f5a6f04af5d3fd26b0e1300b25965af667008ed65b7910b13a2783a0c9a7c09b6febdde1c3c"
+              "content": "f851ed613bc6c601685f7a11b3bb28cfa2478b31afe74436e9624de8f5ad5ee4cb5d17e47d4a4351346ea1303f92265556df0d31e329b0f40b87d87ef917948d"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -8697,8 +8697,8 @@
       "type": "library",
       "name": "runtime-core",
       "group": "@vue",
-      "version": "3.5.45",
-      "bom-ref": "learniq@0.1.0|@vue/runtime-core@3.5.45",
+      "version": "3.5.46",
+      "bom-ref": "learniq@0.1.0|@vue/runtime-core@3.5.46",
       "licenses": [
         {
           "license": {
@@ -8706,15 +8706,15 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40vue/runtime-core@3.5.45",
+      "purl": "pkg:npm/%40vue/runtime-core@3.5.46",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/@vue/runtime-core/-/runtime-core-3.5.45.tgz",
+          "url": "https://registry.npmjs.org/@vue/runtime-core/-/runtime-core-3.5.46.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "6f320edfe140063a63f39b8829273e4278f7ebfb310cd237b5c1fd8bac3ac4a03593a7b47a3bf41b48cc09f78906f2b7c862f95db2770cc663f8296ac821c563"
+              "content": "78953328051a1c09ad9f2b3f97da9db8fcd49c1ad83249ac094ed337ebdb48e4a99bc91c1134fb9da70ac483b83017a3fd788eada573abe952799bfba35fff8d"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -8731,8 +8731,8 @@
       "type": "library",
       "name": "runtime-dom",
       "group": "@vue",
-      "version": "3.5.45",
-      "bom-ref": "learniq@0.1.0|@vue/runtime-dom@3.5.45",
+      "version": "3.5.46",
+      "bom-ref": "learniq@0.1.0|@vue/runtime-dom@3.5.46",
       "licenses": [
         {
           "license": {
@@ -8740,15 +8740,15 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40vue/runtime-dom@3.5.45",
+      "purl": "pkg:npm/%40vue/runtime-dom@3.5.46",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/@vue/runtime-dom/-/runtime-dom-3.5.45.tgz",
+          "url": "https://registry.npmjs.org/@vue/runtime-dom/-/runtime-dom-3.5.46.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "66f45314c0e07ea4c3616bc97e8569413271d5137933a97b3f277ac1f758d8d697cdb3d0561f5ecde41815b34f3fa6c8711567d92a92491db937f8d25baf4117"
+              "content": "e8bee56c1bd74d804516322ddb96b4a607699a7dcdb3c46a52735589b4731786e0ca2589bea3a12845793176162a50adb5913768678937c9af7a8fba22b20a5c"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -8765,8 +8765,8 @@
       "type": "library",
       "name": "server-renderer",
       "group": "@vue",
-      "version": "3.5.45",
-      "bom-ref": "learniq@0.1.0|@vue/server-renderer@3.5.45",
+      "version": "3.5.46",
+      "bom-ref": "learniq@0.1.0|@vue/server-renderer@3.5.46",
       "licenses": [
         {
           "license": {
@@ -8774,15 +8774,15 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40vue/server-renderer@3.5.45",
+      "purl": "pkg:npm/%40vue/server-renderer@3.5.46",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/@vue/server-renderer/-/server-renderer-3.5.45.tgz",
+          "url": "https://registry.npmjs.org/@vue/server-renderer/-/server-renderer-3.5.46.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "d5f357507861b167f81152f85e2c5b18153998a76221724007cd9f787453c8f3e8e99504616209b8479497799557a403069e741c9397e286cb87161796b8ebcc"
+              "content": "e2673461644473a399e690c28a0bca3c3cc8515f9a722887f76cafc934bac5a1c7c56ffcd2b31c790427d75a587bb384101b76610818591f7317c405df418951"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -8799,8 +8799,8 @@
       "type": "library",
       "name": "shared",
       "group": "@vue",
-      "version": "3.5.45",
-      "bom-ref": "learniq@0.1.0|@vue/shared@3.5.45",
+      "version": "3.5.46",
+      "bom-ref": "learniq@0.1.0|@vue/shared@3.5.46",
       "licenses": [
         {
           "license": {
@@ -8808,15 +8808,15 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40vue/shared@3.5.45",
+      "purl": "pkg:npm/%40vue/shared@3.5.46",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/@vue/shared/-/shared-3.5.45.tgz",
+          "url": "https://registry.npmjs.org/@vue/shared/-/shared-3.5.46.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "b9ef5f80799534f94fee25b7f9cc68057fc29e5c39ddd1e5552c3424a198eb3d6539b83ca47a23f76f0cda7cc6e3fc95b0c67735a459dacdb3eb5b82d7a343c1"
+              "content": "3f559e3db7731eb7087225ad998d889bd10585d6a4777ad9c58aaf6a539add27e8c6d177e50f148668f5b4a9fa6d63f8bad70ea4df1aa3a06825422dab451ffa"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -10509,8 +10509,8 @@
     {
       "type": "library",
       "name": "axe-core",
-      "version": "4.13.0",
-      "bom-ref": "learniq@0.1.0|axe-core@4.13.0",
+      "version": "4.14.1",
+      "bom-ref": "learniq@0.1.0|axe-core@4.14.1",
       "licenses": [
         {
           "license": {
@@ -10518,15 +10518,15 @@
           }
         }
       ],
-      "purl": "pkg:npm/axe-core@4.13.0",
+      "purl": "pkg:npm/axe-core@4.14.1",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/axe-core/-/axe-core-4.13.0.tgz",
+          "url": "https://registry.npmjs.org/axe-core/-/axe-core-4.14.1.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "5331adf3383b372f1d8db60c871976cee11ebd56bbaf68098d86392f0af5c4cefe5d4da777a0a421615355c0886c03fadef4b3ef535a572cae4a4f651ca732d0"
+              "content": "1477dafa598d8d065f273d6af302aa203c02e83131707b7fa648cd41bd3d6b734f8c22a0dab86ee6a6f64b8afbe804b214d36db85a2826965edfb3a0b9d546b5"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -12215,8 +12215,8 @@
     {
       "type": "library",
       "name": "csstype",
-      "version": "3.2.3",
-      "bom-ref": "learniq@0.1.0|csstype@3.2.3",
+      "version": "3.2.4",
+      "bom-ref": "learniq@0.1.0|csstype@3.2.4",
       "licenses": [
         {
           "license": {
@@ -12224,15 +12224,15 @@
           }
         }
       ],
-      "purl": "pkg:npm/csstype@3.2.3",
+      "purl": "pkg:npm/csstype@3.2.4",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/csstype/-/csstype-3.2.3.tgz",
+          "url": "https://registry.npmjs.org/csstype/-/csstype-3.2.4.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "cf51c629c632db103c00641fc2b9f43c0cbe3c1ed7fc64a3dd45495bda8aca7e37c566be825e675e6538aaa2cc4735952c50bc2aeb145fc4ffd240a2398a4021"
+              "content": "3e829aa0fcd06a99c4a2a5129c7c75bba5ba92ef0254480ab27a669b35379b59f09227693c143c57f66adbe6d636bb0e2a828bc1319d6f1eb117b0573f5ccb55"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -22942,8 +22942,8 @@
     {
       "type": "library",
       "name": "source-map-js",
-      "version": "1.2.2",
-      "bom-ref": "learniq@0.1.0|source-map-js@1.2.2",
+      "version": "1.2.4",
+      "bom-ref": "learniq@0.1.0|source-map-js@1.2.4",
       "licenses": [
         {
           "license": {
@@ -22951,15 +22951,15 @@
           }
         }
       ],
-      "purl": "pkg:npm/source-map-js@1.2.2",
+      "purl": "pkg:npm/source-map-js@1.2.4",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/source-map-js/-/source-map-js-1.2.2.tgz",
+          "url": "https://registry.npmjs.org/source-map-js/-/source-map-js-1.2.4.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "2868fff18e37c77e5a6550edb7e27898ad61a0b18750b3187d290e0c93508cd0c2de85b53ea3e8c4cc28d292d4b1633f5041b338dfcdc5e1f2c047cd5cd3f757"
+              "content": "27b66332f1ddf4ed5f713ff9574f5059a69297605b5b1dc5e8ed3cb2975ef3635a99ff540741b145520f88d6d5b1d2a4a22cc7892a53a1da37be9d9b032f7530"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -25756,8 +25756,8 @@
     {
       "type": "library",
       "name": "vue-eslint-parser",
-      "version": "10.4.1",
-      "bom-ref": "learniq@0.1.0|vue-eslint-parser@10.4.1",
+      "version": "10.4.2",
+      "bom-ref": "learniq@0.1.0|vue-eslint-parser@10.4.2",
       "licenses": [
         {
           "license": {
@@ -25765,15 +25765,15 @@
           }
         }
       ],
-      "purl": "pkg:npm/vue-eslint-parser@10.4.1",
+      "purl": "pkg:npm/vue-eslint-parser@10.4.2",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/vue-eslint-parser/-/vue-eslint-parser-10.4.1.tgz",
+          "url": "https://registry.npmjs.org/vue-eslint-parser/-/vue-eslint-parser-10.4.2.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "1a4ea04438f49ff7e445adc2de5d1b0617a805c914abf46cd05fd3bcc5884ba9f3cf1ebb6a601588c7bd0a4360b0fdad5f240e36f1a21d01121f016d6776980c"
+              "content": "58ca73ba56f9d246fab27821ce81b34befbadb070eb33024fe9898727bf3752b4cf169e2fc19a881896da68385bf678af610db5f1bf0150827c191a902851fa4"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -25794,7 +25794,7 @@
           "type": "library",
           "name": "semver",
           "version": "7.8.5",
-          "bom-ref": "learniq@0.1.0|vue-eslint-parser@10.4.1|semver@7.8.5",
+          "bom-ref": "learniq@0.1.0|vue-eslint-parser@10.4.2|semver@7.8.5",
           "licenses": [
             {
               "license": {
@@ -26167,8 +26167,8 @@
     {
       "type": "library",
       "name": "vue",
-      "version": "3.5.45",
-      "bom-ref": "learniq@0.1.0|vue@3.5.45",
+      "version": "3.5.46",
+      "bom-ref": "learniq@0.1.0|vue@3.5.46",
       "licenses": [
         {
           "license": {
@@ -26176,15 +26176,15 @@
           }
         }
       ],
-      "purl": "pkg:npm/vue@3.5.45",
+      "purl": "pkg:npm/vue@3.5.46",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/vue/-/vue-3.5.45.tgz",
+          "url": "https://registry.npmjs.org/vue/-/vue-3.5.46.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "ddcbec89bf26f5cd2f076e3e3032ac81c5b8f836b8c5a065f59ff94db9b6a66488b113f172297871d5e35e556c989da0eb85c9a3987e21177baec7464fda596b"
+              "content": "d245b90a07e330f06a987d79f34e3d49a1359aeb9fa7e2bf672af0bd2130af0624cba401ef32f6cbc9177ebba778a6fd3b5d9e874c4024be82552a736fda342a"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
