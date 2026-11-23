@@ -3,8 +3,9 @@
 /**
  * Learniq Guardian Conversation Service
  *
- * The conversation with a pupil's guardians on the pupil's page, read and
- * answered through portaliq's staff messaging. Only a member of staff who
+ * The conversation with a pupil's guardians, and the threads the pupil
+ * started herself, on the pupil's page, read and answered through
+ * portaliq's staff messaging. Only a member of staff who
  * may open the pupil's page asks; portaliq then answers only the threads
  * they take part in, so staff who are no participant read nothing.
  *
@@ -21,6 +22,7 @@
  * @link https://conduction.nl
  *
  * @spec openspec/changes/learner-list-and-page-follow-the-boards/specs/pupil-dossier/spec.md#requirement-the-conversation-with-the-guardians-is-on-the-pupils-page
+ * @spec openspec/changes/portal-message-contacts/tasks.md#T4
  */
 
 declare(strict_types=1);
@@ -205,11 +207,16 @@ class GuardianConversationService {
 	}//end assertMayOpen()
 
 	/**
-	 * The references a thread may name the pupil by: their user id and profile id.
+	 * The references a thread may name the pupil by: their user id, profile id and enrolment ids.
+	 *
+	 * A guardian writes about the child's profile; the pupil writes from one of her own
+	 * enrolments, so the threads she started name the enrolment.
 	 *
 	 * @param string $learnerId The pupil's Nextcloud user id.
 	 *
 	 * @return array<int, string>
+	 *
+	 * @spec openspec/changes/portal-message-contacts/tasks.md#T4
 	 */
 	private function pupilRefs(string $learnerId): array {
 		$refs = [$learnerId];
@@ -217,6 +224,11 @@ class GuardianConversationService {
 		if ($profile !== null) {
 			$refs[] = $this->reader->idOf(row: $profile);
 			$refs[] = (string)($profile['uuid'] ?? '');
+		}
+
+		foreach ($this->reader->ofPupil(schema: 'enrolment', learnerId: $learnerId) as $enrolment) {
+			$refs[] = $this->reader->idOf(row: $enrolment);
+			$refs[] = (string)($enrolment['uuid'] ?? '');
 		}
 
 		return array_values(array_unique(array_filter($refs, static fn (string $ref): bool => $ref !== '')));
