@@ -7932,7 +7932,7 @@
       "name": "Keep the GDPR record of processing up to date by itself.",
       "built": {
         "state": "building",
-        "evidence": "lib/Settings/learniq_register.json only 14 of 118 schemas carry an x-openregister-processing block, so the record covers the sensitive schemas and not the whole data model Not built: only 15 of 165 schemas carry x-openregister-processing, and npm run check:register (tests/validate-register.js) does not check for the block.",
+        "evidence": "lib/Settings/learniq_register.json: every schema holding personal data carries an x-openregister-processing block (82 of 177 schemas; the others hold none); npm run check:register runs tests/validate-processing-coverage.js, which refuses a release with a personal-data schema without a complete block (tests/unit-js/processingRecordFollowsSchemas.test.mjs, tests/Unit/Settings/ProcessingCoverageTest.php). Left: the live import and export of the record in OpenRegister (governance-processing-record-every-schema 4.1).",
         "owner": "ConductionNL/openregister",
         "change": "governance-processing-record-every-schema",
         "requirement": [
