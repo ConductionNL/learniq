@@ -134,16 +134,22 @@ class GuardianConversationServiceTest extends TestCase {
 		]);
 		$this->messages->method('messages')->willReturnCallback(
 			static fn (string $threadId, string $staffRef): ?array => match ($threadId) {
-				't-guardian' => [['id' => 'm1', 'senderRef' => 'guardian-fatima', 'body' => 'Moet Vera de topografie kennen?', 'sentAt' => '2026-09-27T19:00:00+00:00']],
-				't-pupil' => [['id' => 'm2', 'senderRef' => 'vera', 'body' => 'Mag ik mijn spreekbeurt verschuiven?', 'sentAt' => '2026-09-28T08:00:00+00:00']],
-				default => [['id' => 'm3', 'senderRef' => 'someone', 'body' => 'Niet over Vera.', 'sentAt' => '2026-09-28T10:00:00+00:00']],
+				't-guardian' => [
+					['id' => 'm1', 'senderRef' => 'guardian-fatima', 'body' => 'Moet Vera de topografie kennen?', 'sentAt' => '2026-09-27T19:00:00+00:00'],
+				],
+				't-pupil' => [
+					['id' => 'm2', 'senderRef' => 'vera', 'body' => 'Mag ik mijn spreekbeurt verschuiven?', 'sentAt' => '2026-09-28T08:00:00+00:00'],
+				],
+				default => [
+					['id' => 'm3', 'senderRef' => 'someone', 'body' => 'Niet over Vera.', 'sentAt' => '2026-09-28T10:00:00+00:00'],
+				],
 			}
 		);
 
 		$result = $this->service()->read(user: $this->user, learnerId: 'vera');
 
-		$this->assertSame(['m1', 'm2'], array_column($result['messages'], 'id'));
-		$this->assertTrue($result['canReply']);
+		$this->assertSame(expected: ['m1', 'm2'], actual: array_column($result['messages'], 'id'));
+		$this->assertTrue(condition: $result['canReply']);
 	}//end testThePupilsOwnThreadFromHerEnrolmentShows()
 
 	/**
