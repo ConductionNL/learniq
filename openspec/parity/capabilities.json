@@ -7553,8 +7553,7 @@
         "change": "2026-07-16-eportfolio",
         "requirement": "openspec/specs/eportfolio :: BPV praktijkopleider and external-assessor sharing reuse the ADR-046 portal audience mechanism",
         "plan": [
-          "openspec/changes/invite-a-trainer-and-an-assessor",
-          "openspec/changes/site-external-assessor-portal-design"
+          "openspec/changes/invite-a-trainer-and-an-assessor"
         ]
       },
       "provider": "self",

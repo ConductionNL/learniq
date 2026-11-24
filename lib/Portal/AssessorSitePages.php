@@ -32,7 +32,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/site-external-assessor-portal-design/specs/portal-contribution/spec.md#requirement-an-external-assessor-lands-on-what-is-shared-with-him-and-until-when
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-an-external-assessor-lands-on-what-is-shared-with-him-and-until-when
  */
 
 declare(strict_types=1);
@@ -42,7 +42,7 @@ namespace OCA\Learniq\Portal;
 /**
  * Builds the assessor's overview and his menu.
  *
- * @spec openspec/changes/site-external-assessor-portal-design/specs/portal-contribution/spec.md#requirement-an-external-assessor-lands-on-what-is-shared-with-him-and-until-when
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-an-external-assessor-lands-on-what-is-shared-with-him-and-until-when
  */
 class AssessorSitePages {
 
@@ -301,7 +301,7 @@ class AssessorSitePages {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/site-external-assessor-portal-design/specs/portal-contribution/spec.md#requirement-new-a-share-names-its-candidate-and-portfolio
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-new-a-share-names-its-candidate-and-portfolio
 	 */
 	public function withReadableNames(array $collection): array {
 		$collection['fields'] = array_values(
@@ -324,7 +324,7 @@ class AssessorSitePages {
 	 *
 	 * @return array<int, array<string, mixed>>
 	 *
-	 * @spec openspec/changes/site-external-assessor-portal-design/specs/portal-contribution/spec.md#requirement-an-external-assessor-lands-on-what-is-shared-with-him-and-until-when
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-external-assessor-lands-on-what-is-shared-with-him-and-until-when
 	 */
 	public function pages(array $collections): array {
 		$pages = [$this->overviewPage()];
@@ -359,7 +359,7 @@ class AssessorSitePages {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/site-external-assessor-portal-design/specs/portal-contribution/spec.md#requirement-new-an-external-assessor-opens-the-shared-entries-and-only-those
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-new-an-external-assessor-opens-the-shared-entries-and-only-those
 	 */
 	public function sharePage(): array {
 		return [
@@ -391,7 +391,7 @@ class AssessorSitePages {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/site-external-assessor-portal-design/specs/portal-contribution/spec.md#requirement-an-external-assessor-lands-on-what-is-shared-with-him-and-until-when
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-external-assessor-lands-on-what-is-shared-with-him-and-until-when
 	 * @spec openspec/changes/practical-exam-assessment/specs/exam-board/spec.md#requirement-an-assessor-is-linked-to-an-exam-sitting-by-a-record
 	 */
 	private function overviewPage(): array {
