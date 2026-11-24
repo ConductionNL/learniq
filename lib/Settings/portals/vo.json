@@ -1,5 +1,5 @@
 {
-  "$comment": "Portal declaration of the vo example set (openspec/changes/example-portal-declares-its-site). Read by ExamplePortalProvisioner on every example-set load. A portal, menu, page, news item or account that already exists is never changed; only what is missing is written.",
+  "$comment": "Portal declaration of the vo example set (openspec/changes/example-portal-declares-its-site). Read by ExamplePortalProvisioner on every example-set load. A portal, menu, page, event, news item or account that already exists is never changed; only what is missing is written.",
   "set": "vo",
   "portal": {
     "slug": "vaartveld",
@@ -1077,6 +1077,28 @@
       }
     }
   ],
+  "events": [
+    {
+      "title": "Informatieavond profielkeuze, klas 3",
+      "description": "De decaan legt uit wat een profiel is en wanneer je kiest. Daarna loop je met je ouders langs de vier profielen.",
+      "start": "2026-11-03T19:30:00+01:00",
+      "end": "2026-11-03T21:00:00+01:00",
+      "location": "Aula van Zuiddrecht College, Vaartlaan 40",
+      "target": {
+        "schoolRef": "ee020001-0000-4000-8000-000000000001"
+      },
+      "rsvpEnabled": true,
+      "rsvpBy": [
+        "guardian",
+        "learner"
+      ],
+      "askSeats": true,
+      "maxSeatsPerAnswer": 3,
+      "capacity": 300,
+      "signupDeadline": "2026-10-30",
+      "authorRef": "vo-decaan-01"
+    }
+  ],
   "news": [
     {
       "title": "Informatieavond profielkeuze op dinsdag 3 november",
@@ -1087,7 +1109,8 @@
         "schoolRef": "ee020001-0000-4000-8000-000000000001"
       },
       "body": "In klas 3 kies je een profiel: de vakken waarin je examen doet. Op deze avond hoor je met je ouders hoe dat gaat en wat je met elk profiel kunt.\n\n- **Wanneer:** dinsdag 3 november 2026, 19.30 tot 21.00 uur\n- **Waar:** aula van Zuiddrecht College, Vaartlaan 40\n- **Voor wie:** leerlingen van 3 havo en 3 vwo en hun ouders\n- **Aanmelden:** tot en met vrijdag 30 oktober\n\nDe decaan legt uit wat een profiel is en wanneer je kiest. Daarna loop je langs de vier profielen. Je kiest niet op deze avond. In december en januari praat je met je mentor en de decaan. Je voorlopige keuze geef je door in februari. Een vraag? Mail de decaan, Marloes Peters, via [e-mailadres decaan].",
-      "audienceLabel": "klas 3 havo en vwo"
+      "audienceLabel": "klas 3 havo en vwo",
+      "event": "Informatieavond profielkeuze, klas 3"
     },
     {
       "title": "Toetsweek 1: het rooster staat online",

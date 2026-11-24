@@ -382,4 +382,33 @@ class ExamplePortalDeclarationsTest extends TestCase {
 		self::assertSame(['nlLinkList', 'card'], [$companies['widgetKey'], $companies['props']['display']]);
 		self::assertSame(['Inloggen als leerbedrijf', 'Leerbedrijf worden'], array_column($companies['props']['links'], 'label'));
 	}//end testTheHomesMarkTheLeadPhotoAndInviteCompaniesWithLinks()
+
+	/**
+	 * The vo set publishes the profile evening as an event a pupil answers
+	 * for herself with seats, and its news item names that event
+	 * (portaliq event-sign-up-by-a-pupil-with-seats T5).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/example-set-declares-its-events/specs/example-sets/spec.md#requirement-a-set-may-declare-events-and-a-news-item-may-name-one
+	 */
+	public function testTheVoSetDeclaresTheEveningItsNewsItemNames(): void {
+		$declaration = (new ExamplePortalDeclarations())->forSet(setId: 'vo');
+		$events      = array_column($declaration['events'], null, 'title');
+		$named       = array_values(array_filter($declaration['news'], static fn (array $item): bool => isset($item['event'])));
+
+		self::assertCount(1, $named, 'one news item names an event');
+		self::assertSame('Informatieavond profielkeuze op dinsdag 3 november', $named[0]['title']);
+		self::assertArrayHasKey($named[0]['event'], $events, 'the named event is declared');
+
+		$evening = $events[$named[0]['event']];
+		self::assertSame(['guardian', 'learner'], $evening['rsvpBy']);
+		self::assertTrue($evening['askSeats']);
+		self::assertSame(3, $evening['maxSeatsPerAnswer']);
+		self::assertSame(300, $evening['capacity']);
+		self::assertSame('2026-10-30', $evening['signupDeadline']);
+		self::assertSame('2026-11-03T19:30:00+01:00', $evening['start']);
+		self::assertSame($named[0]['target'], $evening['target'], 'the evening reaches the school the news item reaches');
+		self::assertArrayNotHasKey('status', $evening, 'the load publishes it');
+	}//end testTheVoSetDeclaresTheEveningItsNewsItemNames()
 }//end class
