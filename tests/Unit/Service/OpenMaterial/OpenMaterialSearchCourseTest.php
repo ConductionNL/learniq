@@ -31,6 +31,7 @@ use OCA\Learniq\Exception\MaterialImportRefusedException;
 use OCA\Learniq\Service\ConnectionReportService;
 use OCA\Learniq\Service\OpenMaterial\MaterialImportTarget;
 use OCA\Learniq\Service\OpenMaterial\MaterialLicenceRules;
+use OCA\Learniq\Service\OpenMaterial\OpenMaterialFileCopy;
 use OCA\Learniq\Service\OpenMaterial\OpenMaterialImportService;
 use OCA\Learniq\Service\OpenMaterial\OpenMaterialSearch;
 use OCA\Learniq\Service\OpenMaterial\OpenMaterialSettings;
@@ -71,7 +72,8 @@ class OpenMaterialSearchCourseTest extends TestCase {
 			new MaterialLicenceRules(),
 			$settings,
 			$this->createMock(MaterialImportTarget::class),
-			$this->createMock(ObjectService::class)
+			$this->createMock(ObjectService::class),
+			$this->createMock(OpenMaterialFileCopy::class)
 		);
 
 		return new OpenMaterialSearch($this->client, $imports, $settings, $this->createMock(SegmentService::class), $this->createMock(ConnectionReportService::class), $this->targets);
