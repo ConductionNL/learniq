@@ -60,6 +60,7 @@ final class PupilList {
 
 	public const CARE_PLAN = 'plan';
 	public const CARE_SUPPORT_REQUEST = 'support-request';
+	public const CARE_WITH_COORDINATOR = 'with-care-coordinator';
 
 	public const SIGNAL_ATTENDANCE_FLAG = 'attendance-flag';
 	public const SIGNAL_NEARING_THRESHOLD = 'nearing-threshold';
@@ -106,6 +107,12 @@ final class PupilList {
 	 * @var array<int, string>
 	 */
 	private const OPEN_SUPPORT_STATES = ['submitted', 'routed-to-swv', 'in-deliberation'];
+
+	/**
+	 * A support request in this state lies with the school's care coordinator,
+	 * not yet routed on: the pupil is "in gesprek met IB".
+	 */
+	private const WITH_COORDINATOR_STATE = 'submitted';
 
 	/**
 	 * Attendance-flag states that are still open.
@@ -365,12 +372,16 @@ final class PupilList {
 	}//end comingAt()
 
 	/**
-	 * The pupil's care: a running plan, else an open support request, else ''.
+	 * The pupil's care: a running plan, else a support request that lies with
+	 * the care coordinator ("in gesprek met IB"), else another open support
+	 * request, else ''.
 	 *
 	 * @param list<array<string, mixed>> $plans    The learning plans.
 	 * @param list<array<string, mixed>> $requests The support requests.
 	 *
 	 * @return string
+	 *
+	 * @spec openspec/changes/learner-list-and-page-follow-the-boards/tasks.md#T2
 	 */
 	private static function care(array $plans, array $requests): string {
 		foreach ($plans as $plan) {
@@ -379,10 +390,16 @@ final class PupilList {
 			}
 		}
 
-		foreach ($requests as $request) {
-			if (in_array($request['lifecycle'] ?? '', self::OPEN_SUPPORT_STATES, true) === true) {
-				return self::CARE_SUPPORT_REQUEST;
-			}
+		$open = array_map(
+			static fn (array $request): string => (string)($request['lifecycle'] ?? ''),
+			array_values(array_filter($requests, static fn (array $request): bool => in_array($request['lifecycle'] ?? '', self::OPEN_SUPPORT_STATES, true)))
+		);
+		if (in_array(self::WITH_COORDINATOR_STATE, $open, true) === true) {
+			return self::CARE_WITH_COORDINATOR;
+		}
+
+		if ($open !== []) {
+			return self::CARE_SUPPORT_REQUEST;
 		}
 
 		return '';

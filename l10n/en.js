@@ -4013,6 +4013,7 @@ OC.L10N.register(
         "Waiting on you": "Waiting on you",
         "Plan running": "Plan running",
         "Support requested": "Support requested",
+        "With the care coordinator": "With the care coordinator",
         "All pupils": "All pupils",
         "Absent today": "Absent today",
         "No conference time yet": "No conference time yet",

@@ -3119,11 +3119,13 @@
 						"label": "Care",
 						"enum": [
 							"plan",
-							"support-request"
+							"support-request",
+							"with-care-coordinator"
 						],
 						"enumLabels": {
 							"plan": "Plan running",
-							"support-request": "Support requested"
+							"support-request": "Support requested",
+							"with-care-coordinator": "With the care coordinator"
 						}
 					}
 				],

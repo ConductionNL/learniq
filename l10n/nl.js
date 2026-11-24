@@ -4622,6 +4622,7 @@ OC.L10N.register(
         "Waiting on you": "Wacht op jou",
         "Plan running": "Plan loopt",
         "Support requested": "Ondersteuning aangevraagd",
+        "With the care coordinator": "In gesprek met IB",
         "All pupils": "Alle leerlingen",
         "Absent today": "Afwezig vandaag",
         "No conference time yet": "Nog geen gesprekstijd",

@@ -148,10 +148,28 @@ class PupilListTest extends TestCase {
 		$this->assertSame(5.6, $row['average']);
 		$this->assertSame(3, $row['insufficientCount']);
 		$this->assertSame(PupilList::SIGNAL_INSUFFICIENT_GRADES, $row['signal']);
-		$this->assertSame(PupilList::CARE_SUPPORT_REQUEST, $row['care']);
+		$this->assertSame(PupilList::CARE_WITH_COORDINATOR, $row['care']);
 		$this->assertSame(PupilList::CONFERENCE_NONE, $row['conferenceState']);
 		$this->assertNull($row['conferenceAt']);
 	}//end testThreeInsufficientGradesAreASignal()
+
+	/**
+	 * A support request that lies with the care coordinator reads "in gesprek
+	 * met IB"; one routed on reads as requested support; a running plan wins.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/learner-list-and-page-follow-the-boards/tasks.md#T2
+	 */
+	public function testCareSaysWhereTheSupportRequestLies(): void {
+		$care = static fn (array $records): string => self::rowOf(learnerId: 'x', profile: null, todayState: TodayState::IN_CLASS, summary: null, records: $records)['care'];
+
+		$this->assertSame(expected: PupilList::CARE_WITH_COORDINATOR, actual: $care(['support-request' => [['lifecycle' => 'routed-to-swv'], ['lifecycle' => 'submitted']]]));
+		$this->assertSame(expected: PupilList::CARE_SUPPORT_REQUEST, actual: $care(['support-request' => [['lifecycle' => 'routed-to-swv'], ['lifecycle' => 'draft']]]));
+		$this->assertSame(expected: PupilList::CARE_PLAN, actual: $care(['learning-plan' => [['lifecycle' => 'active']], 'support-request' => [['lifecycle' => 'submitted']]]));
+		$this->assertSame(expected: '', actual: $care(['support-request' => [['lifecycle' => 'closed'], ['lifecycle' => 'draft']]]));
+		$this->assertTrue(condition: PupilList::inView(row: ['care' => PupilList::CARE_WITH_COORDINATOR], view: PupilList::VIEW_WITH_CARE));
+	}//end testCareSaysWhereTheSupportRequestLies()
 
 	/**
 	 * An open attendance flag wins over a nearing threshold, which wins over
