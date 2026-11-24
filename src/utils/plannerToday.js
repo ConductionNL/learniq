@@ -151,8 +151,8 @@ export function withTileBelow(config, tile, height) {
  * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-training-planner-sees-this-weeks-course-days-with-their-occupancy
  */
 export function weekStrip(answer, locale) {
-	const today = typeof answer?.today === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(answer.today) ? answer.today : ''
-	if (today === '') {
+	const today = answer ? answer.today : null
+	if (dayAndMonth(today, 'en') === '') {
 		return []
 	}
 	const byDate = courseDaysByDate(answer)
