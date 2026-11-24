@@ -23,7 +23,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/absence-reports-seen-and-ended/specs/attendance/spec.md#requirement-a-teachers-first-look-at-an-absence-report-is-recorded
+ * @spec openspec/specs/attendance/spec.md#requirement-a-teachers-first-look-at-an-absence-report-is-recorded
  */
 
 declare(strict_types=1);
@@ -40,7 +40,7 @@ use OCP\AppFramework\Utility\ITimeFactory;
 /**
  * Stamps `seenBy` / `seenAt` on the open absence reports a group teacher opens.
  *
- * @spec openspec/changes/absence-reports-seen-and-ended/specs/attendance/spec.md#requirement-a-teachers-first-look-at-an-absence-report-is-recorded
+ * @spec openspec/specs/attendance/spec.md#requirement-a-teachers-first-look-at-an-absence-report-is-recorded
  */
 class ReportSeenStamp {
 
@@ -70,7 +70,7 @@ class ReportSeenStamp {
 	 *
 	 * @return array<string, array<string, mixed>>
 	 *
-	 * @spec openspec/changes/absence-reports-seen-and-ended/specs/attendance/spec.md#scenario-juf-esra-opens-the-register
+	 * @spec openspec/specs/attendance/spec.md#scenario-juf-esra-opens-the-register
 	 */
 	public function seen(array $reports, string $userId): array {
 		foreach ($reports as $learnerId => $report) {
@@ -94,7 +94,7 @@ class ReportSeenStamp {
 	 *
 	 * @return array<string, mixed>|null
 	 *
-	 * @spec openspec/changes/absence-reports-seen-and-ended/specs/attendance/spec.md#requirement-a-teachers-first-look-at-an-absence-report-is-recorded
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-teachers-first-look-at-an-absence-report-is-recorded
 	 */
 	public function seenOne(string $reportId, string $userId): ?array {
 		if ($reportId === '' || $userId === '') {

@@ -46,7 +46,7 @@ interface PortalTenantsInterface {
 	 *
 	 * @return PortalTenant|null Null for an empty or unknown slug, and when OpenRegister cannot answer.
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
+	 * @spec openspec/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
 	 */
 	public function bySlug(string $slug): ?PortalTenant;
 }//end interface

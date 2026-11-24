@@ -23,7 +23,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
  */
 
 declare(strict_types=1);
@@ -47,7 +47,7 @@ use OCP\IRequest;
 /**
  * The employer's three writes.
  *
- * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
  */
 class PortalEmployerController extends Controller {
 
@@ -90,7 +90,7 @@ class PortalEmployerController extends Controller {
 	 *
 	 * @return JSONResponse 201, or 401 / 403 / 404 / 422 / 502.
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
 	 */
 	#[PublicPage]
 	#[NoCSRFRequired]
@@ -108,7 +108,7 @@ class PortalEmployerController extends Controller {
 	 *
 	 * @return JSONResponse 201, or 401 / 403 / 404 / 409 / 422 / 502.
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
 	 */
 	#[PublicPage]
 	#[NoCSRFRequired]
@@ -126,7 +126,7 @@ class PortalEmployerController extends Controller {
 	 *
 	 * @return JSONResponse 200, or 401 / 403 / 404 / 409 / 422 / 502.
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-supplies-a-missing-birth-date-and-never-reads-it
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-supplies-a-missing-birth-date-and-never-reads-it
 	 */
 	#[PublicPage]
 	#[NoCSRFRequired]
@@ -144,7 +144,7 @@ class PortalEmployerController extends Controller {
 	 *
 	 * @return JSONResponse 200 with the booking, or 401 / 403 / 404 / 409 (with the deadline in words) / 422 / 502.
 	 *
-	 * @spec openspec/changes/employer-substitutes-a-colleague/specs/portal-contribution/spec.md#requirement-an-employer-sends-a-colleague-in-place-of-a-participant-before-the-deadline
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-sends-a-colleague-in-place-of-a-participant-before-the-deadline
 	 */
 	#[PublicPage]
 	#[NoCSRFRequired]

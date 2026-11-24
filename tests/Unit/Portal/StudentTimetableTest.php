@@ -19,7 +19,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/site-pupil-portal-design/specs/portal-contribution/spec.md#requirement-new-a-pupil-sees-her-own-timetable
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-new-a-pupil-sees-her-own-timetable
  */
 
 declare(strict_types=1);

@@ -44,7 +44,7 @@ interface EmployerBookingStepsInterface {
 	 *
 	 * @return array<int, array{label: string, state: string, description?: string, date?: string}>
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
 	 */
 	public function forBooking(string $bookingId): array;
 }//end interface

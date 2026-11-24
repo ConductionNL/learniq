@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/absence-reports-seen-and-ended/specs/attendance/spec.md#requirement-a-teachers-first-look-at-an-absence-report-is-recorded
+ * @spec openspec/specs/attendance/spec.md#requirement-a-teachers-first-look-at-an-absence-report-is-recorded
  */
 
 declare(strict_types=1);
@@ -45,7 +45,7 @@ use Throwable;
 /**
  * The seen stamp of one absence report.
  *
- * @spec openspec/changes/absence-reports-seen-and-ended/specs/attendance/spec.md#requirement-a-teachers-first-look-at-an-absence-report-is-recorded
+ * @spec openspec/specs/attendance/spec.md#requirement-a-teachers-first-look-at-an-absence-report-is-recorded
  */
 class ExcuseRequestSeenController extends Controller {
 
@@ -79,7 +79,7 @@ class ExcuseRequestSeenController extends Controller {
 	 *
 	 * @return JSONResponse 200 with `seenBy`, `seenByName`, `seenAt` (empty when nobody saw it yet), 401 or 404.
 	 *
-	 * @spec openspec/changes/absence-reports-seen-and-ended/specs/attendance/spec.md#requirement-a-teachers-first-look-at-an-absence-report-is-recorded
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-teachers-first-look-at-an-absence-report-is-recorded
 	 * @no-admin-idor-exempt the per-object guard is the report read itself: ReportSeenStamp::seenOne() reads
 	 *  it with the session user's own OpenRegister rights (a report she cannot read answers 404), and stamps
 	 *  only when that user is in the report's teacherIds. The identity is never caller-supplied.

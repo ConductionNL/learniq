@@ -28,7 +28,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/pupil-books-support-lessons-and-mentor-talks/specs/portal-contribution/spec.md#requirement-a-pupil-reads-her-schools-open-support-lessons-and-signs-herself-up
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-a-pupil-reads-her-schools-open-support-lessons-and-signs-herself-up
  */
 
 declare(strict_types=1);
@@ -51,7 +51,7 @@ use Throwable;
 /**
  * Signs a portal pupil up for an offer's next lesson.
  *
- * @spec openspec/changes/pupil-books-support-lessons-and-mentor-talks/specs/portal-contribution/spec.md#requirement-a-pupil-reads-her-schools-open-support-lessons-and-signs-herself-up
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-a-pupil-reads-her-schools-open-support-lessons-and-signs-herself-up
  *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects) At the threshold: the sign-up reads the
  * offer, checks the rules, saves as the learner and answers in her language.
@@ -107,7 +107,7 @@ class PortalElectiveSignUp implements PortalElectiveSignUpInterface {
 	 *
 	 * @return PortalOutcome 200 `{signUpId, offerId, startsAt}`, or 404 / 422 with a reason.
 	 *
-	 * @spec openspec/changes/pupil-books-support-lessons-and-mentor-talks/specs/portal-contribution/spec.md#requirement-a-pupil-reads-her-schools-open-support-lessons-and-signs-herself-up
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-pupil-reads-her-schools-open-support-lessons-and-signs-herself-up
 	 */
 	public function signUp(PortalLearner $learner, string $offerId, ?DateTimeImmutable $now=null): PortalOutcome {
 		$now = ($now ?? new DateTimeImmutable());
@@ -170,7 +170,7 @@ class PortalElectiveSignUp implements PortalElectiveSignUpInterface {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/pupil-books-support-lessons-and-mentor-talks/specs/portal-contribution/spec.md#requirement-a-pupil-reads-her-schools-open-support-lessons-and-signs-herself-up
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-pupil-reads-her-schools-open-support-lessons-and-signs-herself-up
 	 */
 	public function message(string $reason, ?IUser $user): string {
 		$l10n = $this->l10nFactory->get(AppIdentity::APP_ID, $this->l10nFactory->getUserLanguage($user));

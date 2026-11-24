@@ -25,7 +25,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/leave-requests-decided-by-the-school/tasks.md
+ * @spec openspec/changes/archive/2026-11-24-leave-requests-decided-by-the-school/tasks.md
  */
 
 declare(strict_types=1);
@@ -45,7 +45,7 @@ use Throwable;
 /**
  * Stamps the school days and the decision deadline of a leave request.
  *
- * @spec openspec/changes/leave-requests-decided-by-the-school/specs/attendance/spec.md#requirement-a-leave-request-is-asked-in-advance-and-decided-by-the-head-of-the-school
+ * @spec openspec/specs/attendance/spec.md#requirement-a-leave-request-is-asked-in-advance-and-decided-by-the-head-of-the-school
  */
 class LeaveRequestSchoolDaysStamp implements IEventListener {
 
@@ -76,7 +76,7 @@ class LeaveRequestSchoolDaysStamp implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/leave-requests-decided-by-the-school/tasks.md
+	 * @spec openspec/changes/archive/2026-11-24-leave-requests-decided-by-the-school/tasks.md
 	 */
 	public function handle(Event $event): void {
 		if ($event instanceof ObjectCreatingEvent === false && $event instanceof ObjectUpdatingEvent === false) {

@@ -197,7 +197,7 @@ class ReadableCopies implements ReadableCopiesInterface {
 	 *
 	 * @throws \Throwable When OpenRegister cannot be read.
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-reads-only-her-own-companys-people-and-bookings
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-reads-only-her-own-companys-people-and-bookings
 	 */
 	private function participantCopies(array $row): array {
 		$learner = $this->read(schema: 'learner-profile', id: $row['learnerRef'] ?? null);

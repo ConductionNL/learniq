@@ -92,7 +92,7 @@ class CallerOrganisations implements CallerOrganisationsInterface {
 	 * @return PortalTenant|null Null for an empty slug, a slug the user does not
 	 *                           belong to, and when OpenRegister cannot answer.
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
+	 * @spec openspec/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
 	 */
 	public function tenant(string $slug): ?PortalTenant {
 		$slug = trim($slug);

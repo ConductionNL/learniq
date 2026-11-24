@@ -24,7 +24,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/permission-slips
+ * @spec openspec/changes/archive/2026-11-24-permission-slips
  */
 
 declare(strict_types=1);
@@ -34,7 +34,7 @@ namespace OCA\Learniq\Portal;
 /**
  * The guardian's permission requests and the action that answers one.
  *
- * @spec openspec/changes/permission-slips
+ * @spec openspec/changes/archive/2026-11-24-permission-slips
  */
 class ParentPermissionSlips {
 
@@ -148,7 +148,7 @@ class ParentPermissionSlips {
 	 *
 	 * @return array<int, array<string, mixed>> The collection.
 	 *
-	 * @spec openspec/changes/permission-slips
+	 * @spec openspec/changes/archive/2026-11-24-permission-slips
 	 */
 	public function collections(array $childJoin): array {
 		return [self::COLLECTION_HEAD + ['via' => $childJoin] + self::COLLECTION_TAIL];
@@ -163,7 +163,7 @@ class ParentPermissionSlips {
 	 *
 	 * @return array<int, array<string, mixed>> The action.
 	 *
-	 * @spec openspec/changes/permission-slips
+	 * @spec openspec/changes/archive/2026-11-24-permission-slips
 	 */
 	public function actions(): array {
 		$children = new ParentPortalCollections();
@@ -181,7 +181,7 @@ class ParentPermissionSlips {
 	 *
 	 * @return array<string, mixed> The tasks block.
 	 *
-	 * @spec openspec/changes/permission-slips
+	 * @spec openspec/changes/archive/2026-11-24-permission-slips
 	 */
 	public static function tasksBlock(): array {
 		return [

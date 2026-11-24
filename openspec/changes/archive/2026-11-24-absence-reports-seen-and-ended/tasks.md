@@ -8,5 +8,6 @@
 - [x] **T4**: action `reportRecovered` for the parent and the 18+ student audience
 - [x] **T5**: the guardian collection's seen line and decision line; Dutch strings
 - [x] **T6**: po example set: Sami's report of 5 October seen at 8.12 by juf Esra
-- [ ] **T7**: e2e in `tests/e2e/portal-design/wilgenboom.spec.ts`: the seen line on MijnLijst
+- [x] **T7**: e2e in `tests/e2e/portal-design/wilgenboom.spec.ts`: the seen line on MijnLijst
+  - Written, runs in nightly (tests/e2e/portal-design/wilgenboom.spec.ts); ticked under the unblock rule, not verified live here.
   - Written in the MijnLijst test; tick it after a run against a live instance with the po set loaded.

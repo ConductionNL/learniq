@@ -118,7 +118,7 @@ class ReadableCopyStampTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-reads-only-her-own-companys-people-and-bookings
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-reads-only-her-own-companys-people-and-bookings
 	 */
 	public function testAnEnrolmentNamesItsParticipantCourseAndEmployer(): void {
 		$event = new ObjectCreatingEvent(OrEntityFactory::make(['learnerRef' => 'profile-daan', 'courseId' => 'course-rekenen', 'organisationRef' => 'co-other'], 'enrolment'));

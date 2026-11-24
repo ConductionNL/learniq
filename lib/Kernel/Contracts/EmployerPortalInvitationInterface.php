@@ -51,7 +51,7 @@ interface EmployerPortalInvitationInterface {
 	 *
 	 * @return array{status: string, reason?: string, subjectRef?: string}
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
+	 * @spec openspec/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
 	 */
 	public function invite(string $organisationRef, PortalTenant $tenant, string $email=''): array;
 
@@ -68,7 +68,7 @@ interface EmployerPortalInvitationInterface {
 	 *
 	 * @return array{status: string, reason?: string, subjectRef?: string}
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
+	 * @spec openspec/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
 	 */
 	public function inviteAsCaller(string $organisationRef, PortalTenant $tenant, string $email=''): array;
 }//end interface

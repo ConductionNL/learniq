@@ -15,7 +15,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/absence-reports-seen-and-ended/tasks.md#T3
+ * @spec openspec/changes/archive/2026-11-24-absence-reports-seen-and-ended/tasks.md#T3
  */
 
 declare(strict_types=1);
@@ -31,7 +31,7 @@ namespace OCA\Learniq\Service\Attendance;
  * `startsAt`, are hours 1, 2, 3 and so on. A session that cannot be placed
  * (no start, not among the day's sessions) is in no hour. Side-effect free.
  *
- * @spec openspec/changes/absence-reports-seen-and-ended/tasks.md#T3
+ * @spec openspec/changes/archive/2026-11-24-absence-reports-seen-and-ended/tasks.md#T3
  */
 final class LessonHours {
 
@@ -52,7 +52,7 @@ final class LessonHours {
 	 *
 	 * @return array{0:int,1:int}|null The first and last hour.
 	 *
-	 * @spec openspec/changes/absence-reports-seen-and-ended/tasks.md#T3
+	 * @spec openspec/changes/archive/2026-11-24-absence-reports-seen-and-ended/tasks.md#T3
 	 */
 	public function rangeOf(array $request): ?array {
 		$from = $this->hour(value: ($request['fromLessonHour'] ?? null));
@@ -72,7 +72,7 @@ final class LessonHours {
 	 *
 	 * @return int|null The hour, or null when the session cannot be placed.
 	 *
-	 * @spec openspec/changes/absence-reports-seen-and-ended/tasks.md#T3
+	 * @spec openspec/changes/archive/2026-11-24-absence-reports-seen-and-ended/tasks.md#T3
 	 */
 	public function hourOf(string $sessionId, array $sessions): ?int {
 		$session = null;
@@ -115,7 +115,7 @@ final class LessonHours {
 	 *
 	 * @return bool False for a session that could not be placed.
 	 *
-	 * @spec openspec/changes/absence-reports-seen-and-ended/tasks.md#T3
+	 * @spec openspec/changes/archive/2026-11-24-absence-reports-seen-and-ended/tasks.md#T3
 	 */
 	public function covers(?int $hour, array $range): bool {
 		return $hour !== null && $hour >= $range[0] && $hour <= $range[1];

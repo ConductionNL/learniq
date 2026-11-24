@@ -49,7 +49,7 @@ interface PortalElectiveSignUpInterface {
 	 *
 	 * @return PortalOutcome
 	 *
-	 * @spec openspec/changes/pupil-books-support-lessons-and-mentor-talks/specs/portal-contribution/spec.md#requirement-a-pupil-reads-her-schools-open-support-lessons-and-signs-herself-up
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-pupil-reads-her-schools-open-support-lessons-and-signs-herself-up
 	 */
 	public function signUp(PortalLearner $learner, string $offerId): PortalOutcome;
 
@@ -61,7 +61,7 @@ interface PortalElectiveSignUpInterface {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/pupil-books-support-lessons-and-mentor-talks/specs/portal-contribution/spec.md#requirement-a-pupil-reads-her-schools-open-support-lessons-and-signs-herself-up
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-pupil-reads-her-schools-open-support-lessons-and-signs-herself-up
 	 */
 	public function message(string $reason, ?IUser $user): string;
 }//end interface

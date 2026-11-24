@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/participant-portal/specs/portal-contribution/spec.md#requirement-a-participant-lands-on-his-next-course-day
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-a-participant-lands-on-his-next-course-day
  */
 
 declare(strict_types=1);
@@ -153,7 +153,7 @@ class ParticipantSitePagesTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/employer-substitutes-a-colleague/specs/portal-contribution/spec.md#requirement-an-employer-sends-a-colleague-in-place-of-a-participant-before-the-deadline
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-sends-a-colleague-in-place-of-a-participant-before-the-deadline
 	 */
 	public function testHeIsToldWhenAColleagueGoesInHisPlace(): void {
 		$manifest = self::manifest();

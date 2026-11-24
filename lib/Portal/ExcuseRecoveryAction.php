@@ -15,7 +15,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/absence-reports-seen-and-ended/tasks.md#T4
+ * @spec openspec/changes/archive/2026-11-24-absence-reports-seen-and-ended/tasks.md#T4
  */
 
 declare(strict_types=1);
@@ -31,7 +31,7 @@ namespace OCA\Learniq\Portal;
  * ExcuseRecoveryGuard refuses a portal recovery of a report that already
  * has a last day, and any last day before the first day.
  *
- * @spec openspec/changes/absence-reports-seen-and-ended/tasks.md#T4
+ * @spec openspec/changes/archive/2026-11-24-absence-reports-seen-and-ended/tasks.md#T4
  */
 final class ExcuseRecoveryAction {
 
@@ -67,7 +67,7 @@ final class ExcuseRecoveryAction {
 	 *
 	 * @return array<string, mixed> The update action.
 	 *
-	 * @spec openspec/changes/absence-reports-seen-and-ended/specs/portal-contribution/spec.md#requirement-the-guardian-reads-that-the-school-saw-her-report
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-guardian-reads-that-the-school-saw-her-report
 	 */
 	public function forGuardian(array $childJoin): array {
 		return array_merge(
@@ -86,7 +86,7 @@ final class ExcuseRecoveryAction {
 	 *
 	 * @return array<string, mixed> The update action.
 	 *
-	 * @spec openspec/changes/absence-reports-seen-and-ended/specs/portal-contribution/spec.md#requirement-a-pupil-of-eighteen-reports-for-herself
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-pupil-of-eighteen-reports-for-herself
 	 */
 	public function forPupil(): array {
 		return array_merge(

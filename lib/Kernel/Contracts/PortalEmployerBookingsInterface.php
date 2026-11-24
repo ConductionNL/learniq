@@ -47,7 +47,7 @@ interface PortalEmployerBookingsInterface {
 	 *
 	 * @return PortalOutcome 201 with the booking, or 403 / 404 / 409 / 422 / 502.
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
 	 */
 	public function addParticipant(string $organisationRef, array $body): PortalOutcome;
 
@@ -59,7 +59,7 @@ interface PortalEmployerBookingsInterface {
 	 *
 	 * @return PortalOutcome 201 with the booking, or 403 / 404 / 409 / 422 / 502.
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
 	 */
 	public function book(string $organisationRef, array $body): PortalOutcome;
 
@@ -71,7 +71,7 @@ interface PortalEmployerBookingsInterface {
 	 *
 	 * @return PortalOutcome 200 `{learnerRef, detailsStatus}`, or 404 / 409 / 422 / 502.
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-supplies-a-missing-birth-date-and-never-reads-it
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-supplies-a-missing-birth-date-and-never-reads-it
 	 */
 	public function supplyBirthDate(string $organisationRef, array $body): PortalOutcome;
 
@@ -83,7 +83,7 @@ interface PortalEmployerBookingsInterface {
 	 *
 	 * @return PortalOutcome 200 with the booking, or 403 / 404 / 409 / 422 / 502.
 	 *
-	 * @spec openspec/changes/employer-substitutes-a-colleague/specs/portal-contribution/spec.md#requirement-an-employer-sends-a-colleague-in-place-of-a-participant-before-the-deadline
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-sends-a-colleague-in-place-of-a-participant-before-the-deadline
 	 */
 	public function substituteParticipant(string $organisationRef, array $body): PortalOutcome;
 }//end interface

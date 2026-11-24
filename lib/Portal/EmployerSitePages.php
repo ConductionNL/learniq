@@ -36,7 +36,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-reads-only-her-own-companys-people-and-bookings
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-reads-only-her-own-companys-people-and-bookings
  */
 
 declare(strict_types=1);
@@ -48,7 +48,7 @@ use OCA\Learniq\Kernel\Contracts\EmployerSitePagesInterface;
 /**
  * Builds the employer's collections, actions and pages.
  *
- * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-reads-only-her-own-companys-people-and-bookings
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-reads-only-her-own-companys-people-and-bookings
  */
 class EmployerSitePages implements EmployerSitePagesInterface {
 
@@ -331,7 +331,7 @@ class EmployerSitePages implements EmployerSitePagesInterface {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-reads-only-her-own-companys-people-and-bookings
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-reads-only-her-own-companys-people-and-bookings
 	 */
 	public function contribution(): array {
 		$collections = $this->collections();
@@ -355,7 +355,7 @@ class EmployerSitePages implements EmployerSitePagesInterface {
 	 *
 	 * @return array<int, array<string, mixed>>
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-reads-only-her-own-companys-people-and-bookings
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-reads-only-her-own-companys-people-and-bookings
 	 */
 	public function collections(): array {
 		$statusConfig = self::bookingFieldConfigs();
@@ -452,7 +452,7 @@ class EmployerSitePages implements EmployerSitePagesInterface {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/portal-certificates/specs/portal-contribution/spec.md#requirement-an-employer-sees-her-peoples-certificates-the-first-to-expire-first
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-sees-her-peoples-certificates-the-first-to-expire-first
 	 */
 	public function certificatesCollection(): array {
 		return $this->direct(
@@ -471,7 +471,7 @@ class EmployerSitePages implements EmployerSitePagesInterface {
 	 *
 	 * @return array<int, array<string, mixed>>
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
 	 */
 	public function actions(): array {
 		return [
@@ -534,7 +534,7 @@ class EmployerSitePages implements EmployerSitePagesInterface {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/employer-substitutes-a-colleague/specs/portal-contribution/spec.md#requirement-an-employer-sends-a-colleague-in-place-of-a-participant-before-the-deadline
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-sends-a-colleague-in-place-of-a-participant-before-the-deadline
 	 */
 	public function substituteAction(): array {
 		return $this->endpoint(
@@ -561,7 +561,7 @@ class EmployerSitePages implements EmployerSitePagesInterface {
 	 *
 	 * @return array<int, array<string, mixed>>
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-lands-on-what-waits-for-her
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-lands-on-what-waits-for-her
 	 */
 	public function pages(): array {
 		return [
@@ -579,7 +579,7 @@ class EmployerSitePages implements EmployerSitePagesInterface {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-lands-on-what-waits-for-her
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-lands-on-what-waits-for-her
 	 */
 	private function overviewPage(): array {
 		return [
@@ -609,7 +609,7 @@ class EmployerSitePages implements EmployerSitePagesInterface {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
 	 */
 	private function bookingsPage(): array {
 		return [
@@ -628,7 +628,7 @@ class EmployerSitePages implements EmployerSitePagesInterface {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/portal-certificates/specs/portal-contribution/spec.md#requirement-an-employer-sees-her-peoples-certificates-the-first-to-expire-first
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-sees-her-peoples-certificates-the-first-to-expire-first
 	 */
 	private function certificateRows(): array {
 		return [

@@ -16,13 +16,13 @@
  * in portaliq's app config, and `oidc_secret_<organisation uuid>_eherkenning`.
  *
  * @spec openspec/changes/example-portal-declares-its-site/specs/example-sets/spec.md
- * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md
- * @spec openspec/changes/portal-certificates/specs/portal-contribution/spec.md
- * @spec openspec/changes/participant-portal/specs/portal-contribution/spec.md
+ * @spec openspec/specs/portal-contribution/spec.md
+ * @spec openspec/specs/portal-contribution/spec.md
+ * @spec openspec/specs/portal-contribution/spec.md
  * @spec openspec/changes/employer-signs-in-with-eherkenning/specs/portal-identity/spec.md
  * @spec openspec/changes/portal-board-checks-run-on-a-real-instance/specs/example-sets/spec.md#requirement-the-board-checks-run-against-any-instance-that-loaded-the-sets
  * @spec openspec/changes/school-portals-match-their-boards/specs/example-sets/spec.md#requirement-the-portal-declarations-follow-their-boards
- * @spec openspec/changes/employer-substitutes-a-colleague/specs/portal-contribution/spec.md#requirement-an-employer-sends-a-colleague-in-place-of-a-participant-before-the-deadline
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-sends-a-colleague-in-place-of-a-participant-before-the-deadline
  */
 
 import { expect, request, test } from '@playwright/test'
@@ -455,7 +455,7 @@ test.describe.serial('warmtepompacademie: Linda sends a colleague instead', () =
 		await api.dispose()
 	})
 
-	// @e2e openspec/changes/employer-substitutes-a-colleague/specs/portal-contribution/spec.md#requirement-an-employer-sends-a-colleague-in-place-of-a-participant-before-the-deadline
+	// @e2e openspec/specs/portal-contribution/spec.md#requirement-an-employer-sends-a-colleague-in-place-of-a-participant-before-the-deadline
 	test('Collega in zijn plaats: the place stays, the participant is replaced', async ({
 		browser,
 	}, info) => {

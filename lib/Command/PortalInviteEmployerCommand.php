@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/employer-portal-audience/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
+ * @spec openspec/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
  */
 
 declare(strict_types=1);
@@ -39,7 +39,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 /**
  * Invites a company's contact person to the employer's portal and writes its claims.
  *
- * @spec openspec/changes/employer-portal-audience/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
+ * @spec openspec/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
  */
 class PortalInviteEmployerCommand extends Command {
 
@@ -63,7 +63,7 @@ class PortalInviteEmployerCommand extends Command {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
+	 * @spec openspec/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
 	 */
 	protected function configure(): void {
 		$this->setName(name: 'learniq:portal:invite-employer')
@@ -81,7 +81,7 @@ class PortalInviteEmployerCommand extends Command {
 	 *
 	 * @return int
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
+	 * @spec openspec/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
 	 */
 	protected function execute(InputInterface $input, OutputInterface $output): int {
 		$tenant = $this->tenants->bySlug(slug: (string)$input->getArgument('organisation'));

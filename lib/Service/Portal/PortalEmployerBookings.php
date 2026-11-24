@@ -32,7 +32,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
  */
 
 declare(strict_types=1);
@@ -52,7 +52,7 @@ use Throwable;
 /**
  * Checks and stores an employer's bookings, participants and birth dates.
  *
- * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
  */
 class PortalEmployerBookings implements PortalEmployerBookingsInterface {
 
@@ -96,7 +96,7 @@ class PortalEmployerBookings implements PortalEmployerBookingsInterface {
 	 *
 	 * @return PortalOutcome 201 with the booking, or 403 / 404 / 409 / 422 / 502.
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
 	 */
 	public function book(string $organisationRef, array $body): PortalOutcome {
 		$answers = new PortalAnswers();
@@ -148,7 +148,7 @@ class PortalEmployerBookings implements PortalEmployerBookingsInterface {
 	 *
 	 * @return PortalOutcome 201 with the booking, or 403 / 404 / 409 / 422 / 502.
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
 	 */
 	public function addParticipant(string $organisationRef, array $body): PortalOutcome {
 		$answers = new PortalAnswers();
@@ -205,7 +205,7 @@ class PortalEmployerBookings implements PortalEmployerBookingsInterface {
 	 *
 	 * @return PortalOutcome 200 `{learnerRef, detailsStatus}`, or 404 / 409 / 422 / 502.
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-supplies-a-missing-birth-date-and-never-reads-it
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-supplies-a-missing-birth-date-and-never-reads-it
 	 */
 	public function supplyBirthDate(string $organisationRef, array $body): PortalOutcome {
 		$answers = new PortalAnswers();
@@ -256,7 +256,7 @@ class PortalEmployerBookings implements PortalEmployerBookingsInterface {
 	 *
 	 * @return PortalOutcome 200 with the booking, or 404 / 409 / 422 / 502.
 	 *
-	 * @spec openspec/changes/employer-substitutes-a-colleague/specs/portal-contribution/spec.md#requirement-an-employer-sends-a-colleague-in-place-of-a-participant-before-the-deadline
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-sends-a-colleague-in-place-of-a-participant-before-the-deadline
 	 */
 	public function substituteParticipant(string $organisationRef, array $body): PortalOutcome {
 		$substituteRef = $this->text(value: ($body['substituteRef'] ?? null));
@@ -309,7 +309,7 @@ class PortalEmployerBookings implements PortalEmployerBookingsInterface {
 	 *
 	 * @return PortalOutcome|array{0: string, 1: string} The refusal, or the booking id and the replaced participant.
 	 *
-	 * @spec openspec/changes/employer-substitutes-a-colleague/tasks.md#T4
+	 * @spec openspec/changes/archive/2026-11-24-employer-substitutes-a-colleague/tasks.md#T4
 	 */
 	private function substitutionRefs(string $organisationRef, array $body): PortalOutcome|array {
 		$bookingId = $this->text(value: ($body['bookingRef'] ?? null));

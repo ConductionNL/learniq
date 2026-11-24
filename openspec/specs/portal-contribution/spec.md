@@ -755,3 +755,311 @@ The participant's overview MUST show his next course day once, as the highlight.
 - **WHEN** he opens Mijn academie
 - **THEN** the highlight shows 8 October, and "Daarna" lists 3 November
 - @e2e exclude covered by PHPUnit `ParticipantSitePagesTest::testTheNextCourseDayShowsOnce`
+
+### Requirement: A guardian asks leave for her own child and sees the decision
+
+The parent audience MUST declare an action `requestLeave` that creates a `leave-request` for one of the guardian's own children, with the server stamping `learnerRef` and `requestedByRef` from her session and never from the form, and a collection `parentLeaveRequests` of her own requests with the days, the state in words and the decision note.
+
+#### Scenario: Fatima asks leave for Vera
+- **GIVEN** Fatima is signed in with DigiD
+- **WHEN** she asks leave for Vera for a family occasion on Friday 6 November
+- **THEN** one request exists for Vera, naming Fatima, and her list shows it as "Ingediend" with the date the school will answer by
+- @e2e tests/e2e/portal-design/wilgenboom.spec.ts
+
+#### Scenario: Not her child
+- **GIVEN** a request that names a classmate of Vera
+- **WHEN** Fatima submits it
+- **THEN** it is refused and nothing is stored
+- @e2e exclude refusal asserted from the caller in the action's unit tests
+
+### Requirement: A school asks a guardian for permission, and the answer is recorded
+
+A school MUST be able to ask the guardians of a cohort or of named learners for permission, with an explanation, the date it is about and a deadline to answer by. A guardian MUST be able to answer yes or no for her own children and for nobody else's, and the answer MUST record who answered, when, and at which assurance level.
+
+#### Scenario: A guardian answers for her own child
+- GIVEN the school asked permission for the trip of Vera's group, to answer by 16 October
+- WHEN Fatima answers yes for Vera
+- THEN one response is stored for Vera, naming Fatima, the moment and the assurance of her session
+- @e2e tests/e2e/po-parent-flows.spec.ts
+
+#### Scenario: Another child is not hers to answer for
+- GIVEN the same request covers a classmate
+- WHEN Fatima answers for that classmate
+- THEN the answer is refused and nothing is stored
+- @e2e tests/e2e/po-parent-flows.spec.ts
+
+#### Scenario: The request is on her list of things to do
+- GIVEN the request is open and she has not answered
+- WHEN she opens her overview
+- THEN it is among the things she still has to do, with its deadline
+- @e2e tests/e2e/po-parent-flows.spec.ts
+
+### Requirement: Silence is not permission
+
+A request MUST state whether an unanswered request counts as a refusal, and MUST default to counting it as one. A closed request MUST NOT accept an answer.
+
+#### Scenario: Nobody answered
+- GIVEN the deadline has passed and a child's guardians answered nothing
+- WHEN the teacher reads the outcome
+- THEN that child reads as not answered, and counts as refused
+- @e2e exclude asserted from the caller in the service's unit tests
+
+#### Scenario: An answer after the deadline
+- GIVEN the request is closed
+- WHEN a guardian answers
+- THEN it is refused, and the refusal says the request is closed
+- @e2e exclude as above
+
+### Requirement: A teacher sees who has not answered
+
+A teacher MUST be able to read, per request, which children's guardians answered yes, which answered no, and which did not answer at all.
+
+#### Scenario: The evening before the trip
+- GIVEN eighteen of twenty-eight guardians have answered
+- WHEN the teacher opens the request
+- THEN she reads the three groups, and the ten who have not answered are named
+- @e2e exclude a staff screen; asserted in the view's own tests
+
+### Requirement: A pupil reads her school's open support lessons and signs herself up
+
+The student audience MUST declare `studentElectiveOffers` over `elective-offer`, narrowed to open offers of the pupil's own school and year, projecting title, next date and time, place, the teacher's name and a line with the places left, and an action `signUpForElective` that creates an `elective-sign-up` for the signed-in learner only. The action MUST refuse a full offer, an offer outside its window and a second sign-up for the same offer, with the reason in words.
+
+#### Scenario: Noor signs up for Tuesday
+- **GIVEN** the support lesson wiskunde A has 6 places left for Tuesday 6 October
+- **WHEN** Noor signs up from her wiskunde page
+- **THEN** her sign-up exists, the line reads "Nog 5 plekken", and her mentor's page shows the support lesson from 6 October
+- @e2e tests/e2e/portal-design/vaartveld.spec.ts
+
+#### Scenario: Full
+- **GIVEN** no places are left
+- **WHEN** a pupil signs up
+- **THEN** the sign-up is refused with "Deze steunles is vol"
+- @e2e exclude refusal asserted in the action's unit tests
+
+### Requirement: A pupil may book her own mentor talk when the round allows it
+
+When a conference round sets `pupilMayBook`, the student audience MUST read the free times of that round for her own group's mentor and MUST be able to book one for herself; the booking MUST follow the same atomic claim and lifecycle as a guardian's booking, and the pupil's guardians MUST see the booked time on their portal and receive the booking notice.
+
+#### Scenario: Noor picks Tuesday 16.30
+- **GIVEN** mevrouw Kramer's round for H4b allows pupils to book
+- **WHEN** Noor books Tuesday 13 October 16.30
+- **THEN** the time is hers, her father Erik receives a notice, and his portal shows the talk
+- @e2e tests/e2e/portal-design/vaartveld.spec.ts
+
+### Requirement: An employer sends a colleague in place of a participant, before the deadline
+
+The employer audience MUST offer `substituteParticipant` as "Collega in zijn plaats" or "Collega in haar plaats" on a participant row of her own organisation's booking, replacing that participant by another person of her organisation while keeping the booking's place, until the course day's substitution deadline. The replaced participant's enrolment MUST be withdrawn with the reason in words and the new participant's enrolment created; after the deadline the action MUST be refused in words.
+
+#### Scenario: Sanne goes instead of Tom
+- **GIVEN** Linda's booking I-2026-0412 for Thursday 8 October, deadline Wednesday 12.00
+- **WHEN** she replaces Tom by Bram de Wit on Monday
+- **THEN** the booking still holds three places, Tom's enrolment reads "vervangen door collega" and Sanne is enrolled
+- @e2e tests/e2e/portal-design/warmtepompacademie.spec.ts
+
+#### Scenario: Too late
+- **GIVEN** it is Wednesday 12.30
+- **WHEN** Linda tries to replace a participant
+- **THEN** it is refused with "Vervangen kan tot woensdag 12:00 uur. Bel de planning."
+- @e2e exclude refusal asserted in the action's unit tests
+
+### Requirement: A certificate names its holder, its course and its renewal
+
+A credential MUST carry `learnerName`, `courseName`, `organisationRef` (from the holder's learner profile), `validUntilLabel` ("Geldig tot" and the date of `expiresAt`) and `renewalLine` ("Herhaling op" and the first course day of the renewal enrolment while that enrolment is pending or active) as readable copies written on every save. It MUST carry `weeksUntilExpiry` and `expiryLabel` as OpenRegister calculations: "Verlopen" when `expiryStatus` is expired; "Verloopt deze week", "Verloopt over 1 week" or "Verloopt over N weken" while it is expiring or expiring-soon; "Geldig" otherwise.
+
+#### Scenario: Tom's certificate on Monday 5 October 2026
+- **GIVEN** Tom's F-gassen categorie 1 expires on 30 November 2026 and his renewal on 8 October is booked
+- **WHEN** the certificate is read
+- **THEN** it reads "Geldig tot 30 november 2026", "Herhaling op 8 oktober" and "Verloopt over 8 weken"
+- @e2e exclude copies and calculation, covered by PHPUnit `CertificateCopiesTest`; the overview by `tests/e2e/portal-design/warmtepompacademie.spec.ts`
+
+### Requirement: An employer sees her people's certificates, the first to expire first
+
+The employer audience MUST declare `employerCertificates` over `credential`, scoped by `organisationRef`, filtered to issued certificates (`kind: certificate`), sorted by `expiresAt` ascending, without the signature or the signed payload. Her overview MUST show them as dated rows with the expiry status as a pill and `expiryLabel` beside it, and a page MUST list them as a table with the verification link.
+
+#### Scenario: Linda sees the F-gassen certificates first
+- **GIVEN** the training set
+- **WHEN** Linda opens her overview
+- **THEN** the three F-gassen categorie 1 certificates come before Sanne's BRL 6000-21, each with "Verloopt over 8 weken"
+- @e2e tests/e2e/portal-design/warmtepompacademie.spec.ts
+
+### Requirement: A participant lands on his next course day
+
+Learniq MUST serve a `participant` audience whose collections are all scoped by the `learnerRef` claim: his enrolments on `learnerRef`, his certificates on `learnerId`. It MUST offer no write. His home page MUST open with the greeting, then his first coming course day as a highlight with the course, the days, the time and the place, then his issued certificates with the expiry, then his later course days. Each participant enrolment of a company booking MUST carry the booking's `firstDay`, `dayLabel`, `timeLabel`, `placeLabel`, `trainerName` and `upcoming`, written by the server.
+
+#### Scenario: Tom on Monday 5 October 2026
+- **GIVEN** the training set and Tom's participant account
+- **WHEN** he opens Mijn academie on his phone
+- **THEN** he reads F-gassen: herhaling en examen, donderdag 8 oktober, 08.30 tot 16.30 uur at the Praktijkhal, then his F-gassen categorie 1 with "Verloopt over 8 weken", then the course of 3, 4 en 10 november
+- @e2e tests/e2e/portal-design/warmtepompacademie.spec.ts
+
+### Requirement: An employer reads only her own company's people and bookings
+
+Learniq MUST serve an `employer` audience. Every employer collection MUST be scoped by `scopeField: organisationRef` with `scopeClaim: organisationRef`, except the editions she may book, which MUST be scoped by the cohort's `locationId` and the claim `editionLocationRef`. No employer collection MUST use a `via` join, and no employer collection MUST project a birth date. An enrolment MUST carry `organisationRef`, `learnerName` and `courseName` as readable copies taken from its learner profile and course on every save.
+
+#### Scenario: Linda sees Jansen's bookings and nobody else's
+- **GIVEN** Linda's portal account holds `organisationRef` of Jansen Installatietechniek BV
+- **WHEN** she opens Mijn academie
+- **THEN** she reads the bookings and participants of Jansen only
+- @e2e tests/e2e/portal-design/warmtepompacademie.spec.ts
+
+### Requirement: An employer lands on what waits for her
+
+The employer's home page MUST open with the greeting and the button to book places, then the participants whose details are missing as a highlighted task with the sentence, the reason and the time it is due, then the coming bookings as dated rows with course, participants, status and note.
+
+#### Scenario: The overview asks for Youssef's birth date
+- **GIVEN** the training set is loaded
+- **WHEN** Linda opens her overview on Monday 5 October 2026
+- **THEN** she reads "Vul de geboortedatum van Youssef El Amrani in" and the three coming bookings, I-2026-0412 with "Geboortedatum van 1 deelnemer ontbreekt"
+- @e2e tests/e2e/portal-design/warmtepompacademie.spec.ts
+
+### Requirement: A booking tells the employer what still waits for her
+
+A booking's readable copies (course, day line, time, place, trainer, participants), its `lifecycle`, `employerStatus`, `statusNote` and `detailsDueAt`, and each participant enrolment's `detailsStatus`, `openTask`, `openTaskNote`, `openTaskDueAt` and `certificateLine` MUST be written by the server from the rows the booking is made of. `employerStatus` MUST be `waiting-for-you` while a place has no participant or a participant lacks a birth date the course needs (a course tagged `examen` or `certificaat`). `detailsDueAt` MUST be 12.00 on the working day before the first course day. The booking MUST be re-derived after every employer write, and after staff change a participant's enrolment state, birth date or name, without slowing the save (deferred). A booking page MUST show five steps: booked, confirmed, details complete, course day, result and certificate.
+
+#### Scenario: A confirmed exam booking waits for one birth date
+- **GIVEN** booking I-2026-0412 has Tom, Youssef and Sanne, all enrolments active, and Youssef has no birth date
+- **WHEN** the booking is derived
+- **THEN** it reads "Wacht op u", "Geboortedatum van 1 deelnemer ontbreekt", due Wednesday 7 October 12.00, and its steps stand at "Gegevens compleet"
+- @e2e exclude server derivation, covered by PHPUnit `EmployerBookingFactsTest`; the page by `tests/e2e/portal-design/warmtepompacademie.spec.ts`
+
+#### Scenario: The planner confirms an enrolment in Nextcloud
+- **GIVEN** a received booking
+- **WHEN** the planner activates one of its enrolments
+- **THEN** after the request the booking reads "Bevestigd"
+- @e2e exclude deferred listener, covered by PHPUnit `EmployerBookingCascadeTest`
+
+### Requirement: An employer books places and names her participants
+
+The employer MUST be able to book 1 to 12 places on a planned edition of the location her account names, and then name one of her company's employees per place. Both MUST go through learniq's endpoint with the company stamped from the claim. A person of another company, a person already on the booking, a place too many, an edition of another location or one that is no longer planned MUST be refused and write nothing.
+
+#### Scenario: Linda books two places and names Tom
+- **GIVEN** a planned F-gassen edition at the Praktijkhal
+- **WHEN** Linda books two places and puts Tom on the booking
+- **THEN** the booking reads "Vul de naam van 1 deelnemer in"
+- @e2e exclude endpoint rules, covered by PHPUnit `PortalEmployerBookingsTest`
+
+### Requirement: An employer supplies a missing birth date and never reads it
+
+The employer MUST be able to store a birth date for one of her company's participants whose profile has none. The value MUST be a real date between 100 and 14 years ago. A date the institute already holds MUST NOT be overwritten, and the answer MUST NOT carry the date back. After the write every booking of that participant MUST be re-derived.
+
+#### Scenario: Linda fills in Youssef's birth date
+- **GIVEN** Youssef's profile has no birth date
+- **WHEN** Linda sends 14 March 1994 for him
+- **THEN** his profile holds 1994-03-14 and booking I-2026-0412 no longer waits for her
+- @e2e exclude endpoint rules, covered by PHPUnit `PortalEmployerBookingsTest`
+
+### Requirement: The guardian reads that the school saw her report
+
+The parent audience's absence collection MUST project a line naming the teacher and the time the report was seen while it is `submitted`, and MUST offer the action `reportRecovered` on a report of her own child without a last day.
+
+#### Scenario: Seen at 8.12
+- **GIVEN** juf Esra saw Sami's report at 8.12
+- **WHEN** Fatima opens her absence page
+- **THEN** the report reads "Gezien door juf Esra om 8.12 uur"
+- @e2e tests/e2e/portal-design/wilgenboom.spec.ts
+
+### Requirement: A pupil of eighteen reports for herself
+
+The student audience's absence action MUST accept lesson hours and an open last day for a learner of eighteen or older, and MUST offer `reportRecovered` on her own open report.
+
+#### Scenario: Eighteen and ill
+- **GIVEN** a vwo 6 pupil of eighteen, signed in with her school account
+- **WHEN** she reports herself ill without a last day
+- **THEN** the report names her as the one who reported, and she can end it herself
+- @e2e exclude spec-only proposal; asserted in the action's unit tests
+
+### Requirement: A pupil lands on an overview of today
+
+The student audience MUST declare pages. The first MUST be `studentOverview`, "Overzicht", with `home: true`, showing in this order: work to hand in as a `tasks` block with `dueField: dueAt` that leaves out handed-in work (`excludeWhen` on her own submission), today's timetable (`range: day`), four quick actions (hand in, grades, tests, report absent), the three newest grades and the two newest inbox messages. Every block MUST read a collection scoped to the pupil's own `learnerRef`. Design of record: `LearniqPupil.dc.html`.
+
+#### Scenario: Noa opens the portal between classes
+- GIVEN pupil Noa with one assignment due today at 23.59 and one due in 7 days
+- WHEN she signs in on her phone
+- THEN "Huiswerk en toetsen" on `/mijn` shows both, today's first, each with its date and time
+- AND below it today's lessons and her three newest grades
+- @e2e exclude planned: written with the build in tests/e2e/vo-pupil-flows.spec.ts (specs-only change)
+
+### Requirement: The pupil menu is short
+
+The student pages MUST appear in the menu as the board groups them: Overzicht under Mijn Zuiddrecht; Rooster, Huiswerk en toetsen, Cijfers and Afwezigheid under School; Mentorgesprek, Vakken en profiel and Documenten under Regelen; Mijn gegevens under Account. Berichten is portaliq's own inbox entry. The default page of each student collection MUST keep its route and MUST declare `menu: false`.
+
+#### Scenario: No collection names in the menu
+- GIVEN Noa signed in
+- WHEN she opens the menu
+- THEN she sees the nine entries and Berichten, and no "My submissions" or "My enrolments"
+- @e2e exclude planned: written with the build in tests/e2e/vo-pupil-flows.spec.ts (specs-only change)
+
+### Requirement: NEW: A pupil sees her own timetable
+
+The student audience MUST declare `studentSessions`, the `session` rows of the cohorts the pupil is actively enrolled in, joined through her own enrolments. It MUST project only `cohortId`, `courseId`, `title`, `startsAt`, `endsAt`, `location`, `changeReasonKind`, `changeReason` and `lifecycle`; never `substituteTeacherId`, `affectedLearnerIds`, `affectedParentIds` or `externalRef`. A cancelled session MUST show as cancelled ("Vervalt"), not disappear. A changed session MUST show the word of its `changeReasonKind` ("Ander lokaal", "Andere docent", "Gewijzigd") and the school's `changeReason` as its note. A session of a cohort the pupil is not enrolled in MUST NOT show. The join MUST declare `via.when: { field: lifecycle, in: [active] }`, so a withdrawn or failed enrolment grants no session. The overview shows today's timetable as a `calendar` block with `display: timetable` and `range: day` (portaliq `calendar-timetable-display`), followed by a "Hele week" link to the "Rooster" page, which shows the week with day tiles (`range: week`).
+
+#### Scenario: Today's lessons with a cancellation
+- GIVEN Noa's group has wiskunde at 8.30, engels at 10.15 and a cancelled geschiedenis at 12.30 today
+- WHEN she opens "Overzicht"
+- THEN "Je rooster vandaag" lists the three, the last struck through and marked "Vervalt"
+- @e2e exclude planned: the live proof rerun on the fresh instance after the portaliq timetable display lands; the join and the seed are pinned by StudentTimetableTest
+
+#### Scenario: Noor's Monday on the board
+- GIVEN the vo example set, loaded, and pupil Noor Bakker in H4b on Monday 5 October 2026
+- WHEN she opens "Overzicht"
+- THEN "Je rooster vandaag" shows her seven lessons, economie in lokaal 0.21 with "Ander lokaal", and lichamelijke opvoeding struck through with "Vervalt"
+- @e2e exclude planned: the live proof rerun on the fresh instance; StudentTimetableTest walks the join over the real seed
+
+#### Scenario: Another group's lessons stay hidden
+- GIVEN a session for a cohort Noa is not enrolled in
+- WHEN she opens "Rooster"
+- THEN that session is not there
+- @e2e exclude server scope; pinned by a PortalContributionProviderTest on the enrolment join written with the build
+
+#### Scenario: A withdrawn enrolment stops the timetable
+- GIVEN Noa's enrolment in a cohort is `withdrawn`
+- WHEN she opens "Rooster"
+- THEN no session of that cohort shows
+- @e2e exclude enforced by portaliq's `via.when` (REQ-SMO-023); covered by a portaliq reader test and a PortalContributionProviderTest on the declared `when`
+
+### Requirement: NEW: A pupil sees the work she has to hand in
+
+The student audience MUST declare `studentHomework`, the published assignments whose `learnerRefs` holds the pupil, with `title`, `dueAt` and a status from her own submission: "Open", "Ingeleverd", "Te laat ingeleverd" or "Nagekeken". `learnerRefs` MUST NOT be projected. Open work MUST link to the hand-in. This is new work: the pupil reads only her own submissions today.
+
+#### Scenario: An open assignment links to the hand-in
+- GIVEN a published assignment "Verslag biologie: de cel" for Noa's group, not handed in
+- WHEN she taps it on "Overzicht"
+- THEN the hand-in form opens for that assignment
+- @e2e exclude planned: written with the build in tests/e2e/vo-pupil-flows.spec.ts (specs-only change)
+
+#### Scenario: Handed-in work drops from the task list
+- GIVEN Noa handed in "Verslag biologie"
+- WHEN she opens `/mijn`
+- THEN it no longer shows under "Inleveren" on the overview
+- AND the "Inleveren" page lists it as "Ingeleverd"
+- @e2e exclude planned: written with the build in tests/e2e/vo-pupil-flows.spec.ts (specs-only change)
+
+### Requirement: A pupil's grade shows its subject and weight
+
+`studentGrades` MUST project `courseName`, `methodName`, `methodBlock` and `weight`. A grade line MUST read the subject and test, the value, and "telt N keer mee" when the weight is not one.
+
+#### Scenario: A double-weight grade
+- GIVEN a published grade 7,2 for wiskunde, hoofdstuk 2, weight 2
+- WHEN Noa opens "Overzicht"
+- THEN she reads "Wiskunde" with "Hoofdstuk 2", 7,2 and "Telt mee" with the weight 2 in that column
+- @e2e exclude planned: written with the build in tests/e2e/vo-pupil-flows.spec.ts (specs-only change)
+
+### Requirement: Every pupil label on the site reads in Dutch
+
+The student manifest MUST pass through `PortalLabelTranslator`. Every student label MUST have a Dutch entry in the "je" form. A Dutch site MUST show no English string from learniq to a pupil.
+
+#### Scenario: The pupil site reads Dutch
+- GIVEN the Esdoornveen site in Dutch
+- WHEN Noa opens any of her pages
+- THEN every heading, button and menu entry from learniq is Dutch
+- @e2e exclude planned: written with the build in tests/e2e/vo-pupil-flows.spec.ts (specs-only change)
+
+### Requirement: The pupil overview follows the designed board
+
+The pupil's overview MUST open, in this order, with: a `greeting` block (today's date and "Goedemorgen, {first name}"); her homework and tests as a `tasks` block over `studentHomework` with `display: highlight`, labelled "Huiswerk en toetsen"; her three newest grades, labelled "Laatste cijfers"; and her absence this school year as a `kpi` block over a new collection `studentAttendanceSummary` (her own `attendance-summary` rows, scoped on `learnerRef`): days absent, times late and days without a report. The quick actions and the messages MUST follow. Today's timetable MUST sit between the greeting and the homework, read from `studentSessions` (T1, T5b), never from authored items. Design of record: school-design `vaartveld/preview/MijnOverzicht.png`.
+
+#### Scenario: Noor opens her overview
+- GIVEN Noor Bakker of H4b signs in with her school account
+- WHEN she opens `/mijn`
+- THEN she reads "Goedemorgen, Noor", then "Huiswerk en toetsen" with her leesverslag, then "Laatste cijfers", then her absence this school year: 1 day absent, 2 times late
+- @e2e tests/e2e/portal-design/vaartveld.spec.ts

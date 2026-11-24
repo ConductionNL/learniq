@@ -2426,15 +2426,14 @@
       "name": "Give a learner one page with all their certificates.",
       "built": {
         "state": "built",
-        "evidence": "src/manifest.d/people.json page Credentials plus /my-learning.json MyLearningRecordView",
+        "evidence": "src/manifest.d/people.json page Credentials plus /my-learning.json MyLearningRecordView; extended through openspec/changes/archive/2026-11-24-participant-portal; e2e tests/e2e/portal-design/warmtepompacademie.spec.ts (written, runs in nightly)",
         "owner": "ConductionNL/learniq",
         "change": "certification",
         "spec": "openspec/specs/portable-learning-record",
         "requirement": [
           "openspec/specs/portable-learning-record :: `LearningRecordAggregationService` composes a learner's trajectory live, with no materialized rollup",
           "openspec/specs/certification :: A certificate is read by its holder and the certificate managers only"
-        ],
-        "plan": "openspec/changes/participant-portal"
+        ]
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -6090,11 +6089,10 @@
       "name": "Let a learner or guardian send in an absence note.",
       "built": {
         "state": "built",
-        "evidence": "lib/Settings/learniq_register.json components.schemas.ExcuseRequest; src/manifest.d/people.json SubmitExcuseModal",
+        "evidence": "lib/Settings/learniq_register.json components.schemas.ExcuseRequest; src/manifest.d/people.json SubmitExcuseModal; extended through openspec/changes/archive/2026-11-24-absence-reports-seen-and-ended; e2e tests/e2e/portal-design/wilgenboom.spec.ts (written, runs in nightly)",
         "owner": "ConductionNL/learniq",
         "change": "attendance",
-        "requirement": "openspec/specs/attendance :: The server stamps who an excuse request is about and who filed it",
-        "plan": "openspec/changes/absence-reports-seen-and-ended"
+        "requirement": "openspec/specs/attendance :: The server stamps who an excuse request is about and who filed it"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -6126,15 +6124,14 @@
       "name": "Have an approved note update the register by itself.",
       "built": {
         "state": "built",
-        "evidence": "lib/Lifecycle/ExcuseApprovalHandler.php",
+        "evidence": "lib/Lifecycle/ExcuseApprovalHandler.php; extended through openspec/changes/archive/2026-11-24-absence-reports-seen-and-ended; e2e tests/e2e/portal-design/wilgenboom.spec.ts (written, runs in nightly)",
         "owner": "ConductionNL/learniq",
         "change": "attendance",
         "spec": "openspec/changes/attendance-roll-call/specs/attendance",
         "requirement": [
           "openspec/changes/attendance-roll-call/specs/attendance :: An approved absence report fills in the register",
           "openspec/specs/attendance :: A decision on an absence report records who decided and when"
-        ],
-        "plan": "openspec/changes/absence-reports-seen-and-ended"
+        ]
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -6528,7 +6525,6 @@
         "change": "2026-07-07-personal-timetable",
         "requirement": "openspec/specs/personal-timetable :: A signed-in user can see their own upcoming sessions",
         "plan": [
-          "openspec/changes/site-pupil-portal-design",
           "openspec/changes/week-timetable-grid"
         ]
       },
@@ -6613,8 +6609,6 @@
         "spec": "openspec/specs/dashboard",
         "requirement": "openspec/specs/dashboard :: Per-role group-gated dashboard menu items",
         "plan": [
-          "openspec/changes/site-pupil-portal-design",
-          "openspec/changes/participant-portal",
           "openspec/changes/student-portal-reads-like-the-boards"
         ]
       },
@@ -6694,11 +6688,10 @@
       "name": "Plan a round of parent-teacher conversations.",
       "built": {
         "state": "built",
-        "evidence": "lib/Settings/learniq_register.json components.schemas.ConferenceRound; src/manifest.d/guardian-meetings.json",
+        "evidence": "lib/Settings/learniq_register.json components.schemas.ConferenceRound; src/manifest.d/guardian-meetings.json; extended through openspec/changes/archive/2026-11-24-pupil-books-support-lessons-and-mentor-talks; e2e tests/e2e/portal-design/vaartveld.spec.ts (written, runs in nightly)",
         "owner": "ConductionNL/learniq",
         "change": "2026-07-13-parent-evening-planner",
-        "requirement": "openspec/specs/parent-conferences :: A conference round declares its scope, slot duration, and buffer time",
-        "plan": "openspec/changes/pupil-books-support-lessons-and-mentor-talks"
+        "requirement": "openspec/specs/parent-conferences :: A conference round declares its scope, slot duration, and buffer time"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -7201,17 +7194,16 @@
       "name": "Ask guardians for permission for a trip and see who has not answered yet.",
       "origin": "change",
       "built": {
-        "state": "specified",
-        "evidence": "Not built yet: openspec/changes/permission-slips carries the work.",
+        "state": "built",
+        "evidence": "Built through openspec/changes/archive/2026-11-24-permission-slips (its tasks.md names the code and the unit tests); e2e tests/e2e/po-parent-flows.spec.ts (written, runs in nightly)",
         "owner": "ConductionNL/learniq",
         "change": "permission-slips",
-        "requirement": "openspec/changes/permission-slips/specs/portal-contribution :: A school asks a guardian for permission, and the answer is recorded",
-        "plan": "openspec/changes/permission-slips"
+        "requirement": "openspec/specs/portal-contribution :: A school asks a guardian for permission, and the answer is recorded"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
       "feature": "permission-slips",
-      "learniq": "no",
+      "learniq": "yes",
       "moodle": "unknown",
       "moodle-workplace": "unknown",
       "ilias": "unknown",
@@ -9627,17 +9619,16 @@
       "name": "Let a client company see its employees' certificates, the first to lapse first.",
       "origin": "change",
       "built": {
-        "state": "building",
-        "evidence": "Partly built through openspec/changes/portal-certificates; its open tasks carry the rest.",
+        "state": "built",
+        "evidence": "Built through openspec/changes/archive/2026-11-24-portal-certificates (its tasks.md names the code and the unit tests); e2e tests/e2e/portal-design/warmtepompacademie.spec.ts (written, runs in nightly)",
         "owner": "ConductionNL/learniq",
         "change": "portal-certificates",
-        "requirement": "openspec/changes/portal-certificates/specs/portal-contribution :: An employer sees her people's certificates, the first to expire first",
-        "plan": "openspec/changes/portal-certificates"
+        "requirement": "openspec/specs/portal-contribution :: An employer sees her people's certificates, the first to expire first"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
       "feature": "portal-certificates",
-      "learniq": "partial",
+      "learniq": "yes",
       "moodle": "unknown",
       "moodle-workplace": "unknown",
       "ilias": "unknown",
@@ -10309,17 +10300,16 @@
       "name": "Let a guardian ask leave for her child in advance and have the head of the school decide it.",
       "origin": "change",
       "built": {
-        "state": "specified",
-        "evidence": "Not built yet: openspec/changes/leave-requests-decided-by-the-school carries the work.",
+        "state": "built",
+        "evidence": "Built through openspec/changes/archive/2026-11-24-leave-requests-decided-by-the-school (its tasks.md names the code and the unit tests); e2e tests/e2e/portal-design/wilgenboom.spec.ts (written, runs in nightly)",
         "owner": "ConductionNL/learniq",
         "change": "leave-requests-decided-by-the-school",
-        "requirement": "openspec/changes/leave-requests-decided-by-the-school/specs/attendance :: A leave request is asked in advance and decided by the head of the school",
-        "plan": "openspec/changes/leave-requests-decided-by-the-school"
+        "requirement": "openspec/specs/attendance :: A leave request is asked in advance and decided by the head of the school"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
       "feature": "leave-requests-decided-by-the-school",
-      "learniq": "no",
+      "learniq": "yes",
       "moodle": "unknown",
       "moodle-workplace": "unknown",
       "ilias": "unknown",
@@ -10423,7 +10413,7 @@
       "name": "Sign up for or withdraw from a single optional lesson, and see free places and when sign-up opens or closes.",
       "built": {
         "state": "built",
-        "evidence": "appinfo/routes.php:271-274 (mine, sign-up, roster, place); lib/Listener/ElectiveSignUpRules.php:12-16 (window, capacity, one sign-up per lesson, for every writer); src/views/MyElectives.vue:28-66 (free places, sign up, withdraw, window label); src/manifest.d/my-learning.json:532",
+        "evidence": "appinfo/routes.php:271-274 (mine, sign-up, roster, place); lib/Listener/ElectiveSignUpRules.php:12-16 (window, capacity, one sign-up per lesson, for every writer); src/views/MyElectives.vue:28-66 (free places, sign up, withdraw, window label); src/manifest.d/my-learning.json:532; extended through openspec/changes/archive/2026-11-24-pupil-books-support-lessons-and-mentor-talks; e2e tests/e2e/portal-design/vaartveld.spec.ts (written, runs in nightly)",
         "owner": "ConductionNL/learniq",
         "readOn": "2026-10-08",
         "change": "2026-09-29-timetabling-elective-lesson-signup",
@@ -10431,8 +10421,7 @@
         "requirement": [
           "openspec/specs/enrolment :: A learner signs up for an optional lesson inside the window",
           "openspec/changes/capability-rows-say-what-they-do/specs/enrolment :: A learner withdraws from an optional lesson and sees when sign-up opens"
-        ],
-        "plan": "openspec/changes/pupil-books-support-lessons-and-mentor-talks"
+        ]
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -10849,17 +10838,16 @@
       "name": "Let a client company book places on a course and name its employees for them.",
       "origin": "change",
       "built": {
-        "state": "building",
-        "evidence": "Partly built through openspec/changes/employer-portal-audience; its open tasks carry the rest.",
+        "state": "built",
+        "evidence": "Built through openspec/changes/archive/2026-11-24-employer-portal-audience (its tasks.md names the code and the unit tests); e2e tests/e2e/portal-design/warmtepompacademie.spec.ts (written, runs in nightly)",
         "owner": "ConductionNL/learniq",
         "change": "employer-portal-audience",
-        "requirement": "openspec/changes/employer-portal-audience/specs/portal-contribution :: An employer books places and names her participants",
-        "plan": "openspec/changes/employer-portal-audience"
+        "requirement": "openspec/specs/portal-contribution :: An employer books places and names her participants"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
       "feature": "employer-portal-audience",
-      "learniq": "partial",
+      "learniq": "yes",
       "moodle": "unknown",
       "moodle-workplace": "unknown",
       "ilias": "unknown",
@@ -10936,17 +10924,16 @@
       "name": "Let an employer send a colleague in place of a booked participant before the deadline.",
       "origin": "change",
       "built": {
-        "state": "specified",
-        "evidence": "Not built yet: openspec/changes/employer-substitutes-a-colleague carries the work.",
+        "state": "built",
+        "evidence": "Built through openspec/changes/archive/2026-11-24-employer-substitutes-a-colleague (its tasks.md names the code and the unit tests); e2e tests/e2e/portal-design/warmtepompacademie.spec.ts (written, runs in nightly)",
         "owner": "ConductionNL/learniq",
         "change": "employer-substitutes-a-colleague",
-        "requirement": "openspec/changes/employer-substitutes-a-colleague/specs/portal-contribution :: An employer sends a colleague in place of a participant, before the deadline",
-        "plan": "openspec/changes/employer-substitutes-a-colleague"
+        "requirement": "openspec/specs/portal-contribution :: An employer sends a colleague in place of a participant, before the deadline"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
       "feature": "employer-substitutes-a-colleague",
-      "learniq": "no",
+      "learniq": "yes",
       "moodle": "unknown",
       "moodle-workplace": "unknown",
       "ilias": "unknown",

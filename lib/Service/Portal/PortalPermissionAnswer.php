@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/permission-slips
+ * @spec openspec/changes/archive/2026-11-24-permission-slips
  */
 
 declare(strict_types=1);
@@ -50,7 +50,7 @@ use Throwable;
  * guardian (403). One response per child per request: a second answer
  * replaces the first.
  *
- * @spec openspec/changes/permission-slips
+ * @spec openspec/changes/archive/2026-11-24-permission-slips
  */
 class PortalPermissionAnswer implements PortalPermissionAnswerInterface {
 
@@ -114,7 +114,7 @@ class PortalPermissionAnswer implements PortalPermissionAnswerInterface {
 	 *
 	 * @return PortalOutcome
 	 *
-	 * @spec openspec/changes/permission-slips
+	 * @spec openspec/changes/archive/2026-11-24-permission-slips
 	 */
 	public function answer(string $guardianRef, string $trust, array $body, ?DateTimeImmutable $now=null): PortalOutcome {
 		$assurance = (self::TRUST_TO_ASSURANCE[$trust] ?? 'basic');

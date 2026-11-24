@@ -11,12 +11,12 @@
  * @spec openspec/changes/example-portal-declares-its-site/specs/example-sets/spec.md
  * @spec openspec/specs/portal-contribution/spec.md#requirement-the-overview-follows-the-designed-board
  * @spec openspec/changes/portal-board-checks-run-on-a-real-instance/specs/example-sets/spec.md#requirement-the-board-checks-run-against-any-instance-that-loaded-the-sets
- * @spec openspec/changes/absence-reports-seen-and-ended/specs/portal-contribution/spec.md#requirement-the-guardian-reads-that-the-school-saw-her-report
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-the-guardian-reads-that-the-school-saw-her-report
  * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-each-school-audience-offers-its-own-documents-grouped-per-record
- * @spec openspec/changes/leave-requests-decided-by-the-school/specs/portal-contribution/spec.md
+ * @spec openspec/specs/portal-contribution/spec.md
  *
  * Covers:
- *   @e2e openspec/changes/leave-requests-decided-by-the-school/specs/portal-contribution/spec.md#scenario-fatima-asks-leave-for-vera
+ *   @e2e openspec/specs/portal-contribution/spec.md#scenario-fatima-asks-leave-for-vera
  */
 
 import type { Page } from '@playwright/test'

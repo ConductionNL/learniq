@@ -24,7 +24,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/leave-requests-decided-by-the-school/tasks.md
+ * @spec openspec/changes/archive/2026-11-24-leave-requests-decided-by-the-school/tasks.md
  */
 
 declare(strict_types=1);
@@ -40,7 +40,7 @@ use Throwable;
 /**
  * Counts school days and finds the decision deadline.
  *
- * @spec openspec/changes/leave-requests-decided-by-the-school/specs/attendance/spec.md#requirement-a-leave-request-is-asked-in-advance-and-decided-by-the-head-of-the-school
+ * @spec openspec/specs/attendance/spec.md#requirement-a-leave-request-is-asked-in-advance-and-decided-by-the-head-of-the-school
  */
 class LeaveCalendar {
 
@@ -76,7 +76,7 @@ class LeaveCalendar {
 	 *
 	 * @return int|null The count, or null when a date is not a date or the range runs backwards.
 	 *
-	 * @spec openspec/changes/leave-requests-decided-by-the-school/tasks.md
+	 * @spec openspec/changes/archive/2026-11-24-leave-requests-decided-by-the-school/tasks.md
 	 */
 	public function schoolDays(string $from, string $to): ?int {
 		$first = self::day(value: $from);
@@ -103,7 +103,7 @@ class LeaveCalendar {
 	 *
 	 * @return string|null The date (Y-m-d), or null when the day is not a date.
 	 *
-	 * @spec openspec/changes/leave-requests-decided-by-the-school/tasks.md
+	 * @spec openspec/changes/archive/2026-11-24-leave-requests-decided-by-the-school/tasks.md
 	 */
 	public function decideBy(string $askedOn): ?string {
 		$day = self::day(value: substr($askedOn, 0, 10));
@@ -130,7 +130,7 @@ class LeaveCalendar {
 	 *
 	 * @return int Between 1 and MAX_DECISION_DAYS; 5 when unset or not a whole number.
 	 *
-	 * @spec openspec/changes/leave-requests-decided-by-the-school/tasks.md
+	 * @spec openspec/changes/archive/2026-11-24-leave-requests-decided-by-the-school/tasks.md
 	 */
 	public function decisionDays(): int {
 		$raw = trim($this->appConfig->getValueString(self::APP_ID, self::KEY_DECISION_DAYS, (string)self::DEFAULT_DECISION_DAYS));

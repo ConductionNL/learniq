@@ -2596,7 +2596,7 @@ def add_leave_requests(b: Builder, rows: list[tuple]) -> None:
     """An open leave request per row, asked by the pupil's first guardian, for the first pupil of the class on
     its list that the row does not skip. Runs last and draws no random number, so no earlier uuid moves.
 
-    @spec openspec/changes/leave-requests-decided-by-the-school/tasks.md
+    @spec openspec/changes/archive/2026-11-24-leave-requests-decided-by-the-school/tasks.md
     """
     profiles = {p["ncUserId"]: p for p in b.buckets["learner-profile"]}
     for class_name, skip, kind, first, last, reason, school_days, decide_by in rows:

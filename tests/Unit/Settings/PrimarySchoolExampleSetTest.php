@@ -416,7 +416,7 @@ class PrimarySchoolExampleSetTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/permission-slips/tasks.md
+	 * @spec openspec/changes/archive/2026-11-24-permission-slips/tasks.md
 	 */
 	public function testGroupSevenHasAnOpenAndAClosedPermissionSlip(): void {
 		$cohorts  = self::by(self::of('cohort'), 'uuid');

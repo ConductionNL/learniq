@@ -24,7 +24,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/leave-requests-decided-by-the-school/tasks.md
+ * @spec openspec/changes/archive/2026-11-24-leave-requests-decided-by-the-school/tasks.md
  */
 
 declare(strict_types=1);
@@ -44,7 +44,7 @@ use Throwable;
 /**
  * Refuses a leave request for somebody else's child and stamps the pupil's teachers.
  *
- * @spec openspec/changes/leave-requests-decided-by-the-school/specs/portal-contribution/spec.md#requirement-a-guardian-asks-leave-for-her-own-child-and-sees-the-decision
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-a-guardian-asks-leave-for-her-own-child-and-sees-the-decision
  */
 class LeaveRequestPortalStamp implements IEventListener {
 
@@ -69,7 +69,7 @@ class LeaveRequestPortalStamp implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/leave-requests-decided-by-the-school/tasks.md
+	 * @spec openspec/changes/archive/2026-11-24-leave-requests-decided-by-the-school/tasks.md
 	 */
 	public function __construct(
 		private readonly ListenerSchemaResolverInterface $schemaResolver,
@@ -86,7 +86,7 @@ class LeaveRequestPortalStamp implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/leave-requests-decided-by-the-school/specs/portal-contribution/spec.md#requirement-a-guardian-asks-leave-for-her-own-child-and-sees-the-decision
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-guardian-asks-leave-for-her-own-child-and-sees-the-decision
 	 */
 	public function handle(Event $event): void {
 		if ($event instanceof ObjectCreatingEvent === false || $event->isPropagationStopped() === true) {

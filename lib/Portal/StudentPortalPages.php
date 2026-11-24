@@ -28,7 +28,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/site-pupil-portal-design/specs/portal-contribution/spec.md#requirement-a-pupil-lands-on-an-overview-of-today
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-a-pupil-lands-on-an-overview-of-today
  */
 
 declare(strict_types=1);
@@ -39,7 +39,7 @@ namespace OCA\Learniq\Portal;
  * Builds the pupil's homework collection, her BPV placement and hour weeks,
  * her overview and her menu.
  *
- * @spec openspec/changes/site-pupil-portal-design/specs/portal-contribution/spec.md#requirement-a-pupil-lands-on-an-overview-of-today
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-a-pupil-lands-on-an-overview-of-today
  */
 class StudentPortalPages {
 
@@ -351,7 +351,7 @@ class StudentPortalPages {
 	 * assignment; work handed in, handed in late or marked leaves the list,
 	 * a draft or no submission keeps it (portaliq REQ-SMO-025).
 	 *
-	 * @spec openspec/changes/site-pupil-portal-design/specs/portal-contribution/spec.md
+	 * @spec openspec/specs/portal-contribution/spec.md
 	 */
 	private const STUDENT_HOMEWORK_TASKS_BLOCK = [
 		'type' => 'tasks',
@@ -416,7 +416,7 @@ class StudentPortalPages {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/site-pupil-portal-design/specs/portal-contribution/spec.md#requirement-new-a-pupil-sees-her-own-timetable
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-new-a-pupil-sees-her-own-timetable
 	 */
 	public function sessionsCollection(): array {
 		return [
@@ -446,7 +446,7 @@ class StudentPortalPages {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/site-pupil-portal-design/specs/portal-contribution/spec.md#requirement-new-a-pupil-sees-her-own-timetable
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-new-a-pupil-sees-her-own-timetable
 	 */
 	public function timetableBlock(string $label, string $range): array {
 		return [
@@ -464,7 +464,7 @@ class StudentPortalPages {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/site-pupil-portal-design/specs/portal-contribution/spec.md#requirement-new-a-pupil-sees-the-work-she-has-to-hand-in
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-new-a-pupil-sees-the-work-she-has-to-hand-in
 	 */
 	public function homeworkCollection(): array {
 		return [
@@ -492,7 +492,7 @@ class StudentPortalPages {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/site-pupil-portal-design/specs/portal-contribution/spec.md#requirement-the-pupil-overview-follows-the-designed-board
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-pupil-overview-follows-the-designed-board
 	 */
 	public function attendanceSummaryCollection(): array {
 		return [
@@ -688,7 +688,7 @@ class StudentPortalPages {
 	 *
 	 * @return array<int, array<string, mixed>>
 	 *
-	 * @spec openspec/changes/site-pupil-portal-design/specs/portal-contribution/spec.md#requirement-the-pupil-menu-is-short
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-pupil-menu-is-short
 	 */
 	public function pages(array $collections, array $actions): array {
 		$pages = [$this->overviewPage()];
@@ -766,8 +766,8 @@ class StudentPortalPages {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/site-pupil-portal-design/specs/portal-contribution/spec.md#requirement-a-pupil-lands-on-an-overview-of-today
-	 * @spec openspec/changes/site-pupil-portal-design/specs/portal-contribution/spec.md#requirement-the-pupil-overview-follows-the-designed-board
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-pupil-lands-on-an-overview-of-today
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-pupil-overview-follows-the-designed-board
 	 */
 	private function overviewPage(): array {
 		return [

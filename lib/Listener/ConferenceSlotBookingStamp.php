@@ -289,7 +289,7 @@ class ConferenceSlotBookingStamp implements IEventListener {
 	 * @return string|null The refusal reason, or null.
 	 *
 	 * @spec openspec/changes/direct-conference-booking/specs/parent-conferences/spec.md
-	 * @spec openspec/changes/pupil-books-support-lessons-and-mentor-talks/specs/parent-conferences/spec.md#requirement-a-conference-round-says-whether-pupils-may-book
+	 * @spec openspec/specs/parent-conferences/spec.md#requirement-a-conference-round-says-whether-pupils-may-book
 	 */
 	private function roundRefusal(?array $round, string $childRef, bool $byPupil=false): ?string {
 		if ($round === null) {

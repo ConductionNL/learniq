@@ -50,7 +50,7 @@ interface PortalPermissionAnswerInterface {
 	 *
 	 * @return PortalOutcome
 	 *
-	 * @spec openspec/changes/permission-slips
+	 * @spec openspec/changes/archive/2026-11-24-permission-slips
 	 */
 	public function answer(string $guardianRef, string $trust, array $body, ?DateTimeImmutable $now=null): PortalOutcome;
 }//end interface

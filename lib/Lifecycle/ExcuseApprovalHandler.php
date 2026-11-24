@@ -150,7 +150,7 @@ class ExcuseApprovalHandler implements IEventListener {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/absence-reports-seen-and-ended/specs/attendance/spec.md#requirement-a-report-may-cover-lesson-hours-and-an-illness-may-stay-open-until-the-pupil-is-better
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-report-may-cover-lesson-hours-and-an-illness-may-stay-open-until-the-pupil-is-better
 	 */
 	private static function isOpenIllness(array $request): bool {
 		return ($request['reasonKind'] ?? null) === 'illness' && ($request['dateTo'] ?? '') === '';
@@ -308,7 +308,7 @@ class ExcuseApprovalHandler implements IEventListener {
 	 * @return int How many records were flipped.
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-10
-	 * @spec openspec/changes/absence-reports-seen-and-ended/tasks.md#T3
+	 * @spec openspec/changes/archive/2026-11-24-absence-reports-seen-and-ended/tasks.md#T3
 	 */
 	private function flipRecordsInWindow(array $request, array $window): int {
 		$records = $this->unexcusedRecordsOf(learnerId: $request['learnerId']);
@@ -373,7 +373,7 @@ class ExcuseApprovalHandler implements IEventListener {
 	 *
 	 * @return bool False when its session cannot be placed: a lesson outside the hours is never excused by guess.
 	 *
-	 * @spec openspec/changes/absence-reports-seen-and-ended/tasks.md#T3
+	 * @spec openspec/changes/archive/2026-11-24-absence-reports-seen-and-ended/tasks.md#T3
 	 */
 	private function inHours(array $record, array $hours): bool {
 		$cohortId = (string)($record['cohortId'] ?? '');

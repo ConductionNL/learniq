@@ -20,7 +20,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/leave-requests-decided-by-the-school/tasks.md
+ * @spec openspec/changes/archive/2026-11-24-leave-requests-decided-by-the-school/tasks.md
  */
 
 declare(strict_types=1);
@@ -34,7 +34,7 @@ use OCP\IGroupManager;
 /**
  * Who may decide on a leave request, and which decision the number of school days allows.
  *
- * @spec openspec/changes/leave-requests-decided-by-the-school/specs/attendance/spec.md#requirement-a-leave-request-is-asked-in-advance-and-decided-by-the-head-of-the-school
+ * @spec openspec/specs/attendance/spec.md#requirement-a-leave-request-is-asked-in-advance-and-decided-by-the-head-of-the-school
  */
 class LeaveDecisionGuard implements LifecycleGuardInterface {
 
@@ -92,7 +92,7 @@ class LeaveDecisionGuard implements LifecycleGuardInterface {
 	 *
 	 * @param IGroupManager $groupManager Tells whether the acting user is a decider.
 	 *
-	 * @spec openspec/changes/leave-requests-decided-by-the-school/tasks.md
+	 * @spec openspec/changes/archive/2026-11-24-leave-requests-decided-by-the-school/tasks.md
 	 */
 	public function __construct(
 		private readonly IGroupManager $groupManager,
@@ -108,7 +108,7 @@ class LeaveDecisionGuard implements LifecycleGuardInterface {
 	 *
 	 * @return GuardResult Allowed, or denied with the reason the decider reads.
 	 *
-	 * @spec openspec/changes/leave-requests-decided-by-the-school/specs/attendance/spec.md#requirement-a-leave-request-is-asked-in-advance-and-decided-by-the-head-of-the-school
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-leave-request-is-asked-in-advance-and-decided-by-the-head-of-the-school
 	 */
 	public function check(array $object, string $action, string $userId): GuardResult {
 		if ($userId === '' || $this->groupManager->isInGroup($userId, self::DECIDERS) === false) {

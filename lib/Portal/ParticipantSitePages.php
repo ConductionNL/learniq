@@ -31,7 +31,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/participant-portal/specs/portal-contribution/spec.md#requirement-a-participant-lands-on-his-next-course-day
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-a-participant-lands-on-his-next-course-day
  */
 
 declare(strict_types=1);
@@ -43,7 +43,7 @@ use OCA\Learniq\Service\Portal\PortalEmployerBookings;
 /**
  * Builds the participant's collections and pages.
  *
- * @spec openspec/changes/participant-portal/specs/portal-contribution/spec.md#requirement-a-participant-lands-on-his-next-course-day
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-a-participant-lands-on-his-next-course-day
  */
 class ParticipantSitePages {
 
@@ -166,7 +166,7 @@ class ParticipantSitePages {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/participant-portal/specs/portal-contribution/spec.md#requirement-a-participant-lands-on-his-next-course-day
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-participant-lands-on-his-next-course-day
 	 */
 	public function contribution(): array {
 		return [
@@ -188,7 +188,7 @@ class ParticipantSitePages {
 	 *
 	 * @return array<string, mixed> The rule.
 	 *
-	 * @spec openspec/changes/employer-substitutes-a-colleague/specs/portal-contribution/spec.md#requirement-an-employer-sends-a-colleague-in-place-of-a-participant-before-the-deadline
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-sends-a-colleague-in-place-of-a-participant-before-the-deadline
 	 */
 	public function substitutedRule(): array {
 		return [
@@ -217,7 +217,7 @@ class ParticipantSitePages {
 	 *
 	 * @return array<int, array<string, mixed>>
 	 *
-	 * @spec openspec/changes/participant-portal/specs/portal-contribution/spec.md#requirement-a-participant-lands-on-his-next-course-day
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-participant-lands-on-his-next-course-day
 	 */
 	public function collections(): array {
 		$dayFields = ['learnerRef', 'courseName', 'firstDay', 'dayLabel', 'timeLabel', 'placeLabel', 'trainerName', 'bringList', 'upcoming', 'lifecycle'];
@@ -267,7 +267,7 @@ class ParticipantSitePages {
 	 *
 	 * @return array<int, array<string, mixed>>
 	 *
-	 * @spec openspec/changes/participant-portal/specs/portal-contribution/spec.md#requirement-a-participant-lands-on-his-next-course-day
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-participant-lands-on-his-next-course-day
 	 */
 	public function pages(): array {
 		return [
