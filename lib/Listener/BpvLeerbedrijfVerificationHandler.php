@@ -12,24 +12,23 @@
  * self-transition action).
  *
  * Algorithm:
- * 1. Resolve the configured ProvidesLeerbedrijfVerification adapter from
- *    BpvPlacement.leerbedrijfVerification.provider via the DI container.
- *    No provider configured (null/empty, class missing, or the resolved
- *    service does not implement ProvidesLeerbedrijfVerification) → no-op.
- *    The placement simply stays in `sbb-verification-pending`; no exception
- *    is thrown (Learniq works standalone without an SBB adapter — the SBB
- *    OpenConnector adapter itself is explicit cross-repo follow-up work).
- * 2. Call verify() with the placement's leerbedrijfKvkNumber.
- * 3. Write the result (`status`, `erkenningNumber`, `verifiedAt`, `expiresAt`,
- *    `raw`) back onto BpvPlacement.leerbedrijfVerification via
+ * 1. Resolve the ProvidesLeerbedrijfVerification adapter named by
+ *    BpvPlacement.trainingCompanyVerification.provider via the DI container;
+ *    none (or `integriq`) resolves IntegriqLeerbedrijfVerification, the one
+ *    provider learniq ships, which asks integriq's SBB source and answers
+ *    `pending` with a reason when integriq or its source is missing. A name
+ *    that does not resolve to an adapter → no-op; the placement stays in
+ *    `sbb-verification-pending` and no exception is thrown.
+ * 2. Call verify() with the placement's KVK number, else its erkenningsnummer.
+ * 3. Write the result (`status`, `erkenningNumber`, `checkedAt`, `expiresAt`,
+ *    `reason`, `raw`) back onto BpvPlacement.trainingCompanyVerification via
  *    ObjectService::saveObject. This is a field write only — it does NOT
  *    drive a lifecycle transition itself (BpvConfirmationGuard reads this
  *    stored result later, when a coordinator attempts `confirm`).
  *
  * This is the ADR-031 "external-system bridge" exception: single
  * responsibility — orchestrate the provider call and persist its result. No
- * SBB wire protocol lives here (that is the out-of-repo openconnector
- * adapter's job).
+ * SBB wire protocol lives here (that is integriq's SBB source).
  *
  * @category Listener
  * @package  OCA\Learniq\Listener
@@ -43,12 +42,14 @@
  * @link https://conduction.nl
  *
  * @spec openspec/specs/bpv/spec.md#requirement-leerbedrijf-verification-is-a-pluggable-provider
+ * @spec openspec/changes/workplace-leerbedrijf-check-through-integriq/specs/bpv/spec.md#requirement-leerbedrijf-verification-is-a-pluggable-provider
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
+use OCA\Learniq\Bpv\IntegriqLeerbedrijfVerification;
 use OCA\Learniq\Bpv\ProvidesLeerbedrijfVerification;
 use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
@@ -76,6 +77,7 @@ class BpvLeerbedrijfVerificationHandler implements IEventListener {
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const PLACEMENT_SCHEMA = 'bpv-placement';
 	private const TARGET_STATE = 'sbb-verification-pending';
+	private const DEFAULT_PROVIDER = 'integriq';
 
 	/**
 	 * Constructor.
@@ -168,15 +170,15 @@ class BpvLeerbedrijfVerificationHandler implements IEventListener {
 		$placementId = $placement['id'] ?? ($placement['uuid'] ?? '');
 
 		$providerClass = $verification['provider'] ?? null;
-		$kvkNumber = $placement['trainingCompanyKvkNumber'] ?? '';
+		$kvkNumber = self::numberToCheck(placement: $placement, verification: $verification);
 
 		$provider = $this->resolveProvider(providerClass: $providerClass);
 
 		if ($provider === null) {
 			$this->logger->info(
-				'[BpvLeerbedrijfVerificationHandler] No leerbedrijfVerification.provider configured for '
+				'[BpvLeerbedrijfVerificationHandler] No usable leerbedrijfVerification.provider for '
 				. 'BpvPlacement {id} — leaving verification unresolved; the placement cannot confirm until '
-				. 'a provider is configured. Learniq ships no bundled SBB adapter by design.',
+				. 'one resolves.',
 				['id' => $placementId]
 			);
 			return;
@@ -232,7 +234,7 @@ class BpvLeerbedrijfVerificationHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/specs/bpv/spec.md#requirement-leerbedrijf-verification-is-a-pluggable-provider
+	 * @spec openspec/changes/workplace-leerbedrijf-check-through-integriq/specs/bpv/spec.md#requirement-the-check-stores-sbbs-answer-on-the-placement
 	 */
 	private function recordVerification(array $placement, array $result): void {
 		$updatedVerification = array_merge(
@@ -241,7 +243,9 @@ class BpvLeerbedrijfVerificationHandler implements IEventListener {
 				'status' => $result['status'],
 				'erkenningNumber' => $result['erkenningNumber'],
 				'verifiedAt' => date('c'),
+				'checkedAt' => date('c'),
 				'expiresAt' => $result['expiresAt'],
+				'reason' => ($result['reason'] ?? null),
 				'raw' => $result['raw'],
 			]
 		);
@@ -258,20 +262,46 @@ class BpvLeerbedrijfVerificationHandler implements IEventListener {
 	}//end recordVerification()
 
 	/**
+	 * The number to look up: the company's KVK number, else an erkenningsnummer
+	 * already stored or entered on the placement.
+	 *
+	 * @param array<string, mixed> $placement    The BpvPlacement data.
+	 * @param array<string, mixed> $verification Its trainingCompanyVerification block.
+	 *
+	 * @return string The number, or '' when the placement names none.
+	 *
+	 * @spec openspec/changes/workplace-leerbedrijf-check-through-integriq/specs/bpv/spec.md#requirement-the-check-stores-sbbs-answer-on-the-placement
+	 */
+	private static function numberToCheck(array $placement, array $verification): string {
+		$kvkNumber = trim((string)($placement['trainingCompanyKvkNumber'] ?? ''));
+		if ($kvkNumber !== '') {
+			return $kvkNumber;
+		}
+
+		return trim((string)($verification['erkenningNumber'] ?? ''));
+	}//end numberToCheck()
+
+	/**
 	 * Resolve the configured provider FQCN through the DI container.
 	 *
-	 * Fails closed (returns null, never throws) when no provider is configured, the class
-	 * does not exist, the container cannot build it, or the resolved service does not
-	 * implement ProvidesLeerbedrijfVerification.
+	 * No provider, or `integriq`, resolves IntegriqLeerbedrijfVerification, the
+	 * provider learniq ships. Fails closed (returns null, never throws) when the
+	 * value is not a class name, the class does not exist, the container cannot
+	 * build it, or the resolved service does not implement
+	 * ProvidesLeerbedrijfVerification.
 	 *
 	 * @param mixed $providerClass The `leerbedrijfVerification.provider` config value.
 	 *
 	 * @return ProvidesLeerbedrijfVerification|null The resolved adapter, or null.
 	 *
-	 * @spec openspec/specs/bpv/spec.md#requirement-leerbedrijf-verification-is-a-pluggable-provider
+	 * @spec openspec/changes/workplace-leerbedrijf-check-through-integriq/specs/bpv/spec.md#requirement-leerbedrijf-verification-is-a-pluggable-provider
 	 */
 	private function resolveProvider(mixed $providerClass): ?ProvidesLeerbedrijfVerification {
-		if (is_string($providerClass) === false || $providerClass === '') {
+		if ($providerClass === null || $providerClass === '' || $providerClass === self::DEFAULT_PROVIDER) {
+			$providerClass = IntegriqLeerbedrijfVerification::class;
+		}
+
+		if (is_string($providerClass) === false) {
 			return null;
 		}
 

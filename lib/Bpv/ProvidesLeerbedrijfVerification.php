@@ -9,13 +9,12 @@
  * Pluggable interface for the SBB erkend-leerbedrijf check (WEB art.
  * 7.2.8/7.2.9 — the employer hosting a BPV placement must be a leerbedrijf
  * erkend by SBB, Samenwerkingsorganisatie Beroepsonderwijs Bedrijfsleven).
- * Concrete implementations are configured via BpvPlacement's
- * `leerbedrijfVerification.provider` field and resolved by the application
- * container — no concrete provider ships with Learniq itself. The SBB
- * register OpenConnector adapter is explicit cross-repo follow-up work on
- * `ConductionNL/openconnector`, not built here — Learniq works standalone
- * without it (an unconfigured provider simply leaves BpvPlacement unable to
- * confirm, not broken).
+ * Implementations are named by BpvPlacement's
+ * `trainingCompanyVerification.provider` field and resolved by the application
+ * container. Learniq ships exactly one, IntegriqLeerbedrijfVerification, which
+ * delegates the lookup to integriq's SBB source and is used when no provider
+ * is named; without integriq it answers `pending`, so the placement cannot
+ * confirm but nothing breaks.
  *
  * Analogous to ProvidesProctoring (assessment) and ProvidesPlagiarismCheck
  * (assignments) — this is the third pluggable-provider seam in Learniq.
@@ -47,7 +46,7 @@ namespace OCA\Learniq\Bpv;
  *
  * Adapters for external leerbedrijf registers (the SBB erkend-leerbedrijf
  * register, or any custom on-premises/test double) implement this interface.
- * No concrete provider ships with Learniq; this is the integration seam only.
+ * Learniq ships IntegriqLeerbedrijfVerification; another adapter may be named in its place.
  *
  * Implementation notes:
  * - `verify()` is a synchronous, per-placement, blocking check — NOT a bulk
@@ -57,8 +56,9 @@ namespace OCA\Learniq\Bpv;
  *   STORED result (never calls the provider synchronously during a
  *   transition), the same pattern AssessmentPublishGuard and
  *   LearningPlanSignatureGuard use for other stored lifecycle-adjacent state.
- * - `status` in the returned array MUST be one of `verified`, `rejected`, or
- *   `pending`. Only `verified` satisfies BpvConfirmationGuard.
+ * - `status` in the returned array MUST be one of `verified`, `rejected`,
+ *   `expired` or `pending`. Only `verified` satisfies BpvConfirmationGuard.
+ *   An optional `reason` says why a result is not `verified`.
  */
 interface ProvidesLeerbedrijfVerification {
 	/**
@@ -67,8 +67,8 @@ interface ProvidesLeerbedrijfVerification {
 	 * @param string $kvkOrErkenningNumber The company's KVK number or an existing SBB
 	 *                                     erkenning number to re-check.
 	 *
-	 * @return array{status: string, erkenningNumber: ?string, expiresAt: ?string, raw: array}
-	 *                                                                                         `status` is one of `verified`|`rejected`|`pending`.
+	 * @return array{status: string, erkenningNumber: ?string, expiresAt: ?string, raw: array, reason?: ?string}
+	 *                                                                                         `status` is one of `verified`|`rejected`|`expired`|`pending`.
 	 *                                                                                         `erkenningNumber` and `expiresAt` are populated when
 	 *                                                                                         `status` is `verified`. `raw` carries the provider's
 	 *                                                                                         raw response payload for audit purposes.

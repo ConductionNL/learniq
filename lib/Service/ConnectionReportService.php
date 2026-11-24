@@ -85,6 +85,15 @@ class ConnectionReportService implements ConnectionReportServiceInterface {
 	public const OPEN_MATERIAL_KEY = 'open-material-edurep';
 
 	/**
+	 * The connection key of the SBB leerbedrijf row. Learniq reports it from
+	 * what the last leerbedrijf check met in integriq
+	 * (workplace-leerbedrijf-check-through-integriq).
+	 *
+	 * @var string
+	 */
+	public const SBB_KEY = 'sbb';
+
+	/**
 	 * Integriq's LTI launch event, named by string like STATUS_EVENT.
 	 *
 	 * @var string
@@ -96,7 +105,7 @@ class ConnectionReportService implements ConnectionReportServiceInterface {
 	 *
 	 * @var array<int, string>
 	 */
-	public const REPORTED_KEYS = [self::WALLET_KEY, self::TIMETABLE_KEY, self::LTI_KEY, self::OPEN_MATERIAL_KEY];
+	public const REPORTED_KEYS = [self::WALLET_KEY, self::TIMETABLE_KEY, self::LTI_KEY, self::OPEN_MATERIAL_KEY, self::SBB_KEY];
 
 	/**
 	 * The statuses an observation may carry: the call got through, it was not

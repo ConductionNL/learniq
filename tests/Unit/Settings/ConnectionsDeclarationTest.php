@@ -284,7 +284,7 @@ class ConnectionsDeclarationTest extends TestCase {
 		}
 
 		$this->assertSame(
-			expected: ['open-material-edusources', 'sbb', 'proctoring', 'plagiarism'],
+			expected: ['open-material-edusources', 'proctoring', 'plagiarism'],
 			actual: $unavailable
 		);
 	}//end testEveryUnavailableConnectionSaysWhy()
