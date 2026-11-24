@@ -15,6 +15,7 @@ namespace OCA\Learniq\Tests\Unit\Controller;
 
 use OCA\Learniq\Controller\TodayFirstController;
 use OCA\Learniq\Service\Today\FirstTodayService;
+use OCP\AppFramework\Http;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IUser;
@@ -130,4 +131,59 @@ class TodayFirstControllerTest extends TestCase {
 		self::assertSame(expected: 503, actual: $response->getStatus());
 		self::assertSame(expected: 'What comes first today could not be read. Try again.', actual: $response->getData()['error']);
 	}//end testAFailedReadAnswers503()
+
+	/**
+	 * The role tiles come back as the service answers them, for the view asked.
+	 *
+	 * @return void
+	 */
+	public function testCountsAnswersTheTilesForTheViewAsked(): void {
+		$tiles = ['role' => 'mentor', 'tiles' => [['id' => 'conference-times', 'count' => 1, 'chosen' => 16, 'total' => 27]]];
+		$service = $this->createMock(originalClassName: FirstTodayService::class);
+		$service->expects(self::once())->method('tilesFor')->with(self::isInstanceOf(className: IUser::class), 'mentor')->willReturn($tiles);
+
+		$response = $this->controller(service: $service, params: ['view' => 'mentor'])->counts();
+
+		self::assertSame(expected: Http::STATUS_OK, actual: $response->getStatus());
+		self::assertSame(expected: $tiles, actual: $response->getData());
+	}//end testCountsAnswersTheTilesForTheViewAsked()
+
+	/**
+	 * The role tiles: a view that is no string is the default view.
+	 *
+	 * @return void
+	 */
+	public function testCountsReadsAViewThatIsNoStringAsTheDefault(): void {
+		$service = $this->createMock(originalClassName: FirstTodayService::class);
+		$service->expects(self::once())->method('tilesFor')->with(self::anything(), '')->willReturn(['role' => null, 'tiles' => []]);
+
+		self::assertSame(expected: Http::STATUS_OK, actual: $this->controller(service: $service, params: ['view' => ['x']])->counts()->getStatus());
+	}//end testCountsReadsAViewThatIsNoStringAsTheDefault()
+
+	/**
+	 * The role tiles: nobody signed in answers 401 and reads nothing.
+	 *
+	 * @return void
+	 */
+	public function testCountsRefusesWithoutASignedInUser(): void {
+		$service = $this->createMock(originalClassName: FirstTodayService::class);
+		$service->expects(self::never())->method('tilesFor');
+
+		self::assertSame(expected: Http::STATUS_UNAUTHORIZED, actual: $this->controller(service: $service, signedIn: false)->counts()->getStatus());
+	}//end testCountsRefusesWithoutASignedInUser()
+
+	/**
+	 * The role tiles: a failed read answers 503 with a message.
+	 *
+	 * @return void
+	 */
+	public function testCountsAnswers503WhenTheReadFailed(): void {
+		$service = $this->createMock(originalClassName: FirstTodayService::class);
+		$service->method('tilesFor')->willReturn(null);
+
+		$response = $this->controller(service: $service)->counts();
+
+		self::assertSame(expected: Http::STATUS_SERVICE_UNAVAILABLE, actual: $response->getStatus());
+		self::assertSame(expected: 'The counts on Today could not be read. Try again.', actual: $response->getData()['error']);
+	}//end testCountsAnswers503WhenTheReadFailed()
 }//end class

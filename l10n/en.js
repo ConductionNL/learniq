@@ -5871,6 +5871,7 @@ OC.L10N.register(
         "The activity is open for sign-up.": "The activity is open for sign-up.",
         "Only the staff who run the school's activities see them.": "Only the staff who run the school's activities see them.",
         "What comes first today could not be read. Try again.": "What comes first today could not be read. Try again.",
+        "The counts on Today could not be read. Try again.": "The counts on Today could not be read. Try again.",
         "Report to the compulsory education office": "Report to the compulsory education office",
         "Exchange status": "Exchange status",
         "No report sent to the compulsory education office yet": "No report sent to the compulsory education office yet",

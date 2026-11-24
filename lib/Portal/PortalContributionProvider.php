@@ -304,6 +304,22 @@ class PortalContributionProvider {
 	}//end getPublicIndex()
 
 	/**
+	 * The page of one public course or programme (portaliq
+	 * public-detail-page-for-a-provider-item); null when the portal's index
+	 * does not list it, or without the service.
+	 *
+	 * @param string $portal The portal slug.
+	 * @param string $id     The item's id in the public index.
+	 *
+	 * @return array<string, mixed>|null
+	 *
+	 * @spec openspec/changes/portal-public-index/specs/portal-contribution/spec.md#requirement-a-public-course-or-programme-has-a-page-of-its-own
+	 */
+	public function getPublicDetail(string $portal, string $id): ?array {
+		return $this->publicIndex?->detailFor(portal: $portal, id: $id);
+	}//end getPublicDetail()
+
+	/**
 	 * The steps of a work placement, for the student's and the trainer's placement page.
 	 *
 	 * Called by portaliq with the placement's id after its visibility check; none without the service.
