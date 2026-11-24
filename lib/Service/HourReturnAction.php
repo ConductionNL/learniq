@@ -58,7 +58,7 @@ final class HourReturnAction {
 	 * @spec openspec/changes/bpv-hours-per-day/specs/bpv/spec.md#requirement-a-returned-week-names-the-day-and-the-question
 	 */
 	public static function of(string $weekId): ?array {
-		if (preg_match('/^[A-Za-z0-9-]+$/', $weekId) !== 1) {
+		if (preg_match('/^[A-Za-z0-9-]+\z/', $weekId) !== 1) {
 			return null;
 		}
 
