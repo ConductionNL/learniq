@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/open-learning-material
+ * @spec openspec/specs/open-learning-material/spec.md
  */
 
 declare(strict_types=1);
