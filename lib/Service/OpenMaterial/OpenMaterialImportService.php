@@ -55,6 +55,13 @@ class OpenMaterialImportService implements OpenMaterialImportServiceInterface {
 	];
 
 	/**
+	 * Builds the Material from the record.
+	 *
+	 * @var MaterialFromRecord
+	 */
+	private readonly MaterialFromRecord $materials;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param OpenMaterialSourceClient $client        Looks the record up.
@@ -62,7 +69,7 @@ class OpenMaterialImportService implements OpenMaterialImportServiceInterface {
 	 * @param OpenMaterialSettings     $settings      The administrator's link-allowed collections.
 	 * @param MaterialImportTarget     $targets       Resolves the lesson or course.
 	 * @param ObjectService            $objectService Writes the Material.
-	 * @param MaterialFromRecord       $materials     Builds the Material from the record.
+	 * @param OpenMaterialFileCopy     $copies        Copies an open file into Nextcloud through integriq.
 	 *
 	 * @spec openspec/specs/open-learning-material/spec.md#requirement-licence-rules-are-enforced-on-the-server
 	 */
@@ -72,8 +79,9 @@ class OpenMaterialImportService implements OpenMaterialImportServiceInterface {
 		private readonly OpenMaterialSettings $settings,
 		private readonly MaterialImportTarget $targets,
 		private readonly ObjectService $objectService,
-		private readonly MaterialFromRecord $materials = new MaterialFromRecord(),
+		private readonly OpenMaterialFileCopy $copies,
 	) {
+		$this->materials = new MaterialFromRecord();
 	}//end __construct()
 
 	/**
@@ -87,7 +95,7 @@ class OpenMaterialImportService implements OpenMaterialImportServiceInterface {
 	 */
 	public function withDecision(array $record): array {
 		$decision           = $this->rules->decide(record: $record, linkCollections: $this->settings->linkCollections());
-		$record['decision'] = $this->offered(decision: $decision)->toArray();
+		$record['decision'] = $decision->toArray();
 
 		return $record;
 	}//end withDecision()
@@ -108,8 +116,12 @@ class OpenMaterialImportService implements OpenMaterialImportServiceInterface {
 		$target   = $this->targets->resolve(user: $user, request: $request);
 		$record   = $this->record(sourceId: trim((string)($request['sourceId'] ?? '')));
 		$decision = $this->decision(record: $record, request: ['mode' => (string)($request['mode'] ?? ''), 'commercial' => $target['commercial']]);
+		$added    = ['decision' => $decision, 'target' => $target['fields']];
+		if ($decision->mode === ImportDecision::COPY) {
+			$added = $this->copied(user: $user, record: $record, added: $added);
+		}
 
-		return $this->save(material: $this->materials->build(record: $record, added: ['decision' => $decision, 'target' => $target['fields']]));
+		return $this->save(material: $this->materials->build(record: $record, added: $added));
 	}//end add()
 
 	/**
@@ -149,7 +161,7 @@ class OpenMaterialImportService implements OpenMaterialImportServiceInterface {
 	 * @spec openspec/specs/open-learning-material/spec.md#requirement-licence-rules-are-enforced-on-the-server
 	 */
 	private function decision(array $record, array $request): ImportDecision {
-		$decision = $this->offered(decision: $this->rules->decide(record: $record, linkCollections: $this->settings->linkCollections()));
+		$decision = $this->rules->decide(record: $record, linkCollections: $this->settings->linkCollections());
 		if ($decision->mode === ImportDecision::REFUSED) {
 			$this->refuse(code: $decision->reason);
 		}
@@ -162,7 +174,7 @@ class OpenMaterialImportService implements OpenMaterialImportServiceInterface {
 	}//end decision()
 
 	/**
-	 * A copy asked for a link-only record is refused.
+	 * A copy asked for a link-only record is refused; a link asked for a copyable record is a link.
 	 *
 	 * @param ImportDecision $decision The rules' decision.
 	 * @param string         $mode     The asked mode, or empty for the rules' choice.
@@ -176,6 +188,10 @@ class OpenMaterialImportService implements OpenMaterialImportServiceInterface {
 	private function narrowed(ImportDecision $decision, string $mode): ImportDecision {
 		if ($mode === ImportDecision::COPY && $decision->mode === ImportDecision::LINK) {
 			$this->refuse(code: $this->linkOnlyReason(reason: $decision->reason));
+		}
+
+		if ($mode === ImportDecision::LINK && $decision->mode === ImportDecision::COPY) {
+			return $this->asLink(decision: $decision, reason: 'link-asked');
 		}
 
 		return $decision;
@@ -199,24 +215,47 @@ class OpenMaterialImportService implements OpenMaterialImportServiceInterface {
 	}//end linkOnlyReason()
 
 	/**
-	 * The decision as learniq can carry it out: integriq offers no file download
-	 * yet, so a record the rules allow to copy is added as a link.
+	 * Carry out a copy: integriq fetches the open file and learniq keeps it in
+	 * Nextcloud. When no copy can be made (integriq refuses the file, it is too
+	 * large, or the write fails) the record is added as a link, with the same
+	 * attribution.
 	 *
-	 * @param ImportDecision $decision The rules' decision.
+	 * @param IUser                                                          $user   The teacher.
+	 * @param array<string, mixed>                                           $record The normalised source record.
+	 * @param array{decision: ImportDecision, target: array<string, string>} $added  How it is added and where.
 	 *
-	 * @return ImportDecision The decision to offer.
+	 * @return array<string, mixed> The added fields with the copy as `file`, or with a link decision.
 	 *
 	 * @spec openspec/specs/open-learning-material/spec.md#requirement-licence-rules-are-enforced-on-the-server
 	 */
-	private function offered(ImportDecision $decision): ImportDecision {
-		if ($decision->mode !== ImportDecision::COPY) {
-			return $decision;
+	private function copied(IUser $user, array $record, array $added): array {
+		$file = $this->copies->copy(user: $user, record: $record, tenantId: (string)($added['target']['tenant_id'] ?? ''));
+		if ($file === null) {
+			$added['decision'] = $this->asLink(decision: $added['decision'], reason: 'copy-failed');
+
+			return $added;
 		}
 
-		$link = new ImportDecision(mode: ImportDecision::LINK, reason: 'copy-not-offered');
+		$added['file'] = $file;
+
+		return $added;
+	}//end copied()
+
+	/**
+	 * The decision as a link, keeping its NC flag.
+	 *
+	 * @param ImportDecision $decision The decision.
+	 * @param string         $reason   Why it is a link.
+	 *
+	 * @return ImportDecision The link.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#requirement-licence-rules-are-enforced-on-the-server
+	 */
+	private function asLink(ImportDecision $decision, string $reason): ImportDecision {
+		$link = new ImportDecision(mode: ImportDecision::LINK, reason: $reason);
 
 		return $link->withNonCommercial(nonCommercial: $decision->isNonCommercial());
-	}//end offered()
+	}//end asLink()
 
 	/**
 	 * Write the Material.

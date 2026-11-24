@@ -40,6 +40,7 @@ use OCA\Learniq\Listener\LessonNoteAuthorGuard;
 use OCA\Learniq\Listener\HrFieldOwnershipGuard;
 use OCA\Learniq\Listener\ProfileScopeChangeHandler;
 use OCA\Learniq\Listener\SyncedCohortGuard;
+use OCA\Learniq\Listener\MaterialAttributionKeeper;
 use OCA\Learniq\Listener\LvsResultLearnerRefStamp;
 use OCA\Learniq\Listener\ReportCardGradeLinesStamp;
 use OCA\Learniq\Listener\PortfolioEntryOwnershipListener;
@@ -465,7 +466,8 @@ class IntegrityListenerRegistrar {
 
 	/**
 	 * NC material follows its course: withheld from learners while the course
-	 * is paid or corporate (open-learning-material).
+	 * is paid or corporate (open-learning-material). A Material added from an
+	 * open source keeps its source, makers and licence through every edit.
 	 *
 	 * @param IRegistrationContext $context The registration context.
 	 *
@@ -478,6 +480,11 @@ class IntegrityListenerRegistrar {
 				listener: NonCommercialWithholdingCascade::class
 			);
 		}
+
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: MaterialAttributionKeeper::class
+		);
 	}//end registerWithholdingCascade()
 
 	/**

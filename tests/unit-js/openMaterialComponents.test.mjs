@@ -50,7 +50,7 @@ const RECORD = {
 	language: 'nl',
 	published: '2024-03-01',
 	license: 'CC-BY-SA-4.0',
-	decision: { mode: 'link', reason: 'copy-not-offered' },
+	decision: { mode: 'link', reason: 'no-copyable-file' },
 }
 
 // --- Result card ---------------------------------------------------------------
@@ -173,7 +173,6 @@ test('the add section says what adding does for each mode and reason', () => {
 	assert.match(view({ mode: 'link', reason: 'no-derivatives' }).addText, /^The licence forbids changes/)
 	assert.match(view({ mode: 'link', reason: 'restricted-access' }).addText, /^The file is only available at the source/)
 	assert.match(view({ mode: 'link', reason: 'link-allowed-collection' }).addText, /^The material plays at the source/)
-	assert.match(view({ mode: 'link', reason: 'copy-not-offered' }).addText, /cannot fetch files from Edurep yet/)
 	assert.match(view({ mode: 'link' }).addText, /^This is a web page\./)
 	const none = view({})
 	assert.equal(none.mode, 'none')

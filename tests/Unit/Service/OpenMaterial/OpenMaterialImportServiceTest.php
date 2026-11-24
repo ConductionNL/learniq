@@ -30,6 +30,7 @@ namespace OCA\Learniq\Tests\Unit\Service\OpenMaterial;
 use OCA\Learniq\Exception\MaterialImportRefusedException;
 use OCA\Learniq\Service\OpenMaterial\MaterialImportTarget;
 use OCA\Learniq\Service\OpenMaterial\MaterialLicenceRules;
+use OCA\Learniq\Service\OpenMaterial\OpenMaterialFileCopy;
 use OCA\Learniq\Service\OpenMaterial\OpenMaterialImportService;
 use OCA\Learniq\Service\OpenMaterial\OpenMaterialSettings;
 use OCA\Learniq\Service\OpenMaterial\OpenMaterialSourceClient;
@@ -64,6 +65,13 @@ class OpenMaterialImportServiceTest extends TestCase {
 	private IUser&MockObject $user;
 
 	/**
+	 * Copies an open file into Nextcloud.
+	 *
+	 * @var OpenMaterialFileCopy&MockObject
+	 */
+	private OpenMaterialFileCopy&MockObject $copies;
+
+	/**
 	 * Wire the service with the real rules and default settings.
 	 *
 	 * @return void
@@ -73,6 +81,7 @@ class OpenMaterialImportServiceTest extends TestCase {
 		$this->targets       = $this->createMock(MaterialImportTarget::class);
 		$this->objectService = $this->createMock(ObjectService::class);
 		$this->user          = $this->createMock(IUser::class);
+		$this->copies        = $this->createMock(originalClassName: OpenMaterialFileCopy::class);
 		$this->user->method('getUID')->willReturn('docent');
 		$this->targets->method('resolve')->willReturnCallback(
 			static fn (IUser $user, array $request): array => ['fields' => ['lessonId' => 'les-7', 'courseId' => 'course-1', 'tenant_id' => 't-1'], 'commercial' => ($request['courseId'] ?? '') === 'paid']
@@ -94,7 +103,8 @@ class OpenMaterialImportServiceTest extends TestCase {
 			new MaterialLicenceRules(),
 			new OpenMaterialSettings($appConfig),
 			$this->targets,
-			$this->objectService
+			$this->objectService,
+			$this->copies
 		);
 	}//end service()
 
@@ -166,30 +176,75 @@ class OpenMaterialImportServiceTest extends TestCase {
 	}//end testARestrictedFileNeverLands()
 
 	/**
-	 * A record the rules allow to copy is linked while integriq offers no download, with its attribution and NC flag.
+	 * A record the rules allow to copy is kept as a copy in Nextcloud, fetched through integriq, with its attribution and NC flag.
 	 *
 	 * @return void
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#requirement-licence-rules-are-enforced-on-the-server
 	 */
-	public function testACopyableRecordIsLinkedWhileIntegriqOffersNoDownload(): void {
+	public function testACopyableRecordIsCopiedIntoNextcloudThroughIntegriq(): void {
 		$this->client->method('find')->willReturn($this->openPdf(licence: 'CC-BY-NC-4.0'));
+		$this->copies->expects($this->once())->method('copy')
+			->with($this->user, $this->openPdf(licence: 'CC-BY-NC-4.0'), 't-1')
+			->willReturn(['fileRef' => '/Learniq/t-1/materials/1a2b3c4d-opdracht.pdf', 'mimeType' => 'application/pdf']);
 
 		$material = $this->service()->add(user: $this->user, request: ['sourceId' => 'urn:test:1', 'lessonId' => 'les-7']);
 
-		$this->assertSame(expected: ['link', true, 'https://example.org/record/1'], actual: [$material['kind'], $material['nonCommercial'], $material['sourceUrl']]);
-		$this->assertArrayNotHasKey(key: 'fileRef', array: $material);
+		$this->assertSame(
+			expected: ['document', true, '/Learniq/t-1/materials/1a2b3c4d-opdracht.pdf'],
+			actual: [$material['kind'], $material['nonCommercial'], $material['fileRef']]
+		);
+		$this->assertSame(expected: 'https://example.org/record/1', actual: $material['sourceUrl']);
 		$this->assertSame(expected: ['J. Roenhorst'], actual: $material['authors']);
-	}//end testACopyableRecordIsLinkedWhileIntegriqOffersNoDownload()
+	}//end testACopyableRecordIsCopiedIntoNextcloudThroughIntegriq()
 
 	/**
-	 * The panel offers a link for a copyable record, so it never asks for a copy it cannot make.
+	 * When integriq refuses the file or the write fails, the record is added as a link with the same attribution.
 	 *
 	 * @return void
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#requirement-licence-rules-are-enforced-on-the-server
 	 */
-	public function testThePanelOffersALinkForACopyableRecord(): void {
+	public function testACopyThatCannotBeMadeIsAddedAsALink(): void {
+		$this->client->method('find')->willReturn($this->openPdf(licence: 'CC-BY-4.0'));
+		$this->copies->method('copy')->willReturn(null);
+
+		$material = $this->service()->add(user: $this->user, request: ['sourceId' => 'urn:test:1', 'lessonId' => 'les-7', 'mode' => 'copy']);
+
+		$this->assertSame(expected: ['link', 'https://example.org/record/1'], actual: [$material['kind'], $material['url']]);
+		$this->assertArrayNotHasKey(key: 'fileRef', array: $material);
+		$this->assertSame(expected: 'CC-BY-4.0', actual: $material['license']);
+	}//end testACopyThatCannotBeMadeIsAddedAsALink()
+
+	/**
+	 * A teacher who asks for a link to a copyable record gets a link and no file is fetched.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#requirement-licence-rules-are-enforced-on-the-server
+	 */
+	public function testALinkAskedForACopyableRecordFetchesNothing(): void {
+		$this->client->method('find')->willReturn($this->openPdf(licence: 'CC-BY-4.0'));
+		$this->copies->expects($this->never())->method('copy');
+
+		$material = $this->service()->add(user: $this->user, request: ['sourceId' => 'urn:test:1', 'lessonId' => 'les-7', 'mode' => 'link']);
+
+		$this->assertSame(expected: 'link', actual: $material['kind']);
+		$this->assertArrayNotHasKey(key: 'fileRef', array: $material);
+	}//end testALinkAskedForACopyableRecordFetchesNothing()
+
+	/**
+	 * The panel offers a copy for a copyable record, now that integriq fetches the file.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#requirement-licence-rules-are-enforced-on-the-server
+	 */
+	public function testThePanelOffersACopyForACopyableRecord(): void {
 		$decision = $this->service()->withDecision(record: $this->openPdf(licence: 'CC-BY-4.0'))['decision'];
 
-		$this->assertSame(expected: ['mode' => 'link', 'reason' => 'copy-not-offered', 'nonCommercial' => false], actual: $decision);
-	}//end testThePanelOffersALinkForACopyableRecord()
+		$this->assertSame(expected: ['mode' => 'copy', 'reason' => 'open-licence', 'nonCommercial' => false], actual: $decision);
+	}//end testThePanelOffersACopyForACopyableRecord()
 
 	/**
 	 * NC material does not go into a paid or corporate course.

@@ -67,6 +67,9 @@ class OpenMaterialSourceClient {
 		'unknown-source'       => 'Integriq does not know this source.',
 		'unknown-operation'    => 'Integriq does not offer this operation.',
 		'failed'               => 'Integriq could not reach the source.',
+		'not-found'            => 'The source no longer has this material.',
+		'file-not-copyable'    => 'The source does not let this file be copied.',
+		'file-too-large'       => 'The file is too large to copy.',
 	];
 
 	/**
@@ -132,6 +135,30 @@ class OpenMaterialSourceClient {
 	public function find(string $sourceId): ?array {
 		return $this->ask(request: ['operation' => 'find', 'id' => $sourceId]);
 	}//end find()
+
+	/**
+	 * Fetch one open file of a record through integriq, for a copy in Nextcloud.
+	 *
+	 * Integriq fetches it (never the browser) and only when the record names it
+	 * on https with open access.
+	 *
+	 * @param string $sourceId The record identifier.
+	 * @param string $url      The file's address, one of the record's files.
+	 *
+	 * @return array<string, mixed> name, mimeType, size and contentBase64.
+	 *
+	 * @throws IntegriqUnavailableException When integriq refused the file or did not answer.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#requirement-licence-rules-are-enforced-on-the-server
+	 */
+	public function download(string $sourceId, string $url): array {
+		$answer = $this->ask(request: ['operation' => 'download', 'id' => $sourceId, 'url' => $url]);
+		if ($answer === null) {
+			throw new IntegriqUnavailableException(message: self::REFUSALS['not-found'] . ' (not-found)');
+		}
+
+		return $answer;
+	}//end download()
 
 	/**
 	 * Dispatch one request and read its answer.

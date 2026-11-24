@@ -10478,12 +10478,12 @@
       "origin": "change",
       "built": {
         "state": "built",
-        "evidence": "lib/Service/OpenMaterial/MaterialLicenceRules.php, src/modals/OpenMaterialSearchModal.vue, Material.accessRights in lib/Settings/learniq_register.json (learniq#2111; tasks.md not ticked)",
+        "evidence": "lib/Service/OpenMaterial/MaterialLicenceRules.php, lib/Service/OpenMaterial/OpenMaterialFileCopy.php, lib/Listener/MaterialAttributionKeeper.php, src/modals/OpenMaterialSearchModal.vue, Material.accessRights in lib/Settings/learniq_register.json (learniq#2111, #2741; change archived 2026-11-24)",
         "owner": "ConductionNL/learniq",
         "change": "open-learning-material",
         "requirement": [
-          "openspec/changes/open-learning-material/specs/open-learning-material :: The search panel shows results with facets and three states",
-          "openspec/changes/open-learning-material/specs/open-learning-material :: Material carries its source and attribution"
+          "openspec/specs/open-learning-material :: The search panel shows results with facets and three states",
+          "openspec/specs/open-learning-material :: Material carries its source and attribution"
         ]
       },
       "provider": "self",

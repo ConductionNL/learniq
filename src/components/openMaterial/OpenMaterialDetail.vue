@@ -188,7 +188,6 @@ export default {
 				'no-derivatives': this.t('learniq', 'The licence forbids changes, so learniq copies nothing. The learner opens the material at the source.'),
 				'restricted-access': this.t('learniq', 'The file is only available at the source, so learniq links to it.'),
 				'link-allowed-collection': this.t('learniq', 'The material plays at the source. Learniq does not play it itself.'),
-				'copy-not-offered': this.t('learniq', 'The licence allows a copy, but learniq cannot fetch files from Edurep yet, so it adds a link. The learner opens the material at the source.'),
 			}[this.record.decision?.reason] || this.defaultAddText()
 		},
 

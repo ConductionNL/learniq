@@ -49,8 +49,8 @@ class MaterialFromRecord {
 	/**
 	 * The Material fields for one record.
 	 *
-	 * @param array<string, mixed>                                            $record The normalised source record.
-	 * @param array{decision: ImportDecision, target: array<string, string>} $added  How it is added and where.
+	 * @param array<string, mixed> $record The normalised source record.
+	 * @param array<string, mixed> $added  decision (ImportDecision), target (fields), and file (fileRef, mimeType) for a copy.
 	 *
 	 * @return array<string, mixed> The Material object.
 	 *
@@ -62,9 +62,35 @@ class MaterialFromRecord {
 		$material['nonCommercial'] = $added['decision']->isNonCommercial();
 		$material['kind']          = 'link';
 		$material['url']           = $material['sourceUrl'];
+		if (isset($added['file']) === true) {
+			$material['kind']    = self::kindOf(mimeType: $added['file']['mimeType']);
+			$material['fileRef'] = $added['file']['fileRef'];
+		}
 
 		return $material;
 	}//end build()
+
+	/**
+	 * The Material kind of a copied file, by its media type.
+	 *
+	 * @param string $mimeType The file's media type.
+	 *
+	 * @return string video, slides or document.
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#requirement-material-carries-its-source-and-attribution
+	 */
+	public static function kindOf(string $mimeType): string {
+		$mimeType = strtolower($mimeType);
+		if (str_starts_with($mimeType, 'video/') === true) {
+			return 'video';
+		}
+
+		if (str_contains($mimeType, 'presentation') === true || str_contains($mimeType, 'powerpoint') === true) {
+			return 'slides';
+		}
+
+		return 'document';
+	}//end kindOf()
 
 	/**
 	 * The attribution fields, which are always stored.
