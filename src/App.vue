@@ -27,7 +27,11 @@
 
  CnAppRoot's user settings dialog (the manifest menu entry with action:
  "user-settings") shows the library's default sections, among them the
- notification preferences scoped to learniq. Instance-wide configuration
+ notification preferences scoped to learniq. `quietHours` adds the library's
+ quiet-hours block under them: the person's delivery window in OpenRegister,
+ read and saved at /apps/openregister/api/notification-delivery-window, which
+ applies to every app (notification-quiet-hours-through-openregister, board
+ LqMeldingen). Instance-wide configuration
  (register, AI features, credential signing) lives in the NC Admin panel.
 -->
 <template>
@@ -39,6 +43,7 @@
 		:formatters="formatters"
 		:cellWidgets="cellWidgets"
 		appId="learniq"
+		:quietHours="true"
 		:translate="translateForApp"
 		:initialOrganisationUuid="callerTenant">
 		<!-- The tenant context carries learniq's tenant id, not an organisation

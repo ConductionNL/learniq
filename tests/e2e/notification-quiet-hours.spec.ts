@@ -8,11 +8,10 @@
  * window is also read from `GET /apps/openregister/api/notification-delivery-window`
  * as her, so the values come from OpenRegister and not from the browser.
  *
- * NOT BUILT YET. Tasks 1.1 to 1.3 of the change are open: the settings dialog
- * is nextcloud-vue's CnNotificationPreferences section, which draws the
- * notification switches and no quiet-hours block, and nothing in `src/`
- * calls the delivery-window endpoint. The test is written against the board
- * (LqMeldingen) and the design's labels and skips until the panel exists.
+ * The block is nextcloud-vue's CnQuietHours (nextcloud-vue #2307), drawn by
+ * CnNotificationPreferences because learniq's CnAppRoot sets `quietHours`.
+ * Written, runs in the nightly: it skips on an install whose nextcloud-vue
+ * does not draw the block yet (no `cn-quiet-hours` in the dialog).
  *
  * Covers:
  *   @e2e openspec/changes/notification-quiet-hours-through-openregister/specs/scholiq-notifications/spec.md#scenario-a-teacher-sets-quiet-hours
@@ -38,9 +37,9 @@ async function openQuietHours(page: Page) {
 	// The settings foldout is collapsed; its entries are attached, not visible.
 	await nav.locator('[data-testid="cn-nav-settings"]').click()
 	await nav.locator('[data-testid="cn-nav-personal-settings"]').click()
-	const section = page.getByRole('dialog').locator('section').filter({ hasText: 'Quiet hours' }).first()
-	await expect(section).toBeVisible({ timeout: 30_000 })
-	return section
+	const dialog = page.getByRole('dialog')
+	await expect(dialog.getByText('Notifications').first()).toBeVisible({ timeout: 30_000 })
+	return dialog.locator('[data-testid="cn-quiet-hours"]')
 }
 
 test.describe('quiet hours through the delivery window', () => {
@@ -62,10 +61,6 @@ test.describe('quiet hours through the delivery window', () => {
 
 	// @e2e openspec/changes/notification-quiet-hours-through-openregister/specs/scholiq-notifications/spec.md#scenario-a-teacher-sets-quiet-hours
 	test('a teacher sets 22:00 to 07:00 and reads it back after a reload', async ({ browser }) => {
-		test.skip(
-			true,
-			'Not built: tasks 1.1-1.3 are open. The settings dialog (CnNotificationPreferences) has no quiet-hours block and nothing in src/ calls the delivery-window endpoint.',
-		)
 		test.setTimeout(180_000)
 		const none = await api.get(WINDOW)
 		expect(none.status(), await none.text()).toBe(200)
@@ -73,8 +68,12 @@ test.describe('quiet hours through the delivery window', () => {
 
 		const page = await signInAs(browser, teacher)
 		let section = await openQuietHours(page)
+		test.skip(
+			!(await section.waitFor({ state: 'visible', timeout: 15_000 }).then(() => true, () => false)),
+			'This build of nextcloud-vue draws no quiet-hours block yet (needs the release with CnQuietHours, nextcloud-vue #2307).',
+		)
 		await section.getByRole('checkbox', { name: 'Turn on quiet hours' }).check()
-		await section.getByLabel('Start').fill('22:00')
+		await section.getByLabel('Begin').fill('22:00')
 		await section.getByLabel('End').fill('07:00')
 		await section.getByRole('button', { name: 'Save' }).click()
 
@@ -89,7 +88,7 @@ test.describe('quiet hours through the delivery window', () => {
 		await page.reload()
 		section = await openQuietHours(page)
 		await expect(section.getByRole('checkbox', { name: 'Turn on quiet hours' })).toBeChecked()
-		await expect(section.getByLabel('Start')).toHaveValue('22:00')
+		await expect(section.getByLabel('Begin')).toHaveValue('22:00')
 		await expect(section.getByLabel('End')).toHaveValue('07:00')
 		await page.context().close()
 	})
