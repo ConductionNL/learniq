@@ -17,7 +17,8 @@
 
 ## 4. Cross app
 
-- [ ] 4.1 Open an integriq issue for mapping OneRoster `classes` and `enrollments` (and Magister, Somtoday) to `class-roster` records, referencing this change and its contract. Record the issue here.
+- [x] 4.1 Open an integriq issue for mapping OneRoster `classes` and `enrollments` (and Magister, Somtoday) to `class-roster` records, referencing this change and its contract. Record the issue here.
+  - ConductionNL/integriq#3888 (24 Nov 2026): the record per class (`externalId`, `externalSource`, name, school year, programme year, `learnerIds`, `teacherIds`) and the refusal codes.
 
 ## 5. Close out
 

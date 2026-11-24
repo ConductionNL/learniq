@@ -8,7 +8,8 @@
   - PHPUnit `PortalWerkprocesControllerTest`, over the real verifier
 - [x] **T4**: `PortalWerkprocesAssessment` stamps the identity and the assurance, checks the placement is hers, and honours the school's floor
   - PHPUnit `PortalWerkprocesAssessmentTest`
-- [ ] **T5**: the trainer's form in steps with a draft, once portaliq accepts `steps`, `draft` and `confirmation` on an action
+- [x] **T5**: the trainer's form in steps with a draft, once portaliq accepts `steps`, `draft` and `confirmation` on an action
+  - Built: portaliq accepts them since `site-multi-step-forms` (REQ-SMF-020), and `TrainerSitePages::assessmentAction()` declares `createWerkprocesAssessment` in two steps with a review step, a draft kept 30 days, `requiredFields` and a confirmation (built with `site-workplace-trainer-portal-design` T3). PHPUnit `PlacementPagesTest::testTheAssessmentRunsInStepsWithADraft`.
 - [ ] **T6**: a live check on an instance with a praktijkopleider portal account (the mbo example set)
 
 ## Waiting on Ruben
