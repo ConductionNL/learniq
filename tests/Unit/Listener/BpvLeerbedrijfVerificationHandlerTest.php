@@ -26,7 +26,13 @@ namespace OCA\Learniq\Tests\Unit\Listener;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Service\ObjectService;
+use OCA\Learniq\Bpv\IntegriqLeerbedrijfVerification;
 use OCA\Learniq\Bpv\ProvidesLeerbedrijfVerification;
+use OCA\Learniq\Lifecycle\BpvConfirmationGuard;
+use OCA\Learniq\Service\ConnectionReportService;
+use OCP\App\IAppManager;
+use OCP\AppFramework\Utility\ITimeFactory;
+use OCP\EventDispatcher\IEventDispatcher;
 use OCA\Learniq\Listener\BpvLeerbedrijfVerificationHandler;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\TestCase;
@@ -144,31 +150,62 @@ class BpvLeerbedrijfVerificationHandlerTest extends TestCase {
 		$this->assertSame('2027-01-01T00:00:00+00:00', $saved['expiresAt']);
 		$this->assertSame(['source' => 'fake'], $saved['raw']);
 		$this->assertNotEmpty($saved['verifiedAt']);
+		$this->assertNotEmpty(actual: $saved['checkedAt']);
+		$this->assertNull(actual: $saved['reason']);
 
 	}//end testConfiguredProviderWritesVerifiedResultBack()
 
 	/**
-	 * An unconfigured provider (empty/null `provider` config) is a no-op — the placement stays
-	 * in sbb-verification-pending, no exception thrown, nothing saved.
+	 * No provider named, or `integriq`: the handler resolves the integriq
+	 * provider learniq ships. Without integriq that provider answers pending
+	 * with a reason, the handler stores it with the time of the check, and the
+	 * confirmation guard still refuses the placement (the real wiring).
 	 *
 	 * @return void
+	 *
+	 * @spec openspec/changes/workplace-leerbedrijf-check-through-integriq/specs/bpv/spec.md#requirement-a-missing-integration-fails-closed
 	 */
-	public function testUnconfiguredProviderIsNoOp(): void {
-		$container = $this->createMock(ContainerInterface::class);
-		$container->expects($this->never())->method('get');
+	public function testWithoutANamedProviderTheIntegriqProviderChecksAndFailsClosed(): void {
+		foreach ([null, '', 'integriq'] as $named) {
+			$this->savedObjects = [];
+			$apps = $this->createMock(IAppManager::class);
+			$apps->method('isEnabledForUser')->willReturn(false);
+			$provider = new IntegriqLeerbedrijfVerification(
+				$this->createMock(IEventDispatcher::class),
+				$apps,
+				$this->createMock(ITimeFactory::class),
+				$this->createMock(ConnectionReportService::class)
+			);
+			$asked = [];
+			$container = $this->createMock(ContainerInterface::class);
+			$container->method('get')->willReturnCallback(
+				static function (string $id) use (&$asked, $provider): object {
+					$asked[] = $id;
+					return $provider;
+				}
+			);
 
-		$handler = $this->makeHandler($container);
-		$placement = [
-			'id' => 'placement-1',
-			'trainingCompanyKvkNumber' => '12345678',
-			'trainingCompanyVerification' => ['provider' => null, 'status' => 'unverified'],
-		];
+			$this->makeHandler($container)->handle(
+				$this->makeEvent(
+					[
+						'id' => 'placement-1',
+						'trainingCompanyKvkNumber' => '',
+						'trainingCompanyVerification' => ['provider' => $named, 'status' => 'unverified', 'erkenningNumber' => '100234567'],
+					]
+				)
+			);
 
-		$handler->handle($this->makeEvent($placement));
+			$this->assertSame(expected: [IntegriqLeerbedrijfVerification::class], actual: $asked);
+			$this->assertCount(expectedCount: 1, haystack: $this->savedObjects);
+			$saved = $this->savedObjects[0]['object'];
+			$this->assertSame(expected: 'pending', actual: $saved['trainingCompanyVerification']['status']);
+			$this->assertSame(expected: IntegriqLeerbedrijfVerification::REASON_NO_INTEGRIQ, actual: $saved['trainingCompanyVerification']['reason']);
+			$this->assertNotEmpty(actual: $saved['trainingCompanyVerification']['checkedAt']);
 
-		$this->assertCount(0, $this->savedObjects);
-
-	}//end testUnconfiguredProviderIsNoOp()
+			$verdict = (new BpvConfirmationGuard($this->createMock(LoggerInterface::class)))->check(object: $saved, action: 'confirm', userId: '');
+			$this->assertFalse(condition: $verdict->isAllowed());
+		}//end foreach
+	}//end testWithoutANamedProviderTheIntegriqProviderChecksAndFailsClosed()
 
 	/**
 	 * A configured provider FQCN the container cannot resolve is also a no-op — the handler
@@ -226,7 +263,7 @@ class BpvLeerbedrijfVerificationHandlerTest extends TestCase {
 	 */
 	public function testEveryUnusableProviderLogsWhy(): void {
 		$cases = [
-			'not named' => ['', [], []],
+			'not named, the shipped provider is not an adapter here' => ['', [IntegriqLeerbedrijfVerification::class], ['[BpvLeerbedrijfVerificationHandler] Configured provider "{class}" does not implement ProvidesLeerbedrijfVerification.', ['class' => IntegriqLeerbedrijfVerification::class]]],
 			'not a name' => [42, [], []],
 			'unresolvable' => ['MissingClass', ['MissingClass'], ['[BpvLeerbedrijfVerificationHandler] Configured provider "{class}" could not be resolved: {msg}', ['class' => 'MissingClass', 'msg' => 'no such service']]],
 			'not an adapter' => ['NotAnAdapter', ['NotAnAdapter'], ['[BpvLeerbedrijfVerificationHandler] Configured provider "{class}" does not implement ProvidesLeerbedrijfVerification.', ['class' => 'NotAnAdapter']]],
