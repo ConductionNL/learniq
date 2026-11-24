@@ -4080,6 +4080,8 @@
         "Awaiting SBB check": "Awaiting SBB check",
         "The pupil list could not be read. Try again.": "The pupil list could not be read. Try again.",
         "Sign in to open this page.": "Sign in to open this page.",
+        "Updated from %1$s at %2$s, %3$s change": "Updated from %1$s at %2$s, %3$s change",
+        "Updated from %1$s at %2$s, %3$s changes": "Updated from %1$s at %2$s, %3$s changes",
         "Placement visit": "Placement visit",
         "Open attendance signal": "Open attendance signal",
         "Time chosen by": "Time chosen by",

@@ -4647,6 +4647,8 @@ OC.L10N.register(
         "Awaiting SBB check": "Wacht op SBB-controle",
         "The pupil list could not be read. Try again.": "De leerlingenlijst kon niet worden gelezen. Probeer het opnieuw.",
         "Sign in to open this page.": "Meld je aan om deze pagina te openen.",
+        "Updated from %1$s at %2$s, %3$s change": "Bijgewerkt uit %1$s om %2$s, %3$s wijziging",
+        "Updated from %1$s at %2$s, %3$s changes": "Bijgewerkt uit %1$s om %2$s, %3$s wijzigingen",
         "Placement visit": "Bezoek op de stageplek",
         "Open attendance signal": "Open verzuimsignaal",
         "Time chosen by": "Tijd gekozen door",
