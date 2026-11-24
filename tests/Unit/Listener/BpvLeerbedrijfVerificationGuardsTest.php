@@ -133,13 +133,23 @@ class BpvLeerbedrijfVerificationGuardsTest extends TestCase {
 	 * @spec openspec/changes/workplace-leerbedrijf-check-through-integriq/specs/bpv/spec.md#requirement-leerbedrijf-verification-is-a-pluggable-provider
 	 */
 	public function testANonArrayVerificationMeansTheDefaultProvider(): void {
-		$container = $this->createMock(ContainerInterface::class);
-		$container->expects(self::once())->method('get')->with(IntegriqLeerbedrijfVerification::class)->willThrowException(new RuntimeException('not built'));
+		$container = $this->createMock(originalClassName: ContainerInterface::class);
+		$container->expects(self::once())
+			->method('get')
+			->with(IntegriqLeerbedrijfVerification::class)
+			->willThrowException(new RuntimeException(message: 'not built'));
 		$this->objectService->expects(self::never())->method('saveObject');
-		$this->logger->expects(self::once())->method('info')->with(self::stringContains('No usable leerbedrijfVerification.provider'), ['id' => 'p-1']);
-		$handler = new BpvLeerbedrijfVerificationHandler($this->objectService, $container, $this->logger, TransitionScope::resolver());
+		$this->logger->expects(self::once())
+			->method('info')
+			->with(self::stringContains(string: 'No usable leerbedrijfVerification.provider'), ['id' => 'p-1']);
+		$handler = new BpvLeerbedrijfVerificationHandler(
+			objectService: $this->objectService,
+			container: $container,
+			logger: $this->logger,
+			schemas: TransitionScope::resolver()
+		);
 
-		$handler->handle($this->event(['uuid' => 'p-1', 'trainingCompanyKvkNumber' => '123', 'trainingCompanyVerification' => 'Provider']));
+		$handler->handle(event: $this->event(placement: ['uuid' => 'p-1', 'trainingCompanyKvkNumber' => '123', 'trainingCompanyVerification' => 'Provider']));
 	}//end testANonArrayVerificationMeansTheDefaultProvider()
 
 	/**

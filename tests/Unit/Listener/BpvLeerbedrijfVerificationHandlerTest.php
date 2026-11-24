@@ -169,16 +169,16 @@ class BpvLeerbedrijfVerificationHandlerTest extends TestCase {
 	public function testWithoutANamedProviderTheIntegriqProviderChecksAndFailsClosed(): void {
 		foreach ([null, '', 'integriq'] as $named) {
 			$this->savedObjects = [];
-			$apps = $this->createMock(IAppManager::class);
+			$apps = $this->createMock(originalClassName: IAppManager::class);
 			$apps->method('isEnabledForUser')->willReturn(false);
 			$provider = new IntegriqLeerbedrijfVerification(
-				$this->createMock(IEventDispatcher::class),
-				$apps,
-				$this->createMock(ITimeFactory::class),
-				$this->createMock(ConnectionReportService::class)
+				dispatcher: $this->createMock(originalClassName: IEventDispatcher::class),
+				appManager: $apps,
+				timeFactory: $this->createMock(originalClassName: ITimeFactory::class),
+				reports: $this->createMock(originalClassName: ConnectionReportService::class)
 			);
 			$asked = [];
-			$container = $this->createMock(ContainerInterface::class);
+			$container = $this->createMock(originalClassName: ContainerInterface::class);
 			$container->method('get')->willReturnCallback(
 				static function (string $id) use (&$asked, $provider): object {
 					$asked[] = $id;
@@ -186,9 +186,9 @@ class BpvLeerbedrijfVerificationHandlerTest extends TestCase {
 				}
 			);
 
-			$this->makeHandler($container)->handle(
-				$this->makeEvent(
-					[
+			$this->makeHandler(container: $container)->handle(
+				event: $this->makeEvent(
+					placementData: [
 						'id' => 'placement-1',
 						'trainingCompanyKvkNumber' => '',
 						'trainingCompanyVerification' => ['provider' => $named, 'status' => 'unverified', 'erkenningNumber' => '100234567'],
@@ -203,7 +203,7 @@ class BpvLeerbedrijfVerificationHandlerTest extends TestCase {
 			$this->assertSame(expected: IntegriqLeerbedrijfVerification::REASON_NO_INTEGRIQ, actual: $saved['trainingCompanyVerification']['reason']);
 			$this->assertNotEmpty(actual: $saved['trainingCompanyVerification']['checkedAt']);
 
-			$verdict = (new BpvConfirmationGuard($this->createMock(LoggerInterface::class)))->check(object: $saved, action: 'confirm', userId: '');
+			$verdict = (new BpvConfirmationGuard(logger: $this->createMock(originalClassName: LoggerInterface::class)))->check(object: $saved, action: 'confirm', userId: '');
 			$this->assertFalse(condition: $verdict->isAllowed());
 		}//end foreach
 	}//end testWithoutANamedProviderTheIntegriqProviderChecksAndFailsClosed()
@@ -372,12 +372,12 @@ class BpvLeerbedrijfVerificationHandlerTest extends TestCase {
 				return ['status' => 'verified', 'erkenningNumber' => '100234567', 'expiresAt' => '2027-01-31T00:00:00+00:00', 'raw' => []];
 			}
 		};
-		$container = $this->createMock(ContainerInterface::class);
+		$container = $this->createMock(originalClassName: ContainerInterface::class);
 		$container->method('get')->willReturn($fakeProvider);
 
-		$this->makeHandler($container)->handle(
-			$this->makeEvent(
-				[
+		$this->makeHandler(container: $container)->handle(
+			event: $this->makeEvent(
+				placementData: [
 					'id' => 'placement-1',
 					'periodTo' => '2027-06-30',
 					'trainingCompanyKvkNumber' => '12345678',
@@ -408,28 +408,28 @@ class BpvLeerbedrijfVerificationHandlerTest extends TestCase {
 				return IntegriqLeerbedrijfVerification::mapped(answer: ['found' => true, 'erkenningNumber' => '100234567', 'endDate' => '2027-08-31'], today: '2026-11-24');
 			}
 		};
-		$apps = $this->createMock(IAppManager::class);
+		$apps = $this->createMock(originalClassName: IAppManager::class);
 		$apps->method('isEnabledForUser')->willReturn(false);
 		$pending = new IntegriqLeerbedrijfVerification(
-			$this->createMock(IEventDispatcher::class),
-			$apps,
-			$this->createMock(ITimeFactory::class),
-			$this->createMock(ConnectionReportService::class)
+			dispatcher: $this->createMock(originalClassName: IEventDispatcher::class),
+			appManager: $apps,
+			timeFactory: $this->createMock(originalClassName: ITimeFactory::class),
+			reports: $this->createMock(originalClassName: ConnectionReportService::class)
 		);
 
 		$validator = new Validator();
 		foreach (['verified' => $verified, 'pending' => $pending] as $status => $provider) {
 			$this->savedObjects = [];
-			$container = $this->createMock(ContainerInterface::class);
+			$container = $this->createMock(originalClassName: ContainerInterface::class);
 			$container->method('get')->willReturn($provider);
-			$this->makeHandler($container)->handle(
-				$this->makeEvent(['id' => 'placement-1', 'periodTo' => '2027-06-30', 'trainingCompanyKvkNumber' => '12345678', 'trainingCompanyVerification' => ['provider' => 'Adapter']])
+			$this->makeHandler(container: $container)->handle(
+				event: $this->makeEvent(placementData: ['id' => 'placement-1', 'periodTo' => '2027-06-30', 'trainingCompanyKvkNumber' => '12345678', 'trainingCompanyVerification' => ['provider' => 'Adapter']])
 			);
 
-			$written = json_decode((string)json_encode($this->savedObjects[0]['object']['trainingCompanyVerification']));
+			$written = json_decode(json: (string)json_encode(value: $this->savedObjects[0]['object']['trainingCompanyVerification']));
 			$this->assertSame(expected: $status, actual: $written->status);
-			$result = $validator->validate($written, $this->verificationSchema());
-			$this->assertTrue(condition: $result->isValid(), message: $status . ': ' . json_encode($result->error()?->message()));
+			$result = $validator->validate(data: $written, schema: $this->verificationSchema());
+			$this->assertTrue(condition: $result->isValid(), message: $status . ': ' . json_encode(value: $result->error()?->message()));
 		}
 	}//end testTheWrittenResultPassesTheShippedSchema()
 
@@ -440,11 +440,11 @@ class BpvLeerbedrijfVerificationHandlerTest extends TestCase {
 	 * @return string
 	 */
 	private function verificationSchema(): string {
-		$register = json_decode((string)file_get_contents(__DIR__ . '/../../../lib/Settings/learniq_register.json'), true);
+		$register = json_decode(json: (string)file_get_contents(filename: __DIR__ . '/../../../lib/Settings/learniq_register.json'), associative: true);
 		$schema = $register['components']['schemas']['BpvPlacement']['properties']['trainingCompanyVerification'];
 		$schema['additionalProperties'] = false;
 		foreach ($schema['properties'] as $name => $property) {
-			if (($property['nullable'] ?? false) === true && is_string($property['type'] ?? null) === true) {
+			if (($property['nullable'] ?? false) === true && is_string(value: ($property['type'] ?? null)) === true) {
 				$property['type'] = [$property['type'], 'null'];
 			}
 
@@ -452,6 +452,6 @@ class BpvLeerbedrijfVerificationHandlerTest extends TestCase {
 			$schema['properties'][$name] = $property;
 		}
 
-		return (string)json_encode($schema);
+		return (string)json_encode(value: $schema);
 	}//end verificationSchema()
 }//end class

@@ -57,20 +57,20 @@ class IntegriqLeerbedrijfVerificationTest extends TestCase {
 	 * @return IntegriqLeerbedrijfVerification
 	 */
 	private function provider(callable $handler, bool $installed = true): IntegriqLeerbedrijfVerification {
-		$dispatcher = $this->createMock(IEventDispatcher::class);
+		$dispatcher = $this->createMock(originalClassName: IEventDispatcher::class);
 		$dispatcher->method('dispatchTyped')->willReturnCallback($handler);
-		$apps = $this->createMock(IAppManager::class);
+		$apps = $this->createMock(originalClassName: IAppManager::class);
 		$apps->method('isEnabledForUser')->willReturn($installed);
-		$time = $this->createMock(ITimeFactory::class);
+		$time = $this->createMock(originalClassName: ITimeFactory::class);
 		$time->method('getDateTime')->willReturn(new DateTime('2026-11-24 10:00:00'));
-		$reports = $this->createMock(ConnectionReportService::class);
+		$reports = $this->createMock(originalClassName: ConnectionReportService::class);
 		$reports->method('observe')->willReturnCallback(
 			function (string $key, string $status, string $reason): void {
 				$this->observed[] = [$key, $status];
 			}
 		);
 
-		return new IntegriqLeerbedrijfVerification($dispatcher, $apps, $time, $reports);
+		return new IntegriqLeerbedrijfVerification(dispatcher: $dispatcher, appManager: $apps, timeFactory: $time, reports: $reports);
 	}//end provider()
 
 	/**
@@ -83,7 +83,7 @@ class IntegriqLeerbedrijfVerificationTest extends TestCase {
 	public function testARecognisedCompanyIsVerified(): void {
 		$seen     = null;
 		$provider = $this->provider(
-			static function (TrainingCompanyLookupRequestedEvent $event) use (&$seen): void {
+			handler: static function (TrainingCompanyLookupRequestedEvent $event) use (&$seen): void {
 				$seen = [$event->getSourceApp(), $event->getRequest()];
 				$event->answer(answer: ['found' => true, 'erkenningNumber' => '100234567', 'endDate' => '2027-08-31']);
 			}
@@ -107,12 +107,15 @@ class IntegriqLeerbedrijfVerificationTest extends TestCase {
 	 * @spec openspec/changes/workplace-leerbedrijf-check-through-integriq/specs/bpv/spec.md#requirement-the-check-stores-sbbs-answer-on-the-placement
 	 */
 	public function testAnUnlistedCompanyIsRejectedAndAnEndedRecognitionExpired(): void {
-		$rejected = $this->provider(static fn (TrainingCompanyLookupRequestedEvent $event) => $event->answer(answer: ['found' => false]))
+		$rejected = $this->provider(handler: static fn (TrainingCompanyLookupRequestedEvent $event) => $event->answer(answer: ['found' => false]))
 			->verify(kvkOrErkenningNumber: '87654321');
 		$this->assertSame(expected: 'rejected', actual: $rejected['status']);
 		$this->assertNull(actual: $rejected['erkenningNumber']);
 
-		$expired = IntegriqLeerbedrijfVerification::mapped(answer: ['found' => true, 'erkenningNumber' => '1', 'endDate' => '2026-11-23'], today: '2026-11-24');
+		$expired = IntegriqLeerbedrijfVerification::mapped(
+			answer: ['found' => true, 'erkenningNumber' => '1', 'endDate' => '2026-11-23'],
+			today: '2026-11-24'
+		);
 		$this->assertSame(expected: 'expired', actual: $expired['status']);
 		$this->assertSame(expected: 'the recognition ended on 2026-11-23', actual: $expired['reason']);
 
@@ -135,10 +138,10 @@ class IntegriqLeerbedrijfVerificationTest extends TestCase {
 	public function testWithoutIntegriqTheCheckIsPending(): void {
 		$dispatched = false;
 		$result     = $this->provider(
-			static function () use (&$dispatched): void {
+			handler: static function () use (&$dispatched): void {
 				$dispatched = true;
 			},
-			false
+			installed: false
 		)->verify(kvkOrErkenningNumber: '12345678');
 
 		$this->assertFalse(condition: $dispatched);
@@ -156,12 +159,14 @@ class IntegriqLeerbedrijfVerificationTest extends TestCase {
 	 */
 	public function testIntegriqWithoutAnSbbSourceIsPendingWithTheReason(): void {
 		$refused = $this->provider(
-			static fn (TrainingCompanyLookupRequestedEvent $event) => $event->refuse(refusal: ['code' => 'source-not-available', 'reason' => 'Geen SBB-bron.'])
+			handler: static fn (TrainingCompanyLookupRequestedEvent $event) => $event->refuse(
+				refusal: ['code' => 'source-not-available', 'reason' => 'Geen SBB-bron.']
+			)
 		)->verify(kvkOrErkenningNumber: '12345678');
 		$this->assertSame(expected: 'pending', actual: $refused['status']);
 		$this->assertSame(expected: 'integriq has no SBB source configured', actual: $refused['reason']);
 
-		$unanswered = $this->provider(static function (): void {
+		$unanswered = $this->provider(handler: static function (): void {
 		})->verify(kvkOrErkenningNumber: '12345678');
 		$this->assertSame(expected: 'pending', actual: $unanswered['status']);
 		$this->assertSame(expected: 'integriq has no SBB source configured', actual: $unanswered['reason']);
@@ -178,7 +183,9 @@ class IntegriqLeerbedrijfVerificationTest extends TestCase {
 	 */
 	public function testASourceThatDoesNotAnswerIsPendingAndAnError(): void {
 		$result = $this->provider(
-			static fn (TrainingCompanyLookupRequestedEvent $event) => $event->refuse(refusal: ['code' => 'source-unavailable', 'reason' => 'SBB antwoordt niet.'])
+			handler: static fn (TrainingCompanyLookupRequestedEvent $event) => $event->refuse(
+				refusal: ['code' => 'source-unavailable', 'reason' => 'SBB antwoordt niet.']
+			)
 		)->verify(kvkOrErkenningNumber: '12345678');
 
 		$this->assertSame(expected: 'pending', actual: $result['status']);

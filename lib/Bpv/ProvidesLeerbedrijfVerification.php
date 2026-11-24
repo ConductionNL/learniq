@@ -68,7 +68,7 @@ interface ProvidesLeerbedrijfVerification {
 	 *                                     erkenning number to re-check.
 	 *
 	 * @return array{status: string, erkenningNumber: ?string, expiresAt: ?string, raw: array, reason?: ?string}
-	 *                                                                                         `status` is one of `verified`|`rejected`|`expired`|`pending`.
+	 *                                                                                         `status`: `verified`|`rejected`|`expired`|`pending`.
 	 *                                                                                         `erkenningNumber` and `expiresAt` are populated when
 	 *                                                                                         `status` is `verified`. `raw` carries the provider's
 	 *                                                                                         raw response payload for audit purposes.
