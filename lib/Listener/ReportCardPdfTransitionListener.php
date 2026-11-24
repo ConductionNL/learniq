@@ -94,7 +94,7 @@ class ReportCardPdfTransitionListener implements IEventListener {
 	 * @return void
 	 *
 	 * @spec openspec/specs/report-card/spec.md#requirement-docudesk-pdf-rendering-is-fail-soft-non-blocking-and-its-contract-is-explicitly-proposed
-	 * @spec openspec/changes/report-card-pdf-to-guardians/specs/report-card/spec.md#requirement-the-rendered-pdf-is-a-file-on-the-report-card
+	 * @spec openspec/specs/report-card/spec.md#requirement-the-rendered-pdf-is-a-file-on-the-report-card
 	 */
 	public function handle(Event $event): void {
 		if (($event instanceof ObjectTransitionedEvent) === false
@@ -140,7 +140,7 @@ class ReportCardPdfTransitionListener implements IEventListener {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/report-card-pdf-to-guardians/specs/report-card/spec.md#requirement-publishing-a-report-card-renders-its-pdf
+	 * @spec openspec/specs/report-card/spec.md#requirement-publishing-a-report-card-renders-its-pdf
 	 */
 	private function rendersOn(string $action, array $reportCard): bool {
 		if (in_array($action, self::RENDER_ACTIONS, true) === true) {

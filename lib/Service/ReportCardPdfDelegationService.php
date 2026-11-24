@@ -204,8 +204,7 @@ class ReportCardPdfDelegationService implements LifecycleGuardInterface, ReportC
 
 			if ($rendered === false) {
 				$reportCard['docudeskRenderStatus'] = 'failed';
-				$reportCard['docudeskRenderError'] = 'docudesk render failed or returned no document reference '
-					. '(the docudesk-side endpoint is a proposed, not-yet-verified contract — see design.md).';
+				$reportCard['docudeskRenderError'] = 'filinq render failed or returned no document reference.';
 				$this->logger->warning(
 					'[ReportCardPdfDelegationService] ReportCard {id} render did not succeed — recording failure, not blocking the transition.',
 					['id' => $reportId]

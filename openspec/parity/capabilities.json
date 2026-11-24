@@ -5110,24 +5110,23 @@
       "area": "grading",
       "name": "Send the report card home as a PDF.",
       "built": {
-        "state": "building",
-        "evidence": "On a finalised card renderToPdf (rerenderToPdf once published) has lib/Service/ReportCardPdfDelegationService.php post to filinq POST api/v1/documents/render, which filinq development serves (appinfo/routes.php:300, ReportRenderService) and stores docudeskDocumentRef. Missing: nothing renders on publishToParents, the PDF is not a file on the report card, and the guardian collection parentReportCards (lib/Portal/PortalContributionProvider.php:1030) has no filesDownload, so no guardian can download it.",
+        "state": "built",
+        "evidence": "lib/Listener/ReportCardPdfTransitionListener.php renders the PDF through lib/Service/ReportCardPdfDelegationService.php (filinq POST api/v1/documents/render) after publishToParents; lib/Service/ReportCardPdfAttacher.php attaches it to the report card as one OpenRegister file; lib/Portal/PortalContributionProvider.php parentReportCards declares filesDownload; src/manifest.d/learning.json ReportCardDetail shows the file, the render status and Render the PDF again. Tests: ReportCardPdfTransitionListenerTest, ReportCardPdfAttacherTest, PortalContributionProviderTest; e2e tests/e2e/report-card-pdf.spec.ts (written, runs in nightly)",
         "owner": "ConductionNL/learniq",
         "change": "report-card-pdf-to-guardians",
         "note": "Spec round part 3 (7 Oct): the delivered part is filinq/filinq-configurable-report-templates; the missing part is specified in report-card-pdf-to-guardians.",
         "readOn": "2026-10-07",
-        "reachedOn": "/report-cards/:id > Actions > renderToPdf (staff); nothing for the guardian",
+        "reachedOn": "portal > child > report cards > Download as PDF",
         "requirement": [
-          "openspec/changes/report-card-pdf-to-guardians/specs/report-card :: Publishing a report card renders its PDF",
-          "openspec/changes/report-card-pdf-to-guardians/specs/report-card :: A guardian downloads the published report card"
-        ],
-        "plan": "openspec/changes/guardian-reports-and-documents"
+          "openspec/specs/report-card :: Publishing a report card renders its PDF",
+          "openspec/specs/report-card :: A guardian downloads the published report card"
+        ]
       },
       "provider": "filinq",
       "providerHow": "read: this repository posts to Filinq and does not render the document itself",
       "feature": "report-card",
       "featureConfidence": "high",
-      "learniq": "partial",
+      "learniq": "yes",
       "moodle": "partial",
       "moodle-workplace": "unknown",
       "ilias": "no",
