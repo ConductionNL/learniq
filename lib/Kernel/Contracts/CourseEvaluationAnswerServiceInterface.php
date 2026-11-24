@@ -58,10 +58,10 @@ interface CourseEvaluationAnswerServiceInterface {
 	 *
 	 * @return array{status: int, error?: string, missing?: array<int, string>}
 	 *
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-cannot-answer-twice
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-an-uninvited-user-is-refused
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-anonymous-answers-cannot-be-linked
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-a-learner-cannot-answer-twice
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-an-uninvited-user-is-refused
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-anonymous-answers-cannot-be-linked
 	 */
 	public function answer(string $learnerId, string $invitationId, array $answers, DateTimeImmutable $now): array;
 
@@ -74,7 +74,7 @@ interface CourseEvaluationAnswerServiceInterface {
 	 *
 	 * @return array<int, array<string, mixed>>
 	 *
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
 	 */
 	public function openInvitations(string $learnerId, DateTimeImmutable $now): array;
 
@@ -86,7 +86,7 @@ interface CourseEvaluationAnswerServiceInterface {
 	 *
 	 * @return array{invitationCount: int, responseCount: int, meanOverallScore: float|null, meanHidden: bool}|null Null for an unknown campaign.
 	 *
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-small-groups-are-protected
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-small-groups-are-protected
 	 */
 	public function results(string $campaignId): ?array;
 }//end interface

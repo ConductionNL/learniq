@@ -22,8 +22,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#requirement-learner-answers-an-evaluation
- * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#requirement-campaign-results-for-staff
+ * @spec openspec/specs/course-evaluation-answering/spec.md#requirement-learner-answers-an-evaluation
+ * @spec openspec/specs/course-evaluation-answering/spec.md#requirement-campaign-results-for-staff
  */
 
 declare(strict_types=1);
@@ -264,7 +264,7 @@ class CourseEvaluationAnswerServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
 	 */
 	public function testALearnerAnswersAnInvitation(): void {
 		$service = $this->service();
@@ -292,7 +292,7 @@ class CourseEvaluationAnswerServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-anonymous-answers-cannot-be-linked
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-anonymous-answers-cannot-be-linked
 	 */
 	public function testAnonymousAnswersCannotBeLinked(): void {
 		$service = $this->service();
@@ -312,7 +312,7 @@ class CourseEvaluationAnswerServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-cannot-answer-twice
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-a-learner-cannot-answer-twice
 	 */
 	public function testALearnerCannotAnswerTwice(): void {
 		$service = $this->service();
@@ -327,7 +327,7 @@ class CourseEvaluationAnswerServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-an-uninvited-user-is-refused
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-an-uninvited-user-is-refused
 	 */
 	public function testAnUninvitedUserIsRefused(): void {
 		$service = $this->service(caller: 'klaas');
@@ -391,7 +391,7 @@ class CourseEvaluationAnswerServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-small-groups-are-protected
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-small-groups-are-protected
 	 */
 	public function testSmallGroupsAreProtected(): void {
 		$service = $this->service();
@@ -420,7 +420,7 @@ class CourseEvaluationAnswerServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
 	 */
 	public function testALearnerInNoGroupSeesAndAnswersTheirOwnInvitation(): void {
 		$service = $this->service(caller: 'jan', groups: []);
@@ -444,7 +444,7 @@ class CourseEvaluationAnswerServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-an-uninvited-user-is-refused
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-an-uninvited-user-is-refused
 	 */
 	public function testALearnerReadsNoOtherLearnersInvitation(): void {
 		$service = $this->service(caller: 'jan', groups: []);
@@ -478,7 +478,7 @@ class CourseEvaluationAnswerServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-small-groups-are-protected
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-small-groups-are-protected
 	 */
 	public function testStaffKeepTheirReads(): void {
 		$service = $this->service(caller: 'docent', groups: ['instructors']);
@@ -494,7 +494,7 @@ class CourseEvaluationAnswerServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
 	 */
 	public function testAnInvitedLearnerSubmitsThroughTheSystemTransition(): void {
 		$service = $this->service(caller: 'jan', groups: []);
@@ -515,7 +515,7 @@ class CourseEvaluationAnswerServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-anonymous-answers-cannot-be-linked
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-anonymous-answers-cannot-be-linked
 	 */
 	public function testAnotherSignedInUserCanNeitherReadNorUpdateADraft(): void {
 		$this->service(caller: 'piet', groups: []);
@@ -552,7 +552,7 @@ class CourseEvaluationAnswerServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-an-uninvited-user-is-refused
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-an-uninvited-user-is-refused
 	 */
 	public function testTheGuardStillRefusesOnTheSystemPath(): void {
 		$klaas = $this->service(caller: 'klaas', groups: []);
@@ -585,7 +585,7 @@ class CourseEvaluationAnswerServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
 	 */
 	public function testAnOldOpenRegisterRefusesTheSubmit(): void {
 		$service = $this->service(caller: 'jan', groups: [], oldOpenRegister: true);

@@ -37,7 +37,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-audit-of-corrections
+ * @spec openspec/specs/governance-four-eyes/spec.md#requirement-audit-of-corrections
  */
 
 declare(strict_types=1);
@@ -60,7 +60,7 @@ use Throwable;
  *
  * @implements IEventListener<Event>
  *
- * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-audit-of-corrections
+ * @spec openspec/specs/governance-four-eyes/spec.md#requirement-audit-of-corrections
  */
 class CorrectionAppliedHandler implements IEventListener {
 
@@ -91,7 +91,7 @@ class CorrectionAppliedHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#scenario-a-second-person-approves-a-correction
+	 * @spec openspec/specs/governance-four-eyes/spec.md#scenario-a-second-person-approves-a-correction
 	 */
 	public function handle(Event $event): void {
 		if ($event instanceof ObjectTransitionedEvent === false) {
@@ -120,7 +120,7 @@ class CorrectionAppliedHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#scenario-a-second-person-approves-a-correction
+	 * @spec openspec/specs/governance-four-eyes/spec.md#scenario-a-second-person-approves-a-correction
 	 */
 	private function markApprovedApplied(?array $request, array $entry): void {
 		if ($request === null) {

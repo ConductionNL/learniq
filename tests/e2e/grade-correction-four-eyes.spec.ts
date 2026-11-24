@@ -16,9 +16,9 @@
  * branch deployed on an instance with learniq's register imported).
  *
  * Covers:
- *   @e2e openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#scenario-a-principal-cannot-override-alone
- *   @e2e openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#scenario-a-second-person-approves-a-correction
- *   @e2e openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#scenario-the-requester-cannot-approve
+ *   @e2e openspec/specs/governance-four-eyes/spec.md#scenario-a-principal-cannot-override-alone
+ *   @e2e openspec/specs/governance-four-eyes/spec.md#scenario-a-second-person-approves-a-correction
+ *   @e2e openspec/specs/governance-four-eyes/spec.md#scenario-the-requester-cannot-approve
  */
 import type { APIRequestContext, Page } from '@playwright/test'
 import type { TempUser } from './live-fixtures.ts'
@@ -119,7 +119,7 @@ test.describe('a correction to a grade in a locked period needs a second person'
 		await fx.teardown()
 	})
 
-	// @e2e openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#scenario-a-principal-cannot-override-alone
+	// @e2e openspec/specs/governance-four-eyes/spec.md#scenario-a-principal-cannot-override-alone
 	test('a team lead alone cannot republish the grade', async () => {
 		const api = await apiAs(lead.id, lead.password)
 		const revised = await transition(api, entryId, 'revise')
@@ -130,7 +130,7 @@ test.describe('a correction to a grade in a locked period needs a second person'
 		await api.dispose()
 	})
 
-	// @e2e openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#scenario-the-requester-cannot-approve
+	// @e2e openspec/specs/governance-four-eyes/spec.md#scenario-the-requester-cannot-approve
 	test('the person who asked cannot approve the request', async () => {
 		const api = await apiAs(lead.id, lead.password)
 		const res = await api.post(`${OBJECTS}/learniq/data-correction-request`, {
@@ -146,7 +146,7 @@ test.describe('a correction to a grade in a locked period needs a second person'
 		await api.dispose()
 	})
 
-	// @e2e openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#scenario-a-second-person-approves-a-correction
+	// @e2e openspec/specs/governance-four-eyes/spec.md#scenario-a-second-person-approves-a-correction
 	test('the teacher asks, the principal approves on the page, and the republish lands', async ({ browser }) => {
 		test.setTimeout(180_000)
 		const api = await apiAs(teacher.id, teacher.password)

@@ -5,8 +5,8 @@
  * (assessment-course-evaluation-answer-page, task 1.2b).
  *
  * Covers:
- *   @e2e openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
- *   @e2e openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-cannot-answer-twice
+ *   @e2e openspec/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
+ *   @e2e openspec/specs/course-evaluation-answering/spec.md#scenario-a-learner-cannot-answer-twice
  *
  * The run makes its own learner account, an open built-in campaign with one
  * likert and one free-text question on a borrowed course, and one invitation
@@ -156,7 +156,7 @@ test.describe.serial('course-evaluation-answering: a learner answers once', () =
 		await admin.dispose()
 	})
 
-	// @e2e openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
+	// @e2e openspec/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
 	test('she answers her open evaluation and it leaves the page', async () => {
 		const page = learner!
 		await page.goto(MY_EVALUATIONS_URL)
@@ -198,7 +198,7 @@ test.describe.serial('course-evaluation-answering: a learner answers once', () =
 		expect((await stored.json()).hasResponded).toBe(true)
 	})
 
-	// @e2e openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-cannot-answer-twice
+	// @e2e openspec/specs/course-evaluation-answering/spec.md#scenario-a-learner-cannot-answer-twice
 	test('a second answer is refused', async () => {
 		const page = learner!
 		const requestToken = await page.evaluate(

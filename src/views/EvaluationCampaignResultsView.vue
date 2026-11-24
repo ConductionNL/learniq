@@ -10,7 +10,7 @@
  responses and the mean overall score. Under five responses the mean is not
  shown, because it would point at the people who answered (design D2).
 
- @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#requirement-campaign-results-for-staff
+ @spec openspec/specs/course-evaluation-answering/spec.md#requirement-campaign-results-for-staff
 -->
 <template>
 	<div class="campaign-results lq-board-page">
@@ -75,7 +75,7 @@ export default {
 		 * The figures to show.
 		 *
 		 * @return {object}
-		 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-small-groups-are-protected
+		 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-small-groups-are-protected
 		 */
 		figures() {
 			return resultFigures(this.results)
@@ -86,7 +86,7 @@ export default {
 	 * Load the campaign figures.
 	 *
 	 * @return {Promise<void>}
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-small-groups-are-protected
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-small-groups-are-protected
 	 */
 	async mounted() {
 		try {

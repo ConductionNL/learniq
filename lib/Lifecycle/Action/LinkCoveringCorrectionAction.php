@@ -28,7 +28,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-audit-of-corrections
+ * @spec openspec/specs/governance-four-eyes/spec.md#requirement-audit-of-corrections
  */
 
 declare(strict_types=1);
@@ -45,7 +45,7 @@ use Throwable;
 /**
  * Names the approved correction that covers a republish on the grade entry.
  *
- * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-audit-of-corrections
+ * @spec openspec/specs/governance-four-eyes/spec.md#requirement-audit-of-corrections
  */
 class LinkCoveringCorrectionAction implements ContextLifecycleActionInterface {
 
@@ -76,7 +76,7 @@ class LinkCoveringCorrectionAction implements ContextLifecycleActionInterface {
 	 *
 	 * @return array<string,mixed> The entry, with the link when a correction covers it.
 	 *
-	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#scenario-a-second-person-approves-a-correction
+	 * @spec openspec/specs/governance-four-eyes/spec.md#scenario-a-second-person-approves-a-correction
 	 */
 	public function execute(LifecycleActionContext $context): array {
 		$objectData = $context->objectData;

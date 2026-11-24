@@ -18,7 +18,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
+ * @spec openspec/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
  */
 
 declare(strict_types=1);
@@ -42,7 +42,7 @@ use PHPUnit\Framework\TestCase;
 /**
  * DataCorrectionRequest in the shipped register.
  *
- * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
+ * @spec openspec/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
  */
 class DataCorrectionRequestRegisterTest extends TestCase {
 
@@ -76,7 +76,7 @@ class DataCorrectionRequestRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#scenario-the-requester-cannot-approve
+	 * @spec openspec/specs/governance-four-eyes/spec.md#scenario-the-requester-cannot-approve
 	 */
 	public function testTheDecisionIsForASecondPersonInTheApproverGroups(): void {
 		$lifecycle = self::schema(slug: 'data-correction-request')['x-openregister-lifecycle'];
@@ -106,7 +106,7 @@ class DataCorrectionRequestRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#scenario-an-auditor-reads-the-trail
+	 * @spec openspec/specs/governance-four-eyes/spec.md#scenario-an-auditor-reads-the-trail
 	 */
 	public function testWhoReadsAndWritesARequest(): void {
 		$auth = self::shippedAuthorization(slug: 'data-correction-request');
@@ -139,7 +139,7 @@ class DataCorrectionRequestRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#scenario-a-principal-cannot-override-alone
+	 * @spec openspec/specs/governance-four-eyes/spec.md#scenario-a-principal-cannot-override-alone
 	 */
 	public function testGradeEntryPublishRunsTheLockGuardAndLinksTheCorrection(): void {
 		$gradeEntry = self::schema(slug: 'grade-entry');
@@ -158,7 +158,7 @@ class DataCorrectionRequestRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#scenario-an-auditor-reads-the-trail
+	 * @spec openspec/specs/governance-four-eyes/spec.md#scenario-an-auditor-reads-the-trail
 	 */
 	public function testTheWrittenPayloadsPassTheRealSchema(): void {
 		$validator = new Validator();

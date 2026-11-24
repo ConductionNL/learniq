@@ -46,7 +46,7 @@ interface ReportPeriodLocksInterface {
 	 *
 	 * @return bool True when locked.
 	 *
-	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
+	 * @spec openspec/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
 	 */
 	public function isLocked(array $period, ?int $now = null): bool;
 
@@ -58,7 +58,7 @@ interface ReportPeriodLocksInterface {
 	 *
 	 * @return array<string,mixed>|null The locked period.
 	 *
-	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
+	 * @spec openspec/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
 	 */
 	public function lockedPeriodFor(array $entry): ?array;
 }//end interface

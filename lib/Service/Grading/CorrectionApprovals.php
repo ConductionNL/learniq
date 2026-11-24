@@ -21,7 +21,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
+ * @spec openspec/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
  */
 
 declare(strict_types=1);
@@ -34,7 +34,7 @@ use OCA\OpenRegister\Service\ObjectService;
 /**
  * The approved correction for one grade entry, if there is one.
  *
- * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
+ * @spec openspec/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
  */
 class CorrectionApprovals implements CorrectionApprovalsInterface {
 
@@ -68,7 +68,7 @@ class CorrectionApprovals implements CorrectionApprovalsInterface {
 	 *
 	 * @return array<string, mixed>|null The request, or null when none covers the publish.
 	 *
-	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#scenario-a-second-person-approves-a-correction
+	 * @spec openspec/specs/governance-four-eyes/spec.md#scenario-a-second-person-approves-a-correction
 	 */
 	public function approvedFor(array $entry, string $publisher): ?array {
 		$publish = new CorrectionPublish(entry: $entry, publisher: $publisher);
@@ -179,7 +179,7 @@ class CorrectionApprovals implements CorrectionApprovalsInterface {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#scenario-a-second-person-approves-a-correction
+	 * @spec openspec/specs/governance-four-eyes/spec.md#scenario-a-second-person-approves-a-correction
 	 */
 	public function sameValue(mixed $approved, mixed $current): bool {
 		if ($this->isBlank(value: $approved) === true) {

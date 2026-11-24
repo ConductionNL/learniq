@@ -17,7 +17,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-audit-of-corrections
+ * @spec openspec/specs/governance-four-eyes/spec.md#requirement-audit-of-corrections
  */
 
 declare(strict_types=1);
@@ -41,7 +41,7 @@ use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 /**
  * CorrectionAppliedHandler on the real ObjectTransitionedEvent.
  *
- * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-audit-of-corrections
+ * @spec openspec/specs/governance-four-eyes/spec.md#requirement-audit-of-corrections
  */
 class CorrectionAppliedHandlerTest extends TestCase {
 
@@ -142,7 +142,7 @@ class CorrectionAppliedHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#scenario-a-second-person-approves-a-correction
+	 * @spec openspec/specs/governance-four-eyes/spec.md#scenario-a-second-person-approves-a-correction
 	 */
 	public function testARepublishOnAnApprovalAppliesIt(): void {
 		$this->handler(corrections: [self::APPROVED])->handle(self::published());

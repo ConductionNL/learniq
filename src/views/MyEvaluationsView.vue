@@ -9,7 +9,7 @@
  answers one through POST /api/evaluations/{invitationId}/answer. The answers
  are stored without the learner's name; an answered invitation leaves the list.
 
- @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#requirement-learner-answers-an-evaluation
+ @spec openspec/specs/course-evaluation-answering/spec.md#requirement-learner-answers-an-evaluation
 -->
 <template>
 	<div class="my-evaluations lq-board-page">
@@ -122,7 +122,7 @@ export default {
 		 * Fetch the open invitations.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
+		 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
 		 */
 		async load() {
 			this.loading = true
@@ -145,7 +145,7 @@ export default {
 		 *
 		 * @param {object} invitation The invitation.
 		 * @return {void}
-		 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
+		 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
 		 */
 		start(invitation) {
 			this.sent = false
@@ -158,7 +158,7 @@ export default {
 		 *
 		 * @param {{answers: object}} body The answers.
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-cannot-answer-twice
+		 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-a-learner-cannot-answer-twice
 		 */
 		async send(body) {
 			this.posting = true
@@ -185,7 +185,7 @@ export default {
 		 *
 		 * @param {number|undefined} status The HTTP status of the refusal.
 		 * @return {string}
-		 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-cannot-answer-twice
+		 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-a-learner-cannot-answer-twice
 		 */
 		sendError(status) {
 			if (status === 409) {
@@ -211,7 +211,7 @@ export default {
 		 *
 		 * @param {string} value An ISO date-time.
 		 * @return {string}
-		 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
+		 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
 		 */
 		formatDate(value) {
 			const date = new Date(value)

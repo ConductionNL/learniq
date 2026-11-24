@@ -22,8 +22,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#requirement-learner-answers-an-evaluation
- * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#requirement-campaign-results-for-staff
+ * @spec openspec/specs/course-evaluation-answering/spec.md#requirement-learner-answers-an-evaluation
+ * @spec openspec/specs/course-evaluation-answering/spec.md#requirement-campaign-results-for-staff
  */
 
 declare(strict_types=1);
@@ -45,7 +45,7 @@ use OCP\IUserSession;
 /**
  * The learner's evaluation page and the staff result figures.
  *
- * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#requirement-learner-answers-an-evaluation
+ * @spec openspec/specs/course-evaluation-answering/spec.md#requirement-learner-answers-an-evaluation
  */
 class CourseEvaluationAnswerController extends Controller {
 
@@ -79,7 +79,7 @@ class CourseEvaluationAnswerController extends Controller {
 	 *
 	 * @return JSONResponse
 	 *
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -102,8 +102,8 @@ class CourseEvaluationAnswerController extends Controller {
 	 *
 	 * @return JSONResponse
 	 *
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-cannot-answer-twice
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-an-uninvited-user-is-refused
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-a-learner-cannot-answer-twice
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-an-uninvited-user-is-refused
 	 */
 	#[NoAdminRequired]
 	public function answer(string $invitationId, array $answers = []): JSONResponse {
@@ -126,7 +126,7 @@ class CourseEvaluationAnswerController extends Controller {
 	 *
 	 * @return JSONResponse
 	 *
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-small-groups-are-protected
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-small-groups-are-protected
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]

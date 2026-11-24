@@ -25,7 +25,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
+ * @spec openspec/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
  */
 
 declare(strict_types=1);
@@ -151,7 +151,7 @@ class ReportPeriodLockStoredPeriodTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#scenario-a-principal-cannot-override-alone
+	 * @spec openspec/specs/governance-four-eyes/spec.md#scenario-a-principal-cannot-override-alone
 	 */
 	public function testARepublishIntoAStoredLockedPeriodIsDenied(): void {
 		$this->storePeriod(lockDate: '2026-10-01T08:00:00+00:00');
@@ -188,7 +188,7 @@ class ReportPeriodLockStoredPeriodTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#scenario-a-second-person-approves-a-correction
+	 * @spec openspec/specs/governance-four-eyes/spec.md#scenario-a-second-person-approves-a-correction
 	 */
 	public function testAnApprovedCorrectionLetsTheRequesterRepublish(): void {
 		$this->storePeriod(lockDate: '2026-10-01T08:00:00+00:00');
