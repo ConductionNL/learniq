@@ -203,7 +203,8 @@ class BpvLeerbedrijfVerificationHandlerTest extends TestCase {
 			$this->assertSame(expected: IntegriqLeerbedrijfVerification::REASON_NO_INTEGRIQ, actual: $saved['trainingCompanyVerification']['reason']);
 			$this->assertNotEmpty(actual: $saved['trainingCompanyVerification']['checkedAt']);
 
-			$verdict = (new BpvConfirmationGuard(logger: $this->createMock(originalClassName: LoggerInterface::class)))->check(object: $saved, action: 'confirm', userId: '');
+			$guard   = new BpvConfirmationGuard(logger: $this->createMock(originalClassName: LoggerInterface::class));
+			$verdict = $guard->check(object: $saved, action: 'confirm', userId: '');
 			$this->assertFalse(condition: $verdict->isAllowed());
 		}//end foreach
 	}//end testWithoutANamedProviderTheIntegriqProviderChecksAndFailsClosed()
@@ -264,7 +265,14 @@ class BpvLeerbedrijfVerificationHandlerTest extends TestCase {
 	 */
 	public function testEveryUnusableProviderLogsWhy(): void {
 		$cases = [
-			'not named, the shipped provider is not an adapter here' => ['', [IntegriqLeerbedrijfVerification::class], ['[BpvLeerbedrijfVerificationHandler] Configured provider "{class}" does not implement ProvidesLeerbedrijfVerification.', ['class' => IntegriqLeerbedrijfVerification::class]]],
+			'not named, the shipped provider is not an adapter here' => [
+				'',
+				[IntegriqLeerbedrijfVerification::class],
+				[
+					'[BpvLeerbedrijfVerificationHandler] Configured provider "{class}" does not implement ProvidesLeerbedrijfVerification.',
+					['class' => IntegriqLeerbedrijfVerification::class],
+				],
+			],
 			'not a name' => [42, [], []],
 			'unresolvable' => ['MissingClass', ['MissingClass'], ['[BpvLeerbedrijfVerificationHandler] Configured provider "{class}" could not be resolved: {msg}', ['class' => 'MissingClass', 'msg' => 'no such service']]],
 			'not an adapter' => ['NotAnAdapter', ['NotAnAdapter'], ['[BpvLeerbedrijfVerificationHandler] Configured provider "{class}" does not implement ProvidesLeerbedrijfVerification.', ['class' => 'NotAnAdapter']]],
@@ -368,6 +376,13 @@ class BpvLeerbedrijfVerificationHandlerTest extends TestCase {
 	 */
 	public function testARecognitionEndingMidPlacementIsFlagged(): void {
 		$fakeProvider = new class implements ProvidesLeerbedrijfVerification {
+			/**
+			 * The fixed answer.
+			 *
+			 * @param string $kvkOrErkenningNumber Ignored.
+			 *
+			 * @return array<string, mixed>
+			 */
 			public function verify(string $kvkOrErkenningNumber): array {
 				return ['status' => 'verified', 'erkenningNumber' => '100234567', 'expiresAt' => '2027-01-31T00:00:00+00:00', 'raw' => []];
 			}
@@ -387,8 +402,10 @@ class BpvLeerbedrijfVerificationHandlerTest extends TestCase {
 		);
 
 		$this->assertTrue(condition: $this->savedObjects[0]['object']['trainingCompanyVerification']['endsBeforePlacement']);
-		$this->assertFalse(condition: BpvLeerbedrijfVerificationHandler::endsBeforePlacement(expiresAt: '2027-08-31T00:00:00+00:00', periodTo: '2027-06-30'));
-		$this->assertFalse(condition: BpvLeerbedrijfVerificationHandler::endsBeforePlacement(expiresAt: '2027-06-30T00:00:00+00:00', periodTo: '2027-06-30'));
+		$lasts = BpvLeerbedrijfVerificationHandler::endsBeforePlacement(expiresAt: '2027-08-31T00:00:00+00:00', periodTo: '2027-06-30');
+		$this->assertFalse(condition: $lasts);
+		$lastDay = BpvLeerbedrijfVerificationHandler::endsBeforePlacement(expiresAt: '2027-06-30T00:00:00+00:00', periodTo: '2027-06-30');
+		$this->assertFalse(condition: $lastDay);
 		$this->assertFalse(condition: BpvLeerbedrijfVerificationHandler::endsBeforePlacement(expiresAt: null, periodTo: '2027-06-30'));
 		$this->assertFalse(condition: BpvLeerbedrijfVerificationHandler::endsBeforePlacement(expiresAt: '2027-01-31', periodTo: null));
 	}//end testARecognitionEndingMidPlacementIsFlagged()
@@ -404,8 +421,18 @@ class BpvLeerbedrijfVerificationHandlerTest extends TestCase {
 	 */
 	public function testTheWrittenResultPassesTheShippedSchema(): void {
 		$verified = new class implements ProvidesLeerbedrijfVerification {
+			/**
+			 * The fixed answer.
+			 *
+			 * @param string $kvkOrErkenningNumber Ignored.
+			 *
+			 * @return array<string, mixed>
+			 */
 			public function verify(string $kvkOrErkenningNumber): array {
-				return IntegriqLeerbedrijfVerification::mapped(answer: ['found' => true, 'erkenningNumber' => '100234567', 'endDate' => '2027-08-31'], today: '2026-11-24');
+				return IntegriqLeerbedrijfVerification::mapped(
+					answer: ['found' => true, 'erkenningNumber' => '100234567', 'endDate' => '2027-08-31'],
+					today: '2026-11-24'
+				);
 			}
 		};
 		$apps = $this->createMock(originalClassName: IAppManager::class);
@@ -423,7 +450,14 @@ class BpvLeerbedrijfVerificationHandlerTest extends TestCase {
 			$container = $this->createMock(originalClassName: ContainerInterface::class);
 			$container->method('get')->willReturn($provider);
 			$this->makeHandler(container: $container)->handle(
-				event: $this->makeEvent(placementData: ['id' => 'placement-1', 'periodTo' => '2027-06-30', 'trainingCompanyKvkNumber' => '12345678', 'trainingCompanyVerification' => ['provider' => 'Adapter']])
+				event: $this->makeEvent(
+					placementData: [
+						'id' => 'placement-1',
+						'periodTo' => '2027-06-30',
+						'trainingCompanyKvkNumber' => '12345678',
+						'trainingCompanyVerification' => ['provider' => 'Adapter'],
+					]
+				)
 			);
 
 			$written = json_decode(json: (string)json_encode(value: $this->savedObjects[0]['object']['trainingCompanyVerification']));

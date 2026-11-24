@@ -149,7 +149,8 @@ class BpvLeerbedrijfVerificationGuardsTest extends TestCase {
 			schemas: TransitionScope::resolver()
 		);
 
-		$handler->handle(event: $this->event(placement: ['uuid' => 'p-1', 'trainingCompanyKvkNumber' => '123', 'trainingCompanyVerification' => 'Provider']));
+		$placement = ['uuid' => 'p-1', 'trainingCompanyKvkNumber' => '123', 'trainingCompanyVerification' => 'Provider'];
+		$handler->handle(event: $this->event(placement: $placement));
 	}//end testANonArrayVerificationMeansTheDefaultProvider()
 
 	/**
