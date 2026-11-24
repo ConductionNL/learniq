@@ -450,7 +450,7 @@ export default {
 		/**
 		 * The lesson hours of the viewed week, for the grid mode (week-timetable-grid T2).
 		 *
-		 * @spec openspec/changes/week-timetable-grid/specs/week-timetable-grid/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+		 * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
 		 * @return {Array<object>} The CnWeekGrid rows.
 		 */
 		gridRows() {
@@ -460,7 +460,7 @@ export default {
 		/**
 		 * The viewed week's sessions as grid entries, each with its change pill.
 		 *
-		 * @spec openspec/changes/week-timetable-grid/specs/week-timetable-grid/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+		 * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
 		 * @return {Array<object>} The CnWeekGrid items.
 		 */
 		gridItems() {
@@ -470,7 +470,7 @@ export default {
 		/**
 		 * The grid's caption: the week number, its days and how many lessons it has.
 		 *
-		 * @spec openspec/changes/week-timetable-grid/specs/week-timetable-grid/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+		 * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
 		 * @return {string} The caption.
 		 */
 		gridCaption() {

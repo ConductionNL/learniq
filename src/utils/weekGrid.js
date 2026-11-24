@@ -16,7 +16,7 @@
  * (cover), or, for a lesson the roosterkamer moved (`movedAt`), the room it is
  * in now, with "not in" the room it left (`movedFromRoom`) on its line. The grid fetches nothing; My timetable passes the week it loaded.
  *
- * @spec openspec/changes/week-timetable-grid/specs/week-timetable-grid/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+ * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
  */
 
 /**
@@ -24,6 +24,7 @@
  *
  * @param {string} iso The timestamp.
  * @return {string} `HH:MM`, or '' when the value is no timestamp.
+ * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
  */
 export function clockOf(iso) {
 	if (typeof iso !== 'string' || iso === '') {
@@ -42,6 +43,7 @@ export function clockOf(iso) {
  *
  * @param {Date} date Any day of the week.
  * @return {number} The week number.
+ * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
  */
 export function isoWeek(date) {
 	const thursday = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 3 - ((date.getDay() + 6) % 7))
@@ -55,6 +57,7 @@ export function isoWeek(date) {
  *
  * @param {string} iso The timestamp.
  * @return {string} The day, or '' when the value is no timestamp.
+ * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
  */
 export function dayOf(iso) {
 	const ts = typeof iso === 'string' ? Date.parse(iso) : Number.NaN
@@ -75,6 +78,7 @@ export function dayOf(iso) {
  * @param {Array<object>} sessions The week's sessions.
  * @param {(text: string, vars?: object) => string} translate Translates `{n}th hour` style labels.
  * @return {Array<{key: string, label: string, start: string, end: string}>} The rows.
+ * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
  */
 export function lessonHourRows(sessions, translate) {
 	const ends = new Map()
@@ -102,6 +106,7 @@ export function lessonHourRows(sessions, translate) {
  * @param {object} session The session.
  * @param {(text: string, vars?: object) => string} translate The translate function.
  * @return {{label: string, variant: string}|null} The pill.
+ * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
  */
 export function changePill(session, translate) {
 	if (session?.lifecycle === 'cancelled') {
@@ -123,12 +128,14 @@ export function changePill(session, translate) {
  *
  * @param {object} session The session.
  * @return {string} The room, or ''.
+ * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
  */
 export function roomName(session) {
-	if (session?.room && typeof session.room.name === 'string' && session.room.name !== '') {
-		return session.room.name
+	const room = session && session.room ? session.room.name : ''
+	if (typeof room === 'string' && room !== '') {
+		return room
 	}
-	const location = typeof session?.location === 'string' ? session.location : ''
+	const location = session && typeof session.location === 'string' ? session.location : ''
 	return /^https?:\/\//i.test(location) ? '' : location
 }
 
@@ -138,6 +145,7 @@ export function roomName(session) {
  * @param {Array<object>} sessions The week's sessions.
  * @param {(text: string, vars?: object) => string} translate The translate function.
  * @return {Array<object>} The entries; `session` is the session itself.
+ * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
  */
 export function weekGridItems(sessions, translate) {
 	const items = []

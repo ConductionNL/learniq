@@ -203,7 +203,7 @@ class SessionMoveNoticeHandler implements IEventListener {
 	 *
 	 * @return void
 	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/timetabling/spec.md#requirement-a-lesson-moved-to-another-room-or-time-notifies-the-affected-learners-and-parents
-	 * @spec openspec/changes/week-timetable-grid/specs/week-timetable-grid/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+	 * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
 	 */
 	private function writeNotice(array $session, string $move, array $old=[]): void {
 		$people = $this->notices->affectedPeople(session: $session);

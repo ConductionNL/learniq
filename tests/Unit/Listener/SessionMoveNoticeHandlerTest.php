@@ -188,7 +188,7 @@ class SessionMoveNoticeHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/week-timetable-grid/specs/week-timetable-grid/spec.md#scenario-a-change-from-the-roosterkamer
+	 * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#scenario-a-change-from-the-roosterkamer
 	 */
 	public function testARoomMoveRecordsTheRoomItLeft(): void {
 		$this->update(old: $this->lesson(), new: $this->lesson(changes: ['roomId' => self::ROOM_108]));
@@ -201,7 +201,7 @@ class SessionMoveNoticeHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/week-timetable-grid/specs/week-timetable-grid/spec.md#scenario-a-change-from-the-roosterkamer
+	 * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#scenario-a-change-from-the-roosterkamer
 	 */
 	public function testATimeMoveRecordsNoRoomItLeft(): void {
 		$this->update(
@@ -217,7 +217,7 @@ class SessionMoveNoticeHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/week-timetable-grid/specs/week-timetable-grid/spec.md#scenario-a-change-from-the-roosterkamer
+	 * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#scenario-a-change-from-the-roosterkamer
 	 */
 	public function testALocationMoveRecordsTheLocationItLeft(): void {
 		$this->update(
