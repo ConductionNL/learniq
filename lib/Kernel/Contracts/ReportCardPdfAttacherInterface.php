@@ -46,7 +46,7 @@ interface ReportCardPdfAttacherInterface {
 	 *
 	 * @return string|null
 	 *
-	 * @spec openspec/changes/report-card-pdf-to-guardians/specs/report-card/spec.md#requirement-the-rendered-pdf-is-a-file-on-the-report-card
+	 * @spec openspec/specs/report-card/spec.md#requirement-the-rendered-pdf-is-a-file-on-the-report-card
 	 */
 	public function attach(ObjectEntity $reportCard): ?string;
 }//end interface

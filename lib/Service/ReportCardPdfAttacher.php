@@ -45,7 +45,7 @@ use Throwable;
 /**
  * Attaches a rendered report-card PDF to the report card.
  *
- * @spec openspec/changes/report-card-pdf-to-guardians/specs/report-card/spec.md#requirement-the-rendered-pdf-is-a-file-on-the-report-card
+ * @spec openspec/specs/report-card/spec.md#requirement-the-rendered-pdf-is-a-file-on-the-report-card
  */
 class ReportCardPdfAttacher implements ReportCardPdfAttacherInterface {
 
@@ -104,7 +104,7 @@ class ReportCardPdfAttacher implements ReportCardPdfAttacherInterface {
 	 *
 	 * @return string|null The attached file's name, or null when nothing was attached.
 	 *
-	 * @spec openspec/changes/report-card-pdf-to-guardians/specs/report-card/spec.md#requirement-the-rendered-pdf-is-a-file-on-the-report-card
+	 * @spec openspec/specs/report-card/spec.md#requirement-the-rendered-pdf-is-a-file-on-the-report-card
 	 */
 	public function attach(ObjectEntity $reportCard): ?string {
 		$card = $reportCard->getObject();
@@ -153,7 +153,7 @@ class ReportCardPdfAttacher implements ReportCardPdfAttacherInterface {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/report-card-pdf-to-guardians/specs/report-card/spec.md#scenario-first-render
+	 * @spec openspec/specs/report-card/spec.md#scenario-first-render
 	 */
 	private function fileName(array $card): string {
 		$period = trim((string) ($card['periodName'] ?? ''));
@@ -202,7 +202,7 @@ class ReportCardPdfAttacher implements ReportCardPdfAttacherInterface {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/report-card-pdf-to-guardians/specs/report-card/spec.md#scenario-a-re-render-replaces-the-file
+	 * @spec openspec/specs/report-card/spec.md#scenario-a-re-render-replaces-the-file
 	 */
 	private function removeEarlierPdfs(ObjectEntity $reportCard, string $keep): void {
 		foreach ($this->fileService->getFiles(object: $reportCard) as $node) {

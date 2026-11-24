@@ -27,7 +27,7 @@
  *   3. the same request for another child's report card answers 404;
  *   4. "Render the PDF again" leaves the card with one PDF, the new one.
  *
- * @spec openspec/changes/report-card-pdf-to-guardians/specs/report-card/spec.md
+ * @spec openspec/specs/report-card/spec.md
  */
 
 import type { APIRequestContext, Browser, Page } from '@playwright/test'
