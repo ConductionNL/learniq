@@ -199,11 +199,17 @@ class PupilPageTest extends TestCase {
 			flags: [],
 			placement: null
 		);
-		$this->assertSame('20231457', $header['pupilNumber']);
-		$this->assertNotContains('123456782', $header);
+		$this->assertSame(expected: '20231457', actual: $header['pupilNumber']);
+		$this->assertNotContains(needle: '123456782', haystack: $header);
 
-		$blank = PupilPage::header(profile: ['pupilNumber' => '  ', 'personalNumber' => '123456782'], cohort: [], todayState: '', flags: [], placement: null);
-		$this->assertNull($blank['pupilNumber']);
+		$blank = PupilPage::header(
+			profile: ['pupilNumber' => '  ', 'personalNumber' => '123456782'],
+			cohort: [],
+			todayState: '',
+			flags: [],
+			placement: null
+		);
+		$this->assertNull(actual: $blank['pupilNumber']);
 	}//end testTheHeaderShowsTheSchoolsPupilNumberNotThePersonalNumber()
 
 	/**
@@ -222,7 +228,7 @@ class PupilPageTest extends TestCase {
 		);
 
 		$this->assertSame(
-			[
+			expected: [
 				['role' => PupilPage::MENTOR, 'userId' => 'daan'],
 				['role' => PupilPage::TEAM_LEADER, 'userId' => 'tl-iris'],
 				['role' => PupilPage::CARE_COORDINATOR, 'userId' => null, 'noPlan' => true],
@@ -230,10 +236,10 @@ class PupilPageTest extends TestCase {
 				['role' => PupilPage::PRAKTIJKOPLEIDER, 'userId' => 'po-uuid'],
 				['role' => PupilPage::BPV_BEGELEIDER, 'userId' => 'bpv-bas'],
 			],
-			$people
+			actual: $people
 		);
 
 		$none = PupilPage::people(cohort: ['teamLeaderId' => '', 'careerCoachId' => null], plans: [], placement: null);
-		$this->assertSame([['role' => PupilPage::CARE_COORDINATOR, 'userId' => null, 'noPlan' => true]], $none);
+		$this->assertSame(expected: [['role' => PupilPage::CARE_COORDINATOR, 'userId' => null, 'noPlan' => true]], actual: $none);
 	}//end testTheGroupsTeamLeaderAndCareerCoachAreAmongThePeople()
 }//end class

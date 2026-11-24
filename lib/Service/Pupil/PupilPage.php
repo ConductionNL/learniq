@@ -175,11 +175,7 @@ final class PupilPage {
 		}
 
 		$coordinator = self::coordinatorOf(plans: $plans);
-		if ($coordinator === null) {
-			$people[] = ['role' => self::CARE_COORDINATOR, 'userId' => null, 'noPlan' => true];
-		} else {
-			$people[] = ['role' => self::CARE_COORDINATOR, 'userId' => $coordinator, 'noPlan' => false];
-		}
+		$people[]    = ['role' => self::CARE_COORDINATOR, 'userId' => $coordinator, 'noPlan' => ($coordinator === null)];
 
 		$careerCoach = self::stringOrNull(value: ($cohort['careerCoachId'] ?? null));
 		if ($careerCoach !== null) {
