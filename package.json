@@ -55,7 +55,7 @@
     "babel-loader": "^10.1.1",
     "dexie": "^4.4.6",
     "dompurify": "^3.4.16",
-    "gridstack": "^12.0.0",
+    "gridstack": "^14.1.1",
     "marked": "^18.0.14",
     "path-browserify": "^1.0.1",
     "pinia": "^3.0.0",
@@ -77,7 +77,8 @@
       "stylelint-config-recommended-vue": "$stylelint-config-recommended-vue"
     },
     "@conduction/nextcloud-vue": {
-      "stylelint": "$stylelint"
+      "stylelint": "$stylelint",
+      "gridstack": "$gridstack"
     }
   },
   "devDependencies": {
