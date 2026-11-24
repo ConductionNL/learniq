@@ -9,9 +9,10 @@
  * What the pupil's page puts in its header and its side column, worked out
  * from records already read: the name and initials, the state pill (the most
  * important open signal, else today's state), the group, the age, and the
- * qualification with its crebo of a running placement; and the people around
- * the pupil (the mentor, a duo partner, the care coordinator or that no plan
- * runs, the praktijkopleider and the BPV-begeleider). It answers data, the
+ * qualification with its crebo of a running placement, and the school's own
+ * pupil number; and the people around the pupil (the mentor, a duo partner,
+ * the group's team leader, the care coordinator or that no plan runs, the
+ * group's career coach, the praktijkopleider and the BPV-begeleider). It answers data, the
  * page words it, and it holds no data of its own.
  *
  * @category Service
@@ -45,6 +46,8 @@ final class PupilPage {
 	public const CARE_COORDINATOR = 'care-coordinator';
 	public const PRAKTIJKOPLEIDER = 'praktijkopleider';
 	public const BPV_BEGELEIDER = 'bpv-begeleider';
+	public const TEAM_LEADER = 'team-leader';
+	public const CAREER_COACH = 'career-coach';
 
 	/**
 	 * Attendance flag states that are still open.
@@ -76,7 +79,7 @@ final class PupilPage {
 	 * @param list<array<string, mixed>> $flags      The pupil's attendance flags.
 	 * @param array<string, mixed>|null  $placement  The running placement, or null.
 	 *
-	 * @return array<string, mixed> name, initials, statePill {kind, value}, group, age, qualification and crebo.
+	 * @return array<string, mixed> name, initials, statePill {kind, value}, group, age, pupilNumber, qualification and crebo.
 	 *
 	 * @spec openspec/changes/learner-list-and-page-follow-the-boards/tasks.md#T3
 	 */
@@ -93,6 +96,7 @@ final class PupilPage {
 			'statePill' => self::statePill(todayState: $todayState, flags: $flags),
 			'group' => (string)($cohort['name'] ?? ''),
 			'age' => $age,
+			'pupilNumber' => self::stringOrNull(value: ($profile['pupilNumber'] ?? null)),
 			'qualification' => trim((string)($placement['qualificationName'] ?? '')),
 			'crebo' => trim((string)($placement['crebo'] ?? '')),
 		];
@@ -146,8 +150,10 @@ final class PupilPage {
 	 * The people around the pupil, as role and user id; names are added by the caller.
 	 *
 	 * The care coordinator is always listed: with `noPlan` true and no user
-	 * when no learning plan runs. The praktijkopleider and the BPV-begeleider
-	 * are listed only for a pupil in a running placement.
+	 * when no learning plan runs. The group's team leader and career coach
+	 * (studieloopbaan) are listed only when the group names them. The
+	 * praktijkopleider and the BPV-begeleider are listed only for a pupil in
+	 * a running placement.
 	 *
 	 * @param array<string, mixed>       $cohort    The group.
 	 * @param list<array<string, mixed>> $plans     The pupil's learning plans.
@@ -163,11 +169,21 @@ final class PupilPage {
 			$people[] = ['role' => $role, 'userId' => $userId];
 		}
 
+		$teamLeader = self::stringOrNull(value: ($cohort['teamLeaderId'] ?? null));
+		if ($teamLeader !== null) {
+			$people[] = ['role' => self::TEAM_LEADER, 'userId' => $teamLeader];
+		}
+
 		$coordinator = self::coordinatorOf(plans: $plans);
 		if ($coordinator === null) {
 			$people[] = ['role' => self::CARE_COORDINATOR, 'userId' => null, 'noPlan' => true];
 		} else {
 			$people[] = ['role' => self::CARE_COORDINATOR, 'userId' => $coordinator, 'noPlan' => false];
+		}
+
+		$careerCoach = self::stringOrNull(value: ($cohort['careerCoachId'] ?? null));
+		if ($careerCoach !== null) {
+			$people[] = ['role' => self::CAREER_COACH, 'userId' => $careerCoach];
 		}
 
 		if ($placement !== null) {
