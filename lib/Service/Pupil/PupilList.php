@@ -60,6 +60,7 @@ final class PupilList {
 
 	public const CARE_PLAN = 'plan';
 	public const CARE_SUPPORT_REQUEST = 'support-request';
+	public const CARE_WITH_COORDINATOR = 'with-care-coordinator';
 
 	public const SIGNAL_ATTENDANCE_FLAG = 'attendance-flag';
 	public const SIGNAL_NEARING_THRESHOLD = 'nearing-threshold';
@@ -108,6 +109,12 @@ final class PupilList {
 	private const OPEN_SUPPORT_STATES = ['submitted', 'routed-to-swv', 'in-deliberation'];
 
 	/**
+	 * A support request in this state lies with the school's care coordinator,
+	 * not yet routed on: the pupil is "in gesprek met IB".
+	 */
+	private const WITH_COORDINATOR_STATE = 'submitted';
+
+	/**
 	 * Attendance-flag states that are still open.
 	 *
 	 * @var array<int, string>
@@ -130,7 +137,8 @@ final class PupilList {
 	 * time the pupil is reported away today, `HH:MM`, or null), `summary` (the attendance
 	 * summary of this school year, or null) and `records` (the pupil's
 	 * conference-slot, learning-plan, support-request, attendance-flag,
-	 * grade-entry and bpv-placement rows, keyed by schema).
+	 * grade-entry and bpv-placement rows, keyed by schema) and `schoolDays`
+	 * (the school days held this school year up to today, or null).
 	 *
 	 * @param array<string, mixed> $pupil The pupil's Nextcloud user id (`learnerId`), profile, today's state, summary and records.
 	 * @param DateTimeImmutable    $now   Now, in the school's zone.
@@ -157,6 +165,7 @@ final class PupilList {
 				'todayState' => (string)($pupil['todayState'] ?? ''),
 				'todayUntil' => self::untilOrNull(value: ($pupil['todayUntil'] ?? null)),
 				'absentDays' => self::count(row: $summary, key: 'absentDays'),
+				'presentPercent' => self::presentPercent(schoolDays: ($pupil['schoolDays'] ?? null), absentDays: self::count(row: $summary, key: 'absentDays')),
 				'lateCount' => self::count(row: $summary, key: 'lateCount'),
 			],
 			self::conferenceFields(conference: self::nextConference(slots: ($records['conference-slot'] ?? []), now: $now)),
@@ -172,6 +181,28 @@ final class PupilList {
 			self::placementFields(placement: PupilPage::runningPlacement(placements: ($records['bpv-placement'] ?? [])))
 		);
 	}//end row()
+
+	/**
+	 * Present this year, in whole percent: the school days held so far less
+	 * the days absent, of the days held; null before the first school day or
+	 * when the days held are not known.
+	 *
+	 * @param mixed $schoolDays The school days held up to today.
+	 * @param int   $absentDays The days absent this school year.
+	 *
+	 * @return int|null
+	 *
+	 * @spec openspec/changes/learner-list-and-page-follow-the-boards/tasks.md#T2
+	 */
+	public static function presentPercent(mixed $schoolDays, int $absentDays): ?int {
+		if (is_int($schoolDays) === false || $schoolDays <= 0) {
+			return null;
+		}
+
+		$present = max(0, $schoolDays - $absentDays);
+
+		return (int)round(100 * $present / $schoolDays);
+	}//end presentPercent()
 
 	/**
 	 * A time of day `HH:MM`, else null.
@@ -365,12 +396,16 @@ final class PupilList {
 	}//end comingAt()
 
 	/**
-	 * The pupil's care: a running plan, else an open support request, else ''.
+	 * The pupil's care: a running plan, else a support request that lies with
+	 * the care coordinator ("in gesprek met IB"), else another open support
+	 * request, else ''.
 	 *
 	 * @param list<array<string, mixed>> $plans    The learning plans.
 	 * @param list<array<string, mixed>> $requests The support requests.
 	 *
 	 * @return string
+	 *
+	 * @spec openspec/changes/learner-list-and-page-follow-the-boards/tasks.md#T2
 	 */
 	private static function care(array $plans, array $requests): string {
 		foreach ($plans as $plan) {
@@ -379,10 +414,16 @@ final class PupilList {
 			}
 		}
 
-		foreach ($requests as $request) {
-			if (in_array($request['lifecycle'] ?? '', self::OPEN_SUPPORT_STATES, true) === true) {
-				return self::CARE_SUPPORT_REQUEST;
-			}
+		$open = array_map(
+			static fn (array $request): string => (string)($request['lifecycle'] ?? ''),
+			array_values(array_filter($requests, static fn (array $request): bool => in_array($request['lifecycle'] ?? '', self::OPEN_SUPPORT_STATES, true)))
+		);
+		if (in_array(self::WITH_COORDINATOR_STATE, $open, true) === true) {
+			return self::CARE_WITH_COORDINATOR;
+		}
+
+		if ($open !== []) {
+			return self::CARE_SUPPORT_REQUEST;
 		}
 
 		return '';

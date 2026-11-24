@@ -110,6 +110,8 @@ class PupilPageServiceTest extends TestCase {
 				default => [],
 			}
 		);
+		$lesson = ['role' => PupilPage::SUPPORT_LESSON, 'userId' => null, 'name' => 'Rekenen verlengde instructie · Juf Ilse', 'from' => '2026-10-29'];
+		$this->reader->expects($this->once())->method('supportLessonOf')->with('vera', '2026-10-28')->willReturn([$lesson]);
 		$this->reader->expects($this->once())->method('visitsOf')->with([])->willReturn([]);
 		$this->userManager->method('getDisplayName')->willReturnMap([['daan', 'Daan de Wit'], ['ib-anne', 'Anne Smit']]);
 
@@ -130,6 +132,7 @@ class PupilPageServiceTest extends TestCase {
 			[
 				['role' => PupilPage::MENTOR, 'userId' => 'daan', 'name' => 'Daan de Wit'],
 				['role' => PupilPage::CARE_COORDINATOR, 'userId' => 'ib-anne', 'noPlan' => false, 'name' => 'Anne Smit'],
+				['role' => PupilPage::SUPPORT_LESSON, 'userId' => null, 'name' => 'Rekenen verlengde instructie · Juf Ilse', 'from' => '2026-10-29'],
 			],
 			$page['people']
 		);

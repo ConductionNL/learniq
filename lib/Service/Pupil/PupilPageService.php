@@ -113,7 +113,14 @@ class PupilPageService implements PupilPageServiceInterface {
 			'todayUntil' => ($this->todayStates->untilForCohort(cohort: $cohort, date: $today)[$learnerId] ?? null),
 			'header' => PupilPage::header(profile: $profile, cohort: $cohort, todayState: $todayState, flags: $flags, placement: $placement),
 			'nextStep' => $this->nextStep->first(slots: $slots, visits: $visits, flags: $flags, now: $now),
-			'people' => $this->named(people: PupilPage::people(cohort: $cohort, plans: $plans, placement: $placement)),
+			'people' => $this->named(
+				people: PupilPage::people(
+					cohort: $cohort,
+					plans: $plans,
+					placement: $placement,
+					lessons: $this->reader->supportLessonOf(learnerId: $learnerId, today: $today)
+				)
+			),
 		];
 	}//end open()
 
@@ -206,7 +213,7 @@ class PupilPageService implements PupilPageServiceInterface {
 	 */
 	private function named(array $people): array {
 		foreach ($people as $index => $person) {
-			$name = '';
+			$name = (string)($person['name'] ?? '');
 			if (is_string($person['userId'] ?? null) === true) {
 				$name = (string)($this->userManager->getDisplayName($person['userId']) ?? '');
 			}
