@@ -83,6 +83,7 @@ class PupilListTest extends TestCase {
 				'todayState' => TodayState::IN_CLASS,
 				'todayUntil' => null,
 				'absentDays' => 2,
+				'presentPercent' => null,
 				'lateCount' => 1,
 				'conferenceAt' => '2026-10-29T18:10:00+01:00',
 				'conferenceState' => 'acknowledged',
@@ -269,4 +270,25 @@ class PupilListTest extends TestCase {
 		$this->assertSame(['Anne', 'Noor', 'Sem', 'vera'], array_column(PupilList::ordered(rows: $rows, sort: ''), 'name'));
 		$this->assertSame(['Noor', 'Sem', 'Anne', 'vera'], array_column(PupilList::ordered(rows: $rows, sort: PupilList::SORT_SIGNAL_FIRST), 'name'));
 	}//end testSignalFirstOrder()
+
+	/**
+	 * Present this year: the school days held less the days absent, in whole percent; none before the first school day.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/learner-list-and-page-follow-the-boards/tasks.md#T2
+	 */
+	public function testPresentThisYearIsAShareOfTheSchoolDaysHeld(): void {
+		$this->assertSame(expected: 85, actual: PupilList::presentPercent(schoolDays: 40, absentDays: 6));
+		$this->assertSame(expected: 100, actual: PupilList::presentPercent(schoolDays: 40, absentDays: 0));
+		$this->assertSame(expected: 0, actual: PupilList::presentPercent(schoolDays: 3, absentDays: 5));
+		$this->assertNull(actual: PupilList::presentPercent(schoolDays: 0, absentDays: 0));
+		$this->assertNull(actual: PupilList::presentPercent(schoolDays: null, absentDays: 2));
+
+		$row = PupilList::row(
+			pupil: ['learnerId' => 'vera', 'profile' => null, 'todayState' => TodayState::IN_CLASS, 'summary' => ['absentDays' => 2], 'records' => [], 'schoolDays' => 50],
+			now: self::now()
+		);
+		$this->assertSame(expected: 96, actual: $row['presentPercent']);
+	}//end testPresentThisYearIsAShareOfTheSchoolDaysHeld()
 }//end class

@@ -3070,6 +3070,12 @@
 						"label": "Away until"
 					},
 					{
+						"key": "presentPercent",
+						"label": "Present this year",
+						"widget": "number",
+						"widgetProps": {"unit": {"one": "{count}%", "other": "{count}%"}}
+					},
+					{
 						"key": "absentDays",
 						"label": "Absent this year",
 						"widget": "number",

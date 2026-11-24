@@ -4005,6 +4005,8 @@ OC.L10N.register(
         "Reported absent": "Reported absent",
         "Not registered yet": "Not registered yet",
         "Absent this year": "Absent this year",
+        "Present this year": "Present this year",
+        "{count}%": "{count}%",
         "{count} time": "{count} time",
         "{count} times": "{count} times",
         "Conference time": "Conference time",

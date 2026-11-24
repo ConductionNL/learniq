@@ -4614,6 +4614,8 @@ OC.L10N.register(
         "Reported absent": "Afwezig gemeld",
         "Not registered yet": "Nog niet geregistreerd",
         "Absent this year": "Afwezig dit jaar",
+        "Present this year": "Aanwezig dit jaar",
+        "{count}%": "{count}%",
         "{count} time": "{count} keer",
         "{count} times": "{count} keer",
         "Conference time": "Gesprekstijd",
