@@ -107,9 +107,12 @@ class PupilPageServiceTest extends TestCase {
 					['id' => 'slot-2', 'lifecycle' => 'booked', 'startsAt' => '2026-11-05T18:00:00+01:00', 'guardianRef' => 'fatima-uuid'],
 				],
 				'learning-plan' => [['lifecycle' => 'active', 'coordinatorId' => 'ib-anne']],
+				'elective-sign-up' => [['offerId' => 'off-rek', 'status' => 'placed', 'lessonStartsAt' => '2026-10-29T13:30:00+01:00']],
 				default => [],
 			}
 		);
+		$this->reader->expects($this->once())->method('byId')->with('elective-offer', 'off-rek')
+			->willReturn(['name' => 'Rekenen verlengde instructie', 'teacherName' => 'Juf Ilse']);
 		$this->reader->expects($this->once())->method('visitsOf')->with([])->willReturn([]);
 		$this->userManager->method('getDisplayName')->willReturnMap([['daan', 'Daan de Wit'], ['ib-anne', 'Anne Smit']]);
 
@@ -130,6 +133,7 @@ class PupilPageServiceTest extends TestCase {
 			[
 				['role' => PupilPage::MENTOR, 'userId' => 'daan', 'name' => 'Daan de Wit'],
 				['role' => PupilPage::CARE_COORDINATOR, 'userId' => 'ib-anne', 'noPlan' => false, 'name' => 'Anne Smit'],
+				['role' => PupilPage::SUPPORT_LESSON, 'userId' => null, 'name' => 'Rekenen verlengde instructie · Juf Ilse', 'from' => '2026-10-29'],
 			],
 			$page['people']
 		);

@@ -96,6 +96,25 @@ class PupilPageReaderTest extends TestCase {
 	}//end testProfileById()
 
 	/**
+	 * A row by id reads the asked schema and keeps only the row with that id.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/learner-list-and-page-follow-the-boards/tasks.md#T4
+	 */
+	public function testById(): void {
+		$reader = $this->reader([['id' => 'off-wia', 'name' => 'Wiskunde A'], ['id' => 'off-other']]);
+
+		$this->assertSame(expected: ['id' => 'off-wia', 'name' => 'Wiskunde A'], actual: $reader->byId(schema: 'elective-offer', id: 'off-wia'));
+		$this->assertSame(expected: ['register' => 'learniq', 'schema' => 'elective-offer', 'id' => 'off-wia'], actual: $this->queries[0][0]['filters']);
+		$this->assertNull(actual: $reader->byId(schema: 'elective-offer', id: 'missing'));
+
+		$this->queries = [];
+		$this->assertNull(actual: $reader->byId(schema: 'elective-offer', id: ''));
+		$this->assertSame(expected: [], actual: $this->queries);
+	}//end testById()
+
+	/**
 	 * A pupil's rows are only those whose learnerId is the pupil.
 	 *
 	 * @return void

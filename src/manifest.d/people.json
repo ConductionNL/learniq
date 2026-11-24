@@ -3968,7 +3968,7 @@
 						"type": "record-list",
 						"title": "People around the pupil",
 						"icon": "AccountGroupOutline",
-						"_note": "learner-list-and-page-follow-the-boards T4: mentor (primary teacher, else the first), duo partner, the care coordinator of the running learning plan (or that no plan runs), and for a placement the workplace trainer and the placement supervisor, read from the same endpoint as the next step. spec: openspec/changes/learner-list-and-page-follow-the-boards/specs/pupil-dossier/spec.md#requirement-the-pupils-page-opens-with-a-header-one-next-step-and-the-people-around-the-pupil",
+						"_note": "learner-list-and-page-follow-the-boards T4: mentor (primary teacher, else the first), duo partner, the care coordinator of the running learning plan (or that no plan runs), the support lesson the pupil follows (name and teacher), and for a placement the workplace trainer and the placement supervisor, read from the same endpoint as the next step. spec: openspec/changes/learner-list-and-page-follow-the-boards/specs/pupil-dossier/spec.md#requirement-the-pupils-page-opens-with-a-header-one-next-step-and-the-people-around-the-pupil",
 						"content": {
 							"endpointSource": {
 								"url": "/apps/learniq/api/pupils/@object.ncUserId/page",
@@ -3984,6 +3984,7 @@
 									"team-leader": "Team leader",
 									"care-coordinator": "Care coordinator",
 									"career-coach": "Career coach",
+									"support-lesson": "Support lesson",
 									"praktijkopleider": "Workplace trainer",
 									"bpv-begeleider": "Placement supervisor"
 								}

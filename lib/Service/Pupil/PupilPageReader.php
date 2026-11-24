@@ -108,6 +108,30 @@ class PupilPageReader {
 	}//end profileById()
 
 	/**
+	 * One row of a schema by its id, or null when it is not there.
+	 *
+	 * @param string $schema The schema slug.
+	 * @param string $id     The row's uuid.
+	 *
+	 * @return array<string, mixed>|null
+	 *
+	 * @spec openspec/changes/learner-list-and-page-follow-the-boards/tasks.md#T4
+	 */
+	public function byId(string $schema, string $id): ?array {
+		if ($id === '') {
+			return null;
+		}
+
+		foreach ($this->rows(schema: $schema, filters: ['id' => $id]) as $row) {
+			if ($this->idOf(row: $row) === $id) {
+				return $row;
+			}
+		}
+
+		return null;
+	}//end byId()
+
+	/**
 	 * Rows of a schema that belong to the pupil (their `learnerId`).
 	 *
 	 * @param string $schema    The schema slug: conference-slot, bpv-placement, attendance-flag or learning-plan.
