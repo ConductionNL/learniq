@@ -34,7 +34,7 @@ class FirstTodayCardTest extends TestCase {
 			static fn (string $text, array|string $parameters=[]): string => vsprintf($text, (array) $parameters)
 		);
 		$l10n->method('n')->willReturnCallback(
-			static fn (string $one, string $many, int $count): string => str_replace('%n', (string) $count, $count === 1 ? $one : $many)
+			static fn (string $one, string $many, int $count): string => str_replace('%n', (string) $count, [$one, $many][(int) ($count !== 1)])
 		);
 
 		return new FirstTodayCard(l10n: $l10n);

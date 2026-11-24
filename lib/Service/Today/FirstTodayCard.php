@@ -39,6 +39,58 @@ use OCP\IL10N;
 final class FirstTodayCard {
 
 	/**
+	 * The sentence per rule, singular and plural, with `%n` for the count.
+	 *
+	 * @var array<string, array{0: string, 1: string}>
+	 */
+	private const TITLES = [
+		FirstTodayRules::BOOKINGS_TO_CONFIRM => [
+			'%n conference booking waits for your confirmation',
+			'%n conference bookings wait for your confirmation',
+		],
+		FirstTodayRules::NEARING_LIMIT => [
+			'%n pupil is nearing the attendance limit',
+			'%n pupils are nearing the attendance limit',
+		],
+		FirstTodayRules::LESSON_REGISTER_OPEN => [
+			'%n lesson of yours today has no register yet',
+			'%n lessons of yours today have no register yet',
+		],
+		FirstTodayRules::MISSING_HAND_INS => [
+			'%n assignment is due today with hand-ins missing',
+			'%n assignments are due today with hand-ins missing',
+		],
+		FirstTodayRules::UNAUTHORISED_ABSENCE => [
+			'%n pupil of your class was absent without leave',
+			'%n pupils of your class were absent without leave',
+		],
+		FirstTodayRules::MENTOR_TALKS_CLOSING => [
+			'%n pupil has not chosen a mentor talk yet',
+			'%n pupils have not chosen a mentor talk yet',
+		],
+		FirstTodayRules::PLAN_ENDING => [
+			'%n plan ends without an evaluation',
+			'%n plans end without an evaluation',
+		],
+		FirstTodayRules::SIGNAL_NOT_TAKEN_UP => [
+			'%n signal has not been taken up',
+			'%n signals have not been taken up',
+		],
+		FirstTodayRules::LEAVE_PAST_HALF => [
+			'%n leave request is past half its decision time',
+			'%n leave requests are past half their decision time',
+		],
+		FirstTodayRules::OVER_LIMIT_NOT_REPORTED => [
+			'%n pupil is over the attendance limit and not reported',
+			'%n pupils are over the attendance limit and not reported',
+		],
+		FirstTodayRules::REGISTERS_NOT_FILLED_AT_930 => [
+			'%n group has no register filled in at 9.30',
+			'%n groups have no register filled in at 9.30',
+		],
+	];
+
+	/**
 	 * The page per rule, read once.
 	 *
 	 * @var array<string, string>|null
@@ -93,7 +145,11 @@ final class FirstTodayCard {
 		if ($this->pages === null) {
 			$raw = json_decode((string) file_get_contents(__DIR__ . '/first-today-pages.json'), true);
 			$this->pages = [];
-			foreach ((is_array($raw) === true ? $raw : []) as $rule => $page) {
+			if (is_array($raw) === false) {
+				$raw = [];
+			}
+
+			foreach ($raw as $rule => $page) {
 				if (is_string($page) === true && str_starts_with((string) $rule, '$') === false) {
 					$this->pages[(string) $rule] = $page;
 				}
@@ -114,67 +170,113 @@ final class FirstTodayCard {
 	 * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
 	 */
 	private function lines(string $rule, array $card): ?array {
-		$count = (int) ($card['count'] ?? 0);
+		$title = $this->title(rule: $rule, count: (int) ($card['count'] ?? 0));
+		if ($title === null) {
+			return null;
+		}
+
+		return [$title, $this->reason(rule: $rule, card: $card)];
+	}//end lines()
+
+	/**
+	 * The card's sentence: what waits, with its count.
+	 *
+	 * @param string $rule  The rule that won.
+	 * @param int    $count How many rows it found.
+	 *
+	 * @return string|null Null for a rule Today writes no card for.
+	 *
+	 * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
+	 */
+	private function title(string $rule, int $count): ?string {
+		if ($rule === FirstTodayRules::REGISTER_NOT_FILLED) {
+			return $this->l10n->t('Today\'s register is not filled in yet');
+		}
+
+		$forms = (self::TITLES[$rule] ?? null);
+		if ($forms === null) {
+			return null;
+		}
+
+		return $this->l10n->n($forms[0], $forms[1], $count);
+	}//end title()
+
+	/**
+	 * The card's line of context under the sentence.
+	 *
+	 * @param string               $rule The rule that won.
+	 * @param array<string, mixed> $card Its facts.
+	 *
+	 * @return string
+	 *
+	 * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
+	 */
+	private function reason(string $rule, array $card): string {
+		$l10n = $this->l10n;
 
 		return match ($rule) {
-			FirstTodayRules::REGISTER_NOT_FILLED => [
-				$this->l10n->t('Today\'s register is not filled in yet'),
-				$this->registerReason(card: $card),
-			],
-			FirstTodayRules::BOOKINGS_TO_CONFIRM => [
-				$this->l10n->n('%n conference booking waits for your confirmation', '%n conference bookings wait for your confirmation', $count),
-				$this->l10n->t('Confirm them so the parents know the time.'),
-			],
-			FirstTodayRules::NEARING_LIMIT => [
-				$this->l10n->n('%n pupil is nearing the attendance limit', '%n pupils are nearing the attendance limit', $count),
-				$this->l10n->t('Talk to them before the limit is reached.'),
-			],
-			FirstTodayRules::LESSON_REGISTER_OPEN => [
-				$this->l10n->n('%n lesson of yours today has no register yet', '%n lessons of yours today have no register yet', $count),
-				$this->nameOf(value: $card['sessionTitle'] ?? null) === null
-					? $this->l10n->t('The lesson has ended.')
-					: $this->l10n->t('The first is %1$s.', [$this->nameOf(value: $card['sessionTitle'])]),
-			],
-			FirstTodayRules::MISSING_HAND_INS => [
-				$this->l10n->n('%n assignment is due today with hand-ins missing', '%n assignments are due today with hand-ins missing', $count),
-				$this->l10n->n('%n hand-in is still missing.', '%n hand-ins are still missing.', (int) ($card['missing'] ?? 0)),
-			],
-			FirstTodayRules::UNAUTHORISED_ABSENCE => [
-				$this->l10n->n('%n pupil of your class was absent without leave', '%n pupils of your class were absent without leave', $count),
-				$this->l10n->t('In the last two weeks, and not yet handled.'),
-			],
-			FirstTodayRules::MENTOR_TALKS_CLOSING => [
-				$this->l10n->n('%n pupil has not chosen a mentor talk yet', '%n pupils have not chosen a mentor talk yet', $count),
-				$this->nameOf(value: $card['roundName'] ?? null) === null
-					? $this->l10n->t('Booking closes soon.')
-					: $this->l10n->t('Booking for %1$s closes soon.', [$this->nameOf(value: $card['roundName'])]),
-			],
-			FirstTodayRules::PLAN_ENDING => [
-				$this->l10n->n('%n plan ends without an evaluation', '%n plans end without an evaluation', $count),
-				$this->l10n->t('Plan the evaluation before the plan ends.'),
-			],
-			FirstTodayRules::SIGNAL_NOT_TAKEN_UP => [
-				$this->l10n->n('%n signal has not been taken up', '%n signals have not been taken up', $count),
-				$this->l10n->t('Pick one up to start the follow-up.'),
-			],
-			FirstTodayRules::LEAVE_PAST_HALF => [
-				$this->l10n->n('%n leave request is past half its decision time', '%n leave requests are past half their decision time', $count),
-				$this->l10n->t('Decide before the decision date.'),
-			],
-			FirstTodayRules::OVER_LIMIT_NOT_REPORTED => [
-				$this->l10n->n('%n pupil is over the attendance limit and not reported', '%n pupils are over the attendance limit and not reported', $count),
-				$this->l10n->t('Report them to the attendance officer.'),
-			],
-			FirstTodayRules::REGISTERS_NOT_FILLED_AT_930 => [
-				$this->l10n->n('%n group has no register filled in at 9.30', '%n groups have no register filled in at 9.30', $count),
-				$this->l10n->t(
-					'%1$s of %2$s groups with lessons today filled theirs in.',
-					[(string) max(0, (int) ($card['total'] ?? 0) - $count), (string) (int) ($card['total'] ?? 0)]
-				),
-			],
-			default => null,
+			FirstTodayRules::REGISTER_NOT_FILLED => $this->registerReason(card: $card),
+			FirstTodayRules::BOOKINGS_TO_CONFIRM => $l10n->t('Confirm them so the parents know the time.'),
+			FirstTodayRules::NEARING_LIMIT => $l10n->t('Talk to them before the limit is reached.'),
+			FirstTodayRules::LESSON_REGISTER_OPEN => $this->lessonReason(title: $this->nameOf(value: $card['sessionTitle'] ?? null)),
+			FirstTodayRules::MISSING_HAND_INS => $l10n->n('%n hand-in is still missing.', '%n hand-ins are still missing.', (int) ($card['missing'] ?? 0)),
+			FirstTodayRules::UNAUTHORISED_ABSENCE => $l10n->t('In the last two weeks, and not yet handled.'),
+			FirstTodayRules::MENTOR_TALKS_CLOSING => $this->roundReason(round: $this->nameOf(value: $card['roundName'] ?? null)),
+			FirstTodayRules::PLAN_ENDING => $l10n->t('Plan the evaluation before the plan ends.'),
+			FirstTodayRules::SIGNAL_NOT_TAKEN_UP => $l10n->t('Pick one up to start the follow-up.'),
+			FirstTodayRules::LEAVE_PAST_HALF => $l10n->t('Decide before the decision date.'),
+			FirstTodayRules::OVER_LIMIT_NOT_REPORTED => $l10n->t('Report them to the attendance officer.'),
+			default => $this->groupsReason(count: (int) ($card['count'] ?? 0), total: (int) ($card['total'] ?? 0)),
 		};
-	}//end lines()
+	}//end reason()
+
+	/**
+	 * The line under an open lesson register: the first lesson by name, else that it ended.
+	 *
+	 * @param string|null $title The lesson's title.
+	 *
+	 * @return string
+	 *
+	 * @spec openspec/changes/today-first-per-school-role/tasks.md#T1
+	 */
+	private function lessonReason(?string $title): string {
+		if ($title === null) {
+			return $this->l10n->t('The lesson has ended.');
+		}
+
+		return $this->l10n->t('The first is %1$s.', [$title]);
+	}//end lessonReason()
+
+	/**
+	 * The line under mentor talks that close: the round by name, else without it.
+	 *
+	 * @param string|null $round The round's name.
+	 *
+	 * @return string
+	 *
+	 * @spec openspec/changes/today-first-per-school-role/tasks.md#T1
+	 */
+	private function roundReason(?string $round): string {
+		if ($round === null) {
+			return $this->l10n->t('Booking closes soon.');
+		}
+
+		return $this->l10n->t('Booking for %1$s closes soon.', [$round]);
+	}//end roundReason()
+
+	/**
+	 * The line under the groups without a register at 9.30: how many of the groups with lessons filled theirs in.
+	 *
+	 * @param int $count The groups without one.
+	 * @param int $total The groups with lessons today.
+	 *
+	 * @return string
+	 *
+	 * @spec openspec/changes/today-first-per-school-role/tasks.md#T1
+	 */
+	private function groupsReason(int $count, int $total): string {
+		return $this->l10n->t('%1$s of %2$s groups with lessons today filled theirs in.', [(string) max(0, $total - $count), (string) $total]);
+	}//end groupsReason()
 
 	/**
 	 * The context line of an open register: the parent reports in it, else that the first lesson started.
