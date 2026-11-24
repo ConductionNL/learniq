@@ -15,7 +15,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/content-scorm-package-upload/tasks.md
+ * @spec openspec/changes/archive/2026-11-24-content-scorm-package-upload/tasks.md
  */
 
 declare(strict_types=1);
@@ -43,7 +43,7 @@ use ZipArchive;
  * One course, one lesson per SCO in manifest order, the package unpacked into
  * the course folder, escaping entries dropped and SCORM 2004 degraded.
  *
- * @spec openspec/changes/content-scorm-package-upload/specs/course-management/spec.md#requirement-the-package-import-accepts-a-scorm-zip
+ * @spec openspec/specs/course-management/spec.md#requirement-the-package-import-accepts-a-scorm-zip
  */
 #[CoversClass(ScormCourseImporter::class)]
 #[UsesClass(ScormManifestParser::class)]

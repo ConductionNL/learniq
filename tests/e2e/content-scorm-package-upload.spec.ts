@@ -22,7 +22,7 @@ import { expect, test } from '@playwright/test'
  * Base URL from the environment (base-url.ts). Not run in the change that
  * wrote it (decision 139): the live pass runs it.
  *
- * @spec openspec/changes/content-scorm-package-upload/specs/course-management/spec.md
+ * @spec openspec/specs/course-management/spec.md
  */
 import { readFileSync } from 'fs'
 import { join } from 'path'
@@ -157,8 +157,8 @@ test.describe('a SCORM 1.2 package reports its own completion', () => {
 		await fx.teardown()
 	})
 
-	// @e2e openspec/changes/content-scorm-package-upload/specs/course-management/spec.md#scenario-a-single-sco-scorm-12-package
-	// @e2e openspec/changes/content-scorm-package-upload/specs/course-management/spec.md#scenario-the-learner-finishes-the-sco
+	// @e2e openspec/specs/course-management/spec.md#scenario-a-single-sco-scorm-12-package
+	// @e2e openspec/specs/course-management/spec.md#scenario-the-learner-finishes-the-sco
 	test('upload the single-SCO package, play it as a learner, and the enrolment progresses', async ({
 		browser,
 	}) => {

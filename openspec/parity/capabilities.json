@@ -2758,20 +2758,20 @@
       "area": "content",
       "name": "Upload a SCORM package and have it report its own completion.",
       "built": {
-        "state": "building",
-        "evidence": "The SCORM 1.2 runtime (src/utils/scorm12Runtime.js) reports completion to POST /api/lrs/statements (archived cmi5-xapi-lrs-ingest). Not built: unpacking an uploaded SCORM zip; the player serves one lesson file by contentRef. SCORM 2004 is a follow-up.",
+        "state": "built",
+        "evidence": "lib/Service/CoursePackage/ScormManifestParser.php reads imsmanifest.xml; ScormPackageUnpacker unpacks the zip into the course folder, refusing escaping paths; ScormCourseImporter creates one Lesson per SCO and reports what does not play; the SCORM 1.2 runtime (src/utils/scorm12Runtime.js) reports completion to POST /api/lrs/statements. Tests: ScormManifestParserTest, ScormPackageUnpackerTest, ScormCourseImporterTest, ScormLessonPayloadSchemaTest; e2e tests/e2e/content-scorm-package-upload.spec.ts (written, runs in nightly). SCORM 2004 and a cmi5 package importer remain follow-ups.",
         "owner": "ConductionNL/learniq",
         "change": "content-scorm-package-upload",
         "requirement": [
-          "openspec/changes/content-scorm-package-upload/specs/course-management :: An imported SCORM 1.2 lesson reports its own completion",
-          "openspec/changes/content-scorm-package-upload/specs/course-management :: The package import accepts a SCORM zip"
+          "openspec/specs/course-management :: An imported SCORM 1.2 lesson reports its own completion",
+          "openspec/specs/course-management :: The package import accepts a SCORM zip"
         ]
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
       "feature": "scorm-and-cmi5-content-runtime",
       "featureConfidence": "medium",
-      "learniq": "partial",
+      "learniq": "yes",
       "moodle": "yes",
       "moodle-workplace": "yes",
       "ilias": "yes",
@@ -9549,10 +9549,10 @@
       "origin": "featureRequest",
       "originUrl": "https://moodle.atlassian.net/browse/MDL-24443",
       "built": {
-        "state": "building",
-        "evidence": "lib/Lifecycle/LearnerMergeGuard.php:67 check() on the LearnerProfile merge transition (lib/Settings/learniq_register.json:5663) refuses a missing, inactive or self target and two open seats in one course (lib/Service/LearnerMergeService.php:136); lib/Listener/LearnerMergeHandler.php:77 then runs LearnerMergeService::moveRecords() (:177), which re-points every learner-owned record to the survivor; tests/Unit/Listener/LearnerMergeHandlerTest.php. Missing: LearnerProfileDetail (src/manifest.d/people.json:1760) declares no lifecycleActions, so no page offers the merge; it runs through OpenRegister's lifecycle API only.",
+        "state": "built",
+        "evidence": "lib/Lifecycle/LearnerMergeGuard.php:67 check() on the LearnerProfile merge transition (lib/Settings/learniq_register.json:5663) refuses a missing, inactive or self target and two open seats in one course (lib/Service/LearnerMergeService.php:136); lib/Listener/LearnerMergeHandler.php:77 then runs LearnerMergeService::moveRecords() (:177), which re-points every learner-owned record to the survivor; tests/Unit/Listener/LearnerMergeHandlerTest.php. LearnerProfileDetail (src/manifest.d/people.json) offers Merge into another account as a lifecycle action with a picker of active profiles, and shows mergedInto as a link; e2e tests/e2e/learner-merge.spec.ts (written, runs in nightly).",
         "owner": "ConductionNL/learniq",
-        "reachedOn": "nothing: no page offers the merge transition; OpenRegister lifecycle API only",
+        "reachedOn": "/learner-profiles/:id > Actions > Merge into another account",
         "spec": "openspec/specs/learner-account-merge",
         "readOn": "2026-10-07",
         "change": "learner-merge-page-action",
@@ -9562,7 +9562,7 @@
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
       "feature": "sign-in-and-accounts",
-      "learniq": "partial",
+      "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: Searched public/ for mergeuser, merge_user, mergeaccount outside vendored libs and tests: no hits. Nearest is public/admin/user/user_bulk.php:1 (bulk delete, suspend, cohort add), which has no merge action. Marketplace tool_mergeusers adds it, not shipped.",
         "moodle-workplace": "read 2026-09-26: not documented: searched the Workplace release notes and Workplace user pages (https://docs.moodle.org/502/en/Upload_users_in_Moodle_Workplace); no merge-users feature is described.",

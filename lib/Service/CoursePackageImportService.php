@@ -142,7 +142,7 @@ class CoursePackageImportService implements CoursePackageImportServiceInterface 
 	 *
 	 * @return ScormCourseImporter|null
 	 *
-	 * @spec openspec/changes/content-scorm-package-upload/specs/course-management/spec.md#requirement-the-package-import-accepts-a-scorm-zip
+	 * @spec openspec/specs/course-management/spec.md#requirement-the-package-import-accepts-a-scorm-zip
 	 */
 	private function scormImporterFor(string $format, string $packagePath): ?ScormCourseImporter {
 		$scorm = $this->importers->scorm;
