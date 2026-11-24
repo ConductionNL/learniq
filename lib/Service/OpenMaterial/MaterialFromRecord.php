@@ -49,8 +49,8 @@ class MaterialFromRecord {
 	/**
 	 * The Material fields for one record.
 	 *
-	 * @param array<string, mixed>                                            $record The normalised source record.
-	 * @param array{decision: ImportDecision, target: array<string, string>, file?: array{fileRef: string, mimeType: string}} $added How it is added, where, and the copy.
+	 * @param array<string, mixed> $record The normalised source record.
+	 * @param array<string, mixed> $added  decision (ImportDecision), target (fields), and file (fileRef, mimeType) for a copy.
 	 *
 	 * @return array<string, mixed> The Material object.
 	 *

@@ -139,7 +139,8 @@ class MaterialAttributionKeeperTest extends TestCase {
 
 		$created = OrEntityFactory::make(['title' => 'x', 'source' => 'edurep', 'authors' => []], 'material');
 		$this->keeper()->handle(new ObjectCreatingEvent($created));
-		self::assertSame(expected: ['title' => 'x', 'source' => 'edurep', 'authors' => []], actual: array_intersect_key($created->getObject(), ['title' => 1, 'source' => 1, 'authors' => 1]));
+		$fields = array_intersect_key($created->getObject(), ['title' => 1, 'source' => 1, 'authors' => 1]);
+		self::assertSame(expected: ['title' => 'x', 'source' => 'edurep', 'authors' => []], actual: $fields);
 	}//end testOwnMaterialOtherSchemasAndCreatesAreLeftAlone()
 
 	/**

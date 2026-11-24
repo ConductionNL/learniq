@@ -64,6 +64,11 @@ class OpenMaterialImportServiceTest extends TestCase {
 
 	private IUser&MockObject $user;
 
+	/**
+	 * Copies an open file into Nextcloud.
+	 *
+	 * @var OpenMaterialFileCopy&MockObject
+	 */
 	private OpenMaterialFileCopy&MockObject $copies;
 
 	/**
@@ -76,7 +81,7 @@ class OpenMaterialImportServiceTest extends TestCase {
 		$this->targets       = $this->createMock(MaterialImportTarget::class);
 		$this->objectService = $this->createMock(ObjectService::class);
 		$this->user          = $this->createMock(IUser::class);
-		$this->copies        = $this->createMock(OpenMaterialFileCopy::class);
+		$this->copies        = $this->createMock(originalClassName: OpenMaterialFileCopy::class);
 		$this->user->method('getUID')->willReturn('docent');
 		$this->targets->method('resolve')->willReturnCallback(
 			static fn (IUser $user, array $request): array => ['fields' => ['lessonId' => 'les-7', 'courseId' => 'course-1', 'tenant_id' => 't-1'], 'commercial' => ($request['courseId'] ?? '') === 'paid']
@@ -185,7 +190,10 @@ class OpenMaterialImportServiceTest extends TestCase {
 
 		$material = $this->service()->add(user: $this->user, request: ['sourceId' => 'urn:test:1', 'lessonId' => 'les-7']);
 
-		$this->assertSame(expected: ['document', true, '/Learniq/t-1/materials/1a2b3c4d-opdracht.pdf'], actual: [$material['kind'], $material['nonCommercial'], $material['fileRef']]);
+		$this->assertSame(
+			expected: ['document', true, '/Learniq/t-1/materials/1a2b3c4d-opdracht.pdf'],
+			actual: [$material['kind'], $material['nonCommercial'], $material['fileRef']]
+		);
 		$this->assertSame(expected: 'https://example.org/record/1', actual: $material['sourceUrl']);
 		$this->assertSame(expected: ['J. Roenhorst'], actual: $material['authors']);
 	}//end testACopyableRecordIsCopiedIntoNextcloudThroughIntegriq()

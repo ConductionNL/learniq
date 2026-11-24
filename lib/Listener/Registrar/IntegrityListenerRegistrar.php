@@ -126,14 +126,6 @@ class IntegrityListenerRegistrar {
 			listener: SyncedCohortGuard::class
 		);
 
-		// Open learning material (open-learning-material 4.3): a Material added
-		// from an open source keeps its source, makers and licence through
-		// every edit, whatever edits it.
-		$context->registerEventListener(
-			event: ObjectUpdatingEvent::class,
-			listener: MaterialAttributionKeeper::class
-		);
-
 		// HR-fed profiles (compliance-assign-from-hr-roles): the HR system
 		// owns department, roles, manager and job title on a profile with
 		// hrSource, so a manual change is vetoed before the write; and a
@@ -474,7 +466,8 @@ class IntegrityListenerRegistrar {
 
 	/**
 	 * NC material follows its course: withheld from learners while the course
-	 * is paid or corporate (open-learning-material).
+	 * is paid or corporate (open-learning-material). A Material added from an
+	 * open source keeps its source, makers and licence through every edit.
 	 *
 	 * @param IRegistrationContext $context The registration context.
 	 *
@@ -487,6 +480,11 @@ class IntegrityListenerRegistrar {
 				listener: NonCommercialWithholdingCascade::class
 			);
 		}
+
+		$context->registerEventListener(
+			event: ObjectUpdatingEvent::class,
+			listener: MaterialAttributionKeeper::class
+		);
 	}//end registerWithholdingCascade()
 
 	/**

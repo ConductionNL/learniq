@@ -55,6 +55,13 @@ class OpenMaterialImportService implements OpenMaterialImportServiceInterface {
 	];
 
 	/**
+	 * Builds the Material from the record.
+	 *
+	 * @var MaterialFromRecord
+	 */
+	private readonly MaterialFromRecord $materials;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param OpenMaterialSourceClient $client        Looks the record up.
@@ -63,7 +70,6 @@ class OpenMaterialImportService implements OpenMaterialImportServiceInterface {
 	 * @param MaterialImportTarget     $targets       Resolves the lesson or course.
 	 * @param ObjectService            $objectService Writes the Material.
 	 * @param OpenMaterialFileCopy     $copies        Copies an open file into Nextcloud through integriq.
-	 * @param MaterialFromRecord       $materials     Builds the Material from the record.
 	 *
 	 * @spec openspec/specs/open-learning-material/spec.md#requirement-licence-rules-are-enforced-on-the-server
 	 */
@@ -74,8 +80,8 @@ class OpenMaterialImportService implements OpenMaterialImportServiceInterface {
 		private readonly MaterialImportTarget $targets,
 		private readonly ObjectService $objectService,
 		private readonly OpenMaterialFileCopy $copies,
-		private readonly MaterialFromRecord $materials = new MaterialFromRecord(),
 	) {
+		$this->materials = new MaterialFromRecord();
 	}//end __construct()
 
 	/**
@@ -218,7 +224,7 @@ class OpenMaterialImportService implements OpenMaterialImportServiceInterface {
 	 * @param array<string, mixed>                                           $record The normalised source record.
 	 * @param array{decision: ImportDecision, target: array<string, string>} $added  How it is added and where.
 	 *
-	 * @return array{decision: ImportDecision, target: array<string, string>, file?: array{fileRef: string, mimeType: string}} With the copy, or as a link.
+	 * @return array<string, mixed> The added fields with the copy as `file`, or with a link decision.
 	 *
 	 * @spec openspec/specs/open-learning-material/spec.md#requirement-licence-rules-are-enforced-on-the-server
 	 */

@@ -72,8 +72,8 @@ class OpenMaterialSearchCourseTest extends TestCase {
 			new MaterialLicenceRules(),
 			$settings,
 			$this->createMock(MaterialImportTarget::class),
-			$this->createMock(ObjectService::class),
-			$this->createMock(OpenMaterialFileCopy::class)
+			$this->createMock(originalClassName: ObjectService::class),
+			$this->createMock(originalClassName: OpenMaterialFileCopy::class)
 		);
 
 		return new OpenMaterialSearch($this->client, $imports, $settings, $this->createMock(SegmentService::class), $this->createMock(ConnectionReportService::class), $this->targets);

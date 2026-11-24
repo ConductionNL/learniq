@@ -3,11 +3,10 @@
 /**
  * Learniq Material Attribution Keeper
  *
- * A Material added from an open source (Edurep, Edusources) carries its
- * attribution: source, record, address, collection, makers, licence, access
- * rights and the NC flag. Whatever edits the Material afterwards (its title,
- * its order, its lesson), those fields keep their stored values, so the makers
- * and the licence never drop off. A Material of the school's own is left alone.
+ * Open learning material keeps its makers and licence. A Material added from
+ * Edurep or Edusources stores source, record, address, collection, makers,
+ * licence, access rights and the NC flag; any later edit (title, order,
+ * lesson) leaves those as stored. The school's own material is left alone.
  *
  * @category Listener
  * @package  OCA\Learniq\Listener
@@ -30,11 +29,10 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
-use OCA\OpenRegister\Db\ObjectEntity;
-use OCA\OpenRegister\Event\ObjectUpdatingEvent;
-use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
+use OCP\EventDispatcher\Event;
+use OCA\OpenRegister\Event\ObjectUpdatingEvent;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use Throwable;
 
 /**
@@ -140,11 +138,11 @@ class MaterialAttributionKeeper implements IEventListener {
 	/**
 	 * Whether the entity is a Material.
 	 *
-	 * @param ObjectEntity $entity The object being written.
+	 * @param \OCA\OpenRegister\Db\ObjectEntity $entity The object being written.
 	 *
 	 * @return bool
 	 */
-	private function isMaterial(ObjectEntity $entity): bool {
+	private function isMaterial(\OCA\OpenRegister\Db\ObjectEntity $entity): bool {
 		try {
 			return $this->schemaResolver->guardSchemaSlug(entity: $entity) === self::MATERIAL_SCHEMA;
 		} catch (Throwable $exception) {

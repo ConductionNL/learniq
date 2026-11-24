@@ -48,8 +48,18 @@ class OpenMaterialFileCopyTest extends TestCase {
 		'materialType' => 'application/pdf',
 	];
 
+	/**
+	 * Integriq's learning material source.
+	 *
+	 * @var OpenMaterialSourceClient&MockObject
+	 */
 	private OpenMaterialSourceClient&MockObject $client;
 
+	/**
+	 * The teacher's files.
+	 *
+	 * @var Folder&MockObject
+	 */
 	private Folder&MockObject $folder;
 
 	/**
@@ -63,8 +73,8 @@ class OpenMaterialFileCopyTest extends TestCase {
 	 * @return void
 	 */
 	protected function setUp(): void {
-		$this->client = $this->createMock(OpenMaterialSourceClient::class);
-		$this->folder = $this->createMock(Folder::class);
+		$this->client = $this->createMock(originalClassName: OpenMaterialSourceClient::class);
+		$this->folder = $this->createMock(originalClassName: Folder::class);
 		$this->folder->method('get')->willThrowException(new NotFoundException());
 		$this->folder->method('nodeExists')->willReturn(false);
 		$this->folder->method('newFile')->willReturnCallback(function (string $path, string $content) {
@@ -77,17 +87,22 @@ class OpenMaterialFileCopyTest extends TestCase {
 	 * @return OpenMaterialFileCopy The service under test.
 	 */
 	private function copier(): OpenMaterialFileCopy {
-		$root = $this->createMock(IRootFolder::class);
+		$root = $this->createMock(originalClassName: IRootFolder::class);
 		$root->method('getUserFolder')->with('docent')->willReturn($this->folder);
 
-		return new OpenMaterialFileCopy($this->client, new MaterialLicenceRules(), $root, $this->createMock(LoggerInterface::class));
+		return new OpenMaterialFileCopy(
+			client: $this->client,
+			rules: new MaterialLicenceRules(),
+			rootFolder: $root,
+			logger: $this->createMock(originalClassName: LoggerInterface::class)
+		);
 	}//end copier()
 
 	/**
 	 * @return IUser The teacher.
 	 */
 	private function teacher(): IUser {
-		$user = $this->createMock(IUser::class);
+		$user = $this->createMock(originalClassName: IUser::class);
 		$user->method('getUID')->willReturn('docent');
 
 		return $user;
@@ -112,12 +127,12 @@ class OpenMaterialFileCopyTest extends TestCase {
 	 */
 	public function testARefusedOrEmptyDownloadMakesNoCopy(): void {
 		$this->client->method('download')->willReturnOnConsecutiveCalls(
-			$this->throwException(new IntegriqUnavailableException('The file is too large to copy. (file-too-large)')),
+			$this->throwException(exception: new IntegriqUnavailableException(message: 'The file is too large to copy. (file-too-large)')),
 			['name' => 'x.pdf', 'contentBase64' => '']
 		);
 
-		$this->assertNull($this->copier()->copy(user: $this->teacher(), record: self::RECORD, tenantId: 't-1'));
-		$this->assertNull($this->copier()->copy(user: $this->teacher(), record: self::RECORD, tenantId: 't-1'));
+		$this->assertNull(actual: $this->copier()->copy(user: $this->teacher(), record: self::RECORD, tenantId: 't-1'));
+		$this->assertNull(actual: $this->copier()->copy(user: $this->teacher(), record: self::RECORD, tenantId: 't-1'));
 		$this->assertSame(expected: [], actual: $this->written);
 	}//end testARefusedOrEmptyDownloadMakesNoCopy()
 
@@ -128,7 +143,7 @@ class OpenMaterialFileCopyTest extends TestCase {
 		$this->client->expects($this->never())->method('download');
 		$restricted = array_merge(self::RECORD, ['accessRights' => 'RestrictedAccess']);
 
-		$this->assertNull($this->copier()->copy(user: $this->teacher(), record: $restricted, tenantId: 't-1'));
+		$this->assertNull(actual: $this->copier()->copy(user: $this->teacher(), record: $restricted, tenantId: 't-1'));
 	}//end testARecordWithoutACopyableFileAsksIntegriqNothing()
 
 	/**

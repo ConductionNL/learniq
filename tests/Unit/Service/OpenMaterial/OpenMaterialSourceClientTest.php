@@ -119,10 +119,17 @@ class OpenMaterialSourceClientTest extends TestCase {
 		$this->assertSame(expected: ['sourceId' => 'urn:wikiwijsmaken:194413'], actual: $client->find(sourceId: 'urn:wikiwijsmaken:194413'));
 	}//end testFindReturnsTheRecord()
 
+	/**
+	 * A download asks integriq for the record's file and reads its bytes.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#requirement-licence-rules-are-enforced-on-the-server
+	 */
 	public function testDownloadAsksForTheFileOfTheRecordAndReadsItsBytes(): void {
 		$seen   = null;
 		$client = $this->client(
-			static function (LearningMaterialRequestedEvent $event) use (&$seen): void {
+			handler: static function (LearningMaterialRequestedEvent $event) use (&$seen): void {
 				$seen = $event->getRequest();
 				$event->answer(answer: ['name' => 'opdracht.pdf', 'contentBase64' => 'JVBERg==']);
 			}
@@ -130,14 +137,25 @@ class OpenMaterialSourceClientTest extends TestCase {
 
 		$file = $client->download(sourceId: 'urn:test:1', url: 'https://example.org/opdracht.pdf');
 
-		$this->assertSame(expected: ['source' => 'edurep', 'operation' => 'download', 'id' => 'urn:test:1', 'url' => 'https://example.org/opdracht.pdf'], actual: $seen);
+		$this->assertSame(
+			expected: ['source' => 'edurep', 'operation' => 'download', 'id' => 'urn:test:1', 'url' => 'https://example.org/opdracht.pdf'],
+			actual: $seen
+		);
 		$this->assertSame(expected: 'JVBERg==', actual: $file['contentBase64']);
 	}//end testDownloadAsksForTheFileOfTheRecordAndReadsItsBytes()
 
+	/**
+	 * A refused download names its code in learniq's words.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/open-learning-material/spec.md#requirement-licence-rules-are-enforced-on-the-server
+	 */
 	public function testARefusedDownloadNamesTheCodeInLearniqsWords(): void {
-		$this->expectExceptionMessage('The file is too large to copy. (file-too-large)');
+		$this->expectExceptionMessage(message: 'The file is too large to copy. (file-too-large)');
 
-		$this->client(static fn (LearningMaterialRequestedEvent $event) => $event->refuse(refusal: ['code' => 'file-too-large', 'reason' => 'Te groot.']))
+		$refuse = static fn (LearningMaterialRequestedEvent $event) => $event->refuse(refusal: ['code' => 'file-too-large', 'reason' => 'Te groot.']);
+		$this->client(handler: $refuse)
 			->download(sourceId: 'urn:test:1', url: 'https://example.org/opdracht.pdf');
 	}//end testARefusedDownloadNamesTheCodeInLearniqsWords()
 }//end class
