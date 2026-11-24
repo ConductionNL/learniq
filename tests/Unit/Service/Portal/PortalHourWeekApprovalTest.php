@@ -163,7 +163,7 @@ class PortalHourWeekApprovalTest extends TestCase {
 		// The line the student reads in her messages names the day.
 		self::assertSame('Vraag over je uren van dinsdag 29 september', $week['returnSubject']);
 		// And links to her hours page with this week chosen, where she changes the day.
-		self::assertSame(['label' => 'Uren aanpassen', 'href' => '/mijn/learniq/studentHourWeeks/' . self::WEEK], $week['returnAction']);
+		self::assertSame(expected: ['label' => 'Uren aanpassen', 'href' => '/mijn/learniq/studentHourWeeks/' . self::WEEK], actual: $week['returnAction']);
 	}//end testAReturnWritesTheQuestionOnTheDayItNames()
 
 	/**
@@ -213,7 +213,7 @@ class PortalHourWeekApprovalTest extends TestCase {
 		self::assertSame('Klopt week 39?', $this->store->rows['bpv-hour-week'][0]['note']);
 		self::assertArrayNotHasKey('days', $this->store->rows['bpv-hour-week'][0]);
 		self::assertSame('Vraag over je uren van week 39', $this->store->rows['bpv-hour-week'][0]['returnSubject']);
-		self::assertSame('/mijn/learniq/studentHourWeeks/' . self::WEEK, $this->store->rows['bpv-hour-week'][0]['returnAction']['href']);
+		self::assertSame(expected: '/mijn/learniq/studentHourWeeks/' . self::WEEK, actual: $this->store->rows['bpv-hour-week'][0]['returnAction']['href']);
 
 		$refused = $this->approvals()->approve(trainerRef: self::TRAINER, trust: 'low', body: ['hourWeekId' => self::WEEK, 'outcome' => 'returned']);
 		self::assertSame(422, $refused->status);

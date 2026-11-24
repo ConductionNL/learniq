@@ -40,7 +40,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Portal;
 
 use OCA\Learniq\Portal\PortalContributionProvider;
-use OCA\Learniq\Service\HourReturnAction;
+use OCA\Learniq\Service\HourReturnSubject;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -1385,13 +1385,13 @@ class PortalContributionProviderTest extends TestCase {
 	public function testAReturnedWeekMessageLinksToTheDayForm(): void {
 		$manifest = $this->provider->getContribution(self::STUDENT_SUBJECT);
 		$returned = array_column($manifest['collections'], null, 'id')['studentReturnedHours'];
-		self::assertSame('returnAction', $returned['actionField']);
-		self::assertContains('returnAction', $returned['fields']);
+		self::assertSame(expected: 'returnAction', actual: $returned['actionField']);
+		self::assertContains(needle: 'returnAction', haystack: $returned['fields']);
 
 		$page = array_column($manifest['pages'], null, 'id')['studentHourWeeks'];
-		self::assertStringStartsWith('/mijn/learniq/' . $page['id'] . '/', HourReturnAction::of(weekId: 'w1')['href']);
-		self::assertContains(['type' => 'action', 'action' => 'writeHourDay'], $page['blocks']);
-		self::assertContains('writeHourDay', array_column($manifest['actions'], 'id'));
+		self::assertStringStartsWith(prefix: '/mijn/learniq/' . $page['id'] . '/', string: (new HourReturnSubject())->linkFor(weekId: 'w1')['href']);
+		self::assertContains(needle: ['type' => 'action', 'action' => 'writeHourDay'], haystack: $page['blocks']);
+		self::assertContains(needle: 'writeHourDay', haystack: array_column($manifest['actions'], 'id'));
 	}//end testAReturnedWeekMessageLinksToTheDayForm()
 
 	/**

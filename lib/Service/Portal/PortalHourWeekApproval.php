@@ -42,7 +42,6 @@ namespace OCA\Learniq\Service\Portal;
 
 use OCA\Learniq\Kernel\Contracts\PortalHourWeekApprovalInterface;
 use OCA\Learniq\Service\HourDayLines;
-use OCA\Learniq\Service\HourReturnAction;
 use OCA\Learniq\Service\HourReturnSubject;
 use OCA\Learniq\Support\SerialisedRow;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
@@ -271,7 +270,7 @@ class PortalHourWeekApproval implements PortalHourWeekApprovalInterface {
 			// The line the student reads in her messages (bpv-hours-per-day).
 			$week['returnSubject'] = HourReturnSubject::of(date: $return['date'], isoWeek: $this->text(value: ($week['isoWeek'] ?? null)));
 			// And the "Uren aanpassen" link under it: her hours page with this week chosen (D-5).
-			$week['returnAction'] = HourReturnAction::of(weekId: $this->text(value: ($week['id'] ?? ($week['uuid'] ?? null))));
+			$week['returnAction'] = (new HourReturnSubject())->linkFor(weekId: $this->text(value: ($week['id'] ?? ($week['uuid'] ?? null))));
 		}
 
 		$lifecycle = self::lifecycleOf(approved: $approved, submitted: $submitted);
