@@ -6000,7 +6000,10 @@ OC.L10N.register(
         "Recognition number": "Recognition number",
         "Recognised until": "Recognised until",
         "The recognition ends on {trainingCompanyVerification.expiresAt:longdate}, before the placement ends. Check the training company again in time.": "The recognition ends on {trainingCompanyVerification.expiresAt:longdate}, before the placement ends. Check the training company again in time.",
-        "Check training company": "Check training company"
+        "Check training company": "Check training company",
+        "Hour {n}": "Hour {n}",
+        "Room {room}": "Room {room}",
+        "Week {week} · {range} · {count} lessons": "Week {week} · {range} · {count} lessons"
     },
     "nplurals=2; plural=(n != 1);"
 )

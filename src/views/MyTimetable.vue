@@ -51,6 +51,13 @@
 						@click="setMode('week')">
 						{{ t('learniq', 'Week') }}
 					</NcButton>
+					<NcButton
+						:variant="mode === 'grid' ? 'primary' : 'secondary'"
+						:disabled="loading"
+						data-testid="timetable-mode-grid"
+						@click="setMode('grid')">
+						{{ t('learniq', 'Lesson hours') }}
+					</NcButton>
 				</div>
 				<NcButton
 					variant="secondary"
@@ -119,6 +126,16 @@
 					<span class="icon-calendar" />
 				</template>
 			</NcEmptyContent>
+			<!-- week-timetable-grid T2: the week as day columns and lesson hours. -->
+			<CnWeekGrid
+				v-else-if="mode === 'grid'"
+				:week="weekStart"
+				:rows="gridRows"
+				:items="gridItems"
+				:caption="gridCaption"
+				:navigation="false"
+				data-testid="timetable-week-grid"
+				@item-click="(item) => openSession(item.session)" />
 			<div
 				v-else
 				class="my-timetable__grid"
@@ -288,7 +305,7 @@
 </template>
 
 <script>
-import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
+import { CnDetailCard, CnPageHeader, CnWeekGrid } from '@conduction/nextcloud-vue'
 import { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
 import NoteTextOutline from 'vue-material-design-icons/NoteTextOutline.vue'
 import LessonNoteDialog from '../dialogs/LessonNoteDialog.vue'
@@ -300,6 +317,7 @@ import {
 	isLearniqSession,
 } from '../api/timetable.js'
 import { joinUrl } from '../utils/onlineLesson.js'
+import { isoWeek, lessonHourRows, weekGridItems } from '../utils/weekGrid.js'
 
 /**
  * Compute the Monday (00:00, local) of the week containing `date`.
@@ -321,6 +339,7 @@ export default {
 	components: {
 		CnDetailCard,
 		CnPageHeader,
+		CnWeekGrid,
 		LessonNoteDialog,
 		NcButton,
 		NcEmptyContent,
@@ -428,6 +447,41 @@ export default {
 		 * @return {Array<object>} The visible day descriptors.
 		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-signed-in-user-can-see-their-own-upcoming-sessions
 		 */
+		/**
+		 * The lesson hours of the viewed week, for the grid mode (week-timetable-grid T2).
+		 *
+		 * @spec openspec/changes/week-timetable-grid/specs/week-timetable-grid/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+		 * @return {Array<object>} The CnWeekGrid rows.
+		 */
+		gridRows() {
+			return lessonHourRows(this.sessions, (text, vars) => t('learniq', text, vars))
+		},
+
+		/**
+		 * The viewed week's sessions as grid entries, each with its change pill.
+		 *
+		 * @spec openspec/changes/week-timetable-grid/specs/week-timetable-grid/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+		 * @return {Array<object>} The CnWeekGrid items.
+		 */
+		gridItems() {
+			return weekGridItems(this.sessions, (text, vars) => t('learniq', text, vars))
+		},
+
+		/**
+		 * The grid's caption: the week number, its days and how many lessons it has.
+		 *
+		 * @spec openspec/changes/week-timetable-grid/specs/week-timetable-grid/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+		 * @return {string} The caption.
+		 */
+		gridCaption() {
+			const lessons = this.sessions.filter((session) => session.lifecycle !== 'cancelled').length
+			return t('learniq', 'Week {week} · {range} · {count} lessons', {
+				week: isoWeek(this.weekStart),
+				range: this.rangeLabel,
+				count: lessons,
+			})
+		},
+
 		visibleDays() {
 			if (this.mode === 'today') {
 				const todayCol = this.days.find((d) => d.isToday)
