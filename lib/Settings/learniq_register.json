@@ -23789,7 +23789,7 @@
             "BpvPlacement": {
                 "slug": "bpv-placement",
                 "icon": "BriefcaseCheckOutline",
-                "version": "0.7.0",
+                "version": "0.7.1",
                 "title": "BPV Placement",
                 "description": "A learner ↔ leerbedrijf match for one beroepspraktijkvorming (BPV, work-placement) period. Gates confirmation on a verified leerbedrijf (WEB art. 7.2.8/7.2.9 — the employer must be a leerbedrijf erkend by SBB) via BpvConfirmationGuard.",
                 "type": "object",
@@ -24094,7 +24094,9 @@
                                 "proposed",
                                 "sbb-verification-pending"
                             ],
-                            "to": "sbb-verification-pending"
+                            "to": "sbb-verification-pending",
+                            "requires": "OCA\\Learniq\\Lifecycle\\BpvCompanyNamedGuard",
+                            "description": "Send the placement to the leerbedrijf check. BpvCompanyNamedGuard refuses it until the placement names its training company and KvK number; a placement still searching for a company is saved without them."
                         },
                         "confirm": {
                             "from": [
