@@ -48,7 +48,8 @@ class TodayCountFactsTest extends TestCase {
 	public function testParentReportsWaitingAddsUpOverGroups(): void {
 		$facts = new TodayCountFacts();
 
-		self::assertSame(expected: ['count' => 3, 'groups' => 2], actual: $facts->parentReportsWaiting(groups: [['reports' => 2], ['reports' => 0], ['reports' => 1]]));
+		$groups = [['reports' => 2], ['reports' => 0], ['reports' => 1]];
+		self::assertSame(expected: ['count' => 3, 'groups' => 2], actual: $facts->parentReportsWaiting(groups: $groups));
 		self::assertSame(expected: ['count' => 0, 'groups' => 0], actual: $facts->parentReportsWaiting(groups: []));
 	}//end testParentReportsWaitingAddsUpOverGroups()
 
@@ -146,7 +147,8 @@ class TodayCountFactsTest extends TestCase {
 
 		$facts = new TodayCountFacts();
 
-		self::assertSame(expected: ['count' => 3, 'perYear' => [0 => 1, 4 => 1, 5 => 1]], actual: $facts->insufficientPerYear(finalGrades: $grades, cohorts: $cohorts));
+		$answer = $facts->insufficientPerYear(finalGrades: $grades, cohorts: $cohorts);
+		self::assertSame(expected: ['count' => 3, 'perYear' => [0 => 1, 4 => 1, 5 => 1]], actual: $answer);
 		self::assertSame(expected: ['count' => 0, 'perYear' => []], actual: $facts->insufficientPerYear(finalGrades: [], cohorts: $cohorts));
 	}//end testInsufficientPerYearCountsPupilsWithThreeOrMore()
 

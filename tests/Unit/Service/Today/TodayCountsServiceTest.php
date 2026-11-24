@@ -144,8 +144,18 @@ class TodayCountsServiceTest extends TestCase {
 		$service = $this->service(role: 'administration-manager', segment: 'vo');
 		$this->reader->expects(self::once())->method('groupsToday')->with(self::anything(), false)->willReturn(
 			[
-				['cohort' => ['id' => 'h4b', 'programmeYear' => 4, 'learnerIds' => ['yusuf']], 'sessions' => [['id' => 'a']], 'records' => ['a' => 27], 'reports' => 0],
-				['cohort' => ['id' => 'h5a', 'programmeYear' => 5, 'learnerIds' => []], 'sessions' => [['id' => 'b', 'lifecycle' => 'cancelled']], 'records' => ['b' => 0], 'reports' => 0],
+				[
+					'cohort' => ['id' => 'h4b', 'programmeYear' => 4, 'learnerIds' => ['yusuf']],
+					'sessions' => [['id' => 'a']],
+					'records' => ['a' => 27],
+					'reports' => 0,
+				],
+				[
+					'cohort' => ['id' => 'h5a', 'programmeYear' => 5, 'learnerIds' => []],
+					'sessions' => [['id' => 'b', 'lifecycle' => 'cancelled']],
+					'records' => ['b' => 0],
+					'reports' => 0,
+				],
 			]
 		);
 		$this->reader->method('rows')->willReturnCallback(

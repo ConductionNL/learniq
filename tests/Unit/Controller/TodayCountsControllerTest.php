@@ -60,7 +60,7 @@ class TodayCountsControllerTest extends TestCase {
 	public function testAnswersTheTilesForTheViewAsked(): void {
 		$tiles = ['role' => 'mentor', 'tiles' => [['id' => 'conference-times', 'count' => 1, 'chosen' => 16, 'total' => 27]]];
 		$service = $this->createMock(originalClassName: TodayCountsService::class);
-		$service->expects(self::once())->method('tilesFor')->with(self::isInstanceOf(IUser::class), 'mentor')->willReturn($tiles);
+		$service->expects(self::once())->method('tilesFor')->with(self::isInstanceOf(className: IUser::class), 'mentor')->willReturn($tiles);
 
 		$response = $this->controller(service: $service, params: ['view' => 'mentor'])->index();
 
