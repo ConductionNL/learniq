@@ -36689,10 +36689,14 @@
                         "properties": {
                             "label": {
                                 "type": "string",
+                                "title": "Link text",
+                                "description": "The words on the button under the message.",
                                 "maxLength": 100
                             },
                             "href": {
                                 "type": "string",
+                                "title": "Link address",
+                                "description": "The path on the portal the button opens.",
                                 "maxLength": 300
                             }
                         }
