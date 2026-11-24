@@ -246,7 +246,8 @@ class BpvLeerbedrijfVerificationHandler implements IEventListener {
 				'checkedAt' => date('c'),
 				'expiresAt' => $result['expiresAt'],
 				'reason' => ($result['reason'] ?? null),
-				'raw' => $result['raw'],
+				'endsBeforePlacement' => self::endsBeforePlacement(expiresAt: $result['expiresAt'], periodTo: ($placement['object']['periodTo'] ?? null)),
+				'raw' => self::rawOrNull(raw: ($result['raw'] ?? null)),
 			]
 		);
 
@@ -260,6 +261,43 @@ class BpvLeerbedrijfVerificationHandler implements IEventListener {
 			['id' => $placement['id'], 'status' => $updatedVerification['status']]
 		);
 	}//end recordVerification()
+
+	/**
+	 * The provider's raw answer for the audit, or null when it is empty: an
+	 * empty array would be written as a JSON list where the schema wants an object.
+	 *
+	 * @param mixed $raw The raw answer.
+	 *
+	 * @return array<string, mixed>|null
+	 *
+	 * @spec openspec/changes/workplace-leerbedrijf-check-through-integriq/specs/bpv/spec.md#requirement-the-check-stores-sbbs-answer-on-the-placement
+	 */
+	private static function rawOrNull(mixed $raw): ?array {
+		if (is_array($raw) === false || $raw === []) {
+			return null;
+		}
+
+		return $raw;
+	}//end rawOrNull()
+
+	/**
+	 * Whether a recognition ends before the placement does: its end date falls
+	 * before the placement's last day (design D3: a warning, not a block).
+	 *
+	 * @param mixed $expiresAt The recognition's end, a date or date-time.
+	 * @param mixed $periodTo  The placement's last day.
+	 *
+	 * @return bool False when either date is missing.
+	 *
+	 * @spec openspec/changes/workplace-leerbedrijf-check-through-integriq/specs/bpv/spec.md#requirement-a-recognition-that-ends-during-the-placement-is-flagged
+	 */
+	public static function endsBeforePlacement(mixed $expiresAt, mixed $periodTo): bool {
+		if (is_string($expiresAt) === false || is_string($periodTo) === false || strlen($expiresAt) < 10 || strlen($periodTo) < 10) {
+			return false;
+		}
+
+		return substr($expiresAt, 0, 10) < substr($periodTo, 0, 10);
+	}//end endsBeforePlacement()
 
 	/**
 	 * The number to look up: the company's KVK number, else an erkenningsnummer

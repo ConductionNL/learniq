@@ -5989,7 +5989,18 @@ OC.L10N.register(
         "Career coach": "Career coach",
         "The school's own pupil number (leerlingnummer), shown on the pupil's page. Never the BSN or the onderwijsnummer: those stay in personalNumber.": "The school's own pupil number (leerlingnummer), shown on the pupil's page. Never the BSN or the onderwijsnummer: those stay in personalNumber.",
         "Nextcloud user ID of the group's team leader, shown among the people around each pupil of the group. Gives no teacher rights.": "Nextcloud user ID of the group's team leader, shown among the people around each pupil of the group. Gives no teacher rights.",
-        "Nextcloud user ID of the group's career coach (studieloopbaanbegeleider), shown among the people around each pupil of the group. Gives no teacher rights.": "Nextcloud user ID of the group's career coach (studieloopbaanbegeleider), shown among the people around each pupil of the group. Gives no teacher rights."
+        "Nextcloud user ID of the group's career coach (studieloopbaanbegeleider), shown among the people around each pupil of the group. Gives no teacher rights.": "Nextcloud user ID of the group's career coach (studieloopbaanbegeleider), shown among the people around each pupil of the group. Gives no teacher rights.",
+        "Checked At": "Checked At",
+        "Ends before the placement": "Ends before the placement",
+        "Recognition ended": "Recognition ended",
+        "Why not approved": "Why not approved",
+        "Integriq is not installed, so the SBB register cannot be asked": "Integriq is not installed, so the SBB register cannot be asked",
+        "Integriq has no SBB source configured": "Integriq has no SBB source configured",
+        "SBB does not list this company as a training company": "SBB does not list this company as a training company",
+        "Recognition number": "Recognition number",
+        "Recognised until": "Recognised until",
+        "The recognition ends on {trainingCompanyVerification.expiresAt:longdate}, before the placement ends. Check the training company again in time.": "The recognition ends on {trainingCompanyVerification.expiresAt:longdate}, before the placement ends. Check the training company again in time.",
+        "Check training company": "Check training company"
     },
     "nplurals=2; plural=(n != 1);"
 )

@@ -39,6 +39,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Psr\Log\LoggerInterface;
+use Opis\JsonSchema\Validator;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
@@ -356,4 +357,101 @@ class BpvLeerbedrijfVerificationHandlerTest extends TestCase {
 		$this->assertCount(0, $this->savedObjects);
 
 	}//end testIgnoresUnrelatedEvents()
+
+	/**
+	 * A recognition that ends before the placement's last day is flagged on
+	 * the stored result; one that lasts, or a missing date, is not.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/workplace-leerbedrijf-check-through-integriq/specs/bpv/spec.md#requirement-a-recognition-that-ends-during-the-placement-is-flagged
+	 */
+	public function testARecognitionEndingMidPlacementIsFlagged(): void {
+		$fakeProvider = new class implements ProvidesLeerbedrijfVerification {
+			public function verify(string $kvkOrErkenningNumber): array {
+				return ['status' => 'verified', 'erkenningNumber' => '100234567', 'expiresAt' => '2027-01-31T00:00:00+00:00', 'raw' => []];
+			}
+		};
+		$container = $this->createMock(ContainerInterface::class);
+		$container->method('get')->willReturn($fakeProvider);
+
+		$this->makeHandler($container)->handle(
+			$this->makeEvent(
+				[
+					'id' => 'placement-1',
+					'periodTo' => '2027-06-30',
+					'trainingCompanyKvkNumber' => '12345678',
+					'trainingCompanyVerification' => ['provider' => 'FakeSbbAdapter'],
+				]
+			)
+		);
+
+		$this->assertTrue(condition: $this->savedObjects[0]['object']['trainingCompanyVerification']['endsBeforePlacement']);
+		$this->assertFalse(condition: BpvLeerbedrijfVerificationHandler::endsBeforePlacement(expiresAt: '2027-08-31T00:00:00+00:00', periodTo: '2027-06-30'));
+		$this->assertFalse(condition: BpvLeerbedrijfVerificationHandler::endsBeforePlacement(expiresAt: '2027-06-30T00:00:00+00:00', periodTo: '2027-06-30'));
+		$this->assertFalse(condition: BpvLeerbedrijfVerificationHandler::endsBeforePlacement(expiresAt: null, periodTo: '2027-06-30'));
+		$this->assertFalse(condition: BpvLeerbedrijfVerificationHandler::endsBeforePlacement(expiresAt: '2027-01-31', periodTo: null));
+	}//end testARecognitionEndingMidPlacementIsFlagged()
+
+	/**
+	 * What the handler writes passes the shipped trainingCompanyVerification
+	 * schema, validated with Opis: a verified result and the pending one the
+	 * integriq provider gives without integriq.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/workplace-leerbedrijf-check-through-integriq/specs/bpv/spec.md#requirement-the-check-stores-sbbs-answer-on-the-placement
+	 */
+	public function testTheWrittenResultPassesTheShippedSchema(): void {
+		$verified = new class implements ProvidesLeerbedrijfVerification {
+			public function verify(string $kvkOrErkenningNumber): array {
+				return IntegriqLeerbedrijfVerification::mapped(answer: ['found' => true, 'erkenningNumber' => '100234567', 'endDate' => '2027-08-31'], today: '2026-11-24');
+			}
+		};
+		$apps = $this->createMock(IAppManager::class);
+		$apps->method('isEnabledForUser')->willReturn(false);
+		$pending = new IntegriqLeerbedrijfVerification(
+			$this->createMock(IEventDispatcher::class),
+			$apps,
+			$this->createMock(ITimeFactory::class),
+			$this->createMock(ConnectionReportService::class)
+		);
+
+		$validator = new Validator();
+		foreach (['verified' => $verified, 'pending' => $pending] as $status => $provider) {
+			$this->savedObjects = [];
+			$container = $this->createMock(ContainerInterface::class);
+			$container->method('get')->willReturn($provider);
+			$this->makeHandler($container)->handle(
+				$this->makeEvent(['id' => 'placement-1', 'periodTo' => '2027-06-30', 'trainingCompanyKvkNumber' => '12345678', 'trainingCompanyVerification' => ['provider' => 'Adapter']])
+			);
+
+			$written = json_decode((string)json_encode($this->savedObjects[0]['object']['trainingCompanyVerification']));
+			$this->assertSame(expected: $status, actual: $written->status);
+			$result = $validator->validate($written, $this->verificationSchema());
+			$this->assertTrue(condition: $result->isValid(), message: $status . ': ' . json_encode($result->error()?->message()));
+		}
+	}//end testTheWrittenResultPassesTheShippedSchema()
+
+	/**
+	 * The shipped trainingCompanyVerification property as a JSON schema: the
+	 * OpenAPI `nullable` read as a null type, as OpenRegister validates it.
+	 *
+	 * @return string
+	 */
+	private function verificationSchema(): string {
+		$register = json_decode((string)file_get_contents(__DIR__ . '/../../../lib/Settings/learniq_register.json'), true);
+		$schema = $register['components']['schemas']['BpvPlacement']['properties']['trainingCompanyVerification'];
+		$schema['additionalProperties'] = false;
+		foreach ($schema['properties'] as $name => $property) {
+			if (($property['nullable'] ?? false) === true && is_string($property['type'] ?? null) === true) {
+				$property['type'] = [$property['type'], 'null'];
+			}
+
+			unset($property['nullable']);
+			$schema['properties'][$name] = $property;
+		}
+
+		return (string)json_encode($schema);
+	}//end verificationSchema()
 }//end class

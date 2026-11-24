@@ -23953,6 +23953,12 @@
                                 "description": "Why the result is not verified, such as that integriq has no SBB source configured.",
                                 "title": "Reason"
                             },
+                            "endsBeforePlacement": {
+                                "type": "boolean",
+                                "default": false,
+                                "description": "True when the recognition ends before the placement's last day, worked out when the check ran. The placement page warns; it does not block.",
+                                "title": "Ends before the placement"
+                            },
                             "raw": {
                                 "type": "object",
                                 "nullable": true,
@@ -24130,6 +24136,7 @@
                                 "sbb-verification-pending"
                             ],
                             "to": "sbb-verification-pending",
+                            "label": "Check training company",
                             "requires": "OCA\\Learniq\\Lifecycle\\BpvCompanyNamedGuard",
                             "description": "Send the placement to the leerbedrijf check. BpvCompanyNamedGuard refuses it until the placement names its training company and KvK number; a placement still searching for a company is saved without them."
                         },

@@ -524,7 +524,7 @@
 			"config": {
 				"register": "learniq",
 				"schema": "bpv-placement",
-				"_note": "Board LqBpvPlaatsing (G2): the placement as a card, the agreement, hours, assessments and visits as tabs, the practical trainer and the follow-ups beside it. Reminder and activate wait on lane E.",
+				"_note": "Board LqBpvPlaatsing (G2): the placement as a card, the agreement, hours, assessments and visits as tabs, the practical trainer and the follow-ups beside it. Reminder and activate wait on lane E. The card shows the leerbedrijf check (workplace-leerbedrijf-check-through-integriq): its status, why it is not approved, the recognition number and end date, and a warning when the recognition ends before the placement; the action is the schema transition checkLeerbedrijf, labelled Check training company.",
 				"lifecycleActions": {
 					"field": "lifecycle"
 				},
@@ -599,7 +599,40 @@
 										"verified": "Approved",
 										"pending": "Awaiting check",
 										"rejected": "Not approved",
+										"expired": "Recognition ended",
 										"unverified": "Not checked"
+									}
+								},
+								{
+									"path": "trainingCompanyVerification.reason",
+									"label": "Why not approved",
+									"map": {
+										"integriq is not installed or not enabled": "Integriq is not installed, so the SBB register cannot be asked",
+										"integriq has no SBB source configured": "Integriq has no SBB source configured",
+										"SBB does not list this company as a leerbedrijf": "SBB does not list this company as a training company"
+									},
+									"when": {
+										"field": "trainingCompanyVerification.status",
+										"op": "neq",
+										"value": "verified"
+									}
+								},
+								{
+									"path": "trainingCompanyVerification.erkenningNumber",
+									"label": "Recognition number"
+								},
+								{
+									"path": "trainingCompanyVerification.expiresAt",
+									"label": "Recognised until",
+									"format": "longdate"
+								},
+								{
+									"label": "Warning",
+									"template": "The recognition ends on {trainingCompanyVerification.expiresAt:longdate}, before the placement ends. Check the training company again in time.",
+									"when": {
+										"field": "trainingCompanyVerification.endsBeforePlacement",
+										"op": "eq",
+										"value": true
 									}
 								},
 								{
