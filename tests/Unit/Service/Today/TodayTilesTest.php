@@ -19,7 +19,7 @@ use OCA\Learniq\Kernel\Contracts\DashboardRoleServiceInterface;
 use OCA\Learniq\Kernel\Contracts\SegmentServiceInterface;
 use OCA\Learniq\Service\Today\FirstTodayReader;
 use OCA\Learniq\Service\Today\TodayContext;
-use OCA\Learniq\Service\Today\TodayCountsService;
+use OCA\Learniq\Service\Today\FirstTodayService;
 use OCP\IUser;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -27,13 +27,19 @@ use Psr\Log\NullLogger;
 use RuntimeException;
 
 /**
- * @covers \OCA\Learniq\Service\Today\TodayCountsService
+ * @covers \OCA\Learniq\Service\Today\TodayTiles
+ * @covers \OCA\Learniq\Service\Today\FirstTodayService
+ * @uses   \OCA\Learniq\Service\Today\FirstTodayProbe
+ * @uses   \OCA\Learniq\Service\Today\RegisterFacts
+ * @uses   \OCA\Learniq\Service\Today\AttendanceFacts
+ * @uses   \OCA\Learniq\Service\Today\PlacementFacts
+ * @uses   \OCA\Learniq\Service\Today\ExamFacts
  * @uses   \OCA\Learniq\Service\Today\TodayCountFacts
  * @uses   \OCA\Learniq\Service\Today\FirstTodayRules
  * @uses   \OCA\Learniq\Service\Today\FollowUpFacts
  * @uses   \OCA\Learniq\Service\Today\TodayContext
  */
-class TodayCountsServiceTest extends TestCase {
+class TodayTilesTest extends TestCase {
 
 	/**
 	 * The reader double.
@@ -49,9 +55,9 @@ class TodayCountsServiceTest extends TestCase {
 	 * @param string $segment The school kind.
 	 * @param string $time    `H:i`, Amsterdam.
 	 *
-	 * @return TodayCountsService
+	 * @return FirstTodayService
 	 */
-	private function service(string $role, string $segment, string $time='09:05'): TodayCountsService {
+	private function service(string $role, string $segment, string $time='09:05'): FirstTodayService {
 		$roles = $this->createMock(originalClassName: DashboardRoleServiceInterface::class);
 		$roles->method('resolvePrimaryRole')->willReturn($role);
 		$segments = $this->createMock(originalClassName: SegmentServiceInterface::class);
@@ -64,7 +70,7 @@ class TodayCountsServiceTest extends TestCase {
 			)
 		);
 
-		return new TodayCountsService(roles: $roles, segments: $segments, reader: $this->reader, logger: new NullLogger());
+		return new FirstTodayService(roles: $roles, segments: $segments, reader: $this->reader, logger: new NullLogger());
 	}//end service()
 
 	/**
@@ -98,7 +104,7 @@ class TodayCountsServiceTest extends TestCase {
 			->with('conference-slot', ['teacherId' => 'daan'])
 			->willReturn([['teacherId' => 'daan', 'lifecycle' => 'booked'], ['teacherId' => 'daan', 'lifecycle' => 'confirmed']]);
 
-		$answer = $service->forUser(user: $this->daan());
+		$answer = $service->tilesFor(user: $this->daan());
 
 		self::assertSame(expected: 'group-teacher', actual: $answer['role']);
 		self::assertSame(
@@ -128,9 +134,9 @@ class TodayCountsServiceTest extends TestCase {
 			}
 		);
 
-		$tiles = array_column($service->forUser(user: $this->daan())['tiles'], null, 'id');
+		$tiles = array_column($service->tilesFor(user: $this->daan())['tiles'], null, 'id');
 
-		self::assertSame(expected: 'subject-teacher', actual: $service->forUser(user: $this->daan())['role']);
+		self::assertSame(expected: 'subject-teacher', actual: $service->tilesFor(user: $this->daan())['role']);
 		self::assertSame(expected: 2, actual: $tiles['submissions-to-mark']['count']);
 		self::assertSame(expected: 1, actual: $tiles['submissions-to-mark']['assignments']);
 	}//end testTheSubjectTeacherCountsHisMarkingStack()
@@ -166,7 +172,7 @@ class TodayCountsServiceTest extends TestCase {
 			}
 		);
 
-		$answer = $service->forUser(user: $this->daan());
+		$answer = $service->tilesFor(user: $this->daan());
 
 		self::assertSame(expected: 'head', actual: $answer['role']);
 		self::assertSame(
@@ -197,7 +203,7 @@ class TodayCountsServiceTest extends TestCase {
 
 		self::assertSame(
 			expected: ['role' => 'care-coordinator', 'tiles' => [['id' => 'plans-ending', 'count' => 1]]],
-			actual: $service->forUser(user: $this->daan())
+			actual: $service->tilesFor(user: $this->daan())
 		);
 	}//end testTheCareCoordinatorCountsPlansEnding()
 
@@ -212,7 +218,7 @@ class TodayCountsServiceTest extends TestCase {
 		$this->reader->expects(self::never())->method('rows');
 		$this->reader->expects(self::never())->method('groupsToday');
 
-		self::assertSame(expected: [], actual: $service->forUser(user: $this->daan())['tiles']);
+		self::assertSame(expected: [], actual: $service->tilesFor(user: $this->daan())['tiles']);
 	}//end testARoleWithoutTilesReadsNothing()
 
 	/**

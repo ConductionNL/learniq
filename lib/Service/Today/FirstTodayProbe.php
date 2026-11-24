@@ -221,8 +221,10 @@ class FirstTodayProbe {
 	 * @param bool         $own     Only the groups she teaches.
 	 *
 	 * @return list<array<string, mixed>>
+	 *
+	 * @spec openspec/changes/today-first-per-school-role/tasks.md#T2
 	 */
-	private function groups(TodayContext $context, bool $own): array {
+	public function groups(TodayContext $context, bool $own): array {
 		$key = $context->uid() . '|' . (int)$own . '|' . $context->today();
 		if (isset($this->groupsRead[$key]) === false) {
 			$this->groupsRead[$key] = $this->reader->groupsToday(context: $context, own: $own);
@@ -237,8 +239,10 @@ class FirstTodayProbe {
 	 * @param TodayContext $context The caller and now.
 	 *
 	 * @return list<array<string, mixed>>
+	 *
+	 * @spec openspec/changes/today-first-per-school-role/tasks.md#T2
 	 */
-	private function ownSessions(TodayContext $context): array {
+	public function ownSessions(TodayContext $context): array {
 		$sessions = [];
 		foreach ($this->groups(context: $context, own: true) as $group) {
 			foreach ((array)$group['sessions'] as $session) {

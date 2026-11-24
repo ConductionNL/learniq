@@ -411,7 +411,7 @@ return \OCA\Learniq\Middleware\Support\ApiPathAliases::withVersionedAliases([
         // The First today card (today-first-per-school-role T1) of the signed-in user (the first rule of her role's ordered list that has a row).
         ['name' => 'todayFirst#show', 'url' => '/api/today/first', 'verb' => 'GET'],
         // The role tiles on Today (today-first-per-school-role T2): per tile the signed-in user's role acts on, its count.
-        ['name' => 'todayCounts#index', 'url' => '/api/today/counts', 'verb' => 'GET'],
+        ['name' => 'todayFirst#counts', 'url' => '/api/today/counts', 'verb' => 'GET'],
         // Course catalogue (enrolment-catalogue-self-signup): the signed-in
         // learner lists what they may sign up for, signs up for a course or a
         // programme, and withdraws an own sign-up; every write is for the

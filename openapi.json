@@ -432,10 +432,6 @@
             "description": "The First today card of the signed-in user."
         },
         {
-            "name": "today-counts",
-            "description": "The role tiles on Today of the signed-in user."
-        },
-        {
             "name": "portal-elective",
             "description": "Receives portaliq's optional-lesson sign-up forward for one pupil."
         }
@@ -8859,11 +8855,11 @@
         },
         "/today/counts": {
             "get": {
-                "operationId": "today-counts-index",
+                "operationId": "today-first-counts",
                 "summary": "The role tiles on Today: per tile the user's role acts on, its count",
                 "description": "The role tiles of the signed-in user on Today: her role and, per tile that role acts on, its count (registers not filled, parent reports waiting, submissions to mark, conference times, plans ending, registers filled per group, pupils with three or more insufficient grades per year, lessons cancelled today, leave to decide). Every count covers only rows she may read. Query parameter view: '' or mentor. Needs a signed-in Nextcloud user.",
                 "tags": [
-                    "today-counts"
+                    "today-first"
                 ],
                 "parameters": [
                     {

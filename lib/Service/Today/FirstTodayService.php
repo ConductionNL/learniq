@@ -55,6 +55,13 @@ class FirstTodayService {
 	private readonly FirstTodayProbe $probe;
 
 	/**
+	 * The role tiles on Today.
+	 *
+	 * @var TodayTiles
+	 */
+	private readonly TodayTiles $tiles;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param DashboardRoleServiceInterface $roles    The user's primary role.
@@ -72,6 +79,7 @@ class FirstTodayService {
 	) {
 		$this->rules = new FirstTodayRules();
 		$this->probe = new FirstTodayProbe(reader: $reader);
+		$this->tiles = new TodayTiles(reader: $reader, probe: $this->probe);
 	}//end __construct()
 
 	/**
@@ -109,10 +117,7 @@ class FirstTodayService {
 	 * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
 	 */
 	public function forUser(IUser $user, string $view=''): array {
-		$role = $this->rules->inView(
-			role: $this->rules->roleFor(primaryRole: $this->roles->resolvePrimaryRole(user: $user), segment: $this->segments->currentSegment()),
-			view: $view
-		);
+		$role = $this->roleOf(user: $user, view: $view);
 		if ($role === null) {
 			return ['role' => null, 'rule' => null, 'count' => 0];
 		}
@@ -125,5 +130,47 @@ class FirstTodayService {
 
 		return ($first ?? ['role' => $role, 'rule' => null, 'count' => 0]);
 	}//end forUser()
+
+	/**
+	 * The user's role tiles on Today, or null when they could not be read.
+	 *
+	 * @param IUser  $user The caller.
+	 * @param string $view The view asked for: '' or `mentor`.
+	 *
+	 * @return array<string, mixed>|null `role` (null when Today has no card for her) and `tiles`, each `{id, count, ...}`.
+	 *
+	 * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-each-role-tile-counts-what-that-role-acts-on-and-opens-the-list-it-counts
+	 */
+	public function tilesFor(IUser $user, string $view=''): ?array {
+		try {
+			$role = $this->roleOf(user: $user, view: $view);
+			if ($this->tiles->hasTiles(role: $role) === false) {
+				return ['role' => $role, 'tiles' => []];
+			}
+
+			return ['role' => $role, 'tiles' => $this->tiles->forRole(role: (string)$role, context: $this->reader->contextFor(user: $user))];
+		} catch (Throwable $exception) {
+			$this->logger->error(
+				'[FirstTodayService] The tiles on Today could not be read: {msg}',
+				['msg' => $exception->getMessage(), 'exception' => $exception]
+			);
+			return null;
+		}
+	}//end tilesFor()
+
+	/**
+	 * The user's role on Today in the view she asked for.
+	 *
+	 * @param IUser  $user The caller.
+	 * @param string $view The view asked for: '' or `mentor`.
+	 *
+	 * @return string|null A role of FirstTodayRules, or null when Today has none for her.
+	 */
+	private function roleOf(IUser $user, string $view): ?string {
+		return $this->rules->inView(
+			role: $this->rules->roleFor(primaryRole: $this->roles->resolvePrimaryRole(user: $user), segment: $this->segments->currentSegment()),
+			view: $view
+		);
+	}//end roleOf()
 
 }//end class
