@@ -6365,6 +6365,7 @@ OC.L10N.register(
         "The activity is open for sign-up.": "De activiteit staat open voor aanmelden.",
         "Only the staff who run the school's activities see them.": "Alleen medewerkers die de activiteiten van de school verzorgen zien ze.",
         "What comes first today could not be read. Try again.": "Wat vandaag eerst komt kon niet worden gelezen. Probeer het opnieuw.",
+        "The counts on Today could not be read. Try again.": "De tellingen op Vandaag konden niet worden gelezen. Probeer het opnieuw.",
         "Report to the compulsory education office": "Melding bij leerplicht",
         "Exchange status": "Status uitwisseling",
         "No report sent to the compulsory education office yet": "Nog geen melding bij leerplicht verstuurd",
