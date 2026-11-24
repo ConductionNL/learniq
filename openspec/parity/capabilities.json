@@ -4413,8 +4413,8 @@
       "area": "assignments",
       "name": "Let a learner hand in a file from their own drive.",
       "built": {
-        "state": "specified",
-        "evidence": "lib/Settings/learniq_register.json components.schemas.Submission references Nextcloud files; src/views/SubmitWorkView.vue creates the draft as the learner, which Submission.authorization allows since learniq#973 (create for signed-in users, update on the learner's own draft; SubmissionWindowGuard refuses a hand-in in another learner's name); src/manifest.d/learning.json SubmitWorkModal Not built: SubmitWorkView's CnRichSubmitDialog takes a file from the device and has no picker for the learner's Nextcloud files.",
+        "state": "built",
+        "evidence": "lib/Settings/learniq_register.json components.schemas.Submission references Nextcloud files; src/views/SubmitWorkView.vue creates the draft as the learner, which Submission.authorization allows since learniq#973; its \"Choose from my files\" (CnRichSubmitDialog file-sources slot, nextcloud-vue#2336) reads the picked files over WebDAV (src/utils/myFiles.js) and attaches them through filesMultipart; tests/unit-js/submitFromMyFiles.test.mjs",
         "owner": "ConductionNL/learniq",
         "change": "assignments",
         "requirement": [
