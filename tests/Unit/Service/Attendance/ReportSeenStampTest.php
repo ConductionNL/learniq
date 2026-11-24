@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/absence-reports-seen-and-ended/specs/attendance/spec.md#requirement-a-teachers-first-look-at-an-absence-report-is-recorded
+ * @spec openspec/specs/attendance/spec.md#requirement-a-teachers-first-look-at-an-absence-report-is-recorded
  */
 
 declare(strict_types=1);

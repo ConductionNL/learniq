@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/portal-certificates/specs/portal-contribution/spec.md#requirement-a-certificate-names-its-holder-its-course-and-its-renewal
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-a-certificate-names-its-holder-its-course-and-its-renewal
  */
 
 declare(strict_types=1);
@@ -34,7 +34,7 @@ use OCA\Learniq\Service\Portal\CourseDayLines;
 /**
  * Derives a certificate's readable copies.
  *
- * @spec openspec/changes/portal-certificates/specs/portal-contribution/spec.md#requirement-a-certificate-names-its-holder-its-course-and-its-renewal
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-a-certificate-names-its-holder-its-course-and-its-renewal
  */
 class CertificateCopies {
 
@@ -68,7 +68,7 @@ class CertificateCopies {
 	 *
 	 * @throws \Throwable When OpenRegister cannot be read.
 	 *
-	 * @spec openspec/changes/portal-certificates/specs/portal-contribution/spec.md#requirement-a-certificate-names-its-holder-its-course-and-its-renewal
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-certificate-names-its-holder-its-course-and-its-renewal
 	 */
 	public function derive(array $credential): array {
 		$lines = new CourseDayLines();

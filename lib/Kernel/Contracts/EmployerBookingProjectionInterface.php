@@ -47,7 +47,7 @@ interface EmployerBookingProjectionInterface {
 	 *
 	 * @throws \Throwable When OpenRegister cannot be read.
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
 	 */
 	public function many(string $schema, array $filters): array;
 
@@ -60,7 +60,7 @@ interface EmployerBookingProjectionInterface {
 	 *
 	 * @throws \Throwable When OpenRegister cannot be read or written.
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
 	 */
 	public function project(string $bookingId): ?array;
 }//end interface

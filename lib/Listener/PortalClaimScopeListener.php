@@ -28,7 +28,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
  */
 
 declare(strict_types=1);
@@ -47,7 +47,7 @@ use OCP\EventDispatcher\IEventListener;
  *
  * @template-implements IEventListener<Event>
  *
- * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
  */
 class PortalClaimScopeListener implements IEventListener {
 
@@ -75,7 +75,7 @@ class PortalClaimScopeListener implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
 	 */
 	public function handle(Event $event): void {
 		if ($event instanceof PortalClaimScopeEvent === false || $event->getAppId() !== AppIdentity::APP_ID) {

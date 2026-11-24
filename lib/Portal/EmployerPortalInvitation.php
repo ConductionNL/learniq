@@ -36,7 +36,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/employer-portal-audience/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
+ * @spec openspec/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
  */
 
 declare(strict_types=1);
@@ -53,7 +53,7 @@ use Throwable;
 /**
  * Provisions an employer's portal account and writes its claims.
  *
- * @spec openspec/changes/employer-portal-audience/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
+ * @spec openspec/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
  */
 class EmployerPortalInvitation implements EmployerPortalInvitationInterface {
 
@@ -105,7 +105,7 @@ class EmployerPortalInvitation implements EmployerPortalInvitationInterface {
 	 *
 	 * @return array{status: string, reason?: string, subjectRef?: string}
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
+	 * @spec openspec/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
 	 */
 	public function invite(string $organisationRef, PortalTenant $tenant, string $email=''): array {
 		return $this->inviteReading(request: [$organisationRef, $tenant, $email], scope: self::AS_SYSTEM);
@@ -124,7 +124,7 @@ class EmployerPortalInvitation implements EmployerPortalInvitationInterface {
 	 *
 	 * @return array{status: string, reason?: string, subjectRef?: string}
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
+	 * @spec openspec/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
 	 */
 	public function inviteAsCaller(string $organisationRef, PortalTenant $tenant, string $email=''): array {
 		return $this->inviteReading(request: [$organisationRef, $tenant, $email], scope: self::AS_CALLER);
@@ -252,7 +252,7 @@ class EmployerPortalInvitation implements EmployerPortalInvitationInterface {
 	 *
 	 * @return array<string, string>
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
+	 * @spec openspec/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
 	 */
 	public function claims(array $company): array {
 		$claims = [

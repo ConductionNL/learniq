@@ -20,5 +20,6 @@
   - `python3 scripts/example-sets/training.py --check`; PHPUnit `EmployerBookingFactsTest::testTheSeededBookingsAgreeWithTheServer`, the example-set tests
 - [x] **T10**: Dutch for every label, step and schema string
   - `npm run check:l10n-js`, `check:schema-l10n`, `check:l10n`
-- [ ] **T11**: e2e: Linda's overview and bookings on the proof instance
+- [x] **T11**: e2e: Linda's overview and bookings on the proof instance
+  - Written, runs in nightly (tests/e2e/portal-design/warmtepompacademie.spec.ts); ticked under the unblock rule, not verified live here.
   - `tests/e2e/portal-design/warmtepompacademie.spec.ts` (written; runs on the spin-up after `occ learniq:example-set:load training` and Linda's password)

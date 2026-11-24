@@ -246,7 +246,7 @@ class RollCallReader {
 	 *
 	 * @return array<string, array<string, mixed>>
 	 *
-	 * @spec openspec/changes/leave-requests-decided-by-the-school/tasks.md
+	 * @spec openspec/changes/archive/2026-11-24-leave-requests-decided-by-the-school/tasks.md
 	 */
 	public function allowedLeaveOn(array $learnerIds, string $date): array {
 		if ($learnerIds === []) {
@@ -287,7 +287,7 @@ class RollCallReader {
 	 *
 	 * @return array<string, array<string, mixed>>
 	 *
-	 * @spec openspec/changes/leave-requests-decided-by-the-school/tasks.md
+	 * @spec openspec/changes/archive/2026-11-24-leave-requests-decided-by-the-school/tasks.md
 	 */
 	public static function withLeave(array $reports, array $leave): array {
 		foreach ($leave as $learnerId => $report) {
@@ -382,7 +382,7 @@ class RollCallReader {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/absence-reports-seen-and-ended/specs/attendance/spec.md#requirement-a-report-may-cover-lesson-hours-and-an-illness-may-stay-open-until-the-pupil-is-better
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-report-may-cover-lesson-hours-and-an-illness-may-stay-open-until-the-pupil-is-better
 	 */
 	private function covers(array $report, string $date): bool {
 		$from = substr((string)($report['dateFrom'] ?? ''), 0, 10);

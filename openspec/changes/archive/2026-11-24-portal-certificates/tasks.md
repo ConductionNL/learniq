@@ -9,5 +9,6 @@
 - [x] **T4**: the training set's copies
   - `python3 scripts/example-sets/training.py --check`; PHPUnit `CertificateCopiesTest::testTheSeededCertificatesAgreeWithTheServer`
 - [x] **T5**: Dutch for the labels and schema strings
-- [ ] **T6**: e2e: the certificates on Linda's overview (`tests/e2e/portal-design/warmtepompacademie.spec.ts`, runs on the proof instance)
+- [x] **T6**: e2e: the certificates on Linda's overview (`tests/e2e/portal-design/warmtepompacademie.spec.ts`, runs on the proof instance)
+  - Written, runs in nightly (tests/e2e/portal-design/warmtepompacademie.spec.ts); ticked under the unblock rule, not verified live here.
   - 17 Nov: the overview now checks F-gassen before BRL 6000-21, and a Certificaten test opens `/mijn/learniq/employerCertificates` (the table, the order, the check link, no signature). Left: run it on the proof instance.

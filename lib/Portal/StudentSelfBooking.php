@@ -35,7 +35,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/pupil-books-support-lessons-and-mentor-talks/specs/portal-contribution/spec.md#requirement-a-pupil-reads-her-schools-open-support-lessons-and-signs-herself-up
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-a-pupil-reads-her-schools-open-support-lessons-and-signs-herself-up
  */
 
 declare(strict_types=1);
@@ -45,7 +45,7 @@ namespace OCA\Learniq\Portal;
 /**
  * The pupil's own bookings: optional lessons and her mentor talk.
  *
- * @spec openspec/changes/pupil-books-support-lessons-and-mentor-talks/specs/portal-contribution/spec.md#requirement-a-pupil-reads-her-schools-open-support-lessons-and-signs-herself-up
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-a-pupil-reads-her-schools-open-support-lessons-and-signs-herself-up
  */
 class StudentSelfBooking {
 
@@ -193,7 +193,7 @@ class StudentSelfBooking {
 	 *
 	 * @return array<int, array<string, mixed>>
 	 *
-	 * @spec openspec/changes/pupil-books-support-lessons-and-mentor-talks/specs/portal-contribution/spec.md#requirement-a-pupil-reads-her-schools-open-support-lessons-and-signs-herself-up
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-pupil-reads-her-schools-open-support-lessons-and-signs-herself-up
 	 */
 	public function electiveCollections(): array {
 		return [
@@ -233,7 +233,7 @@ class StudentSelfBooking {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/pupil-books-support-lessons-and-mentor-talks/specs/portal-contribution/spec.md#requirement-a-pupil-reads-her-schools-open-support-lessons-and-signs-herself-up
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-pupil-reads-her-schools-open-support-lessons-and-signs-herself-up
 	 */
 	public function signUpForElectiveAction(): array {
 		return [
@@ -264,7 +264,7 @@ class StudentSelfBooking {
 	 *
 	 * @return array<int, array<string, mixed>>
 	 *
-	 * @spec openspec/changes/pupil-books-support-lessons-and-mentor-talks/specs/portal-contribution/spec.md#requirement-a-pupil-may-book-her-own-mentor-talk-when-the-round-allows-it
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-pupil-may-book-her-own-mentor-talk-when-the-round-allows-it
 	 */
 	public function conferenceCollections(): array {
 		return [
@@ -306,7 +306,7 @@ class StudentSelfBooking {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/pupil-books-support-lessons-and-mentor-talks/specs/portal-contribution/spec.md#requirement-a-pupil-may-book-her-own-mentor-talk-when-the-round-allows-it
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-pupil-may-book-her-own-mentor-talk-when-the-round-allows-it
 	 */
 	public function bookConferenceSlotAction(): array {
 		return [
@@ -333,7 +333,7 @@ class StudentSelfBooking {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/pupil-books-support-lessons-and-mentor-talks/specs/parent-conferences/spec.md#requirement-a-conference-round-says-whether-pupils-may-book
+	 * @spec openspec/specs/parent-conferences/spec.md#requirement-a-conference-round-says-whether-pupils-may-book
 	 */
 	public function invitationTasksBlock(): array {
 		return [
@@ -356,7 +356,7 @@ class StudentSelfBooking {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/pupil-books-support-lessons-and-mentor-talks/specs/parent-conferences/spec.md#requirement-a-conference-round-says-whether-pupils-may-book
+	 * @spec openspec/specs/parent-conferences/spec.md#requirement-a-conference-round-says-whether-pupils-may-book
 	 */
 	public function pickATimePage(): array {
 		return [

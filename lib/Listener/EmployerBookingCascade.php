@@ -26,7 +26,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
  */
 
 declare(strict_types=1);
@@ -48,7 +48,7 @@ use Throwable;
  *
  * @implements IEventListener<Event>
  *
- * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
  */
 class EmployerBookingCascade implements IEventListener {
 
@@ -86,7 +86,7 @@ class EmployerBookingCascade implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
 	 */
 	public function handle(Event $event): void {
 		if ($event instanceof ObjectCreatedEvent === false && $event instanceof ObjectUpdatedEvent === false) {
@@ -126,7 +126,7 @@ class EmployerBookingCascade implements IEventListener {
 	 *
 	 * @return array<string, string>|null
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
 	 */
 	public static function entry(string $slug, array $row, bool $created): ?array {
 		if ($slug === 'enrolment') {

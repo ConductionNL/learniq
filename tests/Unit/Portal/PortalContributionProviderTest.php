@@ -300,7 +300,7 @@ class PortalContributionProviderTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/pupil-books-support-lessons-and-mentor-talks/specs/portal-contribution/spec.md#requirement-a-pupil-may-book-her-own-mentor-talk-when-the-round-allows-it
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-pupil-may-book-her-own-mentor-talk-when-the-round-allows-it
 	 */
 	public function testTheGuardianReadsTheTalksHerChildBooked(): void {
 		$byId = array_column($this->provider->getContribution(self::PARENT_SUBJECT)['collections'], null, 'id');

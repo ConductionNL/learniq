@@ -26,7 +26,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
  */
 
 declare(strict_types=1);
@@ -39,7 +39,7 @@ use DateTimeZone;
 /**
  * Derives a booking's readable copies and status, and its participants' tasks.
  *
- * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
  */
 class EmployerBookingFacts {
 
@@ -93,7 +93,7 @@ class EmployerBookingFacts {
 	 *
 	 * @return array{booking: array<string, mixed>, enrolments: array<string, array<string, mixed>>}
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
 	 */
 	public function derive(
 		array $booking,
@@ -309,7 +309,7 @@ class EmployerBookingFacts {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
 	 */
 	public function needsBirthDate(array $course): bool {
 		$tags = array_map(static fn (mixed $tag): string => strtolower(trim((string)$tag)), (array)($course['tags'] ?? []));
@@ -324,7 +324,7 @@ class EmployerBookingFacts {
 	 *
 	 * @return string|null
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
 	 */
 	public function detailsDueAt(?DateTimeImmutable $firstDay): ?string {
 		return $this->lines->detailsDueAt(firstDay: $firstDay);

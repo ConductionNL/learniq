@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/leave-requests-decided-by-the-school/tasks.md
+ * @spec openspec/changes/archive/2026-11-24-leave-requests-decided-by-the-school/tasks.md
  */
 
 declare(strict_types=1);

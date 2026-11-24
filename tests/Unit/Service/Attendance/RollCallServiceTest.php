@@ -490,7 +490,7 @@ class RollCallServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/leave-requests-decided-by-the-school/tasks.md
+	 * @spec openspec/changes/archive/2026-11-24-leave-requests-decided-by-the-school/tasks.md
 	 */
 	public function testAllowedLeavePrefillsAnAbsenceWithPermission(): void {
 		$this->store['leave-request'] = [
@@ -644,7 +644,7 @@ class RollCallServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/absence-reports-seen-and-ended/specs/attendance/spec.md#scenario-juf-esra-opens-the-register
+	 * @spec openspec/specs/attendance/spec.md#scenario-juf-esra-opens-the-register
 	 */
 	public function testAGroupTeachersFirstLookIsRecordedOnce(): void {
 		$this->store['excuse-request'] = [
@@ -675,7 +675,7 @@ class RollCallServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/absence-reports-seen-and-ended/specs/attendance/spec.md#scenario-better-on-wednesday
+	 * @spec openspec/specs/attendance/spec.md#scenario-better-on-wednesday
 	 */
 	public function testAnOpenIllnessCoversEachDayUntilEnded(): void {
 		$this->store['excuse-request'] = [

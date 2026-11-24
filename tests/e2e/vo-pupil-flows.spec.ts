@@ -36,10 +36,10 @@
  *
  * Screenshots land in `test-results/audience-flow/vo-pupil/`.
  *
- * @e2e openspec/changes/site-pupil-portal-design/specs/portal-contribution/spec.md#scenario-noa-opens-the-portal-between-classes
- * @e2e openspec/changes/site-pupil-portal-design/specs/portal-contribution/spec.md#scenario-today-s-lessons-with-a-cancellation
- * @e2e openspec/changes/site-pupil-portal-design/specs/portal-contribution/spec.md#scenario-handed-in-work-drops-from-the-task-list
- * @e2e openspec/changes/site-pupil-portal-design/specs/portal-contribution/spec.md#scenario-an-open-assignment-links-to-the-hand-in
+ * @e2e openspec/specs/portal-contribution/spec.md#scenario-noa-opens-the-portal-between-classes
+ * @e2e openspec/specs/portal-contribution/spec.md#scenario-today-s-lessons-with-a-cancellation
+ * @e2e openspec/specs/portal-contribution/spec.md#scenario-handed-in-work-drops-from-the-task-list
+ * @e2e openspec/specs/portal-contribution/spec.md#scenario-an-open-assignment-links-to-the-hand-in
  */
 
 import type { APIRequestContext } from '@playwright/test'
@@ -229,7 +229,7 @@ test.describe('vo pupil: today and hand-in from the overview', () => {
 		await pupil?.page.close()
 	})
 
-	// @e2e openspec/changes/site-pupil-portal-design/specs/portal-contribution/spec.md#scenario-noa-opens-the-portal-between-classes
+	// @e2e openspec/specs/portal-contribution/spec.md#scenario-noa-opens-the-portal-between-classes
 	test('a. her overview shows her homework, today first, and today\'s lessons', async () => {
 		await openHome(pupil.page, PORTAL)
 		await shot(pupil.page, SHOTS, 'a1-overview')
@@ -262,7 +262,7 @@ test.describe('vo pupil: today and hand-in from the overview', () => {
 	// The struck-through row is drawn by portaliq's `calendar-timetable-display`
 	// (T5b). Without it portaliq drops `display` and draws the plain calendar
 	// list, and the lesson still shows with its status.
-	// @e2e openspec/changes/site-pupil-portal-design/specs/portal-contribution/spec.md#scenario-today-s-lessons-with-a-cancellation
+	// @e2e openspec/specs/portal-contribution/spec.md#scenario-today-s-lessons-with-a-cancellation
 	test('b. a cancelled lesson stays on today\'s timetable, marked "Vervalt"', async () => {
 		const sessions = await portalRows(pupil, 'session', 'studentSessions')
 		const cancelled = sessions.find((row) => String(row.id) === cancelledId)
@@ -332,7 +332,7 @@ test.describe('vo pupil: today and hand-in from the overview', () => {
 			.toMatch(/^(submitted|late)$/)
 	})
 
-	// @e2e openspec/changes/site-pupil-portal-design/specs/portal-contribution/spec.md#scenario-handed-in-work-drops-from-the-task-list
+	// @e2e openspec/specs/portal-contribution/spec.md#scenario-handed-in-work-drops-from-the-task-list
 	test('d. the work she handed in drops from "Huiswerk en toetsen"', async () => {
 		await openHome(pupil.page, PORTAL)
 		const main = pupil.page.locator('main').first()
@@ -346,7 +346,7 @@ test.describe('vo pupil: today and hand-in from the overview', () => {
 	// The tasks block declares no link of its own (STUDENT_HOMEWORK_TASKS_BLOCK);
 	// the spec asks that open work opens the hand-in. Run last, so a failure
 	// here leaves the steps above standing.
-	// @e2e openspec/changes/site-pupil-portal-design/specs/portal-contribution/spec.md#scenario-an-open-assignment-links-to-the-hand-in
+	// @e2e openspec/specs/portal-contribution/spec.md#scenario-an-open-assignment-links-to-the-hand-in
 	test('e. tapping open work opens the hand-in form', async () => {
 		await openHome(pupil.page, PORTAL)
 		const main = pupil.page.locator('main').first()

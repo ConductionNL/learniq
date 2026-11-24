@@ -24,7 +24,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/employer-portal-audience/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
+ * @spec openspec/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
  */
 
 declare(strict_types=1);
@@ -42,7 +42,7 @@ use Throwable;
 /**
  * Reports the employer accounts whose company lies outside their portal's organisation.
  *
- * @spec openspec/changes/employer-portal-audience/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
+ * @spec openspec/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
  */
 class PortalEmployerTenancyReportCommand extends Command {
 
@@ -66,7 +66,7 @@ class PortalEmployerTenancyReportCommand extends Command {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
+	 * @spec openspec/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
 	 */
 	protected function configure(): void {
 		$this->setName(name: 'learniq:portal:employer-tenancy-report')
@@ -87,7 +87,7 @@ class PortalEmployerTenancyReportCommand extends Command {
 	 *
 	 * @return int FAILURE when the accounts cannot be read, else SUCCESS.
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
+	 * @spec openspec/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
 	 */
 	protected function execute(InputInterface $input, OutputInterface $output): int {
 		try {

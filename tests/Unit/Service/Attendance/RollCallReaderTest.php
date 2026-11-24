@@ -131,7 +131,7 @@ class RollCallReaderTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/leave-requests-decided-by-the-school/tasks.md
+	 * @spec openspec/changes/archive/2026-11-24-leave-requests-decided-by-the-school/tasks.md
 	 */
 	public function testAllowedLeaveReadsAsAnApprovedReport(): void {
 		$this->queries = [];

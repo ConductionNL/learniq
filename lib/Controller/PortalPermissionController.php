@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/permission-slips
+ * @spec openspec/changes/archive/2026-11-24-permission-slips
  */
 
 declare(strict_types=1);
@@ -46,7 +46,7 @@ use Throwable;
 /**
  * Receives a guardian's answer to a permission request.
  *
- * @spec openspec/changes/permission-slips
+ * @spec openspec/changes/archive/2026-11-24-permission-slips
  */
 class PortalPermissionController extends Controller {
 
@@ -91,7 +91,7 @@ class PortalPermissionController extends Controller {
 	 *
 	 * @return JSONResponse 200 `{permissionRequestId, learnerRef, answer, assuranceLevel}`, or 401 / 403 / 404 / 409 / 422 / 502.
 	 *
-	 * @spec openspec/changes/permission-slips
+	 * @spec openspec/changes/archive/2026-11-24-permission-slips
 	 */
 	#[PublicPage]
 	#[NoCSRFRequired]

@@ -8,7 +8,7 @@
  changes the lifecycle, then shows who saw it and when ("Gezien door juf Esra
  om 8.12 uur"). Nothing shows while nobody has seen it, or for a reader the
  server refuses.
- @spec openspec/changes/absence-reports-seen-and-ended/specs/attendance/spec.md#requirement-a-teachers-first-look-at-an-absence-report-is-recorded
+ @spec openspec/specs/attendance/spec.md#requirement-a-teachers-first-look-at-an-absence-report-is-recorded
 -->
 <template>
 	<p v-if="seenAt" class="excuse-seen" data-testid="excuse-request-seen">
@@ -41,7 +41,7 @@ export default {
 		 * Look again when the page moves to another report.
 		 *
 		 * @return {void}
-		 * @spec openspec/changes/absence-reports-seen-and-ended/specs/attendance/spec.md#requirement-a-teachers-first-look-at-an-absence-report-is-recorded
+		 * @spec openspec/specs/attendance/spec.md#requirement-a-teachers-first-look-at-an-absence-report-is-recorded
 		 */
 		requestId() {
 			this.look()
@@ -57,7 +57,7 @@ export default {
 		 * Record this look and read who saw the report first.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/absence-reports-seen-and-ended/specs/attendance/spec.md#requirement-a-teachers-first-look-at-an-absence-report-is-recorded
+		 * @spec openspec/specs/attendance/spec.md#requirement-a-teachers-first-look-at-an-absence-report-is-recorded
 		 */
 		async look() {
 			this.seenBy = ''

@@ -5,7 +5,7 @@
 // yes / no / not answered split, the latest answer winning, answers outside
 // the request ignored, and silence counting as refusal by default.
 //
-// @spec openspec/changes/permission-slips/specs/portal-contribution/spec.md#requirement-a-teacher-sees-who-has-not-answered
+// @spec openspec/specs/portal-contribution/spec.md#requirement-a-teacher-sees-who-has-not-answered
 
 import assert from 'node:assert/strict'
 import { test } from 'node:test'

@@ -17,7 +17,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/absence-reports-seen-and-ended/specs/attendance/spec.md#requirement-a-report-may-cover-lesson-hours-and-an-illness-may-stay-open-until-the-pupil-is-better
+ * @spec openspec/specs/attendance/spec.md#requirement-a-report-may-cover-lesson-hours-and-an-illness-may-stay-open-until-the-pupil-is-better
  */
 
 declare(strict_types=1);
@@ -70,8 +70,8 @@ class ExcuseRequestSeenAndEndedRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/absence-reports-seen-and-ended/specs/attendance/spec.md#scenario-juf-esra-opens-the-register
-	 * @spec openspec/changes/absence-reports-seen-and-ended/specs/attendance/spec.md#scenario-noor-leaves-after-the-fourth-hour
+	 * @spec openspec/specs/attendance/spec.md#scenario-juf-esra-opens-the-register
+	 * @spec openspec/specs/attendance/spec.md#scenario-noor-leaves-after-the-fourth-hour
 	 */
 	public function testTheSeenStampAndLessonHoursPass(): void {
 		self::assertTrue($this->passes(self::report()));
@@ -86,7 +86,7 @@ class ExcuseRequestSeenAndEndedRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/absence-reports-seen-and-ended/specs/attendance/spec.md#scenario-better-on-wednesday
+	 * @spec openspec/specs/attendance/spec.md#scenario-better-on-wednesday
 	 */
 	public function testOnlyAnIllnessMayStayOpen(): void {
 		$open = self::report();

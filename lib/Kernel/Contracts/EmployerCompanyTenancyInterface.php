@@ -50,7 +50,7 @@ interface EmployerCompanyTenancyInterface {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
 	 */
 	public function holds(string $organisationRef, string $organisation): bool;
 
@@ -62,7 +62,7 @@ interface EmployerCompanyTenancyInterface {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
 	 */
 	public function holdsLocation(string $locationRef, string $organisation): bool;
 
@@ -74,7 +74,7 @@ interface EmployerCompanyTenancyInterface {
 	 *
 	 * @return string One of the verdict constants.
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
 	 */
 	public function verdict(string $organisationRef, string $organisation): string;
 }//end interface

@@ -500,3 +500,61 @@ All in OpenRegister. New: `AttendanceRecord`, `ExcuseRequest`, `AttendanceThresh
 - The DigiD authentication handshake — openconnector / NC auth.
 - Geofenced / NFC / biometric attendance capture (a follow-up if a buyer needs it).
 - Truancy-pattern prediction (would be an `AiFeature` registration).
+
+### Requirement: A leave request is asked in advance and decided by the head of the school
+
+learniq MUST keep a `leave-request` per pupil and range of days, with who asked, the kind, the reason, the number of school days in the range and the date by which the school must decide. A request of at most ten school days MUST be decided ("Toestaan" or "Afwijzen") by a member of staff with the `administration-manager` role for the pupil's school; a request of more than ten school days MUST be marked `forwarded` and MUST NOT be allowed or refused by the school itself. A refusal MUST carry a decision note. Every decision MUST record who decided and when.
+
+#### Scenario: The directeur allows a wedding
+- **GIVEN** Hamza's parents asked leave for Thursday 29 and Friday 30 October for a wedding, on Wednesday 30 September
+- **WHEN** the directeur allows it on Monday 5 October
+- **THEN** the request reads allowed, with the directeur's name and the moment, and Hamza's attendance on those two days reads as absent with permission
+- @e2e exclude spec-only proposal; the build asserts the decision in the handler's unit tests
+
+#### Scenario: More than ten school days
+- **GIVEN** a request for twelve school days
+- **WHEN** the directeur opens it
+- **THEN** it offers no "Toestaan" or "Afwijzen", only "Doorsturen naar de leerplichtambtenaar"
+- @e2e exclude as above
+
+#### Scenario: A refusal without a reason
+- **GIVEN** an open request
+- **WHEN** the teamleider chooses "Afwijzen" with an empty note
+- **THEN** the refusal is not saved, and the message reads "Afwijzen zonder reden kan niet: de ouders lezen uw reden in het bericht."
+- @e2e exclude as above
+
+### Requirement: The decider sees what waits, oldest first, with the deadline in words
+
+The staff list of open leave requests MUST show the pupil, the group, the days, the kind and "Beslis uiterlijk" with the deadline date, oldest request first, and MUST be readable only by staff who may decide for that pupil's school.
+
+#### Scenario: Two requests wait
+- **GIVEN** the requests of the El Idrissi family (asked Wednesday) and the Jansen family (asked Friday)
+- **WHEN** the directeur of De Wilgenboom opens "Verlof te beslissen"
+- **THEN** the El Idrissi request is first, with "Beslis uiterlijk woensdag 7 oktober"
+- @e2e exclude staff screen; spec-only proposal
+
+### Requirement: A teacher's first look at an absence report is recorded
+
+An `excuse-request` MUST record `seenBy` and `seenAt` the first time a member of staff in its `teacherIds` opens it, alone or inside the register that lists it. Later openings MUST NOT change them, and seeing MUST NOT change the lifecycle.
+
+#### Scenario: Juf Esra opens the register
+- **GIVEN** Fatima reported Sami ill at 7.40 on Monday 5 October
+- **WHEN** juf Esra opens the register of groep 4 at 8.12
+- **THEN** the report reads seen by juf Esra at 8.12 and is still `submitted`
+- @e2e exclude spec-only proposal; the build asserts the stamp in the listener's unit tests
+
+### Requirement: A report may cover lesson hours, and an illness may stay open until the pupil is better
+
+An `excuse-request` MAY name `fromLessonHour` and `toLessonHour` on a single day; then only the attendance of the lessons in those hours MUST follow its decision. An illness MAY leave `dateTo` empty; it then covers each following school day until `reportRecovered` sets the last day, which MUST NOT be before `dateFrom`.
+
+#### Scenario: Noor leaves after the fourth hour
+- **GIVEN** Erik reports Noor for hours 5 to 7 on Monday 5 October
+- **WHEN** the report is approved
+- **THEN** only the attendance of hours 5, 6 and 7 reads absent with permission
+- @e2e exclude as above
+
+#### Scenario: Better on Wednesday
+- **GIVEN** an open illness report from Monday without a last day
+- **WHEN** the parent reports recovery with last day Tuesday
+- **THEN** the report ends on Tuesday and Wednesday's register no longer lists it
+- @e2e exclude as above

@@ -24,7 +24,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/absence-reports-seen-and-ended/tasks.md#T4
+ * @spec openspec/changes/archive/2026-11-24-absence-reports-seen-and-ended/tasks.md#T4
  */
 
 declare(strict_types=1);
@@ -45,7 +45,7 @@ use Throwable;
  *
  * @template-implements IEventListener<Event>
  *
- * @spec openspec/changes/absence-reports-seen-and-ended/tasks.md#T4
+ * @spec openspec/changes/archive/2026-11-24-absence-reports-seen-and-ended/tasks.md#T4
  */
 class ExcuseRecoveryGuard implements IEventListener {
 
@@ -77,7 +77,7 @@ class ExcuseRecoveryGuard implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/absence-reports-seen-and-ended/tasks.md#T4
+	 * @spec openspec/changes/archive/2026-11-24-absence-reports-seen-and-ended/tasks.md#T4
 	 */
 	public function handle(Event $event): void {
 		if ($event instanceof ObjectUpdatingEvent === false || $event->isPropagationStopped() === true) {

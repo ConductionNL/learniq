@@ -8,14 +8,14 @@
  * checked: it waits for the pupil's sessions (site-pupil-portal-design T1).
  *
  * @spec openspec/changes/example-portal-declares-its-site/specs/example-sets/spec.md
- * @spec openspec/changes/site-pupil-portal-design/specs/portal-contribution/spec.md#requirement-the-pupil-overview-follows-the-designed-board
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-the-pupil-overview-follows-the-designed-board
  * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-each-school-audience-offers-its-own-documents-grouped-per-record
  * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-a-pupil-asks-for-a-proof-of-enrolment
- * @spec openspec/changes/pupil-books-support-lessons-and-mentor-talks/specs/portal-contribution/spec.md
+ * @spec openspec/specs/portal-contribution/spec.md
  *
  * Covers:
- *   @e2e openspec/changes/pupil-books-support-lessons-and-mentor-talks/specs/portal-contribution/spec.md#scenario-noor-signs-up-for-tuesday
- *   @e2e openspec/changes/pupil-books-support-lessons-and-mentor-talks/specs/portal-contribution/spec.md#scenario-noor-picks-tuesday-1630
+ *   @e2e openspec/specs/portal-contribution/spec.md#scenario-noor-signs-up-for-tuesday
+ *   @e2e openspec/specs/portal-contribution/spec.md#scenario-noor-picks-tuesday-1630
  */
 
 import type { PortalLogin } from '../helpers/portal-fixture.ts'

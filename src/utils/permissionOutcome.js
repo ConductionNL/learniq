@@ -10,7 +10,7 @@
  * (learner profile uuids); each has at most one PermissionResponse per
  * request, and when two are found the latest answer counts.
  *
- * @spec openspec/changes/permission-slips/specs/portal-contribution/spec.md#requirement-a-teacher-sees-who-has-not-answered
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-a-teacher-sees-who-has-not-answered
  */
 
 import { listRows, objectsUrl, oneObject } from './customPages.js'
@@ -54,7 +54,7 @@ function answeredTime(response) {
  * @param {object} request The PermissionRequest.
  * @param {object[]} responses Its PermissionResponses.
  * @return {Map<string, object>} learnerRef -> response.
- * @spec openspec/changes/permission-slips/specs/portal-contribution/spec.md#requirement-a-teacher-sees-who-has-not-answered
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-a-teacher-sees-who-has-not-answered
  */
 export function latestAnswers(request, responses) {
 	const requestId = request?.id ?? request?.uuid ?? ''
@@ -114,8 +114,8 @@ function splitByAnswer(asked, latest) {
  * @param {object} request The PermissionRequest.
  * @param {object[]} responses Its PermissionResponses.
  * @return {{yes: string[], no: string[], notAnswered: string[], asked: number, answered: number, silenceRefuses: boolean, refused: number, permitted: number}}
- * @spec openspec/changes/permission-slips/specs/portal-contribution/spec.md#requirement-a-teacher-sees-who-has-not-answered
- * @spec openspec/changes/permission-slips/specs/portal-contribution/spec.md#requirement-silence-is-not-permission
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-a-teacher-sees-who-has-not-answered
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-silence-is-not-permission
  */
 export function permissionOutcome(request, responses) {
 	const asked = refsOf(request?.learnerRefs)
@@ -141,7 +141,7 @@ export function permissionOutcome(request, responses) {
  * @param {string} requestId The PermissionRequest uuid.
  * @param {(path: string, params?: object) => Promise<unknown>} getJson Reads one path.
  * @return {Promise<{request: object, responses: object[]}>}
- * @spec openspec/changes/permission-slips/specs/portal-contribution/spec.md#requirement-a-teacher-sees-who-has-not-answered
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-a-teacher-sees-who-has-not-answered
  */
 export async function loadPermissionAnswers(requestId, getJson) {
 	const request = oneObject(await getJson(objectsUrl('permission-request', requestId)))

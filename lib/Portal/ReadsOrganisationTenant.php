@@ -20,7 +20,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/employer-portal-audience/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
+ * @spec openspec/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
  */
 
 declare(strict_types=1);
@@ -30,7 +30,7 @@ namespace OCA\Learniq\Portal;
 /**
  * The tenant an OpenRegister organisation stands for.
  *
- * @spec openspec/changes/employer-portal-audience/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
+ * @spec openspec/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
  */
 trait ReadsOrganisationTenant {
 

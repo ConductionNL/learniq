@@ -10,7 +10,7 @@
  PermissionResponses; the split itself lives in utils/permissionOutcome.js.
  Staff only, like the hand-in status.
 
- @spec openspec/changes/permission-slips/specs/portal-contribution/spec.md#requirement-a-teacher-sees-who-has-not-answered
+ @spec openspec/specs/portal-contribution/spec.md#requirement-a-teacher-sees-who-has-not-answered
 -->
 <template>
 	<div v-if="allowed" class="permission-outcome">
@@ -114,7 +114,7 @@ export default {
 	computed: {
 		/**
 		 * @return {object} The split of the children asked.
-		 * @spec openspec/changes/permission-slips/specs/portal-contribution/spec.md#requirement-a-teacher-sees-who-has-not-answered
+		 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-teacher-sees-who-has-not-answered
 		 */
 		outcome() {
 			return permissionOutcome(this.request, this.responses)
@@ -124,7 +124,7 @@ export default {
 		 * Not answered first: that is the list a teacher needs before the day.
 		 *
 		 * @return {Array<{id: string, title: string, refs: string[]}>}
-		 * @spec openspec/changes/permission-slips/specs/portal-contribution/spec.md#requirement-a-teacher-sees-who-has-not-answered
+		 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-teacher-sees-who-has-not-answered
 		 */
 		groups() {
 			return [
@@ -140,7 +140,7 @@ export default {
 		 * Reload when the page moves to another request.
 		 *
 		 * @return {void}
-		 * @spec openspec/changes/permission-slips/specs/portal-contribution/spec.md#requirement-a-teacher-sees-who-has-not-answered
+		 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-teacher-sees-who-has-not-answered
 		 */
 		requestId() {
 			this.load()
@@ -156,7 +156,7 @@ export default {
 		 * Load the request and its answers, then the children's names.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/permission-slips/specs/portal-contribution/spec.md#requirement-a-teacher-sees-who-has-not-answered
+		 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-teacher-sees-who-has-not-answered
 		 */
 		async load() {
 			if (!this.allowed || !this.requestId) {
@@ -184,7 +184,7 @@ export default {
 		 * Names from LearnerProfile; the ref is the fallback.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/permission-slips/specs/portal-contribution/spec.md#requirement-a-teacher-sees-who-has-not-answered
+		 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-teacher-sees-who-has-not-answered
 		 */
 		async loadNames() {
 			const refs = [...this.outcome.notAnswered, ...this.outcome.yes, ...this.outcome.no]

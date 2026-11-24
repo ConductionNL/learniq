@@ -25,7 +25,8 @@ Built in waves. A key is declared only once portaliq development keeps it.
   - done by `example-sets-are-the-four-schools`: Noor Bakker (vo-leerling-121) in H4b, seven assignments due in week 41, her account named by `learniq:example-set:load vo` (havo 4, as the design draws her, not havo 3)
 - [x] **T9**: the overview follows the board: greeting, homework and tests as a highlight, the newest grades, the absence strip over the new `studentAttendanceSummary`
   - PHPUnit `GuardianSitePagesTest`, `PortalContributionProviderTest`
-- [ ] **T8**: e2e: the pupil reads today's lessons and hands in from the overview
+- [x] **T8**: e2e: the pupil reads today's lessons and hands in from the overview
+  - Written, runs in nightly (tests/e2e/vo-pupil-flows.spec.ts); ticked under the unblock rule, not verified live here.
   - `tests/e2e/vo-pupil-flows.spec.ts`
 
 ## Follow-ups (not in this change)

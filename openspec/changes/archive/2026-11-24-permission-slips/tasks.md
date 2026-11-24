@@ -7,7 +7,8 @@
 - [x] **T4**: the request appears as a task on her overview with its deadline, like the conference booking already does
 - [x] **T5**: a school floor for the assurance level of an answer, defaulting to `basic`, refused below it with the required level named
 - [x] **T6**: the teacher's screen: answered yes, answered no, not answered, per request
-- [ ] **T7**: e2e in `po-parent-flows.spec.ts`: the teacher opens a request, the guardian answers for her own child and not for another, the teacher sees the outcome
+- [x] **T7**: e2e in `po-parent-flows.spec.ts`: the teacher opens a request, the guardian answers for her own child and not for another, the teacher sees the outcome
+  - Written, runs in nightly (tests/e2e/po-parent-flows.spec.ts); ticked under the unblock rule, not verified live here.
 - [x] **T8**: example set: the po profile seeds one open request for Vera's group and one closed one
 
 ## Build notes (2026-11-14)

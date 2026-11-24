@@ -29,7 +29,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/pupil-books-support-lessons-and-mentor-talks/specs/portal-contribution/spec.md#requirement-a-pupil-reads-her-schools-open-support-lessons-and-signs-herself-up
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-a-pupil-reads-her-schools-open-support-lessons-and-signs-herself-up
  */
 
 declare(strict_types=1);
@@ -58,7 +58,7 @@ use Psr\Log\LoggerInterface;
 /**
  * Receives portaliq's optional-lesson sign-up forward for one pupil.
  *
- * @spec openspec/changes/pupil-books-support-lessons-and-mentor-talks/specs/portal-contribution/spec.md#requirement-a-pupil-reads-her-schools-open-support-lessons-and-signs-herself-up
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-a-pupil-reads-her-schools-open-support-lessons-and-signs-herself-up
  *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects) At the threshold because the portal
  * endpoint attributes (PublicPage, NoCSRFRequired, AnonRateLimit, BruteForceProtection)
@@ -97,7 +97,7 @@ class PortalElectiveController extends Controller {
 	 *
 	 * @return JSONResponse 200 `{signUpId, offerId, startsAt}`, or 401 / 403 / 404 / 422 / 502.
 	 *
-	 * @spec openspec/changes/pupil-books-support-lessons-and-mentor-talks/specs/portal-contribution/spec.md#requirement-a-pupil-reads-her-schools-open-support-lessons-and-signs-herself-up
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-pupil-reads-her-schools-open-support-lessons-and-signs-herself-up
 	 */
 	#[PublicPage]
 	#[NoCSRFRequired]

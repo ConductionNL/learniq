@@ -29,7 +29,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/leave-requests-decided-by-the-school/specs/portal-contribution/spec.md#requirement-a-guardian-asks-leave-for-her-own-child-and-sees-the-decision
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-a-guardian-asks-leave-for-her-own-child-and-sees-the-decision
  */
 
 declare(strict_types=1);
@@ -39,7 +39,7 @@ namespace OCA\Learniq\Portal;
 /**
  * Builds the guardian's leave action, collection, page and overview block.
  *
- * @spec openspec/changes/leave-requests-decided-by-the-school/specs/portal-contribution/spec.md#requirement-a-guardian-asks-leave-for-her-own-child-and-sees-the-decision
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-a-guardian-asks-leave-for-her-own-child-and-sees-the-decision
  */
 class ParentLeaveRequests {
 
@@ -140,7 +140,7 @@ class ParentLeaveRequests {
 	 *
 	 * @return array<string, mixed> The create action.
 	 *
-	 * @spec openspec/changes/leave-requests-decided-by-the-school/specs/portal-contribution/spec.md#requirement-a-guardian-asks-leave-for-her-own-child-and-sees-the-decision
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-guardian-asks-leave-for-her-own-child-and-sees-the-decision
 	 */
 	public function action(array $childJoin): array {
 		$children = new ParentPortalCollections();
@@ -190,7 +190,7 @@ class ParentLeaveRequests {
 	 *
 	 * @return array<int, array<string, mixed>> The two collections.
 	 *
-	 * @spec openspec/changes/leave-requests-decided-by-the-school/specs/portal-contribution/spec.md#requirement-a-guardian-asks-leave-for-her-own-child-and-sees-the-decision
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-guardian-asks-leave-for-her-own-child-and-sees-the-decision
 	 */
 	public function collections(array $childJoin): array {
 		$own = [
@@ -234,7 +234,7 @@ class ParentLeaveRequests {
 	 *
 	 * @return array<string, mixed> The page.
 	 *
-	 * @spec openspec/changes/leave-requests-decided-by-the-school/specs/portal-contribution/spec.md#requirement-a-guardian-asks-leave-for-her-own-child-and-sees-the-decision
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-guardian-asks-leave-for-her-own-child-and-sees-the-decision
 	 */
 	public function page(): array {
 		return [
@@ -269,7 +269,7 @@ class ParentLeaveRequests {
 	 *
 	 * @return array<string, mixed> The block.
 	 *
-	 * @spec openspec/changes/leave-requests-decided-by-the-school/tasks.md
+	 * @spec openspec/changes/archive/2026-11-24-leave-requests-decided-by-the-school/tasks.md
 	 */
 	public function overviewBlock(): array {
 		return [

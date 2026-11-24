@@ -15,7 +15,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/employer-substitutes-a-colleague/specs/portal-contribution/spec.md
+ * @spec openspec/specs/portal-contribution/spec.md
  */
 
 declare(strict_types=1);
@@ -33,7 +33,7 @@ use Throwable;
  * day before the first course day at 12.00, Amsterdam time. A booking without
  * a known course day has no deadline yet.
  *
- * @spec openspec/changes/employer-substitutes-a-colleague/specs/portal-contribution/spec.md
+ * @spec openspec/specs/portal-contribution/spec.md
  */
 final class SubstitutionDeadline {
 
@@ -59,7 +59,7 @@ final class SubstitutionDeadline {
 	 *
 	 * @return DateTimeImmutable|null The deadline, or null when there is none yet.
 	 *
-	 * @spec openspec/changes/employer-substitutes-a-colleague/specs/portal-contribution/spec.md
+	 * @spec openspec/specs/portal-contribution/spec.md
 	 */
 	public static function moment(array $cohort, ?string $firstDay): ?DateTimeImmutable {
 		$zone = new DateTimeZone(CourseDayLines::ZONE);
@@ -93,7 +93,7 @@ final class SubstitutionDeadline {
 	 *
 	 * @return string|null The refusal in words, e.g. "Vervangen kan tot woensdag 12:00 uur. Bel de planning."
 	 *
-	 * @spec openspec/changes/employer-substitutes-a-colleague/specs/portal-contribution/spec.md
+	 * @spec openspec/specs/portal-contribution/spec.md
 	 */
 	public static function refusal(?DateTimeImmutable $deadline, DateTimeImmutable $now): ?string {
 		if ($deadline === null || $now <= $deadline) {

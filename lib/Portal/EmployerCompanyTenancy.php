@@ -29,7 +29,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
  */
 
 declare(strict_types=1);
@@ -44,7 +44,7 @@ use Throwable;
 /**
  * Checks that an employer's company lies in her portal's organisation.
  *
- * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
  */
 class EmployerCompanyTenancy implements EmployerCompanyTenancyInterface {
 
@@ -108,7 +108,7 @@ class EmployerCompanyTenancy implements EmployerCompanyTenancyInterface {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
 	 */
 	public function holds(string $organisationRef, string $organisation): bool {
 		return $this->verdict(organisationRef: $organisationRef, organisation: $organisation) === self::HOLDS;
@@ -122,7 +122,7 @@ class EmployerCompanyTenancy implements EmployerCompanyTenancyInterface {
 	 *
 	 * @return string One of the verdict constants.
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
 	 */
 	public function verdict(string $organisationRef, string $organisation): string {
 		return $this->verdictFor(row: [self::SCHEMA, trim($organisationRef)], organisation: $organisation);
@@ -136,7 +136,7 @@ class EmployerCompanyTenancy implements EmployerCompanyTenancyInterface {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
 	 */
 	public function holdsLocation(string $locationRef, string $organisation): bool {
 		return $this->verdictFor(row: [self::LOCATION_SCHEMA, trim($locationRef)], organisation: $organisation) === self::HOLDS;

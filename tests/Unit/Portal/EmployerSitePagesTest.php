@@ -21,7 +21,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-reads-only-her-own-companys-people-and-bookings
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-reads-only-her-own-companys-people-and-bookings
  */
 
 declare(strict_types=1);
@@ -171,7 +171,7 @@ class EmployerSitePagesTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-supplies-a-missing-birth-date-and-never-reads-it
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-supplies-a-missing-birth-date-and-never-reads-it
 	 */
 	public function testTheBirthDateIsNeverRead(): void {
 		foreach (self::manifest()['collections'] as $collection) {
@@ -189,7 +189,7 @@ class EmployerSitePagesTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
 	 */
 	public function testTheFormsStampHerCompanyAndPickFromHerOwnRows(): void {
 		$manifest = self::manifest();
@@ -225,7 +225,7 @@ class EmployerSitePagesTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/employer-substitutes-a-colleague/tasks.md#T4
+	 * @spec openspec/changes/archive/2026-11-24-employer-substitutes-a-colleague/tasks.md#T4
 	 */
 	public function testAParticipantRowOffersAColleagueInTheirPlace(): void {
 		$manifest = self::manifest();
@@ -288,7 +288,7 @@ class EmployerSitePagesTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/portal-certificates/specs/portal-contribution/spec.md#requirement-an-employer-sees-her-peoples-certificates-the-first-to-expire-first
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-sees-her-peoples-certificates-the-first-to-expire-first
 	 */
 	public function testHerPeoplesCertificatesExpireFirstOnTop(): void {
 		$manifest = self::manifest();
@@ -325,7 +325,7 @@ class EmployerSitePagesTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
+	 * @spec openspec/specs/portal-identity/spec.md#requirement-the-institute-invites-a-companys-contact-person-as-its-employer
 	 */
 	public function testTheInvitationWritesTheClaimsTheCollectionsRead(): void {
 		$store = new RegisterFaithfulStore();

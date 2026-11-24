@@ -327,7 +327,7 @@ class RollCallService implements RollCallServiceInterface {
 	 *
 	 * @return array<int, array<string, mixed>>
 	 *
-	 * @spec openspec/changes/absence-reports-seen-and-ended/specs/attendance/spec.md#requirement-a-teachers-first-look-at-an-absence-report-is-recorded
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-teachers-first-look-at-an-absence-report-is-recorded
 	 */
 	private function pupils(array $cohort, array $records, string $date, string $userId): array {
 		$learnerIds = $this->learnerIdsOf(cohort: $cohort);
