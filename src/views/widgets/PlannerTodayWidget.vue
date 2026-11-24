@@ -124,8 +124,8 @@ import {
 	decisionCards,
 	occupancyRows,
 	toConfirmCount,
-	weekStrip,
 } from '../../utils/plannerToday.js'
+import { weekStrip } from '../../utils/plannerWeekStrip.js'
 
 export default {
 	name: 'PlannerTodayWidget',

@@ -9,7 +9,7 @@
 
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { weekStrip, workingDaysOf } from '../../src/utils/plannerToday.js'
+import { weekStrip, workingDaysOf } from '../../src/utils/plannerWeekStrip.js'
 
 const ANSWER = {
 	today: '2026-10-07',
