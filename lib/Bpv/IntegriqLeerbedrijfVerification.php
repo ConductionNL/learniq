@@ -38,7 +38,6 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Bpv;
 
-use DateTimeImmutable;
 use DateTimeZone;
 use OCA\Learniq\Service\ConnectionReportService;
 use OCA\Learniq\Support\EventGetter;
@@ -172,7 +171,13 @@ class IntegriqLeerbedrijfVerification implements ProvidesLeerbedrijfVerification
 	 */
 	public static function mapped(array $answer, string $today): array {
 		if (($answer['found'] ?? false) !== true) {
-			return ['status' => 'rejected', 'erkenningNumber' => null, 'expiresAt' => null, 'raw' => $answer, 'reason' => 'SBB does not list this company as a leerbedrijf'];
+			return [
+				'status' => 'rejected',
+				'erkenningNumber' => null,
+				'expiresAt' => null,
+				'raw' => $answer,
+				'reason' => 'SBB does not list this company as a leerbedrijf',
+			];
 		}
 
 		$endDate = self::dateOrNull(value: ($answer['endDate'] ?? null));
@@ -183,7 +188,11 @@ class IntegriqLeerbedrijfVerification implements ProvidesLeerbedrijfVerification
 			$reason = 'the recognition ended on ' . $endDate;
 		}
 
-		$number    = trim((string)($answer['erkenningNumber'] ?? ''));
+		$number = trim((string)($answer['erkenningNumber'] ?? ''));
+		if ($number === '') {
+			$number = null;
+		}
+
 		$expiresAt = null;
 		if ($endDate !== null) {
 			$expiresAt = $endDate . 'T00:00:00+00:00';
@@ -191,7 +200,7 @@ class IntegriqLeerbedrijfVerification implements ProvidesLeerbedrijfVerification
 
 		return [
 			'status' => $status,
-			'erkenningNumber' => ($number === '' ? null : $number),
+			'erkenningNumber' => $number,
 			'expiresAt' => $expiresAt,
 			'raw' => $answer,
 			'reason' => $reason,
@@ -222,12 +231,12 @@ class IntegriqLeerbedrijfVerification implements ProvidesLeerbedrijfVerification
 			return null;
 		}
 
-		$date = DateTimeImmutable::createFromFormat('!Y-m-d', substr($value, 0, 10));
-		if ($date === false || $date->format('Y-m-d') !== substr($value, 0, 10)) {
+		$date = substr($value, 0, 10);
+		if (checkdate((int)substr($date, 5, 2), (int)substr($date, 8, 2), (int)substr($date, 0, 4)) === false) {
 			return null;
 		}
 
-		return $date->format('Y-m-d');
+		return $date;
 	}//end dateOrNull()
 
 	/**
