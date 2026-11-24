@@ -6559,7 +6559,12 @@ OC.L10N.register(
         "Hour {n}": "{n}e uur",
         "Room {room}": "Lokaal {room}",
         "Week {week} · {range} · {count} lessons": "Week {week} · {range} · {count} lessen",
-        "Not in {room}": "niet in {room}"
+        "Not in {room}": "niet in {room}",
+        "Course days this week": "Cursusdagen deze week",
+        "No course day. The hall is free.": "Geen cursusdag. De hal is vrij.",
+        "Past": "Voorbij",
+        "today": "vandaag",
+        "_%n participant_::_%n participants_": ["%n deelnemer","%n deelnemers"]
     },
     "nplurals=2; plural=(n != 1);"
 )

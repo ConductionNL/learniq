@@ -6005,7 +6005,12 @@ OC.L10N.register(
         "Hour {n}": "Hour {n}",
         "Room {room}": "Room {room}",
         "Week {week} · {range} · {count} lessons": "Week {week} · {range} · {count} lessons",
-        "Not in {room}": "Not in {room}"
+        "Not in {room}": "Not in {room}",
+        "Course days this week": "Course days this week",
+        "No course day. The hall is free.": "No course day. The hall is free.",
+        "Past": "Past",
+        "today": "today",
+        "_%n participant_::_%n participants_": ["%n participant","%n participants"]
     },
     "nplurals=2; plural=(n != 1);"
 )
