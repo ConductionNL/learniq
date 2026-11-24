@@ -6068,7 +6068,8 @@
         "Check training company": "Check training company",
         "Hour {n}": "Hour {n}",
         "Room {room}": "Room {room}",
-        "Week {week} · {range} · {count} lessons": "Week {week} · {range} · {count} lessons"
+        "Week {week} · {range} · {count} lessons": "Week {week} · {range} · {count} lessons",
+        "Not in {room}": "Not in {room}"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

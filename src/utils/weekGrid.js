@@ -14,7 +14,7 @@
  *
  * Each session carries its change as a pill in words: cancelled, a substitute
  * (cover), or, for a lesson the roosterkamer moved (`movedAt`), the room it is
- * in now. The grid fetches nothing; My timetable passes the week it loaded.
+ * in now, with "not in" the room it left (`movedFromRoom`) on its line. The grid fetches nothing; My timetable passes the week it loaded.
  *
  * @spec openspec/changes/week-timetable-grid/specs/week-timetable-grid/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
  */
@@ -147,14 +147,19 @@ export function weekGridItems(sessions, translate) {
 		if (start === '' || date === '') {
 			continue
 		}
-		const meta = [session.cohortName || session.cohort?.name || '', roomName(session)]
+		const pill = changePill(session, translate)
+		// A moved lesson's pill names its new room, so its line names the room
+		// it left instead of repeating the new one.
+		const movedFrom = pill?.variant === 'changed' && typeof session.movedFromRoom === 'string' ? session.movedFromRoom : ''
+		const place = movedFrom !== '' ? translate('Not in {room}', { room: movedFrom }) : roomName(session)
+		const meta = [session.cohortName || session.cohort?.name || '', place]
 		items.push({
 			key: String(session.id ?? `${date}|${start}|${session.title ?? ''}`),
 			date,
 			row: start,
 			title: session.title || translate('Untitled session'),
 			meta: meta.filter((part) => typeof part === 'string' && part !== ''),
-			pill: changePill(session, translate),
+			pill,
 			session,
 		})
 	}

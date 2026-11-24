@@ -6557,7 +6557,8 @@ OC.L10N.register(
         "Check training company": "Leerbedrijf controleren",
         "Hour {n}": "{n}e uur",
         "Room {room}": "Lokaal {room}",
-        "Week {week} · {range} · {count} lessons": "Week {week} · {range} · {count} lessen"
+        "Week {week} · {range} · {count} lessons": "Week {week} · {range} · {count} lessen",
+        "Not in {room}": "niet in {room}"
     },
     "nplurals=2; plural=(n != 1);"
 )

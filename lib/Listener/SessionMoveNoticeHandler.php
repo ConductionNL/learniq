@@ -116,7 +116,7 @@ class SessionMoveNoticeHandler implements IEventListener {
 		}
 
 		try {
-			$this->writeNotice(session: $new, move: $move);
+			$this->writeNotice(session: $new, move: $move, old: $old);
 		} catch (Throwable $e) {
 			$this->logger->warning(
 				'[SessionMoveNoticeHandler] Could not write the move notice of Session {id}: {msg}',
@@ -195,16 +195,26 @@ class SessionMoveNoticeHandler implements IEventListener {
 	}//end noticeText()
 
 	/**
-	 * Write the affected people, the notice and movedAt onto the lesson.
+	 * Write the affected people, the notice, movedAt and the room it left onto the lesson.
 	 *
 	 * @param array<string,mixed> $session The Session after the update.
 	 * @param string              $move    What moved.
+	 * @param array<string,mixed> $old     The Session before the update.
 	 *
 	 * @return void
 	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/timetabling/spec.md#requirement-a-lesson-moved-to-another-room-or-time-notifies-the-affected-learners-and-parents
+	 * @spec openspec/changes/week-timetable-grid/specs/week-timetable-grid/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
 	 */
-	private function writeNotice(array $session, string $move): void {
+	private function writeNotice(array $session, string $move, array $old=[]): void {
 		$people = $this->notices->affectedPeople(session: $session);
+		$movedFrom = '';
+		if ($move !== 'time') {
+			// The room the lesson left, so the week grid can say "not in 1.12"
+			// beside the pill with its new room (week-timetable-grid T2).
+			$movedFrom = $this->roomName(session: $old);
+		}
+
+		$session['movedFromRoom'] = $movedFrom;
 
 		$session['affectedLearnerIds'] = $people['learnerIds'];
 		$session['affectedParentIds'] = $people['parentIds'];

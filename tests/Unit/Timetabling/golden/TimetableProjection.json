@@ -90,6 +90,8 @@
             "changeReasonKind": "illness",
             "changeReason": "ziek",
             "changedAt": "now",
+            "movedAt": null,
+            "movedFromRoom": "",
             "source": "planninq",
             "onlineMeetingUrl": "https://meet/1"
         },
@@ -118,6 +120,8 @@
             "changeReasonKind": null,
             "changeReason": null,
             "changedAt": null,
+            "movedAt": null,
+            "movedFromRoom": "",
             "source": "learniq",
             "onlineMeetingUrl": null
         },
@@ -146,6 +150,8 @@
             "changeReasonKind": null,
             "changeReason": null,
             "changedAt": null,
+            "movedAt": null,
+            "movedFromRoom": "",
             "source": "learniq",
             "onlineMeetingUrl": null
         },
@@ -169,6 +175,8 @@
             "changeReasonKind": null,
             "changeReason": null,
             "changedAt": null,
+            "movedAt": null,
+            "movedFromRoom": "",
             "source": "learniq",
             "onlineMeetingUrl": null
         },
@@ -192,6 +200,8 @@
             "changeReasonKind": null,
             "changeReason": null,
             "changedAt": null,
+            "movedAt": null,
+            "movedFromRoom": "",
             "source": "learniq",
             "onlineMeetingUrl": null
         }

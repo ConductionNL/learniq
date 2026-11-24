@@ -8188,6 +8188,10 @@
                                 "title": "Moved by",
                                 "description": "The user who moved the course day."
                             },
+                            "movedFromRoom": {
+                                "type": "string",
+                                "description": "The room a lesson left when SessionMoveNoticeHandler recorded its move to another room, so the week grid says \"not in <room>\" beside the new room (week-timetable-grid). Empty for a move in time only. Derived — do not set manually."
+                            },
                             "movedAt": {
                                 "type": "string",
                                 "title": "Moved at",

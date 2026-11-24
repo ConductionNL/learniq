@@ -116,3 +116,16 @@ test('isoWeek numbers the week by ISO 8601', () => {
 	assert.equal(isoWeek(new Date(2027, 0, 1)), 53)
 	assert.equal(isoWeek(new Date(2024, 11, 30)), 1)
 })
+
+test('a moved lesson names its new room in the pill and the room it left on its line', () => {
+	const [item] = weekGridItems([
+		{ id: 'm', title: 'Nederlands', cohortName: 'V4c', room: { name: '0.14' }, movedAt: '2026-10-06T08:00:00Z', movedFromRoom: '1.12', startsAt: at(7, 10, 25) },
+	], t)
+	assert.deepEqual(item.pill, { label: 'Room 0.14', variant: 'changed' })
+	assert.deepEqual(item.meta, ['V4c', 'Not in 1.12'])
+})
+
+test('a moved lesson without the room it left keeps its room on the line', () => {
+	const [item] = weekGridItems([{ id: 'm', title: 'X', room: { name: '0.14' }, movedAt: '2026-10-06T08:00:00Z', startsAt: at(7, 10, 25) }], t)
+	assert.deepEqual(item.meta, ['0.14'])
+})
