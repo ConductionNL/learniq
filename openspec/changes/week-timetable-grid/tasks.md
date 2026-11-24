@@ -1,7 +1,9 @@
 # Tasks: week-timetable-grid
 
-- [ ] **T1**: ask nextcloud-vue for a week grid component (days as columns, rows by hour or time); bump once released
-- [ ] **T2**: the week page: my sessions and covered sessions, lesson hours from the school's hour plan, change pills, week navigation
+- [x] **T1**: ask nextcloud-vue for a week grid component (days as columns, rows by hour or time); bump once released
+  - Built (2026-11-24): `CnWeekGrid`, ConductionNL/nextcloud-vue#2324 (openspec `week-grid`), released in 2.214.0; learniq raised to `^2.214.0`.
+- [x] **T2**: the week page: my sessions and covered sessions, lesson hours from the school's hour plan, change pills, week navigation
+  - Built (2026-11-24): My timetable gets a third mode, "Lesson hours", that draws the viewed week through `CnWeekGrid` (`src/views/MyTimetable.vue`, `src/utils/weekGrid.js`). It reads the same `api/timetable/mine` sessions (my lessons and the ones I cover) and the page's existing week navigation. The rows are the distinct start times of the week, numbered "Hour 1", "Hour 2", …: learniq has no bell schedule per school (`HourPlan` is the programme's study-hour plan, not the day's lesson times), and a school's lessons start on its bell times, so the hours line up; a training provider's rows read as its start times. Each lesson shows its group and room, and a pill in words: Cancelled, Cover, or for a lesson the roosterkamer moved, "Room 0.14" with "Not in 1.12" on its line. For that, `SessionMoveNoticeHandler` now records `movedFromRoom` (Session schema field) and `TimetableProjector` passes `movedAt` and `movedFromRoom` to the page. The caption reads "Week 41 · 5 Oct – 9 Oct · 20 lessons". A lesson opens its Session page. Pinned by `tests/unit-js/weekGrid.test.mjs` (11), `SessionMoveNoticeHandlerTest` (3 new) and the re-recorded `PersonalTimetable` and `TimetableProjection` goldens.
 - [ ] **T3**: the mentor class scope
 - [ ] **T4**: the planner's week strip with occupancy on Today (training)
 - [ ] **T5**: Dutch strings; vo and training example data for week 41

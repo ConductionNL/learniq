@@ -6555,7 +6555,11 @@ OC.L10N.register(
         "Recognition number": "Erkenningsnummer",
         "Recognised until": "Erkend tot",
         "The recognition ends on {trainingCompanyVerification.expiresAt:longdate}, before the placement ends. Check the training company again in time.": "De erkenning eindigt op {trainingCompanyVerification.expiresAt:longdate}, vóór het einde van de plaatsing. Controleer het leerbedrijf op tijd opnieuw.",
-        "Check training company": "Leerbedrijf controleren"
+        "Check training company": "Leerbedrijf controleren",
+        "Hour {n}": "{n}e uur",
+        "Room {room}": "Lokaal {room}",
+        "Week {week} · {range} · {count} lessons": "Week {week} · {range} · {count} lessen",
+        "Not in {room}": "niet in {room}"
     },
     "nplurals=2; plural=(n != 1);"
 )

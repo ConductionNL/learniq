@@ -184,6 +184,51 @@ class SessionMoveNoticeHandlerTest extends TestCase {
 	}//end testALessonMovedToAnotherTimeNamesTheNewTime()
 
 	/**
+	 * A lesson moved to another room records the room it left, for the week grid.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#scenario-a-change-from-the-roosterkamer
+	 */
+	public function testARoomMoveRecordsTheRoomItLeft(): void {
+		$this->update(old: $this->lesson(), new: $this->lesson(changes: ['roomId' => self::ROOM_108]));
+
+		self::assertSame(expected: '2.14', actual: $this->saved[0]['movedFromRoom']);
+	}//end testARoomMoveRecordsTheRoomItLeft()
+
+	/**
+	 * A lesson moved in time only records no room it left.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#scenario-a-change-from-the-roosterkamer
+	 */
+	public function testATimeMoveRecordsNoRoomItLeft(): void {
+		$this->update(
+			old: $this->lesson(),
+			new: $this->lesson(changes: ['startsAt' => '2026-11-17T13:00:00+01:00', 'endsAt' => '2026-11-17T13:50:00+01:00'])
+		);
+
+		self::assertSame(expected: '', actual: $this->saved[0]['movedFromRoom']);
+	}//end testATimeMoveRecordsNoRoomItLeft()
+
+	/**
+	 * A location move records the location it left.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#scenario-a-change-from-the-roosterkamer
+	 */
+	public function testALocationMoveRecordsTheLocationItLeft(): void {
+		$this->update(
+			old: $this->lesson(changes: ['roomId' => null, 'location' => 'Gym']),
+			new: $this->lesson(changes: ['roomId' => null, 'location' => 'Aula'])
+		);
+
+		self::assertSame(expected: 'Gym', actual: $this->saved[0]['movedFromRoom']);
+	}//end testALocationMoveRecordsTheLocationItLeft()
+
+	/**
 	 * A lesson without a room row names its location label.
 	 *
 	 * @return void

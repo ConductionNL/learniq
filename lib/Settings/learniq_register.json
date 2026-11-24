@@ -8839,6 +8839,12 @@
                         "title": "Move notice",
                         "visible": false
                     },
+                    "movedFromRoom": {
+                        "type": "string",
+                        "title": "Moved from room",
+                        "description": "The room a lesson left when SessionMoveNoticeHandler recorded its move to another room, so the week grid says \"not in <room>\" beside the new room (week-timetable-grid). Empty for a move in time only. Derived — do not set manually.",
+                        "visible": false
+                    },
                     "movedAt": {
                         "type": "string",
                         "nullable": true,
