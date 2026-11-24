@@ -244,28 +244,16 @@ class PupilPageTest extends TestCase {
 	}//end testTheGroupsTeamLeaderAndCareerCoachAreAmongThePeople()
 
 	/**
-	 * Noor signed up for the wiskunde A support lesson on Tuesday 6 October:
-	 * her page lists it after the care coordinator, with the teacher and the day.
+	 * The support lesson line is listed after the care coordinator.
 	 *
 	 * @return void
 	 *
 	 * @spec openspec/changes/learner-list-and-page-follow-the-boards/tasks.md#T4
 	 */
-	public function testTheSupportLessonThePupilFollowsIsAmongThePeople(): void {
-		$signUps = [
-			['offerId' => 'off-old', 'status' => 'placed', 'lessonStartsAt' => '2026-09-29T14:00:00+02:00', 'offerName' => 'Steunles Engels'],
-			['offerId' => 'off-gone', 'status' => 'withdrawn', 'lessonStartsAt' => '2026-10-05T14:00:00+02:00', 'offerName' => 'Steunles Frans'],
-			['offerId' => 'off-later', 'status' => 'signed-up', 'lessonStartsAt' => '2026-10-13T14:00:00+02:00', 'offerName' => 'Steunles Duits'],
-			['offerId' => 'off-wia', 'status' => 'signed-up', 'lessonStartsAt' => '2026-10-06T14:00:00+02:00', 'offerName' => 'Wiskunde A'],
-		];
+	public function testTheSupportLessonIsAmongThePeople(): void {
+		$line   = ['role' => PupilPage::SUPPORT_LESSON, 'userId' => null, 'name' => 'Steunles wiskunde A · Meneer Demir', 'from' => '2026-10-06'];
+		$people = PupilPage::people(cohort: ['teacherIds' => ['sanne']], plans: [], placement: null, lessons: [$line]);
 
-		$followed = PupilPage::supportLesson(signUps: $signUps, today: '2026-10-05');
-		$this->assertSame(expected: 'off-wia', actual: $followed['offerId']);
-
-		$line = PupilPage::supportLessonLine(signUp: $followed, offer: ['name' => 'Steunles wiskunde A', 'teacherName' => 'Meneer Demir']);
-		$this->assertSame(expected: ['name' => 'Steunles wiskunde A · Meneer Demir', 'from' => '2026-10-06'], actual: $line);
-
-		$people = PupilPage::people(cohort: ['teacherIds' => ['sanne']], plans: [], placement: null, supportLesson: $line);
 		$this->assertSame(
 			expected: [
 				['role' => PupilPage::MENTOR, 'userId' => 'sanne'],
@@ -274,29 +262,5 @@ class PupilPageTest extends TestCase {
 			],
 			actual: $people
 		);
-	}//end testTheSupportLessonThePupilFollowsIsAmongThePeople()
-
-	/**
-	 * No sign-up, only a withdrawn or a passed one: no support lesson. Without
-	 * its offer the line reads the sign-up's own copy of the name.
-	 *
-	 * @return void
-	 *
-	 * @spec openspec/changes/learner-list-and-page-follow-the-boards/tasks.md#T4
-	 */
-	public function testNoSupportLessonWithoutAComingPlace(): void {
-		$this->assertNull(actual: PupilPage::supportLesson(signUps: [], today: '2026-10-05'));
-		$this->assertNull(
-			actual: PupilPage::supportLesson(
-				signUps: [
-					['status' => 'withdrawn', 'lessonStartsAt' => '2026-10-06T14:00:00+02:00'],
-					['status' => 'placed', 'lessonStartsAt' => '2026-10-01T14:00:00+02:00'],
-				],
-				today: '2026-10-05'
-			)
-		);
-
-		$undated = PupilPage::supportLesson(signUps: [['status' => 'placed', 'offerName' => 'Huiswerkklas']], today: '2026-10-05');
-		$this->assertSame(expected: ['name' => 'Huiswerkklas', 'from' => null], actual: PupilPage::supportLessonLine(signUp: $undated, offer: null));
-	}//end testNoSupportLessonWithoutAComingPlace()
+	}//end testTheSupportLessonIsAmongThePeople()
 }//end class

@@ -50,12 +50,6 @@ final class PupilPage {
 	public const CAREER_COACH = 'career-coach';
 	public const SUPPORT_LESSON = 'support-lesson';
 
-	/**
-	 * Sign-ups that hold a place in a support lesson.
-	 *
-	 * @var list<string>
-	 */
-	public const ACTIVE_SIGN_UP = ['signed-up', 'placed'];
 
 	/**
 	 * Attendance flag states that are still open.
@@ -168,13 +162,13 @@ final class PupilPage {
 	 * @param array<string, mixed>       $cohort        The group.
 	 * @param list<array<string, mixed>> $plans         The pupil's learning plans.
 	 * @param array<string, mixed>|null  $placement     The running placement, or null.
-	 * @param array<string, mixed>|null  $supportLesson The support lesson (supportLesson()), or null.
+	 * @param list<array<string, mixed>> $lessons   The support lesson rows (PupilPageReader::supportLessonOf()), none or one.
 	 *
 	 * @return list<array<string, mixed>> Each with role and userId; noPlan for the care coordinator; name and from for the support lesson.
 	 *
 	 * @spec openspec/changes/learner-list-and-page-follow-the-boards/tasks.md#T4
 	 */
-	public static function people(array $cohort, array $plans, ?array $placement, ?array $supportLesson=null): array {
+	public static function people(array $cohort, array $plans, ?array $placement, array $lessons=[]): array {
 		$people = [];
 		foreach (self::teachers(cohort: $cohort) as $role => $userId) {
 			$people[] = ['role' => $role, 'userId' => $userId];
@@ -188,9 +182,7 @@ final class PupilPage {
 		$coordinator = self::coordinatorOf(plans: $plans);
 		$people[]    = ['role' => self::CARE_COORDINATOR, 'userId' => $coordinator, 'noPlan' => ($coordinator === null)];
 
-		if ($supportLesson !== null) {
-			$people[] = ['role' => self::SUPPORT_LESSON, 'userId' => null, 'name' => $supportLesson['name'], 'from' => $supportLesson['from']];
-		}
+		array_push($people, ...$lessons);
 
 		$careerCoach = self::stringOrNull(value: ($cohort['careerCoachId'] ?? null));
 		if ($careerCoach !== null) {
@@ -204,79 +196,6 @@ final class PupilPage {
 
 		return $people;
 	}//end people()
-
-	/**
-	 * The support lesson the pupil follows: of her sign-ups that hold a place,
-	 * the one whose lesson comes first from today on.
-	 *
-	 * A sign-up without a lesson date counts as coming. A withdrawn sign-up or
-	 * one whose lesson has passed is not followed.
-	 *
-	 * @param list<array<string, mixed>> $signUps The pupil's elective sign-ups.
-	 * @param string                     $today   Today as Y-m-d.
-	 *
-	 * @return array<string, mixed>|null The sign-up, or null.
-	 *
-	 * @spec openspec/changes/learner-list-and-page-follow-the-boards/tasks.md#T4
-	 */
-	public static function supportLesson(array $signUps, string $today): ?array {
-		$followed = null;
-		foreach ($signUps as $signUp) {
-			if (in_array((string)($signUp['status'] ?? ''), self::ACTIVE_SIGN_UP, true) === false) {
-				continue;
-			}
-
-			$day = substr((string)($signUp['lessonStartsAt'] ?? ''), 0, 10);
-			if ($day !== '' && $day < $today) {
-				continue;
-			}
-
-			if ($followed === null || self::comesBefore(day: $day, other: substr((string)($followed['lessonStartsAt'] ?? ''), 0, 10)) === true) {
-				$followed = $signUp;
-			}
-		}
-
-		return $followed;
-	}//end supportLesson()
-
-	/**
-	 * The support lesson's line in the people column: its name and teacher, and the day it starts.
-	 *
-	 * @param array<string, mixed>      $signUp The followed sign-up.
-	 * @param array<string, mixed>|null $offer  Its offer, when it is there.
-	 *
-	 * @return array{name: string, from: string|null}
-	 *
-	 * @spec openspec/changes/learner-list-and-page-follow-the-boards/tasks.md#T4
-	 */
-	public static function supportLessonLine(array $signUp, ?array $offer): array {
-		$title   = trim((string)($offer['name'] ?? ($signUp['offerName'] ?? '')));
-		$teacher = trim((string)($offer['teacherName'] ?? ''));
-		$name    = $title;
-		if ($teacher !== '') {
-			$name = trim($title . ' · ' . $teacher, ' ·');
-		}
-
-		$from = substr((string)($signUp['lessonStartsAt'] ?? ''), 0, 10);
-
-		return ['name' => $name, 'from' => ($from === '' ? null : $from)];
-	}//end supportLessonLine()
-
-	/**
-	 * Whether a lesson day comes before another; a day before no day.
-	 *
-	 * @param string $day   Y-m-d or ''.
-	 * @param string $other Y-m-d or ''.
-	 *
-	 * @return bool
-	 */
-	private static function comesBefore(string $day, string $other): bool {
-		if ($day === '') {
-			return false;
-		}
-
-		return $other === '' || $day < $other;
-	}//end comesBefore()
 
 	/**
 	 * The group's mentor and duo partner: the primary teacher of its

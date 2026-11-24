@@ -66,7 +66,7 @@ class PupilListServiceTest extends TestCase {
 		$time = $this->createMock(ITimeFactory::class);
 		$time->method('getTime')->willReturn((new DateTimeImmutable('2026-10-26T08:30:00+01:00'))->getTimestamp());
 
-		$schoolYear = $this->createMock(SchoolYearSoFar::class);
+		$schoolYear = $this->createMock(originalClassName: SchoolYearSoFar::class);
 		$schoolYear->method('start')->willReturn('08-01');
 		$schoolYear->method('schoolDaysUpTo')->with('2026-10-26')->willReturn(40);
 
@@ -122,7 +122,7 @@ class PupilListServiceTest extends TestCase {
 		$this->assertSame([TodayState::REPORTED_ILL, TodayState::APPOINTMENT, TodayState::NOT_REGISTERED], array_column($all['results'], 'todayState'));
 		$this->assertSame([null, '11:30', null], array_column($all['results'], 'todayUntil'));
 		$this->assertSame([0, 0, 1], array_column($all['results'], 'absentDays'));
-		$this->assertSame([100, 100, 98], array_column($all['results'], 'presentPercent'));
+		$this->assertSame(expected: [100, 100, 98], actual: array_column($all['results'], 'presentPercent'));
 		$this->assertSame([0, 0, 2], array_column($all['results'], 'lateCount'));
 		$this->assertSame(['none', 'none', 'acknowledged'], array_column($all['results'], 'conferenceState'));
 		$this->assertSame(['plan', '', ''], array_column($all['results'], 'care'));

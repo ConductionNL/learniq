@@ -118,30 +118,11 @@ class PupilPageService implements PupilPageServiceInterface {
 					cohort: $cohort,
 					plans: $plans,
 					placement: $placement,
-					supportLesson: $this->supportLesson(learnerId: $learnerId, today: $today)
+					lessons: $this->reader->supportLessonOf(learnerId: $learnerId, today: $today)
 				)
 			),
 		];
 	}//end open()
-
-	/**
-	 * The support lesson the pupil follows, as its line in the people column.
-	 *
-	 * @param string $learnerId The pupil.
-	 * @param string $today     Today as Y-m-d.
-	 *
-	 * @return array{name: string, from: string|null}|null
-	 *
-	 * @spec openspec/changes/learner-list-and-page-follow-the-boards/tasks.md#T4
-	 */
-	private function supportLesson(string $learnerId, string $today): ?array {
-		$signUp = PupilPage::supportLesson(signUps: $this->reader->ofPupil(schema: 'elective-sign-up', learnerId: $learnerId), today: $today);
-		if ($signUp === null) {
-			return null;
-		}
-
-		return PupilPage::supportLessonLine(signUp: $signUp, offer: $this->reader->byId(schema: 'elective-offer', id: (string)($signUp['offerId'] ?? '')));
-	}//end supportLesson()
 
 	/**
 	 * The caller's group that holds the pupil: the asked one, else the first.

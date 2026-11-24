@@ -33,7 +33,7 @@ namespace OCA\Learniq\Service\Pupil;
  *
  * @spec openspec/changes/learner-list-and-page-follow-the-boards/tasks.md#T3
  */
-final class QualificationLabel {
+class QualificationLabel {
 
 	/**
 	 * The line for the running placement among the pupil's placements.
@@ -44,23 +44,62 @@ final class QualificationLabel {
 	 *
 	 * @spec openspec/changes/learner-list-and-page-follow-the-boards/tasks.md#T3
 	 */
-	public static function of(array $placements): ?string {
-		$placement = PupilPage::runningPlacement(placements: $placements);
+	public function forPlacements(array $placements): ?string {
+		$placement = $this->running(placements: $placements);
 		if ($placement === null) {
 			return null;
 		}
 
 		$name  = trim((string)($placement['qualificationName'] ?? ''));
 		$crebo = trim((string)($placement['crebo'] ?? ''));
+		$parts = array_values(array_filter([$name, $this->creboPart(crebo: $crebo, named: $name !== '')], static fn (string $part): bool => $part !== ''));
+		if ($parts === []) {
+			return null;
+		}
+
+		return implode(' ', $parts);
+	}//end forPlacements()
+
+	/**
+	 * The crebo part: "(crebo 12345)" after a name, "crebo 12345" alone, '' without a crebo.
+	 *
+	 * @param string $crebo The crebo number.
+	 * @param bool   $named Whether a name comes before it.
+	 *
+	 * @return string
+	 */
+	private function creboPart(string $crebo, bool $named): string {
 		if ($crebo === '') {
-			return ($name === '' ? null : $name);
+			return '';
 		}
 
-		$creboLine = 'crebo ' . $crebo;
-		if ($name === '') {
-			return $creboLine;
+		if ($named === true) {
+			return '(crebo ' . $crebo . ')';
 		}
 
-		return $name . ' (' . $creboLine . ')';
-	}//end of()
+		return 'crebo ' . $crebo;
+	}//end creboPart()
+
+	/**
+	 * The running placement: the first in a running state, the most current state first.
+	 *
+	 * @param list<array<string, mixed>> $placements The pupil's placements.
+	 *
+	 * @return array<string, mixed>|null
+	 */
+	private function running(array $placements): ?array {
+		$byState = [];
+		foreach ($placements as $placement) {
+			$state = (string)($placement['lifecycle'] ?? '');
+			$byState[$state] = ($byState[$state] ?? $placement);
+		}
+
+		foreach (PupilPage::RUNNING_PLACEMENT as $state) {
+			if (isset($byState[$state]) === true) {
+				return $byState[$state];
+			}
+		}
+
+		return null;
+	}//end running()
 }//end class

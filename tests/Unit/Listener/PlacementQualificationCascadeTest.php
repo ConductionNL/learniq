@@ -71,8 +71,24 @@ class PlacementQualificationCascadeTest extends TestCase {
 	 */
 	private function cascade(): PlacementQualificationCascade {
 		$reader = $this->createMock(originalClassName: PupilPageReader::class);
-		$reader->method('profileOf')->willReturnCallback(fn (string $learnerId): ?array => ($learnerId === 'milan' ? $this->profile : null));
-		$reader->method('ofPupil')->willReturnCallback(fn (string $schema): array => ($schema === 'bpv-placement' ? $this->placements : []));
+		$reader->method('profileOf')->willReturnCallback(
+			function (string $learnerId): ?array {
+				if ($learnerId !== 'milan') {
+					return null;
+				}
+
+				return $this->profile;
+			}
+		);
+		$reader->method('ofPupil')->willReturnCallback(
+			function (string $schema): array {
+				if ($schema !== 'bpv-placement') {
+					return [];
+				}
+
+				return $this->placements;
+			}
+		);
 		$reader->method('idOf')->willReturnCallback(static fn (array $row): string => (string)($row['id'] ?? ''));
 
 		$objects = $this->createMock(originalClassName: ObjectService::class);
@@ -113,7 +129,9 @@ class PlacementQualificationCascadeTest extends TestCase {
 	 * @spec openspec/changes/learner-list-and-page-follow-the-boards/tasks.md#T3
 	 */
 	public function testARunningPlacementWritesTheLineOnce(): void {
-		$this->placements = [['id' => 'pl-1', 'learnerId' => 'milan', 'lifecycle' => 'active', 'qualificationName' => 'Monteur mechatronica', 'crebo' => '25290']];
+		$this->placements = [
+			['id' => 'pl-1', 'learnerId' => 'milan', 'lifecycle' => 'active', 'qualificationName' => 'Monteur mechatronica', 'crebo' => '25290'],
+		];
 
 		$this->cascade()->handle($this->transitioned(schema: 'bpv-placement', object: $this->placements[0]));
 

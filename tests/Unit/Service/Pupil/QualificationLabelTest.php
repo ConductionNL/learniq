@@ -45,7 +45,7 @@ class QualificationLabelTest extends TestCase {
 			['lifecycle' => 'active', 'qualificationName' => 'Monteur mechatronica', 'crebo' => '25290'],
 		];
 
-		self::assertSame(expected: 'Monteur mechatronica (crebo 25290)', actual: QualificationLabel::of(placements: $placements));
+		self::assertSame(expected: 'Monteur mechatronica (crebo 25290)', actual: (new QualificationLabel())->forPlacements(placements: $placements));
 	}//end testTheRunningPlacementsQualificationWithItsCrebo()
 
 	/**
@@ -56,10 +56,12 @@ class QualificationLabelTest extends TestCase {
 	 * @spec openspec/changes/learner-list-and-page-follow-the-boards/tasks.md#T3
 	 */
 	public function testAPartLineOrNone(): void {
-		self::assertSame(expected: 'Monteur mechatronica', actual: QualificationLabel::of(placements: [['lifecycle' => 'active', 'qualificationName' => 'Monteur mechatronica']]));
-		self::assertSame(expected: 'crebo 25290', actual: QualificationLabel::of(placements: [['lifecycle' => 'confirmed', 'crebo' => ' 25290 ']]));
-		self::assertNull(actual: QualificationLabel::of(placements: [['lifecycle' => 'active']]));
-		self::assertNull(actual: QualificationLabel::of(placements: [['lifecycle' => 'completed', 'qualificationName' => 'Oud']]));
-		self::assertNull(actual: QualificationLabel::of(placements: []));
+		$label = new QualificationLabel();
+		$named = [['lifecycle' => 'active', 'qualificationName' => 'Monteur mechatronica']];
+		self::assertSame(expected: 'Monteur mechatronica', actual: $label->forPlacements(placements: $named));
+		self::assertSame(expected: 'crebo 25290', actual: $label->forPlacements(placements: [['lifecycle' => 'confirmed', 'crebo' => ' 25290 ']]));
+		self::assertNull(actual: $label->forPlacements(placements: [['lifecycle' => 'active']]));
+		self::assertNull(actual: $label->forPlacements(placements: [['lifecycle' => 'completed', 'qualificationName' => 'Oud']]));
+		self::assertNull(actual: $label->forPlacements(placements: []));
 	}//end testAPartLineOrNone()
 }//end class

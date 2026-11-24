@@ -114,23 +114,21 @@ class PlacementQualificationCascade implements IEventListener {
 				return false;
 			}
 
-			$label = QualificationLabel::of(placements: $this->reader->ofPupil(schema: 'bpv-placement', learnerId: $learnerId));
+			$label = (new QualificationLabel())->forPlacements(placements: $this->reader->ofPupil(schema: 'bpv-placement', learnerId: $learnerId));
 			if (($profile[self::FIELD] ?? null) === $label) {
 				return false;
 			}
 
-			$uuid   = $this->reader->idOf(row: $profile);
-			$object = array_merge($profile, [self::FIELD => $label]);
-			unset($object['@self'], $object['id']);
-			$this->objectService->saveObject(
-				object: $object,
-				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: 'learniq', schema: 'learner-profile'), uuid: $uuid),
-				_rbac: false,
-				_multitenancy: false
-			);
+			$stamped = [self::FIELD => $label] + array_diff_key($profile, ['@self' => true, 'id' => true]);
+			$target  = new ObjectFindTarget(register: 'learniq', schema: 'learner-profile');
+			$options = new ObjectSaveOptions(target: $target, uuid: $this->reader->idOf(row: $profile));
+			$this->objectService->saveObject(object: $stamped, options: $options, _rbac: false, _multitenancy: false);
 			return true;
 		} catch (Throwable $exception) {
-			$this->logger->warning('[PlacementQualificationCascade] No qualification line for {user}: {msg}', ['user' => $learnerId, 'msg' => $exception->getMessage()]);
+			$this->logger->warning(
+				'[PlacementQualificationCascade] No qualification line for {user}: {msg}',
+				['user' => $learnerId, 'msg' => $exception->getMessage()]
+			);
 			return false;
 		}//end try
 	}//end restamp()
@@ -145,28 +143,56 @@ class PlacementQualificationCascade implements IEventListener {
 	private function placementOf(Event $event): ?array {
 		try {
 			if ($event instanceof ObjectTransitionedEvent) {
-				$ours = $this->schemas->eventRegister(event: $event) === 'learniq' && $this->schemas->eventSchema(event: $event) === 'bpv-placement';
-				return ($ours === true ? $event->getObject()->jsonSerialize() : null);
+				return $this->transitionedPlacement(event: $event);
 			}
 
-			$entity = null;
-			if ($event instanceof ObjectCreatedEvent) {
-				$entity = $event->getObject();
-			}
-
-			if ($event instanceof ObjectUpdatedEvent) {
-				$entity = $event->getNewObject();
-			}
-
-			if ($entity === null) {
-				return null;
-			}
-
-			$ours   = $this->schemas->registerSlug(entity: $entity) === 'learniq' && $this->schemas->schemaSlug(entity: $entity) === 'bpv-placement';
-			return ($ours === true ? $entity->jsonSerialize() : null);
+			return $this->writtenPlacement(event: $event);
 		} catch (Throwable) {
 			// Not knowing the schema is not knowing it is ours.
 			return null;
 		}
 	}//end placementOf()
+
+	/**
+	 * A placement that moved through its lifecycle, or null for another schema.
+	 *
+	 * @param ObjectTransitionedEvent $event The transition.
+	 *
+	 * @return array<string, mixed>|null
+	 */
+	private function transitionedPlacement(ObjectTransitionedEvent $event): ?array {
+		if ($this->schemas->eventRegister(event: $event) !== 'learniq' || $this->schemas->eventSchema(event: $event) !== 'bpv-placement') {
+			return null;
+		}
+
+		return $event->getObject()->jsonSerialize();
+	}//end transitionedPlacement()
+
+	/**
+	 * A created or updated placement, or null for another event or schema.
+	 *
+	 * @param Event $event The event.
+	 *
+	 * @return array<string, mixed>|null
+	 */
+	private function writtenPlacement(Event $event): ?array {
+		$entity = null;
+		if ($event instanceof ObjectCreatedEvent) {
+			$entity = $event->getObject();
+		}
+
+		if ($event instanceof ObjectUpdatedEvent) {
+			$entity = $event->getNewObject();
+		}
+
+		if ($entity === null) {
+			return null;
+		}
+
+		if ($this->schemas->registerSlug(entity: $entity) !== 'learniq' || $this->schemas->schemaSlug(entity: $entity) !== 'bpv-placement') {
+			return null;
+		}
+
+		return $entity->jsonSerialize();
+	}//end writtenPlacement()
 }//end class
