@@ -382,4 +382,33 @@ class ExamplePortalDeclarationsTest extends TestCase {
 		self::assertSame(['nlLinkList', 'card'], [$companies['widgetKey'], $companies['props']['display']]);
 		self::assertSame(['Inloggen als leerbedrijf', 'Leerbedrijf worden'], array_column($companies['props']['links'], 'label'));
 	}//end testTheHomesMarkTheLeadPhotoAndInviteCompaniesWithLinks()
+
+	/**
+	 * The vo set publishes the profile evening as an event a pupil answers
+	 * for herself with seats, and its news item names that event
+	 * (portaliq event-sign-up-by-a-pupil-with-seats T5).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/example-set-declares-its-events/specs/example-sets/spec.md#requirement-a-set-may-declare-events-and-a-news-item-may-name-one
+	 */
+	public function testTheVoSetDeclaresTheEveningItsNewsItemNames(): void {
+		$declaration = (new ExamplePortalDeclarations())->forSet(setId: 'vo');
+		$events      = array_column($declaration['events'], null, 'title');
+		$named       = array_values(array_filter($declaration['news'], static fn (array $item): bool => isset($item['event'])));
+
+		self::assertCount(expectedCount: 1, haystack: $named, message: 'one news item names an event');
+		self::assertSame(expected: 'Informatieavond profielkeuze op dinsdag 3 november', actual: $named[0]['title']);
+		self::assertArrayHasKey(key: $named[0]['event'], array: $events, message: 'the named event is declared');
+
+		$evening = $events[$named[0]['event']];
+		self::assertSame(expected: ['guardian', 'learner'], actual: $evening['rsvpBy']);
+		self::assertTrue(condition: $evening['askSeats']);
+		self::assertSame(expected: 3, actual: $evening['maxSeatsPerAnswer']);
+		self::assertSame(expected: 300, actual: $evening['capacity']);
+		self::assertSame(expected: '2026-10-30', actual: $evening['signupDeadline']);
+		self::assertSame(expected: '2026-11-03T19:30:00+01:00', actual: $evening['start']);
+		self::assertSame(expected: $named[0]['target'], actual: $evening['target'], message: 'the evening reaches the school the news item reaches');
+		self::assertArrayNotHasKey(key: 'status', array: $evening, message: 'the load publishes it');
+	}//end testTheVoSetDeclaresTheEveningItsNewsItemNames()
 }//end class
