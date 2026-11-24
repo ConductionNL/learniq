@@ -131,12 +131,36 @@ export function changePill(session, translate) {
  * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
  */
 export function roomName(session) {
-	const room = session && session.room ? session.room.name : ''
-	if (typeof room === 'string' && room !== '') {
-		return room
+	const { room, location } = session || {}
+	const name = textOf(room && room.name)
+	if (name !== '') {
+		return name
 	}
-	const location = session && typeof session.location === 'string' ? session.location : ''
-	return /^https?:\/\//i.test(location) ? '' : location
+	const place = textOf(location)
+	return isOnlineLink(place) ? '' : place
+}
+
+/**
+ * A value as text, or '' when it is no string.
+ *
+ * @param {string|undefined|null} value The value.
+ * @return {string} The text.
+ * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+ */
+function textOf(value) {
+	return typeof value === 'string' ? value : ''
+}
+
+/**
+ * Whether a location is an online meeting link rather than a room.
+ *
+ * @param {string} place The location.
+ * @return {boolean} True for an http(s) link.
+ * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+ */
+function isOnlineLink(place) {
+	const lower = place.toLowerCase()
+	return lower.startsWith('http://') || lower.startsWith('https://')
 }
 
 /**
