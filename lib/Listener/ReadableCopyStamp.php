@@ -46,7 +46,7 @@ use Throwable;
  *
  * @spec openspec/specs/portal-contribution/spec.md#requirement-new-a-grade-names-its-subject-and-its-weight
  * @spec openspec/specs/portal-contribution/spec.md#requirement-new-the-child-switcher-shows-the-childs-group
- * @spec openspec/changes/site-external-assessor-portal-design/specs/portal-contribution/spec.md#requirement-new-a-share-names-its-candidate-and-portfolio
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-new-a-share-names-its-candidate-and-portfolio
  */
 class ReadableCopyStamp implements IEventListener {
 

@@ -19,7 +19,8 @@ Built in waves. T3 and T4b waited on portaliq's `via.when`, `via.validUntilField
   - PHPUnit `PortalLabelTranslatorTest`; `npm run check:l10n`
 - [x] **T6**: the mbo set seeds an active external assessor, two portfolios and two active shares, and he can be given a portal account (`occ learniq:portal:invite-assessor`)
   - PHPUnit `VocationalCollegeExampleSetTest`, `BpvPortalInvitationTest`; `python3 scripts/example-sets/mbo.py --check`
-- [ ] **T7**: e2e: the assessor reads his access date and opens a shared entry. The data and the account now exist; the suite waits on an instance with the mbo set loaded.
+- [x] **T7**: e2e: the assessor reads his access date and opens a shared entry. The data and the account now exist; the suite waits on an instance with the mbo set loaded.
+  - Written, runs in nightly (tests/e2e/mbo-assessor-flows.spec.ts); ticked under the unblock rule, not verified live here.
   - `tests/e2e/mbo-assessor-flows.spec.ts`: written (4 flows, its own assessor, portfolios and shares, so the seeded shares' passed end dates do not matter); still to be run on an instance with portaliq
 
 ## Follow-ups (not in this change)

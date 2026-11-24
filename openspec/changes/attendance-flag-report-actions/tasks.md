@@ -17,7 +17,8 @@
 
 - [x] 2.1 PHPUnit: `AttendanceFlagReportGuardTest` keeps passing; add a test that the refusal reason text is the one the page shows.
   > DONE: `AttendanceFlagReportGuardTest::testTheRefusalIsTheSentenceThePageShows` pins the sentence word for word and checks it names no job id or status.
-- [ ] 2.2 Playwright `tests/e2e/attendance-flag-handling.spec.ts`: as an instructor open a seeded open flag, take it up, see `in-handling`; with the seeded succeeded job mark it reported; as a compliance officer record a MAS route. Tag the four requirement scenarios with `@e2e`.
+- [x] 2.2 Playwright `tests/e2e/attendance-flag-handling.spec.ts`: as an instructor open a seeded open flag, take it up, see `in-handling`; with the seeded succeeded job mark it reported; as a compliance officer record a MAS route. Tag the four requirement scenarios with `@e2e`.
+  - Written, runs in nightly; ticked under the unblock rule, not verified live here.
 
 ## 3. Close out
 

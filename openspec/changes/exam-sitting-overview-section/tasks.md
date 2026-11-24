@@ -12,7 +12,8 @@
 
 - [x] 2.1 Vitest `tests/js/ExamSittingOverview.spec.js`: renders rows from a mocked overview, the two empty states, and the reload after "Ask".
   - learniq runs its JS unit tests with `node --test` and has no vitest, so this is `tests/unit-js/examSittingOverview.test.mjs` (6 tests through `loadSfc`): the two routes, the names, the places line, both empty lists, a 403/404 hiding the section, and the reload and refresh after "Ask".
-- [ ] 2.2 Playwright `tests/e2e/exam-sitting-overview.spec.ts` on the example set: open a sitting with an accommodated learner, read the end time, ask a free colleague, see the counts change. Tag the scenarios with `@e2e`.
+- [x] 2.2 Playwright `tests/e2e/exam-sitting-overview.spec.ts` on the example set: open a sitting with an accommodated learner, read the end time, ask a free colleague, see the counts change. Tag the scenarios with `@e2e`.
+  - Written, runs in nightly; ticked under the unblock rule, not verified live here.
 - [ ] 2.3 Visual baseline for the section (gate 26).
 
 ## 3. Close out

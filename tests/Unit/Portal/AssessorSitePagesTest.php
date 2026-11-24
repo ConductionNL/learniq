@@ -19,7 +19,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/site-external-assessor-portal-design/specs/portal-contribution/spec.md
+ * @spec openspec/specs/portal-contribution/spec.md
  */
 
 declare(strict_types=1);
@@ -39,7 +39,7 @@ use PHPUnit\Framework\TestCase;
 /**
  * Tests for the assessor's shared entries and share page.
  *
- * @spec openspec/changes/site-external-assessor-portal-design/specs/portal-contribution/spec.md
+ * @spec openspec/specs/portal-contribution/spec.md
  */
 class AssessorSitePagesTest extends TestCase {
 

@@ -137,7 +137,7 @@ class ReadableCopies implements ReadableCopiesInterface {
 	 *
 	 * @spec openspec/specs/portal-contribution/spec.md#requirement-new-a-grade-names-its-subject-and-its-weight
 	 * @spec openspec/specs/portal-contribution/spec.md#requirement-new-the-child-switcher-shows-the-childs-group
-	 * @spec openspec/changes/site-external-assessor-portal-design/specs/portal-contribution/spec.md#requirement-new-a-share-names-its-candidate-and-portfolio
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-new-a-share-names-its-candidate-and-portfolio
 	 * @spec openspec/changes/teacher-availability-reads-words/specs/parent-conferences/spec.md#requirement-the-teacher-availability-list-reads-words
 	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-guardian-menu-lists-each-child-with-its-group-and-teacher
 	 */
@@ -260,7 +260,7 @@ class ReadableCopies implements ReadableCopiesInterface {
 	 *
 	 * @return string|null The portfolio UUID, or null.
 	 *
-	 * @spec openspec/changes/site-external-assessor-portal-design/specs/portal-contribution/spec.md#requirement-new-an-external-assessor-opens-the-shared-entries-and-only-those
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-new-an-external-assessor-opens-the-shared-entries-and-only-those
 	 */
 	public static function wholePortfolioOf(array $share): ?string {
 		if (self::selectsEntries(share: $share) === true) {
