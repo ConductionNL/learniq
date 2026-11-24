@@ -135,7 +135,7 @@
 				:caption="gridCaption"
 				:navigation="false"
 				data-testid="timetable-week-grid"
-				@item-click="(item) => openSession(item.session)" />
+				@itemClick="(item) => openSession(item.session)" />
 			<div
 				v-else
 				class="my-timetable__grid"
