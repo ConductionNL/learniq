@@ -48,3 +48,25 @@ Each school-day item of the public index MUST carry a category derived from `sch
 - **THEN** it receives the holiday and the study day, not the photographer
 - @e2e exclude category mapping asserted in `PortalPublicIndexTest`
 
+
+### Requirement: A public course or programme has a page of its own
+
+Every course and programme item of the public index MUST carry a `slug` made from its title (lower case, letters and digits, words joined by `-`, at most 100 characters), the address part of its page on the portal. `PortalContributionProvider::getPublicDetail(string $portal, string $id)` MUST answer the page of the item with that id in this portal's public index, in the shape of portaliq's `public-detail-page-for-a-provider-item`: its `title`; as `facts` its kind, its dates ("8 okt", or "3 nov – 10 nov" for a run of several days) and each of its facets; its description as a section "Omschrijving"; and, when the portal declares a course list, a `secondaryLink` to it. The page MUST be made from the index item only, so it says nothing the index does not already show a visitor. An id this portal's index does not list (a draft, another example set's item, a run that is over, an unknown id) and an item of another type (a school day, a test) MUST answer null.
+
+#### Scenario: The F-gassen course page
+- GIVEN the training example set on Monday 5 October 2026
+- WHEN portaliq asks the detail of the F-gassen course of `warmtepompacademie` with the id the index gave
+- THEN the page reads the title, kind "Cursus", date "8 okt", place "Praktijkhal Zuiddrecht", start "Oktober 2026", and a link back to `/cursusaanbod`
+- @e2e exclude portaliq draws the page; PortalPublicIndexTest::testACourseHasAPageOfItsOwn reads the real seeds
+
+#### Scenario: A programme page
+- GIVEN the mbo example set
+- WHEN portaliq asks the detail of "Mechatronica" of `esdoornveen`
+- THEN the facts read level "Niveau 4" and learning path "BOL, BBL", and no date
+- @e2e exclude covered by PortalPublicIndexTest::testAProgrammeHasAPageOfItsOwn
+
+#### Scenario: Another portal's course has no page here
+- GIVEN every example set loaded on one instance
+- WHEN portaliq asks `esdoornveen` for the detail of the academy's F-gassen course
+- THEN the answer is null
+- @e2e exclude covered by PortalPublicIndexTest::testOnlyWhatTheIndexListsHasAPage

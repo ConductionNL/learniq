@@ -101,6 +101,34 @@ class PortalPublicIndex {
 	}//end forPortal()
 
 	/**
+	 * The page of one public course or programme of a portal, or null when
+	 * this portal's index does not list it (a draft, another set's, a run
+	 * that is over) or its type has no page.
+	 *
+	 * @param string                 $portal The portal slug.
+	 * @param string                 $id     The item's id in the index, `course:<uuid>` or `programme:<uuid>`.
+	 * @param DateTimeImmutable|null $today  Today; a test passes a fixed day.
+	 *
+	 * @return array<string, mixed>|null
+	 *
+	 * @spec openspec/changes/portal-public-index/specs/portal-contribution/spec.md#requirement-a-public-course-or-programme-has-a-page-of-its-own
+	 */
+	public function detailFor(string $portal, string $id, ?DateTimeImmutable $today=null): ?array {
+		if ($id === '') {
+			return null;
+		}
+
+		foreach ($this->forPortal(portal: $portal, today: $today) as $item) {
+			if (($item['id'] ?? null) === $id) {
+				$reads = new PublicIndexReads(objectService: $this->objectService, logger: $this->logger, l10n: $this->l10n);
+				return (new PublicItemDetail(reads: $reads))->forItem(item: $item);
+			}
+		}
+
+		return null;
+	}//end detailFor()
+
+	/**
 	 * Where an example portal's course rows link to: its declaration's
 	 * `publicIndex.courseHref`, or '' (REPORT-2, item 12).
 	 *
