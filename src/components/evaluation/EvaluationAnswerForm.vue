@@ -7,7 +7,7 @@
  radio buttons, a free-text question a text area. Emits `submit` with the
  body to post; the parent posts it.
 
- @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
+ @spec openspec/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
 -->
 <template>
 	<form class="evaluation-form" @submit.prevent="submit">
@@ -111,7 +111,7 @@ export default {
 		 * The questions to render.
 		 *
 		 * @return {Array<object>}
-		 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
+		 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
 		 */
 		questions() {
 			return formQuestions(this.campaignQuestions)
@@ -121,7 +121,7 @@ export default {
 		 * Required questions still unanswered.
 		 *
 		 * @return {string[]}
-		 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
+		 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
 		 */
 		missing() {
 			return missingRequired(this.campaignQuestions, this.answers)
@@ -134,7 +134,7 @@ export default {
 		 *
 		 * @param {object} question The question.
 		 * @return {string}
-		 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
+		 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
 		 */
 		textOf(question) {
 			return questionText(question, getLanguage())
@@ -144,7 +144,7 @@ export default {
 		 * Emit the body to post, or show which questions still need an answer.
 		 *
 		 * @return {void}
-		 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
+		 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
 		 */
 		submit() {
 			if (this.missing.length > 0) {

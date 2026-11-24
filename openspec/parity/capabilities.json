@@ -5043,7 +5043,7 @@
         "change": "2026-07-16-report-card-composer",
         "requirement": [
           "openspec/specs/report-card :: Lock date is enforced by a materialised calculation and guards, not an automatic transition",
-          "openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes :: Second approver for changes to approved data"
+          "openspec/specs/governance-four-eyes :: Second approver for changes to approved data"
         ]
       },
       "provider": "self",
@@ -9116,17 +9116,17 @@
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/415112",
       "built": {
-        "state": "building",
-        "evidence": "lib/Lifecycle/ReportPeriodLockGuard.php asks lib/Service/Grading/CorrectionApprovals.php: a grade in a locked report period is published only on a DataCorrectionRequest approved by someone other than the requester and the publisher, carrying the approved value; the lone role override is gone. DataCorrectionDecisionGuard, DataCorrectionRequestStamp, CorrectionAppliedHandler. Open: the Playwright flow (task 2.1b).",
+        "state": "built",
+        "evidence": "lib/Lifecycle/ReportPeriodLockGuard.php asks lib/Service/Grading/CorrectionApprovals.php: a grade in a locked report period is published only on a DataCorrectionRequest approved by someone other than the requester and the publisher, carrying the approved value; the lone role override is gone. DataCorrectionDecisionGuard, DataCorrectionRequestStamp, CorrectionAppliedHandler. Tests: DataCorrectionDecisionGuardTest, ReportPeriodLockGuardTest, CorrectionAppliedHandlerTest, DataCorrectionRequestRegisterTest; e2e tests/e2e/grade-correction-four-eyes.spec.ts (written, runs in nightly).",
         "owner": "ConductionNL/learniq",
         "reachedOn": "/report-periods, /report-cards, /grades/entries (lifecycle actions), /grades/corrections",
         "change": "governance-four-eyes-on-approved-data",
-        "requirement": "openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes :: Second approver for changes to approved data"
+        "requirement": "openspec/specs/governance-four-eyes :: Second approver for changes to approved data"
       },
       "provider": "self",
       "providerHow": "learniq's lifecycle guards enforce the lock; no dual control is built.",
       "feature": "access-control",
-      "learniq": "partial",
+      "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/grade/edit/tree/grade_form.php:99 (lock a grade) + public/lib/db/access.php:1799 moodle/grade:lock and :1808 moodle/grade:unlock; approved grades can be locked, and marking workflow gates release. Any single user holding grade:unlock can unlock and change it, so there is no second approver.",
         "moodle-workplace": "read 2026-09-26: not documented: searched the Workplace pages (Programs_Configuration, Certifications_Configuration, Dynamic_rules_Configuration) and release notes (https://docs.moodle.org/502/en/Moodle_Workplace_release_notes) for approval or dual control.",
@@ -9306,22 +9306,22 @@
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/415112",
       "built": {
-        "state": "building",
-        "evidence": "lib/Lifecycle/CourseEvaluationEligibilityGuard.php:110",
+        "state": "built",
+        "evidence": "lib/Lifecycle/CourseEvaluationEligibilityGuard.php:110; the learner's My evaluations page and answer form, and the campaign result figures with the five-response rule (CourseEvaluationAnswerServiceTest, tests/unit-js/evaluationAnswers.test.mjs); e2e tests/e2e/spec-coverage/course-evaluation-answering.spec.ts (written, runs in nightly)",
         "owner": "ConductionNL/learniq",
-        "reachedOn": "/course-evaluation/campaigns (staff); no learner answer page",
+        "reachedOn": "/course-evaluation/campaigns (staff); My evaluations (learner)",
         "change": "assessment-course-evaluation-answer-page",
         "spec": "openspec/specs/course-evaluation",
         "requirement": [
           "openspec/specs/course-evaluation :: A campaign scopes its courses/cohorts, academic period, and instrument",
-          "openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering :: Learner answers an evaluation",
-          "openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering :: Campaign results for staff"
+          "openspec/specs/course-evaluation-answering :: Learner answers an evaluation",
+          "openspec/specs/course-evaluation-answering :: Campaign results for staff"
         ]
       },
       "provider": "self",
       "providerHow": "learniq's evaluation schemas and handlers; Nextcloud Forms is only linked, not integrated.",
       "feature": "assessment",
-      "learniq": "partial",
+      "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: public/mod/feedback/lib.php:83 feedback_add_instance + public/mod/feedback/edit.php + public/mod/feedback/manage_templates.php (reusable question templates) + public/mod/feedback/analysis.php; the feedback activity builds surveys and course evaluations, anonymous or named, with saved templates.",
         "moodle-workplace": "read 2026-09-26: https://docs.moodle.org/502/en/Feedback_activity; teachers \"create and conduct surveys to collect feedback\", \"ideal for course or teacher evaluations\". Workplace includes core per https://support.moodle.com/support/solutions/articles/80001074804-difference-between-moodle-workplace-and-moodle-lms: \"Moodle Workplace is built on Moodle LMS and contains all its features plus more\"; Workplace 5.2.3 is based on Moodle LMS 5.2.3 (https://docs.moodle.org/502/en/Moodle_Workplace_release_notes).",

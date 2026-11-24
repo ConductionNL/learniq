@@ -27,8 +27,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#requirement-learner-answers-an-evaluation
- * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#requirement-campaign-results-for-staff
+ * @spec openspec/specs/course-evaluation-answering/spec.md#requirement-learner-answers-an-evaluation
+ * @spec openspec/specs/course-evaluation-answering/spec.md#requirement-campaign-results-for-staff
  */
 
 declare(strict_types=1);
@@ -52,7 +52,7 @@ use Throwable;
 /**
  * Lists, answers and sums up course evaluation invitations.
  *
- * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#requirement-learner-answers-an-evaluation
+ * @spec openspec/specs/course-evaluation-answering/spec.md#requirement-learner-answers-an-evaluation
  */
 class CourseEvaluationAnswerService implements CourseEvaluationAnswerServiceInterface {
 
@@ -118,7 +118,7 @@ class CourseEvaluationAnswerService implements CourseEvaluationAnswerServiceInte
 	 *
 	 * @return array<int, array<string, mixed>>
 	 *
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
 	 */
 	public function openInvitations(string $learnerId, DateTimeImmutable $now): array {
 		if ($learnerId === '') {
@@ -187,10 +187,10 @@ class CourseEvaluationAnswerService implements CourseEvaluationAnswerServiceInte
 	 *
 	 * @return array{status: int, error?: string, missing?: array<int, string>}
 	 *
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-cannot-answer-twice
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-an-uninvited-user-is-refused
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-anonymous-answers-cannot-be-linked
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-a-learner-cannot-answer-twice
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-an-uninvited-user-is-refused
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-anonymous-answers-cannot-be-linked
 	 */
 	public function answer(string $learnerId, string $invitationId, array $answers, DateTimeImmutable $now): array {
 		$invitation = $this->read(schema: 'evaluation-invitation', id: $invitationId);
@@ -241,10 +241,10 @@ class CourseEvaluationAnswerService implements CourseEvaluationAnswerServiceInte
 	 *
 	 * @return array{status: int, error?: string, missing?: array<int, string>}
 	 *
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-cannot-answer-twice
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-an-uninvited-user-is-refused
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-anonymous-answers-cannot-be-linked
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-a-learner-cannot-answer-twice
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-an-uninvited-user-is-refused
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-anonymous-answers-cannot-be-linked
 	 */
 	private function submitResponse(string $responseId, string $invitationId): array {
 		try {
@@ -280,7 +280,7 @@ class CourseEvaluationAnswerService implements CourseEvaluationAnswerServiceInte
 	 *
 	 * @return array{invitationCount: int, responseCount: int, meanOverallScore: float|null, meanHidden: bool}|null Null for an unknown campaign.
 	 *
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-small-groups-are-protected
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-small-groups-are-protected
 	 */
 	public function results(string $campaignId): ?array {
 		if ($this->read(schema: 'evaluation-campaign', id: $campaignId) === null) {
@@ -309,7 +309,7 @@ class CourseEvaluationAnswerService implements CourseEvaluationAnswerServiceInte
 	 *
 	 * @return array{invitationCount: int, responseCount: int, meanOverallScore: float|null, meanHidden: bool}
 	 *
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-small-groups-are-protected
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-small-groups-are-protected
 	 */
 	private function resultCounts(array $invitations, array $responses): array {
 		$scores = [];
@@ -346,7 +346,7 @@ class CourseEvaluationAnswerService implements CourseEvaluationAnswerServiceInte
 	 *
 	 * @return array{status: int, error: string}|null
 	 *
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-an-uninvited-user-is-refused
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-an-uninvited-user-is-refused
 	 */
 	private static function refusal(string $learnerId, ?array $invitation, ?array $campaign, DateTimeImmutable $now): ?array {
 		if ($invitation === null || $learnerId === '' || ($invitation['learnerId'] ?? null) !== $learnerId) {
@@ -377,7 +377,7 @@ class CourseEvaluationAnswerService implements CourseEvaluationAnswerServiceInte
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
 	 */
 	protected function systemTransitionAvailable(): bool {
 		return (new ReflectionClass($this->transitionEngine))->hasMethod('transitionAsSystem');

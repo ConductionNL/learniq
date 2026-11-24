@@ -38,7 +38,7 @@ use RuntimeException;
  *
  * @covers \OCA\Learniq\Lifecycle\Action\LinkCoveringCorrectionAction
  *
- * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-audit-of-corrections
+ * @spec openspec/specs/governance-four-eyes/spec.md#requirement-audit-of-corrections
  */
 class LinkCoveringCorrectionActionTest extends TestCase {
 

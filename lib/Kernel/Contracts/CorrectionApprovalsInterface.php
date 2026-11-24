@@ -51,7 +51,7 @@ interface CorrectionApprovalsInterface {
 	 *
 	 * @return array<string, mixed>|null The request, or null when none covers the publish.
 	 *
-	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#scenario-a-second-person-approves-a-correction
+	 * @spec openspec/specs/governance-four-eyes/spec.md#scenario-a-second-person-approves-a-correction
 	 */
 	public function approvedFor(array $entry, string $publisher): ?array;
 
@@ -64,7 +64,7 @@ interface CorrectionApprovalsInterface {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#scenario-a-second-person-approves-a-correction
+	 * @spec openspec/specs/governance-four-eyes/spec.md#scenario-a-second-person-approves-a-correction
 	 */
 	public function sameValue(mixed $approved, mixed $current): bool;
 }//end interface

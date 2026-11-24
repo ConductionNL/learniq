@@ -276,7 +276,7 @@ class CorrectionAppliedAfterRollupFailureTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
+	 * @spec openspec/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
 	 */
 	public function testACorrectionIsAppliedWhenTheTeacherCannotReadThePlan(): void {
 		$ended = $this->republish(objects: $this->objects());
@@ -296,7 +296,7 @@ class CorrectionAppliedAfterRollupFailureTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
+	 * @spec openspec/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
 	 */
 	public function testARollupThatFailsDoesNotSilenceTheCorrection(): void {
 		$ended = $this->republish(objects: $this->objects(systemReadFails: new RuntimeException('database gone')));

@@ -21,7 +21,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-audit-of-corrections
+ * @spec openspec/specs/governance-four-eyes/spec.md#requirement-audit-of-corrections
  */
 
 declare(strict_types=1);
@@ -41,7 +41,7 @@ use OCP\User\Events\UserLoggedInEvent;
 /**
  * Registers the correction request stamp and the correction applied handler.
  *
- * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-audit-of-corrections
+ * @spec openspec/specs/governance-four-eyes/spec.md#requirement-audit-of-corrections
  */
 class GovernanceListenerRegistrar {
 
@@ -52,7 +52,7 @@ class GovernanceListenerRegistrar {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-audit-of-corrections
+	 * @spec openspec/specs/governance-four-eyes/spec.md#requirement-audit-of-corrections
 	 */
 	public function register(IRegistrationContext $context): void {
 		$context->registerEventListener(

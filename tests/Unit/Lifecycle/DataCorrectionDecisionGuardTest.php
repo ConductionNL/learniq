@@ -17,7 +17,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
+ * @spec openspec/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
  */
 
 declare(strict_types=1);
@@ -35,7 +35,7 @@ use PHPUnit\Framework\TestCase;
 /**
  * DataCorrectionDecisionGuard over a grade entry store.
  *
- * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
+ * @spec openspec/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
  */
 class DataCorrectionDecisionGuardTest extends TestCase {
 
@@ -85,7 +85,7 @@ class DataCorrectionDecisionGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#scenario-a-second-person-approves-a-correction
+	 * @spec openspec/specs/governance-four-eyes/spec.md#scenario-a-second-person-approves-a-correction
 	 */
 	public function testASecondPersonApproves(): void {
 		self::assertAllowed($this->guard()->check(self::REQUEST, 'approve', 'principal-b'));
@@ -96,7 +96,7 @@ class DataCorrectionDecisionGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#scenario-the-requester-cannot-approve
+	 * @spec openspec/specs/governance-four-eyes/spec.md#scenario-the-requester-cannot-approve
 	 */
 	public function testTheRequesterCannotApprove(): void {
 		$verdict = $this->guard()->check(self::REQUEST, 'approve', 'teacher-a');
@@ -112,7 +112,7 @@ class DataCorrectionDecisionGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#scenario-an-auditor-reads-the-trail
+	 * @spec openspec/specs/governance-four-eyes/spec.md#scenario-an-auditor-reads-the-trail
 	 */
 	public function testApplyWaitsForThePublishedApprovedValue(): void {
 		$published = ['id' => self::ENTRY, 'value' => 6.5, 'lifecycle' => 'published'];

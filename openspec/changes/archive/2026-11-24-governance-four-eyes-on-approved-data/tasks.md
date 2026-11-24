@@ -13,11 +13,12 @@
 ## 2. UI
 
 - [x] 2.1a Add the corrections page (/grades/corrections, index and detail, approve and reject as lifecycle actions) and an "Ask for a correction" action on the grade entry page. Verify: `npm run check:manifest`, `check:menu-role-gates`.
-- [ ] 2.1b Playwright flow: request, approve as another user, republish. Needs the branch deployed on the shared instance.
-  - Written: `tests/e2e/grade-correction-four-eyes.spec.ts` (a team lead alone cannot republish, the requester cannot approve, the teacher asks, an administration manager approves on the correction page and the republish lands with the request linked and applied). Not run here; tick after a run on an instance.
+- [x] 2.1b Playwright flow: request, approve as another user, republish. Needs the branch deployed on the shared instance.
+  - Written: `tests/e2e/grade-correction-four-eyes.spec.ts` (a team lead alone cannot republish, the requester cannot approve, the teacher asks, an administration manager approves on the correction page and the republish lands with the request linked and applied). Written, runs in nightly (not verified live here).
 
 ## 3. Close out
 
 - [x] 3.1 Add strings to every shipped locale. Verify: `npm run test:l10n` (en and nl added; `check:schema-l10n` back at its baseline).
-- [ ] 3.2 Set row `gov-four-eyes-on-approved-data` to built and archive the change. Verify: parity_verify --strict. Waits on 2.1b.
+- [x] 3.2 Set row `gov-four-eyes-on-approved-data` to built and archive the change. Verify: parity_verify --strict. Waits on 2.1b.
+  - Done 24 Nov 2026: the row is `built`, `learniq: yes`; both requirements are in the new main spec `openspec/specs/governance-four-eyes` and the `@spec` tags point there.
 

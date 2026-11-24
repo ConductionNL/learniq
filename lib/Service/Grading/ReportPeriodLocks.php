@@ -25,7 +25,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
+ * @spec openspec/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
  */
 
 declare(strict_types=1);
@@ -38,7 +38,7 @@ use OCA\OpenRegister\Service\ObjectService;
 /**
  * Whether a report period is locked, and the locked period over a grade entry.
  *
- * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
+ * @spec openspec/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
  */
 class ReportPeriodLocks implements ReportPeriodLocksInterface {
 
@@ -67,7 +67,7 @@ class ReportPeriodLocks implements ReportPeriodLocksInterface {
 	 *
 	 * @return bool True when locked.
 	 *
-	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
+	 * @spec openspec/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
 	 */
 	public function isLocked(array $period, ?int $now = null): bool {
 		if (($period['isLocked'] ?? null) === true) {
@@ -96,7 +96,7 @@ class ReportPeriodLocks implements ReportPeriodLocksInterface {
 	 *
 	 * @return array<string,mixed>|null The governing period.
 	 *
-	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
+	 * @spec openspec/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
 	 */
 	public function governing(array $entry): ?array {
 		$period = (string)($entry['period'] ?? '');
@@ -135,7 +135,7 @@ class ReportPeriodLocks implements ReportPeriodLocksInterface {
 	 *
 	 * @return array<string,mixed>|null The locked period.
 	 *
-	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
+	 * @spec openspec/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
 	 */
 	public function lockedPeriodFor(array $entry): ?array {
 		$period = $this->governing(entry: $entry);

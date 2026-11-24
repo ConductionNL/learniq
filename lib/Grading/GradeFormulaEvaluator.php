@@ -173,7 +173,7 @@ class GradeFormulaEvaluator implements GradeFormulaEvaluatorInterface {
 	 *
 	 * @return \OCA\OpenRegister\Db\ObjectEntity|null
 	 *
-	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
+	 * @spec openspec/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
 	 */
 	private function systemRead(string $id, string $schema): ?\OCA\OpenRegister\Db\ObjectEntity {
 		return $this->findOrNull(
