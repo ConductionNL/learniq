@@ -3183,7 +3183,7 @@
 			"config": {
 				"register": "learniq",
 				"schema": "learner-profile",
-				"_note": "Board LqLeerling (G2): the overview stacks recent grades, the latest attendance, the learner as a card and what else is in the dossier (counts); the other lists are tabs; the contact card beside it. The 'What now?' card and the people beside it read the pupil page endpoint (learner-list-and-page-follow-the-boards T3/T4); the header shows no learner number, because personalNumber is the BSN-type number; for a student in a placement it shows the qualification with its crebo (qualificationLabel, written by PlacementQualificationCascade, T3); the school's own pupilNumber is in Details, and the people card adds the group's team leader and career coach when the group names them. The conversation with the guardians is a body section at the end (PupilGuardianConversation, T5): the reader's messages with the pupil's guardians through portaliq's staff messaging, with a reply box for a participant. Actions holds Merge into another account (learner-merge-page-action): on an active learner it asks for the surviving account from a picker of the other active learners, confirms, and runs the merge transition; LearnerMergeGuard refuses a pair with an open enrolment in the same course and the dialog shows its reason. The HR system card (compliance-assign-from-hr-roles) shows department, job title, roles, manager and the HR source read only, only on a profile with hrSource; HrFieldOwnershipGuard refuses a manual change to them.",
+				"_note": "Board LqLeerling (G2): the overview stacks recent grades, the latest attendance, the learner as a card and what else is in the dossier (counts); the other lists are tabs; the contact card beside it. The 'What now?' card and the people beside it read the pupil page endpoint (learner-list-and-page-follow-the-boards T3/T4); the header's status pill is the pupil's state today, or her oldest open signal, read from the pupil page endpoint (header.statePill, T3; a value the profile cannot store); the header shows no learner number, because personalNumber is the BSN-type number; for a student in a placement it shows the qualification with its crebo (qualificationLabel, written by PlacementQualificationCascade, T3); the school's own pupilNumber is in Details, and the people card adds the group's team leader and career coach when the group names them. The conversation with the guardians is a body section at the end (PupilGuardianConversation, T5): the reader's messages with the pupil's guardians through portaliq's staff messaging, with a reply box for a participant. Actions holds Merge into another account (learner-merge-page-action): on an active learner it asks for the surviving account from a picker of the other active learners, confirms, and runs the merge transition; LearnerMergeGuard refuses a pair with an open enrolment in the same course and the dialog shows its reason. The HR system card (compliance-assign-from-hr-roles) shows department, job title, roles, manager and the HR source read only, only on a profile with hrSource; HrFieldOwnershipGuard refuses a manual change to them.",
 				"lifecycleActions": {
 					"field": "lifecycle",
 					"transitions": [
@@ -3226,6 +3226,39 @@
 				"headerFields": ["qualificationLabel"],
 				"typePill": {
 					"field": "groupLabel"
+				},
+				"statusPill": {
+					"endpointSource": {
+						"url": "/apps/learniq/api/pupils/@object.ncUserId/page",
+						"responsePath": "header.statePill.value"
+					},
+					"labels": {
+						"in-class": "In class",
+						"reported-ill": "Reported ill",
+						"appointment": "Appointment",
+						"reported-absent": "Reported absent",
+						"late": "Late",
+						"absent": "Absent",
+						"not-registered": "Not registered yet",
+						"signal-verzuim": "Absence signal",
+						"langdurig-relatief-verzuim": "Long-term relative absence",
+						"thuiszitter": "Stays at home",
+						"attendance-requirement": "Attendance requirement"
+					},
+					"colorMap": {
+						"in-class": "success",
+						"reported-ill": "warning",
+						"appointment": "info",
+						"reported-absent": "warning",
+						"late": "warning",
+						"absent": "error",
+						"not-registered": "default",
+						"signal-verzuim": "error",
+						"langdurig-relatief-verzuim": "error",
+						"thuiszitter": "error",
+						"attendance-requirement": "error"
+					},
+					"variant": "default"
 				},
 				"widgets": [
 					{
