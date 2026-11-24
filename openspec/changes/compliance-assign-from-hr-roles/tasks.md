@@ -20,7 +20,8 @@
 
 ## 5. Cross app
 
-- [ ] 5.1 Open an integriq issue for AFAS and humaniq source templates mapping to learniq's `LearnerProfile` (`department`, `roles`, `managerId`, `jobTitle`, `hrSource`, `hrSyncedAt`), referencing this change. Record the issue here.
+- [x] 5.1 Open an integriq issue for AFAS and humaniq source templates mapping to learniq's `LearnerProfile` (`department`, `roles`, `managerId`, `jobTitle`, `hrSource`, `hrSyncedAt`), referencing this change. Record the issue here.
+  - ConductionNL/integriq#3889 (24 Nov 2026).
 
 ## 6. Close out
 
