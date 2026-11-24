@@ -36685,7 +36685,7 @@
                         "type": "object",
                         "title": "Message link",
                         "nullable": true,
-                        "description": "The link under the student's message when the trainer sends the week back (\"Uren aanpassen\"): her hours page with this week chosen. The server writes it from the return; portaliq draws it only as a path on its own site.",
+                        "description": "The link under the student's message when the trainer sends the week back (Uren aanpassen): her hours page with this week chosen. The server writes it from the return; portaliq draws it only as a path on its own site.",
                         "properties": {
                             "label": {
                                 "type": "string",

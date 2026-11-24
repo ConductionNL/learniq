@@ -5610,6 +5610,8 @@
         "This day could not be read. Fill it in again.": "This day could not be read. Fill it in again.",
         "Message line": "Message line",
         "The line the student reads in her messages when the trainer sends the week back, naming the day: the server writes it from the return.": "The line the student reads in her messages when the trainer sends the week back, naming the day: the server writes it from the return.",
+        "Message link": "Message link",
+        "The link under the student's message when the trainer sends the week back (Uren aanpassen): her hours page with this week chosen. The server writes it from the return; portaliq draws it only as a path on its own site.": "The link under the student's message when the trainer sends the week back (Uren aanpassen): her hours page with this week chosen. The server writes it from the return; portaliq draws it only as a path on its own site.",
         "`draft` while the student keeps it for later, `submitted` while it waits for the trainer, `approved` when she approved what the student entered, `corrected` when she approved another number, `rejected` when she sent it back: approving none, or naming the day she has a question about.": "`draft` while the student keeps it for later, `submitted` while it waits for the trainer, `approved` when she approved what the student entered, `corrected` when she approved another number, `rejected` when she sent it back: approving none, or naming the day she has a question about.",
         "What would one more mark do?": "What would one more mark do?",
         "Enter a possible next mark and its weight. This is a forecast only; no grade is saved.": "Enter a possible next mark and its weight. This is a forecast only; no grade is saved.",
