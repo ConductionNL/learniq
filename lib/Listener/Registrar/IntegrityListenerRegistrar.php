@@ -41,6 +41,7 @@ use OCA\Learniq\Listener\HrFieldOwnershipGuard;
 use OCA\Learniq\Listener\ProfileScopeChangeHandler;
 use OCA\Learniq\Listener\SyncedCohortGuard;
 use OCA\Learniq\Listener\MaterialAttributionKeeper;
+use OCA\Learniq\Listener\PlacementQualificationCascade;
 use OCA\Learniq\Listener\LvsResultLearnerRefStamp;
 use OCA\Learniq\Listener\ReportCardGradeLinesStamp;
 use OCA\Learniq\Listener\PortfolioEntryOwnershipListener;
@@ -67,6 +68,7 @@ use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectDeletedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatedEvent;
+use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 
@@ -467,7 +469,9 @@ class IntegrityListenerRegistrar {
 	/**
 	 * NC material follows its course: withheld from learners while the course
 	 * is paid or corporate (open-learning-material). A Material added from an
-	 * open source keeps its source, makers and licence through every edit.
+	 * open source keeps its source, makers and licence through every edit. A
+	 * student's profile keeps the qualification line of her running placement
+	 * for the pupil page's header (learner-list-and-page-follow-the-boards T3).
 	 *
 	 * @param IRegistrationContext $context The registration context.
 	 *
@@ -485,6 +489,10 @@ class IntegrityListenerRegistrar {
 			event: ObjectUpdatingEvent::class,
 			listener: MaterialAttributionKeeper::class
 		);
+
+		foreach ([ObjectCreatedEvent::class, ObjectUpdatedEvent::class, ObjectTransitionedEvent::class] as $event) {
+			$context->registerEventListener(event: $event, listener: PlacementQualificationCascade::class);
+		}
 	}//end registerWithholdingCascade()
 
 	/**

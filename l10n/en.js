@@ -3784,6 +3784,7 @@ OC.L10N.register(
         "Workplace address": "Workplace address",
         "Where the student works during the placement.": "Where the student works during the placement.",
         "Qualification": "Qualification",
+        "The qualification of the running placement with its crebo number, for example \"Monteur mechatronica (crebo 25290)\". Written by the server.": "The qualification of the running placement with its crebo number, for example \"Monteur mechatronica (crebo 25290)\". Written by the server.",
         "The qualification the placement belongs to, for example Mechatronics level 4.": "The qualification the placement belongs to, for example Mechatronics level 4.",
         "Crebo": "Crebo",
         "The crebo number of the qualification.": "The crebo number of the qualification.",

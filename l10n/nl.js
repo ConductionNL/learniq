@@ -4361,6 +4361,7 @@ OC.L10N.register(
         "Workplace address": "Adres van de werkplek",
         "Where the student works during the placement.": "Waar de student tijdens de BPV werkt.",
         "Qualification": "Opleiding",
+        "The qualification of the running placement with its crebo number, for example \"Monteur mechatronica (crebo 25290)\". Written by the server.": "De opleiding van de lopende stage met het crebonummer, bijvoorbeeld \"Monteur mechatronica (crebo 25290)\". Wordt door de server geschreven.",
         "The qualification the placement belongs to, for example Mechatronics level 4.": "De opleiding waar de BPV bij hoort, bijvoorbeeld Mechatronica niveau 4.",
         "Crebo": "Crebo",
         "The crebo number of the qualification.": "Het crebonummer van de opleiding.",
