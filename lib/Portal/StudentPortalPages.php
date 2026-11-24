@@ -875,19 +875,25 @@ class StudentPortalPages {
 	}//end timetablePage()
 
 	/**
-	 * The blocks above and of a collection's list: the hours bar of the hour
-	 * weeks, the collection's first create form, then the list itself.
+	 * The blocks above and of a collection's list: the hours bar and the day
+	 * form of the hour weeks, the collection's first create form, then the
+	 * list itself.
 	 *
 	 * @param array<string, mixed>            $collection The collection.
 	 * @param array<int, array<string, mixed>> $actions    The audience's actions.
 	 *
 	 * @return array<int, array<string, mixed>>
+	 *
+	 * @spec openspec/changes/bpv-hours-per-day/specs/bpv/spec.md#requirement-a-returned-week-names-the-day-and-the-question
 	 */
 	private function listBlocks(array $collection, array $actions): array {
 		$id = (string)$collection['id'];
 		$blocks = [];
 		if ($id === 'studentHourWeeks') {
 			$blocks[] = $this->hoursBar(collection: 'studentBpvPlacements');
+			// The day form (board MobielDetail), where the "Uren aanpassen" link
+			// of a returned week lands (bpv-hours-per-day T3).
+			$blocks[] = ['type' => 'action', 'action' => 'writeHourDay'];
 		}
 
 		$form = $this->firstCreateFor(schema: $this->formSchema(collection: $collection), actions: $actions);

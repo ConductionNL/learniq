@@ -40,6 +40,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Portal;
 
 use OCA\Learniq\Portal\PortalContributionProvider;
+use OCA\Learniq\Service\HourReturnAction;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -1371,6 +1372,27 @@ class PortalContributionProviderTest extends TestCase {
 		$status = array_column($weeks['columns'], null, 'field')['lifecycle'];
 		$this->assertSame('Sent back', $status['valueLabels']['rejected']);
 	}//end testHoursPageIsInTheMenuAndASentBackWeekSaysSo()
+
+	/**
+	 * A returned week's message carries "Uren aanpassen": the inbox
+	 * collection reads the week's server-written link, and the hours page it
+	 * opens holds the day form (bpv-hours-per-day T3).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/bpv-hours-per-day/specs/bpv/spec.md#requirement-a-returned-week-names-the-day-and-the-question
+	 */
+	public function testAReturnedWeekMessageLinksToTheDayForm(): void {
+		$manifest = $this->provider->getContribution(self::STUDENT_SUBJECT);
+		$returned = array_column($manifest['collections'], null, 'id')['studentReturnedHours'];
+		self::assertSame('returnAction', $returned['actionField']);
+		self::assertContains('returnAction', $returned['fields']);
+
+		$page = array_column($manifest['pages'], null, 'id')['studentHourWeeks'];
+		self::assertStringStartsWith('/mijn/learniq/' . $page['id'] . '/', HourReturnAction::of(weekId: 'w1')['href']);
+		self::assertContains(['type' => 'action', 'action' => 'writeHourDay'], $page['blocks']);
+		self::assertContains('writeHourDay', array_column($manifest['actions'], 'id'));
+	}//end testAReturnedWeekMessageLinksToTheDayForm()
 
 	/**
 	 * The placement reads in words (no "Period From" or "Lifecycle State"),

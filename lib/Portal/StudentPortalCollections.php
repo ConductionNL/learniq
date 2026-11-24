@@ -224,6 +224,7 @@ class StudentPortalCollections {
 			'learnerRef',
 			'isoWeek',
 			'returnSubject',
+			'returnAction',
 			'note',
 			'approvedByName',
 			'approvedAt',
@@ -234,6 +235,9 @@ class StudentPortalCollections {
 			'body' => 'note',
 			'receivedAt' => 'approvedAt',
 		],
+		// "Uren aanpassen" under the message: her hours page with this week
+		// chosen, where she writes the day again (bpv-hours-per-day T3, D-5).
+		'actionField' => 'returnAction',
 	];
 
 	private const STUDENT_EXCUSE_REQUESTS = [
