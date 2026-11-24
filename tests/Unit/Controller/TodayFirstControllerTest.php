@@ -23,6 +23,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * @covers \OCA\Learniq\Controller\TodayFirstController
+ * @uses   \OCA\Learniq\Service\Today\FirstTodayCard
  */
 class TodayFirstControllerTest extends TestCase {
 
@@ -45,6 +46,7 @@ class TodayFirstControllerTest extends TestCase {
 		$session->method('getUser')->willReturn($user);
 		$l10n = $this->createMock(originalClassName: IL10N::class);
 		$l10n->method('t')->willReturnArgument(0);
+		$l10n->method('n')->willReturnArgument(1);
 		$request = $this->createMock(originalClassName: IRequest::class);
 		$request->method('getParam')->willReturnCallback(static fn (string $key, mixed $default=null): mixed => ($params[$key] ?? $default));
 
@@ -67,6 +69,28 @@ class TodayFirstControllerTest extends TestCase {
 		self::assertSame(expected: 200, actual: $response->getStatus());
 		self::assertSame(expected: 'unauthorised-absence', actual: $response->getData()['rule']);
 	}//end testShowAnswersTheCardForTheViewAsked()
+
+	/**
+	 * A rule Today has a card for comes back with the card's sentence, line and page; no rule comes back without.
+	 *
+	 * @return void
+	 */
+	public function testShowAddsWhatTheCardSaysAndOpens(): void {
+		$service = $this->createMock(originalClassName: FirstTodayService::class);
+		$service->method('cardFor')->willReturnOnConsecutiveCalls(
+			['role' => 'mentor', 'rule' => 'unauthorised-absence', 'count' => 2],
+			['role' => 'mentor', 'rule' => null, 'count' => 0]
+		);
+		$controller = $this->controller(service: $service, params: ['view' => 'mentor']);
+
+		$card = $controller->show()->getData();
+		$none = $controller->show()->getData();
+
+		self::assertSame(expected: 'AttendanceFlags', actual: $card['page']);
+		self::assertNotSame(expected: '', actual: $card['title']);
+		self::assertSame(expected: 'In the last two weeks, and not yet handled.', actual: $card['reason']);
+		self::assertArrayNotHasKey(key: 'title', array: $none);
+	}//end testShowAddsWhatTheCardSaysAndOpens()
 
 	/**
 	 * A view that is no string is read as the default view.

@@ -11,7 +11,7 @@
  * card shows the first rule that has at least one row, and no card when no
  * rule has one. The order is written here once, so a reviewer changes it in
  * one place. A rule is a name; what it counts is FirstTodayFacts', and what
- * the card says is the manifest's, one card per rule.
+ * the card says and opens is FirstTodayCard's.
  *
  * @category Service
  * @package  OCA\Learniq\Service\Today

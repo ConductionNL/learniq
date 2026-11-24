@@ -1,0 +1,15 @@
+{
+	"$comment": "The page the First today card opens per rule (today-first-per-school-role T1). Every page is one the full menu offers every role the rule is for, so Today links nothing a role could not already reach (REQ-STD-003); tests/unit-js/structureProfile.test.mjs checks that per role. A rule without a page here gets no card: the placement and exam rules belong to roles the simple Today is not for.",
+	"register-not-filled": "RollCall",
+	"bookings-to-confirm": "ConferenceRounds",
+	"nearing-limit": "AttendanceFlags",
+	"lesson-register-open": "RollCall",
+	"missing-hand-ins": "Assignments",
+	"unauthorised-absence": "AttendanceFlags",
+	"mentor-talks-closing": "ConferenceRounds",
+	"plan-ending": "LearningPlans",
+	"signal-not-taken-up": "AttendanceFlags",
+	"leave-past-half": "LeaveRequests",
+	"over-limit-not-reported": "AttendanceFlags",
+	"registers-not-filled-at-930": "SessionsToday"
+}
