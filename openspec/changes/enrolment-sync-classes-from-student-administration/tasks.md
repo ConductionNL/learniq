@@ -12,8 +12,8 @@
 
 ## 3. Screen
 
-- [ ] 3.1 Groepen: the sync line per board `LqGroepen`. Groep: read-only source fields with "uit <bron>" per board `LqGroep`. Verify: `npm run check:manifest`, `npm run check:l10n`.
-  - Done: the group page shows the source, the last sync time and its changes in a read-only "Student administration" block (`coh-source`); the source's fields are refused server side (2.3). Open: the one sync line under the Groepen title and a failed run's reason. The index page's header takes static text or `{total}` only, so the line needs a library key for an aggregate over the cohorts, and a failed run's reason is held by integriq's job, not by learniq.
+- [x] 3.1 Groepen: the sync line per board `LqGroepen`. Groep: read-only source fields with "uit <bron>" per board `LqGroep`. Verify: `npm run check:manifest`, `npm run check:l10n`.
+  - Done: the group page shows the source, the last sync time and its changes in a read-only "Student administration" block (`coh-source`); the source's fields are refused server side (2.3). Sync line built 24 Nov: nextcloud-vue's index header note reads a value from an endpoint (`headerMetaSource`, nextcloud-vue#2338), and the groups list (`Cohorts`) fills `headerMeta` "{source}" from `GET /api/cohorts/sync-line` (`CohortSyncLineController`, `CohortSyncLine`): the newest run among the groups the caller may open (one source, the cohorts stamped in that minute), "Bijgewerkt uit Magister om 07.00, 3 wijzigingen"; no note while no group is synced. Test: `CohortSyncLineTest`. Decision: a failed run's reason stays with integriq's job (learniq holds only the cohorts a run wrote), so the line names the last run that wrote.
 
 ## 4. Cross app
 
