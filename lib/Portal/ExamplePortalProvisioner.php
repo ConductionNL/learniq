@@ -239,6 +239,7 @@ class ExamplePortalProvisioner implements ExamplePortalProvisionerInterface {
 	 * @return string
 	 *
 	 * @spec openspec/changes/example-portal-declares-its-site/specs/example-sets/spec.md#requirement-loading-a-set-writes-its-declared-site-once
+	 * @spec openspec/changes/example-set-declares-its-events/specs/example-sets/spec.md#requirement-a-set-may-declare-events-and-a-news-item-may-name-one
 	 */
 	public function describe(array $result): string {
 		$line = 'Portal ' . ($result['slug'] ?? '-') . ': ' . (string)$result['status'] . self::themeNote(result: $result);
@@ -246,7 +247,7 @@ class ExamplePortalProvisioner implements ExamplePortalProvisionerInterface {
 			$line .= '; does not offer ' . implode(', ', $result['missingModes']);
 		}
 
-		foreach (['menus', 'pages', 'news'] as $part) {
+		foreach (['menus', 'pages', 'events', 'news'] as $part) {
 			if (isset($result[$part]) === true) {
 				$line .= '; ' . $part . ' ' . (int)$result[$part]['created'] . ' created, ' . (int)$result[$part]['kept'] . ' kept';
 			}
@@ -322,13 +323,15 @@ class ExamplePortalProvisioner implements ExamplePortalProvisionerInterface {
 	}//end declarationFor()
 
 	/**
-	 * Write the portal, then its menus, pages and news.
+	 * Write the portal, then its menus, pages, events and news.
 	 *
 	 * @param array<string, mixed> $declaration The set's declaration, dates moved.
 	 * @param string               $theme       The theme to write.
 	 * @param array<string, mixed> $move        The shipped declaration, the previous offset and this load's offset.
 	 *
 	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/example-set-declares-its-events/specs/example-sets/spec.md#requirement-a-set-may-declare-events-and-a-news-item-may-name-one
 	 */
 	private function apply(array $declaration, string $theme, array $move=[]): array {
 		$portal          = $declaration['portal'];
@@ -356,6 +359,7 @@ class ExamplePortalProvisioner implements ExamplePortalProvisionerInterface {
 			'missingModes' => $missing,
 			'menus'        => $this->content->menus(declaration: $declaration, refs: $refs),
 			'pages'        => $this->content->pages(declaration: $declaration, refs: $refs),
+			'events'       => $this->content->events(declaration: $declaration),
 			'news'         => $this->content->news(declaration: $declaration),
 		];
 	}//end apply()
