@@ -42,6 +42,7 @@ class PupilPageTest extends TestCase {
 				'statePill' => ['kind' => PupilPage::PILL_TODAY, 'value' => 'in-class'],
 				'group' => 'Groep 7',
 				'age' => 10,
+				'pupilNumber' => null,
 				'qualification' => '',
 				'crebo' => '',
 			],
@@ -181,4 +182,64 @@ class PupilPageTest extends TestCase {
 
 		$this->assertSame([['role' => PupilPage::CARE_COORDINATOR, 'userId' => 'zoco', 'noPlan' => false]], $people);
 	}//end testAPlanUnderEvaluationStillRuns()
+
+	/**
+	 * The header carries the school's own pupil number, never the BSN-type
+	 * personal number; a blank one reads as null.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/learner-list-and-page-follow-the-boards/tasks.md#T3
+	 */
+	public function testTheHeaderShowsTheSchoolsPupilNumberNotThePersonalNumber(): void {
+		$header = PupilPage::header(
+			profile: ['fullName' => 'Vera Hulstkamp', 'pupilNumber' => '20231457', 'personalNumber' => '123456782'],
+			cohort: [],
+			todayState: 'in-class',
+			flags: [],
+			placement: null
+		);
+		$this->assertSame(expected: '20231457', actual: $header['pupilNumber']);
+		$this->assertNotContains(needle: '123456782', haystack: $header);
+
+		$blank = PupilPage::header(
+			profile: ['pupilNumber' => '  ', 'personalNumber' => '123456782'],
+			cohort: [],
+			todayState: '',
+			flags: [],
+			placement: null
+		);
+		$this->assertNull(actual: $blank['pupilNumber']);
+	}//end testTheHeaderShowsTheSchoolsPupilNumberNotThePersonalNumber()
+
+	/**
+	 * The group's team leader follows the teachers and its career coach
+	 * follows the care coordinator; blank ones are left out.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/learner-list-and-page-follow-the-boards/tasks.md#T4
+	 */
+	public function testTheGroupsTeamLeaderAndCareerCoachAreAmongThePeople(): void {
+		$people = PupilPage::people(
+			cohort: ['teacherIds' => ['daan'], 'teamLeaderId' => 'tl-iris', 'careerCoachId' => 'slb-sara'],
+			plans: [],
+			placement: ['practicalTrainerId' => 'po-uuid', 'schoolCoachId' => 'bpv-bas']
+		);
+
+		$this->assertSame(
+			expected: [
+				['role' => PupilPage::MENTOR, 'userId' => 'daan'],
+				['role' => PupilPage::TEAM_LEADER, 'userId' => 'tl-iris'],
+				['role' => PupilPage::CARE_COORDINATOR, 'userId' => null, 'noPlan' => true],
+				['role' => PupilPage::CAREER_COACH, 'userId' => 'slb-sara'],
+				['role' => PupilPage::PRAKTIJKOPLEIDER, 'userId' => 'po-uuid'],
+				['role' => PupilPage::BPV_BEGELEIDER, 'userId' => 'bpv-bas'],
+			],
+			actual: $people
+		);
+
+		$none = PupilPage::people(cohort: ['teamLeaderId' => '', 'careerCoachId' => null], plans: [], placement: null);
+		$this->assertSame(expected: [['role' => PupilPage::CARE_COORDINATOR, 'userId' => null, 'noPlan' => true]], actual: $none);
+	}//end testTheGroupsTeamLeaderAndCareerCoachAreAmongThePeople()
 }//end class

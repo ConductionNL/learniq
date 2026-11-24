@@ -3175,7 +3175,7 @@
 			"config": {
 				"register": "learniq",
 				"schema": "learner-profile",
-				"_note": "Board LqLeerling (G2): the overview stacks recent grades, the latest attendance, the learner as a card and what else is in the dossier (counts); the other lists are tabs; the contact card beside it. The 'What now?' card and the people beside it read the pupil page endpoint (learner-list-and-page-follow-the-boards T3/T4); the header shows no learner number, because personalNumber is the BSN-type number. The conversation with the guardians is a body section at the end (PupilGuardianConversation, T5): the reader's messages with the pupil's guardians through portaliq's staff messaging, with a reply box for a participant. Actions holds Merge into another account (learner-merge-page-action): on an active learner it asks for the surviving account from a picker of the other active learners, confirms, and runs the merge transition; LearnerMergeGuard refuses a pair with an open enrolment in the same course and the dialog shows its reason. The HR system card (compliance-assign-from-hr-roles) shows department, job title, roles, manager and the HR source read only, only on a profile with hrSource; HrFieldOwnershipGuard refuses a manual change to them.",
+				"_note": "Board LqLeerling (G2): the overview stacks recent grades, the latest attendance, the learner as a card and what else is in the dossier (counts); the other lists are tabs; the contact card beside it. The 'What now?' card and the people beside it read the pupil page endpoint (learner-list-and-page-follow-the-boards T3/T4); the header shows no learner number, because personalNumber is the BSN-type number; the school's own pupilNumber is in Details, and the people card adds the group's team leader and career coach when the group names them. The conversation with the guardians is a body section at the end (PupilGuardianConversation, T5): the reader's messages with the pupil's guardians through portaliq's staff messaging, with a reply box for a participant. Actions holds Merge into another account (learner-merge-page-action): on an active learner it asks for the surviving account from a picker of the other active learners, confirms, and runs the merge transition; LearnerMergeGuard refuses a pair with an open enrolment in the same course and the dialog shows its reason. The HR system card (compliance-assign-from-hr-roles) shows department, job title, roles, manager and the HR source read only, only on a profile with hrSource; HrFieldOwnershipGuard refuses a manual change to them.",
 				"lifecycleActions": {
 					"field": "lifecycle",
 					"transitions": [
@@ -3316,8 +3316,12 @@
 									}
 								},
 								{
+									"path": "pupilNumber",
+									"label": "Pupil number"
+								},
+								{
 									"path": "personalNumber",
-									"label": "Learner number"
+									"label": "Personal number"
 								},
 								{
 									"path": "birthDate",
@@ -3977,7 +3981,9 @@
 								"role": {
 									"mentor": "Mentor",
 									"duo-partner": "Duo partner",
+									"team-leader": "Team leader",
 									"care-coordinator": "Care coordinator",
+									"career-coach": "Career coach",
 									"praktijkopleider": "Workplace trainer",
 									"bpv-begeleider": "Placement supervisor"
 								}

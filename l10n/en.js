@@ -5983,7 +5983,13 @@ OC.L10N.register(
         "The first lesson has started.": "The first lesson has started.",
         "The first lesson of %1$s has started.": "The first lesson of %1$s has started.",
         "{subject.title}": "{subject.title}",
-        "{subject.reason}": "{subject.reason}"
+        "{subject.reason}": "{subject.reason}",
+        "Pupil number": "Pupil number",
+        "Team leader": "Team leader",
+        "Career coach": "Career coach",
+        "The school's own pupil number (leerlingnummer), shown on the pupil's page. Never the BSN or the onderwijsnummer: those stay in personalNumber.": "The school's own pupil number (leerlingnummer), shown on the pupil's page. Never the BSN or the onderwijsnummer: those stay in personalNumber.",
+        "Nextcloud user ID of the group's team leader, shown among the people around each pupil of the group. Gives no teacher rights.": "Nextcloud user ID of the group's team leader, shown among the people around each pupil of the group. Gives no teacher rights.",
+        "Nextcloud user ID of the group's career coach (studieloopbaanbegeleider), shown among the people around each pupil of the group. Gives no teacher rights.": "Nextcloud user ID of the group's career coach (studieloopbaanbegeleider), shown among the people around each pupil of the group. Gives no teacher rights."
     },
     "nplurals=2; plural=(n != 1);"
 )

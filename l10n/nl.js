@@ -6537,7 +6537,13 @@ OC.L10N.register(
         "_%n leave request is past half its decision time_::_%n leave requests are past half their decision time_": ["%n verlofaanvraag is over de helft van de beslistermijn","%n verlofaanvragen zijn over de helft van hun beslistermijn"],
         "_%n pupil is over the attendance limit and not reported_::_%n pupils are over the attendance limit and not reported_": ["%n leerling is over de verzuimgrens en niet gemeld","%n leerlingen zijn over de verzuimgrens en niet gemeld"],
         "_%n group has no register filled in at 9.30_::_%n groups have no register filled in at 9.30_": ["%n groep heeft om 9.30 uur geen ingevuld register","%n groepen hebben om 9.30 uur geen ingevuld register"],
-        "_%n pupil was reported absent by a parent._::_%n pupils were reported absent by their parents._": ["%n leerling is afgemeld door een ouder.","%n leerlingen zijn afgemeld door hun ouders."]
+        "_%n pupil was reported absent by a parent._::_%n pupils were reported absent by their parents._": ["%n leerling is afgemeld door een ouder.","%n leerlingen zijn afgemeld door hun ouders."],
+        "Pupil number": "Leerlingnummer",
+        "Team leader": "Teamleider",
+        "Career coach": "Studieloopbaanbegeleider",
+        "The school's own pupil number (leerlingnummer), shown on the pupil's page. Never the BSN or the onderwijsnummer: those stay in personalNumber.": "Het eigen leerlingnummer van de school, getoond op de pagina van de leerling. Nooit het BSN of het onderwijsnummer: die blijven in personalNumber.",
+        "Nextcloud user ID of the group's team leader, shown among the people around each pupil of the group. Gives no teacher rights.": "Nextcloud-gebruikers-ID van de teamleider van de groep, getoond bij de mensen rond elke leerling van de groep. Geeft geen rechten als leraar.",
+        "Nextcloud user ID of the group's career coach (studieloopbaanbegeleider), shown among the people around each pupil of the group. Gives no teacher rights.": "Nextcloud-gebruikers-ID van de studieloopbaanbegeleider van de groep, getoond bij de mensen rond elke leerling van de groep. Geeft geen rechten als leraar."
     },
     "nplurals=2; plural=(n != 1);"
 )
