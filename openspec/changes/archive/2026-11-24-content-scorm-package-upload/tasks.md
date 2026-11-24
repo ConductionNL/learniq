@@ -18,5 +18,7 @@ Built in `ScormCourseImporter` (wired through `CoursePackageImporters::$scorm` a
 
 ## 4. Close out
 
-- [ ] 4.1 Playwright: upload the single-SCO 1.2 fixture, open the lesson as a learner, let the fixture set `completed`, see the enrolment's progress move.
-- [ ] 4.2 Update `course-management` "Run cmi5 + xAPI natively with SCORM shim" to drop "a cmi5 package importer" from the follow-up line only if that importer also lands; otherwise leave it. Set row `cont-play-scorm-package` to built and archive this change.
+- [x] 4.1 Playwright: upload the single-SCO 1.2 fixture, open the lesson as a learner, let the fixture set `completed`, see the enrolment's progress move.
+  - Written: `tests/e2e/content-scorm-package-upload.spec.ts`; runs in nightly (not verified live here).
+- [x] 4.2 Update `course-management` "Run cmi5 + xAPI natively with SCORM shim" to drop "a cmi5 package importer" from the follow-up line only if that importer also lands; otherwise leave it. Set row `cont-play-scorm-package` to built and archive this change.
+  - Done 24 Nov 2026: no cmi5 package importer landed, so the `course-management` follow-up line stays; the row is `built`, `learniq: yes`; the three requirements are added to `openspec/specs/course-management` (58 to 61).

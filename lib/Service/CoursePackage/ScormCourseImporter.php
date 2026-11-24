@@ -25,7 +25,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/content-scorm-package-upload/tasks.md
+ * @spec openspec/changes/archive/2026-11-24-content-scorm-package-upload/tasks.md
  */
 
 declare(strict_types=1);
@@ -38,7 +38,7 @@ use ZipArchive;
 /**
  * Imports a SCORM package as a course with one lesson per SCO.
  *
- * @spec openspec/changes/content-scorm-package-upload/specs/course-management/spec.md#requirement-the-package-import-accepts-a-scorm-zip
+ * @spec openspec/specs/course-management/spec.md#requirement-the-package-import-accepts-a-scorm-zip
  */
 class ScormCourseImporter {
 
@@ -83,7 +83,7 @@ class ScormCourseImporter {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/content-scorm-package-upload/specs/course-management/spec.md#requirement-the-package-import-accepts-a-scorm-zip
+	 * @spec openspec/specs/course-management/spec.md#requirement-the-package-import-accepts-a-scorm-zip
 	 */
 	public function isScormPackage(string $packagePath): bool {
 		$manifest = $this->manifestOf(packagePath: $packagePath);
@@ -99,7 +99,7 @@ class ScormCourseImporter {
 	 *
 	 * @return array<string, mixed> The persisted `CoursePackageImportReport`.
 	 *
-	 * @spec openspec/changes/content-scorm-package-upload/specs/course-management/spec.md#requirement-the-package-import-accepts-a-scorm-zip
+	 * @spec openspec/specs/course-management/spec.md#requirement-the-package-import-accepts-a-scorm-zip
 	 */
 	public function importPackage(string $packagePath, ImportOrigin $origin): array {
 		try {
@@ -132,7 +132,7 @@ class ScormCourseImporter {
 	 *
 	 * @return string Folder-relative path, without a leading slash.
 	 *
-	 * @spec openspec/changes/content-scorm-package-upload/specs/course-management/spec.md#requirement-the-package-import-accepts-a-scorm-zip
+	 * @spec openspec/specs/course-management/spec.md#requirement-the-package-import-accepts-a-scorm-zip
 	 */
 	public function courseFolder(string $tenantId, string $courseId): string {
 		$tenant = 'default';
@@ -150,7 +150,7 @@ class ScormCourseImporter {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/content-scorm-package-upload/specs/course-management/spec.md#requirement-the-import-report-is-honest-about-what-does-not-play
+	 * @spec openspec/specs/course-management/spec.md#requirement-the-import-report-is-honest-about-what-does-not-play
 	 */
 	public static function staysInside(string $name): bool {
 		return ScormPackageUnpacker::staysInside(name: $name);

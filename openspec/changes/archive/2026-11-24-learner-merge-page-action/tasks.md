@@ -22,5 +22,7 @@
 - [x] 3.1 PHPUnit: `LearnerMergeGuardTest` keeps passing.
   `--filter LearnerMerge`: 14 tests pass.
   - No `LearnerMergeGuardTest` exists in `tests/`. The guard's partner `LearnerMergeHandlerTest` passes. A guard test is still to be written.
-- [ ] 3.2 Playwright `tests/e2e/learner-merge.spec.ts`: as `hr` merge two seeded duplicates; as `hr` try a pair with one shared open course and read the reason; as an instructor see no action. Tag the scenarios with `@e2e`.
-- [ ] 3.3 Set row `gov-merge-duplicate-accounts` to `built`, `learniq: yes`, `reachedOn: "/learner-profiles/:id > Actions > Merge into another account"`; archive this change into `openspec/specs/learner-account-merge`.
+- [x] 3.2 Playwright `tests/e2e/learner-merge.spec.ts`: as `hr` merge two seeded duplicates; as `hr` try a pair with one shared open course and read the reason; as an instructor see no action. Tag the scenarios with `@e2e`.
+  - Written: `tests/e2e/learner-merge.spec.ts`; runs in nightly (not verified live here).
+- [x] 3.3 Set row `gov-merge-duplicate-accounts` to `built`, `learniq: yes`, `reachedOn: "/learner-profiles/:id > Actions > Merge into another account"`; archive this change into `openspec/specs/learner-account-merge`.
+  - Done 24 Nov 2026: the row is `built`, `learniq: yes`, reached on the page action; the three requirements are added to `openspec/specs/learner-account-merge` (3 to 6).

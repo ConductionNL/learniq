@@ -23,7 +23,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/content-scorm-package-upload/tasks.md
+ * @spec openspec/changes/archive/2026-11-24-content-scorm-package-upload/tasks.md
  */
 
 declare(strict_types=1);
@@ -39,7 +39,7 @@ use ZipArchive;
 /**
  * Writes a SCORM zip's entries into a course folder, dropping escaping ones.
  *
- * @spec openspec/changes/content-scorm-package-upload/specs/course-management/spec.md#requirement-the-import-report-is-honest-about-what-does-not-play
+ * @spec openspec/specs/course-management/spec.md#requirement-the-import-report-is-honest-about-what-does-not-play
  */
 class ScormPackageUnpacker {
 
@@ -66,7 +66,7 @@ class ScormPackageUnpacker {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/content-scorm-package-upload/specs/course-management/spec.md#requirement-the-import-report-is-honest-about-what-does-not-play
+	 * @spec openspec/specs/course-management/spec.md#requirement-the-import-report-is-honest-about-what-does-not-play
 	 */
 	public static function staysInside(string $name): bool {
 		$normalised = str_replace('\\', '/', $name);
@@ -87,7 +87,7 @@ class ScormPackageUnpacker {
 	 *
 	 * @return list<array<string, mixed>> The dropped entries.
 	 *
-	 * @spec openspec/changes/content-scorm-package-upload/specs/course-management/spec.md#requirement-the-import-report-is-honest-about-what-does-not-play
+	 * @spec openspec/specs/course-management/spec.md#requirement-the-import-report-is-honest-about-what-does-not-play
 	 */
 	public function unpack(string $packagePath, string $folder, string $importedBy): array {
 		$zip = new ZipArchive();

@@ -15,7 +15,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/content-scorm-package-upload/tasks.md#task-2.3
+ * @spec openspec/changes/archive/2026-11-24-content-scorm-package-upload/tasks.md#task-2.3
  */
 
 declare(strict_types=1);
@@ -50,7 +50,7 @@ use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
  * learniq_register.json, so a field the schema does not know or a value its
  * enum refuses fails here instead of at the first real upload.
  *
- * @spec openspec/changes/content-scorm-package-upload/specs/course-management/spec.md#requirement-the-package-import-accepts-a-scorm-zip
+ * @spec openspec/specs/course-management/spec.md#requirement-the-package-import-accepts-a-scorm-zip
  */
 #[CoversClass(ScormCourseImporter::class)]
 #[UsesClass(CoursePackageObjectWriter::class)]

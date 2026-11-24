@@ -15,7 +15,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/content-scorm-package-upload/tasks.md
+ * @spec openspec/changes/archive/2026-11-24-content-scorm-package-upload/tasks.md
  */
 
 declare(strict_types=1);
@@ -39,7 +39,7 @@ use ZipArchive;
  * Entries inside the package root are written under the course folder;
  * escaping ones are dropped, folder entries skipped, write failures logged.
  *
- * @spec openspec/changes/content-scorm-package-upload/specs/course-management/spec.md#requirement-the-import-report-is-honest-about-what-does-not-play
+ * @spec openspec/specs/course-management/spec.md#requirement-the-import-report-is-honest-about-what-does-not-play
  */
 #[CoversClass(ScormPackageUnpacker::class)]
 #[UsesClass(FolderFileWriter::class)]

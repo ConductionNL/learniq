@@ -23,7 +23,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/content-scorm-package-upload/tasks.md
+ * @spec openspec/changes/archive/2026-11-24-content-scorm-package-upload/tasks.md
  */
 
 declare(strict_types=1);
@@ -38,7 +38,7 @@ use InvalidArgumentException;
 /**
  * Parses a SCORM 1.2 or 2004 manifest into its version, SCOs and files.
  *
- * @spec openspec/changes/content-scorm-package-upload/tasks.md
+ * @spec openspec/changes/archive/2026-11-24-content-scorm-package-upload/tasks.md
  */
 class ScormManifestParser {
 
@@ -66,7 +66,7 @@ class ScormManifestParser {
 	 *
 	 * @throws InvalidArgumentException When the text is not a SCORM manifest, or names no SCO.
 	 *
-	 * @spec openspec/changes/content-scorm-package-upload/tasks.md
+	 * @spec openspec/changes/archive/2026-11-24-content-scorm-package-upload/tasks.md
 	 */
 	public function parse(string $xml): array {
 		$manifest = $this->manifestElement(xml: $xml);
@@ -103,7 +103,7 @@ class ScormManifestParser {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/content-scorm-package-upload/tasks.md
+	 * @spec openspec/changes/archive/2026-11-24-content-scorm-package-upload/tasks.md
 	 */
 	public function isScorm(string $xml): bool {
 		try {

@@ -15,7 +15,7 @@
   Copyright (C) 2026 Conduction B.V.
 
   @spec openspec/specs/course-management/spec.md#requirement-course-package-frontend-is-declarative-with-one-named-custom-view-for-the-import-report
-  @spec openspec/changes/content-scorm-package-upload/tasks.md#task-3.1
+  @spec openspec/changes/archive/2026-11-24-content-scorm-package-upload/tasks.md#task-3.1
   @spec openspec/specs/course-management/spec.md#scenario-an-instructional-designer-uploads-a-package-and-sees-the-report
   @spec openspec/specs/course-management/spec.md#requirement-nothing-is-extracted-until-the-teacher-confirms-one-file-on-the-review-page
 -->

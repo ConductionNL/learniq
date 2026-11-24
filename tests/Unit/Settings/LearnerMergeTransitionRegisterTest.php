@@ -15,7 +15,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/learner-merge-page-action/specs/learner-account-merge/spec.md
+ * @spec openspec/specs/learner-account-merge/spec.md
  */
 
 declare(strict_types=1);
