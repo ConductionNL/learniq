@@ -114,6 +114,43 @@ class PublicIndexReads {
 	}//end idOf()
 
 	/**
+	 * The address part of an item's detail page, from its title:
+	 * "F-gassen: herhaling en examen" reads "f-gassen-herhaling-en-examen".
+	 * '' when the title has no letter or digit.
+	 *
+	 * @param string $title The item's title.
+	 *
+	 * @return string
+	 *
+	 * @spec openspec/changes/portal-public-index/specs/portal-contribution/spec.md#requirement-a-public-course-or-programme-has-a-page-of-its-own
+	 */
+	public function slugOf(string $title): string {
+		$ascii = (string)iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $title);
+		$slug  = trim((string)preg_replace('/[^a-z0-9]+/', '-', strtolower($ascii)), '-');
+
+		return substr($slug, 0, 100);
+	}//end slugOf()
+
+	/**
+	 * The item with the `slug` of its page, made from its title; unchanged
+	 * when the title gives none.
+	 *
+	 * @param array<string, mixed> $item The index item.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/portal-public-index/specs/portal-contribution/spec.md#requirement-a-public-course-or-programme-has-a-page-of-its-own
+	 */
+	public function withSlug(array $item): array {
+		$slug = $this->slugOf(title: (string)($item['title'] ?? ''));
+		if ($slug !== '') {
+			$item['slug'] = $slug;
+		}
+
+		return $item;
+	}//end withSlug()
+
+	/**
 	 * A word in the portal's language.
 	 *
 	 * @param string            $text The English text.

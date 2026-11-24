@@ -233,6 +233,9 @@ class PublicCourseIndex {
 			'meta'    => $this->meta(count: $count, runs: $runs, course: $course),
 			'facets'  => [$this->reads->word(text: 'Start in') => $this->distinct(runs: $runs, part: 'month')],
 		];
+		// The address of the item's own page on the portal (portaliq public-detail-page-for-a-provider-item).
+		$item = $this->reads->withSlug(item: $item);
+
 		$places = $this->distinct(runs: $runs, part: 'place');
 		if ($places !== []) {
 			$item['facets'][$this->reads->word(text: 'Venue')] = $places;
