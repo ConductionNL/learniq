@@ -592,7 +592,7 @@
 						"content": {
 							"layout": "attention",
 							"variant": "error",
-							"kicker": "First today",
+							"kicker": "Attendance",
 							"title": "Attendance flags nobody has picked up",
 							"text": "Attendance flags nobody has picked up",
 							"reason": "{value} attendance flags are still open. Open one to start the follow-up.",
@@ -997,6 +997,60 @@
 							"borderless": true,
 							"emptyText": "Nobody is close to the limit"
 						}
+					},
+					{
+						"id": "today-first-rule",
+						"type": "banner",
+						"title": "First today",
+						"_note": "today-first-per-school-role T1: the reader's own First today card. GET /api/today/first answers the first rule of her role's ordered list with a row, and for a rule Today has a card for its sentence (title), its line (reason) and the page its action opens (page, from lib/Service/Today/first-today-pages.json). The page asks once; a role only ever reads its own rule, and every page in that file is one each role of the rule reaches (REQ-STD-003). No rule, no title, no card.",
+						"content": {
+							"layout": "attention",
+							"variant": "warning",
+							"kicker": "First today",
+							"title": "{subject.title}",
+							"text": "{subject.title}",
+							"reason": "{subject.reason}",
+							"visibleWhen": {
+								"endpoint": "/apps/learniq/api/today/first",
+								"field": "title",
+								"op": "notEmpty"
+							},
+							"actions": [
+								{
+									"label": "Open",
+									"route": {
+										"name": "@subject.page"
+									}
+								}
+							]
+						}
+					},
+					{
+						"id": "mentor-first-rule",
+						"type": "banner",
+						"title": "First today",
+						"_note": "today-first-per-school-role T1: the reader's own First today card. GET /api/today/first answers the first rule of her role's ordered list with a row, and for a rule Today has a card for its sentence (title), its line (reason) and the page its action opens (page, from lib/Service/Today/first-today-pages.json). The page asks once; a role only ever reads its own rule, and every page in that file is one each role of the rule reaches (REQ-STD-003). No rule, no title, no card.",
+						"content": {
+							"layout": "attention",
+							"variant": "warning",
+							"kicker": "First today",
+							"title": "{subject.title}",
+							"text": "{subject.title}",
+							"reason": "{subject.reason}",
+							"visibleWhen": {
+								"endpoint": "/apps/learniq/api/today/first?view=mentor",
+								"field": "title",
+								"op": "notEmpty"
+							},
+							"actions": [
+								{
+									"label": "Open",
+									"route": {
+										"name": "@subject.page"
+									}
+								}
+							]
+						}
 					}
 				],
 				"layout": [],
@@ -1014,11 +1068,21 @@
 						"label": "Teacher",
 						"layout": [
 							{
-								"id": "t2",
-								"widgetId": "today-first",
+								"id": "t1",
+								"widgetId": "today-first-rule",
 								"gridX": 0,
 								"gridY": 1,
-								"gridWidth": 12,
+								"gridWidth": 8,
+								"gridHeight": 2,
+								"showTitle": false,
+								"sizeToContent": true
+							},
+							{
+								"id": "t2",
+								"widgetId": "today-first",
+								"gridX": 8,
+								"gridY": 1,
+								"gridWidth": 4,
 								"gridHeight": 2,
 								"showTitle": false,
 								"sizeToContent": true
@@ -1115,10 +1179,20 @@
 						"label": "Mentor",
 						"layout": [
 							{
+								"id": "m0",
+								"widgetId": "mentor-first-rule",
+								"gridX": 0,
+								"gridY": 1,
+								"gridWidth": 12,
+								"gridHeight": 2,
+								"showTitle": false,
+								"sizeToContent": true
+							},
+							{
 								"id": "m1",
 								"widgetId": "mentor-signals",
 								"gridX": 0,
-								"gridY": 1,
+								"gridY": 3,
 								"gridWidth": 8,
 								"gridHeight": 6,
 								"showTitle": true
@@ -1127,7 +1201,7 @@
 								"id": "m2",
 								"widgetId": "mentor-open-signals",
 								"gridX": 8,
-								"gridY": 1,
+								"gridY": 3,
 								"gridWidth": 2,
 								"gridHeight": 2,
 								"showTitle": false,
@@ -1137,7 +1211,7 @@
 								"id": "m4",
 								"widgetId": "today-nearing",
 								"gridX": 8,
-								"gridY": 3,
+								"gridY": 5,
 								"gridWidth": 4,
 								"gridHeight": 4,
 								"showTitle": true
@@ -1146,7 +1220,7 @@
 								"id": "m3",
 								"widgetId": "today-dashboards",
 								"gridX": 0,
-								"gridY": 7,
+								"gridY": 9,
 								"gridWidth": 12,
 								"gridHeight": 3,
 								"showTitle": false,

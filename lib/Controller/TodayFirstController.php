@@ -5,8 +5,10 @@
  *
  * `GET /api/today/first` answers the First today card of the signed-in user:
  * the first rule of her role's ordered list that has a row, with its count
- * and what the card names, or `rule: null` when nothing is first. Today draws
- * one card per rule and shows the one this answer names.
+ * and what the card names, or `rule: null` when nothing is first. A rule
+ * Today has a card for also carries the card's `title`, `reason` and the
+ * `page` its action opens (FirstTodayCard); Today draws one attention card
+ * from them, so the page asks once.
  *
  * @category Controller
  * @package  OCA\Learniq\Controller
@@ -28,6 +30,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Service\Today\FirstTodayCard;
 use OCA\Learniq\Service\Today\FirstTodayService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -93,6 +96,6 @@ class TodayFirstController extends Controller {
 			return new JSONResponse(data: ['error' => $message], statusCode: Http::STATUS_SERVICE_UNAVAILABLE);
 		}
 
-		return new JSONResponse(data: $card);
+		return new JSONResponse(data: (new FirstTodayCard(l10n: $this->l10n))->describe(card: $card));
 	}//end show()
 }//end class

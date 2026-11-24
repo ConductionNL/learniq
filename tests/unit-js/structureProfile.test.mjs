@@ -232,6 +232,39 @@ function routeName(route) {
 }
 
 /**
+ * The First today rules each primary role on Today reads, as
+ * lib/Service/Today/FirstTodayRules::roleFor() and inView() resolve them: a
+ * teacher is the group or the subject teacher by school kind and reads the
+ * mentor's rules in the Mentor view.
+ */
+const FIRST_TODAY_RULES = {
+	instructor: [
+		'register-not-filled', 'bookings-to-confirm', 'nearing-limit',
+		'lesson-register-open', 'missing-hand-ins',
+		'unauthorised-absence', 'mentor-talks-closing',
+	],
+	coordinator: ['plan-ending', 'signal-not-taken-up'],
+	'administration-manager': ['leave-past-half', 'over-limit-not-reported', 'registers-not-filled-at-930'],
+	admin: ['leave-past-half', 'over-limit-not-reported', 'registers-not-filled-at-930'],
+}
+
+/**
+ * The pages the First today card can open for a primary role: the page of
+ * each of its rules in lib/Service/Today/first-today-pages.json, which the
+ * server answers as `page` and the card's action opens as `@subject.page`.
+ *
+ * @param {string} role The primary role.
+ * @return {Array<string>} The page ids.
+ */
+function firstTodayPages(role) {
+	const pages = readJson('lib/Service/Today/first-today-pages.json')
+	return (FIRST_TODAY_RULES[role] || []).map((rule) => {
+		assert.equal(typeof pages[rule], 'string', `${rule} has no page`)
+		return pages[rule]
+	})
+}
+
+/**
  * The pages a dashboard's tiles and cards open: a tile's `route` and a
  * banner's action routes.
  *
@@ -1042,7 +1075,8 @@ function todayCounts() {
 				routes: [widget.content.route],
 			})
 		}
-		if (widget.type === 'banner') {
+		// The First today rule card reads /api/today/first, not a count.
+		if (widget.type === 'banner' && widget.content.visibleWhen.source) {
 			counts.push({
 				id: widget.id,
 				source: widget.content.visibleWhen.source,
@@ -1496,7 +1530,9 @@ test('Today links no page the full menu keeps from a role it is for', () => {
 		const simple = build(SIMPLE, role)
 		const page = simple.pages.find((candidate) => candidate.id === 'Dashboard')
 		const links = [
-			...dashboardLinks(page),
+			...dashboardLinks(page).flatMap((link) =>
+				link === '@subject.page' ? firstTodayPages(role) : [link],
+			),
 			...page.config.headerActions.map((action) => action.target),
 		]
 		for (const widget of page.config.widgets) {
@@ -1510,6 +1546,39 @@ test('Today links no page the full menu keeps from a role it is for', () => {
 		for (const link of links) {
 			assert.ok(offered.has(link), `${role} gets a link to ${link}`)
 		}
+	}
+})
+
+test('each Today view has one First today card, read from the server once', () => {
+	// today-first-per-school-role T1: the card is the first rule of the
+	// reader's own role, so the page asks /api/today/first once and draws
+	// what it answers; a role never gets another role's card.
+	for (const [view, endpoint] of [
+		[TEACHER, '/apps/learniq/api/today/first'],
+		[MENTOR, '/apps/learniq/api/today/first?view=mentor'],
+	]) {
+		const cards = view.widgets.filter(
+			(widget) => widget.type === 'banner' && widget.content.kicker === 'First today',
+		)
+		assert.equal(cards.length, 1)
+		const [card] = cards
+		assert.deepEqual(card.content.visibleWhen, { endpoint, field: 'title', op: 'notEmpty' })
+		assert.equal(card.content.title, '{subject.title}')
+		assert.equal(card.content.reason, '{subject.reason}')
+		assert.deepEqual(card.content.actions.map((action) => action.route), [{ name: '@subject.page' }])
+	}
+	// Every page the server can answer is a page of the manifest.
+	const ids = new Set(build(FULL, 'admin').pages.map((page) => page.id))
+	const pages = readJson('lib/Service/Today/first-today-pages.json')
+	for (const [rule, page] of Object.entries(pages)) {
+		if (!rule.startsWith('$')) {
+			assert.ok(ids.has(page), `${rule} opens ${page}, which is no page`)
+		}
+	}
+	// The mirror of the rule list covers every rule that has a page.
+	const mirrored = new Set(Object.values(FIRST_TODAY_RULES).flat())
+	for (const rule of Object.keys(pages).filter((key) => !key.startsWith('$'))) {
+		assert.ok(mirrored.has(rule), `${rule} is read by no role on Today`)
 	}
 })
 
