@@ -6602,7 +6602,76 @@
         "ImprovementAction": "Verbeteractie",
         "AccessibilityStatement": "Toegankelijkheidsverklaring",
         "KeuzedeelOffer": "Keuzedeelaanbod",
-        "KeuzedeelChoice": "Keuzedeelkeuze"
+        "KeuzedeelChoice": "Keuzedeelkeuze",
+        "Today's register is not filled in yet": "Het register van vandaag is nog niet ingevuld",
+        "Confirm them so the parents know the time.": "Bevestig ze, dan weten de ouders hoe laat het gesprek is.",
+        "Talk to them before the limit is reached.": "Spreek ze aan voordat de grens bereikt is.",
+        "The lesson has ended.": "De les is afgelopen.",
+        "The first is %1$s.": "De eerste is %1$s.",
+        "In the last two weeks, and not yet handled.": "In de afgelopen twee weken, en nog niet opgepakt.",
+        "Booking closes soon.": "De inschrijving sluit binnenkort.",
+        "Booking for %1$s closes soon.": "De inschrijving voor %1$s sluit binnenkort.",
+        "Plan the evaluation before the plan ends.": "Plan de evaluatie voordat het plan afloopt.",
+        "Pick one up to start the follow-up.": "Pak er een op om de opvolging te starten.",
+        "Decide before the decision date.": "Beslis voor de beslisdatum.",
+        "Report them to the attendance officer.": "Meld ze bij de leerplichtambtenaar.",
+        "%1$s of %2$s groups with lessons today filled theirs in.": "%1$s van de %2$s groepen met les vandaag hebben het register ingevuld.",
+        "The first lesson has started.": "De eerste les is begonnen.",
+        "The first lesson of %1$s has started.": "De eerste les van %1$s is begonnen.",
+        "{subject.title}": "{subject.title}",
+        "{subject.reason}": "{subject.reason}",
+        "_%n conference booking waits for your confirmation_::_%n conference bookings wait for your confirmation_": [
+            "%n gespreksaanvraag wacht op je bevestiging",
+            "%n gespreksaanvragen wachten op je bevestiging"
+        ],
+        "_%n pupil is nearing the attendance limit_::_%n pupils are nearing the attendance limit_": [
+            "%n leerling nadert de verzuimgrens",
+            "%n leerlingen naderen de verzuimgrens"
+        ],
+        "_%n lesson of yours today has no register yet_::_%n lessons of yours today have no register yet_": [
+            "%n les van jou vandaag heeft nog geen ingevuld register",
+            "%n lessen van jou vandaag hebben nog geen ingevuld register"
+        ],
+        "_%n assignment is due today with hand-ins missing_::_%n assignments are due today with hand-ins missing_": [
+            "%n opdracht moet vandaag ingeleverd zijn en mist inleveringen",
+            "%n opdrachten moeten vandaag ingeleverd zijn en missen inleveringen"
+        ],
+        "_%n hand-in is still missing._::_%n hand-ins are still missing._": [
+            "%n inlevering ontbreekt nog.",
+            "%n inleveringen ontbreken nog."
+        ],
+        "_%n pupil of your class was absent without leave_::_%n pupils of your class were absent without leave_": [
+            "%n leerling van je klas was ongeoorloofd afwezig",
+            "%n leerlingen van je klas waren ongeoorloofd afwezig"
+        ],
+        "_%n pupil has not chosen a mentor talk yet_::_%n pupils have not chosen a mentor talk yet_": [
+            "%n leerling heeft nog geen mentorgesprek gekozen",
+            "%n leerlingen hebben nog geen mentorgesprek gekozen"
+        ],
+        "_%n plan ends without an evaluation_::_%n plans end without an evaluation_": [
+            "%n plan loopt af zonder evaluatie",
+            "%n plannen lopen af zonder evaluatie"
+        ],
+        "_%n signal has not been taken up_::_%n signals have not been taken up_": [
+            "%n signaal is nog niet opgepakt",
+            "%n signalen zijn nog niet opgepakt"
+        ],
+        "_%n leave request is past half its decision time_::_%n leave requests are past half their decision time_": [
+            "%n verlofaanvraag is over de helft van de beslistermijn",
+            "%n verlofaanvragen zijn over de helft van hun beslistermijn"
+        ],
+        "_%n pupil is over the attendance limit and not reported_::_%n pupils are over the attendance limit and not reported_": [
+            "%n leerling is over de verzuimgrens en niet gemeld",
+            "%n leerlingen zijn over de verzuimgrens en niet gemeld"
+        ],
+        "_%n group has no register filled in at 9.30_::_%n groups have no register filled in at 9.30_": [
+            "%n groep heeft om 9.30 uur geen ingevuld register",
+            "%n groepen hebben om 9.30 uur geen ingevuld register"
+        ],
+        "_%n pupil was reported absent by a parent._::_%n pupils were reported absent by their parents._": [
+            "%n leerling is afgemeld door een ouder.",
+            "%n leerlingen zijn afgemeld door hun ouders."
+        ]
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

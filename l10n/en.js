@@ -5966,7 +5966,24 @@ OC.L10N.register(
         "Entitlement": "Entitlement",
         "AccessibilityStatement": "AccessibilityStatement",
         "KeuzedeelOffer": "KeuzedeelOffer",
-        "KeuzedeelChoice": "KeuzedeelChoice"
+        "KeuzedeelChoice": "KeuzedeelChoice",
+        "Today's register is not filled in yet": "Today's register is not filled in yet",
+        "Confirm them so the parents know the time.": "Confirm them so the parents know the time.",
+        "Talk to them before the limit is reached.": "Talk to them before the limit is reached.",
+        "The lesson has ended.": "The lesson has ended.",
+        "The first is %1$s.": "The first is %1$s.",
+        "In the last two weeks, and not yet handled.": "In the last two weeks, and not yet handled.",
+        "Booking closes soon.": "Booking closes soon.",
+        "Booking for %1$s closes soon.": "Booking for %1$s closes soon.",
+        "Plan the evaluation before the plan ends.": "Plan the evaluation before the plan ends.",
+        "Pick one up to start the follow-up.": "Pick one up to start the follow-up.",
+        "Decide before the decision date.": "Decide before the decision date.",
+        "Report them to the attendance officer.": "Report them to the attendance officer.",
+        "%1$s of %2$s groups with lessons today filled theirs in.": "%1$s of %2$s groups with lessons today filled theirs in.",
+        "The first lesson has started.": "The first lesson has started.",
+        "The first lesson of %1$s has started.": "The first lesson of %1$s has started.",
+        "{subject.title}": "{subject.title}",
+        "{subject.reason}": "{subject.reason}"
     },
     "nplurals=2; plural=(n != 1);"
 )
