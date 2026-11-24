@@ -60,10 +60,10 @@ class CohortSyncLine {
 	public function lastRun(array $cohorts): ?array {
 		$synced = [];
 		foreach ($cohorts as $cohort) {
-			$at     = $this->momentOf(value: ($cohort['syncedAt'] ?? null));
+			$moment = $this->momentOf(value: ($cohort['syncedAt'] ?? null));
 			$source = trim((string)($cohort['externalSource'] ?? ''));
-			if ($at !== null && $source !== '') {
-				$synced[] = ['source' => $source, 'at' => $at, 'minute' => $at->format('YmdHi'), 'changes' => max(0, (int)($cohort['syncChanges'] ?? 0))];
+			if ($moment !== null && $source !== '') {
+				$synced[] = ['source' => $source, 'at' => $moment, 'minute' => $moment->format('YmdHi'), 'changes' => max(0, (int)($cohort['syncChanges'] ?? 0))];
 			}
 		}
 
@@ -99,15 +99,15 @@ class CohortSyncLine {
 	/**
 	 * The run's time of day in the school's zone, as "07.00".
 	 *
-	 * @param DateTimeImmutable $at   The moment.
-	 * @param DateTimeZone      $zone The school's zone.
+	 * @param DateTimeImmutable $moment The moment.
+	 * @param DateTimeZone      $zone   The school's zone.
 	 *
 	 * @return string
 	 *
 	 * @spec openspec/changes/enrolment-sync-classes-from-student-administration/tasks.md#3-screen
 	 */
-	public function timeOf(DateTimeImmutable $at, DateTimeZone $zone): string {
-		return $at->setTimezone($zone)->format('H.i');
+	public function timeOf(DateTimeImmutable $moment, DateTimeZone $zone): string {
+		return $moment->setTimezone($zone)->format('H.i');
 	}//end timeOf()
 
 	/**

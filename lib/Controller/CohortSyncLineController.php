@@ -37,7 +37,6 @@ use OCP\AppFramework\Http\JSONResponse;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IUserSession;
-use Psr\Log\LoggerInterface;
 use Throwable;
 
 /**
@@ -51,19 +50,17 @@ class CohortSyncLineController extends Controller {
 	 * Constructor.
 	 *
 	 * @param IRequest        $request     The request.
-	 * @param IUserSession    $userSession The signed-in user.
 	 * @param RollCallAccess  $access      The groups the caller may open, and her zone.
-	 * @param LoggerInterface $logger      PSR logger.
 	 * @param IL10N           $l10n        Messages.
+	 * @param IUserSession    $userSession The signed-in user.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		IRequest $request,
-		private readonly IUserSession $userSession,
 		private readonly RollCallAccess $access,
-		private readonly LoggerInterface $logger,
 		private readonly IL10N $l10n,
+		private readonly IUserSession $userSession,
 	) {
 		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
@@ -80,7 +77,8 @@ class CohortSyncLineController extends Controller {
 	public function show(): JSONResponse {
 		$user = $this->userSession->getUser();
 		if ($user === null) {
-			return new JSONResponse(data: ['error' => $this->l10n->t('Sign in to open this page.')], statusCode: Http::STATUS_UNAUTHORIZED);
+			// Signed out: no note, and the list says why itself.
+			return new JSONResponse(data: ['line' => ''], statusCode: Http::STATUS_UNAUTHORIZED);
 		}
 
 		try {
@@ -94,11 +92,11 @@ class CohortSyncLineController extends Controller {
 				'Updated from %1$s at %2$s, %3$s change',
 				'Updated from %1$s at %2$s, %3$s changes',
 				$run['changes'],
-				[$words->sourceName(source: $run['source']), $words->timeOf(at: $run['at'], zone: $this->access->zone(user: $user)), (string)$run['changes']]
+				[$words->sourceName(source: $run['source']), $words->timeOf(moment: $run['at'], zone: $this->access->zone(user: $user)), (string)$run['changes']]
 			);
 			return new JSONResponse(data: ['line' => $line]);
-		} catch (Throwable $exception) {
-			$this->logger->warning('[CohortSyncLineController] No sync line: {msg}', ['msg' => $exception->getMessage()]);
+		} catch (Throwable) {
+			// The note is left out; the list itself still opens.
 			return new JSONResponse(data: ['line' => ''], statusCode: Http::STATUS_SERVICE_UNAVAILABLE);
 		}
 	}//end show()

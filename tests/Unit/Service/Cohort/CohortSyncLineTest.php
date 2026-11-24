@@ -31,7 +31,6 @@ use OCP\IRequest;
 use OCP\IUser;
 use OCP\IUserSession;
 use PHPUnit\Framework\TestCase;
-use Psr\Log\NullLogger;
 
 /**
  * The groups list says when, from where and with how many changes it was last synced.
@@ -63,7 +62,7 @@ class CohortSyncLineTest extends TestCase {
 
 		self::assertSame(expected: ['magister', 3], actual: [$run['source'], $run['changes']]);
 		self::assertSame(expected: 'Magister', actual: $words->sourceName(source: $run['source']));
-		self::assertSame(expected: '07.00', actual: $words->timeOf(at: $run['at'], zone: new DateTimeZone('Europe/Amsterdam')));
+		self::assertSame(expected: '07.00', actual: $words->timeOf(moment: $run['at'], zone: new DateTimeZone('Europe/Amsterdam')));
 		self::assertSame(expected: 'Parnassys', actual: $words->sourceName(source: 'parnassys'));
 	}//end testTheLastRunCountsTheChangesOfTheGroupsItWrote()
 
@@ -78,7 +77,8 @@ class CohortSyncLineTest extends TestCase {
 		$words = new CohortSyncLine();
 
 		self::assertNull(actual: $words->lastRun(cohorts: []));
-		self::assertNull(actual: $words->lastRun(cohorts: [['name' => 'x'], ['externalSource' => 'magister', 'syncedAt' => 'not a time'], ['syncedAt' => '2026-10-05T05:00:00+00:00']]));
+		$unsynced = [['name' => 'x'], ['externalSource' => 'magister', 'syncedAt' => 'not a time'], ['syncedAt' => '2026-10-05T05:00:00+00:00']];
+		self::assertNull(actual: $words->lastRun(cohorts: $unsynced));
 	}//end testNoRunWithoutASyncedGroup()
 
 	/**
@@ -97,16 +97,20 @@ class CohortSyncLineTest extends TestCase {
 		$access->method('zone')->willReturn(new DateTimeZone('Europe/Amsterdam'));
 		$l10n = $this->createMock(originalClassName: IL10N::class);
 		$l10n->method('n')->willReturnCallback(
-			static fn (string $one, string $many, int $count, array $parameters): string => vsprintf(($count === 1 ? $one : $many), $parameters)
+			static function (string $one, string $many, int $count, array $parameters): string {
+				if ($count === 1) {
+					return vsprintf($one, $parameters);
+				}
+
+				return vsprintf($many, $parameters);
+			}
 		);
-		$l10n->method('t')->willReturnArgument(0);
 
 		$controller = new CohortSyncLineController(
 			request: $this->createMock(originalClassName: IRequest::class),
-			userSession: $session,
 			access: $access,
-			logger: new NullLogger(),
-			l10n: $l10n
+			l10n: $l10n,
+			userSession: $session
 		);
 
 		self::assertSame(expected: ['line' => 'Updated from Magister at 07.00, 3 changes'], actual: $controller->show()->getData());
