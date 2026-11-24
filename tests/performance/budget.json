@@ -1,0 +1,11 @@
+{
+	"app": "learniq",
+	"pages": [
+		{ "name": "Dashboard", "path": "/index.php/apps/learniq/" },
+		{ "name": "Learning", "path": "/index.php/apps/learniq/learning" },
+		{ "name": "People", "path": "/index.php/apps/learniq/people" },
+		{ "name": "Progress", "path": "/index.php/apps/learniq/progress-overview" },
+		{ "name": "Compliance", "path": "/index.php/apps/learniq/compliance-overview" },
+		{ "name": "My learning", "path": "/index.php/apps/learniq/learner" }
+	]
+}
