@@ -49,3 +49,11 @@ test('learniq keeps no quiet hours of its own', () => {
 		assert.doesNotMatch(text, /localStorage[^\n]*quiet/i, `${path} keeps quiet hours in the browser`)
 	}
 })
+
+test('learniq depends on a nextcloud-vue that ships the quiet-hours block', () => {
+	const pkg = JSON.parse(readFileSync(fileURLToPath(new URL('../../package.json', import.meta.url)), 'utf8'))
+	const range = pkg.dependencies['@conduction/nextcloud-vue']
+	const [major, minor] = range.replace(/^[^\d]*/, '').split('.').map(Number)
+	// CnQuietHours first shipped in nextcloud-vue 2.211.0 (#2307).
+	assert.ok(major > 2 || (major === 2 && minor >= 211), `nextcloud-vue range ${range} predates CnQuietHours`)
+})
