@@ -20,6 +20,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Listener;
 
+use OCA\Learniq\Bpv\IntegriqLeerbedrijfVerification;
 use OCA\Learniq\Bpv\ProvidesLeerbedrijfVerification;
 use OCA\Learniq\Listener\BpvLeerbedrijfVerificationHandler;
 use OCA\Learniq\Tests\Support\TransitionScope;
@@ -124,16 +125,33 @@ class BpvLeerbedrijfVerificationGuardsTest extends TestCase {
 	}//end testAPlacementWithoutAnIdIsNotVerified()
 
 	/**
-	 * A non-array verification block means no provider is configured.
+	 * A non-array verification block names no provider, so the shipped integriq
+	 * provider is asked for; when it does not resolve, nothing is checked.
 	 *
 	 * @return void
+	 *
+	 * @spec openspec/changes/workplace-leerbedrijf-check-through-integriq/specs/bpv/spec.md#requirement-leerbedrijf-verification-is-a-pluggable-provider
 	 */
-	public function testANonArrayVerificationMeansNoProvider(): void {
-		$this->container->expects(self::never())->method('get');
-		$this->logger->expects(self::once())->method('info')->with(self::stringContains('No leerbedrijfVerification.provider'), ['id' => 'p-1']);
+	public function testANonArrayVerificationMeansTheDefaultProvider(): void {
+		$container = $this->createMock(originalClassName: ContainerInterface::class);
+		$container->expects(self::once())
+			->method('get')
+			->with(IntegriqLeerbedrijfVerification::class)
+			->willThrowException(new RuntimeException(message: 'not built'));
+		$this->objectService->expects(self::never())->method('saveObject');
+		$this->logger->expects(self::once())
+			->method('info')
+			->with(self::stringContains(string: 'No usable leerbedrijfVerification.provider'), ['id' => 'p-1']);
+		$handler = new BpvLeerbedrijfVerificationHandler(
+			objectService: $this->objectService,
+			container: $container,
+			logger: $this->logger,
+			schemas: TransitionScope::resolver()
+		);
 
-		$this->handler->handle($this->event(['uuid' => 'p-1', 'trainingCompanyKvkNumber' => '123', 'trainingCompanyVerification' => 'Provider']));
-	}//end testANonArrayVerificationMeansNoProvider()
+		$placement = ['uuid' => 'p-1', 'trainingCompanyKvkNumber' => '123', 'trainingCompanyVerification' => 'Provider'];
+		$handler->handle(event: $this->event(placement: $placement));
+	}//end testANonArrayVerificationMeansTheDefaultProvider()
 
 	/**
 	 * A placement without a KvK number is not verified and logs a warning.

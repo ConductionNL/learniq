@@ -65,8 +65,8 @@
             "title": "SBB leerbedrijf check",
             "description": "Checking that the employer of a work placement is an erkend leerbedrijf in the SBB register.",
             "order": 60,
-            "available": false,
-            "unavailableMessage": "No verification provider ships in learniq or integriq. A work placement cannot confirm its leerbedrijf until one does."
+            "reportedOnly": true,
+            "unconfiguredMessage": "No leerbedrijf has been checked yet. Learniq asks integriq's SBB source on every \"Leerbedrijf controleren\" and reports what it met; until integriq has an SBB source the check stays pending and the placement cannot confirm."
         },
         {
             "key": "proctoring",

@@ -101,13 +101,15 @@ class ProvidesLeerbedrijfVerificationTest extends TestCase {
 	}//end testConformingImplementationSatisfiesContract()
 
 	/**
-	 * No concrete provider ships with the app — grepping lib/Bpv for `implements
-	 * ProvidesLeerbedrijfVerification` outside the interface file itself finds nothing. Learniq
-	 * ships the seam, not an adapter (proposal.md / design.md).
+	 * Exactly one provider ships with the app, the one that delegates to
+	 * integriq: grepping lib/ for `implements ProvidesLeerbedrijfVerification`
+	 * outside the interface file finds only IntegriqLeerbedrijfVerification.
 	 *
 	 * @return void
+	 *
+	 * @spec openspec/changes/workplace-leerbedrijf-check-through-integriq/specs/bpv/spec.md#requirement-leerbedrijf-verification-is-a-pluggable-provider
 	 */
-	public function testNoConcreteProviderShipsInTheApp(): void {
+	public function testOnlyTheIntegriqProviderShipsInTheApp(): void {
 		$libDir = __DIR__ . '/../../../lib';
 		$implementors = [];
 
@@ -134,7 +136,10 @@ class ProvidesLeerbedrijfVerificationTest extends TestCase {
 			}
 		}
 
-		$this->assertSame([], $implementors, 'No concrete ProvidesLeerbedrijfVerification adapter should ship in lib/.');
-
-	}//end testNoConcreteProviderShipsInTheApp()
+		$this->assertSame(
+			expected: [realpath($libDir . '/Bpv/IntegriqLeerbedrijfVerification.php')],
+			actual: array_map('realpath', $implementors),
+			message: 'Only IntegriqLeerbedrijfVerification should implement ProvidesLeerbedrijfVerification in lib/.'
+		);
+	}//end testOnlyTheIntegriqProviderShipsInTheApp()
 }//end class

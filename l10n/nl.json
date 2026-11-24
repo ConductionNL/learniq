@@ -6677,7 +6677,18 @@
         "Career coach": "Studieloopbaanbegeleider",
         "The school's own pupil number (leerlingnummer), shown on the pupil's page. Never the BSN or the onderwijsnummer: those stay in personalNumber.": "Het eigen leerlingnummer van de school, getoond op de pagina van de leerling. Nooit het BSN of het onderwijsnummer: die blijven in personalNumber.",
         "Nextcloud user ID of the group's team leader, shown among the people around each pupil of the group. Gives no teacher rights.": "Nextcloud-gebruikers-ID van de teamleider van de groep, getoond bij de mensen rond elke leerling van de groep. Geeft geen rechten als leraar.",
-        "Nextcloud user ID of the group's career coach (studieloopbaanbegeleider), shown among the people around each pupil of the group. Gives no teacher rights.": "Nextcloud-gebruikers-ID van de studieloopbaanbegeleider van de groep, getoond bij de mensen rond elke leerling van de groep. Geeft geen rechten als leraar."
+        "Nextcloud user ID of the group's career coach (studieloopbaanbegeleider), shown among the people around each pupil of the group. Gives no teacher rights.": "Nextcloud-gebruikers-ID van de studieloopbaanbegeleider van de groep, getoond bij de mensen rond elke leerling van de groep. Geeft geen rechten als leraar.",
+        "Checked At": "Gecontroleerd op",
+        "Ends before the placement": "Eindigt vóór de plaatsing",
+        "Recognition ended": "Erkenning verlopen",
+        "Why not approved": "Waarom niet goedgekeurd",
+        "Integriq is not installed, so the SBB register cannot be asked": "Integriq is niet geïnstalleerd, dus het SBB-register kan niet worden geraadpleegd",
+        "Integriq has no SBB source configured": "Integriq heeft geen SBB-bron ingesteld",
+        "SBB does not list this company as a training company": "SBB kent dit bedrijf niet als erkend leerbedrijf",
+        "Recognition number": "Erkenningsnummer",
+        "Recognised until": "Erkend tot",
+        "The recognition ends on {trainingCompanyVerification.expiresAt:longdate}, before the placement ends. Check the training company again in time.": "De erkenning eindigt op {trainingCompanyVerification.expiresAt:longdate}, vóór het einde van de plaatsing. Controleer het leerbedrijf op tijd opnieuw.",
+        "Check training company": "Leerbedrijf controleren"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
