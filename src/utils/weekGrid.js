@@ -172,28 +172,58 @@ function isOnlineLink(place) {
  * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
  */
 export function weekGridItems(sessions, translate) {
-	const items = []
-	for (const session of Array.isArray(sessions) ? sessions : []) {
-		const start = clockOf(session?.startsAt)
-		const date = dayOf(session?.startsAt)
-		if (start === '' || date === '') {
-			continue
-		}
-		const pill = changePill(session, translate)
-		// A moved lesson's pill names its new room, so its line names the room
-		// it left instead of repeating the new one.
-		const movedFrom = pill?.variant === 'changed' && typeof session.movedFromRoom === 'string' ? session.movedFromRoom : ''
-		const place = movedFrom !== '' ? translate('Not in {room}', { room: movedFrom }) : roomName(session)
-		const meta = [session.cohortName || session.cohort?.name || '', place]
-		items.push({
-			key: String(session.id ?? `${date}|${start}|${session.title ?? ''}`),
-			date,
-			row: start,
-			title: session.title || translate('Untitled session'),
-			meta: meta.filter((part) => typeof part === 'string' && part !== ''),
-			pill,
-			session,
-		})
+	const list = Array.isArray(sessions) ? sessions : []
+	return list.map((session) => gridItem(session, translate)).filter((item) => item !== null)
+}
+
+/**
+ * One session as a CnWeekGrid entry, or null when it has no start.
+ *
+ * @param {object} session The session.
+ * @param {(text: string, vars?: object) => string} translate The translate function.
+ * @return {object|null} The entry.
+ * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+ */
+function gridItem(session, translate) {
+	const start = clockOf(session?.startsAt)
+	const date = dayOf(session?.startsAt)
+	if (start === '' || date === '') {
+		return null
 	}
-	return items
+	const pill = changePill(session, translate)
+	return {
+		key: String(session.id ?? `${date}|${start}|${session.title ?? ''}`),
+		date,
+		row: start,
+		title: session.title || translate('Untitled session'),
+		meta: [groupName(session), placeLine(session, pill, translate)].filter((part) => part !== ''),
+		pill,
+		session,
+	}
+}
+
+/**
+ * The group a session is for, or ''.
+ *
+ * @param {object} session The session.
+ * @return {string} The group.
+ * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+ */
+function groupName(session) {
+	return textOf(session.cohortName) || textOf(session.cohort && session.cohort.name)
+}
+
+/**
+ * Where a session is, for its line. A moved lesson's pill names its new room,
+ * so its line names the room it left instead of repeating the new one.
+ *
+ * @param {object} session The session.
+ * @param {{label: string, variant: string}|null} pill Its change pill.
+ * @param {(text: string, vars?: object) => string} translate The translate function.
+ * @return {string} The place.
+ * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+ */
+function placeLine(session, pill, translate) {
+	const movedFrom = pill !== null && pill.variant === 'changed' ? textOf(session.movedFromRoom) : ''
+	return movedFrom !== '' ? translate('Not in {room}', { room: movedFrom }) : roomName(session)
 }
