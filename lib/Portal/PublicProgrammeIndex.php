@@ -89,6 +89,9 @@ class PublicProgrammeIndex {
 			'title'   => $name,
 			'summary' => $description,
 		];
+		// The address of the item's own page on the portal (portaliq public-detail-page-for-a-provider-item).
+		$item = $this->reads->withSlug(item: $item);
+
 
 		$facets = [];
 		$meta   = [];

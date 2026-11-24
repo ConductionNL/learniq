@@ -6,6 +6,8 @@
   - PHPUnit `PortalPublicIndexTest::testTheProviderAnswersThroughTheService`; `npm run check:l10n`
 - [x] **T3**: the example portals place `nlCatalogue` and the academy's home list fills itself
   - PHPUnit `ExamplePortalDeclarationsTest`
+- [x] **T8**: a page per public course and programme for portaliq `public-detail-page-for-a-provider-item`: `slug` on course and programme items, `getPublicDetail` on the provider (`PortalPublicIndex::detailFor`, `PublicItemDetail`), made from the index item only
+  - PHPUnit `PortalPublicIndexTest::testACourseAndAProgrammeCarryTheirPageSlug`, `testACourseHasAPageOfItsOwn`, `testAProgrammeHasAPageOfItsOwn`, `testOnlyWhatTheIndexListsHasAPage`
 - [ ] **T4**: live check next to the Zoeken boards on the proof instance (after portaliq `portal-public-catalogue`)
 - [x] **T5**: the test schedule in the index (`exam-sitting` of public exam periods: day, time, subject, room, department and year; filters); register: `exam-period.public`, `exam-period.bringList` (optional, additive)
   - PHPUnit `PortalPublicIndexTest::testAPublicTestWeekIsInTheIndexWithoutNames`
