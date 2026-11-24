@@ -7260,7 +7260,7 @@
       "name": "Match a learner to a company for their work placement.",
       "built": {
         "state": "built",
-        "evidence": "lib/Settings/learniq_register.json components.schemas.BpvPlacement; src/manifest.d/work-placement.json",
+        "evidence": "lib/Settings/learniq_register.json components.schemas.BpvPlacement; src/manifest.d/work-placement.json; lib/Lifecycle/BpvCompanyNamedGuard.php (tests/Unit/Lifecycle/BpvCompanyNamedGuardTest.php)",
         "owner": "ConductionNL/learniq",
         "change": "2026-07-13-bpv-praktijkovereenkomst",
         "requirement": [

@@ -2,7 +2,7 @@
 
 ### Requirement: A coordinator links a learner to a training company in a placement
 
-A coordinator MUST be able to create a `BpvPlacement` that names the learner (`learnerId` and `learnerRef`), the training company by name and KvK number, the workplace supervisor (`practicalTrainerId`), the school coach and the period. The placement MUST start as `proposed`. The learner's placement and the supervisor's placements MUST each list it.
+A coordinator MUST be able to create a `BpvPlacement` that names the learner (`learnerId` and `learnerRef`), the training company by name and KvK number, the workplace supervisor (`practicalTrainerId`), the school coach and the period. The placement MUST start as `proposed`. While the student is still looking for a company the placement MAY be saved without the company and its KvK number; the `checkLeerbedrijf` transition MUST be refused until it names both, and the refusal MUST name what is missing. The learner's placement and the supervisor's placements MUST each list it.
 
 #### Scenario: A coordinator places a learner at a company
 
@@ -11,11 +11,17 @@ A coordinator MUST be able to create a `BpvPlacement` that names the learner (`l
 - **THEN** the placement is stored as `proposed` with the company name, KvK number, supervisor, coach and period
 - **AND** the supervisor's page lists the placement
 
-#### Scenario: A placement without a company is refused
+#### Scenario: A placement without a company is refused for the leerbedrijf check
 
-- **GIVEN** a coordinator creating a placement
-- **WHEN** they save it without a training company name or KvK number
-- **THEN** the save is refused because both are required
+- **GIVEN** a placement for Noor that is still looking for a company, saved without a training company name or KvK number
+- **WHEN** a coordinator sends it to the leerbedrijf check (`checkLeerbedrijf`)
+- **THEN** the transition is refused, naming the training company and its KvK number
+
+#### Scenario: A company without its KvK number is refused for the leerbedrijf check
+
+- **GIVEN** a placement naming "Bakker Techniek BV" without a KvK number
+- **WHEN** a coordinator sends it to the leerbedrijf check
+- **THEN** the transition is refused, naming the KvK number
 
 ### Requirement: A school coach writes up a visit or a three-way conversation for a placement
 
