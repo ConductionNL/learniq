@@ -61,23 +61,23 @@ class ExamplePortalContentEventsTest extends TestCase {
 	 * @return ExamplePortalContent
 	 */
 	private function content(array $stored): ExamplePortalContent {
-		$store = $this->createMock(ObjectService::class);
+		$store = $this->createMock(originalClassName: ObjectService::class);
 		$store->method('findAll')->willReturnCallback(
 			static function (array $config) use (&$stored): array {
 				return ($stored[$config['filters']['schema']] ?? []);
 			}
 		);
 		$store->method('saveObject')->willReturnCallback(
-			function (array $object, ObjectSaveOptions $options = new ObjectSaveOptions(), bool $_rbac = true, bool $_multitenancy = true) use (&$stored): ObjectEntity {
+			function (array $object, ObjectSaveOptions $options=new ObjectSaveOptions()) use (&$stored): ObjectEntity {
 				$schema = (string)$options->target->schema;
 				$uuid   = ($options->uuid ?? 'new-' . (count($this->saves) + 1));
 				$this->saves[]     = [$schema, $options->uuid, $object];
 				$stored[$schema][] = ['@self' => ['id' => $uuid]] + $object;
-				return OrEntityFactory::make(['id' => $uuid], $schema, 'portaliq', $uuid);
+				return OrEntityFactory::make(data: ['id' => $uuid], schema: $schema, register: 'portaliq', uuid: $uuid);
 			}
 		);
 
-		return new ExamplePortalContent($store);
+		return new ExamplePortalContent(objectService: $store);
 	}//end content()
 
 	/**
@@ -117,19 +117,19 @@ class ExamplePortalContentEventsTest extends TestCase {
 	public function testAFirstLoadWritesTheEventAndTheNewsItemNamesIt(): void {
 		$content = $this->content(stored: []);
 
-		self::assertSame(['created' => 1, 'kept' => 0], $content->events(declaration: self::declaration()));
-		self::assertSame(['created' => 1, 'kept' => 0], $content->news(declaration: self::declaration()));
+		self::assertSame(expected: ['created' => 1, 'kept' => 0], actual: $content->events(declaration: self::declaration()));
+		self::assertSame(expected: ['created' => 1, 'kept' => 0], actual: $content->news(declaration: self::declaration()));
 
 		[$eventSchema, $eventUuid, $event] = $this->saves[0];
-		self::assertSame(['schoolEvent', null], [$eventSchema, $eventUuid]);
-		self::assertSame('published', $event['status']);
-		self::assertSame(['guardian', 'learner'], $event['rsvpBy']);
+		self::assertSame(expected: ['schoolEvent', null], actual: [$eventSchema, $eventUuid]);
+		self::assertSame(expected: 'published', actual: $event['status']);
+		self::assertSame(expected: ['guardian', 'learner'], actual: $event['rsvpBy']);
 
 		[$newsSchema, , $news] = $this->saves[1];
-		self::assertSame('newsItem', $newsSchema);
-		self::assertSame('new-1', $news['eventRef']);
-		self::assertArrayNotHasKey('event', $news);
-		self::assertSame(['published', 'vaartveld'], [$news['status'], $news['portal']]);
+		self::assertSame(expected: 'newsItem', actual: $newsSchema);
+		self::assertSame(expected: 'new-1', actual: $news['eventRef']);
+		self::assertArrayNotHasKey(key: 'event', array: $news);
+		self::assertSame(expected: ['published', 'vaartveld'], actual: [$news['status'], $news['portal']]);
 	}//end testAFirstLoadWritesTheEventAndTheNewsItemNamesIt()
 
 	/**
@@ -140,8 +140,8 @@ class ExamplePortalContentEventsTest extends TestCase {
 	public function testASecondLoadKeepsTheEvent(): void {
 		$content = $this->content(stored: ['schoolEvent' => [['@self' => ['id' => 'ev-1'], 'title' => 'Informatieavond profielkeuze, klas 3']]]);
 
-		self::assertSame(['created' => 0, 'kept' => 1], $content->events(declaration: self::declaration()));
-		self::assertSame([], $this->saves);
+		self::assertSame(expected: ['created' => 0, 'kept' => 1], actual: $content->events(declaration: self::declaration()));
+		self::assertSame(expected: [], actual: $this->saves);
 	}//end testASecondLoadKeepsTheEvent()
 
 	/**
@@ -153,9 +153,9 @@ class ExamplePortalContentEventsTest extends TestCase {
 		$content = $this->content(stored: []);
 		$content->news(declaration: self::declaration());
 
-		self::assertCount(1, $this->saves);
-		self::assertArrayNotHasKey('eventRef', $this->saves[0][2]);
-		self::assertArrayNotHasKey('event', $this->saves[0][2]);
+		self::assertCount(expectedCount: 1, haystack: $this->saves);
+		self::assertArrayNotHasKey(key: 'eventRef', array: $this->saves[0][2]);
+		self::assertArrayNotHasKey(key: 'event', array: $this->saves[0][2]);
 	}//end testANewsItemNamingAMissingEventIsWrittenWithoutAReference()
 
 	/**
@@ -164,11 +164,12 @@ class ExamplePortalContentEventsTest extends TestCase {
 	 * @return void
 	 */
 	public function testASetWithoutEventsTouchesNothing(): void {
-		$store = $this->createMock(ObjectService::class);
+		$store = $this->createMock(originalClassName: ObjectService::class);
 		$store->expects(self::never())->method('findAll');
 		$store->expects(self::never())->method('saveObject');
 
-		self::assertSame(['created' => 0, 'kept' => 0], (new ExamplePortalContent($store))->events(declaration: ['portal' => ['slug' => 'vaartveld']]));
+		$content = new ExamplePortalContent(objectService: $store);
+		self::assertSame(expected: ['created' => 0, 'kept' => 0], actual: $content->events(declaration: ['portal' => ['slug' => 'vaartveld']]));
 	}//end testASetWithoutEventsTouchesNothing()
 
 	/**
@@ -178,16 +179,15 @@ class ExamplePortalContentEventsTest extends TestCase {
 	 * @return void
 	 */
 	public function testTheEventsDatesMoveWithTheLoadWeek(): void {
-		$content = $this->content(
-			stored: ['schoolEvent' => [['@self' => ['id' => 'ev-1'], 'title' => 'Informatieavond profielkeuze, klas 3', 'start' => '2026-11-10T19:30:00+01:00']]]
-		);
+		$stored  = ['@self' => ['id' => 'ev-1'], 'title' => 'Informatieavond profielkeuze, klas 3', 'start' => '2026-11-10T19:30:00+01:00'];
+		$content = $this->content(stored: ['schoolEvent' => [$stored]]);
 
 		$dated = $content->dated(declaration: self::declaration(), days: 7);
-		self::assertSame('2026-11-10T19:30:00+01:00', $dated['events'][0]['start']);
+		self::assertSame(expected: '2026-11-10T19:30:00+01:00', actual: $dated['events'][0]['start']);
 
 		$written = $content->moveDates(declaration: self::declaration(), refs: ['vaartveld'], previous: 7, days: 7);
-		self::assertSame(1, $written);
-		self::assertSame(['schoolEvent', 'ev-1'], [$this->saves[0][0], $this->saves[0][1]]);
-		self::assertSame('2026-11-17T19:30:00+01:00', $this->saves[0][2]['start']);
+		self::assertSame(expected: 1, actual: $written);
+		self::assertSame(expected: ['schoolEvent', 'ev-1'], actual: [$this->saves[0][0], $this->saves[0][1]]);
+		self::assertSame(expected: '2026-11-17T19:30:00+01:00', actual: $this->saves[0][2]['start']);
 	}//end testTheEventsDatesMoveWithTheLoadWeek()
 }//end class

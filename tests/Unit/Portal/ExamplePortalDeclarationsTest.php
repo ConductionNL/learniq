@@ -397,18 +397,18 @@ class ExamplePortalDeclarationsTest extends TestCase {
 		$events      = array_column($declaration['events'], null, 'title');
 		$named       = array_values(array_filter($declaration['news'], static fn (array $item): bool => isset($item['event'])));
 
-		self::assertCount(1, $named, 'one news item names an event');
-		self::assertSame('Informatieavond profielkeuze op dinsdag 3 november', $named[0]['title']);
-		self::assertArrayHasKey($named[0]['event'], $events, 'the named event is declared');
+		self::assertCount(expectedCount: 1, haystack: $named, message: 'one news item names an event');
+		self::assertSame(expected: 'Informatieavond profielkeuze op dinsdag 3 november', actual: $named[0]['title']);
+		self::assertArrayHasKey(key: $named[0]['event'], array: $events, message: 'the named event is declared');
 
 		$evening = $events[$named[0]['event']];
-		self::assertSame(['guardian', 'learner'], $evening['rsvpBy']);
-		self::assertTrue($evening['askSeats']);
-		self::assertSame(3, $evening['maxSeatsPerAnswer']);
-		self::assertSame(300, $evening['capacity']);
-		self::assertSame('2026-10-30', $evening['signupDeadline']);
-		self::assertSame('2026-11-03T19:30:00+01:00', $evening['start']);
-		self::assertSame($named[0]['target'], $evening['target'], 'the evening reaches the school the news item reaches');
-		self::assertArrayNotHasKey('status', $evening, 'the load publishes it');
+		self::assertSame(expected: ['guardian', 'learner'], actual: $evening['rsvpBy']);
+		self::assertTrue(condition: $evening['askSeats']);
+		self::assertSame(expected: 3, actual: $evening['maxSeatsPerAnswer']);
+		self::assertSame(expected: 300, actual: $evening['capacity']);
+		self::assertSame(expected: '2026-10-30', actual: $evening['signupDeadline']);
+		self::assertSame(expected: '2026-11-03T19:30:00+01:00', actual: $evening['start']);
+		self::assertSame(expected: $named[0]['target'], actual: $evening['target'], message: 'the evening reaches the school the news item reaches');
+		self::assertArrayNotHasKey(key: 'status', array: $evening, message: 'the load publishes it');
 	}//end testTheVoSetDeclaresTheEveningItsNewsItemNames()
 }//end class

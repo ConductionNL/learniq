@@ -142,28 +142,11 @@ class ExamplePortalContent {
 	 * @spec openspec/changes/example-portal-declares-its-site/specs/example-sets/spec.md#requirement-loading-a-set-writes-its-declared-site-once
 	 */
 	public function news(array $declaration): array {
-		$items = (array)($declaration['news'] ?? []);
-		if ($items === []) {
-			return ['created' => 0, 'kept' => 0];
-		}
-
-		$stored = $this->findAll(schema: 'newsItem');
-		$titles = array_flip(array_map(static fn (array $row): string => (string)($row['title'] ?? ''), $stored));
-		$counts = ['created' => 0, 'kept' => 0];
-		foreach ($items as $item) {
-			$title = (string)($item['title'] ?? '');
-			if ($title === '' || isset($titles[$title]) === true) {
-				$counts['kept']++;
-				continue;
-			}
-
-			$item = $this->withEventRef(item: $item);
-			$this->save(schema: 'newsItem', object: $item + ['status' => 'published', 'portal' => (string)$declaration['portal']['slug']]);
-			$titles[$title] = true;
-			$counts['created']++;
-		}
-
-		return $counts;
+		return $this->writeOnceByTitle(
+			schema: 'newsItem',
+			items: (array)($declaration['news'] ?? []),
+			finish: fn (array $item): array => $this->withEventRef(item: $item) + ['status' => 'published', 'portal' => (string)$declaration['portal']['slug']]
+		);
 	}//end news()
 
 	/**
@@ -181,12 +164,31 @@ class ExamplePortalContent {
 	 * @spec openspec/changes/example-set-declares-its-events/specs/example-sets/spec.md#requirement-a-set-may-declare-events-and-a-news-item-may-name-one
 	 */
 	public function events(array $declaration): array {
-		$items = (array)($declaration['events'] ?? []);
+		return $this->writeOnceByTitle(
+			schema: self::EVENT_SCHEMA,
+			items: (array)($declaration['events'] ?? []),
+			finish: static fn (array $item): array => $item + ['status' => 'published']
+		);
+	}//end events()
+
+	/**
+	 * Write each item whose title the schema does not hold yet, as `$finish`
+	 * makes it; an item without a title, or with one already stored, is kept.
+	 *
+	 * @param string                           $schema The portaliq schema.
+	 * @param array<int, array<string, mixed>> $items  The declared items.
+	 * @param callable                         $finish Makes the object to write from an item.
+	 *
+	 * @return array{created: int, kept: int}
+	 *
+	 * @spec openspec/changes/example-set-declares-its-events/specs/example-sets/spec.md#requirement-a-set-may-declare-events-and-a-news-item-may-name-one
+	 */
+	private function writeOnceByTitle(string $schema, array $items, callable $finish): array {
 		if ($items === []) {
 			return ['created' => 0, 'kept' => 0];
 		}
 
-		$stored = $this->findAll(schema: self::EVENT_SCHEMA);
+		$stored = $this->findAll(schema: $schema);
 		$titles = array_flip(array_map(static fn (array $row): string => (string)($row['title'] ?? ''), $stored));
 		$counts = ['created' => 0, 'kept' => 0];
 		foreach ($items as $item) {
@@ -196,13 +198,13 @@ class ExamplePortalContent {
 				continue;
 			}
 
-			$this->save(schema: self::EVENT_SCHEMA, object: $item + ['status' => 'published']);
+			$this->save(schema: $schema, object: $finish($item));
 			$titles[$title] = true;
 			$counts['created']++;
 		}
 
 		return $counts;
-	}//end events()
+	}//end writeOnceByTitle()
 
 	/**
 	 * A news item with the event it names by title (`event`) written as its
@@ -277,12 +279,6 @@ class ExamplePortalContent {
 		}
 
 		$routes = array_flip(array_map(static fn (array $page): string => (string)($page['route'] ?? ''), (array)($declaration['pages'] ?? [])));
-		$titles = array_flip(
-			array_map(
-				fn (array $item): string => $this->demoDates->shiftString(text: (string)($item['title'] ?? ''), days: $previous),
-				(array)($declaration['news'] ?? [])
-			)
-		);
 
 		$written = 0;
 		$pages   = $this->findAll(
@@ -293,23 +289,40 @@ class ExamplePortalContent {
 			$written += $this->moveRow(schema: 'page', row: $row, days: $days);
 		}
 
-		$news = $this->findAll(schema: 'newsItem', match: static fn (array $row): bool => isset($titles[(string)($row['title'] ?? '')]));
-		foreach ($news as $row) {
-			$written += $this->moveRow(schema: 'newsItem', row: $row, days: $days);
-		}
-
-		$events = array_flip(
-			array_map(
-				fn (array $item): string => $this->demoDates->shiftString(text: (string)($item['title'] ?? ''), days: $previous),
-				(array)($declaration['events'] ?? [])
-			)
-		);
-		foreach ($this->findAll(schema: self::EVENT_SCHEMA, match: static fn (array $row): bool => isset($events[(string)($row['title'] ?? '')])) as $row) {
-			$written += $this->moveRow(schema: self::EVENT_SCHEMA, row: $row, days: $days);
-		}
+		$written += $this->moveByTitle(schema: 'newsItem', items: (array)($declaration['news'] ?? []), previous: $previous, days: $days);
+		$written += $this->moveByTitle(schema: self::EVENT_SCHEMA, items: (array)($declaration['events'] ?? []), previous: $previous, days: $days);
 
 		return $written;
 	}//end moveDates()
+
+	/**
+	 * Move the stored rows of a schema whose title is a declared item's title
+	 * as the previous load wrote it.
+	 *
+	 * @param string                           $schema   The portaliq schema.
+	 * @param array<int, array<string, mixed>> $items    The declared items, as shipped.
+	 * @param int                              $previous The offset the stored rows carry.
+	 * @param int                              $days     The days to move them.
+	 *
+	 * @return int The rows written.
+	 *
+	 * @spec openspec/changes/example-set-declares-its-events/specs/example-sets/spec.md#requirement-a-set-may-declare-events-and-a-news-item-may-name-one
+	 */
+	private function moveByTitle(string $schema, array $items, int $previous, int $days): int {
+		$titles = array_flip(
+			array_map(
+				fn (array $item): string => $this->demoDates->shiftString(text: (string)($item['title'] ?? ''), days: $previous),
+				$items
+			)
+		);
+
+		$written = 0;
+		foreach ($this->findAll(schema: $schema, match: static fn (array $row): bool => isset($titles[(string)($row['title'] ?? '')])) as $row) {
+			$written += $this->moveRow(schema: $schema, row: $row, days: $days);
+		}
+
+		return $written;
+	}//end moveByTitle()
 
 	/**
 	 * Write one stored row with its dates moved; 0 when nothing moved.
