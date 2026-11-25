@@ -1337,7 +1337,7 @@ class PortalContributionProviderTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/student-portal-reads-like-the-boards/specs/portal-contribution/spec.md#requirement-the-student-pages-use-the-words-of-the-boards
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-student-pages-use-the-words-of-the-boards
 	 */
 	public function testStudentGradesHaveReadableColumns(): void {
 		$manifest = $this->provider->getContribution(self::STUDENT_SUBJECT);
@@ -1363,7 +1363,7 @@ class PortalContributionProviderTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/student-portal-reads-like-the-boards/specs/portal-contribution/spec.md#requirement-the-student-pages-use-the-words-of-the-boards
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-student-pages-use-the-words-of-the-boards
 	 */
 	public function testHoursPageIsInTheMenuAndASentBackWeekSaysSo(): void {
 		$manifest = $this->provider->getContribution(self::STUDENT_SUBJECT);
