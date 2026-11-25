@@ -20,6 +20,7 @@
   > DONE: `AttendanceFlagReportGuardTest::testTheRefusalIsTheSentenceThePageShows` pins the sentence word for word and checks it names no job id or status.
 - [x] 2.2 Playwright `tests/e2e/attendance-flag-handling.spec.ts`: as an instructor open a seeded open flag, take it up, see `in-handling`; with the seeded succeeded job mark it reported; as a compliance officer record a MAS route. Tag the four requirement scenarios with `@e2e`.
   - Written, runs in nightly; ticked under the unblock rule, not verified live here.
+  - Live 25 Nov 2026 (sandbox NC 34.0.6 + PostgreSQL 16, OpenRegister main, integriq and learniq development): 3 passed, 1 fixme. The spec's integriq job now carries `jobClass` (integriq's job schema requires it). "Take up" shows in the page menu only with openregister#11196 (available-actions carries a schema transition's `label`; without it the menu reads "StartHandling"). Test 4 stays fixme on the open access question (which group may record the MAS route), queued for Ruben.
 
 ## 3. Close out
 
