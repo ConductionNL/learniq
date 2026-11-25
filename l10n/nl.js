@@ -6611,7 +6611,22 @@ OC.L10N.register(
         "Lessons cancelled today": "Lessen vervallen vandaag",
         "Leave requests to decide": "Verlofaanvragen te beslissen",
         "Attendance per group": "Aanwezigheid per groep",
-        "of {byTile.registersFilledPerGroup.total} registers filled": "van {byTile.registersFilledPerGroup.total} registers ingevuld"
+        "of {byTile.registersFilledPerGroup.total} registers filled": "van {byTile.registersFilledPerGroup.total} registers ingevuld",
+        "_%n student of yours has no BPV company yet_::_%n students of yours have no BPV company yet_": ["%n student van u heeft nog geen BPV-plek","%n studenten van u hebben nog geen BPV-plek"],
+        "_%n company visit of yours has no date yet_::_%n company visits of yours have no date yet_": ["%n bedrijfsbezoek van u heeft nog geen datum","%n bedrijfsbezoeken van u hebben nog geen datum"],
+        "_%n hour week has waited more than a week for its company_::_%n hour weeks have waited more than a week for their company_": ["%n urenweek wacht al meer dan een week op het leerbedrijf","%n urenweken wachten al meer dan een week op het leerbedrijf"],
+        "The BPV period is running.": "De BPV-periode loopt.",
+        "The BPV period is running: %1$s.": "De BPV-periode loopt: %1$s.",
+        "Propose a date to the workplace trainer.": "Stel de praktijkopleider een datum voor.",
+        "%1$s hours wait for approval.": "%1$s uur wacht op goedkeuring.",
+        "%1$s hours wait for approval, the longest since %2$s.": "%1$s uur wacht op goedkeuring, het langst sinds %2$s.",
+        "BPV coach": "BPV-begeleider",
+        "Company visits this week": "Bedrijfsbezoeken deze week",
+        "No visits": "Geen bezoeken",
+        "All visits": "Alle bezoeken",
+        "Students per phase": "Studenten per fase",
+        "To the board": "Naar het bord",
+        "No placements where you are the school coach": "Geen BPV-plekken waarvan u de begeleider bent"
     },
     "nplurals=2; plural=(n != 1);"
 )

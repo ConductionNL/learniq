@@ -81,6 +81,7 @@ class FirstTodayCardTest extends TestCase {
 			FirstTodayRules::ROLE_MENTOR,
 			FirstTodayRules::ROLE_CARE_COORDINATOR,
 			FirstTodayRules::ROLE_HEAD,
+			FirstTodayRules::ROLE_BPV_COACH,
 		];
 		foreach ($roles as $role) {
 			foreach (FirstTodayRules::ORDER[$role] as $rule) {
@@ -137,11 +138,37 @@ class FirstTodayCardTest extends TestCase {
 	 */
 	public function testNoRuleOrARuleWithoutACardAddsNothing(): void {
 		$none = ['role' => 'group-teacher', 'rule' => null, 'count' => 0];
-		$placement = ['role' => 'bpv-coach', 'rule' => FirstTodayRules::HOURS_WAITING, 'count' => 2];
+		$exam = ['role' => 'exam-committee', 'rule' => FirstTodayRules::RESULTS_WAITING, 'count' => 2];
 
 		self::assertSame(expected: $none, actual: $this->card()->describe(card: $none));
-		self::assertSame(expected: $placement, actual: $this->card()->describe(card: $placement));
+		self::assertSame(expected: $exam, actual: $this->card()->describe(card: $exam));
 	}//end testNoRuleOrARuleWithoutACardAddsNothing()
+
+	/**
+	 * The BPV-begeleider's cards say how late, how many hours wait and since when, and open the BPV lists.
+	 *
+	 * @return void
+	 */
+	public function testTheBpvCardsNameTheLateLineAndTheHours(): void {
+		$daan = $this->card()->describe(card: ['role' => 'bpv-coach', 'rule' => 'placement-without-company', 'count' => 1, 'lateLabel' => '5 weken te laat']);
+		$plain = $this->card()->describe(card: ['role' => 'bpv-coach', 'rule' => 'placement-without-company', 'count' => 2, 'lateLabel' => '']);
+		$visit = $this->card()->describe(card: ['role' => 'bpv-coach', 'rule' => 'visit-without-date', 'count' => 1]);
+		$hours = $this->card()->describe(card: ['role' => 'bpv-coach', 'rule' => 'hours-waiting', 'count' => 2, 'hours' => 30.5, 'isoWeek' => '2026-W40']);
+		$noWeek = $this->card()->describe(card: ['role' => 'bpv-coach', 'rule' => 'hours-waiting', 'count' => 1, 'hours' => 24.0, 'isoWeek' => '']);
+
+		self::assertSame(expected: '1 student of yours has no BPV company yet', actual: $daan['title']);
+		self::assertSame(expected: 'The BPV period is running: 5 weken te laat.', actual: $daan['reason']);
+		self::assertSame(expected: 'BpvPlacements', actual: $daan['page']);
+		self::assertSame(expected: '2 students of yours have no BPV company yet', actual: $plain['title']);
+		self::assertSame(expected: 'The BPV period is running.', actual: $plain['reason']);
+		self::assertSame(expected: '1 company visit of yours has no date yet', actual: $visit['title']);
+		self::assertSame(expected: 'Propose a date to the workplace trainer.', actual: $visit['reason']);
+		self::assertSame(expected: 'BpvVisits', actual: $visit['page']);
+		self::assertSame(expected: '2 hour weeks have waited more than a week for their company', actual: $hours['title']);
+		self::assertSame(expected: '30.5 hours wait for approval, the longest since 2026-W40.', actual: $hours['reason']);
+		self::assertSame(expected: 'BpvPlacements', actual: $hours['page']);
+		self::assertSame(expected: '24 hours wait for approval.', actual: $noWeek['reason']);
+	}//end testTheBpvCardsNameTheLateLineAndTheHours()
 
 	/**
 	 * The page file names only rules the rule list knows, and skips its comment.
@@ -151,7 +178,7 @@ class FirstTodayCardTest extends TestCase {
 	public function testThePagesNameKnownRules(): void {
 		$pages = $this->card()->pages();
 
-		self::assertCount(expectedCount: 12, haystack: $pages);
+		self::assertCount(expectedCount: 15, haystack: $pages);
 		self::assertSame(expected: [], actual: array_diff(array_keys($pages), (new FirstTodayRules())->allRules()));
 	}//end testThePagesNameKnownRules()
 }//end class
