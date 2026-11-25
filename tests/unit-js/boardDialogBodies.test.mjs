@@ -37,6 +37,8 @@ import {
 	exemptionSteps,
 	gradeEntryCreateBody,
 	groupEnrolBody,
+	groupEnrolCanSend,
+	groupEnrolPreviewParams,
 	pickedFromBlocks,
 	refusalNotice,
 	reopenData,
@@ -184,6 +186,23 @@ test('a grade falls back to the plan component and is saved only when complete',
 test('a group enrolment names its audience and leaves empty extras out', () => {
 	assert.deepEqual(groupEnrolBody({ audienceKind: 'team', audience: ' talen ', dueDate: '', message: 'Voor kerst' }), { audienceKind: 'team', audience: 'talen', message: 'Voor kerst' })
 	assert.equal(groupEnrolBody({ audienceKind: 'everyone', audience: 'x' }).audienceKind, 'section')
+})
+
+test('the group enrol preview asks for the lists until an audience is chosen', () => {
+	// A kind without a value is refused by the server ("Unknown audience"); live 25 Nov 2026.
+	assert.deepEqual(groupEnrolPreviewParams('team', null), {})
+	assert.deepEqual(groupEnrolPreviewParams('team', '  '), {})
+	assert.deepEqual(groupEnrolPreviewParams('team', 'Directie en staf'), { audienceKind: 'team', audience: 'Directie en staf' })
+	assert.deepEqual(groupEnrolPreviewParams('everyone', 'x'), { audienceKind: 'section', audience: 'x' })
+})
+
+test('the group enrol dialog sends only with an audience, somebody to enrol and a course', () => {
+	const preview = { courseName: 'Gedragscode en integriteit', toEnrol: 2 }
+	assert.equal(groupEnrolCanSend(preview, 'Directie en staf'), true)
+	assert.equal(groupEnrolCanSend(preview, null), false)
+	assert.equal(groupEnrolCanSend({ ...preview, toEnrol: 0 }, 'Directie en staf'), false)
+	// NIS2 in the corporate set: no mandatory course, the server enrols nobody.
+	assert.equal(groupEnrolCanSend({ courseName: null, toEnrol: 2 }, 'Directie en staf'), false)
 })
 
 test('a refusal is an alert banner and a day reads in the reader\'s language', () => {

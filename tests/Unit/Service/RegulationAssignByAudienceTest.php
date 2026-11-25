@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/regulation-assign-by-audience/specs/compliance-rule-coverage/spec.md#requirement-an-assignment-can-be-narrowed-to-one-audience
+ * @spec openspec/specs/compliance-rule-coverage/spec.md#requirement-an-assignment-can-be-narrowed-to-one-audience
  */
 
 declare(strict_types=1);
@@ -173,7 +173,7 @@ class RegulationAssignByAudienceTest extends TestCase {
 	/**
 	 * The preview lists the audiences, and for the section Talen counts and rows; it writes nothing.
 	 *
-	 * @spec openspec/changes/regulation-assign-by-audience/specs/compliance-rule-coverage/spec.md#requirement-the-assignment-is-previewed-per-audience
+	 * @spec openspec/specs/compliance-rule-coverage/spec.md#requirement-the-assignment-is-previewed-per-audience
 	 *
 	 * @return void
 	 */

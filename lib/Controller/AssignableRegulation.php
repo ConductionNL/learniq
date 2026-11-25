@@ -47,7 +47,7 @@ trait AssignableRegulation {
 	 *
 	 * @return array<string,mixed>|JSONResponse
 	 *
-	 * @spec openspec/changes/regulation-assign-by-audience/specs/compliance-rule-coverage/spec.md#requirement-the-assignment-is-previewed-per-audience
+	 * @spec openspec/specs/compliance-rule-coverage/spec.md#requirement-the-assignment-is-previewed-per-audience
 	 */
 	private function assignableRegulation(string $id): array|JSONResponse {
 		$user = $this->userSession->getUser();
