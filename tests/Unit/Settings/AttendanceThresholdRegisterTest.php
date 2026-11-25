@@ -82,7 +82,9 @@ class AttendanceThresholdRegisterTest extends TestCase {
 
 		self::assertTrue($calc['unexcusedLesuren']['materialise']);
 		self::assertSame('number', $calc['unexcusedLesuren']['type']);
-		self::assertSame('@aggregate.unexcusedRecordCount', $calc['unexcusedLesuren']['expression']['*'][0]['prop']);
+		// Rounded to four decimals, so a stored number keeps it (50-minute lessons give 0.8333...).
+		self::assertSame(expected: 4, actual: $calc['unexcusedLesuren']['expression']['round'][1]);
+		self::assertSame(expected: '@aggregate.unexcusedRecordCount', actual: $calc['unexcusedLesuren']['expression']['round'][0]['*'][0]['prop']);
 
 		self::assertTrue($calc['isThresholdCrossed']['materialise']);
 		self::assertSame('boolean', $calc['isThresholdCrossed']['type']);

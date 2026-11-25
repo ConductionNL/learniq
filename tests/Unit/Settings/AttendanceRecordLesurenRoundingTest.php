@@ -71,6 +71,7 @@ class AttendanceRecordLesurenRoundingTest extends TestCase {
 			'or'    => in_array(true, array_map(fn ($arg) => self::evaluate(node: $arg, object: $object), $args), true),
 			'if'    => self::evaluate(node: $args[self::branchOf(condition: self::evaluate(node: $args[0], object: $object))], object: $object),
 			'/'     => self::evaluate(node: $args[0], object: $object) / self::evaluate(node: $args[1], object: $object),
+			'*'     => self::evaluate(node: $args[0], object: $object) * self::evaluate(node: $args[1], object: $object),
 			'round' => round((float)self::evaluate(node: $args[0], object: $object), (int)($args[1] ?? 0)),
 			default => throw new RuntimeException('Operator ' . $operator . ' is not expected in lesuren.'),
 		};
@@ -139,4 +140,33 @@ class AttendanceRecordLesurenRoundingTest extends TestCase {
 			actual: self::evaluate(node: $expression, object: ['status' => 'absent-unexcused', '@ref.session.durationMinutes' => 50])
 		);
 	}//end testRoundingKeepsTheHours()
+
+	/**
+	 * A threshold's unexcused lesuren (records x lessonHourMinutes / 60) fit a
+	 * stored number too: with 50-minute lessons one record is 0.8333...
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/attendance/spec.md#requirement-threshold-crossing-is-a-declared-calculation-trigger
+	 */
+	public function testTheThresholdsUnexcusedLesurenFitAStoredNumber(): void {
+		$expression = self::shippedSchema(slug: 'attendance-threshold')['x-openregister-calculations']['unexcusedLesuren']['expression'];
+
+		self::assertSame(expected: ['round'], actual: array_keys($expression));
+		foreach ([45, 50, 55, 60] as $hour) {
+			for ($records = 0; $records <= 200; $records++) {
+				$value    = self::evaluate(
+					node: $expression,
+					object: ['@aggregate.unexcusedRecordCount' => $records, 'lessonHourMinutes' => $hour]
+				);
+				$decimals = strlen((string)substr(strrchr(rtrim(sprintf('%.12F', $value), '0'), '.'), 1));
+				self::assertLessThanOrEqual(expected: 6, actual: $decimals, message: $records . ' x ' . $hour . ' gave ' . $value);
+			}
+		}
+
+		self::assertSame(
+			expected: 16.6667,
+			actual: self::evaluate(node: $expression, object: ['@aggregate.unexcusedRecordCount' => 20, 'lessonHourMinutes' => 50])
+		);
+	}//end testTheThresholdsUnexcusedLesurenFitAStoredNumber()
 }//end class
