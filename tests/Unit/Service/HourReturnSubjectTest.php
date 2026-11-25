@@ -52,4 +52,28 @@ class HourReturnSubjectTest extends TestCase {
 		self::assertSame('Vraag over je uren van week 9', HourReturnSubject::of(date: '2026-02-30', isoWeek: '2026-W09'));
 		self::assertSame('Vraag over je uren van deze week', HourReturnSubject::of(date: '', isoWeek: 'week 40'));
 	}//end testWithoutADayTheWeekIsNamed()
+
+	/**
+	 * A returned week links to the hours page with the week chosen.
+	 *
+	 * @return void
+	 */
+	public function testAReturnedWeekLinksToItsHoursPage(): void {
+		self::assertSame(
+			expected: ['label' => 'Uren aanpassen', 'href' => '/mijn/learniq/studentHourWeeks/ee030040-0000-4000-8000-000000000001'],
+			actual: (new HourReturnSubject())->linkFor(weekId: 'ee030040-0000-4000-8000-000000000001')
+		);
+	}//end testAReturnedWeekLinksToItsHoursPage()
+
+	/**
+	 * A week without an id, or with one that is not a plain id, gets no link
+	 * rather than an address that could leave the page.
+	 *
+	 * @return void
+	 */
+	public function testAWeekWithoutAPlainIdGetsNoLink(): void {
+		foreach (['', '../../settings', 'a/b', '//evil.example', "ee03\n"] as $id) {
+			self::assertNull(actual: (new HourReturnSubject())->linkFor(weekId: $id), message: $id);
+		}
+	}//end testAWeekWithoutAPlainIdGetsNoLink()
 }//end class

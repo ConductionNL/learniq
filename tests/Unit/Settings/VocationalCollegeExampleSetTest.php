@@ -33,6 +33,7 @@ namespace OCA\Learniq\Tests\Unit\Settings;
 
 use OCA\Learniq\Bpv\PlacementPhase;
 use DateTimeImmutable;
+use OCA\Learniq\Service\HourReturnSubject;
 use OCA\Learniq\Service\ExampleSetPreparation;
 use OCA\Learniq\Service\ExampleSetSources;
 use DateTimeZone;
@@ -1052,6 +1053,7 @@ class VocationalCollegeExampleSetTest extends TestCase {
 				self::assertSame($week['note'], $week['days'][1]['returnedQuestion']);
 				self::assertArrayNotHasKey('returnedQuestion', $week['days'][0]);
 				self::assertSame('Vraag over je uren van dinsdag 29 september', $week['returnSubject']);
+				self::assertSame(expected: (new HourReturnSubject())->linkFor(weekId: $week['uuid']), actual: $week['returnAction']);
 				self::assertEquals($week['hoursSubmitted'], array_sum(array_column($week['days'], 'hours')));
 			}
 		}

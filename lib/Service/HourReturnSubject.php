@@ -7,7 +7,11 @@
  * a week of hours back: "Vraag over je uren van dinsdag 29 september" for a
  * week with day lines, "Vraag over je uren van week 40" for a week without.
  * Written once, by the server, at the moment of the return, in the language
- * of the portal's other server-written notices.
+ * of the portal's other server-written notices. Also the link under that
+ * line (board esdoornveen/Berichten, "Uren aanpassen"): her hours page with
+ * the returned week chosen, where she writes the day again (D-5: a link, not
+ * a form in the message). Portaliq draws it from the inbox collection's
+ * `actionField` and keeps only a path on its own site.
  *
  * @category Service
  * @package  OCA\Learniq\Service
@@ -32,13 +36,24 @@ namespace OCA\Learniq\Service;
 use DateTimeImmutable;
 
 /**
- * Words the subject of a returned week's notice.
+ * Words the subject and the link of a returned week's notice.
  *
  * @spec openspec/changes/bpv-hours-per-day/specs/bpv/spec.md#requirement-a-returned-week-names-the-day-and-the-question
  */
 final class HourReturnSubject {
 
 	private const PREFIX = 'Vraag over je uren van ';
+
+	/**
+	 * The label of the link, in the language of the line above it.
+	 */
+	public const LINK_LABEL = 'Uren aanpassen';
+
+	/**
+	 * The student's hours page: portaliq serves a contribution page at
+	 * `/mijn/<app>/<page>/<id>` with that row chosen.
+	 */
+	public const LINK_PAGE = '/mijn/learniq/studentHourWeeks/';
 
 	/**
 	 * The weekday names, Monday first (ISO-8601 day 1 to 7).
@@ -82,6 +97,24 @@ final class HourReturnSubject {
 
 		return self::PREFIX . self::weekOf(isoWeek: $isoWeek);
 	}//end of()
+
+	/**
+	 * The link under a returned week's line, or null when the week has no
+	 * plain id, so no address that could leave the page is written.
+	 *
+	 * @param string $weekId The returned week's uuid.
+	 *
+	 * @return array{label: string, href: string}|null
+	 *
+	 * @spec openspec/changes/bpv-hours-per-day/specs/bpv/spec.md#requirement-a-returned-week-names-the-day-and-the-question
+	 */
+	public function linkFor(string $weekId): ?array {
+		if (preg_match('/^[A-Za-z0-9-]+\z/', $weekId) !== 1) {
+			return null;
+		}
+
+		return ['label' => self::LINK_LABEL, 'href' => self::LINK_PAGE . $weekId];
+	}//end linkFor()
 
 	/**
 	 * "week 41" for 2026-W41, or "deze week" when the week cannot be read.

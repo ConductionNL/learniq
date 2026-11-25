@@ -641,7 +641,6 @@ class StudentPortalPages {
 		'submitLabel' => 'Send these hours',
 		'successMessage' => 'Your hours are with your workplace trainer. You see her decision in the list.',
 		];
-
 	}//end hourWeekAction()
 
 	/**
@@ -875,19 +874,20 @@ class StudentPortalPages {
 	}//end timetablePage()
 
 	/**
-	 * The blocks above and of a collection's list: the hours bar of the hour
-	 * weeks, the collection's first create form, then the list itself.
+	 * A list page's blocks: the hour weeks' hours bar and day form, the first create form, the list.
 	 *
 	 * @param array<string, mixed>            $collection The collection.
 	 * @param array<int, array<string, mixed>> $actions    The audience's actions.
 	 *
 	 * @return array<int, array<string, mixed>>
+	 *
+	 * @spec openspec/changes/bpv-hours-per-day/specs/bpv/spec.md#requirement-a-returned-week-names-the-day-and-the-question
 	 */
 	private function listBlocks(array $collection, array $actions): array {
 		$id = (string)$collection['id'];
 		$blocks = [];
 		if ($id === 'studentHourWeeks') {
-			$blocks[] = $this->hoursBar(collection: 'studentBpvPlacements');
+			$blocks = [$this->hoursBar(collection: 'studentBpvPlacements'), ['type' => 'action', 'action' => 'writeHourDay']];
 		}
 
 		$form = $this->firstCreateFor(schema: $this->formSchema(collection: $collection), actions: $actions);

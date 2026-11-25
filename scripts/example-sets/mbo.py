@@ -2558,6 +2558,8 @@ class StoryAutumn:
         }))
         returned["days"] = story_days(dt.date(2026, 9, 28), 3, {1: question})
         returned["returnSubject"] = "Vraag over je uren van dinsdag 29 september"
+        # "Uren aanpassen" under his message: his hours page with this week chosen (HourReturnSubject.linkFor).
+        returned["returnAction"] = {"label": "Uren aanpassen", "href": "/mijn/learniq/studentHourWeeks/" + returned["uuid"]}
         draft = self.week(MILAN, (dt.date(2026, 10, 5), 8, 0, None))
         draft["days"] = story_days(dt.date(2026, 10, 5), 1, {})
         draft["lifecycle"] = "draft"
