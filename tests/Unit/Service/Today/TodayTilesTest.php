@@ -307,9 +307,17 @@ class TodayTilesTest extends TestCase {
 		$service = $this->service(role: 'instructor', segment: 'mbo');
 		$this->reader->method('rows')->willReturnCallback(
 			static fn (string $schema, array $filters=[]): array => match ([$schema, $filters]) {
-				['bpv-placement', ['schoolCoachId' => 'daan']] => [['id' => 'p-1', 'schoolCoachId' => 'daan', 'trainingCompanyName' => 'Van Dijk Machinebouw']],
+				['bpv-placement', ['schoolCoachId' => 'daan']] => [
+					['id' => 'p-1', 'schoolCoachId' => 'daan', 'trainingCompanyName' => 'Van Dijk Machinebouw'],
+				],
 				['bpv-hour-week', ['lifecycle' => 'submitted']] => [
-					['bpvPlacementId' => 'p-1', 'isoWeek' => '2026-W40', 'hoursSubmitted' => 24, 'submittedAt' => '2026-10-02T17:00:00+02:00', 'lifecycle' => 'submitted'],
+					[
+						'bpvPlacementId' => 'p-1',
+						'isoWeek' => '2026-W40',
+						'hoursSubmitted' => 24,
+						'submittedAt' => '2026-10-02T17:00:00+02:00',
+						'lifecycle' => 'submitted',
+					],
 				],
 				default => [],
 			}

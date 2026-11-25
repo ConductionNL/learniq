@@ -155,7 +155,14 @@ final class PlacementFacts {
 			}
 
 			$name = $companyOf[$placementId];
-			$row = ($companies[$name] ?? ['company' => $name, 'placements' => [], 'weeks' => 0, 'hours' => 0.0, 'oldestSubmittedAt' => '', 'oldestWeek' => '']);
+			$row = ($companies[$name] ?? [
+				'company' => $name,
+				'placements' => [],
+				'weeks' => 0,
+				'hours' => 0.0,
+				'oldestSubmittedAt' => '',
+				'oldestWeek' => '',
+			]);
 			$row['placements'][$placementId] = true;
 			$row['weeks']++;
 			$row['hours'] += (float)($week['hoursSubmitted'] ?? 0);
