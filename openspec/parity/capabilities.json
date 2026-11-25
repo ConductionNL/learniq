@@ -9946,23 +9946,23 @@
       "area": "assessment",
       "name": "Plan an exam week with rooms, extra time and invigilators, and see the clashes.",
       "built": {
-        "state": "building",
-        "evidence": "Pages ExamPeriods, ExamPeriodDetail, ExamSittings and ExamSittingDetail (src/manifest.d/exam-schedule.json, detail :217) plan the week; lib/Listener/ExamSittingPlacementCheck.php:102-112 records rooms, capacity and clashWarnings on save, and the sitting detail lists invigilation requests answered through InvigilatorAssignmentCheck and InvigilatorResponseGuard. Missing: the extra time per learner and the invigilators who are free. lib/Service/ExamSittingOverview.php:79 overview() computes each accommodated learner's end time and room, and :101 availableInvigilators() the free colleagues, served at GET /api/exam-sittings/{id}/overview and /available-invigilators (appinfo/routes.php:346-347, lib/Controller/ExamScheduleController.php:84, :107), but no page or component in src/ calls either route.",
+        "state": "built",
+        "evidence": "Pages ExamPeriods, ExamPeriodDetail, ExamSittings and ExamSittingDetail (src/manifest.d/exam-schedule.json) plan the week; lib/Listener/ExamSittingPlacementCheck.php records rooms, capacity and clashWarnings on save, and the sitting detail lists invigilation requests answered through InvigilatorAssignmentCheck and InvigilatorResponseGuard. The section src/components/sections/ExamSittingOverview.vue on ExamSittingDetail shows each accommodated learner's end time (lib/Service/ExamSittingOverview.php overview(), GET /api/exam-sittings/{id}/overview) and the colleagues free for the whole sitting with Ask (availableInvigilators(), GET /api/exam-sittings/{id}/available-invigilators). e2e tests/e2e/exam-sitting-overview.spec.ts passed live 2026-11-25; node tests/unit-js/examSittingOverview.test.mjs.",
         "owner": "ConductionNL/learniq",
         "change": "exam-sitting-overview-section",
-        "reachedOn": "/exam-periods, /exam-sittings/:id (rooms and clashes); extra time and free invigilators: nothing",
-        "readOn": "2026-10-07",
+        "reachedOn": "/exam-sittings/:id > Extra time and invigilators",
+        "readOn": "2026-11-25",
         "note": "Spec round part 3 (7 Oct): the delivered part is 2026-09-29-timetabling-exam-schedule; the missing part is specified in exam-sitting-overview-section.",
         "requirement": [
           "openspec/specs/exam-schedule :: Exam periods and sittings",
-          "openspec/changes/exam-sitting-overview-section/specs/exam-schedule :: An exam sitting shows each accommodated learner's end time",
-          "openspec/changes/exam-sitting-overview-section/specs/exam-schedule :: An exam sitting shows its invigilator places and who is free"
+          "openspec/specs/exam-schedule :: An exam sitting shows each accommodated learner's end time",
+          "openspec/specs/exam-schedule :: An exam sitting shows its invigilator places and who is free"
         ]
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
       "feature": "assessment",
-      "learniq": "partial",
+      "learniq": "yes",
       "moodle": "unknown",
       "moodle-workplace": "unknown",
       "ilias": "unknown",
