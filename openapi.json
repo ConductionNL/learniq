@@ -7636,6 +7636,38 @@
                 }
             }
         },
+        "/portal/employer/certificates-archive": {
+            "post": {
+                "operationId": "portal-employer-certificates-bundle",
+                "summary": "Bundle every valid certificate of the company's people into one ZIP, kept with the company's documents",
+                "description": "Bundle every valid certificate of the company's people into one ZIP, kept with the company's documents for her to download. Public: it needs no login; the portal's signed assertion is the credential.",
+                "tags": [
+                    "portal-employer"
+                ],
+                "security": [],
+                "responses": {
+                    "201": {
+                        "description": "The ZIP is kept.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Problem403"
+                    }
+                }
+            }
+        },
         "/keuzedelen": {
             "get": {
                 "operationId": "keuzedeel-mine",

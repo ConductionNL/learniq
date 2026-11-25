@@ -3162,6 +3162,12 @@
         "{present} present, {late} late, {authorised} absent with permission, {unauthorised} absent without permission",
         "{programme}, intake {year}, {status}",
         "{revoked} revoked and {expired} expired certificates are left as they are. Learners keep their certificate number, issue date and expiry.",
-        "{shown} of {total} strings"
+        "{shown} of {total} strings",
+        "Your company",
+        "Downloads",
+        "Download all valid certificates",
+        "The file with all valid certificates is ready under Downloads.",
+        "Ask for the download above; the file appears here.",
+        "Valid certificates, %s"
     ]
 }
