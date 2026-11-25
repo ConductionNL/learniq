@@ -86,13 +86,13 @@ class ProgrammePublishGuardTest extends TestCase {
 		$plan = new ObjectEntity();
 		$plan->setUuid('plan-1');
 		$plan->setObject(['id' => 'plan-1', 'lifecycle' => 'published', 'requiredCourseIds' => ['course-1']]);
-		$objectService = $this->createMock(ObjectService::class);
-		$objectService->method('findAll')->willReturn([$plan]);
+		$objectService = $this->createMock(originalClassName: ObjectService::class);
+		$objectService->method('findAll')->willReturn(value: [$plan]);
 
-		$guard = new ProgrammePublishGuard($objectService, $this->createMock(LoggerInterface::class));
+		$guard = new ProgrammePublishGuard(objectService: $objectService, logger: $this->createMock(originalClassName: LoggerInterface::class));
 		$object = ['id' => 'programme-1', 'curriculumPlanId' => 'plan-1', 'tenant_id' => 'tenant-a', 'lifecycle' => 'published'];
 
-		self::assertAllowed($guard->check($object, 'publish', ''));
+		self::assertAllowed(verdict: $guard->check(object: $object, action: 'publish', userId: ''));
 	}//end testAPlanReadAsAnObjectEntityIsAllowedToPublish()
 
 	/**
