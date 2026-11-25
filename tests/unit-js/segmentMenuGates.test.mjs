@@ -374,6 +374,7 @@ function validateWith(name, mutate) {
 		'src/manifest.json',
 		'src/menu-layout.json',
 		'lib/Service/DashboardRoleService.php',
+		'lib/Kernel/Contracts/DashboardRoleServiceInterface.php',
 		'lib/Settings/learniq_register.json',
 	]) {
 		mkdirSync(dirname(join(root, rel)), { recursive: true })
