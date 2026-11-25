@@ -9,7 +9,7 @@
  * @license  EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  * @link     https://conduction.nl
  *
- * @spec openspec/changes/exam-committee-today-and-keuzedelen/specs/exam-board/spec.md#requirement-the-committee-establishes-the-results-of-a-sitting
+ * @spec openspec/specs/exam-board/spec.md#requirement-the-committee-establishes-the-results-of-a-sitting
  */
 
 declare(strict_types=1);

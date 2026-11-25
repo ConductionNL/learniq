@@ -9,7 +9,7 @@
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  * @link      https://conduction.nl
  *
- * @spec openspec/changes/exam-committee-today-and-keuzedelen/specs/enrolment/spec.md#requirement-a-students-exam-progress-reads-in-words
+ * @spec openspec/specs/enrolment/spec.md#requirement-a-students-exam-progress-reads-in-words
  */
 
 declare(strict_types=1);
@@ -32,7 +32,7 @@ use Throwable;
  * is established or cancelled, restamps the students of its cohorts; an
  * approved, placed or withdrawn keuzedeel choice restamps its student.
  *
- * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#task-T4
+ * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#task-T4
  *
  * @template-implements IEventListener<Event>
  */
@@ -45,7 +45,7 @@ class ExamProgressCascade implements IEventListener {
 	 * @param ObjectService                   $objectService Reads the sitting's cohorts.
 	 * @param ListenerSchemaResolverInterface $schemas       Resolves the schema.
 	 *
-	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#task-T4
+	 * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#task-T4
 	 */
 	public function __construct(
 		private readonly ExamProgressRestamp $restamp,
@@ -61,7 +61,7 @@ class ExamProgressCascade implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#task-T4
+	 * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#task-T4
 	 */
 	public function handle(Event $event): void {
 		if ($event instanceof ObjectTransitionedEvent) {

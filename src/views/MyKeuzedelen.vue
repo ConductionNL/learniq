@@ -5,7 +5,7 @@
  The offers open to her with their study load and the window's end, the
  line of her choice, and Choose. The server decides; a refusal is shown in
  its own words.
- @spec openspec/changes/exam-committee-today-and-keuzedelen/specs/enrolment/spec.md#requirement-an-mbo-student-chooses-a-keuzedeel-inside-its-window
+ @spec openspec/specs/enrolment/spec.md#requirement-an-mbo-student-chooses-a-keuzedeel-inside-its-window
 -->
 <template>
 	<div class="my-keuzedelen lq-board-page">
@@ -90,7 +90,7 @@ export default {
 		 * Load the offers open to the student and her line.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/exam-committee-today-and-keuzedelen/specs/enrolment/spec.md#requirement-an-mbo-student-chooses-a-keuzedeel-inside-its-window
+		 * @spec openspec/specs/enrolment/spec.md#requirement-an-mbo-student-chooses-a-keuzedeel-inside-its-window
 		 */
 		async load() {
 			this.loading = true
@@ -112,7 +112,7 @@ export default {
 		 *
 		 * @param {object} offer The offer.
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/exam-committee-today-and-keuzedelen/specs/enrolment/spec.md#requirement-an-mbo-student-chooses-a-keuzedeel-inside-its-window
+		 * @spec openspec/specs/enrolment/spec.md#requirement-an-mbo-student-chooses-a-keuzedeel-inside-its-window
 		 */
 		async choose(offer) {
 			this.busy = true

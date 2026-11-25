@@ -19,7 +19,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/exam-committee-today-and-keuzedelen/specs/exam-board/spec.md#requirement-the-committee-establishes-the-results-of-a-sitting
+ * @spec openspec/specs/exam-board/spec.md#requirement-the-committee-establishes-the-results-of-a-sitting
  */
 
 declare(strict_types=1);
@@ -38,7 +38,7 @@ use Psr\Log\LoggerInterface;
 /**
  * Stamps the sitting's establishment onto each of its results.
  *
- * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#task-T2
+ * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#task-T2
  *
  * @template-implements IEventListener<Event>
  */
@@ -72,7 +72,7 @@ class ExamSittingEstablishHandler implements IEventListener {
 	 * @param ListenerSchemaResolverInterface $schemas       Resolves the event's register and schema.
 	 * @param LoggerInterface                 $logger        Logs what was established.
 	 *
-	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#task-T2
+	 * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#task-T2
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
@@ -88,7 +88,7 @@ class ExamSittingEstablishHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#task-T2
+	 * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#task-T2
 	 */
 	public function handle(Event $event): void {
 		if ($this->isEstablish(event: $event) === false) {
@@ -150,7 +150,7 @@ class ExamSittingEstablishHandler implements IEventListener {
 	 *
 	 * @return list<array<string, mixed>>
 	 *
-	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#task-T2
+	 * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#task-T2
 	 */
 	private function results(array $sitting, string $sittingId): array {
 		$filters = [

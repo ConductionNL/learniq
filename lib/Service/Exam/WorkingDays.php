@@ -20,7 +20,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#task-T1
+ * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#task-T1
  */
 
 declare(strict_types=1);
@@ -32,7 +32,7 @@ use DateTimeImmutable;
 /**
  * Adds working days to a date.
  *
- * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#task-T1
+ * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#task-T1
  */
 final class WorkingDays {
 
@@ -44,7 +44,7 @@ final class WorkingDays {
 	 *
 	 * @return DateTimeImmutable The last day of the term, at midnight.
 	 *
-	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#task-T1
+	 * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#task-T1
 	 */
 	public static function after(DateTimeImmutable $start, int $days): DateTimeImmutable {
 		$day  = $start->setTime(0, 0);

@@ -9,7 +9,7 @@
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  * @link      https://conduction.nl
  *
- * @spec openspec/changes/exam-committee-today-and-keuzedelen/specs/enrolment/spec.md#requirement-an-mbo-student-chooses-a-keuzedeel-inside-its-window
+ * @spec openspec/specs/enrolment/spec.md#requirement-an-mbo-student-chooses-a-keuzedeel-inside-its-window
  */
 
 declare(strict_types=1);
@@ -39,7 +39,7 @@ use Throwable;
  * choice outside the window, for a full offer or a second one in the same
  * period is refused in words (KeuzedeelRules).
  *
- * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#task-T5
+ * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#task-T5
  */
 class KeuzedeelController extends Controller {
 
@@ -53,7 +53,7 @@ class KeuzedeelController extends Controller {
 	 * @param LoggerInterface     $logger        Logs a failed save.
 	 * @param KeuzedeelRules      $rules         Decides whether she may choose.
 	 *
-	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#task-T5
+	 * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#task-T5
 	 */
 	public function __construct(
 		IRequest $request,
@@ -71,7 +71,7 @@ class KeuzedeelController extends Controller {
 	 *
 	 * @return JSONResponse
 	 *
-	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#task-T5
+	 * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#task-T5
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -115,7 +115,7 @@ class KeuzedeelController extends Controller {
 	 *
 	 * @return JSONResponse 201 with the choice, 404 for an offer not open to her, 422 with the reason.
 	 *
-	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#task-T5
+	 * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#task-T5
 	 */
 	#[NoAdminRequired]
 	public function choose(string $offerId): JSONResponse {

@@ -169,7 +169,7 @@ final class FirstTodayRules {
 	 *
 	 * @return string|null
 	 *
-	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#T3
+	 * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#T3
 	 */
 	private function examCommittee(string $segment): ?string {
 		if (in_array($segment, self::EXAM_SCHOOLS, true) === true) {

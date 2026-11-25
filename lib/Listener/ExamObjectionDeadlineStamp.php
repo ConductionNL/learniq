@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#task-T1
+ * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#task-T1
  */
 
 declare(strict_types=1);
@@ -44,7 +44,7 @@ use Throwable;
  *
  * @template-implements IEventListener<Event>
  *
- * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#task-T1
+ * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#task-T1
  */
 class ExamObjectionDeadlineStamp implements IEventListener {
 
@@ -90,7 +90,7 @@ class ExamObjectionDeadlineStamp implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#task-T1
+	 * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#task-T1
 	 */
 	public function handle(Event $event): void {
 		if ($event instanceof ObjectCreatingEvent === false || $event->isPropagationStopped() === true) {
