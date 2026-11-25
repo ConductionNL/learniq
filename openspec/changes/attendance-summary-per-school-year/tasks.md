@@ -7,4 +7,5 @@
 - [x] 1.5 `BackfillAttendanceSummaries` repair step, registered after `InitializeSettings`. Verify: PHPUnit `BackfillAttendanceSummariesTest`.
 - [x] 1.6 The po example set ships the summaries, counted the same way. Verify: `python3 scripts/example-sets/po.py --check`; PHPUnit `AttendanceSummaryRegisterTest::testThePrimarySchoolSummariesMatchTheCalculator`, `ExampleSetDescriptorContractTest`.
 - [x] 1.7 Contract for the parent portal lane in `/home/rubenlinde/memcap-work/lq-attendance/CONTRACT.md`.
-- [ ] 1.8 Live: the summary of the Groep 7 pupils marked in the roll-call shows the new late arrival and absence after the background job runs.
+- [x] 1.8 Live: the summary of the Groep 7 pupils marked in the roll-call shows the new late arrival and absence after the background job runs.
+  - Live 2026-11-25 on the same sandbox instance, after the 1.7 roll-call and two `php cron.php` runs: Finn Weidewijk's 2026-2027 summary went from 0 to 1 late arrival and 0 to 5 late minutes, Hamza Elzenhof's from 1 to 2 absent days and 0 to 1 day without permission; both rows carry the run's `updatedAt`, and the 2025-2026 rows did not change.
