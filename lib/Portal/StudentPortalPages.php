@@ -49,7 +49,7 @@ class StudentPortalPages {
 	 * The collection pages that stay in the pupil's menu, with their menu
 	 * label: Inleveren, Cijfers, Toetsen, BPV en uren, Afwezig melden.
 	 *
-	 * @spec openspec/changes/student-portal-reads-like-the-boards/specs/portal-contribution/spec.md#requirement-the-student-pages-use-the-words-of-the-boards
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-student-pages-use-the-words-of-the-boards
 	 */
 	private const MENU_PAGES = [
 		'studentSessions'       => 'Timetable',
