@@ -49,7 +49,7 @@ class PersonalTimetableCohortReadTest extends TestCase {
 	 * @return void
 	 */
 	public function testALearnerInLearnerIdsGetsHerCohortsLessons(): void {
-		$objects = $this->createMock(ObjectService::class);
+		$objects = $this->createMock(originalClassName: ObjectService::class);
 		$objects->method('findAll')->willReturnCallback(
 			function (array $config, bool $_rbac = true, bool $_multitenancy = true): array {
 				$schema = $config['filters']['schema'];
@@ -70,29 +70,39 @@ class PersonalTimetableCohortReadTest extends TestCase {
 			}
 		);
 
-		$source = $this->createMock(TimetableSource::class);
-		$source->method('name')->willReturn('learniq');
-		$source->method('sessionsForTeacher')->willReturn([]);
+		$source = $this->createMock(originalClassName: TimetableSource::class);
+		$source->method('name')->willReturn(value: 'learniq');
+		$source->method('sessionsForTeacher')->willReturn(value: []);
+		$lesson = [
+			'id' => 's-1',
+			'cohortId' => 'c-mine',
+			'title' => 'Probe lesson',
+			'startsAt' => '2026-11-25T08:00:00+00:00',
+			'endsAt' => '2026-11-25T09:00:00+00:00',
+		];
 		$source->expects($this->once())->method('sessionsForCohorts')
-			->with($this->identicalTo(['c-mine']))
-			->willReturn([['id' => 's-1', 'cohortId' => 'c-mine', 'title' => 'Probe lesson', 'startsAt' => '2026-11-25T08:00:00+00:00', 'endsAt' => '2026-11-25T09:00:00+00:00']]);
-		$resolver = $this->createMock(TimetableSourceResolver::class);
-		$resolver->method('current')->willReturn($source);
+			->with($this->identicalTo(value: ['c-mine']))
+			->willReturn(value: [$lesson]);
+		$resolver = $this->createMock(originalClassName: TimetableSourceResolver::class);
+		$resolver->method('current')->willReturn(value: $source);
 
 		$logger = new CapturingLogger();
-		$groups = $this->createMock(IGroupManager::class);
+		$groups = $this->createMock(originalClassName: IGroupManager::class);
 		$service = new PersonalTimetableService(
-			$objects,
-			new TimetableProjector(logger: $logger, noteReader: new LessonNoteReader($objects, $groups, $logger)),
-			$resolver,
-			$logger
+			objectService: $objects,
+			projector: new TimetableProjector(
+				logger: $logger,
+				noteReader: new LessonNoteReader(objectService: $objects, groupManager: $groups, logger: $logger)
+			),
+			sources: $resolver,
+			logger: $logger
 		);
 
 		$timetable = $service->forUser(uid: 'learner-1', windowFrom: '2026-11-23T00:00:00+00:00', windowTo: '2026-11-30T00:00:00+00:00');
 
-		$this->assertSame(['Probe lesson'], array_column($timetable['sessions'], 'title'));
-		$this->assertSame([['rbac' => false, 'multitenancy' => true]], $this->reads['cohort']);
+		$this->assertSame(expected: ['Probe lesson'], actual: array_column(array: $timetable['sessions'], column_key: 'title'));
+		$this->assertSame(expected: [['rbac' => false, 'multitenancy' => true]], actual: $this->reads['cohort']);
 		// Her enrolments are still read as her.
-		$this->assertSame(true, $this->reads['enrolment'][0]['rbac']);
+		$this->assertSame(expected: true, actual: $this->reads['enrolment'][0]['rbac']);
 	}//end testALearnerInLearnerIdsGetsHerCohortsLessons()
 }//end class
