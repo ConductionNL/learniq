@@ -1829,6 +1829,183 @@
 			}
 		},
 		{
+			"id": "Dashboard",
+			"_note": "The exam committee's Today (exam-committee-today-and-keuzedelen T3, board esdoornveen/LqRolC). In a school (vo, mbo, he) the compliance officers are the exam committee (DashboardRoleService::EXAM_BOARD_GROUP), so for them the page at `/` becomes their own day: the First today card (GET /api/today/first: an objection past half its term, then results not established five working days after grading), the results to establish per sitting and the open items of the next meeting (GET /api/today/exam-committee), and the coming sittings. A company's or training provider's compliance officer keeps the role dashboard: it has no exam committee. The meeting itself and its minutes stay out (decidiq handles meetings); the agenda only lists what waits for the committee. Every page it opens is one the compliance landing offers the committee (Exam objections, Exam sittings).",
+			"when": {
+				"user.primaryRole": {
+					"in": [
+						"compliance-officer"
+					]
+				},
+				"workspace.segment": {
+					"in": [
+						"vo",
+						"mbo",
+						"he"
+					]
+				}
+			},
+			"page": {
+				"type": "dashboard",
+				"title": "Today",
+				"component": null
+			},
+			"config": {
+				"allowEdit": false,
+				"title": "Today",
+				"greeting": "date",
+				"showActionsMenu": false,
+				"showWidgetActions": false,
+				"widgets": [
+					{
+						"id": "exam-first-rule",
+						"type": "banner",
+						"title": "First today",
+						"content": {
+							"layout": "attention",
+							"variant": "warning",
+							"kicker": "First today",
+							"title": "{subject.title}",
+							"text": "{subject.title}",
+							"reason": "{subject.reason}",
+							"visibleWhen": {
+								"endpoint": "/apps/learniq/api/today/first",
+								"field": "title",
+								"op": "notEmpty"
+							},
+							"actions": [
+								{
+									"label": "Open",
+									"route": {
+										"name": "@subject.page"
+									}
+								}
+							]
+						}
+					},
+					{
+						"id": "exam-results-per-sitting",
+						"type": "record-list",
+						"title": "Results to establish",
+						"content": {
+							"endpointSource": {
+								"url": "/apps/learniq/api/today/exam-committee",
+								"responsePath": "sittings"
+							},
+							"presentation": "rows",
+							"title": "{title}",
+							"meta": "{startsAt|date}",
+							"trailing": [
+								"{results} results"
+							],
+							"rowRoute": "ExamSittingDetail",
+							"rowIdField": "sittingId",
+							"emptyText": "No results to establish"
+						}
+					},
+					{
+						"id": "exam-agenda",
+						"type": "record-list",
+						"title": "Open items for the next meeting",
+						"content": {
+							"endpointSource": {
+								"url": "/apps/learniq/api/today/exam-committee",
+								"responsePath": "agenda"
+							},
+							"presentation": "rows",
+							"title": "{item}",
+							"trailing": [
+								"{count}"
+							],
+							"emptyText": "Nothing waits for the committee"
+						}
+					},
+					{
+						"id": "exam-coming-sittings",
+						"type": "record-list",
+						"title": "Coming sittings",
+						"content": {
+							"register": "learniq",
+							"schema": "exam-sitting",
+							"filter": {
+								"lifecycle": "planned",
+								"startsAt": {
+									"gte": "@today"
+								}
+							},
+							"sort": {
+								"field": "startsAt",
+								"direction": "asc"
+							},
+							"limit": 5,
+							"extend": [
+								"assessmentId"
+							],
+							"presentation": "rows",
+							"title": "{assessmentId.title}",
+							"meta": "{startsAt|date}",
+							"trailing": [
+								"{headcount} candidates"
+							],
+							"rowRoute": "ExamSittingDetail",
+							"emptyText": "No sittings planned"
+						}
+					}
+				],
+				"layout": [
+					{
+						"id": "e0",
+						"widgetId": "exam-first-rule",
+						"gridX": 0,
+						"gridY": 1,
+						"gridWidth": 12,
+						"gridHeight": 2,
+						"showTitle": false,
+						"sizeToContent": true
+					},
+					{
+						"id": "e1",
+						"widgetId": "exam-results-per-sitting",
+						"gridX": 0,
+						"gridY": 3,
+						"gridWidth": 6,
+						"gridHeight": 4,
+						"showTitle": true,
+						"headerLink": {
+							"label": "Exam sittings",
+							"route": "ExamSittings"
+						}
+					},
+					{
+						"id": "e2",
+						"widgetId": "exam-agenda",
+						"gridX": 6,
+						"gridY": 3,
+						"gridWidth": 6,
+						"gridHeight": 4,
+						"showTitle": true,
+						"headerLink": {
+							"label": "Exam objections",
+							"route": "ExamObjections"
+						}
+					},
+					{
+						"id": "e3",
+						"widgetId": "exam-coming-sittings",
+						"gridX": 0,
+						"gridY": 7,
+						"gridWidth": 12,
+						"gridHeight": 4,
+						"showTitle": true,
+						"headerLink": {
+							"label": "Exam sittings",
+							"route": "ExamSittings"
+						}
+					}
+				]
+			}
+		},
+		{
 			"id": "Cohorts",
 			"configAppend": {
 				"headerActions": [

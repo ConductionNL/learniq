@@ -127,6 +127,51 @@ class TodayFirstController extends Controller {
 	}//end bpvHours()
 
 	/**
+	 * What waits for the exam committee: the results to establish per sitting and the agenda of open items.
+	 *
+	 * @return JSONResponse `{sittings: [{sittingId, title, startsAt, results}], agenda: [{key, item, count}]}`, or 401 / 503.
+	 *
+	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#T3
+	 *
+	 * @no-admin-idor-exempt the lists are read for the session user with her own rights, and only when she is a
+	 *  member of a school's exam committee; anybody else gets two empty lists. No id is taken from the request.
+	 */
+	#[NoAdminRequired]
+	public function examCommittee(): JSONResponse {
+		return $this->answer(
+			read: fn (IUser $user): ?array => $this->withAgendaItems(answer: $this->firstToday->examCommitteeFor(user: $user)),
+			failed: $this->l10n->t('What waits for the exam committee could not be read. Try again.')
+		);
+	}//end examCommittee()
+
+	/**
+	 * The agenda rows with the words they are listed with.
+	 *
+	 * @param array<string, mixed>|null $answer The service's answer.
+	 *
+	 * @return array<string, mixed>|null
+	 *
+	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#T3
+	 */
+	private function withAgendaItems(?array $answer): ?array {
+		if ($answer === null) {
+			return null;
+		}
+
+		$words = [
+			'objections' => $this->l10n->t('Objections to decide'),
+			'results' => $this->l10n->t('Results to establish'),
+			'exemptions' => $this->l10n->t('Exemption requests to decide'),
+		];
+		$answer['agenda'] = array_map(
+			static fn (array $row): array => array_merge($row, ['item' => ($words[$row['key']] ?? $row['key'])]),
+			(array)($answer['agenda'] ?? [])
+		);
+
+		return $answer;
+	}//end withAgendaItems()
+
+	/**
 	 * The card of the user, described for Today, or null when it could not be read.
 	 *
 	 * @param IUser  $user The caller.

@@ -176,6 +176,9 @@ const ENGAGEMENT_AND_EVALUATION_CARDS = [
 const EXAM_BOARD_CARDS = [
 	'ExemptionCasesMenu',
 	'FraudCasesMenu',
+	// exam-committee-today-and-keuzedelen T3: the committee's objections and sittings.
+	'ExamObjectionsMenu',
+	'ExamCommitteeSittingsMenu',
 	'ItemRevisionFlagsMenu',
 ].map((id) => `card:ComplianceLanding:${id}`)
 const COMPANY_CARDS = ['Compliance', 'ExternalTraining'].map(

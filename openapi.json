@@ -9074,6 +9074,37 @@
                 }
             }
         },
+        "/today/exam-committee": {
+            "get": {
+                "operationId": "today-first-exam-committee",
+                "summary": "What waits for the exam committee on Today",
+                "description": "For a member of a school's exam committee: the published results not yet established, per exam sitting (the earliest sitting first), and the open items of the next meeting (objections to decide, results to establish, exemption requests to decide) with their counts. Anybody else gets two empty lists. Only rows she may read. Needs a signed-in Nextcloud user.",
+                "tags": [
+                    "today-first"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The request succeeded.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    },
+                    "503": {
+                        "$ref": "#/components/responses/Problem503"
+                    }
+                }
+            }
+        },
         "/portal/electives/sign-up": {
             "post": {
                 "operationId": "portal-elective-sign-up",
