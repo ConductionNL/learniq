@@ -9043,6 +9043,37 @@
                 }
             }
         },
+        "/today/bpv-hours": {
+            "get": {
+                "operationId": "today-first-bpv-hours",
+                "summary": "The BPV-begeleider's hours waiting per company on Today",
+                "description": "The submitted hour weeks of the placements where the signed-in user is the school coach, per training company, the longest waiting company first: per company the students, the weeks, the hours and the oldest submitted week. Only rows she may read. Needs a signed-in Nextcloud user.",
+                "tags": [
+                    "today-first"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The request succeeded.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    },
+                    "503": {
+                        "$ref": "#/components/responses/Problem503"
+                    }
+                }
+            }
+        },
         "/portal/electives/sign-up": {
             "post": {
                 "operationId": "portal-elective-sign-up",

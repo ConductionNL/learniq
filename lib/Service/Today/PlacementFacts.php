@@ -130,6 +130,68 @@ final class PlacementFacts {
 	}//end hoursWaiting()
 
 	/**
+	 * The coach's submitted hour weeks per training company, the longest waiting company first.
+	 *
+	 * @param array<string, list<array<string, mixed>>> $bpv     `placements` (the coach's) and `weeks` (submitted hour weeks).
+	 * @param TodayContext                              $context The coach and now.
+	 *
+	 * @return list<array<string, mixed>> Per company: company, students, weeks, hours, oldestSubmittedAt, oldestWeek.
+	 *
+	 * @spec openspec/changes/bpv-coach-today-and-placement-board/specs/bpv/spec.md#requirement-the-bpv-begeleiders-today-gathers-her-students
+	 */
+	public function hoursPerCompany(array $bpv, TodayContext $context): array {
+		$companyOf = [];
+		foreach (($bpv['placements'] ?? []) as $placement) {
+			if (($placement['schoolCoachId'] ?? null) === $context->uid()) {
+				$companyOf[self::idOf(row: $placement)] = trim((string)($placement['trainingCompanyName'] ?? ''));
+			}
+		}
+
+		$companies = [];
+		foreach (($bpv['weeks'] ?? []) as $week) {
+			$placementId = (string)($week['bpvPlacementId'] ?? '');
+			if (($week['lifecycle'] ?? '') !== 'submitted' || array_key_exists($placementId, $companyOf) === false) {
+				continue;
+			}
+
+			$name = $companyOf[$placementId];
+			$row = ($companies[$name] ?? [
+				'company' => $name,
+				'placements' => [],
+				'weeks' => 0,
+				'hours' => 0.0,
+				'oldestSubmittedAt' => '',
+				'oldestWeek' => '',
+			]);
+			$row['placements'][$placementId] = true;
+			$row['weeks']++;
+			$row['hours'] += (float)($week['hoursSubmitted'] ?? 0);
+			$submitted = (string)($week['submittedAt'] ?? '');
+			if ($row['oldestSubmittedAt'] === '' || ($submitted !== '' && strcmp($submitted, $row['oldestSubmittedAt']) < 0)) {
+				$row['oldestSubmittedAt'] = $submitted;
+				$row['oldestWeek'] = (string)($week['isoWeek'] ?? '');
+			}
+
+			$companies[$name] = $row;
+		}
+
+		$rows = array_map(
+			static fn (array $row): array => [
+				'company' => $row['company'],
+				'students' => count($row['placements']),
+				'weeks' => $row['weeks'],
+				'hours' => $row['hours'],
+				'oldestSubmittedAt' => $row['oldestSubmittedAt'],
+				'oldestWeek' => $row['oldestWeek'],
+			],
+			array_values($companies)
+		);
+		usort($rows, static fn (array $one, array $two): int => strcmp($one['oldestSubmittedAt'], $two['oldestSubmittedAt']));
+
+		return $rows;
+	}//end hoursPerCompany()
+
+	/**
 	 * Whether a placement's BPV period has started and not ended on a day.
 	 *
 	 * @param array<string, mixed> $placement The placement.
