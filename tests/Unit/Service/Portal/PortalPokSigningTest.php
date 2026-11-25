@@ -90,7 +90,7 @@ class PortalPokSigningTest extends TestCase {
 			],
 		];
 
-		$objectService = $this->createMock(ObjectService::class);
+		$objectService = $this->createMock(originalClassName: ObjectService::class);
 		$objectService->method('findAll')->willReturnCallback(
 			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $this->store->findAll($config, $_rbac, $_multitenancy)
 		);
@@ -108,9 +108,9 @@ class PortalPokSigningTest extends TestCase {
 			}
 		);
 
-		$appConfig = $this->createMock(IAppConfig::class);
-		$appConfig->method('getValueString')->willReturnCallback(
-			static fn (string $app, string $key, string $default = '') => ($key === PortalPokSigning::MIN_ASSURANCE_KEY ? $floor : $default)
+		$appConfig = $this->createMock(originalClassName: IAppConfig::class);
+		$appConfig->method('getValueString')->willReturnMap(
+			[[PortalPokSigning::APP_ID, PortalPokSigning::MIN_ASSURANCE_KEY, 'basic', $floor]]
 		);
 
 		return new PortalPokSigning(objectService: $objectService, appConfig: $appConfig, logger: new NullLogger());
@@ -125,19 +125,19 @@ class PortalPokSigningTest extends TestCase {
 	public function testAnInvitedTrainerSignsAndTheRowSaysBasic(): void {
 		$outcome = $this->service()->sign(trainerRef: self::TRAINER, trust: 'low', body: ['subjectId' => self::AGREEMENT]);
 
-		self::assertSame(201, $outcome->status);
-		self::assertSame('basic', $outcome->body['assuranceLevel']);
+		self::assertSame(expected: 201, actual: $outcome->status);
+		self::assertSame(expected: 'basic', actual: $outcome->body['assuranceLevel']);
 
-		self::assertSame('pok-signature', $this->store->saves[0]['schema']);
+		self::assertSame(expected: 'pok-signature', actual: $this->store->saves[0]['schema']);
 		$saved = $this->store->saves[0]['object'];
-		self::assertSame(self::AGREEMENT, $saved['subjectId']);
-		self::assertSame(2, $saved['subjectVersion']);
-		self::assertSame(self::TRAINER, $saved['signerId']);
-		self::assertSame('praktijkopleider', $saved['signerRole']);
-		self::assertSame('basic', $saved['assuranceLevel']);
-		self::assertSame(PortalPokSigning::METHOD, $saved['method']);
-		self::assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/', $saved['signedAt']);
-		self::assertSame(self::TENANT, $saved['tenant_id']);
+		self::assertSame(expected: self::AGREEMENT, actual: $saved['subjectId']);
+		self::assertSame(expected: 2, actual: $saved['subjectVersion']);
+		self::assertSame(expected: self::TRAINER, actual: $saved['signerId']);
+		self::assertSame(expected: 'praktijkopleider', actual: $saved['signerRole']);
+		self::assertSame(expected: 'basic', actual: $saved['assuranceLevel']);
+		self::assertSame(expected: PortalPokSigning::METHOD, actual: $saved['method']);
+		self::assertMatchesRegularExpression(pattern: '/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/', string: $saved['signedAt']);
+		self::assertSame(expected: self::TENANT, actual: $saved['tenant_id']);
 	}//end testAnInvitedTrainerSignsAndTheRowSaysBasic()
 
 	/**
@@ -148,8 +148,8 @@ class PortalPokSigningTest extends TestCase {
 	public function testAnEherkenningSessionIsRecordedAsSubstantial(): void {
 		$outcome = $this->service()->sign(trainerRef: self::TRAINER, trust: 'substantial', body: ['subjectId' => self::AGREEMENT]);
 
-		self::assertSame(201, $outcome->status);
-		self::assertSame('substantial', $this->store->saves[0]['object']['assuranceLevel']);
+		self::assertSame(expected: 201, actual: $outcome->status);
+		self::assertSame(expected: 'substantial', actual: $this->store->saves[0]['object']['assuranceLevel']);
 	}//end testAnEherkenningSessionIsRecordedAsSubstantial()
 
 	/**
@@ -175,13 +175,13 @@ class PortalPokSigningTest extends TestCase {
 		);
 
 		$saved = $this->store->saves[0]['object'];
-		self::assertSame('basic', $saved['assuranceLevel']);
-		self::assertSame(self::TRAINER, $saved['signerId']);
-		self::assertSame('praktijkopleider', $saved['signerRole']);
-		self::assertSame(2, $saved['subjectVersion']);
-		self::assertNotSame('2020-01-01T00:00:00Z', $saved['signedAt']);
-		self::assertSame(PortalPokSigning::METHOD, $saved['method']);
-		self::assertSame(self::TENANT, $saved['tenant_id']);
+		self::assertSame(expected: 'basic', actual: $saved['assuranceLevel']);
+		self::assertSame(expected: self::TRAINER, actual: $saved['signerId']);
+		self::assertSame(expected: 'praktijkopleider', actual: $saved['signerRole']);
+		self::assertSame(expected: 2, actual: $saved['subjectVersion']);
+		self::assertNotSame(expected: '2020-01-01T00:00:00Z', actual: $saved['signedAt']);
+		self::assertSame(expected: PortalPokSigning::METHOD, actual: $saved['method']);
+		self::assertSame(expected: self::TENANT, actual: $saved['tenant_id']);
 	}//end testTheClientCannotClaimAStrongerSignature()
 
 	/**
@@ -196,14 +196,14 @@ class PortalPokSigningTest extends TestCase {
 		$service = $this->service(floor: 'substantial');
 		$outcome = $service->sign(trainerRef: self::TRAINER, trust: 'low', body: ['subjectId' => self::AGREEMENT]);
 
-		self::assertSame(403, $outcome->status);
-		self::assertSame(['error' => 'assurance_too_low', 'required' => 'substantial'], $outcome->body);
-		self::assertSame([], $this->store->saves);
-		self::assertSame([], $this->store->reads);
+		self::assertSame(expected: 403, actual: $outcome->status);
+		self::assertSame(expected: ['error' => 'assurance_too_low', 'required' => 'substantial'], actual: $outcome->body);
+		self::assertSame(expected: [], actual: $this->store->saves);
+		self::assertSame(expected: [], actual: $this->store->reads);
 
 		// The same school accepts an eHerkenning session.
 		$accepted = $service->sign(trainerRef: self::TRAINER, trust: 'substantial', body: ['subjectId' => self::AGREEMENT]);
-		self::assertSame(201, $accepted->status);
+		self::assertSame(expected: 201, actual: $accepted->status);
 	}//end testASchoolMayStillDemandEherkenning()
 
 	/**
@@ -217,7 +217,7 @@ class PortalPokSigningTest extends TestCase {
 	public function testTheDefaultAndAnUnknownFloorReadAsBasic(): void {
 		foreach (['basic', '', 'eHerkenning'] as $declared) {
 			$outcome = $this->service(floor: $declared)->sign(trainerRef: self::TRAINER, trust: 'low', body: ['subjectId' => self::AGREEMENT]);
-			self::assertSame(201, $outcome->status, $declared);
+			self::assertSame(expected: 201, actual: $outcome->status, message: $declared);
 		}
 	}//end testTheDefaultAndAnUnknownFloorReadAsBasic()
 
@@ -229,17 +229,17 @@ class PortalPokSigningTest extends TestCase {
 	 */
 	public function testAnotherStudentsAgreementIsRefused(): void {
 		$outcome = $this->service(owner: 'someone-else')->sign(trainerRef: self::TRAINER, trust: 'low', body: ['subjectId' => self::AGREEMENT]);
-		self::assertSame(403, $outcome->status);
-		self::assertSame(['error' => 'not_your_placement'], $outcome->body);
-		self::assertSame([], $this->store->saves);
+		self::assertSame(expected: 403, actual: $outcome->status);
+		self::assertSame(expected: ['error' => 'not_your_placement'], actual: $outcome->body);
+		self::assertSame(expected: [], actual: $this->store->saves);
 
 		$unknown = $this->service()->sign(trainerRef: self::TRAINER, trust: 'low', body: ['subjectId' => 'ee010022-0000-4000-8000-00000000dead']);
-		self::assertSame($outcome->body, $unknown->body);
-		self::assertSame([], $this->store->saves);
+		self::assertSame(expected: $outcome->body, actual: $unknown->body);
+		self::assertSame(expected: [], actual: $this->store->saves);
 
 		$stranger = $this->service()->sign(trainerRef: 'ee010027-0000-4000-8000-00000000dead', trust: 'low', body: ['subjectId' => self::AGREEMENT]);
-		self::assertSame(403, $stranger->status);
-		self::assertSame([], $this->store->saves);
+		self::assertSame(expected: 403, actual: $stranger->status);
+		self::assertSame(expected: [], actual: $this->store->saves);
 	}//end testAnotherStudentsAgreementIsRefused()
 
 	/**
@@ -250,13 +250,13 @@ class PortalPokSigningTest extends TestCase {
 	public function testAnAgreementThatNoLongerTakesSignaturesIsRefused(): void {
 		foreach (['active', 'completed', 'terminated'] as $state) {
 			$outcome = $this->service(lifecycle: $state)->sign(trainerRef: self::TRAINER, trust: 'low', body: ['subjectId' => self::AGREEMENT]);
-			self::assertSame(409, $outcome->status, $state);
-			self::assertSame('not_open_for_signing', $outcome->body['error']);
-			self::assertSame([], $this->store->saves);
+			self::assertSame(expected: 409, actual: $outcome->status, message: $state);
+			self::assertSame(expected: 'not_open_for_signing', actual: $outcome->body['error']);
+			self::assertSame(expected: [], actual: $this->store->saves);
 		}
 
 		$draft = $this->service(lifecycle: 'draft')->sign(trainerRef: self::TRAINER, trust: 'low', body: ['subjectId' => self::AGREEMENT]);
-		self::assertSame(201, $draft->status);
+		self::assertSame(expected: 201, actual: $draft->status);
 	}//end testAnAgreementThatNoLongerTakesSignaturesIsRefused()
 
 	/**
@@ -266,12 +266,12 @@ class PortalPokSigningTest extends TestCase {
 	 */
 	public function testSheSignsAVersionOnce(): void {
 		$service = $this->service();
-		self::assertSame(201, $service->sign(trainerRef: self::TRAINER, trust: 'low', body: ['subjectId' => self::AGREEMENT])->status);
+		self::assertSame(expected: 201, actual: $service->sign(trainerRef: self::TRAINER, trust: 'low', body: ['subjectId' => self::AGREEMENT])->status);
 
 		$again = $service->sign(trainerRef: self::TRAINER, trust: 'low', body: ['subjectId' => self::AGREEMENT]);
-		self::assertSame(409, $again->status);
-		self::assertSame(['error' => 'already_signed'], $again->body);
-		self::assertCount(1, $this->store->saves);
+		self::assertSame(expected: 409, actual: $again->status);
+		self::assertSame(expected: ['error' => 'already_signed'], actual: $again->body);
+		self::assertCount(expectedCount: 1, haystack: $this->store->saves);
 	}//end testSheSignsAVersionOnce()
 
 	/**
@@ -282,10 +282,10 @@ class PortalPokSigningTest extends TestCase {
 	public function testAnIncompleteRequestNamesTheField(): void {
 		$outcome = $this->service()->sign(trainerRef: self::TRAINER, trust: 'low', body: []);
 
-		self::assertSame(422, $outcome->status);
-		self::assertSame('incomplete', $outcome->body['error']);
-		self::assertArrayHasKey('subjectId', $outcome->body['errors']);
-		self::assertSame([], $this->store->saves);
+		self::assertSame(expected: 422, actual: $outcome->status);
+		self::assertSame(expected: 'incomplete', actual: $outcome->body['error']);
+		self::assertArrayHasKey(key: 'subjectId', array: $outcome->body['errors']);
+		self::assertSame(expected: [], actual: $this->store->saves);
 	}//end testAnIncompleteRequestNamesTheField()
 
 	/**
@@ -296,8 +296,8 @@ class PortalPokSigningTest extends TestCase {
 	public function testAFailedWriteLeaksNothing(): void {
 		$outcome = $this->service(failWrites: true)->sign(trainerRef: self::TRAINER, trust: 'low', body: ['subjectId' => self::AGREEMENT]);
 
-		self::assertSame(502, $outcome->status);
-		self::assertSame(['error' => 'downstream_error'], $outcome->body);
+		self::assertSame(expected: 502, actual: $outcome->status);
+		self::assertSame(expected: ['error' => 'downstream_error'], actual: $outcome->body);
 	}//end testAFailedWriteLeaksNothing()
 
 	/**
@@ -310,10 +310,10 @@ class PortalPokSigningTest extends TestCase {
 		$this->service()->sign(trainerRef: self::TRAINER, trust: 'low', body: ['subjectId' => self::AGREEMENT]);
 		$saved = $this->store->saves[0]['object'];
 
-		self::assertNull(self::schemaError(slug: 'pok-signature', payload: $saved));
+		self::assertNull(actual: self::schemaError(slug: 'pok-signature', payload: $saved));
 		self::assertNotNull(
-			self::schemaError(slug: 'pok-signature', payload: array_merge($saved, ['assuranceLevel' => 'invitation'])),
-			'control: the assurance is one of the eIDAS levels'
+			actual: self::schemaError(slug: 'pok-signature', payload: array_merge($saved, ['assuranceLevel' => 'invitation'])),
+			message: 'control: the assurance is one of the eIDAS levels'
 		);
 	}//end testTheStoredRowPassesTheRealSchema()
 }//end class

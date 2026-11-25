@@ -1123,16 +1123,16 @@ class PortalContributionProviderTest extends TestCase {
 		// form sends only the agreement: who signed, in which role, when, how
 		// and how surely are the server's.
 		$signature = $byId['signPraktijkovereenkomst'];
-		$this->assertSame('endpoint-forward', $signature['type']);
-		$this->assertSame('/apps/learniq/api/portal/pok-signatures', $signature['endpoint']);
-		$this->assertSame('POST', $signature['method']);
-		$this->assertArrayNotHasKey('schema', $signature);
-		$this->assertSame('practicalTrainerId', $signature['subjectField']);
+		$this->assertSame(expected: 'endpoint-forward', actual: $signature['type']);
+		$this->assertSame(expected: '/apps/learniq/api/portal/pok-signatures', actual: $signature['endpoint']);
+		$this->assertSame(expected: 'POST', actual: $signature['method']);
+		$this->assertArrayNotHasKey(key: 'schema', array: $signature);
+		$this->assertSame(expected: 'practicalTrainerId', actual: $signature['subjectField']);
 		$this->assertSame('practicalTrainerId', $signature['scopeClaim']);
-		$this->assertSame('low', $signature['minTrust']);
-		$this->assertSame(['subjectId'], $signature['fields']);
+		$this->assertSame(expected: 'low', actual: $signature['minTrust']);
+		$this->assertSame(expected: ['subjectId'], actual: $signature['fields']);
 		foreach (['signerRole', 'subjectVersion', 'assuranceLevel', 'method'] as $server) {
-			$this->assertNotContains($server, $signature['fields'], $server);
+			$this->assertNotContains(needle: $server, haystack: $signature['fields'], message: $server);
 		}
 
 		// Neither action lets the client set a staff/grade/status field.

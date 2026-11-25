@@ -226,9 +226,9 @@ return \OCA\Learniq\Middleware\Support\ApiPathAliases::withVersionedAliases([
         // student's hours. Same assertion receiver pattern: the assertion is
         // the only place her sign-in level can be read.
         ['name' => 'portalHourWeek#approve',     'url' => '/api/portal/hour-weeks/approve', 'verb' => 'POST'],
-        // an-invited-trainer-may-activate-a-placement: the trainer signs a
-        // praktijkovereenkomst. Same assertion receiver pattern: the assertion
-        // is the only place her sign-in level can be read.
+        // The trainer signs a praktijkovereenkomst
+        // (an-invited-trainer-may-activate-a-placement). Same assertion
+        // receiver pattern: the assertion is where her sign-in level is.
         ['name' => 'portalPokSignature#sign',    'url' => '/api/portal/pok-signatures', 'verb' => 'POST'],
         // bpv-coach-today-and-placement-board: the trainer accepts or answers a
         // visit date the school coach proposed. Same assertion receiver pattern.

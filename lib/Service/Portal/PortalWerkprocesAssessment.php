@@ -41,12 +41,7 @@ namespace OCA\Learniq\Service\Portal;
 use DateTimeImmutable;
 use OCA\Learniq\Kernel\Contracts\PortalWerkprocesAssessmentInterface;
 use OCA\Learniq\Service\Portal\Support\AssessmentRowValues;
-use OCA\Learniq\Support\ObjectRow;
-use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
-use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
-use OCA\OpenRegister\Service\ObjectService;
-use OCP\IAppConfig;
-use Psr\Log\LoggerInterface;
+use OCA\Learniq\Service\Portal\Support\TrainerPortalWrite;
 use Throwable;
 
 /**
@@ -54,11 +49,9 @@ use Throwable;
  *
  * @spec openspec/changes/an-invited-trainer-may-assess/specs/bpv/spec.md#requirement-an-invited-trainer-may-submit-a-werkproces-assessment
  */
-class PortalWerkprocesAssessment implements PortalWerkprocesAssessmentInterface {
+class PortalWerkprocesAssessment extends TrainerPortalWrite implements PortalWerkprocesAssessmentInterface {
 
 	use AssessmentRowValues;
-
-	private const REGISTER = 'learniq';
 
 	private const ASSESSMENT_SCHEMA = 'werkproces-assessment';
 
@@ -77,21 +70,6 @@ class PortalWerkprocesAssessment implements PortalWerkprocesAssessmentInterface 
 	 * assess (Ruben, 4 October 2026).
 	 */
 	public const MIN_ASSURANCE_KEY = 'bpv_assessment_min_assurance';
-
-	/**
-	 * The eIDAS ladder, as `PokSignature.assuranceLevel` spells it.
-	 *
-	 * @var array<string, int>
-	 */
-	private const ASSURANCE_ORDER = ['none' => 0, 'basic' => 1, 'substantial' => 2, 'high' => 3];
-
-	/**
-	 * What a portal session's trust means on that ladder. A portal trust
-	 * cannot be `none`: the session exists.
-	 *
-	 * @var array<string, string>
-	 */
-	private const TRUST_TO_ASSURANCE = ['low' => 'basic', 'substantial' => 'substantial', 'high' => 'high'];
 
 	/**
 	 * The fields the trainer's form may send. Everything else on the record is
@@ -113,30 +91,6 @@ class PortalWerkprocesAssessment implements PortalWerkprocesAssessmentInterface 
 	];
 
 	/**
-	 * Turns one OpenRegister result into a plain array.
-	 *
-	 * @var ObjectRow
-	 */
-	private readonly ObjectRow $objectRow;
-
-	/**
-	 * Constructor.
-	 *
-	 * @param ObjectService   $objectService Reads the trainer and writes the assessment.
-	 * @param IAppConfig      $appConfig     Holds the school's assurance floor.
-	 * @param LoggerInterface $logger        PSR logger.
-	 *
-	 * @return void
-	 */
-	public function __construct(
-		private readonly ObjectService $objectService,
-		private readonly IAppConfig $appConfig,
-		private readonly LoggerInterface $logger,
-	) {
-		$this->objectRow = new ObjectRow();
-	}//end __construct()
-
-	/**
 	 * Store one assessment for the trainer the assertion names.
 	 *
 	 * @param string               $trainerRef The `practicalTrainerId` claim.
@@ -149,7 +103,7 @@ class PortalWerkprocesAssessment implements PortalWerkprocesAssessmentInterface 
 	 * @spec openspec/changes/an-invited-trainer-may-assess/specs/bpv/spec.md#requirement-an-assessment-records-who-assessed-and-how-sure-the-school-is
 	 */
 	public function submit(string $trainerRef, string $trust, array $body): PortalOutcome {
-		$assurance = (self::TRUST_TO_ASSURANCE[$trust] ?? 'basic');
+		$assurance = $this->assuranceOf(trust: $trust);
 		$answers = new PortalAnswers();
 		$placementId = $answers->text(field: 'bpvPlacementId', value: ($body['bpvPlacementId'] ?? null));
 		$refusal = $this->requestRefusal(
@@ -171,11 +125,9 @@ class PortalWerkprocesAssessment implements PortalWerkprocesAssessmentInterface 
 				return new PortalOutcome(status: 403, body: ['error' => 'not_your_placement'], reason: 'not-your-placement');
 			}
 
-			$saved = $this->objectService->saveObject(
-				object: $this->stamped(trainerRef: $trainerRef, trainer: $trainer, assurance: $assurance, body: $body),
-				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: self::ASSESSMENT_SCHEMA)),
-				_rbac: false,
-				_multitenancy: false
+			$row = $this->store(
+				schema: self::ASSESSMENT_SCHEMA,
+				object: $this->stamped(trainerRef: $trainerRef, trainer: $trainer, assurance: $assurance, body: $body)
 			);
 		} catch (Throwable $exception) {
 			$this->logger->error(
@@ -184,8 +136,6 @@ class PortalWerkprocesAssessment implements PortalWerkprocesAssessmentInterface 
 			);
 			return new PortalOutcome(status: 502, body: ['error' => 'downstream_error'], reason: 'downstream');
 		}//end try
-
-		$row = $this->toRow(object: $saved);
 
 		return new PortalOutcome(
 			status: 201,
@@ -208,13 +158,9 @@ class PortalWerkprocesAssessment implements PortalWerkprocesAssessmentInterface 
 	 * @spec openspec/changes/an-invited-trainer-may-assess/specs/bpv/spec.md#requirement-an-assessment-records-who-assessed-and-how-sure-the-school-is
 	 */
 	private function requestRefusal(string $assurance, array $request, PortalAnswers $answers): ?PortalOutcome {
-		$floor = $this->floor();
-		if (self::ASSURANCE_ORDER[$assurance] < self::ASSURANCE_ORDER[$floor]) {
-			return new PortalOutcome(
-				status: 403,
-				body: ['error' => 'assurance_too_low', 'required' => $floor],
-				reason: 'assurance-too-low'
-			);
+		$floor = $this->belowFloor(assurance: $assurance, floor: $this->floor());
+		if ($floor !== null) {
+			return $floor;
 		}
 
 		if ($request['trainerRef'] === '' || $request['placementId'] === '') {
@@ -278,35 +224,4 @@ class PortalWerkprocesAssessment implements PortalWerkprocesAssessmentInterface 
 
 		return $placement !== null && $this->text(value: ($placement['practicalTrainerId'] ?? null)) === $trainerRef;
 	}//end ownsPlacement()
-
-	/**
-	 * One learniq row by uuid, or null.
-	 *
-	 * @param string $schema The schema slug.
-	 * @param string $id     The uuid.
-	 *
-	 * @return array<string, mixed>|null
-	 *
-	 * @throws \Throwable When OpenRegister cannot be read.
-	 */
-	private function row(string $schema, string $id): ?array {
-		$objects = $this->objectService->findAll(
-			config: [
-				'filters' => ['register' => self::REGISTER, 'schema' => $schema],
-				'ids' => [$id],
-				'limit' => 1,
-			],
-			_rbac: false,
-			_multitenancy: false
-		);
-
-		foreach ($objects as $object) {
-			$row = $this->toRow(object: $object);
-			if (($row['id'] ?? ($row['uuid'] ?? null)) === $id) {
-				return $row;
-			}
-		}
-
-		return null;
-	}//end row()
 }//end class

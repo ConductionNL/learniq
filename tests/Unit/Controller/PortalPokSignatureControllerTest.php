@@ -82,11 +82,11 @@ class PortalPokSignatureControllerTest extends TestCase {
 	 */
 	private function controller(string $jwt, array $params, ?PortalOutcome $outcome = null, bool $throws = false): PortalPokSignatureController {
 		$this->calls = [];
-		$request = $this->createMock(IRequest::class);
+		$request = $this->createMock(originalClassName: IRequest::class);
 		$request->method('getHeader')->willReturn($jwt);
 		$request->method('getParam')->willReturnCallback(static fn (string $key, $default = null) => $params[$key] ?? $default);
 
-		$signatures = $this->createMock(PortalPokSigning::class);
+		$signatures = $this->createMock(originalClassName: PortalPokSigning::class);
 		$signatures->method('sign')->willReturnCallback(
 			function (string $trainerRef, string $trust, array $body) use ($outcome, $throws): PortalOutcome {
 				$this->calls[] = ['trainerRef' => $trainerRef, 'trust' => $trust, 'body' => $body];
@@ -113,7 +113,7 @@ class PortalPokSignatureControllerTest extends TestCase {
 	 * @return void
 	 */
 	public function testATrainerAssertionReachesTheService(): void {
-		$jwt = self::assertion(['audience' => 'praktijkopleider', 'trust' => 'low']);
+		$jwt = self::assertion(claims: ['audience' => 'praktijkopleider', 'trust' => 'low']);
 		$response = $this->controller(
 			jwt: $jwt,
 			params: [
@@ -125,12 +125,12 @@ class PortalPokSignatureControllerTest extends TestCase {
 			]
 		)->sign();
 
-		self::assertSame(201, $response->getStatus());
-		self::assertSame(['signatureId' => 's-1', 'assuranceLevel' => 'basic'], $response->getData());
-		self::assertSame(self::TRAINER, $this->calls[0]['trainerRef']);
-		self::assertSame('low', $this->calls[0]['trust']);
+		self::assertSame(expected: 201, actual: $response->getStatus());
+		self::assertSame(expected: ['signatureId' => 's-1', 'assuranceLevel' => 'basic'], actual: $response->getData());
+		self::assertSame(expected: self::TRAINER, actual: $this->calls[0]['trainerRef']);
+		self::assertSame(expected: 'low', actual: $this->calls[0]['trust']);
 		// Only the agreement reaches the service: a claimed level, role or method is dropped here already.
-		self::assertSame(['subjectId' => 'agreement-1'], $this->calls[0]['body']);
+		self::assertSame(expected: ['subjectId' => 'agreement-1'], actual: $this->calls[0]['body']);
 	}//end testATrainerAssertionReachesTheService()
 
 	/**
@@ -140,11 +140,11 @@ class PortalPokSignatureControllerTest extends TestCase {
 	 * @return void
 	 */
 	public function testAForgedAssertionIsRefused(): void {
-		$good = self::assertion(['audience' => 'praktijkopleider', 'trust' => 'low']);
+		$good = self::assertion(claims: ['audience' => 'praktijkopleider', 'trust' => 'low']);
 		foreach ([$good . 'x', '', 'not.a.jwt'] as $jwt) {
 			$response = $this->controller(jwt: $jwt, params: ['practicalTrainerId' => self::TRAINER])->sign();
-			self::assertSame(401, $response->getStatus(), $jwt);
-			self::assertSame([], $this->calls);
+			self::assertSame(expected: 401, actual: $response->getStatus(), message: $jwt);
+			self::assertSame(expected: [], actual: $this->calls);
 		}
 	}//end testAForgedAssertionIsRefused()
 
@@ -156,18 +156,18 @@ class PortalPokSignatureControllerTest extends TestCase {
 	 */
 	public function testAnotherAudienceIsRefused(): void {
 		$response = $this->controller(
-			jwt: self::assertion(['audience' => 'student', 'trust' => 'substantial']),
+			jwt: self::assertion(claims: ['audience' => 'student', 'trust' => 'substantial']),
 			params: ['practicalTrainerId' => self::TRAINER]
 		)->sign();
-		self::assertSame(403, $response->getStatus());
-		self::assertSame([], $this->calls);
+		self::assertSame(expected: 403, actual: $response->getStatus());
+		self::assertSame(expected: [], actual: $this->calls);
 
 		$response = $this->controller(
-			jwt: self::assertion(['audience' => 'praktijkopleider', 'trust' => 'low']),
+			jwt: self::assertion(claims: ['audience' => 'praktijkopleider', 'trust' => 'low']),
 			params: []
 		)->sign();
-		self::assertSame(403, $response->getStatus());
-		self::assertSame([], $this->calls);
+		self::assertSame(expected: 403, actual: $response->getStatus());
+		self::assertSame(expected: [], actual: $this->calls);
 	}//end testAnotherAudienceIsRefused()
 
 	/**
@@ -178,19 +178,19 @@ class PortalPokSignatureControllerTest extends TestCase {
 	 */
 	public function testRefusalsAndErrorsAreReportedPlainly(): void {
 		$refused = $this->controller(
-			jwt: self::assertion(['audience' => 'praktijkopleider', 'trust' => 'low']),
+			jwt: self::assertion(claims: ['audience' => 'praktijkopleider', 'trust' => 'low']),
 			params: ['practicalTrainerId' => self::TRAINER],
 			outcome: new PortalOutcome(status: 403, body: ['error' => 'assurance_too_low', 'required' => 'substantial'])
 		)->sign();
-		self::assertSame(403, $refused->getStatus());
-		self::assertSame('substantial', $refused->getData()['required']);
+		self::assertSame(expected: 403, actual: $refused->getStatus());
+		self::assertSame(expected: 'substantial', actual: $refused->getData()['required']);
 
 		$broken = $this->controller(
-			jwt: self::assertion(['audience' => 'praktijkopleider', 'trust' => 'low']),
+			jwt: self::assertion(claims: ['audience' => 'praktijkopleider', 'trust' => 'low']),
 			params: ['practicalTrainerId' => self::TRAINER],
 			throws: true
 		)->sign();
-		self::assertSame(502, $broken->getStatus());
-		self::assertSame(['error' => 'downstream_error'], $broken->getData());
+		self::assertSame(expected: 502, actual: $broken->getStatus());
+		self::assertSame(expected: ['error' => 'downstream_error'], actual: $broken->getData());
 	}//end testRefusalsAndErrorsAreReportedPlainly()
 }//end class
