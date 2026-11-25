@@ -1,7 +1,8 @@
 <?php
 
 /**
- * The employer's certificates download: the company comes from the signed assertion and must lie in the portal's organisation before anything is bundled.
+ * The employer's certificates download: the company comes from the signed
+ * assertion and must lie in the portal's organisation before anything is bundled.
  *
  * @category Tests
  * @package  OCA\Learniq\Tests\Unit\Controller

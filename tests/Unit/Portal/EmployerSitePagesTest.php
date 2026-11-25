@@ -162,7 +162,7 @@ class EmployerSitePagesTest extends TestCase {
 
 			if ($collection['id'] === 'employerCompany') {
 				// Her company's own row: its id is the organisationRef claim.
-				self::assertSame(['id', 'organisationRef'], [$collection['scopeField'], $collection['scopeClaim']]);
+				self::assertSame(expected: ['id', 'organisationRef'], actual: [$collection['scopeField'], $collection['scopeClaim']]);
 				continue;
 			}
 
@@ -207,7 +207,10 @@ class EmployerSitePagesTest extends TestCase {
 		self::assertSame('employerComingBookings', $firstBySchema['course-booking']['id']);
 		self::assertSame('employerOpenTasks', $firstBySchema['enrolment']['id']);
 		$actions = array_column($manifest['actions'], null, 'id');
-		self::assertSame(['enrolEmployees', 'addBookingParticipant', 'substituteParticipant', 'supplyBirthDate', 'employerCertificatesDownload'], array_keys($actions));
+		self::assertSame(
+			expected: ['enrolEmployees', 'addBookingParticipant', 'substituteParticipant', 'supplyBirthDate', 'employerCertificatesDownload'],
+			actual: array_keys($actions)
+		);
 		foreach ($actions as $action) {
 			self::assertSame('endpoint-forward', $action['type']);
 			self::assertStringStartsWith('/apps/learniq/api/portal/employer/', $action['endpoint']);

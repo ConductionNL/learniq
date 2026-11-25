@@ -34,7 +34,6 @@ use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Kernel\Contracts\EmployerCertificatesArchiveInterface;
 use OCA\Learniq\Kernel\Contracts\EmployerCompanyTenancyInterface;
 use OCA\Learniq\Kernel\Contracts\PortalAssertionVerifierInterface;
-use OCA\Learniq\Portal\PortalForwardGate;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\AnonRateLimit;
@@ -95,18 +94,24 @@ class PortalEmployerCertificatesController extends Controller {
 	#[AnonRateLimit(limit: 30, period: 60)]
 	#[BruteForceProtection(action: self::THROTTLE_ACTION)]
 	public function bundle(): JSONResponse {
-		$admitted = (new PortalForwardGate(verifier: $this->verifier, request: $this->request))->admit(
-			audience: PortalEmployerController::AUDIENCE,
-			subjectParam: self::CLAIM
-		);
-		if ($admitted instanceof JSONResponse) {
-			return $admitted;
+		// The credential: the portal's signed assertion in X-Portal-Subject.
+		$claims = $this->verifier->verify(jwt: (string)$this->request->getHeader(PortalAssertionVerifierInterface::HEADER));
+		if ($claims === null) {
+			$refused = new JSONResponse(data: ['error' => 'unauthorized'], statusCode: Http::STATUS_UNAUTHORIZED);
+			$refused->throttle(['action' => self::THROTTLE_ACTION]);
+			return $refused;
 		}
 
-		$company = $admitted->subject;
-		$signed  = ($admitted->claims[self::CLAIM] ?? null);
-		if (is_string($signed) === false || trim($signed) !== $company
-			|| $this->tenancy->holds(organisationRef: $company, organisation: (string)($admitted->claims['organisation'] ?? '')) === false
+		$company = $this->request->getParam(self::CLAIM);
+		if (is_string($company) === false) {
+			$company = '';
+		}
+
+		$company = trim($company);
+		$signed  = ($claims[self::CLAIM] ?? null);
+		if (($claims['audience'] ?? '') !== PortalEmployerController::AUDIENCE
+			|| $company === '' || is_string($signed) === false || trim($signed) !== $company
+			|| $this->tenancy->holds(organisationRef: $company, organisation: (string)($claims['organisation'] ?? '')) === false
 		) {
 			return new JSONResponse(data: ['error' => 'forbidden'], statusCode: Http::STATUS_FORBIDDEN);
 		}
