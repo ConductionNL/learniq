@@ -186,6 +186,40 @@ class ExampleSetDescriptorContractTest extends TestCase {
 	}//end testTheDescriptorHonoursTheContract()
 
 	/**
+	 * A lesson's next steps go to lessons written before it in the file.
+	 *
+	 * The import writes rows in file order and LessonNextStepGuard refuses a
+	 * lesson whose next step it cannot find yet: the vo set's ten Biologie
+	 * lessons, written first to last, lost nine on a fresh load.
+	 *
+	 * @param string $file Absolute path of the descriptor.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/example-sets/spec.md#requirement-loading-a-set-imports-exactly-its-descriptor
+	 */
+	#[DataProvider('descriptors')]
+	public function testALessonsNextStepIsWrittenBeforeIt(string $file): void {
+		$data    = json_decode(json: (string)file_get_contents(filename: $file), associative: true);
+		$lessons = ($data['x-openregister']['seedData']['objects']['lesson'] ?? []);
+		$written = [];
+		$late    = [];
+		foreach ($lessons as $lesson) {
+			$targets = array_column(array: ($lesson['nextStepRules'] ?? []), column_key: 'goToLessonId');
+			$targets[] = ($lesson['defaultNextLessonId'] ?? null);
+			foreach (array_filter(array: $targets) as $target) {
+				if (isset($written[$target]) === false) {
+					$late[] = $lesson['uuid'] . ' -> ' . $target;
+				}
+			}
+
+			$written[$lesson['uuid']] = true;
+		}
+
+		self::assertSame(expected: [], actual: $late, message: basename(path: $file) . ': a next step goes to a lesson written later or not at all');
+	}//end testALessonsNextStepIsWrittenBeforeIt()
+
+	/**
 	 * Each kind of defect a lane could ship is reported, naming the object.
 	 *
 	 * @return void

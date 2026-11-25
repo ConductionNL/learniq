@@ -161,12 +161,17 @@ class ExamSittingPlacementCheck implements IEventListener {
 	 *
 	 * @param array<string, mixed> $sitting The sitting being written.
 	 *
+	 * Rooms are read without the writer's own read rights: the check needs every
+	 * room's capacity whoever writes, also a write without a user (occ).
+	 *
 	 * @return array<string, mixed>|null
+	 *
+	 * @spec openspec/specs/exam-schedule/spec.md#requirement-exam-periods-and-sittings
 	 */
 	private function capacityRefusal(array $sitting): ?array {
 		$capacity = 0;
 		foreach ($this->ids(value: ($sitting['roomIds'] ?? [])) as $roomId) {
-			$room = $this->objectService->find(id: $roomId, options: new ObjectFindOptions(register: self::REGISTER, schema: 'room'));
+			$room = $this->objectService->find(id: $roomId, options: new ObjectFindOptions(register: self::REGISTER, schema: 'room'), _rbac: false);
 			if ($room === null) {
 				return ['reason' => 'exam-room-unknown', 'message' => 'One of the rooms for this exam does not exist.'];
 			}

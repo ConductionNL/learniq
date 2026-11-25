@@ -2455,6 +2455,12 @@ def add_lesson_and_store_boards(b: Builder, courses: dict) -> None:
         }))
     for current, following in zip(lessons, lessons[1:]):
         current["defaultNextLessonId"] = following["uuid"]
+    # The import writes rows in file order and LessonNextStepGuard refuses a lesson whose next step it cannot
+    # find yet, so the chain is written last lesson first; a first-to-last chain lost nine of ten lessons on a
+    # fresh load. Only the bucket's order changes: every uuid stays.
+    chain = {lesson["uuid"] for lesson in lessons}
+    others = [row for row in b.buckets["lesson"] if row["uuid"] not in chain]
+    b.buckets["lesson"][:] = others + list(reversed(lessons))
 
     # --- lesson 3: reading, video, quiz and assignment -----------------------------------------------------------
     lesson = lessons[2]
