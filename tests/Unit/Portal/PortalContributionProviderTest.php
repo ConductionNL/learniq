@@ -1117,21 +1117,25 @@ class PortalContributionProviderTest extends TestCase {
 			$this->assertNotContains($server, $visit['fields'], $server);
 		}
 
-		// The POK signature is a contract signature, not an assessment: it keeps
-		// its substantial floor until Ruben says otherwise.
+		// an-invited-trainer-may-activate-a-placement: an invited trainer may
+		// sign the POK (Ruben, 25 November 2026). It posts to learniq's own
+		// endpoint, because only a forward carries the sign-in level, and the
+		// form sends only the agreement: who signed, in which role, when, how
+		// and how surely are the server's.
 		$signature = $byId['signPraktijkovereenkomst'];
-		$this->assertSame('substantial', $signature['minTrust']);
-		$this->assertSame('create', $signature['type']);
-		$this->assertSame('pok-signature', $signature['schema']);
-		$this->assertSame('signerId', $signature['scopeField']);
+		$this->assertSame('endpoint-forward', $signature['type']);
+		$this->assertSame('/apps/learniq/api/portal/pok-signatures', $signature['endpoint']);
+		$this->assertSame('POST', $signature['method']);
+		$this->assertArrayNotHasKey('schema', $signature);
+		$this->assertSame('practicalTrainerId', $signature['subjectField']);
 		$this->assertSame('practicalTrainerId', $signature['scopeClaim']);
-		$this->assertSame('substantial', $signature['minTrust']);
-		$this->assertSame(
-			['subjectId', 'subjectVersion', 'assuranceLevel', 'method', 'evidenceRef'],
-			$signature['fields']
-		);
+		$this->assertSame('low', $signature['minTrust']);
+		$this->assertSame(['subjectId'], $signature['fields']);
+		foreach (['signerRole', 'subjectVersion', 'assuranceLevel', 'method'] as $server) {
+			$this->assertNotContains($server, $signature['fields'], $server);
+		}
 
-		// Neither create lets the client set a staff/grade/status field.
+		// Neither action lets the client set a staff/grade/status field.
 		foreach (['assessorId', 'signerId', 'lifecycle', 'signedAt'] as $forbidden) {
 			$this->assertNotContains($forbidden, $assessment['fields']);
 			$this->assertNotContains($forbidden, $signature['fields']);

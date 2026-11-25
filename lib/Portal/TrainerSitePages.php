@@ -448,23 +448,28 @@ class TrainerSitePages {
 
 	private const SIGN_PRAKTIJKOVEREENKOMST = [
 		'id' => 'signPraktijkovereenkomst',
-		'type' => 'create',
+		// Through learniq's own endpoint, for the reason the assessment moved
+		// there: a portal create carries no assertion, and the assertion is
+		// where her sign-in level is. An invited trainer may sign (Ruben, 25
+		// November 2026); the server stamps the level she really reached, so
+		// a signature from an invitation says `basic`, and a school may demand
+		// more through `bpv_pok_min_assurance`.
+		'type' => 'endpoint-forward',
 		'label' => 'Sign the praktijkovereenkomst',
-		'register' => self::REGISTER,
-		'schema' => 'pok-signature',
-		'scopeField' => 'signerId',
+		'endpoint' => '/apps/learniq/api/portal/pok-signatures',
+		'method' => 'POST',
+		'minTrust' => 'low',
+		'subjectField' => 'practicalTrainerId',
 		'scopeClaim' => 'practicalTrainerId',
-		'minTrust' => 'substantial',
-		'fields' => [
-			'subjectId',
-			'subjectVersion',
-			'assuranceLevel',
-			'method',
-			'evidenceRef',
-		],
+		// Only the agreement: who signed, in which role, when, how and how
+		// surely are written by the server.
+		'fields' => ['subjectId'],
+		'requiredFields' => ['subjectId'],
 		'fieldConfigs' => [
-			'subjectId' => ['help' => self::SCHOOL_TERMS['praktijkovereenkomst']],
+			'subjectId' => ['label' => 'The agreement you sign', 'required' => true, 'help' => self::SCHOOL_TERMS['praktijkovereenkomst']],
 		],
+		'submitLabel' => 'Sign the agreement',
+		'successMessage' => 'Your signature is stored. The school sees that you signed and how you signed in.',
 	];
 
 	/**
@@ -775,6 +780,7 @@ class TrainerSitePages {
 	 *
 	 * @spec openspec/changes/an-invited-trainer-may-assess/specs/bpv/spec.md#requirement-an-invited-trainer-may-submit-a-werkproces-assessment
 	 * @spec openspec/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
+	 * @spec openspec/changes/an-invited-trainer-may-activate-a-placement/specs/bpv/spec.md#requirement-an-invited-trainer-may-sign-a-praktijkovereenkomst
 	 */
 	private function actions(): array {
 		return [
