@@ -2973,6 +2973,7 @@ OC.L10N.register(
         "Give your answer": "Geef uw antwoord",
         "Yes, I give permission": "Ja, ik geef toestemming",
         "No, I do not give permission": "Nee, ik geef geen toestemming",
+        "Your answer to \"%s\"": "Uw antwoord op \"%s\"",
         "Send my answer": "Mijn antwoord versturen",
         "Your answer is sent to the school.": "Uw antwoord is naar school gestuurd.",
         "Your choice": "Uw keuze",

@@ -5430,6 +5430,7 @@ OC.L10N.register(
         "Give your answer": "Give your answer",
         "Yes, I give permission": "Yes, I give permission",
         "No, I do not give permission": "No, I do not give permission",
+        "Your answer to \"%s\"": "Your answer to \"%s\"",
         "Send my answer": "Send my answer",
         "Your answer is sent to the school.": "Your answer is sent to the school.",
         "Your choice": "Your choice",

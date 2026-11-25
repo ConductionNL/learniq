@@ -15,6 +15,8 @@ namespace OCA\Learniq\Tests\Unit\Service\Portal;
 
 use DateTimeImmutable;
 use OCA\Learniq\Kernel\Contracts\LearnerRefResolverInterface;
+use OCA\Learniq\Service\Portal\PermissionAnswerDocument;
+use OCA\Learniq\Service\Portal\PermissionAnswerStore;
 use OCA\Learniq\Service\Portal\PortalPermissionAnswer;
 use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
 use OCA\OpenRegister\Service\ObjectService;
@@ -55,10 +57,16 @@ class PortalPermissionAnswerTest extends TestCase {
 	 * @param string $floor      The school's assurance floor.
 	 * @param array  $request    Overrides on the request.
 	 * @param bool   $saveThrows Whether the write fails.
+	 * @param PermissionAnswerDocument|null $documents Keeps the answer as a document.
 	 *
 	 * @return PortalPermissionAnswer
 	 */
-	private function answers(string $floor = 'basic', array $request = [], bool $saveThrows = false): PortalPermissionAnswer {
+	private function answers(
+		string $floor = 'basic',
+		array $request = [],
+		bool $saveThrows = false,
+		?PermissionAnswerDocument $documents = null
+	): PortalPermissionAnswer {
 		$this->store = new RegisterFaithfulStore();
 		$this->store->rows = [
 			'permission-request' => [
@@ -108,7 +116,12 @@ class PortalPermissionAnswerTest extends TestCase {
 		$config = $this->createMock(IAppConfig::class);
 		$config->method('getValueString')->with('learniq', PortalPermissionAnswer::MIN_ASSURANCE_KEY, 'basic')->willReturn($floor);
 
-		return new PortalPermissionAnswer(objectService: $objectService, profiles: $profiles, appConfig: $config, logger: new NullLogger());
+		return new PortalPermissionAnswer(
+			answers: new PermissionAnswerStore(objectService: $objectService, documents: $documents),
+			profiles: $profiles,
+			appConfig: $config,
+			logger: new NullLogger()
+		);
 	}//end answers()
 
 	/**
@@ -290,4 +303,59 @@ class PortalPermissionAnswerTest extends TestCase {
 		self::assertSame(502, $outcome->status);
 		self::assertSame(['error' => 'downstream_error'], $outcome->body);
 	}//end testAFailingWriteLeaksNothing()
+
+	/**
+	 * The stored answer is handed on to become a document of the child, with
+	 * the request it answers; a document that cannot be made leaves the
+	 * answer as it is.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-each-school-audience-offers-its-own-documents-grouped-per-record
+	 */
+	public function testTheStoredAnswerBecomesADocumentOfTheChild(): void {
+		$kept      = [];
+		$documents = $this->createMock(originalClassName: PermissionAnswerDocument::class);
+		$documents->method('keep')->willReturnCallback(
+			static function (string $responseId, array $response, array $request) use (&$kept): bool {
+				$kept[] = ['responseId' => $responseId, 'response' => $response, 'request' => $request];
+				return false;
+			}
+		);
+
+		$outcome = $this->answers(documents: $documents)->answer(
+			guardianRef: self::GUARDIAN,
+			trust: 'low',
+			body: self::body(),
+			now: self::beforeDeadline()
+		);
+
+		self::assertSame(expected: 200, actual: $outcome->status);
+		self::assertCount(expectedCount: 1, haystack: $kept);
+		self::assertNotSame(expected: '', actual: $kept[0]['responseId']);
+		self::assertSame(expected: 'yes', actual: $kept[0]['response']['answer']);
+		self::assertSame(expected: self::VERA, actual: $kept[0]['response']['learnerRef']);
+		self::assertSame(expected: 'Schoolreisje Openluchtmuseum', actual: $kept[0]['request']['title']);
+	}//end testTheStoredAnswerBecomesADocumentOfTheChild()
+
+	/**
+	 * A refused answer makes no document.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-each-school-audience-offers-its-own-documents-grouped-per-record
+	 */
+	public function testARefusedAnswerMakesNoDocument(): void {
+		$documents = $this->createMock(originalClassName: PermissionAnswerDocument::class);
+		$documents->expects($this->never())->method('keep');
+
+		$outcome = $this->answers(documents: $documents)->answer(
+			guardianRef: self::GUARDIAN,
+			trust: 'low',
+			body: self::body(learnerRef: self::CLASSMATE),
+			now: self::beforeDeadline()
+		);
+
+		self::assertSame(expected: 403, actual: $outcome->status);
+	}//end testARefusedAnswerMakesNoDocument()
 }//end class

@@ -29,7 +29,7 @@ namespace OCA\Learniq\Tests\Unit\Service\Portal;
 use OCA\Learniq\Service\Portal\PortalLearner;
 use OCA\Learniq\Service\Portal\PortalOutcome;
 use OCA\Learniq\Service\Portal\ProofOfEnrolment;
-use OCA\Learniq\Service\Portal\ProofOfEnrolmentPdf;
+use OCA\Learniq\Service\Portal\RecordPdf;
 use OCA\Learniq\Support\FleetAppId;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\File\FileUpload;
@@ -146,7 +146,7 @@ class ProofOfEnrolmentTest extends TestCase {
 
 		return new ProofOfEnrolment(
 			objectService: $store,
-			pdf: new ProofOfEnrolmentPdf(
+			pdf: new RecordPdf(
 				objectService: $store,
 				fileService: $files,
 				clientService: $clients,
@@ -261,10 +261,10 @@ class ProofOfEnrolmentTest extends TestCase {
 	 * @return void
 	 */
 	public function testThePdfInARenderAnswer(): void {
-		self::assertSame(expected: '%PDF-1.4 x', actual: ProofOfEnrolmentPdf::pdfFrom('%PDF-1.4 x'));
-		self::assertSame(expected: '%PDF-1.4 y', actual: ProofOfEnrolmentPdf::pdfFrom(json_encode(['content' => base64_encode('%PDF-1.4 y')])));
-		self::assertNull(actual: ProofOfEnrolmentPdf::pdfFrom(json_encode(['content' => base64_encode('<html>')])));
-		self::assertNull(actual: ProofOfEnrolmentPdf::pdfFrom(json_encode(['content' => '***'])));
-		self::assertNull(actual: ProofOfEnrolmentPdf::pdfFrom('{"documentRef":"d"}'));
+		self::assertSame(expected: '%PDF-1.4 x', actual: RecordPdf::pdfFrom('%PDF-1.4 x'));
+		self::assertSame(expected: '%PDF-1.4 y', actual: RecordPdf::pdfFrom(json_encode(['content' => base64_encode('%PDF-1.4 y')])));
+		self::assertNull(actual: RecordPdf::pdfFrom(json_encode(['content' => base64_encode('<html>')])));
+		self::assertNull(actual: RecordPdf::pdfFrom(json_encode(['content' => '***'])));
+		self::assertNull(actual: RecordPdf::pdfFrom('{"documentRef":"d"}'));
 	}//end testThePdfInARenderAnswer()
 }//end class

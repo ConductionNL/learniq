@@ -53,6 +53,11 @@ class ProofOfEnrolment implements ProofOfEnrolmentInterface {
 	private const ENROLMENT_SCHEMA = 'enrolment';
 
 	/**
+	 * The render template of the proof, in filinq.
+	 */
+	public const TEMPLATE_SLUG = 'proof-of-enrolment';
+
+	/**
 	 * The month a school year starts in: August.
 	 */
 	private const YEAR_START_MONTH = 8;
@@ -77,14 +82,14 @@ class ProofOfEnrolment implements ProofOfEnrolmentInterface {
 	 * Constructor.
 	 *
 	 * @param ObjectService       $objectService OpenRegister object access, for the enrolments.
-	 * @param ProofOfEnrolmentPdf $pdf           Renders the proof and keeps it on the enrolment.
+	 * @param RecordPdf           $pdf           Renders the proof and keeps it on the enrolment.
 	 * @param IFactory            $l10nFactory   The learner's language.
 	 * @param ITimeFactory        $time          Today, for the school year and the issue date.
 	 * @param LoggerInterface     $logger        PSR logger.
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly ProofOfEnrolmentPdf $pdf,
+		private readonly RecordPdf $pdf,
 		private readonly IFactory $l10nFactory,
 		private readonly ITimeFactory $time,
 		private readonly LoggerInterface $logger,
@@ -111,8 +116,12 @@ class ProofOfEnrolment implements ProofOfEnrolmentInterface {
 		$title      = $this->l10nFactory->get(AppIdentity::APP_ID, $language)->t('Proof of enrolment, school year %s', [$schoolYear]);
 
 		$made = $this->pdf->make(
-			enrolmentId: (string)$enrolment['id'],
-			fileName: $title.'.pdf',
+			target: $this->pdf->target(
+				templateSlug: self::TEMPLATE_SLUG,
+				schema: self::ENROLMENT_SCHEMA,
+				recordId: (string)$enrolment['id'],
+				fileName: $title.'.pdf'
+			),
 			data: [
 				'title' => $title,
 				'learnerName' => $learner->user->getDisplayName(),
