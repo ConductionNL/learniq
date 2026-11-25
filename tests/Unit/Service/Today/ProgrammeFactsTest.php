@@ -153,6 +153,52 @@ class ProgrammeFactsTest extends TestCase {
 	}//end testHoursWaitingLongerThanSevenDays()
 
 	/**
+	 * The coach's submitted hours per company, the longest waiting company first; approved weeks and other coaches' placements stay out.
+	 *
+	 * @return void
+	 */
+	public function testHoursPerCompanyTheLongestWaitingFirst(): void {
+		$bpv = [
+			'placements' => [
+				['id' => 'p-milan', 'schoolCoachId' => 'karin', 'trainingCompanyName' => 'Van Dijk Machinebouw'],
+				['id' => 'p-jesse', 'schoolCoachId' => 'karin', 'trainingCompanyName' => 'Van Dijk Machinebouw'],
+				['id' => 'p-aylin', 'schoolCoachId' => 'karin', 'trainingCompanyName' => 'Hollandse Techniek'],
+				['id' => 'p-other', 'schoolCoachId' => 'piet', 'trainingCompanyName' => 'Hollandse Techniek'],
+			],
+			'weeks' => [
+				['bpvPlacementId' => 'p-milan', 'isoWeek' => '2026-W40', 'hoursSubmitted' => 32, 'submittedAt' => '2026-10-02T17:00:00+02:00', 'lifecycle' => 'submitted'],
+				['bpvPlacementId' => 'p-jesse', 'isoWeek' => '2026-W40', 'hoursSubmitted' => 24, 'submittedAt' => '2026-10-02T18:00:00+02:00', 'lifecycle' => 'submitted'],
+				['bpvPlacementId' => 'p-aylin', 'isoWeek' => '2026-W38', 'hoursSubmitted' => 16.5, 'submittedAt' => '2026-09-18T17:00:00+02:00', 'lifecycle' => 'submitted'],
+				['bpvPlacementId' => 'p-aylin', 'isoWeek' => '2026-W37', 'hoursSubmitted' => 32, 'submittedAt' => '2026-09-11T17:00:00+02:00', 'lifecycle' => 'approved'],
+				['bpvPlacementId' => 'p-other', 'isoWeek' => '2026-W36', 'hoursSubmitted' => 32, 'submittedAt' => '2026-09-04T17:00:00+02:00', 'lifecycle' => 'submitted'],
+			],
+		];
+
+		self::assertSame(
+			expected: [
+				[
+					'company' => 'Hollandse Techniek',
+					'students' => 1,
+					'weeks' => 1,
+					'hours' => 16.5,
+					'oldestSubmittedAt' => '2026-09-18T17:00:00+02:00',
+					'oldestWeek' => '2026-W38',
+				],
+				[
+					'company' => 'Van Dijk Machinebouw',
+					'students' => 2,
+					'weeks' => 2,
+					'hours' => 56.0,
+					'oldestSubmittedAt' => '2026-10-02T17:00:00+02:00',
+					'oldestWeek' => '2026-W40',
+				],
+			],
+			actual: (new PlacementFacts())->hoursPerCompany(bpv: $bpv, context: $this->karin())
+		);
+		self::assertSame(expected: [], actual: (new PlacementFacts())->hoursPerCompany(bpv: [], context: $this->karin()));
+	}//end testHoursPerCompanyTheLongestWaitingFirst()
+
+	/**
 	 * The objection of 25 September, due on 9 October, is past half its term on 5 October; a decided one is not.
 	 *
 	 * @return void

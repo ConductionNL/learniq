@@ -421,6 +421,8 @@ return \OCA\Learniq\Middleware\Support\ApiPathAliases::withVersionedAliases([
         ['name' => 'todayFirst#show', 'url' => '/api/today/first', 'verb' => 'GET'],
         // The role tiles on Today (today-first-per-school-role T2): per tile the signed-in user's role acts on, its count.
         ['name' => 'todayFirst#counts', 'url' => '/api/today/counts', 'verb' => 'GET'],
+        // The BPV-begeleider's hours waiting per company (bpv-coach-today-and-placement-board T5), the longest waiting first.
+        ['name' => 'todayFirst#bpvHours', 'url' => '/api/today/bpv-hours', 'verb' => 'GET'],
         // Course catalogue (enrolment-catalogue-self-signup): the signed-in
         // learner lists what they may sign up for, signs up for a course or a
         // programme, and withdraws an own sign-up; every write is for the

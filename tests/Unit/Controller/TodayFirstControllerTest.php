@@ -186,4 +186,29 @@ class TodayFirstControllerTest extends TestCase {
 		self::assertSame(expected: Http::STATUS_SERVICE_UNAVAILABLE, actual: $response->getStatus());
 		self::assertSame(expected: 'The counts on Today could not be read. Try again.', actual: $response->getData()['error']);
 	}//end testCountsAnswers503WhenTheReadFailed()
+
+	/**
+	 * The BPV hours per company come back as the service answers them; nobody signed in gets 401; a failed read 503.
+	 *
+	 * @return void
+	 */
+	public function testBpvHoursAnswersTheCompaniesOr401Or503(): void {
+		$companies = ['companies' => [['company' => 'Van Dijk Machinebouw', 'students' => 2, 'weeks' => 2, 'hours' => 56.0]]];
+		$service = $this->createMock(originalClassName: FirstTodayService::class);
+		$service->expects(self::once())->method('hoursPerCompanyFor')->with(self::isInstanceOf(className: IUser::class))->willReturn($companies);
+
+		$response = $this->controller(service: $service)->bpvHours();
+		self::assertSame(expected: Http::STATUS_OK, actual: $response->getStatus());
+		self::assertSame(expected: $companies, actual: $response->getData());
+
+		$none = $this->createMock(originalClassName: FirstTodayService::class);
+		$none->expects(self::never())->method('hoursPerCompanyFor');
+		self::assertSame(expected: Http::STATUS_UNAUTHORIZED, actual: $this->controller(service: $none, signedIn: false)->bpvHours()->getStatus());
+
+		$failed = $this->createMock(originalClassName: FirstTodayService::class);
+		$failed->method('hoursPerCompanyFor')->willReturn(null);
+		$response = $this->controller(service: $failed)->bpvHours();
+		self::assertSame(expected: Http::STATUS_SERVICE_UNAVAILABLE, actual: $response->getStatus());
+		self::assertSame(expected: 'The BPV hours on Today could not be read. Try again.', actual: $response->getData()['error']);
+	}//end testBpvHoursAnswersTheCompaniesOr401Or503()
 }//end class

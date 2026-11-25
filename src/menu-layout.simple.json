@@ -1530,6 +1530,25 @@
 								}
 							]
 						}
+					},
+					{
+						"id": "bpv-hours-per-company",
+						"type": "record-list",
+						"title": "Hours waiting for a company",
+						"_note": "bpv-coach-today-and-placement-board T5: LqRolB 'Uren die wachten op een leerbedrijf, langst wachtend eerst'. GET /api/today/bpv-hours answers the submitted hour weeks of the placements she coaches, per training company, the longest waiting company first. The board's 'Herinneren' (a notice to the praktijkopleider) is not drawn: the praktijkopleider is a portal user that no notification reaches yet (the portal-task seam addresses no trainer subject, site-workplace-trainer-portal-design T5).",
+						"content": {
+							"endpointSource": {
+								"url": "/apps/learniq/api/today/bpv-hours",
+								"responsePath": "companies"
+							},
+							"presentation": "rows",
+							"title": "{company}",
+							"meta": "{students} students · {weeks} weeks · waiting since {oldestWeek}",
+							"trailing": [
+								"{hours} h"
+							],
+							"emptyText": "No hours waiting for a company"
+						}
 					}
 				],
 				"layout": [],
@@ -1779,6 +1798,19 @@
 								"gridWidth": 6,
 								"gridHeight": 3,
 								"showTitle": true
+							},
+							{
+								"id": "b4",
+								"widgetId": "bpv-hours-per-company",
+								"gridX": 6,
+								"gridY": 7,
+								"gridWidth": 6,
+								"gridHeight": 3,
+								"showTitle": true,
+								"headerLink": {
+									"label": "BPV placements",
+									"route": "BpvPlacements"
+								}
 							},
 							{
 								"id": "b3",

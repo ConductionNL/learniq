@@ -297,4 +297,43 @@ class TodayTilesTest extends TestCase {
 
 		self::assertNull(actual: $service->tilesFor(user: $this->daan()));
 	}//end testAFailedReadAnswersNull()
+
+	/**
+	 * The BPV hours per company read her own placements and the submitted weeks, and nothing more without placements.
+	 *
+	 * @return void
+	 */
+	public function testHoursPerCompanyReadsHerPlacementsAndTheSubmittedWeeks(): void {
+		$service = $this->service(role: 'instructor', segment: 'mbo');
+		$this->reader->method('rows')->willReturnCallback(
+			static fn (string $schema, array $filters=[]): array => match ([$schema, $filters]) {
+				['bpv-placement', ['schoolCoachId' => 'daan']] => [['id' => 'p-1', 'schoolCoachId' => 'daan', 'trainingCompanyName' => 'Van Dijk Machinebouw']],
+				['bpv-hour-week', ['lifecycle' => 'submitted']] => [
+					['bpvPlacementId' => 'p-1', 'isoWeek' => '2026-W40', 'hoursSubmitted' => 24, 'submittedAt' => '2026-10-02T17:00:00+02:00', 'lifecycle' => 'submitted'],
+				],
+				default => [],
+			}
+		);
+
+		$answer = $service->hoursPerCompanyFor(user: $this->daan());
+
+		self::assertSame(expected: ['Van Dijk Machinebouw'], actual: array_column($answer['companies'], 'company'));
+		self::assertSame(expected: 24.0, actual: $answer['companies'][0]['hours']);
+	}//end testHoursPerCompanyReadsHerPlacementsAndTheSubmittedWeeks()
+
+	/**
+	 * A teacher who coaches no placement reads no hour weeks; a failed read answers null.
+	 *
+	 * @return void
+	 */
+	public function testHoursPerCompanyWithoutPlacementsOrAFailedRead(): void {
+		$service = $this->service(role: 'instructor', segment: 'mbo');
+		$this->reader->expects(self::once())->method('rows')->with('bpv-placement', ['schoolCoachId' => 'daan'])->willReturn([]);
+
+		self::assertSame(expected: ['companies' => []], actual: $service->hoursPerCompanyFor(user: $this->daan()));
+
+		$failing = $this->service(role: 'instructor', segment: 'mbo');
+		$this->reader->method('rows')->willThrowException(new RuntimeException('down'));
+		self::assertNull(actual: $failing->hoursPerCompanyFor(user: $this->daan()));
+	}//end testHoursPerCompanyWithoutPlacementsOrAFailedRead()
 }//end class
