@@ -272,11 +272,14 @@ class BootListenerRegistrar {
 
 		// Loud on purpose. This fallback is correct but UNFILTERED, and while it
 		// was silent it was indistinguishable from a working narrowing.
-		\OCP\Server::get('Psr\\Log\\LoggerInterface')->warning(
-			'OpenRegister ObjectEventSubscription unavailable: ' . $listener
+		// Raised, not looked up: a container lookup during boot can recurse
+		// outside a booted Nextcloud (openregister #3523), and Nextcloud's
+		// error handler writes a user warning to its log.
+		trigger_error(
+			'[' . $subscription['appId'] . '] OpenRegister ObjectEventSubscription unavailable: ' . $listener
 			. ' fell back to an UNFILTERED registration for ' . $event
 			. ' and will be invoked on every object write instance-wide.',
-			['app' => $subscription['appId']]
+			E_USER_WARNING
 		);
 
 		$dispatcher->addServiceListener($event, $listener);

@@ -872,7 +872,8 @@ test('every simple entry has a label, a registered icon and a page', () => {
 })
 
 test('a gate in the simple file names only roles the resolver can emit', () => {
-	const resolver = readText('lib/Service/DashboardRoleService.php')
+	// The role => group map is declared on the resolver's contract since the kernel split.
+	const resolver = readText('lib/Service/DashboardRoleService.php') + readText('lib/Kernel/Contracts/DashboardRoleServiceInterface.php')
 	const known = new Set(['admin', 'learner'])
 	const block = resolver.match(/GROUP_BACKED_ROLES\s*=\s*\[([\s\S]*?)\];/)
 	assert.ok(block, 'GROUP_BACKED_ROLES not found')
@@ -1497,9 +1498,13 @@ test('every widget type on Today is one the installed library build registers', 
 	// The two that only exist since 2.60.0, by name, in the catalog itself.
 	assert.ok(registered.has('week-strip'))
 	assert.ok(registered.has('header'))
-	const greeting = readText(
-		`${lib}dist/esm/components/CnHeaderWidget/CnHeaderWidget.vue2.js`,
-	)
+	// The bundler names the compiled parts CnHeaderWidget.vue2.js or
+	// CnHeaderWidget2.vue.js depending on the release; read them all.
+	const headerDir = `${lib}dist/esm/components/CnHeaderWidget/`
+	const greeting = readdirSync(new URL(headerDir, root))
+		.filter((file) => /^CnHeaderWidget.*\.js$/.test(file))
+		.map((file) => readText(`${headerDir}${file}`))
+		.join('\n')
 	assert.ok(greeting.includes('greetingText'), 'this build has no greeting header')
 
 	const pkg = readJson(`${lib}package.json`)

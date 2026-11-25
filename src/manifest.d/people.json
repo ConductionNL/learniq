@@ -2903,6 +2903,7 @@
 							"widgetIds": [
 								"flag-figures",
 								"flag-response",
+								"flag-exchange-job",
 								"flag-actions"
 							]
 						},
@@ -3073,7 +3074,12 @@
 						"key": "presentPercent",
 						"label": "Present this year",
 						"widget": "number",
-						"widgetProps": {"unit": {"one": "{count}%", "other": "{count}%"}}
+						"widgetProps": {
+							"unit": {
+								"one": "{count}%",
+								"other": "{count}%"
+							}
+						}
 					},
 					{
 						"key": "absentDays",
@@ -3223,7 +3229,9 @@
 				},
 				"titleField": "fullName",
 				"headerMeta": "{ageYears} years",
-				"headerFields": ["qualificationLabel"],
+				"headerFields": [
+					"qualificationLabel"
+				],
 				"typePill": {
 					"field": "groupLabel"
 				},
@@ -4207,6 +4215,16 @@
 						}
 					}
 				],
+				"bodyWidgets": [
+					{
+						"id": "lprof-guardian-conversation",
+						"component": "PupilGuardianConversation",
+						"title": "Conversation with the parents",
+						"props": {
+							"learnerId": "@object.ncUserId"
+						}
+					}
+				],
 				"layout": [
 					{
 						"id": "1",
@@ -4216,16 +4234,6 @@
 						"gridWidth": 12,
 						"gridHeight": 18,
 						"showTitle": false
-					}
-				],
-				"bodyWidgets": [
-					{
-						"id": "lprof-guardian-conversation",
-						"component": "PupilGuardianConversation",
-						"title": "Conversation with the parents",
-						"props": {
-							"learnerId": "@object.ncUserId"
-						}
 					}
 				]
 			}

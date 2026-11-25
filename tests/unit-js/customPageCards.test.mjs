@@ -48,7 +48,8 @@ const views = {
 	BookConferenceSlotsView: 1,
 	AdmissionsReviewBoard: 1,
 	TimetableConflictQueue: 1,
-	LearniqAiProcessingDisclosure: 2,
+	// The school's own text card joined in ai-disclosure-for-every-user.
+	LearniqAiProcessingDisclosure: 3,
 	AssessmentScoringView: 1,
 	ExportRequestView: 1,
 	LessonPlayer: 1,
