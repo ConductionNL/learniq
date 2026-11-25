@@ -25,5 +25,6 @@
 
 ## 6. Close out
 
-- [ ] 6.1 Live check: write a profile as the integriq service account into a department in scope; see the enrolment appear.
+- [x] 6.1 Live check: write a profile as the integriq service account into a department in scope; see the enrolment appear.
+  - 2026-11-25 live (NC 34.0.6 + PostgreSQL 16, OpenRegister main, learniq development): app setting `hr_feed_user` = `integriq-feed` (an hr account); a published regulation with `audienceScope: department`, `audienceDepartments: [Spooronderhoud]` and one published course carrying its `regulationSlug`. (1) `integriq-feed` creates a LearnerProfile for `hr-new-01` in Spooronderhoud with `hrSource: afas`: a `pending` enrolment in that course appears at once (`source: system`, `regulationSlug` set). (2) An hr user changing `department` or `jobTitle` on that profile gets 422 "jobTitle comes from afas and can only be changed there." (3) `integriq-feed` moves the profile to Kantoor: 200, and the open enrolment gets `outOfScopeSince: 2026-11-25`. No integriq source was involved: the write came straight from the feed account, as the source will make it.
 - [ ] 6.2 Set row `comp-assign-from-hr-roles` to built once the integriq source exists, and archive this change.
