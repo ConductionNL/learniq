@@ -104,7 +104,14 @@ test.describe('certificate for Europass', () => {
 					name: /Confirm|Create Europass version|OK|Yes/,
 				})
 				.first()
-			if (await confirm.isVisible({ timeout: 10_000 }).catch(() => false)) {
+			// isVisible() does not wait; under load the dialog opens seconds
+			// after the click, and a skipped confirm creates nothing.
+			if (
+				await confirm
+					.waitFor({ state: 'visible', timeout: 15_000 })
+					.then(() => true)
+					.catch(() => false)
+			) {
 				await confirm.click()
 			}
 			await expect(
