@@ -381,11 +381,14 @@ test.describe('wilgenboom: Mijn Wilgenboom (Fatima Hulstkamp)', () => {
 			const token =
 				(await parent.evaluate((key) => sessionStorage.getItem(key), SITE_TOKEN_KEY)) ?? ''
 			expect(token, "Fatima's bearer").not.toBe('')
+			// A `create` action is written through the collection; the action
+			// route forwards `endpoint` actions only and answers 403 for this one.
 			const asked = await parent.request.post(
-				'/apps/portaliq/portal/api/actions/learniq/requestLeave',
+				'/apps/portaliq/portal/api/collections/learniq/leave-request',
 				{
 					headers: { Authorization: `Bearer ${token}` },
 					data: {
+						actionId: 'requestLeave',
 						learnerRef: veraRef,
 						dateFrom: ymd(monday),
 						dateTo: ymd(tuesday),
@@ -422,7 +425,8 @@ test.describe('wilgenboom: Mijn Wilgenboom (Fatima Hulstkamp)', () => {
 			const note = `Veel plezier op de bruiloft (${fx.run})`
 			const allowed = await api.post(
 				`/index.php/apps/openregister/api/objects/${requestId}/transition`,
-				{ data: { action: 'allow', decisionNote: note } },
+				// A transition's input values travel under `data`.
+				{ data: { action: 'allow', data: { decisionNote: note } } },
 			)
 			expect(allowed.status(), await allowed.text()).toBe(200)
 			await api.dispose()
