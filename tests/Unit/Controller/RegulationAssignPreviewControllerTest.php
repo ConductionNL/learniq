@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/regulation-assign-by-audience/specs/compliance-rule-coverage/spec.md#requirement-the-assignment-is-previewed-per-audience
+ * @spec openspec/specs/compliance-rule-coverage/spec.md#requirement-the-assignment-is-previewed-per-audience
  */
 
 declare(strict_types=1);

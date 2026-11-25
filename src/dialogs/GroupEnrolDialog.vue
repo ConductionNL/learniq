@@ -95,7 +95,7 @@
 		<template #actions>
 			<CnDialogActions
 				:saving="busy"
-				:canSubmit="previewReady && preview.toEnrol > 0"
+				:canSubmit="canSend"
 				:confirmLabel="n('learniq', 'Enrol %n employee', 'Enrol %n employees', preview.toEnrol || 0)"
 				:cancelLabel="t('learniq', 'Cancel')"
 				@cancel="$emit('close')"
@@ -110,7 +110,7 @@ import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcSelect, NcTextField } from '@nextcloud/vue'
 import DialogNoticeFallback from './DialogNoticeFallback.vue'
-import { ENROL_AUDIENCES, groupEnrolBody } from './dialogBodies.js'
+import { ENROL_AUDIENCES, groupEnrolBody, groupEnrolCanSend, groupEnrolPreviewParams } from './dialogBodies.js'
 import { dialogNoticeProps, requestRefusal } from './dialogNotice.js'
 import { announceSaved, readObject } from './dialogRequests.js'
 
@@ -185,6 +185,16 @@ export default {
 		 * @return {object[]} The first people of the preview.
 		 * @spec openspec/specs/compliance-audit/spec.md
 		 */
+		/**
+		 * Whether "Enrol N employees" may be pressed.
+		 *
+		 * @return {boolean}
+		 * @spec openspec/specs/compliance-rule-coverage/spec.md#requirement-the-assignment-is-previewed-per-audience
+		 */
+		canSend() {
+			return groupEnrolCanSend(this.preview, this.audience)
+		},
+
 		rows() {
 			return Array.isArray(this.preview.rows) ? this.preview.rows : []
 		},
@@ -239,13 +249,14 @@ export default {
 		 *
 		 * @return {Promise<void>}
 		 * @spec openspec/specs/compliance-audit/spec.md
+		 * @spec openspec/specs/compliance-rule-coverage/spec.md#requirement-the-assignment-is-previewed-per-audience
 		 */
 		async loadPreview() {
 			this.loading = true
 			this.notice = null
 			try {
 				const { data } = await axios.get(generateUrl(`${ASSIGN_URL}/preview`, { id: this.objectId }), {
-					params: { audienceKind: this.audienceKind, audience: this.audience ?? '' },
+					params: groupEnrolPreviewParams(this.audienceKind, this.audience),
 				})
 				this.preview = data ?? {}
 			} catch (error) {
