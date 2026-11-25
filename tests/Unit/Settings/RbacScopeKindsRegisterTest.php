@@ -82,7 +82,12 @@ class RbacScopeKindsRegisterTest extends TestCase {
 
 		$readEntries = $authorization['read'] ?? [];
 		$literalGroups = array_filter($readEntries, 'is_string');
-		$this->assertEqualsCanonicalizing($cascade, array_values($literalGroups), 'Cohort.read MUST include every cascade group as a literal entry');
+		// Coordinators and administration managers read every group too, without write (decided 25 Nov 2026, teacher-dashboard-own-groups 1.6).
+		$this->assertEqualsCanonicalizing(
+			expected: array_merge($cascade, ['coordinators', 'administration-managers']),
+			actual: array_values($literalGroups),
+			message: 'Cohort.read MUST include every cascade group, coordinators and administration-managers as literal entries'
+		);
 
 		$conditionalEntries = array_values(array_filter($readEntries, 'is_array'));
 		$this->assertCount(1, $conditionalEntries, 'Cohort.read MUST carry exactly one conditional (own-group) entry');
