@@ -3754,8 +3754,8 @@
       "type": "library",
       "name": "nextcloud-vue",
       "group": "@conduction",
-      "version": "2.218.0",
-      "bom-ref": "learniq@0.1.0|@conduction/nextcloud-vue@2.218.0",
+      "version": "2.219.0",
+      "bom-ref": "learniq@0.1.0|@conduction/nextcloud-vue@2.219.0",
       "licenses": [
         {
           "license": {
@@ -3763,15 +3763,15 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40conduction/nextcloud-vue@2.218.0",
+      "purl": "pkg:npm/%40conduction/nextcloud-vue@2.219.0",
       "externalReferences": [
         {
-          "url": "https://registry.npmjs.org/@conduction/nextcloud-vue/-/nextcloud-vue-2.218.0.tgz",
+          "url": "https://registry.npmjs.org/@conduction/nextcloud-vue/-/nextcloud-vue-2.219.0.tgz",
           "type": "distribution",
           "hashes": [
             {
               "alg": "SHA-512",
-              "content": "212ded07ef4a60f867c60b072fda07fb86850f65269b4e7a8740ff4f3569723985c36aa39a9df20f09d6f05e29d4bf831ec98373d3af06484337cc0c37b5a2c0"
+              "content": "be13e9931b7ecbe54e148f7497bd85f08e2d33d9ea036e5816d0df6174612c9cd207a8ffa728d9285def376755a93a68bbb05ad72b8d4d91a0c6b5e5d15a0761"
             }
           ],
           "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
@@ -3789,7 +3789,7 @@
           "name": "dialogs",
           "group": "@nextcloud",
           "version": "7.6.0",
-          "bom-ref": "learniq@0.1.0|@conduction/nextcloud-vue@2.218.0|@nextcloud/dialogs@7.6.0",
+          "bom-ref": "learniq@0.1.0|@conduction/nextcloud-vue@2.219.0|@nextcloud/dialogs@7.6.0",
           "licenses": [
             {
               "license": {
@@ -3823,7 +3823,7 @@
               "name": "core",
               "group": "@vueuse",
               "version": "15.0.0",
-              "bom-ref": "learniq@0.1.0|@conduction/nextcloud-vue@2.218.0|@nextcloud/dialogs@7.6.0|@vueuse/core@15.0.0",
+              "bom-ref": "learniq@0.1.0|@conduction/nextcloud-vue@2.219.0|@nextcloud/dialogs@7.6.0|@vueuse/core@15.0.0",
               "licenses": [
                 {
                   "license": {
@@ -3859,7 +3859,7 @@
           "name": "metadata",
           "group": "@vueuse",
           "version": "15.0.0",
-          "bom-ref": "learniq@0.1.0|@conduction/nextcloud-vue@2.218.0|@vueuse/metadata@15.0.0",
+          "bom-ref": "learniq@0.1.0|@conduction/nextcloud-vue@2.219.0|@vueuse/metadata@15.0.0",
           "licenses": [
             {
               "license": {
@@ -3893,7 +3893,7 @@
           "name": "shared",
           "group": "@vueuse",
           "version": "15.0.0",
-          "bom-ref": "learniq@0.1.0|@conduction/nextcloud-vue@2.218.0|@vueuse/shared@15.0.0",
+          "bom-ref": "learniq@0.1.0|@conduction/nextcloud-vue@2.219.0|@vueuse/shared@15.0.0",
           "licenses": [
             {
               "license": {
