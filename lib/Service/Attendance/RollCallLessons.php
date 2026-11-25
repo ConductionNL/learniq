@@ -21,7 +21,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-day-without-a-lesson-gets-one-when-the-register-is-saved
+ * @spec openspec/specs/attendance/spec.md#requirement-a-day-without-a-lesson-gets-one-when-the-register-is-saved
  */
 
 declare(strict_types=1);
@@ -40,7 +40,7 @@ use Psr\Log\LoggerInterface;
 /**
  * Picks or creates the lesson of a roll-call.
  *
- * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-day-without-a-lesson-gets-one-when-the-register-is-saved
+ * @spec openspec/specs/attendance/spec.md#requirement-a-day-without-a-lesson-gets-one-when-the-register-is-saved
  */
 class RollCallLessons {
 	use RollCallRows;
@@ -78,7 +78,7 @@ class RollCallLessons {
 	 *
 	 * @return array<string, mixed>|null
 	 *
-	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-day-without-a-lesson-gets-one-when-the-register-is-saved
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-day-without-a-lesson-gets-one-when-the-register-is-saved
 	 */
 	public function chosen(array $sessions, ?string $sessionId): ?array {
 		foreach ($sessions as $session) {
@@ -97,7 +97,7 @@ class RollCallLessons {
 	 *
 	 * @return int|null
 	 *
-	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
 	 */
 	public function lengthOf(array $session): ?int {
 		$start = $this->moment(value: ($session['startsAt'] ?? null));
@@ -118,7 +118,7 @@ class RollCallLessons {
 	 *
 	 * @return array<string, mixed> The created lesson.
 	 *
-	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-day-without-a-lesson-gets-one-when-the-register-is-saved
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-day-without-a-lesson-gets-one-when-the-register-is-saved
 	 */
 	public function create(array $cohort, string $date, DateTimeZone $zone): array {
 		$cohortId = $this->idOf(row: $cohort);

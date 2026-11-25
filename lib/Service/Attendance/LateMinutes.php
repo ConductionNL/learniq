@@ -18,7 +18,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-absence-and-lateness-are-counted-per-learner-per-school-year
+ * @spec openspec/specs/attendance/spec.md#requirement-absence-and-lateness-are-counted-per-learner-per-school-year
  */
 
 declare(strict_types=1);
@@ -28,7 +28,7 @@ namespace OCA\Learniq\Service\Attendance;
 /**
  * Reads how late a late record was.
  *
- * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-absence-and-lateness-are-counted-per-learner-per-school-year
+ * @spec openspec/specs/attendance/spec.md#requirement-absence-and-lateness-are-counted-per-learner-per-school-year
  */
 final class LateMinutes {
 
@@ -41,7 +41,7 @@ final class LateMinutes {
 	 *
 	 * @return int
 	 *
-	 * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-absence-and-lateness-are-counted-per-learner-per-school-year
+	 * @spec openspec/specs/attendance/spec.md#requirement-absence-and-lateness-are-counted-per-learner-per-school-year
 	 */
 	public function minutesOf(array $record, ?array $session): int {
 		$late = ($record['lateMinutes'] ?? null);

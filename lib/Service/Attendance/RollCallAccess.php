@@ -28,7 +28,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-who-may-open-which-groups-register
+ * @spec openspec/specs/attendance/spec.md#requirement-who-may-open-which-groups-register
  */
 
 declare(strict_types=1);
@@ -46,7 +46,7 @@ use OCP\IUser;
 /**
  * Decides who opens which group, and whether a day can be saved.
  *
- * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-who-may-open-which-groups-register
+ * @spec openspec/specs/attendance/spec.md#requirement-who-may-open-which-groups-register
  */
 class RollCallAccess {
 	use RollCallRows;
@@ -89,7 +89,7 @@ class RollCallAccess {
 	 *
 	 * @throws RollCallException 403 for someone who is neither a teacher nor school-wide staff.
 	 *
-	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-who-may-open-which-groups-register
+	 * @spec openspec/specs/attendance/spec.md#requirement-who-may-open-which-groups-register
 	 */
 	public function cohortsFor(IUser $user): array {
 		if ($this->isSchoolWide(user: $user) === true) {
@@ -119,7 +119,7 @@ class RollCallAccess {
 	 *
 	 * @throws RollCallException 403 when the asked group is not one of them.
 	 *
-	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-who-may-open-which-groups-register
+	 * @spec openspec/specs/attendance/spec.md#requirement-who-may-open-which-groups-register
 	 */
 	public function chosenCohort(array $cohorts, ?string $cohortId): array {
 		foreach ($cohorts as $cohort) {
@@ -141,7 +141,7 @@ class RollCallAccess {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-the-register-can-be-changed-the-same-day
+	 * @spec openspec/specs/attendance/spec.md#requirement-the-register-can-be-changed-the-same-day
 	 */
 	public function lockReason(IUser $user, string $date, string $today, array $records): string {
 		if ($date > $today) {
@@ -168,7 +168,7 @@ class RollCallAccess {
 	 *
 	 * @return DateTimeZone
 	 *
-	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-the-register-can-be-changed-the-same-day
+	 * @spec openspec/specs/attendance/spec.md#requirement-the-register-can-be-changed-the-same-day
 	 */
 	public function zone(IUser $user): DateTimeZone {
 		return $this->timeZone->getTimeZone(false, $user->getUID());
@@ -181,7 +181,7 @@ class RollCallAccess {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-the-register-can-be-changed-the-same-day
+	 * @spec openspec/specs/attendance/spec.md#requirement-the-register-can-be-changed-the-same-day
 	 */
 	public function today(DateTimeZone $zone): string {
 		return (new DateTimeImmutable('@' . $this->time->getTime()))->setTimezone($zone)->format('Y-m-d');

@@ -58,7 +58,7 @@ interface AttendanceSummaryServiceInterface {
 	 *
 	 * @return int The number of rows saved.
 	 *
-	 * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-the-summary-follows-every-attendance-write
+	 * @spec openspec/specs/attendance/spec.md#requirement-the-summary-follows-every-attendance-write
 	 */
 	public function recompute(string $learnerId, array $schoolYears=[], string $tenantId='', ?string $learnerRef=null): int;
 
@@ -69,7 +69,7 @@ interface AttendanceSummaryServiceInterface {
 	 *
 	 * @return array<int,string>
 	 *
-	 * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-the-summary-follows-every-attendance-write
+	 * @spec openspec/specs/attendance/spec.md#requirement-the-summary-follows-every-attendance-write
 	 */
 	public function schoolYearsOf(array $sessionIds): array;
 }//end interface

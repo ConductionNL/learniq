@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-existing-records-get-their-summaries
+ * @spec openspec/specs/attendance/spec.md#requirement-existing-records-get-their-summaries
  */
 
 declare(strict_types=1);

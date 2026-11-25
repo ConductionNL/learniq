@@ -558,3 +558,126 @@ An `excuse-request` MAY name `fromLessonHour` and `toLessonHour` on a single day
 - **WHEN** the parent reports recovery with last day Tuesday
 - **THEN** the report ends on Tuesday and Wednesday's register no longer lists it
 - @e2e exclude as above
+
+### Requirement: A group teacher takes the day's register of their group in one screen
+The roll-call page MUST list every pupil of one group for one day, each starting as present. A teacher MUST be able to mark a pupil late with a number of minutes (quick choices 5, 10 and 15, or any whole number from 1 to 600), absent with permission with a reason (`illness`, `appointment` or `other`), or absent without permission, with one tap or key per pupil. One save MUST write one `AttendanceRecord` per changed pupil, carrying `lateMinutes` for a late mark and `absenceReasonKind` for an absence, and MUST leave unchanged pupils alone. A late mark MUST name its minutes and an absence with permission MUST name its reason, or the save is refused. The page MUST work at phone width, with the keyboard alone, and with a screen reader.
+
+#### Scenario: The teacher marks one pupil late and one absent without permission
+@e2e exclude Covered by tests/Unit/Service/Attendance/RollCallServiceTest.php (testSaveWritesLateMinutesAndAnUnauthorisedAbsence) and checked live on the throwaway primary school as po-leerkracht-09 for Groep 7.
+- **GIVEN** the teacher of Groep 7 opens today's register
+- **WHEN** they mark Vera late by 10 minutes and Daan absent without permission, and save
+- **THEN** Vera's record has status `late` and `lateMinutes` 10
+- **AND** Daan's record has status `absent-unexcused`
+- **AND** the other pupils are recorded present
+
+#### Scenario: A late mark without minutes is refused
+@e2e exclude Validation on the endpoint; covered by tests/Unit/Service/Attendance/RollCallServiceTest.php (testALateMarkNeedsItsMinutes).
+- **GIVEN** a roll-call save with a late mark and no minutes
+- **WHEN** it reaches the server
+- **THEN** nothing is written and the answer names the pupil
+
+### Requirement: Who may open which group's register
+A member of `instructors` MUST open only the registers of groups whose `teacherIds` or `teacherAssignments` list them. Members of `coordinators`, `administration-managers` and `admin` MUST open the register of any group. Anyone else MUST be refused. The server MUST check this on every read and save, and MUST write the records itself.
+
+#### Scenario: A teacher cannot open another group
+@e2e exclude Access rule on the endpoint; covered by tests/Unit/Service/Attendance/RollCallServiceTest.php (testATeacherCannotOpenAnotherGroup).
+- **GIVEN** the teacher of Groep 7
+- **WHEN** they ask for the register of Groep 3
+- **THEN** the answer is refused and nothing is shown
+
+#### Scenario: A coordinator opens any group
+@e2e exclude Access rule on the endpoint; covered by tests/Unit/Service/Attendance/RollCallServiceTest.php (testACoordinatorOpensAnyGroup) and checked live as po-ib-01.
+- **GIVEN** a member of `coordinators`
+- **WHEN** they open the roll-call
+- **THEN** they can choose every group of the school
+
+### Requirement: An approved absence report fills in the register
+For a pupil without a saved mark that day, an `ExcuseRequest` in `approved` that covers the day MUST pre-fill "absent with permission", with `absenceReasonKind` taken from the report (`illness` stays `illness`, `medical-appointment` becomes `appointment`, anything else `other`) and the report's reason as the note. Saving it MUST link the record to the report through `excuseRequestId`. A report still in `submitted` MUST be shown next to the pupil and MUST NOT change the mark.
+
+#### Scenario: A parent's approved sick report shows up
+@e2e exclude Covered by tests/Unit/Service/Attendance/RollCallServiceTest.php (testAnApprovedReportPrefillsAnAuthorisedAbsence).
+- **GIVEN** an approved report for Vera from Monday to Wednesday, reason "Griep", kind `illness`
+- **WHEN** the teacher opens Tuesday's register
+- **THEN** Vera is marked absent with permission, reason ill, note "Griep"
+
+### Requirement: The register can be changed the same day
+A group teacher MUST be able to save today's register as often as needed. An earlier day MUST be read-only for a group teacher once a teacher saved it, and MUST stay open to them while nobody saved it. Coordinators, administration-managers and admins MUST be able to save any day up to today. Nobody MUST save a day after today.
+
+#### Scenario: Yesterday is read-only for the teacher
+@e2e exclude Covered by tests/Unit/Service/Attendance/RollCallServiceTest.php (testAnEarlierSavedDayIsReadOnlyForTheTeacher).
+- **GIVEN** the teacher saved yesterday's register
+- **WHEN** they open it today
+- **THEN** it is shown read-only, with a note to ask a coordinator
+
+### Requirement: A day without a lesson gets one when the register is saved
+When the group has no lesson that day, saving the register MUST create one `Session` for the group and day, titled with the group's name and the date, and timed like the group's most recent earlier lesson on the same weekday, or 08:30 to 14:30 when it has none. It MUST NOT create a second lesson when one exists.
+
+#### Scenario: The first register of a new school year
+@e2e exclude Covered by tests/Unit/Service/Attendance/RollCallServiceTest.php (testSavingADayWithoutALessonCreatesOne) and checked live.
+- **GIVEN** Groep 7 has no lesson on 2 October 2026
+- **WHEN** the teacher saves that day's register
+- **THEN** a lesson "Groep 7, 2 October 2026" exists and the records point at it
+
+### Requirement: The teacher reaches the register from the menu and the dashboard
+The menu MUST offer "Today's register" to `instructors`, `coordinators` and `administration-managers`. On the teacher dashboard, "Lessen om in te vullen" MUST list lessons that started today or earlier, newest first, and a click MUST open the roll-call for that lesson's group and day.
+
+#### Scenario: The newest lesson comes first
+@e2e exclude Covered by tests/unit-js/rollCall.test.mjs (sessionsToMarkFilter) and checked live on the teacher dashboard.
+- **GIVEN** a group teacher with lessons on Monday and Tuesday
+- **WHEN** they open the teacher dashboard on Tuesday
+- **THEN** Tuesday's lesson is first in "Lessen om in te vullen"
+- **AND** a click opens Tuesday's roll-call for that group
+
+### Requirement: Absence and lateness are counted per learner per school year
+The system MUST keep one `AttendanceSummary` per learner per school year with `absentDays`, `absentAuthorisedDays`, `absentUnauthorisedDays`, `lateCount`, `lateMinutes` and `updatedAt`. A school year MUST run from 1 August to 31 July. The day of a record MUST be the date of its Session's `startsAt`, or of its `markedAt` when the Session cannot be read. A date with at least one `absent-excused` or `absent-unexcused` record MUST count as one absent day; it MUST count as without permission when at least one of its absences is `absent-unexcused`, otherwise as with permission. Every `late` record MUST add one to `lateCount` and its `lateMinutes` to `lateMinutes`; a late record without `lateMinutes` MUST add its lesson length minus `minutesAttended` when both are known, and nothing otherwise. A `left-early` record MUST NOT be counted.
+
+#### Scenario: A primary school pupil's year adds up
+@e2e exclude Pure counting rule; covered by tests/Unit/Service/Attendance/AttendanceSummaryCalculatorTest.php (testCountsDaysPermissionAndLateness).
+- **GIVEN** a pupil ill on two days (excused), absent without permission on one day, late twice by 10 and 5 minutes, and once left early
+- **WHEN** the summary is counted
+- **THEN** it shows 3 absent days, 2 with permission, 1 without, 2 times late and 15 minutes late
+
+#### Scenario: A day with an excused and an unexcused lesson counts once, without permission
+@e2e exclude Pure counting rule; covered by tests/Unit/Service/Attendance/AttendanceSummaryCalculatorTest.php (testADayWithMixedAbsencesCountsOnceWithoutPermission).
+- **GIVEN** a secondary school pupil excused for the first lesson and absent without permission for the third lesson on the same day
+- **WHEN** the summary is counted
+- **THEN** the day adds 1 to `absentDays` and 1 to `absentUnauthorisedDays`
+
+#### Scenario: July and August fall in different school years
+@e2e exclude Pure counting rule; covered by tests/Unit/Service/Attendance/AttendanceSummaryCalculatorTest.php (testTheSchoolYearTurnsOnTheFirstOfAugust).
+- **GIVEN** an absence on 10 July 2026 and one on 24 August 2026
+- **WHEN** the summaries are counted
+- **THEN** the first counts in 2025-2026 and the second in 2026-2027
+
+### Requirement: The summary follows every attendance write
+Every create, update and delete of an `AttendanceRecord` MUST lead to a recount of that learner's school year, deferred to a background job. The recount MUST count the whole school year from the records, never add to the stored numbers, and MUST save only when a number changed. An update that moves a record to another lesson MUST recount the school year of the old lesson too.
+
+#### Scenario: A teacher's roll-call updates the summary
+@e2e exclude Listener and deferred job with no screen of their own; covered by tests/Unit/Listener/AttendanceSummaryListenerTest.php (testACreatedRecordDefersARecount, testADeletedRecordDefersARecount) with the real OpenRegister event classes, by tests/Unit/BackgroundJob/AttendanceSummaryRecomputeJobTest.php, and checked live.
+- **GIVEN** a pupil with no absences this school year
+- **WHEN** the teacher marks the pupil absent without permission and the background job runs
+- **THEN** the pupil's summary shows 1 absent day without permission
+
+#### Scenario: Approving an absence report moves the day to with permission
+@e2e exclude Covered by tests/Unit/Service/Attendance/AttendanceSummaryServiceTest.php (testARecountReplacesTheStoredNumbers).
+- **GIVEN** a pupil's day counted without permission
+- **WHEN** an absence report for that day is approved and the record becomes `absent-excused`
+- **THEN** the summary counts the day with permission
+
+### Requirement: Who reads an attendance summary
+A member of `instructors` MUST read only the summaries whose `teacherIds` contains them; the server MUST stamp `teacherIds` with the teachers of the pupil's current groups on every recount. Members of `coordinators`, `administration-managers` and `compliance-officers` MUST read every summary. Nobody MUST create or update a summary through the API.
+
+#### Scenario: A teacher reads the summaries of their own pupils
+@e2e exclude Register rule; covered by tests/Unit/Settings/AttendanceSummaryRegisterTest.php (testReadRulesAndNoClientWrites).
+- **GIVEN** the teacher of Groep 7
+- **WHEN** they list attendance summaries
+- **THEN** they see the summaries of Groep 7 pupils only
+
+### Requirement: Existing records get their summaries
+A repair step MUST count the summary of every learner with attendance records, with the same rules. A second run MUST save nothing.
+
+#### Scenario: An upgraded school gets its summaries
+@e2e exclude Repair step with no screen; covered by tests/Unit/Repair/BackfillAttendanceSummariesTest.php (testCountsEveryLearnerOnce).
+- **GIVEN** a school with a year of attendance records and no summaries
+- **WHEN** the app is upgraded
+- **THEN** every learner with records has a summary for each school year they were marked in

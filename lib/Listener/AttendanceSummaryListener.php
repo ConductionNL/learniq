@@ -28,7 +28,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-the-summary-follows-every-attendance-write
+ * @spec openspec/specs/attendance/spec.md#requirement-the-summary-follows-every-attendance-write
  */
 
 declare(strict_types=1);
@@ -51,7 +51,7 @@ use OCP\EventDispatcher\IEventListener;
  *
  * @implements IEventListener<Event>
  *
- * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-the-summary-follows-every-attendance-write
+ * @spec openspec/specs/attendance/spec.md#requirement-the-summary-follows-every-attendance-write
  */
 class AttendanceSummaryListener implements IEventListener {
 
@@ -78,7 +78,7 @@ class AttendanceSummaryListener implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-the-summary-follows-every-attendance-write
+	 * @spec openspec/specs/attendance/spec.md#requirement-the-summary-follows-every-attendance-write
 	 */
 	public function handle(Event $event): void {
 		if ($event instanceof ObjectCreatedEvent === false

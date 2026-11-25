@@ -442,7 +442,7 @@ export default {
 		 * today or earlier, newest first (attendance-roll-call).
 		 *
 		 * @return {object}
-		 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-the-teacher-reaches-the-register-from-the-menu-and-the-dashboard
+		 * @spec openspec/specs/attendance/spec.md#requirement-the-teacher-reaches-the-register-from-the-menu-and-the-dashboard
 		 */
 		sessionsToMark() {
 			return sessionsToMarkFilter(this.teacherFilters.sessions, new Date())
@@ -722,7 +722,7 @@ export default {
 		 *
 		 * @param {object} session A Session row.
 		 * @return {object} A vue-router location.
-		 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-the-teacher-reaches-the-register-from-the-menu-and-the-dashboard
+		 * @spec openspec/specs/attendance/spec.md#requirement-the-teacher-reaches-the-register-from-the-menu-and-the-dashboard
 		 */
 		rollCallRoute(session) {
 			return rollCallRoute(session)

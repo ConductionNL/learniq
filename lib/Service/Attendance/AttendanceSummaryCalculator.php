@@ -30,7 +30,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-absence-and-lateness-are-counted-per-learner-per-school-year
+ * @spec openspec/specs/attendance/spec.md#requirement-absence-and-lateness-are-counted-per-learner-per-school-year
  */
 
 declare(strict_types=1);
@@ -45,7 +45,7 @@ use Throwable;
 /**
  * Counts absent days and late arrivals per school year.
  *
- * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-absence-and-lateness-are-counted-per-learner-per-school-year
+ * @spec openspec/specs/attendance/spec.md#requirement-absence-and-lateness-are-counted-per-learner-per-school-year
  */
 class AttendanceSummaryCalculator {
 
@@ -75,7 +75,7 @@ class AttendanceSummaryCalculator {
 	 *
 	 * @return array{absentDays: int, absentAuthorisedDays: int, absentUnauthorisedDays: int, lateCount: int, lateMinutes: int}
 	 *
-	 * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-absence-and-lateness-are-counted-per-learner-per-school-year
+	 * @spec openspec/specs/attendance/spec.md#requirement-absence-and-lateness-are-counted-per-learner-per-school-year
 	 */
 	public static function emptyCounts(): array {
 		return ['absentDays' => 0, 'absentAuthorisedDays' => 0, 'absentUnauthorisedDays' => 0, 'lateCount' => 0, 'lateMinutes' => 0];
@@ -88,7 +88,7 @@ class AttendanceSummaryCalculator {
 	 *
 	 * @return string|null
 	 *
-	 * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#scenario-july-and-august-fall-in-different-school-years
+	 * @spec openspec/specs/attendance/spec.md#scenario-july-and-august-fall-in-different-school-years
 	 */
 	public function schoolYearOf(string $date): ?string {
 		return SchoolYear::of(date: $date, start: $this->schoolYear->start());
@@ -101,7 +101,7 @@ class AttendanceSummaryCalculator {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-absence-and-lateness-are-counted-per-learner-per-school-year
+	 * @spec openspec/specs/attendance/spec.md#requirement-absence-and-lateness-are-counted-per-learner-per-school-year
 	 */
 	public static function isSchoolYear(mixed $value): bool {
 		if (is_string($value) === false || preg_match('/^(\d{4})-(\d{4})$/', $value, $parts) !== 1) {
@@ -118,7 +118,7 @@ class AttendanceSummaryCalculator {
 	 *
 	 * @return array<string, array{date: string, minutes: int|null}>
 	 *
-	 * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-absence-and-lateness-are-counted-per-learner-per-school-year
+	 * @spec openspec/specs/attendance/spec.md#requirement-absence-and-lateness-are-counted-per-learner-per-school-year
 	 */
 	public static function sessionDays(array $rows): array {
 		$days = [];
@@ -160,7 +160,7 @@ class AttendanceSummaryCalculator {
 	 *
 	 * @return array<string, array{absentDays: int, absentAuthorisedDays: int, absentUnauthorisedDays: int, lateCount: int, lateMinutes: int}>
 	 *
-	 * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-absence-and-lateness-are-counted-per-learner-per-school-year
+	 * @spec openspec/specs/attendance/spec.md#requirement-absence-and-lateness-are-counted-per-learner-per-school-year
 	 */
 	public function summarise(array $records, array $sessions): array {
 		$absences = [];
@@ -290,7 +290,7 @@ class AttendanceSummaryCalculator {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-the-summary-follows-every-attendance-write
+	 * @spec openspec/specs/attendance/spec.md#requirement-the-summary-follows-every-attendance-write
 	 */
 	public function unchanged(array $row, array $data): bool {
 		foreach ($data as $field => $value) {

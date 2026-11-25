@@ -19,7 +19,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#scenario-july-and-august-fall-in-different-school-years
+ * @spec openspec/specs/attendance/spec.md#scenario-july-and-august-fall-in-different-school-years
  */
 
 declare(strict_types=1);
@@ -29,7 +29,7 @@ namespace OCA\Learniq\Support;
 /**
  * Names the school year of a date.
  *
- * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#scenario-july-and-august-fall-in-different-school-years
+ * @spec openspec/specs/attendance/spec.md#scenario-july-and-august-fall-in-different-school-years
  */
 final class SchoolYear {
 
@@ -50,7 +50,7 @@ final class SchoolYear {
 	 *
 	 * @return string|null
 	 *
-	 * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#scenario-july-and-august-fall-in-different-school-years
+	 * @spec openspec/specs/attendance/spec.md#scenario-july-and-august-fall-in-different-school-years
 	 * @spec openspec/specs/school-structure/spec.md#requirement-the-school-year-starts-on-the-day-the-school-sets
 	 */
 	public static function of(string $date, string $start=self::DEFAULT_START): ?string {

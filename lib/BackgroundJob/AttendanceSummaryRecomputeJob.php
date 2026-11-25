@@ -13,7 +13,7 @@
  * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
  * SPDX-License-Identifier: EUPL-1.2
  *
- * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-the-summary-follows-every-attendance-write
+ * @spec openspec/specs/attendance/spec.md#requirement-the-summary-follows-every-attendance-write
  */
 
 declare(strict_types=1);
@@ -61,7 +61,7 @@ class AttendanceSummaryRecomputeJob extends ForwardedJob {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-the-summary-follows-every-attendance-write
+	 * @spec openspec/specs/attendance/spec.md#requirement-the-summary-follows-every-attendance-write
 	 */
 	protected function runDeferred(DeferredListenerContext $context): void {
 		$learners = [];
@@ -94,7 +94,7 @@ class AttendanceSummaryRecomputeJob extends ForwardedJob {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-the-summary-follows-every-attendance-write
+	 * @spec openspec/specs/attendance/spec.md#requirement-the-summary-follows-every-attendance-write
 	 */
 	private function recountLearners(array $learners): void {
 		foreach ($learners as $learnerId => $learner) {

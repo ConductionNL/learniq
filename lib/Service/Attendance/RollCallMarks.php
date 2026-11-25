@@ -20,7 +20,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
+ * @spec openspec/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
  */
 
 declare(strict_types=1);
@@ -30,7 +30,7 @@ namespace OCA\Learniq\Service\Attendance;
 /**
  * Validates marks and turns them into AttendanceRecord bodies.
  *
- * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
+ * @spec openspec/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
  */
 class RollCallMarks {
 	use RollCallRows;
@@ -55,7 +55,7 @@ class RollCallMarks {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-an-approved-absence-report-fills-in-the-register
+	 * @spec openspec/specs/attendance/spec.md#requirement-an-approved-absence-report-fills-in-the-register
 	 */
 	public function pupilRow(array $pupil, array $day): array {
 		$learnerRef = null;
@@ -121,7 +121,7 @@ class RollCallMarks {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-an-approved-absence-report-fills-in-the-register
+	 * @spec openspec/specs/attendance/spec.md#requirement-an-approved-absence-report-fills-in-the-register
 	 */
 	public static function reasonFromReport(string $reasonKind): string {
 		return (self::REPORT_REASONS[$reasonKind] ?? 'other');
@@ -135,7 +135,7 @@ class RollCallMarks {
 	 *
 	 * @return string|null One of: not-in-group, status, late-minutes, reason-kind, reason.
 	 *
-	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#scenario-a-late-mark-without-minutes-is-refused
+	 * @spec openspec/specs/attendance/spec.md#scenario-a-late-mark-without-minutes-is-refused
 	 */
 	public function problemWith(array $mark, array $learnerIds): ?string {
 		if (in_array(($mark['learnerId'] ?? null), $learnerIds, true) === false) {
@@ -198,7 +198,7 @@ class RollCallMarks {
 	 *
 	 * @return array{status: string, lateMinutes: int|null, absenceReasonKind: string|null, reason: string|null}
 	 *
-	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
 	 */
 	public function normalise(array $mark): array {
 		$status = (string)$mark['status'];
@@ -227,7 +227,7 @@ class RollCallMarks {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
 	 */
 	public function unchanged(array $record, array $mark): bool {
 		return ($record['status'] ?? null) === $mark['status']
@@ -260,7 +260,7 @@ class RollCallMarks {
 	 *
 	 * @return int|null
 	 *
-	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
 	 */
 	public function minutesAttended(array $mark, ?int $minutes, ?array $record): ?int {
 		if (in_array($mark['status'], self::ABSENCES, true) === true) {
