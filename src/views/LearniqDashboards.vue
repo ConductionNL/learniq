@@ -431,7 +431,7 @@ export default {
 		 * groups, or no filter for school-wide roles.
 		 *
 		 * @return {{cohorts: object, courses: object, sessions: object, assignments: object}}
-		 * @spec openspec/changes/teacher-dashboard-own-groups/specs/dashboard/spec.md#requirement-the-teacher-dashboard-of-a-group-teacher-lists-only-their-own-groups
+		 * @spec openspec/specs/dashboard/spec.md#requirement-the-teacher-dashboard-of-a-group-teacher-lists-only-their-own-groups
 		 */
 		teacherFilters() {
 			return teacherWidgetFilters(getCurrentUser()?.uid ?? '', this.scope)
@@ -634,7 +634,7 @@ export default {
 		 * Work out the teacher scope when the teacher view opens.
 		 *
 		 * @return {void}
-		 * @spec openspec/changes/teacher-dashboard-own-groups/specs/dashboard/spec.md#requirement-the-teacher-dashboard-of-a-group-teacher-lists-only-their-own-groups
+		 * @spec openspec/specs/dashboard/spec.md#requirement-the-teacher-dashboard-of-a-group-teacher-lists-only-their-own-groups
 		 */
 		activeRole() {
 			this.loadTeacherScope()
@@ -750,7 +750,7 @@ export default {
 		 * the teacher with empty lists, never the whole school.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/teacher-dashboard-own-groups/specs/dashboard/spec.md#requirement-the-teacher-dashboard-of-a-group-teacher-lists-only-their-own-groups
+		 * @spec openspec/specs/dashboard/spec.md#requirement-the-teacher-dashboard-of-a-group-teacher-lists-only-their-own-groups
 		 */
 		async loadTeacherScope() {
 			const userId = getCurrentUser()?.uid ?? ''
@@ -900,7 +900,7 @@ export default {
 		 * @param {string} schema The schema.
 		 * @param {object} filter The list filter.
 		 * @return {Promise<object[]>}
-		 * @spec openspec/changes/teacher-dashboard-own-groups/specs/dashboard/spec.md#requirement-the-teacher-dashboard-of-a-group-teacher-lists-only-their-own-groups
+		 * @spec openspec/specs/dashboard/spec.md#requirement-the-teacher-dashboard-of-a-group-teacher-lists-only-their-own-groups
 		 */
 		async listObjects(schema, filter) {
 			const params = appendFilter(
