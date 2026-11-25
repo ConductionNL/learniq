@@ -20,7 +20,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/regulation-assign-by-audience/specs/compliance-rule-coverage/spec.md#requirement-the-assignment-is-previewed-per-audience
+ * @spec openspec/specs/compliance-rule-coverage/spec.md#requirement-the-assignment-is-previewed-per-audience
  */
 
 declare(strict_types=1);
@@ -75,7 +75,7 @@ class RegulationAssignPreviewController extends Controller {
 	 *
 	 * @return JSONResponse { courseName, audiences, total?, alreadyEnrolled?, toEnrol?, rows? }, or an error.
 	 *
-	 * @spec openspec/changes/regulation-assign-by-audience/specs/compliance-rule-coverage/spec.md#requirement-the-assignment-is-previewed-per-audience
+	 * @spec openspec/specs/compliance-rule-coverage/spec.md#requirement-the-assignment-is-previewed-per-audience
 	 */
 	#[NoAdminRequired]
 	public function preview(string $id='', string $audienceKind='', string $audience=''): JSONResponse {

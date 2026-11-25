@@ -49,7 +49,7 @@ interface RegulationAssignmentServiceInterface {
 	 * @return array{created: int, skipped: int, inScope: int, courses: int}
 	 *
 	 * @spec openspec/parity/capabilities.json#comp-assign-from-hr-roles
-	 * @spec openspec/changes/regulation-assign-by-audience/specs/compliance-rule-coverage/spec.md#requirement-an-assignment-can-be-narrowed-to-one-audience
+	 * @spec openspec/specs/compliance-rule-coverage/spec.md#requirement-an-assignment-can-be-narrowed-to-one-audience
 	 */
 	public function assign(array $regulation, ?array $audience=null, ?string $dueDate=null): array;
 
@@ -61,7 +61,7 @@ interface RegulationAssignmentServiceInterface {
 	 *
 	 * @return array{kind: string, value: string}|false|null
 	 *
-	 * @spec openspec/changes/regulation-assign-by-audience/specs/compliance-rule-coverage/spec.md#requirement-an-assignment-can-be-narrowed-to-one-audience
+	 * @spec openspec/specs/compliance-rule-coverage/spec.md#requirement-an-assignment-can-be-narrowed-to-one-audience
 	 */
 	public function audienceOf(string $kind, string $value): array|false|null;
 
@@ -72,7 +72,7 @@ interface RegulationAssignmentServiceInterface {
 	 *
 	 * @return string|false|null
 	 *
-	 * @spec openspec/changes/regulation-assign-by-audience/specs/compliance-rule-coverage/spec.md#requirement-an-assignment-can-be-narrowed-to-one-audience
+	 * @spec openspec/specs/compliance-rule-coverage/spec.md#requirement-an-assignment-can-be-narrowed-to-one-audience
 	 */
 	public function dueDateOf(string $value): string|false|null;
 

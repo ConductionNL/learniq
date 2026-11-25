@@ -95,7 +95,7 @@ class RegulationAssignmentService implements RegulationAssignmentServiceInterfac
 	 * @return array{created: int, skipped: int, inScope: int, courses: int}
 	 *
 	 * @spec openspec/parity/capabilities.json#comp-assign-from-hr-roles
-	 * @spec openspec/changes/regulation-assign-by-audience/specs/compliance-rule-coverage/spec.md#requirement-an-assignment-can-be-narrowed-to-one-audience
+	 * @spec openspec/specs/compliance-rule-coverage/spec.md#requirement-an-assignment-can-be-narrowed-to-one-audience
 	 * @spec openspec/specs/compliance-rule-coverage/spec.md#requirement-a-course-is-bound-to-the-rule-it-trains-for
 	 */
 	public function assign(array $regulation, ?array $audience=null, ?string $dueDate=null): array {
@@ -330,7 +330,7 @@ class RegulationAssignmentService implements RegulationAssignmentServiceInterfac
 	 *
 	 * @return array{kind: string, value: string}|false|null
 	 *
-	 * @spec openspec/changes/regulation-assign-by-audience/specs/compliance-rule-coverage/spec.md#requirement-an-assignment-can-be-narrowed-to-one-audience
+	 * @spec openspec/specs/compliance-rule-coverage/spec.md#requirement-an-assignment-can-be-narrowed-to-one-audience
 	 */
 	public function audienceOf(string $kind, string $value): array|false|null {
 		$kind = trim($kind);
@@ -353,7 +353,7 @@ class RegulationAssignmentService implements RegulationAssignmentServiceInterfac
 	 *
 	 * @return string|false|null
 	 *
-	 * @spec openspec/changes/regulation-assign-by-audience/specs/compliance-rule-coverage/spec.md#requirement-an-assignment-can-be-narrowed-to-one-audience
+	 * @spec openspec/specs/compliance-rule-coverage/spec.md#requirement-an-assignment-can-be-narrowed-to-one-audience
 	 */
 	public function dueDateOf(string $value): string|false|null {
 		$value = trim($value);

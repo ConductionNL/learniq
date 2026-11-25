@@ -717,6 +717,44 @@ export function canSaveGrade(form, plan) {
 export const ENROL_AUDIENCES = ['section', 'team', 'hr-function']
 
 /**
+ * The query of the group enrol preview: the audience lists only until an
+ * audience is chosen, then that audience. The server refuses a kind without a
+ * value ("Unknown audience"), so a kind alone must not be sent: the dialog then
+ * showed "No preview" and an empty list to choose from.
+ *
+ * @param {string} audienceKind The chosen card.
+ * @param {string|null} audience The chosen audience, or null.
+ * @return {object} The query parameters.
+ * @spec openspec/specs/compliance-rule-coverage/spec.md#requirement-the-assignment-is-previewed-per-audience
+ */
+export function groupEnrolPreviewParams(audienceKind, audience) {
+	const value = text(audience)
+	if (value === '') {
+		return {}
+	}
+
+	return { audienceKind: ENROL_AUDIENCES.includes(audienceKind) ? audienceKind : 'section', audience: value }
+}
+
+/**
+ * Whether the group enrol dialog may send: an audience is chosen, its preview
+ * counts somebody to enrol, and the regulation has a mandatory course. Without
+ * a course the server enrols nobody (`courses: 0`) and the dialog closed as if
+ * it had worked (live 25 Nov 2026, NIS2 in the corporate set).
+ *
+ * @param {object} preview The server's preview.
+ * @param {string|null} audience The chosen audience.
+ * @return {boolean}
+ * @spec openspec/specs/compliance-rule-coverage/spec.md#requirement-the-assignment-is-previewed-per-audience
+ */
+export function groupEnrolCanSend(preview, audience) {
+	return text(audience) !== ''
+		&& typeof preview?.toEnrol === 'number'
+		&& preview.toEnrol > 0
+		&& text(preview.courseName) !== ''
+}
+
+/**
  * The body that enrols one audience in a regulation's mandatory course.
  *
  * @param {object} form The dialog's fields.

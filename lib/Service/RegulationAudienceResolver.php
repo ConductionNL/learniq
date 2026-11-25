@@ -95,7 +95,7 @@ class RegulationAudienceResolver {
 	 *
 	 * @return array<int,string> Empty for an unknown kind or a profile without the value.
 	 *
-	 * @spec openspec/changes/regulation-assign-by-audience/specs/compliance-rule-coverage/spec.md#requirement-an-assignment-can-be-narrowed-to-one-audience
+	 * @spec openspec/specs/compliance-rule-coverage/spec.md#requirement-an-assignment-can-be-narrowed-to-one-audience
 	 */
 	public function audienceValues(string $kind, array $profile): array {
 		$levels = array_values(array_filter($this->departmentLevels(department: (string)($profile['department'] ?? ''))));

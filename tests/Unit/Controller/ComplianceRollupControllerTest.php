@@ -192,7 +192,7 @@ class ComplianceRollupControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/regulation-assign-by-audience/specs/compliance-rule-coverage/spec.md#requirement-an-assignment-can-be-narrowed-to-one-audience
+	 * @spec openspec/specs/compliance-rule-coverage/spec.md#requirement-an-assignment-can-be-narrowed-to-one-audience
 	 */
 	public function testTheAssignmentFollowsTheChosenAudience(): void {
 		$assignment = $this->createPartialMock(originalClassName: RegulationAssignmentService::class, methods: ['assign']);
