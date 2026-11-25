@@ -469,9 +469,9 @@ class EmployerSitePagesTest extends TestCase {
 	public function testTheCertificateGroupsReadTheFirstToExpireFirst(): void {
 		$manifest     = (new PortalContributionProvider())->getContribution(['audience' => EmployerSitePages::AUDIENCE]);
 		$certificates = array_column($manifest['collections'], null, 'id')['employerCertificates'];
-		self::assertSame('courseName', $certificates['groupByField']);
-		self::assertSame('rows', $certificates['groupOrder']);
-		self::assertSame(['field' => 'expiresAt', 'direction' => 'asc'], $certificates['defaultSort']);
+		self::assertSame(expected: 'courseName', actual: $certificates['groupByField']);
+		self::assertSame(expected: 'rows', actual: $certificates['groupOrder']);
+		self::assertSame(expected: ['field' => 'expiresAt', 'direction' => 'asc'], actual: $certificates['defaultSort']);
 	}//end testTheCertificateGroupsReadTheFirstToExpireFirst()
 
 	/**
