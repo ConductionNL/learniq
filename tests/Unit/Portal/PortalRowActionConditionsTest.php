@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/parent-row-actions-only-where-they-apply/specs/portal-contribution/spec.md
+ * @spec openspec/specs/portal-contribution/spec.md
  */
 
 declare(strict_types=1);
@@ -31,7 +31,7 @@ use PHPUnit\Framework\TestCase;
  * (`rowWhen`, portaliq update-row-action-condition), with states the
  * schema really has, so the site never offers a cancel on a finished time.
  *
- * @spec openspec/changes/parent-row-actions-only-where-they-apply/specs/portal-contribution/spec.md
+ * @spec openspec/specs/portal-contribution/spec.md
  */
 class PortalRowActionConditionsTest extends TestCase {
 
@@ -62,7 +62,7 @@ class PortalRowActionConditionsTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/parent-row-actions-only-where-they-apply/specs/portal-contribution/spec.md#requirement-a-guardian-is-offered-a-cancel-only-on-a-time-that-can-still-be-cancelled
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-guardian-is-offered-a-cancel-only-on-a-time-that-can-still-be-cancelled
 	 */
 	public function testTheCancelNamesTheTimesThatCanStillBeCancelled(): void {
 		$actions = array_column($this->manifest(audience: 'parent')['actions'], null, 'id');
@@ -76,7 +76,7 @@ class PortalRowActionConditionsTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/parent-row-actions-only-where-they-apply/specs/portal-contribution/spec.md#requirement-a-guardian-is-offered-a-cancel-only-on-a-time-that-can-still-be-cancelled
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-guardian-is-offered-a-cancel-only-on-a-time-that-can-still-be-cancelled
 	 */
 	public function testEveryRowActionNamesRealStates(): void {
 		$seen = [];

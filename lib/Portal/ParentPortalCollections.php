@@ -570,7 +570,7 @@ class ParentPortalCollections {
 	 * @return array<string, mixed> The update action.
 	 *
 	 * @spec openspec/changes/direct-conference-booking/specs/portal-contribution/spec.md
-	 * @spec openspec/changes/parent-row-actions-only-where-they-apply/specs/portal-contribution/spec.md#requirement-a-guardian-is-offered-a-cancel-only-on-a-time-that-can-still-be-cancelled
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-guardian-is-offered-a-cancel-only-on-a-time-that-can-still-be-cancelled
 	 */
 	private function cancelTimeAction(): array {
 		return [

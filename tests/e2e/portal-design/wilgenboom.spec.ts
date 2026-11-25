@@ -14,6 +14,7 @@
  * @spec openspec/specs/portal-contribution/spec.md#requirement-the-guardian-reads-that-the-school-saw-her-report
  * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-each-school-audience-offers-its-own-documents-grouped-per-record
  * @spec openspec/specs/portal-contribution/spec.md
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-a-guardian-is-offered-a-cancel-only-on-a-time-that-can-still-be-cancelled
  *
  * Covers:
  *   @e2e openspec/specs/portal-contribution/spec.md#scenario-fatima-asks-leave-for-vera
@@ -289,6 +290,61 @@ test.describe('wilgenboom: Mijn Wilgenboom (Fatima Hulstkamp)', () => {
 		}
 		await expectNoSeriousAxeFinding(parent)
 		await boardShot(parent, PORTAL, 'Documenten', info)
+	})
+
+	// Playwright needs the fixtures argument destructured; these tests read the shared signed-in page.
+	// eslint-disable-next-line no-empty-pattern
+	test('Uw gesprekstijden: the cancel only on a booked or acknowledged time', async ({}, info) => {
+		// parent-row-actions-only-where-they-apply T3. The po set gives Fatima one
+		// acknowledged time; the run adds a cancelled one for the same child in the
+		// same round, which she reads without a cancel.
+		test.skip(
+			info.project.name === 'phone',
+			'the check writes a time once; the desktop project runs it',
+		)
+		const fx = new LiveFixtures()
+		try {
+			const [acknowledged] = await fx.find('conference-slot', {
+				guardianRef: FATIMA.ref,
+				lifecycle: 'acknowledged',
+			})
+			expect(acknowledged, "Fatima's acknowledged time in the po set").toBeTruthy()
+			const start = new Date(new Date(acknowledged.endsAt).getTime() + 60 * 60 * 1000)
+			const end = new Date(start.getTime() + 10 * 60 * 1000)
+			const cancelledId = await fx.object('conference-slot', {
+				conferenceRoundId: acknowledged.conferenceRoundId,
+				teacherId: acknowledged.teacherId,
+				teacherName: acknowledged.teacherName,
+				learnerId: acknowledged.learnerId,
+				learnerRef: acknowledged.learnerRef,
+				guardianRef: FATIMA.ref,
+				startsAt: start.toISOString(),
+				endsAt: end.toISOString(),
+				slotLabel: `Geannuleerde tijd (${fx.run})`,
+				lifecycle: 'free',
+			})
+			const admin = await fx.api()
+			const cancelled = await admin.post(
+				`/index.php/apps/openregister/api/objects/${cancelledId}/transition`,
+				{ data: { action: 'cancel' } },
+			)
+			expect(cancelled.status(), await cancelled.text()).toBe(200)
+
+			await parent.goto(
+				`${siteUrl(PORTAL)}&route=${encodeURIComponent('/mijn/learniq/parentConferenceSlots')}`,
+			)
+			await waitForAccountPage(parent)
+			// The table reads the status in words (portal-fields-read-in-words).
+			await expectTexts(parent, ['Uw gesprekstijden', 'Bevestigd door de leerkracht', 'Gesprek geannuleerd'])
+			const cancels = parent.getByRole('button', { name: 'Deze tijd annuleren' })
+			await expect(cancels).toHaveCount(1)
+			const row = parent.locator('tr, [role="row"]').filter({ has: cancels.first() })
+			await expect(row.first()).toContainText('Bevestigd door de leerkracht')
+			await expect(row.first()).not.toContainText('Gesprek geannuleerd')
+			await boardShot(parent, PORTAL, 'Gesprekstijden', info)
+		} finally {
+			await fx.teardown()
+		}
 	})
 
 	// Playwright needs the fixtures argument destructured; these tests read the shared signed-in page.
