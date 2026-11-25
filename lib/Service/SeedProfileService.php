@@ -192,7 +192,7 @@ class SeedProfileService implements SeedProfileServiceInterface {
 	 *                          organisation resolves, or a row could not be given it.
 	 *
 	 * @spec openspec/specs/example-sets/spec.md#requirement-loading-a-set-imports-exactly-its-descriptor
-	 * @spec openspec/changes/demo-dates-follow-the-load-week/specs/example-sets/spec.md#requirement-a-load-moves-every-date-to-the-week-it-runs-in
+	 * @spec openspec/specs/example-sets/spec.md#requirement-a-load-moves-every-date-to-the-week-it-runs-in
 	 * @spec openspec/specs/example-sets/spec.md#requirement-example-set-rows-carry-the-instances-organisation
 	 */
 	public function install(string $profileId): array {

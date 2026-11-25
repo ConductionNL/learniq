@@ -104,7 +104,7 @@ class FakeObjectStore {
 /**
  * The offset each set carries, and the move of what exists.
  *
- * @spec openspec/changes/demo-dates-follow-the-load-week/specs/example-sets/spec.md#requirement-a-reload-in-another-week-moves-what-exists-and-a-reload-in-the-same-week-writes-nothing
+ * @spec openspec/specs/example-sets/spec.md#requirement-a-reload-in-another-week-moves-what-exists-and-a-reload-in-the-same-week-writes-nothing
  */
 class ExampleSetDatesTest extends TestCase {
 	use DelegatingDouble;

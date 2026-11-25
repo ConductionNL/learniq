@@ -31,7 +31,7 @@ use PHPUnit\Framework\TestCase;
  * The boards' Monday lands on the Monday of the load's week, and every
  * weekday and time keeps its pattern.
  *
- * @spec openspec/changes/demo-dates-follow-the-load-week/specs/example-sets/spec.md#requirement-a-load-moves-every-date-to-the-week-it-runs-in
+ * @spec openspec/specs/example-sets/spec.md#requirement-a-load-moves-every-date-to-the-week-it-runs-in
  */
 class DemoDatesTest extends TestCase {
 

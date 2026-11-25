@@ -146,7 +146,7 @@ class ExamplePortalProvisioner implements ExamplePortalProvisionerInterface {
 	 * @return array<string, mixed>
 	 *
 	 * @spec openspec/changes/example-portal-declares-its-site/specs/example-sets/spec.md#requirement-loading-a-set-writes-its-declared-site-once
-	 * @spec openspec/changes/demo-dates-follow-the-load-week/specs/example-sets/spec.md#requirement-a-load-moves-every-date-to-the-week-it-runs-in
+	 * @spec openspec/specs/example-sets/spec.md#requirement-a-load-moves-every-date-to-the-week-it-runs-in
 	 */
 	public function provision(string $profileId, int $days=0, ?int $previous=null): array {
 		$shipped = $this->declarationFor(profileId: $profileId);

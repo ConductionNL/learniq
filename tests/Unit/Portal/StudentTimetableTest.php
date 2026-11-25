@@ -220,7 +220,7 @@ class StudentTimetableTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/vo-timetable-every-school-day/specs/example-sets/spec.md#requirement-noor-has-a-timetable-on-every-school-day-of-the-story-week
+	 * @spec openspec/specs/example-sets/spec.md#requirement-noor-has-a-timetable-on-every-school-day-of-the-story-week
 	 */
 	public function testFennaHasLessonsOnEverySchoolDayOfTheStoryWeek(): void {
 		$profile = json_decode((string)file_get_contents(__DIR__ . '/../../../lib/Settings/profiles/vo.json'), true);

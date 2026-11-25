@@ -23,7 +23,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/demo-dates-follow-the-load-week/specs/example-sets/spec.md#requirement-a-reload-in-another-week-moves-what-exists-and-a-reload-in-the-same-week-writes-nothing
+ * @spec openspec/specs/example-sets/spec.md#requirement-a-reload-in-another-week-moves-what-exists-and-a-reload-in-the-same-week-writes-nothing
  */
 
 declare(strict_types=1);
@@ -45,7 +45,7 @@ use Throwable;
 /**
  * The offset of each loaded set, and the move of its existing objects.
  *
- * @spec openspec/changes/demo-dates-follow-the-load-week/specs/example-sets/spec.md#requirement-a-reload-in-another-week-moves-what-exists-and-a-reload-in-the-same-week-writes-nothing
+ * @spec openspec/specs/example-sets/spec.md#requirement-a-reload-in-another-week-moves-what-exists-and-a-reload-in-the-same-week-writes-nothing
  */
 class ExampleSetDates implements ExampleSetDatesInterface {
 
@@ -81,7 +81,7 @@ class ExampleSetDates implements ExampleSetDatesInterface {
 	 *
 	 * @return int Days, a multiple of 7.
 	 *
-	 * @spec openspec/changes/demo-dates-follow-the-load-week/specs/example-sets/spec.md#requirement-a-load-moves-every-date-to-the-week-it-runs-in
+	 * @spec openspec/specs/example-sets/spec.md#requirement-a-load-moves-every-date-to-the-week-it-runs-in
 	 */
 	public function currentOffset(): int {
 		return $this->demoDates->offsetFor(today: $this->time->now());
@@ -96,7 +96,7 @@ class ExampleSetDates implements ExampleSetDatesInterface {
 	 *
 	 * @return int|null
 	 *
-	 * @spec openspec/changes/demo-dates-follow-the-load-week/specs/example-sets/spec.md#requirement-a-reload-in-another-week-moves-what-exists-and-a-reload-in-the-same-week-writes-nothing
+	 * @spec openspec/specs/example-sets/spec.md#requirement-a-reload-in-another-week-moves-what-exists-and-a-reload-in-the-same-week-writes-nothing
 	 */
 	public function appliedOffset(string $setId): ?int {
 		$stored = $this->appConfig->getValueString(AppIdentity::APP_ID, self::KEY_PREFIX . $setId, '');
@@ -122,7 +122,7 @@ class ExampleSetDates implements ExampleSetDatesInterface {
 	 *
 	 * @return array{data: array<string, mixed>, offset: int, previous: int|null}
 	 *
-	 * @spec openspec/changes/demo-dates-follow-the-load-week/specs/example-sets/spec.md#requirement-a-reload-in-another-week-moves-what-exists-and-a-reload-in-the-same-week-writes-nothing
+	 * @spec openspec/specs/example-sets/spec.md#requirement-a-reload-in-another-week-moves-what-exists-and-a-reload-in-the-same-week-writes-nothing
 	 */
 	public function prepare(string $setId, array $data, array $objects): array {
 		$offset   = $this->currentOffset();
@@ -145,7 +145,7 @@ class ExampleSetDates implements ExampleSetDatesInterface {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/demo-dates-follow-the-load-week/specs/example-sets/spec.md#requirement-a-reload-in-another-week-moves-what-exists-and-a-reload-in-the-same-week-writes-nothing
+	 * @spec openspec/specs/example-sets/spec.md#requirement-a-reload-in-another-week-moves-what-exists-and-a-reload-in-the-same-week-writes-nothing
 	 */
 	public function remember(string $setId, int $offset): void {
 		$this->appConfig->setValueString(AppIdentity::APP_ID, self::KEY_PREFIX . $setId, (string)$offset);
@@ -158,7 +158,7 @@ class ExampleSetDates implements ExampleSetDatesInterface {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/demo-dates-follow-the-load-week/specs/example-sets/spec.md#requirement-a-reload-in-another-week-moves-what-exists-and-a-reload-in-the-same-week-writes-nothing
+	 * @spec openspec/specs/example-sets/spec.md#requirement-a-reload-in-another-week-moves-what-exists-and-a-reload-in-the-same-week-writes-nothing
 	 */
 	public function forget(string $setId): void {
 		$this->appConfig->deleteKey(AppIdentity::APP_ID, self::KEY_PREFIX . $setId);
@@ -173,7 +173,7 @@ class ExampleSetDates implements ExampleSetDatesInterface {
 	 *
 	 * @return array{moved: int, unchanged: int, missing: int, failed: int}
 	 *
-	 * @spec openspec/changes/demo-dates-follow-the-load-week/specs/example-sets/spec.md#requirement-a-reload-in-another-week-moves-what-exists-and-a-reload-in-the-same-week-writes-nothing
+	 * @spec openspec/specs/example-sets/spec.md#requirement-a-reload-in-another-week-moves-what-exists-and-a-reload-in-the-same-week-writes-nothing
 	 */
 	public function moveExisting(array $objects, int $days): array {
 		$counts = ['moved' => 0, 'unchanged' => 0, 'missing' => 0, 'failed' => 0];

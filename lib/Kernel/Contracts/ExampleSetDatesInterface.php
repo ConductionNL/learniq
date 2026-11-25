@@ -46,7 +46,7 @@ interface ExampleSetDatesInterface {
 	 *
 	 * @return int|null
 	 *
-	 * @spec openspec/changes/demo-dates-follow-the-load-week/specs/example-sets/spec.md#requirement-a-reload-in-another-week-moves-what-exists-and-a-reload-in-the-same-week-writes-nothing
+	 * @spec openspec/specs/example-sets/spec.md#requirement-a-reload-in-another-week-moves-what-exists-and-a-reload-in-the-same-week-writes-nothing
 	 */
 	public function appliedOffset(string $setId): ?int;
 
@@ -55,7 +55,7 @@ interface ExampleSetDatesInterface {
 	 *
 	 * @return int Days, a multiple of 7.
 	 *
-	 * @spec openspec/changes/demo-dates-follow-the-load-week/specs/example-sets/spec.md#requirement-a-load-moves-every-date-to-the-week-it-runs-in
+	 * @spec openspec/specs/example-sets/spec.md#requirement-a-load-moves-every-date-to-the-week-it-runs-in
 	 */
 	public function currentOffset(): int;
 }//end interface

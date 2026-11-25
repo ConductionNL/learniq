@@ -10051,11 +10051,9 @@
           "openspec/specs/example-sets :: Loading a set imports exactly its descriptor"
         ],
         "plan": [
-          "openspec/changes/demo-dates-follow-the-load-week",
           "openspec/changes/example-portal-declares-its-site",
           "openspec/changes/example-portal-install-steps",
-          "openspec/changes/school-portals-match-their-boards",
-          "openspec/changes/vo-timetable-every-school-day"
+          "openspec/changes/school-portals-match-their-boards"
         ]
       },
       "provider": "self",

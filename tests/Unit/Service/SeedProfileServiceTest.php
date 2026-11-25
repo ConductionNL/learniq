@@ -704,7 +704,7 @@ class SeedProfileServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/demo-dates-follow-the-load-week/specs/example-sets/spec.md#requirement-a-reload-in-another-week-moves-what-exists-and-a-reload-in-the-same-week-writes-nothing
+	 * @spec openspec/specs/example-sets/spec.md#requirement-a-reload-in-another-week-moves-what-exists-and-a-reload-in-the-same-week-writes-nothing
 	 */
 	public function testASameWeekReloadMovesNothingThatExists(): void {
 		$this->writeProfile('po.json', 'po', 1);
@@ -736,7 +736,7 @@ class SeedProfileServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/demo-dates-follow-the-load-week/specs/example-sets/spec.md#requirement-a-reload-in-another-week-moves-what-exists-and-a-reload-in-the-same-week-writes-nothing
+	 * @spec openspec/specs/example-sets/spec.md#requirement-a-reload-in-another-week-moves-what-exists-and-a-reload-in-the-same-week-writes-nothing
 	 */
 	public function testAReloadInALaterWeekMovesWhatExistsFirst(): void {
 		$this->writeProfile('po.json', 'po', 1);

@@ -244,7 +244,7 @@ class ExamplePortalContent {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/demo-dates-follow-the-load-week/specs/example-sets/spec.md#requirement-a-load-moves-every-date-to-the-week-it-runs-in
+	 * @spec openspec/specs/example-sets/spec.md#requirement-a-load-moves-every-date-to-the-week-it-runs-in
 	 * @spec openspec/changes/example-set-declares-its-events/specs/example-sets/spec.md#requirement-a-set-may-declare-events-and-a-news-item-may-name-one
 	 */
 	public function dated(array $declaration, int $days): array {
@@ -270,7 +270,7 @@ class ExamplePortalContent {
 	 *
 	 * @return int The rows written.
 	 *
-	 * @spec openspec/changes/demo-dates-follow-the-load-week/specs/example-sets/spec.md#requirement-a-reload-in-another-week-moves-what-exists-and-a-reload-in-the-same-week-writes-nothing
+	 * @spec openspec/specs/example-sets/spec.md#requirement-a-reload-in-another-week-moves-what-exists-and-a-reload-in-the-same-week-writes-nothing
 	 * @spec openspec/changes/example-set-declares-its-events/specs/example-sets/spec.md#requirement-a-set-may-declare-events-and-a-news-item-may-name-one
 	 */
 	public function moveDates(array $declaration, array $refs, ?int $previous, int $days): int {

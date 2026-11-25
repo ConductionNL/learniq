@@ -30,7 +30,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/demo-dates-follow-the-load-week/specs/example-sets/spec.md#requirement-a-load-moves-every-date-to-the-week-it-runs-in
+ * @spec openspec/specs/example-sets/spec.md#requirement-a-load-moves-every-date-to-the-week-it-runs-in
  */
 
 declare(strict_types=1);
@@ -44,7 +44,7 @@ use Throwable;
 /**
  * Moves the dates of an example set by whole weeks.
  *
- * @spec openspec/changes/demo-dates-follow-the-load-week/specs/example-sets/spec.md#requirement-a-load-moves-every-date-to-the-week-it-runs-in
+ * @spec openspec/specs/example-sets/spec.md#requirement-a-load-moves-every-date-to-the-week-it-runs-in
  */
 class DemoDates {
 
@@ -105,7 +105,7 @@ class DemoDates {
 	 *
 	 * @return int Days, a multiple of 7; negative before the boards' week.
 	 *
-	 * @spec openspec/changes/demo-dates-follow-the-load-week/specs/example-sets/spec.md#requirement-a-load-moves-every-date-to-the-week-it-runs-in
+	 * @spec openspec/specs/example-sets/spec.md#requirement-a-load-moves-every-date-to-the-week-it-runs-in
 	 */
 	public function offsetFor(DateTimeImmutable $today): int {
 		$zone   = new DateTimeZone(self::ZONE);
@@ -124,7 +124,7 @@ class DemoDates {
 	 *
 	 * @return mixed
 	 *
-	 * @spec openspec/changes/demo-dates-follow-the-load-week/specs/example-sets/spec.md#requirement-a-load-moves-every-date-to-the-week-it-runs-in
+	 * @spec openspec/specs/example-sets/spec.md#requirement-a-load-moves-every-date-to-the-week-it-runs-in
 	 */
 	public function shift(mixed $value, int $days): mixed {
 		if ($days === 0) {
@@ -154,7 +154,7 @@ class DemoDates {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/demo-dates-follow-the-load-week/specs/example-sets/spec.md#requirement-a-load-moves-every-date-to-the-week-it-runs-in
+	 * @spec openspec/specs/example-sets/spec.md#requirement-a-load-moves-every-date-to-the-week-it-runs-in
 	 */
 	public function shiftString(string $text, int $days): string {
 		if ($days === 0 || preg_match('/\d/', $text) !== 1) {
