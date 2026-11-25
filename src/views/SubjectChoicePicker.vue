@@ -192,7 +192,7 @@ import {
 	NcSelect,
 } from '@nextcloud/vue'
 import { clashes, slotLabel } from '../utils/electiveSlots.js'
-import { fetchLinkedLearners } from '../utils/linkedLearners.js'
+import { fetchLinkedLearners, learnerLabel } from '../utils/linkedLearners.js'
 
 export default {
 	name: 'SubjectChoicePicker',
@@ -297,7 +297,7 @@ export default {
 		learnerOptions() {
 			return this.learners.map((l) => ({
 				id: l.ncUserId,
-				label: l.displayName || l.ncUserId,
+				label: learnerLabel(l),
 			}))
 		},
 

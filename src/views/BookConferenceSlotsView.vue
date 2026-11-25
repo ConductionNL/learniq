@@ -136,7 +136,7 @@ import {
 	roundTeacherOptions,
 } from '../utils/conferenceRounds.js'
 import { conferenceSignupBody } from '../utils/conferenceSignupBody.js'
-import { fetchLinkedLearners } from '../utils/linkedLearners.js'
+import { fetchLinkedLearners, learnerLabel } from '../utils/linkedLearners.js'
 
 export default {
 	name: 'BookConferenceSlotsView',
@@ -206,7 +206,7 @@ export default {
 		learnerOptions() {
 			return this.learners.map((l) => ({
 				id: l.ncUserId,
-				label: l.displayName || l.ncUserId,
+				label: learnerLabel(l),
 			}))
 		},
 
