@@ -63,9 +63,19 @@ test('Scenario "A Dutch teacher opens the app": every string of the server catal
 })
 
 test('every string of the browser catalogue has a Dutch value, so the screens read in Dutch', () => {
-	const english = browserCatalogue('l10n/en.js')
-	assert.ok(Object.keys(english).length > 1000, 'the English browser catalogue is read')
+	// The browser's key list is en.json's: en.js leaves out the English
+	// entries that equal their key, which t() answers with the key anyway.
+	const english = json('l10n/en.json').translations
+	assert.ok(Object.keys(english).length > 1000, 'the English catalogue is read')
 	assert.deepEqual(untranslated(english, browserCatalogue('l10n/nl.js')), [])
+})
+
+test('the English browser catalogue ships only what differs from its key, and every such entry', () => {
+	const english = json('l10n/en.json').translations
+	const shipped = browserCatalogue('l10n/en.js')
+	assert.deepEqual(Object.entries(shipped).filter(([key, value]) => value === key), [])
+	const differing = Object.fromEntries(Object.entries(english).filter(([key, value]) => value !== key))
+	assert.deepEqual(shipped, differing)
 })
 
 test('every schema name of the register is in the catalogue and has a Dutch name for its forms', () => {

@@ -102,6 +102,27 @@ function renderJs(id, translations, pluralForm) {
 }
 
 /**
+ * The entries the browser needs from one catalogue. For English that is
+ * every entry whose value differs from its key: `t()` already answers a key
+ * that is not in the catalogue with the key itself, so an identity entry
+ * costs bytes on every page and changes nothing (PERF-HANDOFF "all apps";
+ * learniq's en.js was 560 KB). en.json stays complete: the server, the
+ * parity guard and the schema-string checks read the full key list there.
+ *
+ * @param {string} locale - the catalogue's locale
+ * @param {object} translations - key -> translation
+ * @return {object} the entries to ship in the .js
+ */
+function browserEntries(locale, translations) {
+	if (locale !== 'en') {
+		return translations
+	}
+	return Object.fromEntries(
+		Object.entries(translations).filter(([key, value]) => value !== key),
+	)
+}
+
+/**
  *
  */
 function main() {
@@ -143,7 +164,7 @@ function main() {
 
 		const rendered = renderJs(
 			id,
-			doc.translations,
+			browserEntries(locale, doc.translations),
 			doc.pluralForm || DEFAULT_PLURAL_FORM,
 		)
 		const current = fs.existsSync(jsFile)
@@ -174,4 +195,8 @@ function main() {
 	}
 }
 
-main()
+if (require.main === module) {
+	main()
+}
+
+module.exports = { browserEntries, renderJs }
