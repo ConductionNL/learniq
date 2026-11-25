@@ -2,7 +2,7 @@
     "openapi": "3.0.3",
     "info": {
         "title": "Learniq",
-        "version": "0.3.26-unstable.20261124170318",
+        "version": "0.3.27-unstable.20261124183427",
         "description": "The JSON API of Learniq, the learning app for Nextcloud: courses and lessons, enrolments, assessments and submissions, attendance and check-in, timetables, credentials, the learner portal and the settings behind them. The learning records themselves are stored in OpenRegister and read and written through its API; this document covers the endpoints Learniq adds on top.\n\nEvery path is served under `/api/v1/`, the version this document describes. The unversioned `/api/` paths keep working, are deprecated, and name their `/api/v1/` successor in a `Link` header next to a `Deprecation` header. Errors are RFC 9457 problem details (`application/problem+json`), and every response carries an `API-Version` header. Paths that implement an external standard keep the formats of that standard and are not described here.",
         "contact": {
             "name": "Conduction B.V.",
@@ -8812,6 +8812,52 @@
                 "operationId": "today-first-show",
                 "summary": "The First today card: the first rule of the user's role that has a row",
                 "description": "The First today card of the signed-in user: the first rule of her role's ordered list that has a row, with its count and what the card names, or rule null when nothing is first. Query parameter view: '' or mentor. Needs a signed-in Nextcloud user.",
+                "tags": [
+                    "today-first"
+                ],
+                "parameters": [
+                    {
+                        "name": "view",
+                        "in": "query",
+                        "required": false,
+                        "description": "The view: empty for the user's own role, mentor for the Mentor view.",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "",
+                                "mentor"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The request succeeded.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    },
+                    "503": {
+                        "$ref": "#/components/responses/Problem503"
+                    }
+                }
+            }
+        },
+        "/today/counts": {
+            "get": {
+                "operationId": "today-first-counts",
+                "summary": "The role tiles on Today: per tile the user's role acts on, its count",
+                "description": "The role tiles of the signed-in user on Today: her role and, per tile that role acts on, its count (registers not filled, parent reports waiting, submissions to mark, conference times, plans ending, registers filled per group, pupils with three or more insufficient grades per year, lessons cancelled today, leave to decide). Every count covers only rows she may read. Query parameter view: '' or mentor. Needs a signed-in Nextcloud user.",
                 "tags": [
                     "today-first"
                 ],

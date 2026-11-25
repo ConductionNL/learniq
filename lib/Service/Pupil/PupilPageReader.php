@@ -108,6 +108,51 @@ class PupilPageReader {
 	}//end profileById()
 
 	/**
+	 * One row of a schema by its id, or null when it is not there.
+	 *
+	 * @param string $schema The schema slug.
+	 * @param string $id     The row's uuid.
+	 *
+	 * @return array<string, mixed>|null
+	 *
+	 * @spec openspec/changes/learner-list-and-page-follow-the-boards/tasks.md#T4
+	 */
+	public function byId(string $schema, string $id): ?array {
+		if ($id === '') {
+			return null;
+		}
+
+		foreach ($this->rows(schema: $schema, filters: ['id' => $id]) as $row) {
+			if ($this->idOf(row: $row) === $id) {
+				return $row;
+			}
+		}
+
+		return null;
+	}//end byId()
+
+	/**
+	 * The support lesson the pupil follows, as its row in the people column:
+	 * none, or the one SupportLessonFollowed picks from her sign-ups.
+	 *
+	 * @param string $learnerId The pupil's Nextcloud user id.
+	 * @param string $today     Today as Y-m-d.
+	 *
+	 * @return list<array<string, mixed>>
+	 *
+	 * @spec openspec/changes/learner-list-and-page-follow-the-boards/tasks.md#T4
+	 */
+	public function supportLessonOf(string $learnerId, string $today): array {
+		$followed = new SupportLessonFollowed();
+		$signUp   = $followed->pick(signUps: $this->ofPupil(schema: 'elective-sign-up', learnerId: $learnerId), today: $today);
+		if ($signUp === null) {
+			return [];
+		}
+
+		return [$followed->line(signUp: $signUp, offer: $this->byId(schema: 'elective-offer', id: (string)($signUp['offerId'] ?? '')))];
+	}//end supportLessonOf()
+
+	/**
 	 * Rows of a schema that belong to the pupil (their `learnerId`).
 	 *
 	 * @param string $schema    The schema slug: conference-slot, bpv-placement, attendance-flag or learning-plan.

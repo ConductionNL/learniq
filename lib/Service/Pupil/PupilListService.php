@@ -35,7 +35,6 @@ use OCA\Learniq\Service\Attendance\RollCallAccess;
 use OCA\Learniq\Service\Attendance\RollCallException;
 use OCA\Learniq\Service\Attendance\TodayState;
 use OCA\Learniq\Service\Attendance\TodayStateService;
-use OCA\Learniq\Service\Calendar\SchoolYear as SchoolCalendarYear;
 use OCA\Learniq\Support\SchoolYear;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IUser;
@@ -61,7 +60,7 @@ class PupilListService {
 	 * @param TodayStateService $todayStates Today's state per pupil of a group.
 	 * @param PupilPageReader   $reader      The pupils' records.
 	 * @param ITimeFactory      $time        Clock.
-	 * @param SchoolCalendarYear $schoolYear The school's school year, which says the day it starts.
+	 * @param SchoolYearSoFar   $schoolYear  The school year's start and the school days held so far.
 	 *
 	 * @return void
 	 */
@@ -70,7 +69,7 @@ class PupilListService {
 		private readonly TodayStateService $todayStates,
 		private readonly PupilPageReader $reader,
 		private readonly ITimeFactory $time,
-		private readonly SchoolCalendarYear $schoolYear=new SchoolCalendarYear(),
+		private readonly SchoolYearSoFar $schoolYear,
 	) {
 	}//end __construct()
 
@@ -111,7 +110,13 @@ class PupilListService {
 
 		$rows = [];
 		if ($learnerIds !== []) {
-			$moment = ['today' => $today, 'schoolYear' => $schoolYear, 'now' => $now, 'zone' => $zone];
+			$moment = [
+				'today' => $today,
+				'schoolYear' => $schoolYear,
+				'now' => $now,
+				'zone' => $zone,
+				'schoolDays' => $this->schoolYear->schoolDaysUpTo(today: $today),
+			];
 			$rows = $this->rows(group: ['cohort' => $cohort, 'learnerIds' => $learnerIds], moment: $moment);
 		}
 
@@ -162,6 +167,7 @@ class PupilListService {
 					'todayState' => ($states[$learnerId] ?? TodayState::NOT_REGISTERED),
 					'todayUntil' => ($until[$learnerId] ?? null),
 					'summary' => self::summaryOf(summaries: ($summaries[$learnerId] ?? []), schoolYear: $moment['schoolYear']),
+					'schoolDays' => $moment['schoolDays'],
 					'records' => ($records[$learnerId] ?? []),
 				],
 				now: $moment['now']

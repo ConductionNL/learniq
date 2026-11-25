@@ -48,6 +48,8 @@ final class PupilPage {
 	public const BPV_BEGELEIDER = 'bpv-begeleider';
 	public const TEAM_LEADER = 'team-leader';
 	public const CAREER_COACH = 'career-coach';
+	public const SUPPORT_LESSON = 'support-lesson';
+
 
 	/**
 	 * Attendance flag states that are still open.
@@ -153,17 +155,20 @@ final class PupilPage {
 	 * when no learning plan runs. The group's team leader and career coach
 	 * (studieloopbaan) are listed only when the group names them. The
 	 * praktijkopleider and the BPV-begeleider are listed only for a pupil in
-	 * a running placement.
+	 * a running placement. The support lesson the pupil follows is listed
+	 * after the care coordinator, by its name and teacher, with the day it
+	 * starts.
 	 *
-	 * @param array<string, mixed>       $cohort    The group.
-	 * @param list<array<string, mixed>> $plans     The pupil's learning plans.
-	 * @param array<string, mixed>|null  $placement The running placement, or null.
+	 * @param array<string, mixed>       $cohort        The group.
+	 * @param list<array<string, mixed>> $plans         The pupil's learning plans.
+	 * @param array<string, mixed>|null  $placement     The running placement, or null.
+	 * @param list<array<string, mixed>> $lessons   The support lesson rows (PupilPageReader::supportLessonOf()), none or one.
 	 *
-	 * @return list<array{role: string, userId: string|null, noPlan?: bool}>
+	 * @return list<array<string, mixed>> Each with role and userId; noPlan for the care coordinator; name and from for the support lesson.
 	 *
 	 * @spec openspec/changes/learner-list-and-page-follow-the-boards/tasks.md#T4
 	 */
-	public static function people(array $cohort, array $plans, ?array $placement): array {
+	public static function people(array $cohort, array $plans, ?array $placement, array $lessons=[]): array {
 		$people = [];
 		foreach (self::teachers(cohort: $cohort) as $role => $userId) {
 			$people[] = ['role' => $role, 'userId' => $userId];
@@ -176,6 +181,8 @@ final class PupilPage {
 
 		$coordinator = self::coordinatorOf(plans: $plans);
 		$people[]    = ['role' => self::CARE_COORDINATOR, 'userId' => $coordinator, 'noPlan' => ($coordinator === null)];
+
+		array_push($people, ...$lessons);
 
 		$careerCoach = self::stringOrNull(value: ($cohort['careerCoachId'] ?? null));
 		if ($careerCoach !== null) {

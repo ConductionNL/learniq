@@ -242,4 +242,25 @@ class PupilPageTest extends TestCase {
 		$none = PupilPage::people(cohort: ['teamLeaderId' => '', 'careerCoachId' => null], plans: [], placement: null);
 		$this->assertSame(expected: [['role' => PupilPage::CARE_COORDINATOR, 'userId' => null, 'noPlan' => true]], actual: $none);
 	}//end testTheGroupsTeamLeaderAndCareerCoachAreAmongThePeople()
+
+	/**
+	 * The support lesson line is listed after the care coordinator.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/learner-list-and-page-follow-the-boards/tasks.md#T4
+	 */
+	public function testTheSupportLessonIsAmongThePeople(): void {
+		$line   = ['role' => PupilPage::SUPPORT_LESSON, 'userId' => null, 'name' => 'Steunles wiskunde A · Meneer Demir', 'from' => '2026-10-06'];
+		$people = PupilPage::people(cohort: ['teacherIds' => ['sanne']], plans: [], placement: null, lessons: [$line]);
+
+		$this->assertSame(
+			expected: [
+				['role' => PupilPage::MENTOR, 'userId' => 'sanne'],
+				['role' => PupilPage::CARE_COORDINATOR, 'userId' => null, 'noPlan' => true],
+				['role' => PupilPage::SUPPORT_LESSON, 'userId' => null, 'name' => 'Steunles wiskunde A · Meneer Demir', 'from' => '2026-10-06'],
+			],
+			actual: $people
+		);
+	}//end testTheSupportLessonIsAmongThePeople()
 }//end class

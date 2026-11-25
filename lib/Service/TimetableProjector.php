@@ -310,6 +310,9 @@ class TimetableProjector implements TimetableProjectorInterface {
 			'changeReasonKind' => $session['changeReasonKind'] ?? null,
 			'changeReason' => $session['changeReason'] ?? null,
 			'changedAt' => $session['changedAt'] ?? null,
+			// A lesson moved outside a batch, and the room it left (week-timetable-grid T2).
+			'movedAt' => $session['movedAt'] ?? null,
+			'movedFromRoom' => (string)($session['movedFromRoom'] ?? ''),
 			// Where the lesson lives: `learniq` (a Session) or `planninq` (the
 			// school timetable, sessions-from-planninq). A page opens only a
 			// learniq Session as a learniq Session.

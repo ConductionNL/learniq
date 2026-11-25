@@ -30,6 +30,44 @@
 			{{ t('learniq', 'No course day waits for a decision.') }}
 		</p>
 
+		<!-- week-timetable-grid T4: this week's course days, day by day, with their occupancy. -->
+		<template v-if="week.length > 0">
+			<h3 class="planner-today__heading">
+				{{ t('learniq', 'Course days this week') }}
+			</h3>
+			<ol class="planner-today__week" data-testid="planner-week-strip">
+				<li
+					v-for="day in week"
+					:key="day.date"
+					class="planner-today__week-day"
+					:class="{ 'planner-today__week-day--today': day.today, 'planner-today__week-day--past': day.past }"
+					:aria-current="day.today ? 'date' : null">
+					<span class="planner-today__week-label">{{ day.label }}</span>
+					<span v-if="day.today" class="planner-today__week-today">{{ t('learniq', 'today') }}</span>
+					<ul v-if="day.days.length > 0" class="planner-today__week-items">
+						<li v-for="courseDay in day.days" :key="courseDay.id" class="planner-today__week-item">
+							<router-link :to="'/cohorts/' + courseDay.id">
+								{{ courseDay.course }}
+							</router-link>
+							<span class="planner-today__week-meta">{{ staffOf(courseDay) }}</span>
+							<template v-if="courseDay.capacity !== null">
+								<span>{{ t('learniq', '{taken} of {capacity}', { taken: courseDay.taken, capacity: courseDay.capacity }) }}</span>
+								<meter
+									class="planner-today__week-meter"
+									min="0"
+									:max="courseDay.capacity"
+									:value="courseDay.taken"
+									:aria-label="t('learniq', '{taken} of {capacity}', { taken: courseDay.taken, capacity: courseDay.capacity })" />
+							</template>
+							<span v-else>{{ n('learniq', '%n participant', '%n participants', courseDay.taken) }}</span>
+						</li>
+					</ul>
+					<span v-else-if="day.past" class="planner-today__empty">{{ t('learniq', 'Past') }}</span>
+					<span v-else class="planner-today__empty">{{ t('learniq', 'No course day. The hall is free.') }}</span>
+				</li>
+			</ol>
+		</template>
+
 		<p v-if="toConfirm > 0" class="planner-today__confirm">
 			{{ n('learniq', '%n enrolment to confirm', '%n enrolments to confirm', toConfirm) }}
 		</p>
@@ -87,6 +125,7 @@ import {
 	occupancyRows,
 	toConfirmCount,
 } from '../../utils/plannerToday.js'
+import { weekStrip } from '../../utils/plannerWeekStrip.js'
 
 export default {
 	name: 'PlannerTodayWidget',
@@ -131,6 +170,16 @@ export default {
 		 */
 		toConfirm() {
 			return toConfirmCount(this.today)
+		},
+
+		/**
+		 * This week's five working days with their course days (week-timetable-grid T4).
+		 *
+		 * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-training-planner-sees-this-weeks-course-days-with-their-occupancy
+		 * @return {Array<object>} Monday to Friday.
+		 */
+		week() {
+			return weekStrip(this.today, this.locale)
 		},
 
 		/**
@@ -186,6 +235,19 @@ export default {
 		 * @return {string} What is set, or what is missing.
 		 * @spec exclude Presentation-only sentence lookup.
 		 */
+		/**
+		 * A course day's trainers and rooms on one line.
+		 *
+		 * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-training-planner-sees-this-weeks-course-days-with-their-occupancy
+		 * @param {object} courseDay The course day of the week strip.
+		 * @return {string} The line.
+		 */
+		staffOf(courseDay) {
+			const trainers = courseDay.trainers.length === 0 ? this.t('learniq', 'No trainer') : courseDay.trainers.join(', ')
+			const rooms = courseDay.rooms.length === 0 ? this.t('learniq', 'No room') : courseDay.rooms.join(', ')
+			return trainers + ' · ' + rooms
+		},
+
 		staffLine(row) {
 			const trainers = row.trainers === 0
 				? this.t('learniq', 'No trainer')
@@ -198,6 +260,60 @@ export default {
 </script>
 
 <style scoped>
+.planner-today__week {
+	display: grid;
+	grid-template-columns: repeat(5, minmax(120px, 1fr));
+	gap: calc(var(--default-grid-baseline, 4px) * 2);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	overflow-x: auto;
+}
+
+.planner-today__week-day {
+	display: flex;
+	flex-direction: column;
+	gap: calc(var(--default-grid-baseline, 4px) * 1);
+	padding: calc(var(--default-grid-baseline, 4px) * 2);
+	border: 1px solid var(--color-border);
+	border-radius: var(--border-radius-element, 8px);
+}
+
+.planner-today__week-day--today {
+	border-color: var(--color-primary-element);
+	background: var(--color-primary-element-light);
+}
+
+.planner-today__week-day--past {
+	color: var(--color-text-maxcontrast);
+}
+
+.planner-today__week-label {
+	font-weight: bold;
+}
+
+.planner-today__week-items {
+	display: flex;
+	flex-direction: column;
+	gap: calc(var(--default-grid-baseline, 4px) * 2);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.planner-today__week-item {
+	display: flex;
+	flex-direction: column;
+}
+
+.planner-today__week-meta {
+	color: var(--color-text-maxcontrast);
+}
+
+.planner-today__week-meter {
+	width: 100%;
+}
+
 .planner-today {
 	display: flex;
 	flex-direction: column;

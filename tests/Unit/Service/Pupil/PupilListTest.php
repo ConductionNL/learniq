@@ -83,6 +83,7 @@ class PupilListTest extends TestCase {
 				'todayState' => TodayState::IN_CLASS,
 				'todayUntil' => null,
 				'absentDays' => 2,
+				'presentPercent' => null,
 				'lateCount' => 1,
 				'conferenceAt' => '2026-10-29T18:10:00+01:00',
 				'conferenceState' => 'acknowledged',
@@ -148,10 +149,36 @@ class PupilListTest extends TestCase {
 		$this->assertSame(5.6, $row['average']);
 		$this->assertSame(3, $row['insufficientCount']);
 		$this->assertSame(PupilList::SIGNAL_INSUFFICIENT_GRADES, $row['signal']);
-		$this->assertSame(PupilList::CARE_SUPPORT_REQUEST, $row['care']);
+		$this->assertSame(expected: PupilList::CARE_WITH_COORDINATOR, actual: $row['care']);
 		$this->assertSame(PupilList::CONFERENCE_NONE, $row['conferenceState']);
 		$this->assertNull($row['conferenceAt']);
 	}//end testThreeInsufficientGradesAreASignal()
+
+	/**
+	 * A support request that lies with the care coordinator reads "in gesprek
+	 * met IB"; one routed on reads as requested support; a running plan wins.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/learner-list-and-page-follow-the-boards/tasks.md#T2
+	 */
+	public function testCareSaysWhereTheSupportRequestLies(): void {
+		$care = static fn (array $requests, array $plans = []): string => self::rowOf(
+			learnerId: 'x',
+			profile: null,
+			todayState: TodayState::IN_CLASS,
+			summary: null,
+			records: ['support-request' => $requests, 'learning-plan' => $plans]
+		)['care'];
+
+		$routed    = ['lifecycle' => 'routed-to-swv'];
+		$submitted = ['lifecycle' => 'submitted'];
+		$this->assertSame(expected: PupilList::CARE_WITH_COORDINATOR, actual: $care([$routed, $submitted]));
+		$this->assertSame(expected: PupilList::CARE_SUPPORT_REQUEST, actual: $care([$routed, ['lifecycle' => 'draft']]));
+		$this->assertSame(expected: PupilList::CARE_PLAN, actual: $care([$submitted], [['lifecycle' => 'active']]));
+		$this->assertSame(expected: '', actual: $care([['lifecycle' => 'closed'], ['lifecycle' => 'draft']]));
+		$this->assertTrue(condition: PupilList::inView(row: ['care' => PupilList::CARE_WITH_COORDINATOR], view: PupilList::VIEW_WITH_CARE));
+	}//end testCareSaysWhereTheSupportRequestLies()
 
 	/**
 	 * An open attendance flag wins over a nearing threshold, which wins over
@@ -251,4 +278,32 @@ class PupilListTest extends TestCase {
 		$this->assertSame(['Anne', 'Noor', 'Sem', 'vera'], array_column(PupilList::ordered(rows: $rows, sort: ''), 'name'));
 		$this->assertSame(['Noor', 'Sem', 'Anne', 'vera'], array_column(PupilList::ordered(rows: $rows, sort: PupilList::SORT_SIGNAL_FIRST), 'name'));
 	}//end testSignalFirstOrder()
+
+	/**
+	 * Present this year: the school days held less the days absent, in whole percent; none before the first school day.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/learner-list-and-page-follow-the-boards/tasks.md#T2
+	 */
+	public function testPresentThisYearIsAShareOfTheSchoolDaysHeld(): void {
+		$this->assertSame(expected: 85, actual: PupilList::presentPercent(schoolDays: 40, absentDays: 6));
+		$this->assertSame(expected: 100, actual: PupilList::presentPercent(schoolDays: 40, absentDays: 0));
+		$this->assertSame(expected: 0, actual: PupilList::presentPercent(schoolDays: 3, absentDays: 5));
+		$this->assertNull(actual: PupilList::presentPercent(schoolDays: 0, absentDays: 0));
+		$this->assertNull(actual: PupilList::presentPercent(schoolDays: null, absentDays: 2));
+
+		$row = PupilList::row(
+			pupil: [
+				'learnerId' => 'vera',
+				'profile' => null,
+				'todayState' => TodayState::IN_CLASS,
+				'summary' => ['absentDays' => 2],
+				'records' => [],
+				'schoolDays' => 50,
+			],
+			now: self::now()
+		);
+		$this->assertSame(expected: 96, actual: $row['presentPercent']);
+	}//end testPresentThisYearIsAShareOfTheSchoolDaysHeld()
 }//end class

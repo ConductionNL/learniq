@@ -7,7 +7,9 @@
 
  Opens CnRichSubmitDialog with the assignment's late rule. On confirm it
  creates a draft Submission for the current learner, attaches the picked
- files to it through OpenRegister's file API, records their references in
+ files (from the device, or from her own Nextcloud files through the
+ dialog's file-sources slot, chooseFromMyFiles) to it through OpenRegister's
+ file API, records their references in
  attachmentRefs, and fires `submit`, or `submitLate` once the deadline of an
  assignment that accepts late work has passed; SubmissionWindowGuard refuses
  the wrong one (learniq#983). Closing the dialog returns to the assignment.
@@ -37,7 +39,16 @@
 			:closeLabel="t('learniq', 'Close')"
 			:successText="t('learniq', 'Your work is handed in.')"
 			@confirm="submit"
-			@close="leave" />
+			@close="leave">
+			<template #file-sources="{ addFiles }">
+				<NcButton class="submit-work__my-files" @click="chooseFromMyFiles(addFiles)">
+					{{ t('learniq', 'Choose from my files') }}
+				</NcButton>
+				<NcNoteCard v-if="pickError" type="error">
+					{{ pickError }}
+				</NcNoteCard>
+			</template>
+		</CnRichSubmitDialog>
 	</div>
 </template>
 
@@ -45,8 +56,9 @@
 import { CnRichSubmitDialog } from '@conduction/nextcloud-vue'
 import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
-import { generateUrl } from '@nextcloud/router'
-import { NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
+import { getFilePickerBuilder } from '@nextcloud/dialogs'
+import { generateRemoteUrl, generateUrl } from '@nextcloud/router'
+import { NcButton, NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
 import {
 	handInAction,
 	objectId,
@@ -54,12 +66,13 @@ import {
 	oneObject,
 	transitionUrl,
 } from '../utils/customPages.js'
+import { filesFromMyFiles } from '../utils/myFiles.js'
 import { handInLearners } from '../utils/workGroups.js'
 
 export default {
 	name: 'SubmitWorkView',
 
-	components: { CnRichSubmitDialog, NcLoadingIcon, NcNoteCard },
+	components: { CnRichSubmitDialog, NcButton, NcLoadingIcon, NcNoteCard },
 
 	props: {
 		/** Assignment UUID from the route. */
@@ -67,7 +80,7 @@ export default {
 	},
 
 	data() {
-		return { loading: true, loadError: '', assignment: {} }
+		return { loading: true, loadError: '', assignment: {}, pickError: '' }
 	},
 
 	computed: {
@@ -118,6 +131,43 @@ export default {
 	},
 
 	methods: {
+		/**
+		 * Pick files from the learner's own Nextcloud files and add them to
+		 * the hand-in: the picker gives paths, which are read over WebDAV in
+		 * her own session and handed to the dialog as files, so they are
+		 * attached like a file from the device.
+		 *
+		 * @param {(files: File[]) => boolean} addFiles The dialog's `addFiles` (its `file-sources` slot).
+		 * @return {Promise<void>}
+		 * @spec openspec/changes/capability-rows-say-what-they-do/specs/assignments/spec.md#requirement-a-learner-hands-in-a-file-from-their-own-nextcloud-files
+		 */
+		async chooseFromMyFiles(addFiles) {
+			this.pickError = ''
+			let paths
+			try {
+				paths = await getFilePickerBuilder(this.t('learniq', 'Choose your work'))
+					.setMultiSelect(true)
+					.allowDirectories(false)
+					.addButton({ label: this.t('learniq', 'Add to my hand-in'), type: 'primary', callback: () => {} })
+					.build()
+					.pick()
+			} catch {
+				// Closing the picker is not an error the learner needs to see.
+				return
+			}
+
+			try {
+				const files = await filesFromMyFiles(paths, {
+					http: axios,
+					remoteBase: generateRemoteUrl('dav'),
+					uid: getCurrentUser()?.uid ?? '',
+				})
+				addFiles(files)
+			} catch {
+				this.pickError = this.t('learniq', 'This file could not be read from your files.')
+			}
+		},
+
 		/**
 		 * Create the submission, attach the files and submit it.
 		 *

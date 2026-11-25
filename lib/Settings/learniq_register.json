@@ -6317,7 +6317,7 @@
                 },
                 "slug": "learner-profile",
                 "icon": "AccountOutline",
-                "version": "0.6.0",
+                "version": "0.7.0",
                 "title": "Learner profile",
                 "description": "Learniq learner profile. Owns role assignment and is the actor reference for enrolments, credentials, and attestations.",
                 "configuration": {
@@ -6871,6 +6871,12 @@
                         "nullable": true,
                         "title": "Next exam",
                         "description": "The next sitting in words, for example \"Volgende: NE-3F-CE op 3 november\". Written by the server."
+                    },
+                    "qualificationLabel": {
+                        "type": "string",
+                        "nullable": true,
+                        "title": "Qualification",
+                        "description": "The qualification of the running placement with its crebo number, for example \"Monteur mechatronica (crebo 25290)\". Written by the server."
                     },
                     "keuzedeelLabel": {
                         "type": "string",
@@ -8837,6 +8843,12 @@
                         "nullable": true,
                         "description": "The lesson and its new room or time, written server-side by SessionMoveNoticeHandler when one lesson moves outside a change batch; the lessonMoved notification names it. Derived — do not set manually.",
                         "title": "Move notice",
+                        "visible": false
+                    },
+                    "movedFromRoom": {
+                        "type": "string",
+                        "title": "Moved from room",
+                        "description": "The room a lesson left when SessionMoveNoticeHandler recorded its move to another room, so the week grid says \"not in <room>\" beside the new room (week-timetable-grid). Empty for a move in time only. Derived — do not set manually.",
                         "visible": false
                     },
                     "movedAt": {

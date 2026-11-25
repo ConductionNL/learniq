@@ -270,6 +270,99 @@ class PortalPublicIndexTest extends TestCase {
 	}//end testTheProviderAnswersThroughTheService()
 
 	/**
+	 * Every course and programme in the index carries the address part of its
+	 * own page, made from its title.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/portal-public-index/specs/portal-contribution/spec.md#requirement-a-public-course-or-programme-has-a-page-of-its-own
+	 */
+	public function testACourseAndAProgrammeCarryTheirPageSlug(): void {
+		$courses = $this->items(portal: 'warmtepompacademie', type: 'course');
+		self::assertSame(expected: 'f-gassen-herhaling-en-examen', actual: $courses['F-gassen: herhaling en examen']['slug']);
+
+		$programmes = $this->items(portal: 'esdoornveen', type: 'programme');
+		self::assertSame(expected: 'mechatronica', actual: $programmes['Mechatronica']['slug']);
+
+		foreach (array_merge($courses, $programmes) as $title => $item) {
+			self::assertMatchesRegularExpression(pattern: '/^[a-z0-9][a-z0-9-]{0,99}$/', string: $item['slug'], message: $title);
+		}
+	}//end testACourseAndAProgrammeCarryTheirPageSlug()
+
+	/**
+	 * A course's page: its title, kind, dates, facets as facts, description,
+	 * and the way back to the course list; asked with the id the index gives.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/portal-public-index/specs/portal-contribution/spec.md#requirement-a-public-course-or-programme-has-a-page-of-its-own
+	 */
+	public function testACourseHasAPageOfItsOwn(): void {
+		$monday = new DateTimeImmutable(self::MONDAY);
+		$fgas   = $this->items(portal: 'warmtepompacademie', type: 'course')['F-gassen: herhaling en examen'];
+		$detail = $this->index()->detailFor(portal: 'warmtepompacademie', id: $fgas['id'], today: $monday);
+
+		self::assertNotNull(actual: $detail);
+		self::assertSame(expected: 'F-gassen: herhaling en examen', actual: $detail['title']);
+		$facts = array_column($detail['facts'], 'value', 'label');
+		self::assertSame(expected: 'Training course', actual: $facts['Kind']);
+		self::assertSame(expected: '8 okt', actual: $facts['Date']);
+		self::assertSame(expected: 'Praktijkhal Zuiddrecht', actual: $facts['Venue']);
+		self::assertSame(expected: 'Oktober 2026', actual: $facts['Start in']);
+		self::assertSame(expected: ['label' => 'Training course', 'href' => '/cursusaanbod'], actual: $detail['secondaryLink']);
+		if ($fgas['summary'] !== '') {
+			self::assertSame(expected: [['heading' => 'Description', 'markdown' => trim($fgas['summary'])]], actual: $detail['sections']);
+		}
+
+		$lw = $this->items(portal: 'warmtepompacademie', type: 'course')['Lucht-water warmtepomp: ontwerp en inbedrijfstelling'];
+		$lwDetail = $this->index()->detailFor(portal: 'warmtepompacademie', id: $lw['id'], today: $monday);
+		self::assertSame(expected: '3 nov – 10 nov', actual: array_column($lwDetail['facts'], 'value', 'label')['Date']);
+	}//end testACourseHasAPageOfItsOwn()
+
+	/**
+	 * A programme's page: its level and learning path as facts.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/portal-public-index/specs/portal-contribution/spec.md#requirement-a-public-course-or-programme-has-a-page-of-its-own
+	 */
+	public function testAProgrammeHasAPageOfItsOwn(): void {
+		$mech   = $this->items(portal: 'esdoornveen', type: 'programme')['Mechatronica'];
+		$detail = (new PortalContributionProvider(publicIndex: $this->index()))->getPublicDetail('esdoornveen', $mech['id']);
+
+		$facts = array_column($detail['facts'], 'value', 'label');
+		self::assertSame(expected: 'Programme', actual: $facts['Kind']);
+		self::assertSame(expected: 'Level 4', actual: $facts['Level']);
+		self::assertSame(expected: 'BOL, BBL', actual: $facts['Learning path']);
+		self::assertArrayNotHasKey(key: 'Date', array: $facts);
+		self::assertArrayNotHasKey(key: 'secondaryLink', array: $detail);
+	}//end testAProgrammeHasAPageOfItsOwn()
+
+	/**
+	 * Only what this portal's index lists has a page: another set's course,
+	 * an unknown id, a school day and no service answer nothing.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/portal-public-index/specs/portal-contribution/spec.md#requirement-a-public-course-or-programme-has-a-page-of-its-own
+	 */
+	public function testOnlyWhatTheIndexListsHasAPage(): void {
+		$monday = new DateTimeImmutable(self::MONDAY);
+		$fgas   = $this->items(portal: 'warmtepompacademie', type: 'course')['F-gassen: herhaling en examen'];
+
+		self::assertNull(actual: $this->index()->detailFor(portal: 'esdoornveen', id: $fgas['id'], today: $monday), message: 'another set\'s course');
+		self::assertNull(actual: $this->index()->detailFor(portal: 'warmtepompacademie', id: 'course:unknown', today: $monday));
+		self::assertNull(actual: $this->index()->detailFor(portal: 'warmtepompacademie', id: '', today: $monday));
+
+		$days = $this->index()->forPortal(portal: 'wilgenboom', today: $monday);
+		self::assertNotSame(expected: [], actual: $days);
+		$dayPage = $this->index()->detailFor(portal: 'wilgenboom', id: (string)$days[0]['id'], today: $monday);
+		self::assertNull(actual: $dayPage, message: 'a school day has no page');
+
+		self::assertNull(actual: (new PortalContributionProvider())->getPublicDetail('esdoornveen', 'programme:x'));
+	}//end testOnlyWhatTheIndexListsHasAPage()
+
+	/**
 	 * The school marked toetsweek 1 public: the website's test schedule reads
 	 * day, time, subject and room for 4 havo, and nothing about who sits it or
 	 * who invigilates.
