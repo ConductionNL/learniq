@@ -91,8 +91,9 @@ class PortalPermissionAnswer implements PortalPermissionAnswerInterface {
 	 *
 	 * @param ObjectService               $objectService Reads the request and earlier answers; writes the answer.
 	 * @param LearnerRefResolverInterface $profiles      The child's profile, to check it lists the guardian.
-	 * @param IAppConfig                  $appConfig     Holds the school's assurance floor.
-	 * @param LoggerInterface             $logger        PSR logger.
+	 * @param IAppConfig                    $appConfig     Holds the school's assurance floor.
+	 * @param LoggerInterface               $logger        PSR logger.
+	 * @param PermissionAnswerDocument|null $documents     Keeps the answer as a document of the child; none in a bare test.
 	 *
 	 * @return void
 	 */
@@ -101,6 +102,7 @@ class PortalPermissionAnswer implements PortalPermissionAnswerInterface {
 		private readonly LearnerRefResolverInterface $profiles,
 		private readonly IAppConfig $appConfig,
 		private readonly LoggerInterface $logger,
+		private readonly ?PermissionAnswerDocument $documents=null,
 	) {
 	}//end __construct()
 
@@ -202,13 +204,38 @@ class PortalPermissionAnswer implements PortalPermissionAnswerInterface {
 			$response['id'] = $earlier;
 		}
 
-		$this->objectService->saveObject(
+		$saved = $this->objectService->saveObject(
 			object: $response,
 			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: self::RESPONSE_SCHEMA)),
 			_rbac: false,
 			_multitenancy: false
 		);
+
+		// The answer is stored; its document is a copy for the child's
+		// documents, so a render that fails does not undo the answer.
+		$this->documents?->keep(responseId: self::savedId(saved: $saved, response: $response), response: $response, request: $request);
 	}//end save()
+
+	/**
+	 * The uuid of the stored answer.
+	 *
+	 * @param mixed                 $saved    What OpenRegister returned.
+	 * @param array<string, string> $response The answer, carrying the id when it replaced an earlier one.
+	 *
+	 * @return string '' when neither names it.
+	 *
+	 * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-each-school-audience-offers-its-own-documents-grouped-per-record
+	 */
+	private static function savedId(mixed $saved, array $response): string {
+		$row = [];
+		if (is_object($saved) === true && method_exists($saved, 'jsonSerialize') === true) {
+			$row = (array)$saved->jsonSerialize();
+		} else if (is_array($saved) === true) {
+			$row = $saved;
+		}
+
+		return (string)($row['id'] ?? ($row['uuid'] ?? ($response['id'] ?? '')));
+	}//end savedId()
 
 	/**
 	 * Why the answer is refused, or the request when it may be given.

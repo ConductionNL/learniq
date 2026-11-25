@@ -66,17 +66,24 @@ class GuardianDocuments {
 	}//end __construct()
 
 	/**
-	 * The files of a child's published report cards.
+	 * The files of a child's published report cards, then the documents of
+	 * the answers given to the school's permission requests for that child.
+	 * There is one answer per child per request, whichever guardian gave it,
+	 * so each guardian of the child reads the same answers.
 	 *
 	 * @param string $profileId The child's learner profile id.
 	 *
 	 * @return array<int, array<string, mixed>>
 	 *
 	 * @spec openspec/changes/guardian-reports-and-documents/specs/portal-contribution/spec.md#requirement-a-guardian-reads-her-childrens-published-reports-and-the-schools-papers-on-one-page
+	 * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-each-school-audience-offers-its-own-documents-grouped-per-record
 	 */
 	public function childReports(string $profileId): array {
 		$filters = ['learnerRef' => $profileId, 'lifecycle' => 'published-to-parents'];
-		return $this->papers(query: new PaperQuery(schema: 'report-card', filters: $filters));
+		$reports = $this->papers(query: new PaperQuery(schema: 'report-card', filters: $filters));
+		$answers = $this->papers(query: new PaperQuery(schema: 'permission-response', filters: ['learnerRef' => $profileId]));
+
+		return array_merge($reports, $answers);
 	}//end childReports()
 
 	/**

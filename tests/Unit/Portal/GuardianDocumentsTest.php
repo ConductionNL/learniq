@@ -48,6 +48,13 @@ class GuardianDocumentsTest extends TestCase {
 	private array $asked = [];
 
 	/**
+	 * The filters of every read, per schema.
+	 *
+	 * @var array<string, array<string, mixed>>
+	 */
+	private array $reads = [];
+
+	/**
 	 * A reader over these rows, whose files are listed per row id.
 	 *
 	 * @param array<int, array<string, mixed>>|RuntimeException $rows  What the store answers, or what it throws.
@@ -56,15 +63,31 @@ class GuardianDocumentsTest extends TestCase {
 	 * @return GuardianDocuments
 	 */
 	private function reader(array|RuntimeException $rows, array $files): GuardianDocuments {
-		$store = $this->createMock(ObjectService::class);
+		$this->asked = [];
+		$this->reads = [];
+		$store       = $this->createMock(ObjectService::class);
 		$store->method('findAll')->willReturnCallback(
 			function (array $config) use ($rows): array {
-				$this->asked = $config['filters'];
+				// The first read is the one a test names; every read is kept per schema.
+				$schema               = $config['filters']['schema'];
+				$this->reads[$schema] = $config['filters'];
+				if ($this->asked === []) {
+					$this->asked = $config['filters'];
+				}
+
 				if ($rows instanceof RuntimeException) {
 					throw $rows;
 				}
 
-				return $rows;
+				// A row names its schema with `_schema`; a row without one is a
+				// paper of any schema but the permission answers.
+				return array_values(
+					array_filter(
+						$rows,
+						static fn (array $row): bool => ($row['_schema'] ?? null) === $schema
+							|| (isset($row['_schema']) === false && $schema !== 'permission-response')
+					)
+				);
 			}
 		);
 		$fileService = $this->createMock(FileService::class);
@@ -179,4 +202,38 @@ class GuardianDocumentsTest extends TestCase {
 		self::assertSame([], $this->reader(new RuntimeException('down'), [])->childReports('vera'));
 		self::assertSame([], $this->reader([$row], [])->childReports('vera'));
 	}//end testNothingIsOfferedWhenTheReadCannotAnswer()
+
+	/**
+	 * The answer Fatima gave to the school trip request for Vera is one of
+	 * Vera's documents, after her reports; an answer for Sami is not.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-each-school-audience-offers-its-own-documents-grouped-per-record
+	 */
+	public function testAChildsPermissionAnswersAreHerDocumentsToo(): void {
+		$now    = time();
+		$reader = $this->reader(
+			rows: [
+				['id' => 'rc-1', 'learnerRef' => 'vera', 'lifecycle' => 'published-to-parents', 'periodName' => 'Rapport 1'],
+				['_schema' => 'permission-response', 'id' => 'pr-1', 'learnerRef' => 'vera', 'answer' => 'yes'],
+				['_schema' => 'permission-response', 'id' => 'pr-2', 'learnerRef' => 'sami', 'answer' => 'no'],
+			],
+			files: [
+				'rc-1' => [$this->file(id: 71, name: 'Rapport Vera.pdf', saved: $now)],
+				'pr-1' => [$this->file(id: 81, name: 'Your answer to "Schoolreis naar Artis".pdf', saved: $now)],
+				'pr-2' => [$this->file(id: 82, name: 'Your answer to "Schoolreis".pdf', saved: $now)],
+			]
+		);
+
+		$entries = $reader->childReports(profileId: 'vera');
+
+		self::assertSame(expected: ['register' => 'learniq', 'schema' => 'permission-response', 'learnerRef' => 'vera'], actual: $this->reads['permission-response']);
+		self::assertSame(expected: ['71', '81'], actual: array_column(array: $entries, column_key: 'id'));
+		self::assertSame(expected: 'Your answer to "Schoolreis naar Artis"', actual: $entries[1]['title']);
+		self::assertSame(
+			expected: ['register' => 'learniq', 'schema' => 'permission-response', 'id' => 'pr-1', 'fileId' => '81'],
+			actual: $entries[1]['file']
+		);
+	}//end testAChildsPermissionAnswersAreHerDocumentsToo()
 }//end class
