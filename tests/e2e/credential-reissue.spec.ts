@@ -99,9 +99,11 @@ test.describe('certificate reissue', () => {
 			await page.goto(`${APP}/courses/${courseId}`, {
 				waitUntil: 'domcontentloaded',
 			})
-			// Header actions past the first few live in the page's Actions menu.
+			// Header actions live in the page header's menu: "More" on the board
+			// look ("Actions" is the tab bar's menu).
 			await page
-				.getByRole('button', { name: 'Actions' })
+				.getByRole('main')
+				.getByRole('button', { name: /^(More|Actions)$/ })
 				.first()
 				.click({ timeout: 60_000 })
 			await page
@@ -194,18 +196,24 @@ test.describe('certificate reissue', () => {
 		await admin.goto(`${APP}/credentials/${issued[0]}`, {
 			waitUntil: 'domcontentloaded',
 		})
-		const sidebar = admin.locator('.app-sidebar')
-		if (!(await sidebar.isVisible().catch(() => false))) {
+		// The board look shows the trail on the "Record history" tab; the older
+		// detail page in the sidebar.
+		const historyTab = admin.getByRole('tab', { name: 'Record history' })
+		let trail = admin.locator('.app-sidebar')
+		if (await historyTab.isVisible({ timeout: 30_000 }).catch(() => false)) {
+			await historyTab.click()
+			trail = admin.getByRole('tabpanel', { name: 'Record history' })
+		} else if (!(await trail.isVisible().catch(() => false))) {
 			await admin
 				.locator('.app-sidebar__toggle')
 				.first()
 				.click({ timeout: 60_000 })
 		}
-		await expect(sidebar).toBeVisible({ timeout: 30_000 })
-		await expect(sidebar).not.toContainText('No audit trail entries', {
+		await expect(trail).toBeVisible({ timeout: 30_000 })
+		await expect(trail).not.toContainText('No audit trail entries', {
 			timeout: 30_000,
 		})
-		await expect(sidebar).toContainText(/update|Updated|reissue/i, {
+		await expect(trail).toContainText(/update|Updated|reissue/i, {
 			timeout: 30_000,
 		})
 	})
