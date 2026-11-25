@@ -88,6 +88,18 @@ final class FirstTodayCard {
 			'%n group has no register filled in at 9.30',
 			'%n groups have no register filled in at 9.30',
 		],
+		FirstTodayRules::PLACEMENT_WITHOUT_COMPANY => [
+			'%n student of yours has no BPV company yet',
+			'%n students of yours have no BPV company yet',
+		],
+		FirstTodayRules::VISIT_WITHOUT_DATE => [
+			'%n company visit of yours has no date yet',
+			'%n company visits of yours have no date yet',
+		],
+		FirstTodayRules::HOURS_WAITING => [
+			'%n hour week has waited more than a week for its company',
+			'%n hour weeks have waited more than a week for their company',
+		],
 	];
 
 	/**
@@ -226,6 +238,9 @@ final class FirstTodayCard {
 			FirstTodayRules::SIGNAL_NOT_TAKEN_UP => $l10n->t('Pick one up to start the follow-up.'),
 			FirstTodayRules::LEAVE_PAST_HALF => $l10n->t('Decide before the decision date.'),
 			FirstTodayRules::OVER_LIMIT_NOT_REPORTED => $l10n->t('Report them to the attendance officer.'),
+			FirstTodayRules::PLACEMENT_WITHOUT_COMPANY => $this->lateReason(late: $this->nameOf(value: $card['lateLabel'] ?? null)),
+			FirstTodayRules::VISIT_WITHOUT_DATE => $l10n->t('Propose a date to the workplace trainer.'),
+			FirstTodayRules::HOURS_WAITING => $this->hoursReason(hours: (float) ($card['hours'] ?? 0), week: $this->nameOf(value: $card['isoWeek'] ?? null)),
 			default => $this->groupsReason(count: (int) ($card['count'] ?? 0), total: (int) ($card['total'] ?? 0)),
 		};
 	}//end reason()
@@ -300,6 +315,42 @@ final class FirstTodayCard {
 
 		return $this->l10n->t('The first lesson of %1$s has started.', [$cohort]);
 	}//end registerReason()
+
+	/**
+	 * The line under a student without a company: how late, when the placement says so.
+	 *
+	 * @param string|null $late The placement's late line, such as "5 weken te laat".
+	 *
+	 * @return string
+	 *
+	 * @spec openspec/changes/bpv-coach-today-and-placement-board/tasks.md#T5
+	 */
+	private function lateReason(?string $late): string {
+		if ($late === null) {
+			return $this->l10n->t('The BPV period is running.');
+		}
+
+		return $this->l10n->t('The BPV period is running: %1$s.', [$late]);
+	}//end lateReason()
+
+	/**
+	 * The line under hours that wait: how many hours, and the week that waits longest.
+	 *
+	 * @param float       $hours The hours waiting over those weeks.
+	 * @param string|null $week  The longest waiting week, such as "2026-W40".
+	 *
+	 * @return string
+	 *
+	 * @spec openspec/changes/bpv-coach-today-and-placement-board/tasks.md#T5
+	 */
+	private function hoursReason(float $hours, ?string $week): string {
+		$amount = rtrim(rtrim(number_format($hours, 1, '.', ''), '0'), '.');
+		if ($week === null) {
+			return $this->l10n->t('%1$s hours wait for approval.', [$amount]);
+		}
+
+		return $this->l10n->t('%1$s hours wait for approval, the longest since %2$s.', [$amount, $week]);
+	}//end hoursReason()
 
 	/**
 	 * A name to put in a line, or null when there is none.
