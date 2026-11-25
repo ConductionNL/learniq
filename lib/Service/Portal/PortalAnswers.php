@@ -19,7 +19,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/portal-refusals-name-their-fields/specs/portal-contribution/spec.md#requirement-a-portal-endpoint-refusal-names-the-fields-to-change
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-a-portal-endpoint-refusal-names-the-fields-to-change
  */
 
 declare(strict_types=1);
@@ -29,7 +29,7 @@ namespace OCA\Learniq\Service\Portal;
 /**
  * A form's answers as read, and the 422 that names the ones to change.
  *
- * @spec openspec/changes/portal-refusals-name-their-fields/specs/portal-contribution/spec.md#requirement-a-portal-endpoint-refusal-names-the-fields-to-change
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-a-portal-endpoint-refusal-names-the-fields-to-change
  */
 final class PortalAnswers {
 
@@ -55,7 +55,7 @@ final class PortalAnswers {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/portal-refusals-name-their-fields/specs/portal-contribution/spec.md#requirement-a-portal-endpoint-refusal-names-the-fields-to-change
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-portal-endpoint-refusal-names-the-fields-to-change
 	 */
 	public function text(string $field, mixed $value): string {
 		$text = '';
@@ -78,7 +78,7 @@ final class PortalAnswers {
 	 *
 	 * @return int|null
 	 *
-	 * @spec openspec/changes/portal-refusals-name-their-fields/specs/portal-contribution/spec.md#requirement-a-portal-endpoint-refusal-names-the-fields-to-change
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-portal-endpoint-refusal-names-the-fields-to-change
 	 */
 	public function count(string $field, mixed $value, int $min, int $max): ?int {
 		if (is_int($value) === true) {
@@ -109,7 +109,7 @@ final class PortalAnswers {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/portal-refusals-name-their-fields/specs/portal-contribution/spec.md#requirement-a-portal-endpoint-refusal-names-the-fields-to-change
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-portal-endpoint-refusal-names-the-fields-to-change
 	 */
 	public function wrongKind(string $field, string $kind): void {
 		if (($this->answers[$field] ?? '') !== '') {
@@ -128,7 +128,7 @@ final class PortalAnswers {
 	 *
 	 * @return PortalOutcome
 	 *
-	 * @spec openspec/changes/portal-refusals-name-their-fields/specs/portal-contribution/spec.md#requirement-a-portal-endpoint-refusal-names-the-fields-to-change
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-portal-endpoint-refusal-names-the-fields-to-change
 	 */
 	public function refused(string $error, string $reason): PortalOutcome {
 		$body = ['error' => $error];

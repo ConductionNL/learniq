@@ -520,4 +520,26 @@ test.describe.serial('esdoornveen: hours per day (Milan and Petra)', () => {
 		const messages = await portalRows(milan!, 'bpv-hour-week', 'studentReturnedHours')
 		expect(messages.find((m) => String(m.id) === weekId)).toBeFalsy()
 	})
+
+	// @e2e openspec/specs/portal-contribution/spec.md#requirement-a-portal-endpoint-refusal-names-the-fields-to-change
+	test('Petra approves the week in the form, the hours as a number', async () => {
+		const page = petra!.page
+		await page.goto(`${siteUrl(PORTAL)}&route=${encodeURIComponent('/mijn')}`)
+		await page.getByRole('button', { name: 'Uren goedkeuren' }).first().click()
+		const form = page.locator('form').filter({ hasText: 'De week die u goedkeurt' })
+		const isoWeek = String((await storedWeek()).isoWeek)
+		await form.getByLabel('De week die u goedkeurt').selectOption({ label: isoWeek })
+		await form.getByText('De week goedkeuren', { exact: true }).click()
+
+		// `approveHourWeek` declares its schema, so the hours are a number input.
+		const hours = form.getByLabel('Uren die u goedkeurt')
+		await expect(hours).toHaveAttribute('type', 'number')
+		await hours.fill('5.5')
+		await form.getByTestId('schema-form-submit').click()
+
+		await expect.poll(async () => (await storedWeek()).lifecycle, { timeout: 20_000 }).toBe('approved')
+		const row = await storedWeek()
+		// Sent as a number, stored as one.
+		expect(row.hoursApproved).toBe(5.5)
+	})
 })
