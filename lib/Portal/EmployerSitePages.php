@@ -268,7 +268,19 @@ class EmployerSitePages implements EmployerSitePagesInterface {
 		'label' => 'Certificates',
 		'icon' => 'CertificateOutline',
 		'group' => self::GROUP_COURSES,
-		'blocks' => [['type' => 'collection', 'collection' => 'employerCertificates']],
+		'blocks' => [
+			['type' => 'collection', 'collection' => 'employerCertificates'],
+			// "Alle geldige certificaten downloaden": one ZIP, kept with her
+			// company's documents below (school-documents-on-the-portal T5).
+			['type' => 'action', 'action' => 'employerCertificatesDownload'],
+			[
+				'type' => 'documents',
+				'collection' => 'employerCompany',
+				'eachRecord' => true,
+				'titleFields' => ['name'],
+				'emptyLabel' => 'Ask for the download above; the file appears here.',
+			],
+		],
 	];
 
 	private const BOOKING_ROWS = [
@@ -410,6 +422,7 @@ class EmployerSitePages implements EmployerSitePagesInterface {
 				extra: self::EMPLOYER_EMPLOYEES_EXTRA
 			),
 			$this->certificatesCollection(),
+			$this->companyCollection(),
 			self::EMPLOYER_EDITIONS,
 		];
 	}//end collections()
@@ -444,6 +457,29 @@ class EmployerSitePages implements EmployerSitePagesInterface {
 			'lifecycle' => ['label' => 'Stage of the booking', 'valueLabels' => self::BOOKING_STATUS],
 		];
 	}//end bookingFieldConfigs()
+
+	/**
+	 * Her own company's row, read only for its documents: the certificates
+	 * ZIP she asked for is kept on it (school-documents-on-the-portal T5).
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-an-employer-downloads-every-valid-certificate-at-once
+	 */
+	public function companyCollection(): array {
+		return $this->direct(
+			id: 'employerCompany',
+			schema: 'client-organisation',
+			label: 'Your company',
+			fields: ['name'],
+			extra: [
+				// The row's own id is her company: the organisationRef claim.
+				'scopeField' => 'id',
+				'listable' => false,
+				'documents' => ['label' => 'Downloads', 'provider' => 'employerDocuments'],
+			]
+		);
+	}//end companyCollection()
 
 	/**
 	 * The certificates her people hold, the first to expire first. Only
@@ -522,8 +558,33 @@ class EmployerSitePages implements EmployerSitePagesInterface {
 					'successMessage' => 'The birth date is saved. The participant can take the exam.',
 				]
 			),
+			$this->certificatesDownloadAction(),
 		];
 	}//end actions()
+
+	/**
+	 * "Alle geldige certificaten downloaden": one ZIP of every valid
+	 * certificate of her people, kept on her company's row and listed under
+	 * Downloads on the certificates page (school-documents-on-the-portal T5).
+	 * Nothing to fill in: the company comes from the claim.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-an-employer-downloads-every-valid-certificate-at-once
+	 */
+	public function certificatesDownloadAction(): array {
+		return $this->endpoint(
+			id: 'employerCertificatesDownload',
+			path: 'certificates-archive',
+			schema: 'client-organisation',
+			label: 'Download all valid certificates',
+			fields: [],
+			extra: [
+				'submitLabel' => 'Download all valid certificates',
+				'successMessage' => 'The file with all valid certificates is ready under Downloads.',
+			]
+		);
+	}//end certificatesDownloadAction()
 
 	/**
 	 * "Collega in zijn plaats": a row action on her participants that sends

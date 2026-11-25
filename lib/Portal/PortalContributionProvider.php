@@ -409,6 +409,22 @@ class PortalContributionProvider {
 	}//end studentDocuments()
 
 	/**
+	 * The `documents` provider of `employerCompany`: the files kept on her
+	 * company's row, such as the ZIP of every valid certificate she asked
+	 * for. Portaliq calls this only for the company row it read through
+	 * her own scoped collection.
+	 *
+	 * @param string $id The company's client-organisation id.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 *
+	 * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-an-employer-downloads-every-valid-certificate-at-once
+	 */
+	public function employerDocuments(string $id): array {
+		return ($this->records?->files?->forRecord(schema: 'client-organisation', row: ['id' => $id]) ?? []);
+	}//end employerDocuments()
+
+	/**
 	 * The audiences this provider contributes to (contract v2, preferred).
 	 *
 	 * The registry probes for this method first. Learniq serves the learner

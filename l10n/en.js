@@ -6030,7 +6030,13 @@ OC.L10N.register(
         "Mentor class {name}": "Mentor class {name}",
         "This group has no lessons today.": "This group has no lessons today.",
         "This group has no lessons this week.": "This group has no lessons this week.",
-        "Nextcloud user ID of the group's mentor. She can switch My timetable to this group's week (Mentor class). Gives no teacher rights.": "Nextcloud user ID of the group's mentor. She can switch My timetable to this group's week (Mentor class). Gives no teacher rights."
+        "Nextcloud user ID of the group's mentor. She can switch My timetable to this group's week (Mentor class). Gives no teacher rights.": "Nextcloud user ID of the group's mentor. She can switch My timetable to this group's week (Mentor class). Gives no teacher rights.",
+        "Your company": "Your company",
+        "Downloads": "Downloads",
+        "Download all valid certificates": "Download all valid certificates",
+        "The file with all valid certificates is ready under Downloads.": "The file with all valid certificates is ready under Downloads.",
+        "Ask for the download above; the file appears here.": "Ask for the download above; the file appears here.",
+        "Valid certificates, %s": "Valid certificates, %s"
     },
     "nplurals=2; plural=(n != 1);"
 )

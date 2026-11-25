@@ -160,6 +160,12 @@ class EmployerSitePagesTest extends TestCase {
 				continue;
 			}
 
+			if ($collection['id'] === 'employerCompany') {
+				// Her company's own row: its id is the organisationRef claim.
+				self::assertSame(expected: ['id', 'organisationRef'], actual: [$collection['scopeField'], $collection['scopeClaim']]);
+				continue;
+			}
+
 			self::assertSame(['organisationRef', 'organisationRef'], [$collection['scopeField'], $collection['scopeClaim']], $collection['id']);
 			self::assertContains('organisationRef', $collection['fields'], $collection['id']);
 		}
@@ -201,14 +207,17 @@ class EmployerSitePagesTest extends TestCase {
 		self::assertSame('employerComingBookings', $firstBySchema['course-booking']['id']);
 		self::assertSame('employerOpenTasks', $firstBySchema['enrolment']['id']);
 		$actions = array_column($manifest['actions'], null, 'id');
-		self::assertSame(['enrolEmployees', 'addBookingParticipant', 'substituteParticipant', 'supplyBirthDate'], array_keys($actions));
+		self::assertSame(
+			expected: ['enrolEmployees', 'addBookingParticipant', 'substituteParticipant', 'supplyBirthDate', 'employerCertificatesDownload'],
+			actual: array_keys($actions)
+		);
 		foreach ($actions as $action) {
 			self::assertSame('endpoint-forward', $action['type']);
 			self::assertStringStartsWith('/apps/learniq/api/portal/employer/', $action['endpoint']);
 			self::assertSame('organisationRef', $action['subjectField']);
 			self::assertSame('organisationRef', $action['scopeClaim']);
 			self::assertNotContains('organisationRef', $action['fields'], 'the company is never a form field');
-			foreach ($action['optionsProviders'] as $field => $provider) {
+			foreach (($action['optionsProviders'] ?? []) as $field => $provider) {
 				$source = $firstBySchema[$provider['schema']];
 				self::assertContains($provider['labelField'], $source['fields'], $action['id'] . '.' . $field);
 				if ($provider['valueField'] !== 'id') {
@@ -217,6 +226,34 @@ class EmployerSitePagesTest extends TestCase {
 			}
 		}
 	}//end testTheFormsStampHerCompanyAndPickFromHerOwnRows()
+
+	/**
+	 * "Alle geldige certificaten downloaden": the certificates page offers
+	 * the bundle and lists what was kept on her company's own row.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-an-employer-downloads-every-valid-certificate-at-once
+	 */
+	public function testTheCertificatesPageOffersOneDownloadOfEveryValidCertificate(): void {
+		$manifest = self::manifest();
+		$action   = array_column($manifest['actions'], null, 'id')['employerCertificatesDownload'];
+		self::assertSame(expected: '/apps/learniq/api/portal/employer/certificates-archive', actual: $action['endpoint']);
+		self::assertSame(expected: 'POST', actual: $action['method']);
+		self::assertSame(expected: [], actual: $action['fields'], message: 'nothing to fill in: the company comes from the claim');
+
+		$company = array_column($manifest['collections'], null, 'id')['employerCompany'];
+		self::assertSame(expected: 'client-organisation', actual: $company['schema']);
+		self::assertFalse(condition: $company['listable']);
+		self::assertSame(expected: ['name'], actual: $company['fields']);
+		self::assertSame(expected: 'employerDocuments', actual: $company['documents']['provider']);
+
+		$page   = array_column($manifest['pages'], null, 'id')['employerCertificates'];
+		$blocks = array_column($page['blocks'], 'type');
+		self::assertSame(expected: ['collection', 'action', 'documents'], actual: $blocks);
+		self::assertSame(expected: 'employerCertificatesDownload', actual: $page['blocks'][1]['action']);
+		self::assertSame(expected: 'employerCompany', actual: $page['blocks'][2]['collection']);
+	}//end testTheCertificatesPageOffersOneDownloadOfEveryValidCertificate()
 
 	/**
 	 * "Collega in zijn plaats" is a row action on her participants: the row
