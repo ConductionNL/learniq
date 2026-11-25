@@ -17,8 +17,8 @@
  * the caller's access, and the register lets team leads read them.
  *
  * Covers:
- *   @e2e openspec/changes/exam-sitting-overview-section/specs/exam-schedule/spec.md#scenario-a-learner-with-25-percent-extra-time
- *   @e2e openspec/changes/exam-sitting-overview-section/specs/exam-schedule/spec.md#scenario-ask-a-free-colleague
+ *   @e2e openspec/specs/exam-schedule/spec.md#scenario-a-learner-with-25-percent-extra-time
+ *   @e2e openspec/specs/exam-schedule/spec.md#scenario-ask-a-free-colleague
  */
 import type { APIRequestContext } from '@playwright/test'
 import type { TempUser } from './live-fixtures.ts'
@@ -115,8 +115,8 @@ test.describe('extra time and free invigilators on an exam sitting', () => {
 		await fx.teardown()
 	})
 
-	// @e2e openspec/changes/exam-sitting-overview-section/specs/exam-schedule/spec.md#scenario-a-learner-with-25-percent-extra-time
-	// @e2e openspec/changes/exam-sitting-overview-section/specs/exam-schedule/spec.md#scenario-ask-a-free-colleague
+	// @e2e openspec/specs/exam-schedule/spec.md#scenario-a-learner-with-25-percent-extra-time
+	// @e2e openspec/specs/exam-schedule/spec.md#scenario-ask-a-free-colleague
 	test('the planner reads the end time, asks a free colleague and sees the counts change', async ({ browser }) => {
 		test.setTimeout(180_000)
 		const before = await overview()

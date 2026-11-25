@@ -14,8 +14,10 @@
   - learniq runs its JS unit tests with `node --test` and has no vitest, so this is `tests/unit-js/examSittingOverview.test.mjs` (6 tests through `loadSfc`): the two routes, the names, the places line, both empty lists, a 403/404 hiding the section, and the reload and refresh after "Ask".
 - [x] 2.2 Playwright `tests/e2e/exam-sitting-overview.spec.ts` on the example set: open a sitting with an accommodated learner, read the end time, ask a free colleague, see the counts change. Tag the scenarios with `@e2e`.
   - Written, runs in nightly; ticked under the unblock rule, not verified live here.
-- [ ] 2.3 Visual baseline for the section (gate 26).
+  - Verified live 25 Nov on NC 34 + PostgreSQL + OpenRegister main, vo example set: 1/1 passed twice. The first run found that "Ask" left out the required `tenant_id` (every request answered "Validation failed"); the section now sends the sitting's tenant.
+- [x] 2.3 Visual baseline for the section (gate 26).
+  - `tests/e2e/visual/pages.visual.spec.ts` "Exam sitting: extra time and invigilators": the manifest places `ExamSittingOverview` on the detail page, the section's root, heading and places line render. A DOM baseline as the rest of that file (no PNG, see its header). Passed live on NC 34 + PostgreSQL + OpenRegister main with the vo example set.
 
 ## 3. Close out
 
-- [ ] 3.1 Set row `ass-plan-an-exam-week` to `built`, `learniq: yes`, evidence with the section and the e2e, `reachedOn: "/exam-sittings/:id > Extra time and invigilators"`; archive this change.
+- [x] 3.1 Set row `ass-plan-an-exam-week` to `built`, `learniq: yes`, evidence with the section and the e2e, `reachedOn: "/exam-sittings/:id > Extra time and invigilators"`; archive this change.
