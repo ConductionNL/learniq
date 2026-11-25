@@ -20,7 +20,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/credentials-migrate-with-validity/tasks.md
+ * @spec openspec/changes/archive/2026-11-25-credentials-migrate-with-validity/tasks.md
  */
 
 declare(strict_types=1);
@@ -41,7 +41,7 @@ use OCP\IUserSession;
 /**
  * Dry run and commit of a certificate migration.
  *
- * @spec openspec/changes/credentials-migrate-with-validity/tasks.md
+ * @spec openspec/changes/archive/2026-11-25-credentials-migrate-with-validity/tasks.md
  */
 class CredentialMigrationController extends Controller {
 
@@ -81,7 +81,7 @@ class CredentialMigrationController extends Controller {
 	 *
 	 * @return JSONResponse The per-row report, or an error.
 	 *
-	 * @spec openspec/changes/credentials-migrate-with-validity/specs/certification/spec.md#requirement-certificates-from-the-previous-system-are-uploaded-with-a-dry-run-first
+	 * @spec openspec/specs/certification/spec.md#requirement-certificates-from-the-previous-system-are-uploaded-with-a-dry-run-first
 	 *
 	 * @SuppressWarnings(PHPMD.BooleanArgumentFlag) `dryRun` is the request field, as on the external-training import.
 	 */

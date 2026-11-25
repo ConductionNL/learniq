@@ -6,7 +6,7 @@
  * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
  * SPDX-License-Identifier: EUPL-1.2
  *
- * @spec openspec/changes/credentials-migrate-with-validity/tasks.md
+ * @spec openspec/changes/archive/2026-11-25-credentials-migrate-with-validity/tasks.md
  */
 
 declare(strict_types=1);

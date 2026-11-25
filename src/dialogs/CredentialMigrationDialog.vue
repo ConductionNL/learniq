@@ -11,7 +11,7 @@
  are written, as migrated certificates without a learniq signature. The
  layout follows the external-training upload: file, table, confirm.
 
- @spec openspec/changes/credentials-migrate-with-validity/specs/certification/spec.md#requirement-certificates-from-the-previous-system-are-uploaded-with-a-dry-run-first
+ @spec openspec/specs/certification/spec.md#requirement-certificates-from-the-previous-system-are-uploaded-with-a-dry-run-first
 -->
 <template>
 	<NcDialog
@@ -156,7 +156,7 @@ export default {
 		 * The table's column headings.
 		 *
 		 * @return {string[]}
-		 * @spec openspec/changes/credentials-migrate-with-validity/specs/certification/spec.md#requirement-certificates-from-the-previous-system-are-uploaded-with-a-dry-run-first
+		 * @spec openspec/specs/certification/spec.md#requirement-certificates-from-the-previous-system-are-uploaded-with-a-dry-run-first
 		 */
 		headings() {
 			return [
@@ -172,7 +172,7 @@ export default {
 		 * The line above the table: the preview or the result.
 		 *
 		 * @return {string}
-		 * @spec openspec/changes/credentials-migrate-with-validity/specs/certification/spec.md#requirement-certificates-from-the-previous-system-are-uploaded-with-a-dry-run-first
+		 * @spec openspec/specs/certification/spec.md#requirement-certificates-from-the-previous-system-are-uploaded-with-a-dry-run-first
 		 */
 		summaryText() {
 			const summary = this.report.summary
@@ -186,7 +186,7 @@ export default {
 		 * Whether "Take over" shows: a dry run with ready rows.
 		 *
 		 * @return {boolean}
-		 * @spec openspec/changes/credentials-migrate-with-validity/specs/certification/spec.md#scenario-a-clean-file
+		 * @spec openspec/specs/certification/spec.md#scenario-a-clean-file
 		 */
 		takeOverPossible() {
 			return canTakeOver(this.report)
@@ -199,7 +199,7 @@ export default {
 		 *
 		 * @param {Event} event The file input's change event.
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/credentials-migrate-with-validity/specs/certification/spec.md#scenario-a-clean-file
+		 * @spec openspec/specs/certification/spec.md#scenario-a-clean-file
 		 */
 		async onFile(event) {
 			const file = event.target.files?.[0]
@@ -216,7 +216,7 @@ export default {
 		 *
 		 * @param {{rows: object[], missing: string[]}} parsed The read file.
 		 * @return {string}
-		 * @spec openspec/changes/credentials-migrate-with-validity/specs/certification/spec.md#scenario-a-clean-file
+		 * @spec openspec/specs/certification/spec.md#scenario-a-clean-file
 		 */
 		fileProblem(parsed) {
 			if (parsed.missing.length > 0) {
@@ -230,7 +230,7 @@ export default {
 		 *
 		 * @param {boolean} dryRun True for the preview.
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/credentials-migrate-with-validity/specs/certification/spec.md#requirement-certificates-from-the-previous-system-are-uploaded-with-a-dry-run-first
+		 * @spec openspec/specs/certification/spec.md#requirement-certificates-from-the-previous-system-are-uploaded-with-a-dry-run-first
 		 */
 		async send(dryRun) {
 			this.busy = true
@@ -255,7 +255,7 @@ export default {
 		 *
 		 * @param {string} status The status.
 		 * @return {string}
-		 * @spec openspec/changes/credentials-migrate-with-validity/specs/certification/spec.md#scenario-a-row-with-an-unknown-learner
+		 * @spec openspec/specs/certification/spec.md#scenario-a-row-with-an-unknown-learner
 		 */
 		statusLabel(status) {
 			return this.t('learniq', STATUS_LABELS[status] ?? STATUS_LABELS.invalid)
