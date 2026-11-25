@@ -106,7 +106,7 @@ const CODES: Record<string, string> = {
 }
 // The action's label and its buttons, as the Dutch site shows them.
 const FORM = 'Beoordeling van een werkproces versturen'
-const NEXT = /^(Volgende|Verder)$/
+const NEXT = /^(Volgende|Verder)( stap)?$/
 const KEEP = /Bewaren voor later/
 
 /**
@@ -119,7 +119,8 @@ const KEEP = /Bewaren voor later/
  */
 function codeField(form: Locator, key: string): Locator {
 	const words = key.replace(/([a-z])([A-Z])/g, '$1 $2').split(' ')
-	return form.getByRole('textbox', { name: new RegExp(`^${words.join('\\s*')}$`, 'i') })
+	// An optional field reads "(niet verplicht)" after its name.
+	return form.getByRole('textbox', { name: new RegExp(`^${words.join('\\s*')}(\\s*\\(niet verplicht\\))?$`, 'i') })
 }
 
 test.describe.configure({ mode: 'serial' })
