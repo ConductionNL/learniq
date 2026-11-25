@@ -217,10 +217,6 @@ test.describe('handle an attendance flag from its page', () => {
 
 	// @e2e openspec/changes/attendance-flag-report-actions/specs/attendance/spec.md#scenario-a-coordinator-records-the-mas-route
 	test('a compliance officer records the MAS route on a reported flag', async ({ browser }) => {
-		test.fixme(
-			true,
-			'MunicipalityFeedbackGuard::AUTHORISED_GROUPS is admin and coordinators, so a user in compliance-officers only is refused. The spec names compliance-officers; which group may record is a decision, so this stays a known failure.',
-		)
 		test.setTimeout(180_000)
 		// No job linked: the guard allows the report straight away (the manual route).
 		const flagId = await openFlag('answer')

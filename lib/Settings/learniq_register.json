@@ -21624,7 +21624,7 @@
                 "slug": "attendance-flag",
                 "appendOnly": false,
                 "icon": "FlagOutline",
-                "version": "0.2.5",
+                "version": "0.2.6",
                 "title": "AttendanceFlag",
                 "description": "Created when an AttendanceThreshold is crossed. appendOnly: true per ADR-008 (immutable audit evidence). The flag tracks the mentor's intervention and any outbound leerplicht report via its lifecycle. It NEVER auto-acts against the learner — human-in-the-loop throughout.",
                 "type": "object",
@@ -21946,7 +21946,7 @@
                             "to": "reported",
                             "label": "Record the municipality's answer",
                             "requires": "OCA\\Learniq\\Lifecycle\\MunicipalityFeedbackGuard",
-                            "description": "A coordinator or administrator records the municipality's MAS route for a reported flag. A self-loop: the flag stays reported. The stamp is written by MunicipalityFeedbackStampListener.",
+                            "description": "A coordinator, compliance officer or administrator records the municipality's MAS route for a reported flag. A self-loop: the flag stays reported. The stamp is written by MunicipalityFeedbackStampListener.",
                             "inputs": [
                                 {
                                     "field": "municipalityFeedback",
