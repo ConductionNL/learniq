@@ -216,6 +216,17 @@ test.describe('mbo trainer: a student, and an assessment finished later', () => 
 			periodFrom: '2026-09-01',
 			periodTo: '2027-01-31',
 			agreedHours: 640,
+			// A placement is confirmed only for a verified training company
+			// (BpvConfirmationGuard); the seeded placements carry the same.
+			trainingCompanyVerification: {
+				provider: 'sbb',
+				status: 'verified',
+				verifiedAt: '2026-08-15T10:00:00+02:00',
+				expiresAt: '2029-08-15T23:59:00+02:00',
+			},
+			// Created as proposed and moved through checkLeerbedrijf, confirm
+			// and activate by createRow (OpenRegister refuses a non-initial
+			// state on create).
 			lifecycle: 'active',
 			tenant_id: TENANT,
 		})
