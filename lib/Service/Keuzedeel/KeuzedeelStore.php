@@ -9,7 +9,7 @@
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  * @link      https://conduction.nl
  *
- * @spec openspec/changes/exam-committee-today-and-keuzedelen/specs/enrolment/spec.md#requirement-an-mbo-student-chooses-a-keuzedeel-inside-its-window
+ * @spec openspec/specs/enrolment/spec.md#requirement-an-mbo-student-chooses-a-keuzedeel-inside-its-window
  */
 
 declare(strict_types=1);
@@ -26,7 +26,7 @@ use OCA\OpenRegister\Service\ObjectService;
  * Reads without the caller's RBAC: the caller has already bound the student
  * to the signed-in user (the choose endpoint) or is the server (the restamp).
  *
- * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#task-T5
+ * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#task-T5
  */
 class KeuzedeelStore {
 
@@ -43,7 +43,7 @@ class KeuzedeelStore {
 	 * @param ObjectService  $objectService Reads the records.
 	 * @param KeuzedeelRules $rules         Decides which offers are for the student.
 	 *
-	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#task-T5
+	 * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#task-T5
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
@@ -58,7 +58,7 @@ class KeuzedeelStore {
 	 *
 	 * @return list<array<string, mixed>>
 	 *
-	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#task-T5
+	 * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#task-T5
 	 */
 	public function offersFor(string $learnerUserId): array {
 		$programmeIds = [];
@@ -92,7 +92,7 @@ class KeuzedeelStore {
 	 *
 	 * @return array<string, mixed>|null
 	 *
-	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#task-T5
+	 * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#task-T5
 	 */
 	public function offer(string $offerId): ?array {
 		if ($offerId === '') {
@@ -115,7 +115,7 @@ class KeuzedeelStore {
 	 *
 	 * @return list<array<string, mixed>>
 	 *
-	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#task-T5
+	 * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#task-T5
 	 */
 	public function choices(array $filters): array {
 		return $this->rows(schema: 'keuzedeel-choice', filters: $filters);
@@ -128,7 +128,7 @@ class KeuzedeelStore {
 	 *
 	 * @return array<string, mixed> The saved choice.
 	 *
-	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#task-T5
+	 * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#task-T5
 	 */
 	public function saveChoice(array $choice): array {
 		$saved = $this->objectService->saveObject(

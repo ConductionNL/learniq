@@ -131,7 +131,7 @@ class TodayFirstController extends Controller {
 	 *
 	 * @return JSONResponse `{sittings: [{sittingId, title, startsAt, results}], agenda: [{key, item, count}]}`, or 401 / 503.
 	 *
-	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#T3
+	 * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#T3
 	 *
 	 * @no-admin-idor-exempt the lists are read for the session user with her own rights, and only when she is a
 	 *  member of a school's exam committee; anybody else gets two empty lists. No id is taken from the request.
@@ -151,7 +151,7 @@ class TodayFirstController extends Controller {
 	 *
 	 * @return array<string, mixed>|null
 	 *
-	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#T3
+	 * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#T3
 	 */
 	private function withAgendaItems(?array $answer): ?array {
 		if ($answer === null) {

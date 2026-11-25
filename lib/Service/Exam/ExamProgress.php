@@ -9,7 +9,7 @@
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  * @link      https://conduction.nl
  *
- * @spec openspec/changes/exam-committee-today-and-keuzedelen/specs/enrolment/spec.md#requirement-a-students-exam-progress-reads-in-words
+ * @spec openspec/specs/enrolment/spec.md#requirement-a-students-exam-progress-reads-in-words
  */
 
 declare(strict_types=1);
@@ -29,7 +29,7 @@ use OCA\Learniq\Service\Portal\CourseDayLines;
  * published result at or above its pass rule (the component's own rule,
  * else the plan's overall rule, else 5.5).
  *
- * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#task-T4
+ * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#task-T4
  */
 class ExamProgress {
 
@@ -45,7 +45,7 @@ class ExamProgress {
 	 *
 	 * @param CourseDayLines $lines Writes "3 november".
 	 *
-	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#task-T4
+	 * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#task-T4
 	 */
 	public function __construct(
 		private readonly CourseDayLines $lines = new CourseDayLines(),
@@ -63,7 +63,7 @@ class ExamProgress {
 	 * @return array<string, int|string|null> examComponentsPassed, examComponentsTotal, examProgressLabel,
 	 *                                        nextExamSittingId and nextExamLabel.
 	 *
-	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#task-T4
+	 * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#task-T4
 	 */
 	public function derive(array $plan, array $entries, array $sittings, DateTimeImmutable $now): array {
 		$components = self::examComponents(plan: $plan);

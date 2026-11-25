@@ -369,7 +369,7 @@ final class FirstTodayCard {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#T3
+	 * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#T3
 	 */
 	private function objectionReason(array $card): string {
 		$day = substr((string) ($this->nameOf(value: $card['decideBy'] ?? null) ?? ''), 0, 10);

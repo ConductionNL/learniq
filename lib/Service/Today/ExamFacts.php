@@ -21,7 +21,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#T3
+ * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#T3
  */
 
 declare(strict_types=1);
@@ -33,7 +33,7 @@ use DateTimeImmutable;
 /**
  * The facts of the exam committee's First today rules.
  *
- * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#T3
+ * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#T3
  */
 final class ExamFacts {
 	use RowValues;
@@ -62,7 +62,7 @@ final class ExamFacts {
 	 *
 	 * @return array<string, mixed> count, objectionId and decideBy (of the one due first), responded (whether the examiner answered it).
 	 *
-	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#T3
+	 * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#T3
 	 */
 	public function objectionPastHalf(array $objections, DateTimeImmutable $now): array {
 		$due = [];
@@ -94,7 +94,7 @@ final class ExamFacts {
 	 *
 	 * @return array<string, mixed> count (results), sittings (the number of sittings they come from).
 	 *
-	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#T3
+	 * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#T3
 	 */
 	public function resultsWaiting(array $results, DateTimeImmutable $now): array {
 		$cutoff = self::workingDaysBefore(day: $now, days: self::ESTABLISH_WAIT_WORKING_DAYS);
@@ -120,7 +120,7 @@ final class ExamFacts {
 	 *
 	 * @return list<array<string, mixed>> Per sitting: sittingId, title (the exam's), startsAt, results.
 	 *
-	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#T3
+	 * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#T3
 	 */
 	public function resultsPerSitting(array $exam): array {
 		$counts = [];
@@ -164,7 +164,7 @@ final class ExamFacts {
 	 *
 	 * @return list<array{key: string, count: int}> The items that have at least one row, in agenda order.
 	 *
-	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#T3
+	 * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#T3
 	 */
 	public function agenda(array $open): array {
 		$counts = [

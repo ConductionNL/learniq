@@ -9,7 +9,7 @@
  * @license  EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  * @link     https://conduction.nl
  *
- * @spec openspec/changes/exam-committee-today-and-keuzedelen/specs/enrolment/spec.md#requirement-a-students-exam-progress-reads-in-words
+ * @spec openspec/specs/enrolment/spec.md#requirement-a-students-exam-progress-reads-in-words
  */
 
 declare(strict_types=1);
