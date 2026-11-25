@@ -98,6 +98,10 @@ test.describe('handle an attendance flag from its page', () => {
 		const res = await admin.post(JOBS, {
 			data: {
 				name: 'Verzuimmelding',
+				// integriq's job schema requires the class that runs it; an exchange job's
+				// is ExchangeJobAction. Disabled, so cron never runs this fixture.
+				jobClass: 'OCA\\Integriq\\Service\\Job\\ExchangeJobAction',
+				isEnabled: false,
 				ownerApp: 'learniq',
 				ownerRef: `attendance-flag/${flagId}`,
 				exchangeTarget: 'leerplicht',
