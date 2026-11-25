@@ -6766,8 +6766,7 @@
           "openspec/changes/capability-rows-say-what-they-do/specs/parent-conferences :: A guardian chooses which teachers they want to speak to in a signup"
         ],
         "plan": [
-          "openspec/changes/guardian-tasks-per-child-and-self-assessment",
-          "openspec/changes/parent-row-actions-only-where-they-apply"
+          "openspec/changes/guardian-tasks-per-child-and-self-assessment"
         ]
       },
       "provider": "self",
