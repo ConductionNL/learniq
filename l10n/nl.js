@@ -6579,7 +6579,12 @@ OC.L10N.register(
         "No course day. The hall is free.": "Geen cursusdag. De hal is vrij.",
         "Past": "Voorbij",
         "today": "vandaag",
-        "_%n participant_::_%n participants_": ["%n deelnemer","%n deelnemers"]
+        "_%n participant_::_%n participants_": ["%n deelnemer","%n deelnemers"],
+        "Whose timetable": "Wiens rooster",
+        "Mentor class {name}": "Mentorklas {name}",
+        "This group has no lessons today.": "Deze klas heeft vandaag geen lessen.",
+        "This group has no lessons this week.": "Deze klas heeft deze week geen lessen.",
+        "Nextcloud user ID of the group's mentor. She can switch My timetable to this group's week (Mentor class). Gives no teacher rights.": "Nextcloud-gebruikers-ID van de mentor van de klas. Zij kan Mijn rooster omzetten naar de week van deze klas (Mentorklas). Geeft geen docentrechten."
     },
     "nplurals=2; plural=(n != 1);"
 )

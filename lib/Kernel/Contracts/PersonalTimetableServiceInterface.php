@@ -67,4 +67,17 @@ interface PersonalTimetableServiceInterface {
 	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-signed-in-user-can-see-their-own-upcoming-sessions
 	 */
 	public function preloadRooms(array $sessions): array;
+
+	/**
+	 * The groups the user is the mentor of (`Cohort.mentorId`), by name.
+	 *
+	 * Read with the user's own rights; a failing read answers an empty list.
+	 *
+	 * @param string $uid The user's Nextcloud user id.
+	 *
+	 * @return array<int,array{id: string, name: string}>
+	 *
+	 * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+	 */
+	public function mentorClasses(string $uid): array;
 }//end interface

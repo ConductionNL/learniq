@@ -208,6 +208,27 @@ class TimetableController extends Controller {
 	}//end cohort()
 
 	/**
+	 * The groups the caller is the mentor of, for the Mentor class scope of My timetable.
+	 *
+	 * A caller who mentors no group gets an empty list, and the page then
+	 * shows no switch.
+	 *
+	 * @return JSONResponse 200 with `classes` ({id, name}, by name); 401 without a user.
+	 *
+	 * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	public function mentorClasses(): JSONResponse {
+		$user = $this->userSession->getUser();
+		if ($user === null) {
+			return new JSONResponse(data: ['error' => 'Not authenticated'], statusCode: Http::STATUS_UNAUTHORIZED);
+		}
+
+		return new JSONResponse(data: ['classes' => $this->timetable->mentorClasses(uid: $user->getUID())], statusCode: Http::STATUS_OK);
+	}//end mentorClasses()
+
+	/**
 	 * Whether the caller can read the cohort, through OpenRegister RBAC.
 	 *
 	 * Fails closed: a missing cohort, a refused read or an error all answer false.
