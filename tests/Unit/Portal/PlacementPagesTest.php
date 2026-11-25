@@ -117,12 +117,12 @@ class PlacementPagesTest extends TestCase {
 
 		$register = json_decode((string)file_get_contents(__DIR__ . '/../../../lib/Settings/learniq_register.json'), true);
 		$schemas  = array_column($register['components']['schemas'], null, 'slug');
-		self::assertArrayHasKey('werkproces-assessment-draft', $schemas);
-		self::assertContains('werkproces-assessment-draft', $register['components']['registers']['learniq']['schemas']);
+		self::assertArrayHasKey(key: 'werkproces-assessment-draft', array: $schemas);
+		self::assertContains(needle: 'werkproces-assessment-draft', haystack: $register['components']['registers']['learniq']['schemas']);
 		$draft = $schemas['werkproces-assessment-draft'];
 		self::assertSame(expected: [], actual: $draft['required']);
 		foreach (array_merge($action['fields'], [$action['subjectField']]) as $field) {
-			self::assertArrayHasKey($field, $draft['properties'], $field);
+			self::assertArrayHasKey(key: $field, array: $draft['properties'], message: $field);
 		}
 	}//end testTheUnfinishedAssessmentIsKeptOnItsDraftSchema()
 	/**
