@@ -69,12 +69,27 @@ class AttendanceRecordLesurenRoundingTest extends TestCase {
 			'prop'  => ($object[$args] ?? null),
 			'eq'    => self::evaluate(node: $args[0], object: $object) === self::evaluate(node: $args[1], object: $object),
 			'or'    => in_array(true, array_map(fn ($arg) => self::evaluate(node: $arg, object: $object), $args), true),
-			'if'    => (self::evaluate(node: $args[0], object: $object) === true) ? self::evaluate(node: $args[1], object: $object) : self::evaluate(node: $args[2], object: $object),
+			'if'    => self::evaluate(node: $args[self::branchOf(condition: self::evaluate(node: $args[0], object: $object))], object: $object),
 			'/'     => self::evaluate(node: $args[0], object: $object) / self::evaluate(node: $args[1], object: $object),
 			'round' => round((float)self::evaluate(node: $args[0], object: $object), (int)($args[1] ?? 0)),
 			default => throw new RuntimeException('Operator ' . $operator . ' is not expected in lesuren.'),
 		};
 	}//end evaluate()
+
+	/**
+	 * The argument an `if` evaluates: 1 when its condition holds, else 2.
+	 *
+	 * @param mixed $condition The evaluated condition.
+	 *
+	 * @return int
+	 */
+	private static function branchOf(mixed $condition): int {
+		if ($condition === true) {
+			return 1;
+		}
+
+		return 2;
+	}//end branchOf()
 
 	/**
 	 * The expression rounds its outcome to four decimals.
@@ -84,9 +99,9 @@ class AttendanceRecordLesurenRoundingTest extends TestCase {
 	public function testTheLesurenAreRoundedToFourDecimals(): void {
 		$calculation = self::calculation();
 
-		self::assertTrue($calculation['materialise']);
-		self::assertSame(['round'], array_keys($calculation['expression']));
-		self::assertSame(4, $calculation['expression']['round'][1]);
+		self::assertTrue(condition: $calculation['materialise']);
+		self::assertSame(expected: ['round'], actual: array_keys($calculation['expression']));
+		self::assertSame(expected: 4, actual: $calculation['expression']['round'][1]);
 	}//end testTheLesurenAreRoundedToFourDecimals()
 
 	/**
@@ -104,7 +119,7 @@ class AttendanceRecordLesurenRoundingTest extends TestCase {
 					object: ['status' => $status, 'minutesAttended' => $minutes, '@ref.session.durationMinutes' => $minutes]
 				);
 				$decimals = strlen((string)substr(strrchr(rtrim(sprintf('%.12F', $value), '0'), '.'), 1));
-				self::assertLessThanOrEqual(6, $decimals, $status . ' ' . $minutes . ' minutes gave ' . $value);
+				self::assertLessThanOrEqual(expected: 6, actual: $decimals, message: $status . ' ' . $minutes . ' minutes gave ' . $value);
 			}
 		}
 	}//end testEveryMinuteCountFitsAStoredNumber()
@@ -117,11 +132,11 @@ class AttendanceRecordLesurenRoundingTest extends TestCase {
 	public function testRoundingKeepsTheHours(): void {
 		$expression = self::calculation()['expression'];
 
-		self::assertSame(0.4167, self::evaluate(node: $expression, object: ['status' => 'late', 'minutesAttended' => 25]));
-		self::assertSame(1.0, self::evaluate(node: $expression, object: ['status' => 'present', 'minutesAttended' => 60]));
+		self::assertSame(expected: 0.4167, actual: self::evaluate(node: $expression, object: ['status' => 'late', 'minutesAttended' => 25]));
+		self::assertSame(expected: 1.0, actual: self::evaluate(node: $expression, object: ['status' => 'present', 'minutesAttended' => 60]));
 		self::assertSame(
-			0.8333,
-			self::evaluate(node: $expression, object: ['status' => 'absent-unexcused', '@ref.session.durationMinutes' => 50])
+			expected: 0.8333,
+			actual: self::evaluate(node: $expression, object: ['status' => 'absent-unexcused', '@ref.session.durationMinutes' => 50])
 		);
 	}//end testRoundingKeepsTheHours()
 }//end class
