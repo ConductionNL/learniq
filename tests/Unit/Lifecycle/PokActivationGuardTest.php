@@ -366,4 +366,35 @@ class PokActivationGuardTest extends TestCase {
 
 		return new PokActivationGuard($objectService, $logger, new PokParentSignatureRule($objectService, new LearnerRefResolver($objectService), $time));
 	}//end recordingGuard()
+
+	/**
+	 * A trainer's portal signature, stamped `basic` from an invitation, counts
+	 * as her signature and nothing more: activation still needs the student's
+	 * and the school's, and a minor's parent's (an-invited-trainer-may-activate-a-placement T6).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/an-invited-trainer-may-activate-a-placement/specs/bpv/spec.md#requirement-an-invited-trainer-may-sign-a-praktijkovereenkomst
+	 */
+	public function testAnInvitedTrainersSignatureDoesNotLowerWhatActivationNeeds(): void {
+		$portal = [
+			'signerRole' => 'praktijkopleider',
+			'signerId' => 'trainer-1',
+			'signedAt' => '2025-08-25T12:05:00Z',
+			'assuranceLevel' => 'basic',
+			'method' => 'portal-click-to-confirm',
+		];
+
+		self::assertDenied($this->makeGuard([$portal])->check($this->pokObject(), 'activate', 'coordinator-1'), 'only the trainer signed');
+
+		$withoutSchool = [self::threeSignatures()[0], $portal];
+		self::assertDenied($this->makeGuard($withoutSchool)->check($this->pokObject(), 'activate', 'coordinator-1'), 'the school did not sign');
+
+		$all = [self::threeSignatures()[0], self::threeSignatures()[1], $portal];
+		self::assertAllowed($this->makeGuard($all)->check($this->pokObject(), 'activate', 'coordinator-1'), 'all three signed');
+		self::assertDenied(
+			$this->makeGuard($all, birthDate: '2009-04-30')->check($this->pokObject(), 'activate', 'coordinator-1'),
+			'a minor still needs a parent'
+		);
+	}//end testAnInvitedTrainersSignatureDoesNotLowerWhatActivationNeeds()
 }//end class
