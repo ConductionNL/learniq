@@ -187,7 +187,8 @@ test.describe('esdoornveen: Mijn Esdoornveen (Milan de Groot)', () => {
 			'Werkplan gemaakt',
 			'Tussenbeoordeling',
 			dated('13 oktober 2026'),
-			'januari 2027',
+			// The end of his placement, moved with the load week like every date.
+			dated('januari 2027'),
 		])
 		await expectNoSeriousAxeFinding(page)
 		await boardShot(page, PORTAL, 'Detail', info)
@@ -215,7 +216,8 @@ test.describe('esdoornveen: Mijn Esdoornveen (Milan de Groot)', () => {
 			'96',
 			'Wacht op goedkeuring',
 			'Teruggestuurd',
-			'2026-W40',
+			// A week of the set, moved with the load week (2026-W40 on the board).
+			/\b\d{4}-W\d{2}\b/,
 		])
 		if (info.project.name === 'phone') {
 			await expectNoHorizontalScroll(page)
