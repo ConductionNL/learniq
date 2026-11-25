@@ -13,6 +13,7 @@
 
 import assert from 'node:assert/strict'
 import { afterEach, beforeEach, mock, test } from 'node:test'
+import { learnerLabel } from '../../src/utils/linkedLearners.js'
 import { instanceOf, loadSfc, recordingAxios } from './support/loadSfc.mjs'
 
 const SCREENS = [
@@ -108,3 +109,12 @@ for (const { file, label } of SCREENS) {
 		assert.equal(vm.loadingLearners, false)
 	})
 }
+
+test('a learner option reads her name, not her user id (found live, 25 Nov 2026)', () => {
+	// What OpenRegister answers for a LearnerProfile: no displayName, a computed fullName.
+	assert.equal(learnerLabel({ ncUserId: 'k1', givenName: 'Keuze', familyName: 'Probe', fullName: 'Keuze Probe' }), 'Keuze Probe')
+	assert.equal(learnerLabel({ ncUserId: 'k1', '@self': { name: 'Keuze Probe' } }), 'Keuze Probe')
+	assert.equal(learnerLabel({ ncUserId: 'k1', givenName: 'Keuze', familyName: 'Probe' }), 'Keuze Probe')
+	assert.equal(learnerLabel({ ncUserId: 'k1', displayName: 'Kees' , fullName: 'Keuze Probe' }), 'Kees')
+	assert.equal(learnerLabel({ ncUserId: 'k1' }), 'k1')
+})
