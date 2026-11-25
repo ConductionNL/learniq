@@ -14,7 +14,9 @@
  * Russian and Turkish (ISO 639-1). Override with L10N_REQUIRED_LOCALES.
  *
  * For BOTH translation sets that exist in the app:
- *   • frontend  l10n/en.js   (OC.L10N.register)  -> l10n/<locale>.js
+ *   • frontend  l10n/en.json + l10n/en.js         -> l10n/<locale>.js
+ *     (l10n/en.js carries only the entries whose English differs from the
+ *     key, see scripts/build-l10n-js.js, so en.json is its English source)
  *   • backend   l10n/en.json ({ translations })  -> l10n/<locale>.json
  * it asserts, for every required locale:
  *   1. the locale file exists,
@@ -122,6 +124,10 @@ const sets = [
 		enFile: path.join(L10N_DIR, 'en.js'),
 		file: (loc) => path.join(L10N_DIR, `${loc}.js`),
 		load: loadJs,
+		source: () => ({
+			...loadJsonSet(path.join(L10N_DIR, 'en.json')),
+			...loadJs(path.join(L10N_DIR, 'en.js')),
+		}),
 	},
 	{
 		kind: 'backend (.json)',
@@ -143,7 +149,7 @@ for (const set of sets) {
 		continue // this app does not ship this translation set
 	}
 	checkedSets++
-	const enKeys = Object.keys(set.load(set.enFile))
+	const enKeys = Object.keys(set.source ? set.source() : set.load(set.enFile))
 	observed[set.kind] = { total: enKeys.length, gaps: {} }
 	for (const loc of REQUIRED) {
 		const locFile = set.file(loc)
