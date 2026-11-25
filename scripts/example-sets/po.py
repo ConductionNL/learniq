@@ -109,6 +109,8 @@ SCHEMAS = [
     "permission-response",
     # Appended last (leave-requests-decided-by-the-school, after permission-slips): every earlier schema keeps its uuid namespace.
     "leave-request",
+    # Appended last (today-first-per-school-role): every earlier schema keeps its uuid namespace.
+    "learning-plan",
 ]
 
 # School events a parent sees in the portal calendar: (title, start, end, kind, groups or None for the whole
@@ -935,6 +937,8 @@ class SchoolYear:
         add_group7_today(self.b, self.pupils, self.cohorts)
         # leave-requests-decided-by-the-school: added last, so no uuid moves.
         add_leave_requests(self.b, LEAVE_REQUESTS)
+        # today-first-per-school-role: the intern begeleider's plan that ends on Friday, after every other object.
+        add_tess_plan(self.b, self.pupils, self.cohorts)
         stamp_group_labels(self.b)
 
     def assemble(self) -> dict:
@@ -1404,15 +1408,15 @@ GROUP7_UNTIL = {"Lina": "11:30"}
 def add_group7_today(b: Builder, pupils: list[dict], cohorts: dict) -> None:
     """Lina at the dentist until 11.30 and Hamza reported ill, so the list of groep 7 reads two absent today.
 
-    Both are new pupils with a guardian who reported them this morning; Daan approved both reports
-    and marked them at the 08.30 roll call. Each gets the summary of 2026-2027 the attendance
-    recount writes from that mark (an excused absence at roll call counts as a day). Added after every other object and
-    with no random numbers, so no existing uuid or value moves.
+    Both are new pupils with a guardian who reported them this morning; Daan approved both reports.
+    The register itself is still open (today-first-per-school-role: Today's board at 8.30 reads "Het
+    register van vandaag is nog niet ingevuld" with two parent reports), so neither is marked yet.
+    Each gets the summary of 2026-2027 with no absent day, as the recount leaves it before the mark. Added after
+    every other object and with no random numbers, so no existing uuid moves.
     """
     group = cohorts["Groep 7"]
-    lesson = next(s for s in b.buckets["session"] if s["cohortId"] == group["uuid"] and s["startsAt"][:10] == STORY_TODAY.isoformat())
     teacher = TEACHERS["Groep 7"][0][0]
-    for given, family, birth, guardian_name, (reason, kind, at), (mark_kind, minutes) in GROUP7_TODAY:
+    for given, family, birth, guardian_name, (reason, kind, _at), _mark in GROUP7_TODAY:
         nc, ref = nearing_pupil(b, pupils, group, (given, family, birth, guardian_name))
         profile = next(o for o in b.buckets["learner-profile"] if o["uuid"] == ref)
         guardian = next(o for o in b.buckets["learner-profile"] if o["uuid"] == profile["guardianRefs"][0])
@@ -1423,17 +1427,44 @@ def add_group7_today(b: Builder, pupils: list[dict], cohorts: dict) -> None:
             "decisionNote": None, "lifecycle": "approved",
             **({"untilTime": GROUP7_UNTIL[given]} if given in GROUP7_UNTIL else {}),
         })
-        b.add("attendance-record", {
-            "sessionId": lesson["uuid"], "learnerId": nc, "learnerRef": ref, "cohortId": group["uuid"],
-            "status": "absent-excused", "minutesAttended": minutes, "markedBy": teacher, "markedAt": stamp(STORY_TODAY, 8, 30),
-            "reason": "Afgemeld door ouder", "excuseRequestId": report["uuid"], "lateMinutes": None, "absenceReasonKind": mark_kind,
-        })
+        # today-first-per-school-role: the register of groep 7 is still open on Today's board (8.30, before
+        # roll call), so the two reports wait in it unmarked; the list reads their state from the reports alone
+        # (TodayState::of). No mark means the recount writes no absent day yet.
         b.add("attendance-summary", {
             "learnerId": nc, "learnerRef": ref, "schoolYear": STORY_YEAR,
-            "absentDays": 1, "absentAuthorisedDays": 1, "absentUnauthorisedDays": 0,
-            "lateCount": 0, "lateMinutes": 0, "updatedAt": stamp(STORY_TODAY, 8, 30), **window_fields(0.0),
+            "absentDays": 0, "absentAuthorisedDays": 0, "absentUnauthorisedDays": 0,
+            "lateCount": 0, "lateMinutes": 0, "updatedAt": stamp(STORY_TODAY, 8, 10), **window_fields(0.0),
             "teacherIds": sorted(set(group["teacherIds"]) | {a["teacherId"] for a in group["teacherAssignments"]}),
         })
+
+
+# today-first-per-school-role (board wilgenboom/LqRolB): the intern begeleider's First today reads "Het plan van
+# Tess Bakker loopt vrijdag af zonder evaluatie". Tess is a new pupil of groep 5/6 with a guardian; her plan is
+# active (no evaluation under way) and due for review on Friday 9 October 2026, within the rule's seven days.
+TESS = ("Tess", "Bakker", "2016-03-14", "Ilse")
+TESS_REVIEW = "2026-10-09"
+
+
+def add_tess_plan(b: Builder, pupils: list[dict], cohorts: dict) -> dict:
+    """Tess Bakker's active learning plan of groep 5/6 that ends on Friday without an evaluation.
+
+    The plan is coordinated by the intern begeleider, so it is hers to read on Today (FollowUpFacts::planEnding).
+    Added after every other object and with no random numbers, so no existing uuid moves.
+
+    @spec openspec/changes/today-first-per-school-role/tasks.md#T6
+    """
+    group = cohorts["Groep 5/6"]
+    nc, _ref = nearing_pupil(b, pupils, group, TESS)
+    # nearing_pupil enrols in leerjaar 7 (groep 7's pupils); Tess is in groep 6 of the combination group.
+    b.buckets["enrolment"][-1]["leerjaar"] = 6
+    return b.add("learning-plan", {
+        "learnerId": nc, "kind": "handelingsplan", "cohortId": group["uuid"], "coordinatorId": IB,
+        "goals": [{"goalId": "lezen-avi-e5", "domain": "leren-en-ontwikkeling", "description": "Leest een AVI E5-tekst vloeiend voor."}],
+        "supportMeasures": [{"measureId": "duolezen", "description": "Drie keer per week tien minuten duolezen met de onderwijsassistent.",
+                             "responsibleId": "po-onderwijsassistent-01"}],
+        "period": STORY_YEAR, "reviewCadenceMonths": 2, "nextReviewAt": TESS_REVIEW, "version": 1,
+        "lifecycle": "active",
+    })
 
 
 def stamp_group_labels(b: Builder) -> None:
