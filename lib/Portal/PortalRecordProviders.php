@@ -42,11 +42,13 @@ class PortalRecordProviders {
 	 * @param PortalMessageContacts|null $contacts  Who a resident may write to (portal-message-contacts).
 	 * @param GuardianDocuments|null     $documents What a guardian may download (guardian-reports-and-documents).
 	 * @param LearnerDocuments|null      $learner   What a learner may download (school-documents-on-the-portal).
+	 * @param PortalFileEntries|null     $files     The files kept on a row, such as an employer's certificates ZIP.
 	 */
 	public function __construct(
 		public readonly ?PortalMessageContacts $contacts=null,
 		public readonly ?GuardianDocuments $documents=null,
 		public readonly ?LearnerDocuments $learner=null,
+		public readonly ?PortalFileEntries $files=null,
 	) {
 	}//end __construct()
 }//end class

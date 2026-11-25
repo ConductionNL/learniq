@@ -31,6 +31,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\EmployerCertificatesArchiveInterface;
 use OCA\Learniq\Kernel\Contracts\EmployerCompanyTenancyInterface;
 use OCA\Learniq\Kernel\Contracts\PortalAssertionVerifierInterface;
 use OCA\Learniq\Kernel\Contracts\PortalEmployerBookingsInterface;
@@ -73,6 +74,7 @@ class PortalEmployerController extends Controller {
 	 * @param PortalAssertionVerifierInterface $verifier  Verifies X-Portal-Subject.
 	 * @param PortalEmployerBookingsInterface  $bookings  Checks and stores the writes.
 	 * @param EmployerCompanyTenancyInterface  $tenancy   Checks the company lies in the portal's organisation.
+	 * @param EmployerCertificatesArchiveInterface|null $archives Bundles the company's valid certificates.
 	 *
 	 * @return void
 	 */
@@ -81,6 +83,7 @@ class PortalEmployerController extends Controller {
 		private readonly PortalAssertionVerifierInterface $verifier,
 		private readonly PortalEmployerBookingsInterface $bookings,
 		private readonly EmployerCompanyTenancyInterface $tenancy,
+		private readonly ?EmployerCertificatesArchiveInterface $archives=null,
 	) {
 		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
@@ -156,6 +159,26 @@ class PortalEmployerController extends Controller {
 			work: fn (string $company, array $body): PortalOutcome => $this->bookings->substituteParticipant(organisationRef: $company, body: $body)
 		);
 	}//end substitute()
+
+	/**
+	 * Bundle every valid certificate of the company's people into one ZIP,
+	 * kept with the company's documents for her to download.
+	 *
+	 * @return JSONResponse 201 `{status, title, count, missing}`, or 401 / 403 / 404 / 409 / 502.
+	 *
+	 * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-an-employer-downloads-every-valid-certificate-at-once
+	 */
+	#[PublicPage]
+	#[NoCSRFRequired]
+	#[AnonRateLimit(limit: 30, period: 60)]
+	#[BruteForceProtection(action: self::THROTTLE_ACTION)]
+	public function bundleCertificates(): JSONResponse {
+		return $this->answer(
+			fields: [],
+			work: fn (string $company, array $body): PortalOutcome => $this->archives?->make(organisationRef: $company)
+				?? new PortalOutcome(status: Http::STATUS_SERVICE_UNAVAILABLE, body: ['error' => 'unavailable'])
+		);
+	}//end bundleCertificates()
 
 	/**
 	 * Verify the assertion and the audience, then run the write.
