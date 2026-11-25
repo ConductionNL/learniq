@@ -116,7 +116,12 @@ class ProofOfEnrolment implements ProofOfEnrolmentInterface {
 		$title      = $this->l10nFactory->get(AppIdentity::APP_ID, $language)->t('Proof of enrolment, school year %s', [$schoolYear]);
 
 		$made = $this->pdf->make(
-			target: new PdfTarget(templateSlug: self::TEMPLATE_SLUG, schema: self::ENROLMENT_SCHEMA, recordId: (string)$enrolment['id'], fileName: $title.'.pdf'),
+			target: $this->pdf->target(
+				templateSlug: self::TEMPLATE_SLUG,
+				schema: self::ENROLMENT_SCHEMA,
+				recordId: (string)$enrolment['id'],
+				fileName: $title.'.pdf'
+			),
 			data: [
 				'title' => $title,
 				'learnerName' => $learner->user->getDisplayName(),

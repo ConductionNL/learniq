@@ -32,11 +32,7 @@ namespace OCA\Learniq\Service\Portal;
 use DateTimeImmutable;
 use OCA\Learniq\Kernel\Contracts\LearnerRefResolverInterface;
 use OCA\Learniq\Kernel\Contracts\PortalPermissionAnswerInterface;
-use OCA\Learniq\Support\SerialisedRow;
 use OCA\Learniq\Support\TextValue;
-use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
-use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
-use OCA\OpenRegister\Service\ObjectService;
 use OCP\IAppConfig;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -53,12 +49,6 @@ use Throwable;
  * @spec openspec/changes/archive/2026-11-24-permission-slips
  */
 class PortalPermissionAnswer implements PortalPermissionAnswerInterface {
-
-	private const REGISTER = 'learniq';
-
-	private const REQUEST_SCHEMA = 'permission-request';
-
-	private const RESPONSE_SCHEMA = 'permission-response';
 
 	/**
 	 * The school's floor for the assurance of a permission answer.
@@ -89,20 +79,18 @@ class PortalPermissionAnswer implements PortalPermissionAnswerInterface {
 	/**
 	 * Constructor.
 	 *
-	 * @param ObjectService               $objectService Reads the request and earlier answers; writes the answer.
-	 * @param LearnerRefResolverInterface $profiles      The child's profile, to check it lists the guardian.
-	 * @param IAppConfig                    $appConfig     Holds the school's assurance floor.
-	 * @param LoggerInterface               $logger        PSR logger.
-	 * @param PermissionAnswerDocument|null $documents     Keeps the answer as a document of the child; none in a bare test.
+	 * @param PermissionAnswerStore       $answers   Reads the request; stores the answer and its document.
+	 * @param LearnerRefResolverInterface $profiles  The child's profile, to check it lists the guardian.
+	 * @param IAppConfig                  $appConfig Holds the school's assurance floor.
+	 * @param LoggerInterface             $logger    PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ObjectService $objectService,
+		private readonly PermissionAnswerStore $answers,
 		private readonly LearnerRefResolverInterface $profiles,
 		private readonly IAppConfig $appConfig,
 		private readonly LoggerInterface $logger,
-		private readonly ?PermissionAnswerDocument $documents=null,
 	) {
 	}//end __construct()
 
@@ -179,7 +167,7 @@ class PortalPermissionAnswer implements PortalPermissionAnswerInterface {
 				return $checked;
 			}
 
-			$this->save(response: $response, request: $checked);
+			$this->answers->save(response: $response, request: $checked);
 		} catch (Throwable $exception) {
 			$context = ['msg' => $exception->getMessage(), 'exception' => $exception];
 			$this->logger->error('[PortalPermissionAnswer] A permission answer could not be stored: {msg}', $context);
@@ -190,54 +178,6 @@ class PortalPermissionAnswer implements PortalPermissionAnswerInterface {
 	}//end store()
 
 	/**
-	 * Save the answer in the request's tenant, replacing the answer already given for this child.
-	 *
-	 * @param array<string, string> $response The answer.
-	 * @param array<string, mixed>  $request  The request answered.
-	 *
-	 * @return void
-	 */
-	private function save(array $response, array $request): void {
-		$response['tenant_id'] = (new TextValue())->trimmedOrEmpty(value: ($request['tenant_id'] ?? null));
-		$earlier = $this->earlierResponseId(requestId: $response['permissionRequestId'], learnerRef: $response['learnerRef']);
-		if ($earlier !== null) {
-			$response['id'] = $earlier;
-		}
-
-		$saved = $this->objectService->saveObject(
-			object: $response,
-			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: self::RESPONSE_SCHEMA)),
-			_rbac: false,
-			_multitenancy: false
-		);
-
-		// The answer is stored; its document is a copy for the child's
-		// documents, so a render that fails does not undo the answer.
-		$this->documents?->keep(responseId: self::savedId(saved: $saved, response: $response), response: $response, request: $request);
-	}//end save()
-
-	/**
-	 * The uuid of the stored answer.
-	 *
-	 * @param mixed                 $saved    What OpenRegister returned.
-	 * @param array<string, string> $response The answer, carrying the id when it replaced an earlier one.
-	 *
-	 * @return string '' when neither names it.
-	 *
-	 * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-each-school-audience-offers-its-own-documents-grouped-per-record
-	 */
-	private static function savedId(mixed $saved, array $response): string {
-		$row = [];
-		if (is_object($saved) === true && method_exists($saved, 'jsonSerialize') === true) {
-			$row = (array)$saved->jsonSerialize();
-		} else if (is_array($saved) === true) {
-			$row = $saved;
-		}
-
-		return (string)($row['id'] ?? ($row['uuid'] ?? ($response['id'] ?? '')));
-	}//end savedId()
-
-	/**
 	 * Why the answer is refused, or the request when it may be given.
 	 *
 	 * @param array<string, string> $response The answer, naming the request, the child and the guardian.
@@ -246,7 +186,7 @@ class PortalPermissionAnswer implements PortalPermissionAnswerInterface {
 	 * @return PortalOutcome|array<string, mixed> The refusal, or the request.
 	 */
 	private function refusal(array $response, DateTimeImmutable $now): PortalOutcome|array {
-		$request = $this->row(schema: self::REQUEST_SCHEMA, id: $response['permissionRequestId']);
+		$request = $this->answers->request(id: $response['permissionRequestId']);
 		if ($request === null) {
 			return new PortalOutcome(status: 404, body: ['error' => 'not_found'], reason: 'request-unknown');
 		}
@@ -306,34 +246,6 @@ class PortalPermissionAnswer implements PortalPermissionAnswerInterface {
 	}//end isClosed()
 
 	/**
-	 * The id of the answer already given for this child, so it is replaced.
-	 *
-	 * @param string $requestId  The request's uuid.
-	 * @param string $learnerRef The child's uuid.
-	 *
-	 * @return string|null
-	 */
-	private function earlierResponseId(string $requestId, string $learnerRef): ?string {
-		$earlier = $this->first(
-			config: [
-				'filters' => [
-					'register' => self::REGISTER,
-					'schema' => self::RESPONSE_SCHEMA,
-					'permissionRequestId' => $requestId,
-					'learnerRef' => $learnerRef,
-				],
-			],
-			matches: static fn (array $row): bool => ($row['permissionRequestId'] ?? null) === $requestId && ($row['learnerRef'] ?? null) === $learnerRef
-		);
-
-		if ($earlier === null) {
-			return null;
-		}
-
-		return (string)($earlier['id'] ?? ($earlier['uuid'] ?? ''));
-	}//end earlierResponseId()
-
-	/**
 	 * The school's floor for the assurance of a permission answer.
 	 *
 	 * @return string
@@ -348,41 +260,4 @@ class PortalPermissionAnswer implements PortalPermissionAnswerInterface {
 		return $floor;
 	}//end floor()
 
-	/**
-	 * One row by uuid, RBAC off (the receiver has no session), or null.
-	 *
-	 * @param string $schema The schema slug.
-	 * @param string $id     The uuid.
-	 *
-	 * @return array<string, mixed>|null
-	 */
-	private function row(string $schema, string $id): ?array {
-		return $this->first(
-			config: [
-				'filters' => ['register' => self::REGISTER, 'schema' => $schema],
-				'ids' => [$id],
-			],
-			matches: static fn (array $row): bool => ($row['id'] ?? ($row['uuid'] ?? null)) === $id
-		);
-	}//end row()
-
-	/**
-	 * The first row a search finds that matches, RBAC off (the receiver has no session), or null.
-	 *
-	 * @param array<string, mixed> $config  The search, without its limit.
-	 * @param callable             $matches Whether a row is the one asked for.
-	 *
-	 * @return array<string, mixed>|null
-	 */
-	private function first(array $config, callable $matches): ?array {
-		$objects = $this->objectService->findAll(config: $config + ['limit' => 1], _rbac: false, _multitenancy: false);
-		foreach ($objects as $object) {
-			$row = (new SerialisedRow())->asArray(object: $object);
-			if ($matches($row) === true) {
-				return $row;
-			}
-		}
-
-		return null;
-	}//end first()
 }//end class

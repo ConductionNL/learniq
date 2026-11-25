@@ -30,7 +30,6 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Portal;
 
-use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Support\FleetAppId;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\File\FileUpload;
@@ -55,6 +54,11 @@ class RecordPdf {
 	 * The register the records live in.
 	 */
 	private const REGISTER = 'learniq';
+
+	/**
+	 * The app whose config holds the render credential.
+	 */
+	private const APP_ID = 'learniq';
 
 	/**
 	 * filinq's render endpoint, after the app segment (the report card's).
@@ -89,6 +93,22 @@ class RecordPdf {
 	}//end __construct()
 
 	/**
+	 * The document to render and the record to keep it on.
+	 *
+	 * @param string $templateSlug The render template's slug.
+	 * @param string $schema       The learniq schema of the record.
+	 * @param string $recordId     The record's uuid.
+	 * @param string $fileName     The file's name on the record.
+	 *
+	 * @return PdfTarget
+	 *
+	 * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-each-school-audience-offers-its-own-documents-grouped-per-record
+	 */
+	public function target(string $templateSlug, string $schema, string $recordId, string $fileName): PdfTarget {
+		return new PdfTarget(templateSlug: $templateSlug, schema: $schema, recordId: $recordId, fileName: $fileName);
+	}//end target()
+
+	/**
 	 * Render the document and keep it on its record.
 	 *
 	 * @param PdfTarget            $target The template, the record and the file's name.
@@ -119,9 +139,12 @@ class RecordPdf {
 	 * @return string|null
 	 */
 	private function render(string $templateSlug, array $data): ?string {
-		$token = $this->appConfig->getValueString(app: AppIdentity::APP_ID, key: self::TOKEN_KEY, default: '');
+		$token = $this->appConfig->getValueString(app: self::APP_ID, key: self::TOKEN_KEY, default: '');
 		if ($token === '') {
-			$this->logger->warning('Learniq: no render credential configured (learniq.docudesk_api_token); no document can be made.', ['template' => $templateSlug]);
+			$this->logger->warning(
+				'Learniq: no render credential configured (learniq.docudesk_api_token); no document can be made.',
+				['template' => $templateSlug]
+			);
 			return null;
 		}
 

@@ -126,7 +126,8 @@ class PermissionAnswerDocumentTest extends TestCase {
 	 * @return void
 	 */
 	public function testTheAnswerAndTheNameReadInWords(): void {
-		$this->documents(profile: ['givenName' => 'Vera', 'familyName' => 'Jansen'])->keep(responseId: 'pr-1', response: self::response(answer: 'no'), request: self::request());
+		$this->documents(profile: ['givenName' => 'Vera', 'familyName' => 'Jansen'])
+			->keep(responseId: 'pr-1', response: self::response(answer: 'no'), request: self::request());
 		self::assertSame(expected: 'nl:No, I do not give permission', actual: $this->made[0]['data']['answerText']);
 		self::assertSame(expected: 'Vera Jansen', actual: $this->made[0]['data']['learnerName']);
 

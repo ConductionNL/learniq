@@ -65,7 +65,7 @@ class GuardianDocumentsTest extends TestCase {
 	private function reader(array|RuntimeException $rows, array $files): GuardianDocuments {
 		$this->asked = [];
 		$this->reads = [];
-		$store       = $this->createMock(ObjectService::class);
+		$store       = $this->createMock(originalClassName: ObjectService::class);
 		$store->method('findAll')->willReturnCallback(
 			function (array $config) use ($rows): array {
 				// The first read is the one a test names; every read is kept per schema.
@@ -228,7 +228,10 @@ class GuardianDocumentsTest extends TestCase {
 
 		$entries = $reader->childReports(profileId: 'vera');
 
-		self::assertSame(expected: ['register' => 'learniq', 'schema' => 'permission-response', 'learnerRef' => 'vera'], actual: $this->reads['permission-response']);
+		self::assertSame(
+			expected: ['register' => 'learniq', 'schema' => 'permission-response', 'learnerRef' => 'vera'],
+			actual: $this->reads['permission-response']
+		);
 		self::assertSame(expected: ['71', '81'], actual: array_column(array: $entries, column_key: 'id'));
 		self::assertSame(expected: 'Your answer to "Schoolreis naar Artis"', actual: $entries[1]['title']);
 		self::assertSame(

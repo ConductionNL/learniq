@@ -16,6 +16,7 @@ namespace OCA\Learniq\Tests\Unit\Service\Portal;
 use DateTimeImmutable;
 use OCA\Learniq\Kernel\Contracts\LearnerRefResolverInterface;
 use OCA\Learniq\Service\Portal\PermissionAnswerDocument;
+use OCA\Learniq\Service\Portal\PermissionAnswerStore;
 use OCA\Learniq\Service\Portal\PortalPermissionAnswer;
 use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
 use OCA\OpenRegister\Service\ObjectService;
@@ -116,11 +117,10 @@ class PortalPermissionAnswerTest extends TestCase {
 		$config->method('getValueString')->with('learniq', PortalPermissionAnswer::MIN_ASSURANCE_KEY, 'basic')->willReturn($floor);
 
 		return new PortalPermissionAnswer(
-			objectService: $objectService,
+			answers: new PermissionAnswerStore(objectService: $objectService, documents: $documents),
 			profiles: $profiles,
 			appConfig: $config,
-			logger: new NullLogger(),
-			documents: $documents
+			logger: new NullLogger()
 		);
 	}//end answers()
 
