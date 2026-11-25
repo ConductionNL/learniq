@@ -423,6 +423,8 @@ return \OCA\Learniq\Middleware\Support\ApiPathAliases::withVersionedAliases([
         ['name' => 'todayFirst#counts', 'url' => '/api/today/counts', 'verb' => 'GET'],
         // The BPV-begeleider's hours waiting per company (bpv-coach-today-and-placement-board T5), the longest waiting first.
         ['name' => 'todayFirst#bpvHours', 'url' => '/api/today/bpv-hours', 'verb' => 'GET'],
+        // What waits for the exam committee (exam-committee-today-and-keuzedelen T3): results to establish per sitting and the agenda.
+        ['name' => 'todayFirst#examCommittee', 'url' => '/api/today/exam-committee', 'verb' => 'GET'],
         // Course catalogue (enrolment-catalogue-self-signup): the signed-in
         // learner lists what they may sign up for, signs up for a course or a
         // programme, and withdraws an own sign-up; every write is for the

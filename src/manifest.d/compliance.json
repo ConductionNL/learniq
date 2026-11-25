@@ -822,6 +822,54 @@
 									}
 								},
 								{
+									"id": "ExamObjectionsMenu",
+									"label": "Exam objections",
+									"route": "ExamObjections",
+									"order": 82,
+									"icon": "Gavel",
+									"description": "Objections the exam committee decides",
+									"visibleIf": {
+										"workspace.segment": {
+											"in": [
+												"vo",
+												"mbo",
+												"he",
+												"corporate",
+												"training"
+											]
+										},
+										"workspace.chosenSegment": {
+											"notIn": [
+												"corporate"
+											]
+										}
+									}
+								},
+								{
+									"id": "ExamCommitteeSittingsMenu",
+									"label": "Exam sittings",
+									"route": "ExamSittings",
+									"order": 84,
+									"icon": "ClipboardTextClockOutline",
+									"description": "Sittings whose results the exam committee establishes",
+									"visibleIf": {
+										"workspace.segment": {
+											"in": [
+												"vo",
+												"mbo",
+												"he",
+												"corporate",
+												"training"
+											]
+										},
+										"workspace.chosenSegment": {
+											"notIn": [
+												"corporate"
+											]
+										}
+									}
+								},
+								{
 									"id": "ItemRevisionFlagsMenu",
 									"label": "Item revision flags",
 									"route": "ItemRevisionFlags",

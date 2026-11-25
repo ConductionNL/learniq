@@ -197,6 +197,52 @@ class FirstTodayService {
 	}//end hoursPerCompanyFor()
 
 	/**
+	 * What waits for the exam committee: the results to establish per sitting and the open items, or null when they could not be read.
+	 *
+	 * Only a member of a school's exam committee (FirstTodayRules::ROLE_EXAM_COMMITTEE) reads anything; for
+	 * everybody else both lists are empty.
+	 *
+	 * @param IUser $user The caller.
+	 *
+	 * @return array<string, mixed>|null `sittings` (ExamFacts::resultsPerSitting()) and `agenda` (ExamFacts::agenda()).
+	 *
+	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#T3
+	 */
+	public function examCommitteeFor(IUser $user): ?array {
+		try {
+			if ($this->roleOf(user: $user, view: '') !== FirstTodayRules::ROLE_EXAM_COMMITTEE) {
+				return ['sittings' => [], 'agenda' => []];
+			}
+
+			$facts = new ExamFacts();
+			$results = $this->reader->rows(schema: 'grade-entry', filters: ['lifecycle' => 'published']);
+
+			return [
+				'sittings' => $facts->resultsPerSitting(
+					exam: [
+						'results' => $results,
+						'sittings' => $this->reader->rows(schema: 'exam-sitting', filters: ['lifecycle' => 'planned']),
+						'exams' => $this->reader->rows(schema: 'exam'),
+					]
+				),
+				'agenda' => $facts->agenda(
+					open: [
+						'objections' => $this->reader->rows(schema: 'exam-objection'),
+						'results' => $results,
+						'exemptions' => $this->reader->rows(schema: 'exemption-case'),
+					]
+				),
+			];
+		} catch (Throwable $exception) {
+			$this->logger->error(
+				'[FirstTodayService] What waits for the exam committee could not be read: {msg}',
+				['msg' => $exception->getMessage(), 'exception' => $exception]
+			);
+			return null;
+		}
+	}//end examCommitteeFor()
+
+	/**
 	 * The user's role on Today in the view she asked for.
 	 *
 	 * @param IUser  $user The caller.
