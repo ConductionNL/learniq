@@ -138,7 +138,7 @@ class ComplianceRollupController extends Controller {
 	 * @return JSONResponse { created, skipped, inScope, courses }, or an error.
 	 *
 	 * @spec openspec/parity/capabilities.json#comp-assign-from-hr-roles
-	 * @spec openspec/changes/regulation-assign-by-audience/specs/compliance-rule-coverage/spec.md#requirement-an-assignment-can-be-narrowed-to-one-audience
+	 * @spec openspec/specs/compliance-rule-coverage/spec.md#requirement-an-assignment-can-be-narrowed-to-one-audience
 	 */
 	#[NoAdminRequired]
 	public function assignRegulation(string $id='', string $audienceKind='', string $audience='', string $dueDate=''): JSONResponse {

@@ -1205,8 +1205,10 @@
         "owner": "ConductionNL/learniq",
         "reachedOn": "/enrolments/bulk",
         "change": "enrolment",
-        "requirement": "openspec/specs/enrolment :: Bulk enrolment via cohort, role, department or CSV",
-        "plan": "openspec/changes/regulation-assign-by-audience"
+        "requirement": [
+          "openspec/specs/enrolment :: Bulk enrolment via cohort, role, department or CSV",
+          "openspec/specs/compliance-rule-coverage :: An assignment can be narrowed to one audience"
+        ]
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",

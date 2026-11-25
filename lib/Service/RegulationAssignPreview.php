@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/regulation-assign-by-audience/specs/compliance-rule-coverage/spec.md#requirement-the-assignment-is-previewed-per-audience
+ * @spec openspec/specs/compliance-rule-coverage/spec.md#requirement-the-assignment-is-previewed-per-audience
  */
 
 declare(strict_types=1);
@@ -63,7 +63,7 @@ class RegulationAssignPreview implements RegulationAssignPreviewInterface {
 	 *
 	 * @return array<string,mixed> { courseName, audiences } plus { total, alreadyEnrolled, toEnrol, rows } once an audience is chosen.
 	 *
-	 * @spec openspec/changes/regulation-assign-by-audience/specs/compliance-rule-coverage/spec.md#requirement-the-assignment-is-previewed-per-audience
+	 * @spec openspec/specs/compliance-rule-coverage/spec.md#requirement-the-assignment-is-previewed-per-audience
 	 */
 	public function preview(array $regulation, ?array $audience=null): array {
 		$courses = $this->assignment->publishedCourses(regulation: $regulation);
