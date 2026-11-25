@@ -19,7 +19,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/example-portal-install-steps/specs/example-sets/spec.md#requirement-loading-a-set-gives-its-declared-learners-a-portal-account
+ * @spec openspec/specs/example-sets/spec.md#requirement-loading-a-set-gives-its-declared-learners-a-portal-account
  */
 
 declare(strict_types=1);
@@ -29,7 +29,7 @@ namespace OCA\Learniq\Portal;
 /**
  * A declared account read for its portal account: user id, audience and claims.
  *
- * @spec openspec/changes/example-portal-install-steps/specs/example-sets/spec.md#requirement-loading-a-set-gives-its-declared-learners-a-portal-account
+ * @spec openspec/specs/example-sets/spec.md#requirement-loading-a-set-gives-its-declared-learners-a-portal-account
  */
 final class ExamplePortalAccountRequest {
 
@@ -89,7 +89,7 @@ final class ExamplePortalAccountRequest {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/example-portal-install-steps/specs/example-sets/spec.md#requirement-loading-a-set-gives-its-declared-learners-a-portal-account
+	 * @spec openspec/specs/example-sets/spec.md#requirement-loading-a-set-gives-its-declared-learners-a-portal-account
 	 */
 	public function isNamed(): bool {
 		return $this->uid !== '' && $this->audience !== '';
@@ -100,7 +100,7 @@ final class ExamplePortalAccountRequest {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/example-portal-install-steps/specs/example-sets/spec.md#requirement-loading-a-set-gives-its-declared-learners-a-portal-account
+	 * @spec openspec/specs/example-sets/spec.md#requirement-loading-a-set-gives-its-declared-learners-a-portal-account
 	 */
 	public function displayName(): string {
 		return (string)($this->account['displayName'] ?? '');
