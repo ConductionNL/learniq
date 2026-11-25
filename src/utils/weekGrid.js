@@ -227,3 +227,28 @@ function placeLine(session, pill, translate) {
 	const movedFrom = pill !== null && pill.variant === 'changed' ? textOf(session.movedFromRoom) : ''
 	return movedFrom !== '' ? translate('Not in {room}', { room: movedFrom }) : roomName(session)
 }
+
+/**
+ * The scopes My timetable offers (week-timetable-grid T3): the caller's own
+ * week first, then one per group she mentors, by name. A teacher who mentors
+ * no group gets only her own week, and the page then draws no switch.
+ *
+ * @param {Array<object>} classes The groups from `GET /api/timetable/mentor-classes` (`{id, name}`).
+ * @param {Function} translate `(text, vars) => string`.
+ * @return {Array<{id: string, label: string}>} The scopes; `mine` is the caller's own week.
+ * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+ */
+export function timetableScopes(classes, translate) {
+	const scopes = [{ id: 'mine', label: translate('My timetable', {}) }]
+	const seen = new Set()
+	for (const group of Array.isArray(classes) ? classes : []) {
+		const id = typeof group?.id === 'string' ? group.id : ''
+		if (id === '' || id === 'mine' || seen.has(id)) {
+			continue
+		}
+		seen.add(id)
+		const name = typeof group.name === 'string' && group.name !== '' ? group.name : id
+		scopes.push({ id, label: translate('Mentor class {name}', { name }) })
+	}
+	return scopes
+}

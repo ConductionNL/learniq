@@ -6025,7 +6025,12 @@ OC.L10N.register(
         "No course day. The hall is free.": "No course day. The hall is free.",
         "Past": "Past",
         "today": "today",
-        "_%n participant_::_%n participants_": ["%n participant","%n participants"]
+        "_%n participant_::_%n participants_": ["%n participant","%n participants"],
+        "Whose timetable": "Whose timetable",
+        "Mentor class {name}": "Mentor class {name}",
+        "This group has no lessons today.": "This group has no lessons today.",
+        "This group has no lessons this week.": "This group has no lessons this week.",
+        "Nextcloud user ID of the group's mentor. She can switch My timetable to this group's week (Mentor class). Gives no teacher rights.": "Nextcloud user ID of the group's mentor. She can switch My timetable to this group's week (Mentor class). Gives no teacher rights."
     },
     "nplurals=2; plural=(n != 1);"
 )

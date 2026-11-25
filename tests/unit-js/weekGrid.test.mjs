@@ -10,7 +10,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 
-const { changePill, clockOf, dayOf, isoWeek, lessonHourRows, roomName, weekGridItems } = await import('../../src/utils/weekGrid.js')
+const { changePill, clockOf, dayOf, isoWeek, lessonHourRows, roomName, timetableScopes, weekGridItems } = await import('../../src/utils/weekGrid.js')
 
 /**
  * A translate double that fills `{name}` placeholders.
@@ -128,4 +128,24 @@ test('a moved lesson names its new room in the pill and the room it left on its 
 test('a moved lesson without the room it left keeps its room on the line', () => {
 	const [item] = weekGridItems([{ id: 'm', title: 'X', room: { name: '0.14' }, movedAt: '2026-10-06T08:00:00Z', startsAt: at(7, 10, 25) }], t)
 	assert.deepEqual(item.meta, ['0.14'])
+})
+
+test('a mentor gets her own week first and then each group she mentors (T3)', () => {
+	assert.deepEqual(timetableScopes([{ id: 'c-h4b', name: 'H4b' }, { id: 'c-v4c', name: 'V4c' }], t), [
+		{ id: 'mine', label: 'My timetable' },
+		{ id: 'c-h4b', label: 'Mentor class H4b' },
+		{ id: 'c-v4c', label: 'Mentor class V4c' },
+	])
+})
+
+test('a teacher who mentors no group gets only her own week, so no switch is drawn (T3)', () => {
+	assert.deepEqual(timetableScopes([], t), [{ id: 'mine', label: 'My timetable' }])
+	assert.deepEqual(timetableScopes(undefined, t), [{ id: 'mine', label: 'My timetable' }])
+})
+
+test('a group without an id, a repeated group or one named "mine" adds no scope; a nameless group reads its id (T3)', () => {
+	assert.deepEqual(timetableScopes([{ name: 'H4b' }, { id: 'c-1', name: '' }, { id: 'c-1', name: 'Again' }, { id: 'mine', name: 'X' }, null], t), [
+		{ id: 'mine', label: 'My timetable' },
+		{ id: 'c-1', label: 'Mentor class c-1' },
+	])
 })

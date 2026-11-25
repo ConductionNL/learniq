@@ -68,6 +68,25 @@
 			</div>
 		</div>
 
+		<!-- week-timetable-grid T3: a mentor switches to her mentor class's week. -->
+		<div
+			v-if="scopes.length > 1"
+			class="my-timetable__scopes"
+			role="group"
+			:aria-label="t('learniq', 'Whose timetable')"
+			data-testid="timetable-scopes">
+			<NcButton
+				v-for="option in scopes"
+				:key="option.id"
+				:variant="scope === option.id ? 'primary' : 'secondary'"
+				:aria-pressed="scope === option.id ? 'true' : 'false'"
+				:disabled="loading"
+				:data-testid="'timetable-scope-' + option.id"
+				@click="setScope(option.id)">
+				{{ option.label }}
+			</NcButton>
+		</div>
+
 		<NcLoadingIcon v-if="loading" :size="44" class="my-timetable__loading" />
 
 		<NcEmptyContent
@@ -312,12 +331,14 @@ import LessonNoteDialog from '../dialogs/LessonNoteDialog.vue'
 import SubstitutionModal from '../dialogs/SubstitutionModal.vue'
 import TimetableCalendarFeedDialog from '../dialogs/TimetableCalendarFeedDialog.vue'
 import {
+	fetchCohortTimetable,
+	fetchMentorClasses,
 	fetchMyStandby,
 	fetchMyTimetable,
 	isLearniqSession,
 } from '../api/timetable.js'
 import { joinUrl } from '../utils/onlineLesson.js'
-import { isoWeek, lessonHourRows, weekGridItems } from '../utils/weekGrid.js'
+import { isoWeek, lessonHourRows, timetableScopes, weekGridItems } from '../utils/weekGrid.js'
 
 /**
  * Compute the Monday (00:00, local) of the week containing `date`.
@@ -372,10 +393,24 @@ export default {
 			source: 'learniq',
 			// The caller's standby blocks this week (timetabling-standby-slots).
 			standby: [],
+			// The groups the caller mentors (week-timetable-grid T3), and the
+			// scope in view: `mine`, or the id of one of those groups.
+			mentorClasses: [],
+			scope: 'mine',
 		}
 	},
 
 	computed: {
+		/**
+		 * The scopes the page offers: her own week, then each group she mentors.
+		 *
+		 * @return {Array<{id: string, label: string}>}
+		 * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+		 */
+		scopes() {
+			return timetableScopes(this.mentorClasses, (text, vars) => t('learniq', text, vars))
+		},
+
 		/**
 		 * Title of the card that lists today's changed sessions.
 		 *
@@ -514,6 +549,11 @@ export default {
 		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-signed-in-user-can-see-their-own-upcoming-sessions
 		 */
 		emptyDescription() {
+			if (this.scope !== 'mine') {
+				return this.mode === 'today'
+					? t('learniq', 'This group has no lessons today.')
+					: t('learniq', 'This group has no lessons this week.')
+			}
 			return this.mode === 'today'
 				? t('learniq', 'You have no sessions scheduled for today.')
 				: t(
@@ -538,6 +578,7 @@ export default {
 
 	mounted() {
 		this.load()
+		this.loadMentorClasses()
 	},
 
 	methods: {
@@ -566,6 +607,20 @@ export default {
 			this.loading = true
 			this.error = ''
 			try {
+				if (this.scope !== 'mine') {
+					// A mentor class's week: its lessons only. Today's changes and
+					// standby blocks are the caller's own, so they stay out.
+					const result = await fetchCohortTimetable(
+						this.scope,
+						this.weekStart.toISOString(),
+						this.weekEnd.toISOString(),
+					)
+					this.sessions = result.sessions
+					this.changes = []
+					this.source = result.source
+					this.standby = []
+					return
+				}
 				const result = await fetchMyTimetable(
 					this.weekStart.toISOString(),
 					this.weekEnd.toISOString(),
@@ -587,6 +642,31 @@ export default {
 			} finally {
 				this.loading = false
 			}
+		},
+
+		/**
+		 * Read the groups the caller mentors; she mentors none when the read fails.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+		 */
+		async loadMentorClasses() {
+			this.mentorClasses = await fetchMentorClasses()
+		},
+
+		/**
+		 * Switch between her own week and a mentor class's week.
+		 *
+		 * @param {string} scope `mine`, or a mentor class id.
+		 * @return {void}
+		 * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+		 */
+		setScope(scope) {
+			if (scope === this.scope) {
+				return
+			}
+			this.scope = scope
+			this.load()
 		},
 
 		/**
@@ -801,6 +881,13 @@ export default {
 		display: flex;
 		gap: 4px;
 		margin-inline-start: 12px;
+	}
+
+	&__scopes {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 4px;
+		margin-block-end: 12px;
 	}
 
 	&__loading {

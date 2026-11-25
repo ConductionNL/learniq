@@ -136,6 +136,23 @@ export async function fetchCohortTimetable(cohortId, from, to) {
 }
 
 /**
+ * The groups the caller is the mentor of, for the Mentor class scope of My
+ * timetable (week-timetable-grid T3). An empty list when she mentors none or
+ * the list cannot be read: the page then shows only her own week.
+ *
+ * @return {Promise<Array<{id: string, name: string}>>} The groups, by name.
+ * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+ */
+export async function fetchMentorClasses() {
+	try {
+		const response = await axios.get(generateUrl('/apps/learniq/api/timetable/mentor-classes'))
+		return listOf(response.data?.classes)
+	} catch {
+		return []
+	}
+}
+
+/**
  * Whether a session is a learniq Session that can be opened and managed, as
  * opposed to a lesson from planninq's school timetable.
  *
