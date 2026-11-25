@@ -68,8 +68,8 @@
 					:reduce="(o) => o.id"
 					label="label"
 					:loading="loadingLearners"
-					:inputLabel="t('learniq', 'Learner')"
-					:aria-label-combobox="t('learniq', 'Learner')" />
+					:inputLabel="t('learniq', 'For which child (or yourself)')"
+					:aria-label-combobox="t('learniq', 'For which child (or yourself)')" />
 			</div>
 
 			<div v-if="selectedPlan" class="subject-choice-picker__field">
