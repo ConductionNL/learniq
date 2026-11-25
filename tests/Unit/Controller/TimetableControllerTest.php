@@ -954,7 +954,7 @@ class TimetableControllerTest extends TestCase {
 	 * A mentor reads the groups she mentors, by name, asked with her own uid;
 	 * a group of another mentor or none stays out even when the store returns it.
 	 *
-	 * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
 	 *
 	 * @return void
 	 */
@@ -988,7 +988,7 @@ class TimetableControllerTest extends TestCase {
 	/**
 	 * A teacher who mentors no group gets an empty list, so the page shows no switch.
 	 *
-	 * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
 	 *
 	 * @return void
 	 */
@@ -1002,7 +1002,7 @@ class TimetableControllerTest extends TestCase {
 	/**
 	 * A failing read answers an empty list instead of an error page.
 	 *
-	 * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
 	 *
 	 * @return void
 	 */
@@ -1019,7 +1019,7 @@ class TimetableControllerTest extends TestCase {
 	/**
 	 * Without a user the mentor classes are a 401 and nothing is read.
 	 *
-	 * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
 	 *
 	 * @return void
 	 */

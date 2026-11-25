@@ -679,6 +679,26 @@ class SecondarySchoolExampleSetTest extends TestCase {
 	}//end shown()
 
 	/**
+	 * 3HV-B names its mentor, so her My timetable offers "Mentor class 3HV-B",
+	 * and no other group names one: the switch only shows where the data says so.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+	 */
+	public function testThreeHvbNamesItsMentor(): void {
+		$mentored = array_column(
+			array: array_filter(array: self::of(schema: 'cohort'), callback: static fn (array $c): bool => ($c['mentorId'] ?? null) !== null),
+			column_key: 'mentorId',
+			index_key: 'name'
+		);
+
+		self::assertSame(expected: ['3HV-B' => 'vo-docent-01'], actual: $mentored);
+		$staff = array_column(array: self::of(schema: 'staff'), column_key: 'name', index_key: 'ncUserId');
+		self::assertSame(expected: 'Pieter Jansen', actual: $staff['vo-docent-01']);
+	}//end testThreeHvbNamesItsMentor()
+
+	/**
 	 * Zuiddrecht College on Monday 5 October 2026: Fenna de Jong of 3HV-B, her
 	 * father Erik, her mentor Pieter Jansen, her seven lessons with the room
 	 * change and the cancelled lesson, and the people on the boards.

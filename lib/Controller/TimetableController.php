@@ -215,7 +215,7 @@ class TimetableController extends Controller {
 	 *
 	 * @return JSONResponse 200 with `classes` ({id, name}, by name); 401 without a user.
 	 *
-	 * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]

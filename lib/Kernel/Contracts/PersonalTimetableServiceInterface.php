@@ -77,7 +77,7 @@ interface PersonalTimetableServiceInterface {
 	 *
 	 * @return array<int,array{id: string, name: string}>
 	 *
-	 * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
 	 */
 	public function mentorClasses(string $uid): array;
 }//end interface

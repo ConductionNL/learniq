@@ -17,7 +17,7 @@ import { dayAndMonth, weekdayAndDate } from './plannerToday.js'
  * @param {object|null} answer The endpoint's answer, with `today` (Y-m-d).
  * @param {string} locale The BCP 47 locale.
  * @return {Array<{date: string, label: string, today: boolean, past: boolean, days: Array<{id: string, course: string, trainers: Array<string>, rooms: Array<string>, taken: number, capacity: number|null}>}>} Monday to Friday.
- * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-training-planner-sees-this-weeks-course-days-with-their-occupancy
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-a-training-planner-sees-this-weeks-course-days-with-their-occupancy
  */
 export function weekStrip(answer, locale) {
 	const today = answer ? answer.today : null
@@ -39,7 +39,7 @@ export function weekStrip(answer, locale) {
  *
  * @param {object|null} answer The endpoint's answer.
  * @return {Map<string, Array<object>>} The course days per Y-m-d date.
- * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-training-planner-sees-this-weeks-course-days-with-their-occupancy
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-a-training-planner-sees-this-weeks-course-days-with-their-occupancy
  */
 function courseDaysByDate(answer) {
 	const byDate = new Map()
@@ -61,7 +61,7 @@ function courseDaysByDate(answer) {
  *
  * @param {object} day A day of the answer's occupancy.
  * @return {{id: string, course: string, trainers: Array<string>, rooms: Array<string>, taken: number, capacity: number|null}} The entry.
- * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-training-planner-sees-this-weeks-course-days-with-their-occupancy
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-a-training-planner-sees-this-weeks-course-days-with-their-occupancy
  */
 function stripEntry(day) {
 	const entry = { id: day.id, course: day.courseName || day.name || '' }
@@ -77,7 +77,7 @@ function stripEntry(day) {
  *
  * @param {string} date The date.
  * @return {Array<string>} Five Y-m-d dates.
- * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-training-planner-sees-this-weeks-course-days-with-their-occupancy
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-a-training-planner-sees-this-weeks-course-days-with-their-occupancy
  */
 export function workingDaysOf(date) {
 	const [year, month, day] = date.split('-').map(Number)

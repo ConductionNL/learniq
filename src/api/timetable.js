@@ -141,7 +141,7 @@ export async function fetchCohortTimetable(cohortId, from, to) {
  * the list cannot be read: the page then shows only her own week.
  *
  * @return {Promise<Array<{id: string, name: string}>>} The groups, by name.
- * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
  */
 export async function fetchMentorClasses() {
 	try {

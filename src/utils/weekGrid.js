@@ -16,7 +16,7 @@
  * (cover), or, for a lesson the roosterkamer moved (`movedAt`), the room it is
  * in now, with "not in" the room it left (`movedFromRoom`) on its line. The grid fetches nothing; My timetable passes the week it loaded.
  *
- * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
  */
 
 /**
@@ -24,7 +24,7 @@
  *
  * @param {string} iso The timestamp.
  * @return {string} `HH:MM`, or '' when the value is no timestamp.
- * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
  */
 export function clockOf(iso) {
 	if (typeof iso !== 'string' || iso === '') {
@@ -43,7 +43,7 @@ export function clockOf(iso) {
  *
  * @param {Date} date Any day of the week.
  * @return {number} The week number.
- * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
  */
 export function isoWeek(date) {
 	const thursday = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 3 - ((date.getDay() + 6) % 7))
@@ -57,7 +57,7 @@ export function isoWeek(date) {
  *
  * @param {string} iso The timestamp.
  * @return {string} The day, or '' when the value is no timestamp.
- * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
  */
 export function dayOf(iso) {
 	const ts = typeof iso === 'string' ? Date.parse(iso) : Number.NaN
@@ -78,7 +78,7 @@ export function dayOf(iso) {
  * @param {Array<object>} sessions The week's sessions.
  * @param {(text: string, vars?: object) => string} translate Translates `{n}th hour` style labels.
  * @return {Array<{key: string, label: string, start: string, end: string}>} The rows.
- * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
  */
 export function lessonHourRows(sessions, translate) {
 	const ends = new Map()
@@ -106,7 +106,7 @@ export function lessonHourRows(sessions, translate) {
  * @param {object} session The session.
  * @param {(text: string, vars?: object) => string} translate The translate function.
  * @return {{label: string, variant: string}|null} The pill.
- * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
  */
 export function changePill(session, translate) {
 	if (session?.lifecycle === 'cancelled') {
@@ -128,7 +128,7 @@ export function changePill(session, translate) {
  *
  * @param {object} session The session.
  * @return {string} The room, or ''.
- * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
  */
 export function roomName(session) {
 	const { room, location } = session || {}
@@ -145,7 +145,7 @@ export function roomName(session) {
  *
  * @param {string|undefined|null} value The value.
  * @return {string} The text.
- * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
  */
 function textOf(value) {
 	return typeof value === 'string' ? value : ''
@@ -156,7 +156,7 @@ function textOf(value) {
  *
  * @param {string} place The location.
  * @return {boolean} True for an http(s) link.
- * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
  */
 function isOnlineLink(place) {
 	const lower = place.toLowerCase()
@@ -169,7 +169,7 @@ function isOnlineLink(place) {
  * @param {Array<object>} sessions The week's sessions.
  * @param {(text: string, vars?: object) => string} translate The translate function.
  * @return {Array<object>} The entries; `session` is the session itself.
- * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
  */
 export function weekGridItems(sessions, translate) {
 	const list = Array.isArray(sessions) ? sessions : []
@@ -182,7 +182,7 @@ export function weekGridItems(sessions, translate) {
  * @param {object} session The session.
  * @param {(text: string, vars?: object) => string} translate The translate function.
  * @return {object|null} The entry.
- * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
  */
 function gridItem(session, translate) {
 	const start = clockOf(session?.startsAt)
@@ -207,7 +207,7 @@ function gridItem(session, translate) {
  *
  * @param {object} session The session.
  * @return {string} The group.
- * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
  */
 function groupName(session) {
 	return textOf(session.cohortName) || textOf(session.cohort && session.cohort.name)
@@ -221,7 +221,7 @@ function groupName(session) {
  * @param {{label: string, variant: string}|null} pill Its change pill.
  * @param {(text: string, vars?: object) => string} translate The translate function.
  * @return {string} The place.
- * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
  */
 function placeLine(session, pill, translate) {
 	const movedFrom = pill !== null && pill.variant === 'changed' ? textOf(session.movedFromRoom) : ''
@@ -236,7 +236,7 @@ function placeLine(session, pill, translate) {
  * @param {Array<object>} classes The groups from `GET /api/timetable/mentor-classes` (`{id, name}`).
  * @param {Function} translate `(text, vars) => string`.
  * @return {Array<{id: string, label: string}>} The scopes; `mine` is the caller's own week.
- * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
  */
 export function timetableScopes(classes, translate) {
 	const scopes = [{ id: 'mine', label: translate('My timetable', {}) }]
