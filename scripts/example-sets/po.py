@@ -109,6 +109,8 @@ SCHEMAS = [
     "permission-response",
     # Appended last (leave-requests-decided-by-the-school, after permission-slips): every earlier schema keeps its uuid namespace.
     "leave-request",
+    # Appended last (today-first-per-school-role): every earlier schema keeps its uuid namespace.
+    "learning-plan",
 ]
 
 # School events a parent sees in the portal calendar: (title, start, end, kind, groups or None for the whole
@@ -935,6 +937,8 @@ class SchoolYear:
         add_group7_today(self.b, self.pupils, self.cohorts)
         # leave-requests-decided-by-the-school: added last, so no uuid moves.
         add_leave_requests(self.b, LEAVE_REQUESTS)
+        # today-first-per-school-role: the IB's plan that ends on Friday, added last, so no uuid moves.
+        add_plan_ending_friday(self.b, self.pupils, self.cohorts)
         stamp_group_labels(self.b)
 
     def assemble(self) -> dict:
@@ -1531,6 +1535,33 @@ LEAVE_REQUESTS = [
     ("Groep 7", set(), "wedding", "2026-10-29", "2026-10-30", "Bruiloft in de familie, in Rabat.", 2, "2026-10-07"),
     ("Groep 4", set(), "family-circumstance", "2026-11-13", "2026-11-13", "Vijftigjarig huwelijk van opa en oma.", 1, "2026-10-09"),
 ]
+
+
+# The intern begeleider's First today on wilgenboom/LqRolB: "Het plan van Tess Bakker loopt vrijdag af zonder
+# evaluatie". (given, family, birth, guardian), the group, and the plan's review day: Friday of the story week.
+PLAN_ENDING_PUPIL = ("Tess", "Bakker", "2016-03-14", "Ilse")
+PLAN_ENDING_GROUP = "Groep 5/6"
+PLAN_ENDING_ON = STORY_TODAY + dt.timedelta(days=4)
+
+
+def add_plan_ending_friday(b: Builder, pupils: list[dict], cohorts: dict) -> None:
+    """Tess Bakker's active handelingsplan, reviewed on Friday of the story week with no evaluation planned, so the
+    intern begeleider's first rule (a plan ending within seven days) names her. Runs last and draws no random
+    number, so no earlier uuid moves.
+
+    @spec openspec/changes/today-first-per-school-role/tasks.md
+    """
+    group = cohorts[PLAN_ENDING_GROUP]
+    nc, _ref = nearing_pupil(b, pupils, group, PLAN_ENDING_PUPIL)
+    b.add("learning-plan", {
+        "learnerId": nc, "kind": "handelingsplan", "cohortId": group["uuid"], "coordinatorId": IB,
+        "goals": [{"goalId": "doel-1", "description": "Tess leest een tekst van AVI E5 vlot en met begrip.",
+                   "domain": "leren-en-ontwikkeling", "targetDate": PLAN_ENDING_ON.isoformat(), "status": "open"}],
+        "supportMeasures": [{"measureId": "maatregel-1",
+                             "description": "Drie keer per week twintig minuten duolezen met de intern begeleider."}],
+        "period": STORY_YEAR, "reviewCadenceMonths": 2, "nextReviewAt": PLAN_ENDING_ON.isoformat(), "version": 1,
+        "lifecycle": "active",
+    })
 
 
 def add_leave_requests(b: Builder, rows: list[tuple]) -> None:
