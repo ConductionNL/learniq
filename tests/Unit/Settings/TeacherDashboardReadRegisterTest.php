@@ -15,7 +15,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/teacher-dashboard-own-groups/tasks.md#1-6
+ * @spec openspec/changes/archive/2026-11-25-teacher-dashboard-own-groups/tasks.md#1-6
  */
 
 declare(strict_types=1);

@@ -11,7 +11,7 @@
  * Plain ES module (not a .vue SFC) so it is directly importable from a Node
  * test runner without an SFC compile step.
  *
- * @spec openspec/changes/teacher-dashboard-own-groups/specs/dashboard/spec.md#requirement-the-teacher-dashboard-of-a-group-teacher-lists-only-their-own-groups
+ * @spec openspec/specs/dashboard/spec.md#requirement-the-teacher-dashboard-of-a-group-teacher-lists-only-their-own-groups
  *
  * SPDX-License-Identifier: EUPL-1.2
  * SPDX-FileCopyrightText: 2026 Conduction B.V.
@@ -22,7 +22,7 @@
  *
  * @param {string} primaryRole The resolved role (initial state `primaryRole`).
  * @return {boolean} True for a group teacher only.
- * @spec openspec/changes/teacher-dashboard-own-groups/specs/dashboard/spec.md#requirement-the-teacher-dashboard-of-a-group-teacher-lists-only-their-own-groups
+ * @spec openspec/specs/dashboard/spec.md#requirement-the-teacher-dashboard-of-a-group-teacher-lists-only-their-own-groups
  */
 export function isScopedTeacher(primaryRole) {
 	return primaryRole === 'instructor'
@@ -48,7 +48,7 @@ function idOf(row) {
  * @param {object[]} input.cohorts Cohorts from `?teacherIds=<userId>`.
  * @param {object[]} [input.programmes] The programmes those cohorts name.
  * @return {{cohortIds: string[], courseIds: string[], programmeIds: string[], learnerIds: string[]}}
- * @spec openspec/changes/teacher-dashboard-own-groups/specs/dashboard/spec.md#requirement-the-teacher-dashboard-of-a-group-teacher-lists-only-their-own-groups
+ * @spec openspec/specs/dashboard/spec.md#requirement-the-teacher-dashboard-of-a-group-teacher-lists-only-their-own-groups
  * @spec openspec/changes/teacher-dashboard-engagement-tiles/specs/dashboard/spec.md#requirement-the-engagement-tiles-of-a-group-teacher-count-only-their-own-groups
  */
 export function teacherScope({ userId, cohorts = [], programmes = [] }) {
@@ -124,7 +124,7 @@ export function teacherTileSource(source, scope, pending) {
  * @param {string} userId The teacher's Nextcloud user id.
  * @param {{cohortIds: string[], courseIds: string[]}|null} scope The teacher scope, or null for school-wide.
  * @return {{cohorts: object, courses: object, sessions: object, assignments: object}}
- * @spec openspec/changes/teacher-dashboard-own-groups/specs/dashboard/spec.md#requirement-the-teacher-dashboard-of-a-group-teacher-lists-only-their-own-groups
+ * @spec openspec/specs/dashboard/spec.md#requirement-the-teacher-dashboard-of-a-group-teacher-lists-only-their-own-groups
  */
 export function teacherWidgetFilters(userId, scope) {
 	if (!scope) {
@@ -148,7 +148,7 @@ export function teacherWidgetFilters(userId, scope) {
  *
  * @param {object} filter A list filter.
  * @return {boolean}
- * @spec openspec/changes/teacher-dashboard-own-groups/specs/dashboard/spec.md#scenario-a-teacher-without-a-group-sees-empty-lists
+ * @spec openspec/specs/dashboard/spec.md#scenario-a-teacher-without-a-group-sees-empty-lists
  */
 export function filterMatchesNothing(filter) {
 	return Object.values(filter || {}).some(
@@ -164,7 +164,7 @@ export function filterMatchesNothing(filter) {
  * @param {URLSearchParams} params The parameters to add to.
  * @param {object} filter A list filter.
  * @return {URLSearchParams} The same parameters.
- * @spec openspec/changes/teacher-dashboard-own-groups/specs/dashboard/spec.md#requirement-the-teacher-dashboard-of-a-group-teacher-lists-only-their-own-groups
+ * @spec openspec/specs/dashboard/spec.md#requirement-the-teacher-dashboard-of-a-group-teacher-lists-only-their-own-groups
  */
 export function appendFilter(params, filter) {
 	for (const [key, value] of Object.entries(filter || {})) {

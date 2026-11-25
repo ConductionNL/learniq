@@ -10858,17 +10858,17 @@
       "name": "Show a group teacher a dashboard of only their own groups, courses, lessons and assignments.",
       "origin": "change",
       "built": {
-        "state": "building",
-        "evidence": "Partly built through openspec/changes/teacher-dashboard-own-groups; its open tasks carry the rest.",
+        "state": "built",
+        "evidence": "src/utils/teacherScope.js, src/views/LearniqDashboards.vue and src/views/widgets/ManageListWidget.vue scope the teacher dashboard to the cohorts a group teacher teaches; Cohort and Session authorization.read admit coordinators and administration-managers (register 0.75.0). Tests: tests/unit-js/teacherScope.test.mjs, dashboardTeacherScope.test.mjs, manageListWidgetFetch.test.mjs, TeacherDashboardReadRegisterTest. Checked live 25 Nov 2026 in a browser as po-leerkracht-09, po-ib-01 and po-directeur-01. Built through openspec/changes/archive/2026-11-25-teacher-dashboard-own-groups.",
         "owner": "ConductionNL/learniq",
-        "change": "teacher-dashboard-own-groups",
-        "requirement": "openspec/changes/teacher-dashboard-own-groups/specs/dashboard :: The teacher dashboard of a group teacher lists only their own groups",
-        "plan": "openspec/changes/teacher-dashboard-own-groups"
+        "change": "2026-11-25-teacher-dashboard-own-groups",
+        "requirement": "openspec/specs/dashboard :: The teacher dashboard of a group teacher lists only their own groups",
+        "reachedOn": "/"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
       "feature": "teacher-dashboard-own-groups",
-      "learniq": "partial",
+      "learniq": "yes",
       "moodle": "unknown",
       "moodle-workplace": "unknown",
       "ilias": "unknown",
