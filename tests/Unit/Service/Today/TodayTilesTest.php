@@ -19,6 +19,7 @@ use OCA\Learniq\Kernel\Contracts\DashboardRoleServiceInterface;
 use OCA\Learniq\Kernel\Contracts\SegmentServiceInterface;
 use OCA\Learniq\Service\Today\FirstTodayReader;
 use OCA\Learniq\Service\Today\TodayContext;
+use OCA\Learniq\Service\Today\FirstTodayProbe;
 use OCA\Learniq\Service\Today\FirstTodayService;
 use OCA\Learniq\Service\Today\TodayTiles;
 use OCP\IUser;
@@ -241,7 +242,7 @@ class TodayTilesTest extends TestCase {
 			}
 		}
 
-		$keyed = TodayTiles::byTile(tiles: array_values($tiles));
+		$keyed = $this->tiles()->byTile(tiles: array_values($tiles));
 
 		self::assertSame(
 			expected: [
@@ -270,8 +271,20 @@ class TodayTilesTest extends TestCase {
 	 * @return void
 	 */
 	public function testByTileSkipsARowWithoutAnId(): void {
-		self::assertSame(expected: [], actual: TodayTiles::byTile(tiles: [['count' => 3], ['id' => '', 'count' => 1]]));
+		self::assertSame(expected: [], actual: $this->tiles()->byTile(tiles: [['count' => 3], ['id' => '', 'count' => 1]]));
 	}//end testByTileSkipsARowWithoutAnId()
+
+	/**
+	 * Tiles over a reader and a probe that are never asked: byTile() reads nothing.
+	 *
+	 * @return TodayTiles
+	 */
+	private function tiles(): TodayTiles {
+		$reader = $this->createMock(originalClassName: FirstTodayReader::class);
+		$reader->expects(self::never())->method('rows');
+
+		return new TodayTiles(reader: $reader, probe: new FirstTodayProbe(reader: $reader));
+	}//end tiles()
 
 	/**
 	 * A failed read answers null, so the controller can say so.

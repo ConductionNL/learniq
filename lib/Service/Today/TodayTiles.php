@@ -127,7 +127,7 @@ final class TodayTiles {
 	 *
 	 * @spec openspec/changes/today-first-per-school-role/tasks.md#T4
 	 */
-	public static function byTile(array $tiles): array {
+	public function byTile(array $tiles): array {
 		$keyed = [];
 		foreach ($tiles as $tile) {
 			$id = (string)($tile['id'] ?? '');

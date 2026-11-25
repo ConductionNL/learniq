@@ -137,7 +137,8 @@ class FirstTodayService {
 	 * @param IUser  $user The caller.
 	 * @param string $view The view asked for: '' or `mentor`.
 	 *
-	 * @return array<string, mixed>|null `role` (null when Today has no card for her), `tiles`, each `{id, count, ...}`, and `byTile`, the same tiles keyed for the manifest (TodayTiles::byTile()).
+	 * @return array<string, mixed>|null `role` (null when Today has no card for her), `tiles`, each
+	 *                                   `{id, count, ...}`, and `byTile`, the same tiles keyed for the manifest.
 	 *
 	 * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-each-role-tile-counts-what-that-role-acts-on-and-opens-the-list-it-counts
 	 * @spec openspec/changes/today-first-per-school-role/tasks.md#T4
@@ -150,7 +151,7 @@ class FirstTodayService {
 			}
 
 			$tiles = $this->tiles->forRole(role: (string)$role, context: $this->reader->contextFor(user: $user));
-			return ['role' => $role, 'tiles' => $tiles, 'byTile' => TodayTiles::byTile(tiles: $tiles)];
+			return ['role' => $role, 'tiles' => $tiles, 'byTile' => $this->tiles->byTile(tiles: $tiles)];
 		} catch (Throwable $exception) {
 			$this->logger->error(
 				'[FirstTodayService] The tiles on Today could not be read: {msg}',
