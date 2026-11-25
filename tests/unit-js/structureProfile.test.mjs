@@ -177,6 +177,8 @@ function todayView(id) {
 const TEACHER = todayView('teacher')
 /** The Mentor view of Today: the signals of the pupils the reader mentors. */
 const MENTOR = todayView('mentor')
+/** The BPV-begeleider view of Today: her students, visits and hours (bpv-coach-today-and-placement-board T5). */
+const BPV = todayView('bpv')
 /** The roles that get Report a concern as a button on their start page. */
 const CONCERN_ROLES = ['learner', 'guardian']
 /** The roles the Today dashboard is for. */
@@ -242,6 +244,7 @@ const FIRST_TODAY_RULES = {
 		'register-not-filled', 'bookings-to-confirm', 'nearing-limit',
 		'lesson-register-open', 'missing-hand-ins',
 		'unauthorised-absence', 'mentor-talks-closing',
+		'placement-without-company', 'visit-without-date', 'hours-waiting',
 	],
 	coordinator: ['plan-ending', 'signal-not-taken-up'],
 	'administration-manager': ['leave-past-half', 'over-limit-not-reported', 'registers-not-filled-at-930'],
@@ -1625,6 +1628,7 @@ test('each Today view has one First today card, read from the server once', () =
 	for (const [view, endpoint] of [
 		[TEACHER, '/apps/learniq/api/today/first'],
 		[MENTOR, '/apps/learniq/api/today/first?view=mentor'],
+		[BPV, '/apps/learniq/api/today/first?view=bpv'],
 	]) {
 		const cards = view.widgets.filter(
 			(widget) => widget.type === 'banner' && widget.content.kicker === 'First today',
@@ -2120,13 +2124,57 @@ test('learners and guardians get no Learners caption', () => {
 test('Today offers the role choice Docent | Mentor as the board draws it', () => {
 	assert.deepEqual(
 		TODAY.config.views.map((view) => [view.id, view.label]),
-		[['teacher', 'Teacher'], ['mentor', 'Mentor']],
+		[['teacher', 'Teacher'], ['mentor', 'Mentor'], ['bpv', 'BPV coach']],
 	)
 	assert.equal(TODAY.config.defaultView, 'teacher')
 	assert.deepEqual(TODAY.config.layout, [])
-	const placed = new Set([...TEACHER.layout, ...MENTOR.layout].map((item) => item.widgetId))
+	const placed = new Set([...TEACHER.layout, ...MENTOR.layout, ...BPV.layout].map((item) => item.widgetId))
 	for (const widget of TODAY.config.widgets) {
 		assert.ok(placed.has(widget.id), `${widget.id} is placed in no view`)
+	}
+})
+
+test('the BPV view is offered to a school coach and counts only her own placements', () => {
+	// bpv-coach-today-and-placement-board T5 (LqRolB): her First today, her
+	// visits of the week as day columns, her students per phase.
+	const view = TODAY.config.views.find((candidate) => candidate.id === 'bpv')
+	const mine = { schoolCoachId: '@me' }
+	assert.deepEqual(view.visibleWhen, {
+		source: { register: 'learniq', schema: 'bpv-placement', filter: mine },
+		op: 'gt',
+		value: 0,
+	})
+	const week = BPV.widgets.find((widget) => widget.type === 'week-strip')
+	assert.equal(week.content.source.schema, 'bpv-visit')
+	assert.deepEqual(week.content.source.filter, { ...mine, lifecycle: 'planned' })
+	assert.equal(week.content.dateField, 'plannedAt')
+	const phases = BPV.widgets.find((widget) => widget.type === 'stat-grid')
+	const register = readJson('lib/Settings/learniq_register.json')
+	const order = register.components.schemas.BpvPlacement.properties.phase.enum
+	assert.deepEqual(phases.content.cells.map((cell) => cell.key), order)
+	for (const cell of phases.content.cells) {
+		assert.deepEqual(cell.source, {
+			register: 'learniq',
+			schema: 'bpv-placement',
+			metric: 'count',
+			filter: { ...mine, phase: cell.key },
+		})
+		assert.deepEqual(cell.route, { name: 'BpvPlacements', query: { _view: 'board', phase: cell.key } })
+	}
+	assert.deepEqual(phases.headerLink.query, { _view: 'board' })
+	for (const item of BPV.layout) {
+		assert.ok(item.gridX + item.gridWidth <= 12, `${item.widgetId} is too wide`)
+	}
+	// Every page the view opens is one the full menu offers a teacher.
+	const offered = reachable(build(FULL, 'instructor'))
+	const links = [
+		...phases.content.cells.map((cell) => routeName(cell.route)),
+		phases.headerLink.route,
+		week.content.moreRoute,
+		...BPV.layout.map((item) => item.headerLink?.route).filter(Boolean),
+	]
+	for (const link of links) {
+		assert.ok(offered.has(link), `a teacher gets a link to ${link}`)
 	}
 })
 
