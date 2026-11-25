@@ -20,7 +20,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
+ * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
  */
 
 declare(strict_types=1);
@@ -30,7 +30,7 @@ namespace OCA\Learniq\Service\Today;
 /**
  * Reads and counts one rule for a caller.
  *
- * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
+ * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
  */
 class FirstTodayProbe {
 
@@ -101,7 +101,7 @@ class FirstTodayProbe {
 	 *
 	 * @return array<string, mixed>|null
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/tasks.md#T1
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/tasks.md#T1
 	 */
 	public function facts(string $rule, TodayContext $context): ?array {
 		$uid = $context->uid();
@@ -135,7 +135,7 @@ class FirstTodayProbe {
 	 *
 	 * @return array<string, mixed>|null
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/tasks.md#T1
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/tasks.md#T1
 	 */
 	private function followUpFacts(string $rule, TodayContext $context): ?array {
 		$uid = $context->uid();
@@ -222,7 +222,7 @@ class FirstTodayProbe {
 	 *
 	 * @return list<array<string, mixed>>
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/tasks.md#T2
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/tasks.md#T2
 	 */
 	public function groups(TodayContext $context, bool $own): array {
 		$key = $context->uid() . '|' . (int)$own . '|' . $context->today();
@@ -240,7 +240,7 @@ class FirstTodayProbe {
 	 *
 	 * @return list<array<string, mixed>>
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/tasks.md#T2
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/tasks.md#T2
 	 */
 	public function ownSessions(TodayContext $context): array {
 		$sessions = [];

@@ -23,7 +23,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/today-first-per-school-role/tasks.md#T6
+ * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/tasks.md#T6
  */
 
 declare(strict_types=1);
@@ -123,7 +123,7 @@ class TodayFirstExampleStatesTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#scenario-meester-daan-before-845
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/specs/dashboard/spec.md#scenario-meester-daan-before-845
 	 */
 	public function testGroep7RegisterIsOpenWithTwoParentReports(): void {
 		$facts = (new RegisterFacts())->registerNotFilled(groups: [self::group(set: 'po', name: 'Groep 7')], now: self::at(time: '08:40'));

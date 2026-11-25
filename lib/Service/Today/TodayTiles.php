@@ -20,7 +20,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-each-role-tile-counts-what-that-role-acts-on-and-opens-the-list-it-counts
+ * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/specs/dashboard/spec.md#requirement-each-role-tile-counts-what-that-role-acts-on-and-opens-the-list-it-counts
  */
 
 declare(strict_types=1);
@@ -30,7 +30,7 @@ namespace OCA\Learniq\Service\Today;
 /**
  * Counts the role tiles on Today.
  *
- * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-each-role-tile-counts-what-that-role-acts-on-and-opens-the-list-it-counts
+ * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/specs/dashboard/spec.md#requirement-each-role-tile-counts-what-that-role-acts-on-and-opens-the-list-it-counts
  */
 final class TodayTiles {
 
@@ -91,7 +91,7 @@ final class TodayTiles {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/tasks.md#T2
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/tasks.md#T2
 	 */
 	public function hasTiles(?string $role): bool {
 		return (self::TILES[$role ?? ''] ?? []) !== [];
@@ -105,7 +105,7 @@ final class TodayTiles {
 	 *
 	 * @return list<array<string, mixed>> Each `{id, count, ...}`.
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-each-role-tile-counts-what-that-role-acts-on-and-opens-the-list-it-counts
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/specs/dashboard/spec.md#requirement-each-role-tile-counts-what-that-role-acts-on-and-opens-the-list-it-counts
 	 */
 	public function forRole(string $role, TodayContext $context): array {
 		$tiles = [];
@@ -125,7 +125,7 @@ final class TodayTiles {
 	 *
 	 * @return array<string, array<string, mixed>>
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/tasks.md#T4
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/tasks.md#T4
 	 */
 	public function byTile(array $tiles): array {
 		$keyed = [];
@@ -149,7 +149,7 @@ final class TodayTiles {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/tasks.md#T2
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/tasks.md#T2
 	 */
 	private function count(string $tile, TodayContext $context): array {
 		$uid = $context->uid();
@@ -181,7 +181,7 @@ final class TodayTiles {
 	 *
 	 * @return array<string, int>
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/tasks.md#T2
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/tasks.md#T2
 	 */
 	private function submissionsToMark(TodayContext $context): array {
 		$cohortIds = [];

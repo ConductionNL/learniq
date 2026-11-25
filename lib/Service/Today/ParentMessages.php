@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/today-first-per-school-role/tasks.md#T5
+ * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/tasks.md#T5
  */
 
 declare(strict_types=1);
@@ -32,7 +32,7 @@ namespace OCA\Learniq\Service\Today;
 /**
  * The newest conversations with parents for Today.
  *
- * @spec openspec/changes/today-first-per-school-role/tasks.md#T5
+ * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/tasks.md#T5
  */
 final class ParentMessages {
 	use RowValues;
@@ -67,7 +67,7 @@ final class ParentMessages {
 	 *
 	 * @return array<string, mixed> threads (threadId, title, about, line, sentAt, fromMe, unread), unreadCount, total.
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/proposal.md
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/proposal.md
 	 */
 	public function newest(array $threads, array $byThread, string $staffRef, ?array $pupilRefs=null, int $limit=self::LIMIT): array {
 		$rows = [];

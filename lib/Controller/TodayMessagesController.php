@@ -19,7 +19,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/today-first-per-school-role/tasks.md#T5
+ * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/tasks.md#T5
  */
 
 declare(strict_types=1);
@@ -39,7 +39,7 @@ use OCP\IUserSession;
 /**
  * The "Messages from parents" card on Today.
  *
- * @spec openspec/changes/today-first-per-school-role/tasks.md#T5
+ * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/tasks.md#T5
  */
 class TodayMessagesController extends Controller {
 
@@ -65,7 +65,7 @@ class TodayMessagesController extends Controller {
 	 *
 	 * @return JSONResponse
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/tasks.md#T5
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/tasks.md#T5
 	 */
 	#[NoAdminRequired]
 	public function parentMessages(): JSONResponse {
