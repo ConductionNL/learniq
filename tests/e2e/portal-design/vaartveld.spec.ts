@@ -259,12 +259,21 @@ test.describe.serial('vaartveld: Fenna books a steunles and her mentor talk', ()
 	test.afterAll(async () => {
 		const admin = await fx.api()
 		if (slotId !== '') {
-			// Deleting her booking does not have to free the time; set it free as the set loaded it.
-			await admin
-				.patch(`/index.php/apps/openregister/api/objects/learniq/conference-slot/${slotId}`, {
-					data: { lifecycle: 'free', learnerId: null, learnerRef: null, guardianRef: null, bookedAt: null },
-				})
-				.catch(() => null)
+			// Deleting her booking does not free the time, and no transition
+			// leads from booked back to free: put a free copy in its place, as
+			// the set loaded it (the spec finds the time by its start, not its id).
+			const url = '/index.php/apps/openregister/api/objects/learniq/conference-slot'
+			const read = await admin.get(`${url}/${slotId}`).catch(() => null)
+			const slot = read?.ok() ? await read.json() : null
+			if (slot !== null && slot.lifecycle !== 'free') {
+				const { id: _id, uuid: _uuid, '@self': _self, ...fields } = slot
+				await admin.delete(`${url}/${slotId}`).catch(() => null)
+				await admin
+					.post(url, {
+						data: { ...fields, lifecycle: 'free', learnerId: null, learnerRef: null, guardianRef: null, bookedAt: null, acknowledgedAt: null },
+					})
+					.catch(() => null)
+			}
 		}
 		await fx.teardown()
 		await fenna?.page.close()
@@ -314,15 +323,28 @@ test.describe.serial('vaartveld: Fenna books a steunles and her mentor talk', ()
 
 	test('she books Tuesday 13 October 16.30 with her mentor', async () => {
 		const times = await portalRows(fenna!, 'conference-slot', 'studentConferenceTimes')
-		const tuesday = times.find((t) => /^2026-10-13T16:30/.test(String(t.startsAt)))
-		expect(tuesday, 'the free time on Tuesday 13 October at 16.30').toBeTruthy()
+		// The board's Tuesday 13 October moves with the load week: the free time
+		// on a Tuesday at 16.30 in the school's clock.
+		const tuesday = times.find((t) => {
+			const local = new Intl.DateTimeFormat('en-GB', {
+				timeZone: 'Europe/Amsterdam', weekday: 'short', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+			}).format(new Date(String(t.startsAt)))
+			return local === 'Tue 16:30'
+		})
+		expect(tuesday, 'the free time on Tuesday (13 October on the board) at 16.30').toBeTruthy()
 		slotId = String(tuesday!.id ?? tuesday!.uuid)
 
-		const booked = await act('bookConferenceSlotAsPupil', { slotId })
+		// A `create` action is written through its collection; the action
+		// route forwards `endpoint` actions only and answers 403 for this one.
+		const booked = await fenna!.page.request.post(
+			'/apps/portaliq/portal/api/collections/learniq/conference-signup',
+			{ headers: { Authorization: `Bearer ${fenna!.token}` }, data: { actionId: 'bookConferenceSlotAsPupil', slotId } },
+		)
 		expect(booked.status(), await booked.text()).toBeLessThan(300)
 
 		const talks = await portalRows(fenna!, 'conference-signup', 'studentConferenceSignups')
-		const talk = talks.find((r) => String(r.slotId) === slotId)
+		// Her talks carry the time, not the slot id.
+		const talk = talks.find((r) => new Date(String(r.startsAt)).getTime() === new Date(String(tuesday!.startsAt)).getTime())
 		expect(talk, 'her talk').toBeTruthy()
 		fx.adopt('conference-signup', String(talk!.id ?? talk!.uuid))
 
@@ -344,6 +366,9 @@ test.describe.serial('vaartveld: Fenna books a steunles and her mentor talk', ()
 		await fenna!.page.goto(
 			`${siteUrl(PORTAL)}&route=${encodeURIComponent('/mijn/learniq/studentConferenceSignups')}`,
 		)
-		await expectTexts(fenna!.page, ['Mijn mentorgesprekken', /13-10-2026 16:30/])
+		// "13-10-2026 16:30" on the board, on the Tuesday of the load week here.
+		const day = new Intl.DateTimeFormat('nl-NL', { timeZone: 'Europe/Amsterdam', day: '2-digit', month: '2-digit', year: 'numeric' })
+			.format(new Date(String(tuesday!.startsAt)))
+		await expectTexts(fenna!.page, ['Mijn mentorgesprekken', new RegExp(`${day} 16:30`)])
 	})
 })
