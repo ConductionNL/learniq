@@ -272,6 +272,53 @@ class PersonalTimetableService implements PersonalTimetableServiceInterface {
 	}//end resolveCallerCohortIds()
 
 	/**
+	 * The groups the user is the mentor of, for the Mentor class scope of My timetable.
+	 *
+	 * Asks for the cohorts whose `mentorId` is the user, with her own rights,
+	 * and checks the field again here, so a store that ignores the key cannot
+	 * widen the list. A failing read answers an empty list: the page then
+	 * shows only her own week.
+	 *
+	 * @param string $uid The user's Nextcloud user id.
+	 *
+	 * @return array<int,array{id: string, name: string}> The groups, by name.
+	 *
+	 * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+	 */
+	public function mentorClasses(string $uid): array {
+		try {
+			$rows = $this->objectService->findAll(
+				[
+					'filters' => [
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => 'cohort',
+						'mentorId' => $uid,
+					],
+				]
+			);
+		} catch (\Exception $e) {
+			$this->logger->warning('[PersonalTimetableService] Mentor classes not readable: {msg}', ['msg' => $e->getMessage()]);
+			return [];
+		}
+
+		$classes = [];
+		foreach ($rows as $row) {
+			$cohort = $this->toArray(row: $row);
+			$cohortId = (string)($cohort['id'] ?? ($cohort['uuid'] ?? ''));
+			if ($cohortId === '' || ($cohort['mentorId'] ?? null) !== $uid) {
+				continue;
+			}
+
+			$classes[$cohortId] = ['id' => $cohortId, 'name' => (string)($cohort['name'] ?? $cohortId)];
+		}
+
+		$classes = array_values($classes);
+		usort($classes, static fn (array $left, array $right): int => strnatcasecmp($left['name'], $right['name']));
+
+		return $classes;
+	}//end mentorClasses()
+
+	/**
 	 * Add what the caller's live enrolments reach: a cohort, or a course when
 	 * the enrolment has no cohort. A withdrawn, completed or failed enrolment
 	 * reaches nothing.
