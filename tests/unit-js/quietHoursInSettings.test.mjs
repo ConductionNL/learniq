@@ -8,7 +8,7 @@
 // in src/ writes `quietHours` to the notification-preferences endpoint or to
 // browser storage.
 //
-// @spec openspec/changes/notification-quiet-hours-through-openregister/specs/scholiq-notifications/spec.md#requirement-quiet-hours-are-read-and-saved-through-openregisters-delivery-window
+// @spec openspec/specs/scholiq-notifications/spec.md#requirement-quiet-hours-are-read-and-saved-through-openregisters-delivery-window
 //
 // Run via `node --test tests/unit-js/` (package.json `test:js-unit`).
 

@@ -10629,13 +10629,13 @@
       "area": "governance",
       "name": "Choose which learniq notifications reach me, with quiet hours.",
       "built": {
-        "state": "specified",
-        "evidence": "src/App.vue:46 and src/views/LearniqNotificationSettings.vue:27-40 (per-notification switches through OpenRegister notification-preferences: works); src/views/LearniqNotificationSettings.vue:333-352 saves quiet hours to notification-preferences, which refuses them, while OpenRegister serves /api/notification-delivery-window (openregister appinfo/routes.php:1437-1438)",
+        "state": "built",
+        "evidence": "src/App.vue CnAppRoot :quietHours=\"true\": nextcloud-vue CnNotificationPreferences draws the per-notification switches (OpenRegister notification-preferences) and the CnQuietHours block, which reads and saves GET/PUT /apps/openregister/api/notification-delivery-window with the browser time zone and says the window applies to every app. Tests: tests/unit-js/quietHoursInSettings.test.mjs; tests/e2e/notification-quiet-hours.spec.ts (live 1/1, 25 Nov 2026).",
         "owner": "ConductionNL/learniq",
-        "readOn": "2026-10-08",
-        "change": "notification-quiet-hours-through-openregister",
+        "readOn": "2026-11-25",
+        "change": "2026-11-25-notification-quiet-hours-through-openregister",
         "requirement": [
-          "openspec/changes/notification-quiet-hours-through-openregister/specs/scholiq-notifications :: Quiet hours are read and saved through OpenRegister's delivery window",
+          "openspec/specs/scholiq-notifications :: Quiet hours are read and saved through OpenRegister's delivery window",
           "openspec/specs/scholiq-notifications :: Notification delivery MUST honor the per-user override preference"
         ]
       },
@@ -10643,7 +10643,7 @@
       "providerHow": "read: the switches and quiet hours are stored and enforced by Open Register; learniq draws the panel",
       "feature": "scholiq-notifications",
       "featureConfidence": "high",
-      "learniq": "partial",
+      "learniq": "yes",
       "moodle": "unknown",
       "moodle-workplace": "unknown",
       "ilias": "unknown",
