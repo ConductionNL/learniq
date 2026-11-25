@@ -122,7 +122,7 @@ class FakeGrantClaimEvent extends Event {
 /**
  * The training load gives Tom Verbeek his participant account, once.
  *
- * @spec openspec/changes/example-portal-install-steps/specs/example-sets/spec.md#requirement-loading-a-set-gives-its-declared-learners-a-portal-account
+ * @spec openspec/specs/example-sets/spec.md#requirement-loading-a-set-gives-its-declared-learners-a-portal-account
  */
 class ExamplePortalAccountGrantsTest extends TestCase {
 
