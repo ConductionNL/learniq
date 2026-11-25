@@ -1625,6 +1625,7 @@ class SchoolYear:
         add_guardian_and_item_bank_boards(self.b)
         add_leave_requests(self.b, LEAVE_REQUESTS)
         add_public_test_week(self.b, self.courses)
+        add_next_steunles(self.b)
 
     def assemble(self) -> dict:
         """The profile file's content, without the private working fields."""
@@ -2087,6 +2088,25 @@ class FennaStory:
             day = TODAY + dt.timedelta(days=offset)
             for hour, s, code in hours:
                 self.lesson(day, hour, s, code, "scheduled")
+
+
+def add_next_steunles(b: Builder) -> None:
+    """The steunles of the next Tuesday, so a load on any day of the week has a lesson to sign up for.
+
+    The steunles is "elke dinsdag"; with only Tuesday 6 October, a set loaded on a Wednesday (the
+    load moves the week to the week it runs in) has no next lesson, so the offer carries no places
+    and Fenna reads no "Nog 12 plekken". Written last, so every session above keeps its uuid.
+    """
+    offer = next(o for o in b.buckets["elective-offer"] if o["name"] == "Steunles wiskunde")
+    first = next(s for s in b.buckets["session"] if s["uuid"] == offer["sessionIds"][0])
+    week = dt.timedelta(days=7)
+    lesson = b.add("session", {
+        **{key: first[key] for key in ("cohortId", "courseId", "title", "location", "roomId")},
+        "startsAt": (dt.datetime.fromisoformat(first["startsAt"]) + week).isoformat(),
+        "endsAt": (dt.datetime.fromisoformat(first["endsAt"]) + week).isoformat(),
+        "lifecycle": "scheduled",
+    })
+    offer["sessionIds"].append(lesson["uuid"])
 
 
 def add_boards(b: Builder, courses: dict) -> None:
