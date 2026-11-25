@@ -22,5 +22,6 @@
 
 ## 5. Close out
 
-- [ ] 5.1 Live check: land a mock `class-roster` batch twice, then one with a leaver.
+- [x] 5.1 Live check: land a mock `class-roster` batch twice, then one with a leaver.
+  - Live 25 Nov 2026 on NC 34.0.6 + PostgreSQL 16 + OpenRegister main, vo example set, through `ExchangeImportLandingInterface::land('class-roster', ...)` with integriq's record shape: batch 1 (class `OR-CLASS-3H1` from `mock-sis`, three pupils, plus one record with an unknown pupil) gave 1 accepted, `ROSTER-UNKNOWN-PUPIL` on `learnerIds` for the other, one cohort `planned` with `syncedAt`; the same batch again gave the same answer, still one cohort, `syncChanges` 0. With the group's course set, a joiner got one `active` enrolment with `source: roster-sync`; a batch without him withdrew it with "Left the class in the student administration" (`syncChanges` 1 each time); replays added nothing. A manual rename of the synced group answers 422 "The name of this group comes from the student administration (mock-sis) and cannot be changed in learniq."
 - [ ] 5.2 Set row `enr-sync-classes-from-school-admin` to built once integriq's mapping exists, and archive this change.
