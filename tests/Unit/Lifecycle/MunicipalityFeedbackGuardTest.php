@@ -110,6 +110,40 @@ class MunicipalityFeedbackGuardTest extends TestCase {
 	}//end testAdminOnLeerplichtJobIsAllowed()
 
 	/**
+	 * A compliance officer on a reported flag is allowed: the leerplicht
+	 * contact records the MAS route (Ruben's decision, 25 Nov 2026).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/attendance-flag-report-actions/specs/attendance/spec.md#scenario-a-coordinator-records-the-mas-route
+	 */
+	public function testComplianceOfficerOnReportedFlagIsAllowed(): void {
+		$result = $this->makeGuard(groups: ['compliance-officers'])->check(object: $this->job(), action: 'recordMunicipalityFeedback', userId: 'actor-1');
+
+		self::assertTrue(condition: $result->isAllowed());
+
+	}//end testComplianceOfficerOnReportedFlagIsAllowed()
+
+	/**
+	 * A user outside admin/coordinators/compliance-officers is denied, and the
+	 * reason names the three roles that may record.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/attendance-flag-report-actions/specs/attendance/spec.md#scenario-a-coordinator-records-the-mas-route
+	 */
+	public function testInstructorIsDeniedWithTheRolesThatMay(): void {
+		$result = $this->makeGuard(groups: ['instructors'])->check(object: $this->job(), action: 'recordMunicipalityFeedback', userId: 'actor-1');
+
+		self::assertFalse(condition: $result->isAllowed());
+		self::assertSame(
+			expected: 'Only an admin, coordinator or compliance officer can record municipality feedback.',
+			actual: (string)$result->getMessage()
+		);
+
+	}//end testInstructorIsDeniedWithTheRolesThatMay()
+
+	/**
 	 * A user outside admin/coordinators is denied.
 	 *
 	 * @return void
