@@ -143,7 +143,10 @@ for (const set of sets) {
 		continue // this app does not ship this translation set
 	}
 	checkedSets++
-	const enKeys = Object.keys(set.load(set.enFile))
+	// The key list is en.json's for both sets: en.js ships only the English
+	// entries that differ from their key (scripts/build-l10n-js.js), because
+	// the browser answers a missing key with the key itself.
+	const enKeys = Object.keys(loadJsonSet(path.join(L10N_DIR, 'en.json')))
 	observed[set.kind] = { total: enKeys.length, gaps: {} }
 	for (const loc of REQUIRED) {
 		const locFile = set.file(loc)
