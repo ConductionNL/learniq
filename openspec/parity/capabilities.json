@@ -10010,17 +10010,17 @@
       "name": "Let a student object to a result and have the exam committee decide within its term.",
       "origin": "change",
       "built": {
-        "state": "specified",
-        "evidence": "Not built yet: openspec/changes/exam-committee-today-and-keuzedelen carries the work.",
+        "state": "built",
+        "evidence": "lib/Lifecycle/ExamObjectionDeadlineStamp.php, ExamObjectionDecisionGuard.php and ExamObjectionDecisionHandler.php over schema ExamObjection; the committee's Today (src/menu-layout.simple.json, GET /api/today/exam-committee, lib/Service/Today/ExamFacts.php) and the Exam objections list and detail (src/manifest.d/assessment-board.json). Tests: WorkingDaysTest, ExamObjectionDeadlineStampTest, ExamObjectionDecisionGuardTest, ExamObjectionDecisionHandlerTest, ProgrammeFactsTest, FirstTodayCardTest. Built through openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen; not checked live.",
         "owner": "ConductionNL/learniq",
-        "change": "exam-committee-today-and-keuzedelen",
-        "requirement": "openspec/changes/exam-committee-today-and-keuzedelen/specs/exam-board :: A student objects against a result, and the committee decides within its term",
-        "plan": "openspec/changes/exam-committee-today-and-keuzedelen"
+        "change": "2026-11-25-exam-committee-today-and-keuzedelen",
+        "requirement": "openspec/specs/exam-board :: A student objects against a result, and the committee decides within its term",
+        "reachedOn": "/exam-board/objections"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
       "feature": "exam-committee-today-and-keuzedelen",
-      "learniq": "no",
+      "learniq": "yes",
       "moodle": "unknown",
       "moodle-workplace": "unknown",
       "ilias": "unknown",

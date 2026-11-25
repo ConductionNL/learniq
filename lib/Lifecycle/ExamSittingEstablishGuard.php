@@ -18,7 +18,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/exam-committee-today-and-keuzedelen/specs/exam-board/spec.md#requirement-the-committee-establishes-the-results-of-a-sitting
+ * @spec openspec/specs/exam-board/spec.md#requirement-the-committee-establishes-the-results-of-a-sitting
  */
 
 declare(strict_types=1);
@@ -34,7 +34,7 @@ use Psr\Log\LoggerInterface;
 /**
  * Refuses establishing a sitting's results by anyone outside the exam committee.
  *
- * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#task-T2
+ * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#task-T2
  */
 class ExamSittingEstablishGuard implements LifecycleGuardInterface {
 
@@ -60,7 +60,7 @@ class ExamSittingEstablishGuard implements LifecycleGuardInterface {
 	 * @param IUserManager    $userManager  Resolves the actor.
 	 * @param LoggerInterface $logger       Logs a refusal.
 	 *
-	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#task-T2
+	 * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#task-T2
 	 */
 	public function __construct(
 		private readonly IGroupManager $groupManager,
@@ -78,7 +78,7 @@ class ExamSittingEstablishGuard implements LifecycleGuardInterface {
 	 *
 	 * @return GuardResult
 	 *
-	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#task-T2
+	 * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#task-T2
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */

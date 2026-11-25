@@ -19,7 +19,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/exam-committee-today-and-keuzedelen/specs/exam-board/spec.md#requirement-a-student-objects-against-a-result-and-the-committee-decides-within-its-term
+ * @spec openspec/specs/exam-board/spec.md#requirement-a-student-objects-against-a-result-and-the-committee-decides-within-its-term
  */
 
 declare(strict_types=1);
@@ -32,7 +32,7 @@ use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 /**
  * Refuses a decision without a rationale, or a changed result without its value.
  *
- * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#task-T1
+ * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#task-T1
  */
 class ExamObjectionDecisionGuard implements LifecycleGuardInterface {
 
@@ -66,7 +66,7 @@ class ExamObjectionDecisionGuard implements LifecycleGuardInterface {
 	 *
 	 * @return GuardResult The verdict, with the reason when refused.
 	 *
-	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#task-T1
+	 * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#task-T1
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */

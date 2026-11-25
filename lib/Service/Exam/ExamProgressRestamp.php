@@ -9,7 +9,7 @@
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  * @link      https://conduction.nl
  *
- * @spec openspec/changes/exam-committee-today-and-keuzedelen/specs/enrolment/spec.md#requirement-a-students-exam-progress-reads-in-words
+ * @spec openspec/specs/enrolment/spec.md#requirement-a-students-exam-progress-reads-in-words
  */
 
 declare(strict_types=1);
@@ -35,7 +35,7 @@ use Throwable;
  * and saves them only when they differ. Never fatal to the write that
  * triggered it.
  *
- * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#task-T4
+ * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#task-T4
  */
 class ExamProgressRestamp {
 
@@ -67,7 +67,7 @@ class ExamProgressRestamp {
 	 * @param LoggerInterface $logger        Logs a failed restamp.
 	 * @param ExamProgress    $progress      Derives the lines.
 	 *
-	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#task-T4
+	 * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#task-T4
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
@@ -84,7 +84,7 @@ class ExamProgressRestamp {
 	 *
 	 * @return bool True when the profile was written.
 	 *
-	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#task-T4
+	 * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#task-T4
 	 */
 	public function restamp(string $learnerUserId, ?DateTimeImmutable $now = null): bool {
 		if ($learnerUserId === '') {

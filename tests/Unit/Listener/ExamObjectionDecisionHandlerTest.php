@@ -9,7 +9,7 @@
  * @license  EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  * @link     https://conduction.nl
  *
- * @spec openspec/changes/exam-committee-today-and-keuzedelen/specs/exam-board/spec.md#requirement-a-student-objects-against-a-result-and-the-committee-decides-within-its-term
+ * @spec openspec/specs/exam-board/spec.md#requirement-a-student-objects-against-a-result-and-the-committee-decides-within-its-term
  */
 
 declare(strict_types=1);

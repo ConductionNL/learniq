@@ -206,7 +206,7 @@ class FirstTodayService {
 	 *
 	 * @return array<string, mixed>|null `sittings` (ExamFacts::resultsPerSitting()) and `agenda` (ExamFacts::agenda()).
 	 *
-	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#T3
+	 * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#T3
 	 */
 	public function examCommitteeFor(IUser $user): ?array {
 		try {

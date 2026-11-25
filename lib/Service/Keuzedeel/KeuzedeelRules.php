@@ -9,7 +9,7 @@
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  * @link      https://conduction.nl
  *
- * @spec openspec/changes/exam-committee-today-and-keuzedelen/specs/enrolment/spec.md#requirement-an-mbo-student-chooses-a-keuzedeel-inside-its-window
+ * @spec openspec/specs/enrolment/spec.md#requirement-an-mbo-student-chooses-a-keuzedeel-inside-its-window
  */
 
 declare(strict_types=1);
@@ -27,7 +27,7 @@ use OCA\Learniq\Service\Portal\CourseDayLines;
  * rules. Days are compared in the school's time zone; the window's last day
  * counts in full.
  *
- * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#task-T5
+ * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#task-T5
  */
 class KeuzedeelRules {
 
@@ -50,7 +50,7 @@ class KeuzedeelRules {
 	 *
 	 * @param CourseDayLines $lines Writes "16 oktober".
 	 *
-	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#task-T5
+	 * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#task-T5
 	 */
 	public function __construct(
 		private readonly CourseDayLines $lines = new CourseDayLines(),
@@ -67,7 +67,7 @@ class KeuzedeelRules {
 	 *
 	 * @return string|null
 	 *
-	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#task-T5
+	 * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#task-T5
 	 */
 	public function refusal(array $offer, array $taken, array $mine, DateTimeImmutable $now): ?string {
 		if (($offer['lifecycle'] ?? 'offered') !== 'offered') {
@@ -140,7 +140,7 @@ class KeuzedeelRules {
 	 *
 	 * @return string|null
 	 *
-	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#task-T5
+	 * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#task-T5
 	 */
 	public function line(array $offers, array $mine, DateTimeImmutable $now): ?string {
 		$chosen = [];
@@ -215,7 +215,7 @@ class KeuzedeelRules {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#task-T5
+	 * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#task-T5
 	 */
 	public function isFor(array $offer, array $programmeIds, array $cohortIds): bool {
 		$programme = $offer['programmeId'] ?? null;

@@ -181,7 +181,7 @@ class FirstTodayProbe {
 	 * @return array<string, mixed>|null
 	 *
 	 * @spec openspec/changes/bpv-coach-today-and-placement-board/tasks.md#T5
-	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#T3
+	 * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#T3
 	 */
 	private function programmeFacts(string $rule, TodayContext $context): ?array {
 		$uid = $context->uid();
