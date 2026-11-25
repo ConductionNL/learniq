@@ -169,13 +169,22 @@ final class ExamFacts {
 	public function agenda(array $open): array {
 		$counts = [
 			'objections' => count(
-				array_filter(($open['objections'] ?? []), static fn (array $row): bool => in_array(($row['lifecycle'] ?? ''), self::UNDECIDED, true))
+				array_filter(
+					($open['objections'] ?? []),
+					static fn (array $row): bool => in_array(($row['lifecycle'] ?? ''), self::UNDECIDED, true)
+				)
 			),
 			'results' => count(
-				array_filter(($open['results'] ?? []), static fn (array $row): bool => ($row['examSittingId'] ?? '') !== '' && self::unestablished(result: $row))
+				array_filter(
+					($open['results'] ?? []),
+					static fn (array $row): bool => ($row['examSittingId'] ?? '') !== '' && self::unestablished(result: $row)
+				)
 			),
 			'exemptions' => count(
-				array_filter(($open['exemptions'] ?? []), static fn (array $row): bool => in_array(($row['lifecycle'] ?? ''), ['submitted', 'in-assessment'], true))
+				array_filter(
+					($open['exemptions'] ?? []),
+					static fn (array $row): bool => in_array(($row['lifecycle'] ?? ''), ['submitted', 'in-assessment'], true)
+				)
 			),
 		];
 

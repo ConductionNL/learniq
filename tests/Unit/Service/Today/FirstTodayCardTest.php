@@ -194,7 +194,9 @@ class FirstTodayCardTest extends TestCase {
 		$responded = $this->card()->describe(
 			card: ['role' => 'exam-committee', 'rule' => 'objection-past-half', 'count' => 1, 'decideBy' => '2026-10-09T23:59:00+02:00', 'responded' => true]
 		);
-		$open = $this->card()->describe(card: ['role' => 'exam-committee', 'rule' => 'objection-past-half', 'count' => 2, 'decideBy' => '2026-10-09', 'responded' => false]);
+		$open = $this->card()->describe(
+			card: ['role' => 'exam-committee', 'rule' => 'objection-past-half', 'count' => 2, 'decideBy' => '2026-10-09', 'responded' => false]
+		);
 		$noDay = $this->card()->describe(card: ['role' => 'exam-committee', 'rule' => 'objection-past-half', 'count' => 1, 'decideBy' => null]);
 		$results = $this->card()->describe(card: ['role' => 'exam-committee', 'rule' => 'results-waiting', 'count' => 14, 'sittings' => 3]);
 

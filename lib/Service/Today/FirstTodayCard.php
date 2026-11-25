@@ -374,8 +374,12 @@ final class FirstTodayCard {
 	private function objectionReason(array $card): string {
 		$day = substr((string) ($this->nameOf(value: $card['decideBy'] ?? null) ?? ''), 0, 10);
 		$responded = (($card['responded'] ?? false) === true);
+		if ($day === '' && $responded === true) {
+			return $this->l10n->t('The examiner has responded.');
+		}
+
 		if ($day === '') {
-			return $responded === true ? $this->l10n->t('The examiner has responded.') : $this->l10n->t('Decide within the term.');
+			return $this->l10n->t('Decide within the term.');
 		}
 
 		if ($responded === true) {
