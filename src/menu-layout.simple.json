@@ -1177,6 +1177,11 @@
 					{
 						"id": "mentor",
 						"label": "Mentor",
+						"visibleWhen": {
+							"endpoint": "/apps/learniq/api/timetable/mentor-classes",
+							"field": "classes",
+							"op": "notEmpty"
+						},
 						"layout": [
 							{
 								"id": "m0",
