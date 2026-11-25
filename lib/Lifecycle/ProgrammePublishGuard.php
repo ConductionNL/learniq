@@ -32,6 +32,7 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\Learniq\Support\ObjectRow;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
@@ -147,7 +148,9 @@ class ProgrammePublishGuard implements LifecycleGuardInterface {
 			return false;
 		}
 
-		$plan = $plans[0];
+		// ObjectService answers ObjectEntity rows, not arrays (a 500 on every
+		// publish, found live 25 Nov 2026); read the plan through ObjectRow.
+		$plan = (new ObjectRow())->asArray(object: $plans[0]);
 		$requiredCourseIds = $plan['requiredCourseIds'] ?? [];
 
 		if (empty($requiredCourseIds) === true) {
