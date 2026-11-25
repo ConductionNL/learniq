@@ -116,6 +116,10 @@ class KeuzedeelController extends Controller {
 	 * @return JSONResponse 201 with the choice, 404 for an offer not open to her, 422 with the reason.
 	 *
 	 * @spec openspec/changes/archive/2026-11-25-exam-committee-today-and-keuzedelen/tasks.md#task-T5
+	 *
+	 * @no-admin-idor-exempt the offer id is scoped to the caller: only an offer among KeuzedeelStore::offersFor()
+	 *  of the session user (the offers open to her own enrolments' programmes and groups) is accepted, any other
+	 *  id answers 404, and the choice is always written for the session user, never for an id from the request.
 	 */
 	#[NoAdminRequired]
 	public function choose(string $offerId): JSONResponse {
