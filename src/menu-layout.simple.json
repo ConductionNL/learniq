@@ -1051,6 +1051,268 @@
 								}
 							]
 						}
+					},
+					{
+						"id": "today-role-tiles",
+						"type": "stat-grid",
+						"title": "To do today",
+						"_note": "today-first-per-school-role T4: the reader's own role tiles. GET /apps/learniq/api/today/counts answers the tiles of her role (lib/Service/Today/TodayTiles::TILES) with `byTile`, the same tiles keyed by a camelCase id; a cell shows only while its count is in that answer, so a role draws only its own tiles, in the order the boards draw them. Each cell opens the list it counts. The widget is hidden when the role has no tiles.",
+						"visibleWhen": {
+							"endpoint": "/apps/learniq/api/today/counts",
+							"field": "tiles",
+							"op": "notEmpty"
+						},
+						"content": {
+							"columns": 4,
+							"endpointSource": {
+								"url": "/apps/learniq/api/today/counts"
+							},
+							"cells": [
+								{
+									"key": "registers-not-filled",
+									"label": "Registers to fill in",
+									"icon": "ClipboardCheckOutline",
+									"valueField": "byTile.registersNotFilled.count",
+									"format": {
+										"style": "decimal",
+										"decimals": 0
+									},
+									"route": {
+										"name": "RollCall"
+									},
+									"visibleWhen": {
+										"endpoint": "/apps/learniq/api/today/counts",
+										"field": "byTile.registersNotFilled.count",
+										"op": "gte",
+										"value": 0
+									},
+									"caption": "of {byTile.registersNotFilled.total} lessons so far"
+								},
+								{
+									"key": "submissions-to-mark",
+									"label": "Hand-ins to mark",
+									"icon": "FileDocumentEditOutline",
+									"valueField": "byTile.submissionsToMark.count",
+									"format": {
+										"style": "decimal",
+										"decimals": 0
+									},
+									"route": {
+										"name": "Assignments"
+									},
+									"visibleWhen": {
+										"endpoint": "/apps/learniq/api/today/counts",
+										"field": "byTile.submissionsToMark.count",
+										"op": "gte",
+										"value": 0
+									},
+									"caption": "over {byTile.submissionsToMark.assignments} assignments"
+								},
+								{
+									"key": "parent-reports-waiting",
+									"label": "Parent reports today",
+									"icon": "MessageAlertOutline",
+									"valueField": "byTile.parentReportsWaiting.count",
+									"format": {
+										"style": "decimal",
+										"decimals": 0
+									},
+									"route": {
+										"name": "ExcuseRequests"
+									},
+									"visibleWhen": {
+										"endpoint": "/apps/learniq/api/today/counts",
+										"field": "byTile.parentReportsWaiting.count",
+										"op": "gte",
+										"value": 0
+									},
+									"caption": "in {byTile.parentReportsWaiting.groups} groups"
+								},
+								{
+									"key": "conference-times",
+									"label": "Conference times to confirm",
+									"icon": "CalendarClockOutline",
+									"valueField": "byTile.conferenceTimes.count",
+									"format": {
+										"style": "decimal",
+										"decimals": 0
+									},
+									"route": {
+										"name": "ConferenceRounds"
+									},
+									"visibleWhen": {
+										"endpoint": "/apps/learniq/api/today/counts",
+										"field": "byTile.conferenceTimes.count",
+										"op": "gte",
+										"value": 0
+									},
+									"caption": "{byTile.conferenceTimes.chosen} of {byTile.conferenceTimes.total} chosen"
+								},
+								{
+									"key": "plans-ending",
+									"label": "Plans ending this week",
+									"icon": "ClipboardTextClockOutline",
+									"valueField": "byTile.plansEnding.count",
+									"format": {
+										"style": "decimal",
+										"decimals": 0
+									},
+									"route": {
+										"name": "LearningPlans"
+									},
+									"visibleWhen": {
+										"endpoint": "/apps/learniq/api/today/counts",
+										"field": "byTile.plansEnding.count",
+										"op": "gte",
+										"value": 0
+									},
+									"caption": "without an evaluation"
+								},
+								{
+									"key": "registers-filled-per-group",
+									"label": "Attendance per group",
+									"icon": "ClipboardListOutline",
+									"valueField": "byTile.registersFilledPerGroup.count",
+									"format": {
+										"style": "decimal",
+										"decimals": 0
+									},
+									"route": {
+										"name": "SessionsToday"
+									},
+									"visibleWhen": {
+										"endpoint": "/apps/learniq/api/today/counts",
+										"field": "byTile.registersFilledPerGroup.count",
+										"op": "gte",
+										"value": 0
+									},
+									"caption": "of {byTile.registersFilledPerGroup.total} registers filled"
+								},
+								{
+									"key": "insufficient-per-year",
+									"label": "Pupils with 3+ insufficient",
+									"icon": "AlertCircleOutline",
+									"valueField": "byTile.insufficientPerYear.count",
+									"format": {
+										"style": "decimal",
+										"decimals": 0
+									},
+									"route": {
+										"name": "FinalGrades",
+										"query": {
+											"passed": "false"
+										}
+									},
+									"visibleWhen": {
+										"endpoint": "/apps/learniq/api/today/counts",
+										"field": "byTile.insufficientPerYear.count",
+										"op": "gte",
+										"value": 0
+									},
+									"caption": "counted per school year"
+								},
+								{
+									"key": "lessons-cancelled-today",
+									"label": "Lessons cancelled today",
+									"icon": "CalendarRemoveOutline",
+									"valueField": "byTile.lessonsCancelledToday.count",
+									"format": {
+										"style": "decimal",
+										"decimals": 0
+									},
+									"route": {
+										"name": "SessionsToday"
+									},
+									"visibleWhen": {
+										"endpoint": "/apps/learniq/api/today/counts",
+										"field": "byTile.lessonsCancelledToday.count",
+										"op": "gte",
+										"value": 0
+									}
+								},
+								{
+									"key": "leave-to-decide",
+									"label": "Leave requests to decide",
+									"icon": "CalendarQuestion",
+									"valueField": "byTile.leaveToDecide.count",
+									"format": {
+										"style": "decimal",
+										"decimals": 0
+									},
+									"route": {
+										"name": "LeaveRequests",
+										"query": {
+											"lifecycle": "submitted"
+										}
+									},
+									"visibleWhen": {
+										"endpoint": "/apps/learniq/api/today/counts",
+										"field": "byTile.leaveToDecide.count",
+										"op": "gte",
+										"value": 0
+									}
+								}
+							]
+						}
+					},
+					{
+						"id": "mentor-role-tiles",
+						"type": "stat-grid",
+						"title": "To do today",
+						"_note": "today-first-per-school-role T4: the reader's own role tiles. GET /apps/learniq/api/today/counts?view=mentor answers the tiles of her role (lib/Service/Today/TodayTiles::TILES) with `byTile`, the same tiles keyed by a camelCase id; a cell shows only while its count is in that answer, so a role draws only its own tiles, in the order the boards draw them. Each cell opens the list it counts. The widget is hidden when the role has no tiles.",
+						"visibleWhen": {
+							"endpoint": "/apps/learniq/api/today/counts?view=mentor",
+							"field": "tiles",
+							"op": "notEmpty"
+						},
+						"content": {
+							"columns": 4,
+							"endpointSource": {
+								"url": "/apps/learniq/api/today/counts?view=mentor"
+							},
+							"cells": [
+								{
+									"key": "conference-times",
+									"label": "Conference times to confirm",
+									"icon": "CalendarClockOutline",
+									"valueField": "byTile.conferenceTimes.count",
+									"format": {
+										"style": "decimal",
+										"decimals": 0
+									},
+									"route": {
+										"name": "ConferenceRounds"
+									},
+									"visibleWhen": {
+										"endpoint": "/apps/learniq/api/today/counts?view=mentor",
+										"field": "byTile.conferenceTimes.count",
+										"op": "gte",
+										"value": 0
+									},
+									"caption": "{byTile.conferenceTimes.chosen} of {byTile.conferenceTimes.total} chosen"
+								},
+								{
+									"key": "parent-reports-waiting",
+									"label": "Parent reports today",
+									"icon": "MessageAlertOutline",
+									"valueField": "byTile.parentReportsWaiting.count",
+									"format": {
+										"style": "decimal",
+										"decimals": 0
+									},
+									"route": {
+										"name": "ExcuseRequests"
+									},
+									"visibleWhen": {
+										"endpoint": "/apps/learniq/api/today/counts?view=mentor",
+										"field": "byTile.parentReportsWaiting.count",
+										"op": "gte",
+										"value": 0
+									},
+									"caption": "in {byTile.parentReportsWaiting.groups} groups"
+								}
+							]
+						}
 					}
 				],
 				"layout": [],
@@ -1163,10 +1425,20 @@
 								"showTitle": true
 							},
 							{
+								"id": "t12",
+								"widgetId": "today-role-tiles",
+								"gridX": 0,
+								"gridY": 12,
+								"gridWidth": 8,
+								"gridHeight": 2,
+								"showTitle": true,
+								"sizeToContent": true
+							},
+							{
 								"id": "t8",
 								"widgetId": "today-dashboards",
 								"gridX": 0,
-								"gridY": 12,
+								"gridY": 14,
 								"gridWidth": 12,
 								"gridHeight": 3,
 								"showTitle": false,
@@ -1222,10 +1494,20 @@
 								"showTitle": true
 							},
 							{
+								"id": "m5",
+								"widgetId": "mentor-role-tiles",
+								"gridX": 0,
+								"gridY": 9,
+								"gridWidth": 12,
+								"gridHeight": 2,
+								"showTitle": true,
+								"sizeToContent": true
+							},
+							{
 								"id": "m3",
 								"widgetId": "today-dashboards",
 								"gridX": 0,
-								"gridY": 9,
+								"gridY": 11,
 								"gridWidth": 12,
 								"gridHeight": 3,
 								"showTitle": false,

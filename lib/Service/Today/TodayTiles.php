@@ -117,6 +117,31 @@ final class TodayTiles {
 	}//end forRole()
 
 	/**
+	 * The tiles keyed by a camelCase form of their id, so a manifest can name
+	 * one tile by a dot path (`byTile.registersNotFilled.count`), also in a
+	 * caption token, which takes letters, digits, `_` and `.` only.
+	 *
+	 * @param list<array<string, mixed>> $tiles The tiles of forRole().
+	 *
+	 * @return array<string, array<string, mixed>>
+	 *
+	 * @spec openspec/changes/today-first-per-school-role/tasks.md#T4
+	 */
+	public static function byTile(array $tiles): array {
+		$keyed = [];
+		foreach ($tiles as $tile) {
+			$id = (string)($tile['id'] ?? '');
+			if ($id === '') {
+				continue;
+			}
+
+			$keyed[lcfirst(str_replace(' ', '', ucwords(str_replace('-', ' ', $id))))] = $tile;
+		}
+
+		return $keyed;
+	}//end byTile()
+
+	/**
 	 * One tile's count for the caller.
 	 *
 	 * @param string       $tile    A tile of TILES.
