@@ -203,19 +203,41 @@ export class LiveFixtures {
 	}
 
 	/**
-	 * Move a fixture object to a lifecycle state. A course is published only
-	 * with a published lesson, so one is added first.
+	 * Move a fixture object to a lifecycle state. What a publish guard asks
+	 * for is added first: a course is published with a published lesson, a
+	 * programme with a published curriculum plan that requires a course.
 	 *
 	 * @param slug The schema slug.
 	 * @param id The uuid.
 	 * @param lifecycle The state.
 	 */
 	private async moveTo(slug: string, id: string, lifecycle: string): Promise<void> {
+		const api = await this.api()
 		if (slug === 'course' && lifecycle === 'published') {
 			const lesson = await this.object('lesson', { courseId: id, name: `Les ${this.run}`, order: 1, contentType: 'text' })
 			await this.moveTo('lesson', lesson, 'published')
 		}
-		const api = await this.api()
+		if (slug === 'programme' && lifecycle === 'published') {
+			const programme = await this.read('programme', id)
+			const courseIds = Array.isArray(programme.courseIds) ? programme.courseIds.map(String) : []
+			const required = courseIds[0] ?? await this.object('course', {
+				code: `PLAN-${this.run}`,
+				name: `Plan course ${this.run}`,
+				level: String(programme.level ?? 'corporate'),
+				language: 'nl',
+			})
+			const plan = await this.object('curriculum-plan', {
+				name: `Plan ${this.run}`,
+				kind: 'pta',
+				formula: 'weighted-average',
+				requiredCourseIds: [required],
+			})
+			await this.moveTo('curriculum-plan', plan, 'published')
+			const linked = await api.patch(`/index.php/apps/openregister/api/objects/learniq/programme/${id}`, { data: { curriculumPlanId: plan } })
+			if (!linked.ok()) {
+				throw new Error(`linking a curriculum plan to a programme was refused: HTTP ${linked.status()} ${(await linked.text()).slice(0, 600)}`)
+			}
+		}
 		const res = await api.patch(`/index.php/apps/openregister/api/objects/learniq/${slug}/${id}`, { data: { lifecycle } })
 		const moved = await res.json().catch(() => null)
 		if (!res.ok() || moved?.lifecycle !== lifecycle) {
@@ -516,7 +538,9 @@ export function listJobs(
 			'--output=json',
 			'--limit=5000',
 		],
-		{ encoding: 'utf8', timeout: 60_000, stdio: 'pipe' },
+		// 5000 jobs with their arguments run past the default 1 MB of output
+		// (ENOBUFS) on an instance with an example set loaded.
+		{ encoding: 'utf8', timeout: 60_000, stdio: 'pipe', maxBuffer: 256 * 1024 * 1024 },
 	)
 	return (JSON.parse(listed) as Array<{ id: string; argument: string }>).map(
 		(job) => {
@@ -555,7 +579,7 @@ export function runLearniqJobs(
 	const listed = execFileSync(
 		command,
 		[...prefix, 'background-job:list', `--class=${jobClass}`, '--output=json'],
-		{ encoding: 'utf8', timeout: 60_000 },
+		{ encoding: 'utf8', timeout: 60_000, maxBuffer: 256 * 1024 * 1024 },
 	)
 	const jobs = JSON.parse(listed) as Array<{ id: string; argument: string }>
 	let ran = 0

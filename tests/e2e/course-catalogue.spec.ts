@@ -239,9 +239,15 @@ test.describe('course catalogue', () => {
 					timeout: 60_000,
 				},
 			)
+			// The transitions sit in the page header's menu ("More"), not as buttons.
 			await page
-				.getByRole('button', { name: 'Approve', exact: true })
+				.getByRole('main')
+				.getByRole('button', { name: /^(More|Actions)$/ })
+				.first()
 				.click({ timeout: 60_000 })
+			await page
+				.getByRole('menuitem', { name: 'Approve', exact: true })
+				.click({ timeout: 30_000 })
 			const confirm = page
 				.getByRole('dialog')
 				.getByRole('button', { name: /^(Approve|Confirm)$/ })
