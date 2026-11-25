@@ -6594,7 +6594,24 @@ OC.L10N.register(
         "Download all valid certificates": "Alle geldige certificaten downloaden",
         "The file with all valid certificates is ready under Downloads.": "Het bestand met alle geldige certificaten staat klaar onder Downloads.",
         "Ask for the download above; the file appears here.": "Vraag hierboven de download aan; het bestand verschijnt hier.",
-        "Valid certificates, %s": "Geldige certificaten, %s"
+        "Valid certificates, %s": "Geldige certificaten, %s",
+        "To do today": "Te doen vandaag",
+        "Registers to fill in": "Registers in te vullen",
+        "of {byTile.registersNotFilled.total} lessons so far": "van {byTile.registersNotFilled.total} lessen tot nu toe",
+        "Parent reports today": "Oudermeldingen vandaag",
+        "in {byTile.parentReportsWaiting.groups} groups": "in {byTile.parentReportsWaiting.groups} groepen",
+        "Hand-ins to mark": "Na te kijken werk",
+        "over {byTile.submissionsToMark.assignments} assignments": "bij {byTile.submissionsToMark.assignments} opdrachten",
+        "Conference times to confirm": "Gesprekstijden te bevestigen",
+        "{byTile.conferenceTimes.chosen} of {byTile.conferenceTimes.total} chosen": "{byTile.conferenceTimes.chosen} van {byTile.conferenceTimes.total} gekozen",
+        "Plans ending this week": "Plannen die deze week aflopen",
+        "without an evaluation": "zonder evaluatie",
+        "Pupils with 3+ insufficient": "Leerlingen met 3+ onvoldoendes",
+        "counted per school year": "geteld per leerjaar",
+        "Lessons cancelled today": "Lessen vervallen vandaag",
+        "Leave requests to decide": "Verlofaanvragen te beslissen",
+        "Attendance per group": "Aanwezigheid per groep",
+        "of {byTile.registersFilledPerGroup.total} registers filled": "van {byTile.registersFilledPerGroup.total} registers ingevuld"
     },
     "nplurals=2; plural=(n != 1);"
 )

@@ -1554,6 +1554,70 @@ test('Today links no page the full menu keeps from a role it is for', () => {
 	}
 })
 
+/**
+ * The role tiles each primary role on Today reads, mirroring
+ * lib/Service/Today/TodayTiles::TILES through FirstTodayRules::roleFor():
+ * an instructor is the group teacher (po) or the subject teacher (vo, mbo),
+ * and the mentor in the Mentor view.
+ */
+const TODAY_TILES = {
+	'group-teacher': ['registers-not-filled', 'parent-reports-waiting', 'conference-times'],
+	'subject-teacher': ['registers-not-filled', 'submissions-to-mark', 'parent-reports-waiting'],
+	mentor: ['conference-times', 'parent-reports-waiting'],
+	'care-coordinator': ['plans-ending'],
+	head: ['registers-filled-per-group', 'insufficient-per-year', 'lessons-cancelled-today', 'leave-to-decide'],
+}
+const TILE_ROLES = {
+	instructor: ['group-teacher', 'subject-teacher', 'mentor'],
+	coordinator: ['care-coordinator'],
+	'administration-manager': ['head'],
+	admin: ['head'],
+}
+
+test('each Today view draws the reader\'s own role tiles from /api/today/counts', () => {
+	// today-first-per-school-role T4: one stat-grid per view reads the counts
+	// once; a cell shows only while its tile is in the answer, so a role
+	// draws its own tiles in the order TodayTiles::TILES gives them.
+	for (const [view, endpoint, roles] of [
+		[TEACHER, '/apps/learniq/api/today/counts', ['group-teacher', 'subject-teacher', 'care-coordinator', 'head']],
+		[MENTOR, '/apps/learniq/api/today/counts?view=mentor', ['mentor']],
+	]) {
+		const grids = view.widgets.filter((widget) => widget.type === 'stat-grid')
+		assert.equal(grids.length, 1)
+		const [grid] = grids
+		assert.deepEqual(grid.visibleWhen, { endpoint, field: 'tiles', op: 'notEmpty' })
+		assert.equal(grid.content.endpointSource.url, endpoint)
+		const keys = grid.content.cells.map((cell) => cell.key)
+		for (const role of roles) {
+			const drawn = keys.filter((key) => TODAY_TILES[role].includes(key))
+			assert.deepEqual(drawn, TODAY_TILES[role], `${role} draws its tiles in order`)
+		}
+		for (const cell of grid.content.cells) {
+			const camel = cell.key.replace(/-([a-z])/g, (whole, letter) => letter.toUpperCase())
+			assert.equal(cell.valueField, `byTile.${camel}.count`)
+			assert.deepEqual(cell.visibleWhen, { endpoint, field: `byTile.${camel}.count`, op: 'gte', value: 0 })
+			assert.equal(typeof routeName(cell.route), 'string', `${cell.key} opens a list`)
+			for (const token of (cell.caption || '').match(/\{[^}]*\}/g) || []) {
+				assert.match(token, /^\{byTile\.[A-Za-z0-9_.]+\}$/, `${cell.key}: ${token}`)
+			}
+		}
+		assert.ok(view.layout.some((item) => item.widgetId === grid.id))
+	}
+})
+
+test('a role tile opens only a page the full menu offers the roles it is for', () => {
+	const cells = TODAY.config.widgets
+		.filter((widget) => widget.type === 'stat-grid')
+		.flatMap((widget) => widget.content.cells)
+	for (const role of TODAY_ROLES) {
+		const offered = reachable(build(FULL, role))
+		const mine = new Set(TILE_ROLES[role].flatMap((tileRole) => TODAY_TILES[tileRole]))
+		for (const cell of cells.filter((candidate) => mine.has(candidate.key))) {
+			assert.ok(offered.has(routeName(cell.route)), `${role} gets a tile to ${routeName(cell.route)}`)
+		}
+	}
+})
+
 test('each Today view has one First today card, read from the server once', () => {
 	// today-first-per-school-role T1: the card is the first rule of the
 	// reader's own role, so the page asks /api/today/first once and draws
