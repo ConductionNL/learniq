@@ -113,7 +113,7 @@ class ExamProgressRestampTest extends TestCase {
 					'lifecycle' => 'planned'
 				],
 			],
-			'assessment'      => [['id' => 'as-1', 'title' => 'NE-3F-CE']],
+			'exam'            => [['id' => 'as-1', 'title' => 'NE-3F-CE']],
 		];
 
 		$objects = $this->createMock(originalClassName: ObjectService::class);

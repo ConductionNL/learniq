@@ -351,7 +351,7 @@ class ReadableCopies implements ReadableCopiesInterface {
 		return [
 			'learnerName'     => $name,
 			'sittingStartsAt' => $this->orNull(value: trim($this->text(value: $sitting['startsAt'] ?? null))),
-			'examTitle'       => $this->nameOf(schema: 'assessment', id: $sitting['assessmentId'] ?? null, field: 'title'),
+			'examTitle'       => $this->nameOf(schema: 'exam', id: $sitting['assessmentId'] ?? null, field: 'title'),
 			'sittingEndsAt'   => $this->orNull(value: trim($this->text(value: $sitting['endsAt'] ?? null))),
 			'sittingRoom'     => $this->roomNames(roomIds: $sitting['roomIds'] ?? null),
 		];
