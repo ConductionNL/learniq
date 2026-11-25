@@ -6,7 +6,7 @@
 // nothing when the scope matches no row, and otherwise asks OpenRegister for
 // the top rows inside the scope.
 //
-// @spec openspec/changes/teacher-dashboard-own-groups/specs/dashboard/spec.md#requirement-the-teacher-dashboard-of-a-group-teacher-lists-only-their-own-groups
+// @spec openspec/specs/dashboard/spec.md#requirement-the-teacher-dashboard-of-a-group-teacher-lists-only-their-own-groups
 
 import assert from 'node:assert/strict'
 import { test } from 'node:test'

@@ -6,7 +6,7 @@
 // courses those cohorts run; school-wide roles get no scope; a failed read
 // leaves the teacher with empty lists, never the whole school.
 //
-// @spec openspec/changes/teacher-dashboard-own-groups/specs/dashboard/spec.md#requirement-the-teacher-dashboard-of-a-group-teacher-lists-only-their-own-groups
+// @spec openspec/specs/dashboard/spec.md#requirement-the-teacher-dashboard-of-a-group-teacher-lists-only-their-own-groups
 
 import assert from 'node:assert/strict'
 import { test } from 'node:test'

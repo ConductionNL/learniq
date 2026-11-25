@@ -221,7 +221,7 @@ export default {
 		 * Fetch once the caller has worked out the filter.
 		 *
 		 * @return {void}
-		 * @spec openspec/changes/teacher-dashboard-own-groups/specs/dashboard/spec.md#requirement-the-teacher-dashboard-of-a-group-teacher-lists-only-their-own-groups
+		 * @spec openspec/specs/dashboard/spec.md#requirement-the-teacher-dashboard-of-a-group-teacher-lists-only-their-own-groups
 		 */
 		pending() {
 			this.fetchItems()
@@ -233,7 +233,7 @@ export default {
 			 * Fetch again when the filter changes.
 			 *
 			 * @return {void}
-			 * @spec openspec/changes/teacher-dashboard-own-groups/specs/dashboard/spec.md#requirement-the-teacher-dashboard-of-a-group-teacher-lists-only-their-own-groups
+			 * @spec openspec/specs/dashboard/spec.md#requirement-the-teacher-dashboard-of-a-group-teacher-lists-only-their-own-groups
 			 */
 			handler() {
 				this.fetchItems()
@@ -252,7 +252,7 @@ export default {
 		 *
 		 * @return {Promise<void>}
 		 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-29
-		 * @spec openspec/changes/teacher-dashboard-own-groups/specs/dashboard/spec.md#requirement-the-teacher-dashboard-of-a-group-teacher-lists-only-their-own-groups
+		 * @spec openspec/specs/dashboard/spec.md#requirement-the-teacher-dashboard-of-a-group-teacher-lists-only-their-own-groups
 		 */
 		async fetchItems() {
 			this.loading = true
