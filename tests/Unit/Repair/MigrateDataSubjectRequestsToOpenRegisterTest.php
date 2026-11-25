@@ -137,7 +137,7 @@ class MigrateDataSubjectRequestsToOpenRegisterTest extends TestCase {
 			}
 		);
 
-		return new MigrateDataSubjectRequestsToOpenRegister($objectService, new NullLogger(), $this->container);
+		return new MigrateDataSubjectRequestsToOpenRegister(objectService: $objectService, logger: new NullLogger(), container: $this->container);
 	}//end makeStep()
 
 	/**
@@ -149,19 +149,19 @@ class MigrateDataSubjectRequestsToOpenRegisterTest extends TestCase {
 	 * @return ContainerInterface
 	 */
 	private function containerWith(array $schemasPerApplication, bool $lookupFails = false): ContainerInterface {
-		$schemaMapper = $this->createMock(SchemaMapper::class);
+		$schemaMapper = $this->createMock(originalClassName: SchemaMapper::class);
 		$schemaMapper->method('findAllByApplicationAndSlug')->willReturnCallback(
 			function (string $slug, string $application) use ($schemasPerApplication, $lookupFails): array {
 				if ($lookupFails === true) {
 					throw new RuntimeException('schema table missing');
 				}
 
-				self::assertSame('data-subject-request', $slug);
+				self::assertSame(expected: 'data-subject-request', actual: $slug);
 				return array_fill(0, ($schemasPerApplication[$application] ?? 0), new Schema());
 			}
 		);
 
-		$container = $this->createMock(ContainerInterface::class);
+		$container = $this->createMock(originalClassName: ContainerInterface::class);
 		$container->method('get')->willReturnCallback(
 			static function (string $id) use ($schemaMapper): object {
 				if ($id === SchemaMapper::class) {
@@ -435,11 +435,11 @@ class MigrateDataSubjectRequestsToOpenRegisterTest extends TestCase {
 		$this->rows['learniq/data-subject-request'] = [$this->request(id: 'dsr-1')];
 		$this->makeStep()->run($this->repairOutput());
 
-		self::assertSame([], $this->reads);
-		self::assertSame([], $this->saves);
+		self::assertSame(expected: [], actual: $this->reads);
+		self::assertSame(expected: [], actual: $this->saves);
 		self::assertSame(
-			['Learniq privacy requests: this instance has no learniq data subject request schema, nothing to move.'],
-			$this->messages
+			expected: ['Learniq privacy requests: this instance has no learniq data subject request schema, nothing to move.'],
+			actual: $this->messages
 		);
 	}//end testAnInstanceWithoutTheSchemaNeverReadsItsSlug()
 
@@ -457,9 +457,9 @@ class MigrateDataSubjectRequestsToOpenRegisterTest extends TestCase {
 			$this->container = $this->containerWith(schemasPerApplication: $held);
 			$step = $this->makeStep();
 
-			self::assertTrue($step->sourceSchemaExists(), $label);
+			self::assertTrue(condition: $step->sourceSchemaExists(), message: $label);
 			$step->run($this->repairOutput());
-			self::assertCount(1, $this->saves, $label);
+			self::assertCount(expectedCount: 1, haystack: $this->saves, message: $label);
 		}
 	}//end testAHeldSchemaIsReadAndMoved()
 
@@ -475,10 +475,10 @@ class MigrateDataSubjectRequestsToOpenRegisterTest extends TestCase {
 		$this->rows['learniq/data-subject-request'] = [$this->request(id: 'dsr-1')];
 		$step = $this->makeStep();
 
-		self::assertNull($step->sourceSchemaExists());
+		self::assertNull(actual: $step->sourceSchemaExists());
 		$step->run($this->repairOutput());
-		self::assertCount(1, $this->saves);
-		self::assertContains('learniq/data-subject-request', $this->reads);
+		self::assertCount(expectedCount: 1, haystack: $this->saves);
+		self::assertContains(needle: 'learniq/data-subject-request', haystack: $this->reads);
 	}//end testAFailedLookupFallsBackToReading()
 
 	/**
@@ -487,6 +487,6 @@ class MigrateDataSubjectRequestsToOpenRegisterTest extends TestCase {
 	 * @return void
 	 */
 	public function testWithoutAContainerTheLookupHasNoAnswer(): void {
-		self::assertNull($this->makeStep()->sourceSchemaExists());
+		self::assertNull(actual: $this->makeStep()->sourceSchemaExists());
 	}//end testWithoutAContainerTheLookupHasNoAnswer()
 }//end class
