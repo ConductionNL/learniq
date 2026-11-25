@@ -1,12 +1,23 @@
 <?php
 
 /**
- * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
- * SPDX-License-Identifier: EUPL-1.2
- *
  * "Alle geldige certificaten downloaden": one ZIP with the rendered PDF of
  * every issued, unexpired certificate of the company's people, kept on the
  * company's own row.
+ *
+ * @category Tests
+ * @package  OCA\Learniq\Tests\Unit\Service\Portal
+ *
+ * @author    Conduction Development Team <info@conduction.nl>
+ * @copyright 2026 Conduction B.V.
+ * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
+ * @version GIT: <git-id>
+ *
+ * @link https://conduction.nl
  *
  * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-an-employer-downloads-every-valid-certificate-at-once
  */
@@ -16,8 +27,11 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Service\Portal;
 
 use OCA\Learniq\Kernel\Contracts\CertificatePdfFileInterface;
+use OCA\Learniq\Service\Portal\ClientOrganisationFiles;
+use OCA\Learniq\Service\Portal\EmployerCertificateFiles;
 use OCA\Learniq\Service\Portal\EmployerCertificatesArchive;
 use OCA\Learniq\Service\Portal\PortalOutcome;
+use OCA\Learniq\Support\SerialisedRow;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\File\FileUpload;
 use OCA\OpenRegister\Service\FileService;
@@ -34,10 +48,15 @@ use RuntimeException;
 use ZipArchive;
 
 /**
+ * Tests the employer's certificates ZIP.
+ *
  * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-an-employer-downloads-every-valid-certificate-at-once
  */
 #[CoversClass(EmployerCertificatesArchive::class)]
+#[CoversClass(EmployerCertificateFiles::class)]
+#[CoversClass(ClientOrganisationFiles::class)]
 #[UsesClass(PortalOutcome::class)]
+#[UsesClass(SerialisedRow::class)]
 class EmployerCertificatesArchiveTest extends TestCase {
 
 	/**
@@ -45,10 +64,25 @@ class EmployerCertificatesArchiveTest extends TestCase {
 	 */
 	private const NOW = 1795608000;
 
+	/**
+	 * The files kept on a company row.
+	 *
+	 * @var array<int, array{object: string, upload: FileUpload}>
+	 */
 	private array $kept = [];
 
+	/**
+	 * The filters of the last certificates read.
+	 *
+	 * @var array<string, mixed>
+	 */
 	private array $filters = [];
 
+	/**
+	 * Four valid certificates and one expired: one file with four.
+	 *
+	 * @return void
+	 */
 	public function testLindaDownloadsHerFourValidCertificates(): void {
 		$rows = [
 			self::certificate(id: 'c1', learner: 'Tom Bakker', course: 'F-gassen', expires: '2028-03-01', pdf: '11'),
@@ -61,7 +95,10 @@ class EmployerCertificatesArchiveTest extends TestCase {
 		$outcome = $this->archive(rows: $rows)->make(organisationRef: ' co-a ');
 
 		self::assertSame(expected: 201, actual: $outcome->status);
-		self::assertSame(expected: ['status' => 'created', 'title' => 'Valid certificates, 2026-11-25', 'count' => 4, 'missing' => 0], actual: $outcome->body);
+		self::assertSame(
+			expected: ['status' => 'created', 'title' => 'Valid certificates, 2026-11-25', 'count' => 4, 'missing' => 0],
+			actual: $outcome->body
+		);
 		self::assertCount(expectedCount: 1, haystack: $this->kept);
 		self::assertSame(expected: 'co-a', actual: $this->kept[0]['object']);
 		$upload = $this->kept[0]['upload'];
@@ -81,6 +118,12 @@ class EmployerCertificatesArchiveTest extends TestCase {
 		self::assertSame(expected: ['issued', 'certificate'], actual: [$this->filters['lifecycle'], $this->filters['kind']]);
 	}//end testLindaDownloadsHerFourValidCertificates()
 
+	/**
+	 * Another company's, a revoked one, a proof of participation and one
+	 * marked expired never go in, whatever the store answered.
+	 *
+	 * @return void
+	 */
 	public function testOnlyHerCompanysIssuedCertificatesGoIn(): void {
 		$rows = [
 			self::certificate(id: 'c1', learner: 'Tom', course: 'F-gassen', expires: null, pdf: '11'),
@@ -96,6 +139,11 @@ class EmployerCertificatesArchiveTest extends TestCase {
 		self::assertSame(expected: ['Tom - F-gassen.pdf'], actual: array_keys(self::entries(zip: (string)$this->kept[0]['upload']->content)));
 	}//end testOnlyHerCompanysIssuedCertificatesGoIn()
 
+	/**
+	 * A valid certificate whose PDF is pending or unreadable is left out and counted.
+	 *
+	 * @return void
+	 */
 	public function testACertificateWithoutARenderedPdfIsCountedAsMissing(): void {
 		$rows = [
 			self::certificate(id: 'c1', learner: 'Tom', course: 'F-gassen', expires: null, pdf: '11'),
@@ -108,6 +156,11 @@ class EmployerCertificatesArchiveTest extends TestCase {
 		self::assertSame(expected: [201, 1, 2], actual: [$outcome->status, $outcome->body['count'], $outcome->body['missing']]);
 	}//end testACertificateWithoutARenderedPdfIsCountedAsMissing()
 
+	/**
+	 * Without a valid rendered certificate nothing is kept.
+	 *
+	 * @return void
+	 */
 	public function testWithoutAValidCertificateNothingIsKept(): void {
 		$rows = [self::certificate(id: 'c1', learner: 'Piet', course: 'F-gassen', expires: '2026-01-01', pdf: '11')];
 
@@ -121,6 +174,11 @@ class EmployerCertificatesArchiveTest extends TestCase {
 		self::assertSame(expected: [], actual: $this->filters, message: 'a blank company reads nothing');
 	}//end testWithoutAValidCertificateNothingIsKept()
 
+	/**
+	 * An unknown company, a failed save or an unreadable store keeps nothing.
+	 *
+	 * @return void
+	 */
 	public function testAnUnknownCompanyOrAFailedSaveKeepsNothing(): void {
 		$rows = [self::certificate(id: 'c1', learner: 'Tom', course: 'F-gassen', expires: null, pdf: '11')];
 
@@ -134,12 +192,18 @@ class EmployerCertificatesArchiveTest extends TestCase {
 		self::assertSame(expected: 409, actual: $unread->status);
 	}//end testAnUnknownCompanyOrAFailedSaveKeepsNothing()
 
+	/**
+	 * A name in the ZIP is safe and unique.
+	 *
+	 * @return void
+	 */
 	public function testEntryNamesAreSafeAndUnique(): void {
-		$taken = ['Tom - F-gassen.pdf'];
+		$tom = ['learnerName' => 'Tom', 'courseName' => 'F-gassen'];
+		self::assertSame(expected: 'Tom - F-gassen (2).pdf', actual: EmployerCertificateFiles::entryName(certificate: $tom, taken: ['Tom - F-gassen.pdf']));
 
-		self::assertSame(expected: 'Tom - F-gassen (2).pdf', actual: EmployerCertificatesArchive::entryName(certificate: ['learnerName' => 'Tom', 'courseName' => 'F-gassen'], taken: $taken));
-		self::assertSame(expected: 'Tom - Koel-techniek- 2.pdf', actual: EmployerCertificatesArchive::entryName(certificate: ['learnerName' => 'Tom', 'courseName' => 'Koel/techniek: 2'], taken: []));
-		self::assertSame(expected: 'Certificate c9.pdf', actual: EmployerCertificatesArchive::entryName(certificate: ['id' => 'c9'], taken: []));
+		$slashed = ['learnerName' => 'Tom', 'courseName' => 'Koel/techniek: 2'];
+		self::assertSame(expected: 'Tom - Koel-techniek- 2.pdf', actual: EmployerCertificateFiles::entryName(certificate: $slashed, taken: []));
+		self::assertSame(expected: 'Certificate c9.pdf', actual: EmployerCertificateFiles::entryName(certificate: ['id' => 'c9'], taken: []));
 	}//end testEntryNamesAreSafeAndUnique()
 
 	/**
@@ -191,7 +255,15 @@ class EmployerCertificatesArchiveTest extends TestCase {
 		);
 
 		$pdfs = $this->createMock(originalClassName: CertificatePdfFileInterface::class);
-		$pdfs->method('read')->willReturnCallback(static fn (string $documentRef): ?string => $documentRef === '404' ? null : '%PDF-'.$documentRef);
+		$pdfs->method('read')->willReturnCallback(
+			static function (string $documentRef): ?string {
+				if ($documentRef === '404') {
+					return null;
+				}
+
+				return '%PDF-'.$documentRef;
+			}
+		);
 
 		$l10n = $this->createMock(originalClassName: IL10N::class);
 		$l10n->method('t')->willReturnCallback(static fn (string $text, array $params=[]): string => vsprintf($text, $params));
@@ -201,18 +273,29 @@ class EmployerCertificatesArchiveTest extends TestCase {
 		$time = $this->createMock(originalClassName: ITimeFactory::class);
 		$time->method('getTime')->willReturn(self::NOW);
 
+		$logger = $this->createMock(originalClassName: LoggerInterface::class);
+
 		return new EmployerCertificatesArchive(
-			objectService: $store,
-			fileService: $files,
-			pdfs: $pdfs,
+			certificates: new EmployerCertificateFiles(objectService: $store, pdfs: $pdfs, logger: $logger),
+			companyFiles: new ClientOrganisationFiles(objectService: $store, fileService: $files, logger: $logger),
 			l10nFactory: $factory,
-			time: $time,
-			logger: $this->createMock(originalClassName: LoggerInterface::class)
+			time: $time
 		);
 	}//end archive()
 
 	/**
 	 * A certificate row as the store answers it.
+	 *
+	 * @param string      $id        The certificate id.
+	 * @param string      $learner   The holder's name.
+	 * @param string      $course    The certificate's name.
+	 * @param string|null $expires   Valid until, or null.
+	 * @param string      $pdf       The PDF's document reference.
+	 * @param string      $company   The holder's company.
+	 * @param string      $lifecycle The certificate's state.
+	 * @param string      $kind      Certificate or participation.
+	 * @param string      $status    The expiry status.
+	 * @param string      $render    The PDF's render status.
 	 *
 	 * @return array<string, mixed>
 	 */
@@ -250,13 +333,13 @@ class EmployerCertificatesArchiveTest extends TestCase {
 	 * @return array<string, string>
 	 */
 	private static function entries(string $zip): array {
-		$path = tempnam(sys_get_temp_dir(), 'zip-test-');
+		$path = (string)tempnam(sys_get_temp_dir(), 'zip-test-');
 		file_put_contents($path, $zip);
 		$archive = new ZipArchive();
 		$archive->open($path);
 		$entries = [];
-		for ($i = 0; $i < $archive->numFiles; $i++) {
-			$name           = (string)$archive->getNameIndex($i);
+		for ($index = 0; $index < $archive->numFiles; $index++) {
+			$name           = (string)$archive->getNameIndex($index);
 			$entries[$name] = (string)$archive->getFromName($name);
 		}
 

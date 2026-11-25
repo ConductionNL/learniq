@@ -558,20 +558,33 @@ class EmployerSitePages implements EmployerSitePagesInterface {
 					'successMessage' => 'The birth date is saved. The participant can take the exam.',
 				]
 			),
-			// "Alle geldige certificaten downloaden" (school-documents-on-the-portal T5).
-			$this->endpoint(
-				id: 'employerCertificatesDownload',
-				path: 'certificates-archive',
-				schema: 'client-organisation',
-				label: 'Download all valid certificates',
-				fields: [],
-				extra: [
-					'submitLabel' => 'Download all valid certificates',
-					'successMessage' => 'The file with all valid certificates is ready under Downloads.',
-				]
-			),
+			$this->certificatesDownloadAction(),
 		];
 	}//end actions()
+
+	/**
+	 * "Alle geldige certificaten downloaden": one ZIP of every valid
+	 * certificate of her people, kept on her company's row and listed under
+	 * Downloads on the certificates page (school-documents-on-the-portal T5).
+	 * Nothing to fill in: the company comes from the claim.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-an-employer-downloads-every-valid-certificate-at-once
+	 */
+	public function certificatesDownloadAction(): array {
+		return $this->endpoint(
+			id: 'employerCertificatesDownload',
+			path: 'certificates-archive',
+			schema: 'client-organisation',
+			label: 'Download all valid certificates',
+			fields: [],
+			extra: [
+				'submitLabel' => 'Download all valid certificates',
+				'successMessage' => 'The file with all valid certificates is ready under Downloads.',
+			]
+		);
+	}//end certificatesDownloadAction()
 
 	/**
 	 * "Collega in zijn plaats": a row action on her participants that sends

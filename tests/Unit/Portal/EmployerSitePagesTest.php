@@ -235,21 +235,21 @@ class EmployerSitePagesTest extends TestCase {
 	public function testTheCertificatesPageOffersOneDownloadOfEveryValidCertificate(): void {
 		$manifest = self::manifest();
 		$action   = array_column($manifest['actions'], null, 'id')['employerCertificatesDownload'];
-		self::assertSame('/apps/learniq/api/portal/employer/certificates-archive', $action['endpoint']);
-		self::assertSame('POST', $action['method']);
-		self::assertSame([], $action['fields'], 'nothing to fill in: the company comes from the claim');
+		self::assertSame(expected: '/apps/learniq/api/portal/employer/certificates-archive', actual: $action['endpoint']);
+		self::assertSame(expected: 'POST', actual: $action['method']);
+		self::assertSame(expected: [], actual: $action['fields'], message: 'nothing to fill in: the company comes from the claim');
 
 		$company = array_column($manifest['collections'], null, 'id')['employerCompany'];
-		self::assertSame('client-organisation', $company['schema']);
-		self::assertFalse($company['listable']);
-		self::assertSame(['name'], $company['fields']);
-		self::assertSame('employerDocuments', $company['documents']['provider']);
+		self::assertSame(expected: 'client-organisation', actual: $company['schema']);
+		self::assertFalse(condition: $company['listable']);
+		self::assertSame(expected: ['name'], actual: $company['fields']);
+		self::assertSame(expected: 'employerDocuments', actual: $company['documents']['provider']);
 
 		$page   = array_column($manifest['pages'], null, 'id')['employerCertificates'];
 		$blocks = array_column($page['blocks'], 'type');
-		self::assertSame(['collection', 'action', 'documents'], $blocks);
-		self::assertSame('employerCertificatesDownload', $page['blocks'][1]['action']);
-		self::assertSame('employerCompany', $page['blocks'][2]['collection']);
+		self::assertSame(expected: ['collection', 'action', 'documents'], actual: $blocks);
+		self::assertSame(expected: 'employerCertificatesDownload', actual: $page['blocks'][1]['action']);
+		self::assertSame(expected: 'employerCompany', actual: $page['blocks'][2]['collection']);
 	}//end testTheCertificatesPageOffersOneDownloadOfEveryValidCertificate()
 
 	/**

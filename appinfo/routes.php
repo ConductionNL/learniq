@@ -242,7 +242,7 @@ return \OCA\Learniq\Middleware\Support\ApiPathAliases::withVersionedAliases([
         // employer-substitutes-a-colleague: a colleague in a participant's place, before the deadline.
         ['name' => 'portalEmployer#substitute',      'url' => '/api/portal/employer/substitutions', 'verb' => 'POST'],
         // school-documents-on-the-portal T5: one ZIP of her people's valid certificates.
-        ['name' => 'portalEmployer#bundleCertificates', 'url' => '/api/portal/employer/certificates-archive', 'verb' => 'POST'],
+        ['name' => 'portalEmployerCertificates#bundle', 'url' => '/api/portal/employer/certificates-archive', 'verb' => 'POST'],
 
         // Personal timetable — the caller's own sessions for a window, resolved
         // from cohort membership (teacher/learner) via ObjectService (RBAC-scoped).
