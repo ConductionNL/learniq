@@ -118,7 +118,9 @@ class MunicipalityFeedbackGuardTest extends TestCase {
 	 * @spec openspec/changes/attendance-flag-report-actions/specs/attendance/spec.md#scenario-a-coordinator-records-the-mas-route
 	 */
 	public function testComplianceOfficerOnReportedFlagIsAllowed(): void {
-		self::assertTrue($this->makeGuard(['compliance-officers'])->check($this->job(), 'recordMunicipalityFeedback', 'actor-1')->isAllowed());
+		$result = $this->makeGuard(groups: ['compliance-officers'])->check(object: $this->job(), action: 'recordMunicipalityFeedback', userId: 'actor-1');
+
+		self::assertTrue(condition: $result->isAllowed());
 
 	}//end testComplianceOfficerOnReportedFlagIsAllowed()
 
@@ -131,10 +133,13 @@ class MunicipalityFeedbackGuardTest extends TestCase {
 	 * @spec openspec/changes/attendance-flag-report-actions/specs/attendance/spec.md#scenario-a-coordinator-records-the-mas-route
 	 */
 	public function testInstructorIsDeniedWithTheRolesThatMay(): void {
-		$result = $this->makeGuard(['instructors'])->check($this->job(), 'recordMunicipalityFeedback', 'actor-1');
+		$result = $this->makeGuard(groups: ['instructors'])->check(object: $this->job(), action: 'recordMunicipalityFeedback', userId: 'actor-1');
 
-		self::assertFalse($result->isAllowed());
-		self::assertSame('Only an admin, coordinator or compliance officer can record municipality feedback.', (string)$result->getMessage());
+		self::assertFalse(condition: $result->isAllowed());
+		self::assertSame(
+			expected: 'Only an admin, coordinator or compliance officer can record municipality feedback.',
+			actual: (string)$result->getMessage()
+		);
 
 	}//end testInstructorIsDeniedWithTheRolesThatMay()
 
