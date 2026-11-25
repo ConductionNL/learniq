@@ -153,6 +153,73 @@ class ProgrammeFactsTest extends TestCase {
 	}//end testHoursWaitingLongerThanSevenDays()
 
 	/**
+	 * The coach's submitted hours per company, the longest waiting company first; approved weeks and other coaches' placements stay out.
+	 *
+	 * @return void
+	 */
+	public function testHoursPerCompanyTheLongestWaitingFirst(): void {
+		$bpv = [
+			'placements' => [
+				['id' => 'p-milan', 'schoolCoachId' => 'karin', 'trainingCompanyName' => 'Van Dijk Machinebouw'],
+				['id' => 'p-jesse', 'schoolCoachId' => 'karin', 'trainingCompanyName' => 'Van Dijk Machinebouw'],
+				['id' => 'p-aylin', 'schoolCoachId' => 'karin', 'trainingCompanyName' => 'Hollandse Techniek'],
+				['id' => 'p-other', 'schoolCoachId' => 'piet', 'trainingCompanyName' => 'Hollandse Techniek'],
+			],
+			'weeks' => [
+				self::week(placement: 'p-milan', isoWeek: '2026-W40', hours: 32, submittedAt: '2026-10-02T17:00:00+02:00', lifecycle: 'submitted'),
+				self::week(placement: 'p-jesse', isoWeek: '2026-W40', hours: 24, submittedAt: '2026-10-02T18:00:00+02:00', lifecycle: 'submitted'),
+				self::week(placement: 'p-aylin', isoWeek: '2026-W38', hours: 16.5, submittedAt: '2026-09-18T17:00:00+02:00', lifecycle: 'submitted'),
+				self::week(placement: 'p-aylin', isoWeek: '2026-W37', hours: 32, submittedAt: '2026-09-11T17:00:00+02:00', lifecycle: 'approved'),
+				self::week(placement: 'p-other', isoWeek: '2026-W36', hours: 32, submittedAt: '2026-09-04T17:00:00+02:00', lifecycle: 'submitted'),
+			],
+		];
+
+		self::assertSame(
+			expected: [
+				[
+					'company' => 'Hollandse Techniek',
+					'students' => 1,
+					'weeks' => 1,
+					'hours' => 16.5,
+					'oldestSubmittedAt' => '2026-09-18T17:00:00+02:00',
+					'oldestWeek' => '2026-W38',
+				],
+				[
+					'company' => 'Van Dijk Machinebouw',
+					'students' => 2,
+					'weeks' => 2,
+					'hours' => 56.0,
+					'oldestSubmittedAt' => '2026-10-02T17:00:00+02:00',
+					'oldestWeek' => '2026-W40',
+				],
+			],
+			actual: (new PlacementFacts())->hoursPerCompany(bpv: $bpv, context: $this->karin())
+		);
+		self::assertSame(expected: [], actual: (new PlacementFacts())->hoursPerCompany(bpv: [], context: $this->karin()));
+	}//end testHoursPerCompanyTheLongestWaitingFirst()
+
+	/**
+	 * One hour week row.
+	 *
+	 * @param string    $placement   The placement id.
+	 * @param string    $isoWeek     The week.
+	 * @param int|float $hours       The hours submitted.
+	 * @param string    $submittedAt When it was submitted.
+	 * @param string    $lifecycle   Its state.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private static function week(string $placement, string $isoWeek, int|float $hours, string $submittedAt, string $lifecycle): array {
+		return [
+			'bpvPlacementId' => $placement,
+			'isoWeek' => $isoWeek,
+			'hoursSubmitted' => $hours,
+			'submittedAt' => $submittedAt,
+			'lifecycle' => $lifecycle,
+		];
+	}//end week()
+
+	/**
 	 * The objection of 25 September, due on 9 October, is past half its term on 5 October; a decided one is not.
 	 *
 	 * @return void

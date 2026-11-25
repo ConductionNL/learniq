@@ -108,6 +108,25 @@ class TodayFirstController extends Controller {
 	}//end counts()
 
 	/**
+	 * The hours of the caller's BPV students that wait for their company, per company, the longest waiting first.
+	 *
+	 * @return JSONResponse `{companies: [{company, students, weeks, hours, oldestSubmittedAt, oldestWeek}]}`, or 401 / 503.
+	 *
+	 * @spec openspec/changes/bpv-coach-today-and-placement-board/specs/bpv/spec.md#requirement-the-bpv-begeleiders-today-gathers-her-students
+	 *
+	 * @no-admin-idor-exempt the list is the caller's own: only placements where the session user is the school
+	 *  coach are read, with her own rights, and the hour weeks are kept only for those placements. No id is
+	 *  taken from the request.
+	 */
+	#[NoAdminRequired]
+	public function bpvHours(): JSONResponse {
+		return $this->answer(
+			read: fn (IUser $user): ?array => $this->firstToday->hoursPerCompanyFor(user: $user),
+			failed: $this->l10n->t('The BPV hours on Today could not be read. Try again.')
+		);
+	}//end bpvHours()
+
+	/**
 	 * The card of the user, described for Today, or null when it could not be read.
 	 *
 	 * @param IUser  $user The caller.

@@ -6772,7 +6772,12 @@
         "All visits": "Alle bezoeken",
         "Students per phase": "Studenten per fase",
         "To the board": "Naar het bord",
-        "No placements where you are the school coach": "Geen BPV-plekken waarvan u de begeleider bent"
+        "No placements where you are the school coach": "Geen BPV-plekken waarvan u de begeleider bent",
+        "Hours waiting for a company": "Uren die wachten op een leerbedrijf",
+        "{students} students · {weeks} weeks · waiting since {oldestWeek}": "{students} studenten · {weeks} weken · wacht sinds {oldestWeek}",
+        "{hours} h": "{hours} uur",
+        "No hours waiting for a company": "Geen uren die wachten op een leerbedrijf",
+        "The BPV hours on Today could not be read. Try again.": "De BPV-uren op Vandaag konden niet worden gelezen. Probeer het opnieuw."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

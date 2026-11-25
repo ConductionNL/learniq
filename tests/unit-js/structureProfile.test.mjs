@@ -2162,6 +2162,10 @@ test('the BPV view is offered to a school coach and counts only her own placemen
 		assert.deepEqual(cell.route, { name: 'BpvPlacements', query: { _view: 'board', phase: cell.key } })
 	}
 	assert.deepEqual(phases.headerLink.query, { _view: 'board' })
+	// Her hours waiting per company, the longest waiting first, from the server.
+	const hours = BPV.widgets.find((widget) => widget.type === 'record-list')
+	assert.deepEqual(hours.content.endpointSource, { url: '/apps/learniq/api/today/bpv-hours', responsePath: 'companies' })
+	assert.equal(hours.content.title, '{company}')
 	for (const item of BPV.layout) {
 		assert.ok(item.gridX + item.gridWidth <= 12, `${item.widgetId} is too wide`)
 	}

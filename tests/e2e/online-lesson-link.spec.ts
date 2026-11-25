@@ -76,6 +76,9 @@ test.describe('join an online lesson from the timetable', () => {
 	// @e2e openspec/changes/timetabling-online-lesson-link/specs/timetable-online-lesson-link/spec.md#scenario-a-learner-joins-from-the-timetable
 	test('Join opens the meeting in a new tab', async ({ browser }) => {
 		const page = await signInAs(browser, learner)
+		// The meeting host does not exist; answer it here so the new tab lands on its URL
+		// instead of a browser error page.
+		await page.context().route('https://meet.example.org/**', (route) => route.fulfill({ status: 200, contentType: 'text/html', body: '<title>Meeting</title>' }))
 		await page.goto(TIMETABLE, { waitUntil: 'domcontentloaded' })
 		const lesson = page.locator('.my-timetable__session', { hasText: online })
 		await expect(lesson).toHaveCount(1, { timeout: 30_000 })

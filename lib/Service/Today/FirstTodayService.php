@@ -162,6 +162,41 @@ class FirstTodayService {
 	}//end tilesFor()
 
 	/**
+	 * The hours of the user's BPV students that wait for their company, per company, or null when they could not be read.
+	 *
+	 * @param IUser $user The caller, as school coach.
+	 *
+	 * @return array<string, mixed>|null `companies`, the longest waiting first (PlacementFacts::hoursPerCompany()).
+	 *
+	 * @spec openspec/changes/bpv-coach-today-and-placement-board/specs/bpv/spec.md#requirement-the-bpv-begeleiders-today-gathers-her-students
+	 */
+	public function hoursPerCompanyFor(IUser $user): ?array {
+		try {
+			$context = $this->reader->contextFor(user: $user);
+			$placements = $this->reader->rows(schema: 'bpv-placement', filters: ['schoolCoachId' => $context->uid()]);
+			if ($placements === []) {
+				return ['companies' => []];
+			}
+
+			return [
+				'companies' => (new PlacementFacts())->hoursPerCompany(
+					bpv: [
+						'placements' => $placements,
+						'weeks' => $this->reader->rows(schema: 'bpv-hour-week', filters: ['lifecycle' => 'submitted']),
+					],
+					context: $context
+				),
+			];
+		} catch (Throwable $exception) {
+			$this->logger->error(
+				'[FirstTodayService] The BPV hours on Today could not be read: {msg}',
+				['msg' => $exception->getMessage(), 'exception' => $exception]
+			);
+			return null;
+		}
+	}//end hoursPerCompanyFor()
+
+	/**
 	 * The user's role on Today in the view she asked for.
 	 *
 	 * @param IUser  $user The caller.
