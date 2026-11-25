@@ -21,11 +21,13 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Repair;
 
+use OCA\OpenRegister\Db\SchemaMapper;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Migration\IOutput;
 use OCP\Migration\IRepairStep;
+use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
@@ -58,6 +60,15 @@ use Throwable;
  * upgrade; when it is not there yet the saves fail, are counted, and the next
  * upgrade retries.
  *
+ * NO READ OF A SLUG THE INSTANCE DOES NOT CARRY. The learniq descriptor no
+ * longer declares `data-subject-request`, so a fresh install, and an instance
+ * where PruneRetiredSchemas already removed it, has no such schema. OpenRegister
+ * refuses a read of a slug its register does not carry. So the step first asks
+ * OpenRegister's schema store whether a learniq (or pre-rename scholiq) schema
+ * under that slug exists, the way PruneRetiredSchemas looks it up, and only
+ * then reads its rows. When the schema store cannot be asked, the step reads as
+ * before and treats a refused read as "nothing to move".
+ *
  * @spec openspec/specs/avg-verwerkingsregister/spec.md#requirement-privacy-requests-live-in-openregisters-data-subject-request-register
  */
 class MigrateDataSubjectRequestsToOpenRegister implements IRepairStep {
@@ -66,6 +77,13 @@ class MigrateDataSubjectRequestsToOpenRegister implements IRepairStep {
 	private const LEARNIQ_SCHEMA = 'data-subject-request';
 	private const OR_REGISTER = 'data-subject-requests';
 	private const OR_SCHEMA = 'dataSubjectRequest';
+
+	/**
+	 * The application ids a learniq schema can carry (as in PruneRetiredSchemas).
+	 *
+	 * @var array<int, string>
+	 */
+	private const APPLICATIONS = PruneRetiredSchemas::APPLICATIONS;
 
 	/**
 	 * First-line marker in a migrated case's `notes`.
@@ -107,14 +125,19 @@ class MigrateDataSubjectRequestsToOpenRegister implements IRepairStep {
 	/**
 	 * Constructor.
 	 *
-	 * @param ObjectService $objectService OpenRegister object access.
-	 * @param LoggerInterface $logger PSR logger.
+	 * @param ObjectService           $objectService OpenRegister object access.
+	 * @param LoggerInterface         $logger        PSR logger.
+	 * @param ContainerInterface|null $container     Server container, for a lazy SchemaMapper
+	 *                                               lookup; null reads without asking first.
 	 *
 	 * @return void
+	 *
+	 * @spec openspec/specs/avg-verwerkingsregister/spec.md#requirement-privacy-requests-live-in-openregisters-data-subject-request-register
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
+		private readonly ?ContainerInterface $container = null,
 	) {
 	}//end __construct()
 
@@ -139,6 +162,11 @@ class MigrateDataSubjectRequestsToOpenRegister implements IRepairStep {
 	 * @spec openspec/specs/avg-verwerkingsregister/spec.md#requirement-privacy-requests-live-in-openregisters-data-subject-request-register
 	 */
 	public function run(IOutput $output): void {
+		if ($this->sourceSchemaExists() === false) {
+			$output->info('Learniq privacy requests: this instance has no learniq data subject request schema, nothing to move.');
+			return;
+		}
+
 		try {
 			$sources = $this->readAll(register: self::LEARNIQ_REGISTER, schema: self::LEARNIQ_SCHEMA);
 		} catch (Throwable $exception) {
@@ -175,6 +203,40 @@ class MigrateDataSubjectRequestsToOpenRegister implements IRepairStep {
 		$output->info($summary);
 		$this->logger->info('[MigrateDataSubjectRequestsToOpenRegister] ' . $summary);
 	}//end run()
+
+	/**
+	 * Whether OpenRegister holds a learniq schema under the retired slug.
+	 *
+	 * True or false when the schema store answered; null when it could not be
+	 * asked (no container, OpenRegister absent, a failed lookup), so the caller
+	 * falls back to reading and catching a refusal.
+	 *
+	 * @return bool|null
+	 *
+	 * @spec openspec/specs/avg-verwerkingsregister/spec.md#requirement-privacy-requests-live-in-openregisters-data-subject-request-register
+	 */
+	public function sourceSchemaExists(): ?bool {
+		if ($this->container === null) {
+			return null;
+		}
+
+		try {
+			$schemaMapper = $this->container->get(SchemaMapper::class);
+			foreach (self::APPLICATIONS as $application) {
+				if ($schemaMapper->findAllByApplicationAndSlug(slug: self::LEARNIQ_SCHEMA, application: $application) !== []) {
+					return true;
+				}
+			}
+		} catch (Throwable $exception) {
+			$this->logger->info(
+				'[MigrateDataSubjectRequestsToOpenRegister] Schema lookup failed, reading directly: {msg}',
+				['msg' => $exception->getMessage()]
+			);
+			return null;
+		}
+
+		return false;
+	}//end sourceSchemaExists()
 
 	/**
 	 * Move one source row, returning the outcome.

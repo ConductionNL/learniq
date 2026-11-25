@@ -26,9 +26,12 @@ namespace OCA\Learniq\Tests\Unit\Repair;
 use OCA\Learniq\Repair\MigrateDataSubjectRequestsToOpenRegister;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Db\ObjectEntity;
+use OCA\OpenRegister\Db\Schema;
+use OCA\OpenRegister\Db\SchemaMapper;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Migration\IOutput;
 use PHPUnit\Framework\TestCase;
+use Psr\Container\ContainerInterface;
 use Psr\Log\NullLogger;
 use RuntimeException;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
@@ -74,6 +77,20 @@ class MigrateDataSubjectRequestsToOpenRegisterTest extends TestCase {
 	private bool $rawRows = false;
 
 	/**
+	 * Every findAll as "register/schema".
+	 *
+	 * @var array<int, string>
+	 */
+	private array $reads = [];
+
+	/**
+	 * The container handed to the step; null builds it without one.
+	 *
+	 * @var ContainerInterface|null
+	 */
+	private ?ContainerInterface $container = null;
+
+	/**
 	 * Messages the step wrote.
 	 *
 	 * @var array<int, string>
@@ -90,6 +107,7 @@ class MigrateDataSubjectRequestsToOpenRegisterTest extends TestCase {
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array {
 				$key = ($config['filters']['register'] ?? '') . '/' . ($config['filters']['schema'] ?? '');
+				$this->reads[] = $key;
 				if ($this->noSourceSchema === true && $key === 'learniq/data-subject-request') {
 					throw new RuntimeException('Schema not found');
 				}
@@ -119,8 +137,43 @@ class MigrateDataSubjectRequestsToOpenRegisterTest extends TestCase {
 			}
 		);
 
-		return new MigrateDataSubjectRequestsToOpenRegister($objectService, new NullLogger());
+		return new MigrateDataSubjectRequestsToOpenRegister($objectService, new NullLogger(), $this->container);
 	}//end makeStep()
+
+	/**
+	 * A container whose SchemaMapper answers the retired slug per application.
+	 *
+	 * @param array<string, int> $schemasPerApplication Application id => number of schema rows; missing = none.
+	 * @param bool               $lookupFails           Whether the lookup throws.
+	 *
+	 * @return ContainerInterface
+	 */
+	private function containerWith(array $schemasPerApplication, bool $lookupFails = false): ContainerInterface {
+		$schemaMapper = $this->createMock(SchemaMapper::class);
+		$schemaMapper->method('findAllByApplicationAndSlug')->willReturnCallback(
+			function (string $slug, string $application) use ($schemasPerApplication, $lookupFails): array {
+				if ($lookupFails === true) {
+					throw new RuntimeException('schema table missing');
+				}
+
+				self::assertSame('data-subject-request', $slug);
+				return array_fill(0, ($schemasPerApplication[$application] ?? 0), new Schema());
+			}
+		);
+
+		$container = $this->createMock(ContainerInterface::class);
+		$container->method('get')->willReturnCallback(
+			static function (string $id) use ($schemaMapper): object {
+				if ($id === SchemaMapper::class) {
+					return $schemaMapper;
+				}
+
+				throw new RuntimeException('not registered: ' . $id);
+			}
+		);
+
+		return $container;
+	}//end containerWith()
 
 	/**
 	 * An IOutput double that records messages.
@@ -370,4 +423,70 @@ class MigrateDataSubjectRequestsToOpenRegisterTest extends TestCase {
 
 		self::assertSame('Learniq privacy requests: could not read the OpenRegister register, nothing moved (register missing).', end($this->messages));
 	}//end testAnUnreadableTargetMovesNothing()
+	/**
+	 * Without the retired schema on the instance the step never reads its slug.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/avg-verwerkingsregister/spec.md#requirement-privacy-requests-live-in-openregisters-data-subject-request-register
+	 */
+	public function testAnInstanceWithoutTheSchemaNeverReadsItsSlug(): void {
+		$this->container = $this->containerWith(schemasPerApplication: []);
+		$this->rows['learniq/data-subject-request'] = [$this->request(id: 'dsr-1')];
+		$this->makeStep()->run($this->repairOutput());
+
+		self::assertSame([], $this->reads);
+		self::assertSame([], $this->saves);
+		self::assertSame(
+			['Learniq privacy requests: this instance has no learniq data subject request schema, nothing to move.'],
+			$this->messages
+		);
+	}//end testAnInstanceWithoutTheSchemaNeverReadsItsSlug()
+
+	/**
+	 * A schema the instance still holds, under learniq or the pre-rename scholiq id, is read and moved.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/avg-verwerkingsregister/spec.md#requirement-privacy-requests-live-in-openregisters-data-subject-request-register
+	 */
+	public function testAHeldSchemaIsReadAndMoved(): void {
+		foreach (['learniq' => ['learniq' => 1], 'scholiq' => ['scholiq' => 2]] as $label => $held) {
+			$this->rows = ['learniq/data-subject-request' => [$this->request(id: 'dsr-' . $label)]];
+			$this->saves = [];
+			$this->container = $this->containerWith(schemasPerApplication: $held);
+			$step = $this->makeStep();
+
+			self::assertTrue($step->sourceSchemaExists(), $label);
+			$step->run($this->repairOutput());
+			self::assertCount(1, $this->saves, $label);
+		}
+	}//end testAHeldSchemaIsReadAndMoved()
+
+	/**
+	 * A failed lookup falls back to reading, so a moved row is never lost to a lookup error.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/avg-verwerkingsregister/spec.md#requirement-privacy-requests-live-in-openregisters-data-subject-request-register
+	 */
+	public function testAFailedLookupFallsBackToReading(): void {
+		$this->container = $this->containerWith(schemasPerApplication: [], lookupFails: true);
+		$this->rows['learniq/data-subject-request'] = [$this->request(id: 'dsr-1')];
+		$step = $this->makeStep();
+
+		self::assertNull($step->sourceSchemaExists());
+		$step->run($this->repairOutput());
+		self::assertCount(1, $this->saves);
+		self::assertContains('learniq/data-subject-request', $this->reads);
+	}//end testAFailedLookupFallsBackToReading()
+
+	/**
+	 * Without a container the step cannot ask and reads directly.
+	 *
+	 * @return void
+	 */
+	public function testWithoutAContainerTheLookupHasNoAnswer(): void {
+		self::assertNull($this->makeStep()->sourceSchemaExists());
+	}//end testWithoutAContainerTheLookupHasNoAnswer()
 }//end class
