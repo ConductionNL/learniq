@@ -15,5 +15,6 @@
   - Written with the block in nextcloud-vue: `tests/components/CnQuietHours.spec.js` (#2307) covers all four cases and switching off. Shipped in nextcloud-vue 2.211.0.
 - [x] 2.2 Playwright `tests/e2e/notification-quiet-hours.spec.ts`: set 22:00 to 07:00, reload, read the values back. Tag with `@e2e`.
   - Written, runs in nightly: reads the block by `cn-quiet-hours`, fields Begin and End; skips on a nextcloud-vue without the block.
-- [ ] 2.3 One live check on the dev instance: save, then `GET /apps/openregister/api/notification-delivery-window` as that user returns the window.
-- [ ] 2.4 Set row `gov-choose-my-notifications` to `built`, `learniq: yes`; archive this change into `openspec/specs/scholiq-notifications`.
+- [x] 2.3 One live check on the dev instance: save, then `GET /apps/openregister/api/notification-delivery-window` as that user returns the window.
+  - Live on a sandbox Nextcloud 34.0.6 with OpenRegister main and learniq development (25 Nov 2026): `tests/e2e/notification-quiet-hours.spec.ts` 1/1 passed. A fresh teacher answers `enabled: false`, sets 22:00 to 07:00 in the dialog, and the GET as her returns `enabled: true`, start 22:00, end 07:00 with her time zone; after a reload the dialog reads the same back. The spec now toggles the switch by its label (NcCheckboxRadioSwitch draws `role=switch`, not a checkbox).
+- [x] 2.4 Set row `gov-choose-my-notifications` to `built`, `learniq: yes`; archive this change into `openspec/specs/scholiq-notifications`.

@@ -14,7 +14,7 @@
  * does not draw the block yet (no `cn-quiet-hours` in the dialog).
  *
  * Covers:
- *   @e2e openspec/changes/notification-quiet-hours-through-openregister/specs/scholiq-notifications/spec.md#scenario-a-teacher-sets-quiet-hours
+ *   @e2e openspec/specs/scholiq-notifications/spec.md#scenario-a-teacher-sets-quiet-hours
  */
 import type { APIRequestContext, Page } from '@playwright/test'
 import type { TempUser } from './live-fixtures.ts'
@@ -59,7 +59,7 @@ test.describe('quiet hours through the delivery window', () => {
 		await fx.teardown()
 	})
 
-	// @e2e openspec/changes/notification-quiet-hours-through-openregister/specs/scholiq-notifications/spec.md#scenario-a-teacher-sets-quiet-hours
+	// @e2e openspec/specs/scholiq-notifications/spec.md#scenario-a-teacher-sets-quiet-hours
 	test('a teacher sets 22:00 to 07:00 and reads it back after a reload', async ({ browser }) => {
 		test.setTimeout(180_000)
 		const none = await api.get(WINDOW)
@@ -72,7 +72,11 @@ test.describe('quiet hours through the delivery window', () => {
 			!(await section.waitFor({ state: 'visible', timeout: 15_000 }).then(() => true, () => false)),
 			'This build of nextcloud-vue draws no quiet-hours block yet (needs the release with CnQuietHours, nextcloud-vue #2307).',
 		)
-		await section.getByRole('checkbox', { name: 'Turn on quiet hours' }).check()
+		// NcCheckboxRadioSwitch draws a switch whose input sits under its label,
+		// so click the label the way a user does, then read the switch's state.
+		const toggle = section.getByRole('switch', { name: 'Turn on quiet hours' })
+		await section.getByText('Turn on quiet hours', { exact: true }).click()
+		await expect(toggle).toBeChecked()
 		await section.getByLabel('Begin').fill('22:00')
 		await section.getByLabel('End').fill('07:00')
 		await section.getByRole('button', { name: 'Save' }).click()
@@ -87,7 +91,7 @@ test.describe('quiet hours through the delivery window', () => {
 		// Reopen the panel after a reload: the values come back from OpenRegister.
 		await page.reload()
 		section = await openQuietHours(page)
-		await expect(section.getByRole('checkbox', { name: 'Turn on quiet hours' })).toBeChecked()
+		await expect(section.getByRole('switch', { name: 'Turn on quiet hours' })).toBeChecked()
 		await expect(section.getByLabel('Begin')).toHaveValue('22:00')
 		await expect(section.getByLabel('End')).toHaveValue('07:00')
 		await page.context().close()
