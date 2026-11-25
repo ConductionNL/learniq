@@ -52,42 +52,56 @@ final class ParentMessages {
 	public const LINE_LENGTH = 140;
 
 	/**
+	 * The threads about one of the pupils, or all threads without pupils.
+	 *
+	 * The Mentor view narrows the conversations to the pupils of her mentor
+	 * class: a thread counts when its `recordRef` is one of their references.
+	 *
+	 * @param list<array<string, mixed>> $threads   The caller's threads.
+	 * @param list<string>|null          $pupilRefs The pupils to narrow to, or null for all.
+	 *
+	 * @return list<array<string, mixed>>
+	 *
+	 * @spec openspec/specs/dashboard/spec.md#requirement-a-mentor-switches-today-to-her-mentor-class
+	 */
+	public function about(array $threads, ?array $pupilRefs): array {
+		if ($pupilRefs === null) {
+			return array_values($threads);
+		}
+
+		return array_values(
+			array_filter($threads, static fn (array $thread): bool => in_array((string)($thread['recordRef'] ?? ''), $pupilRefs, true) === true)
+		);
+	}//end about()
+
+	/**
 	 * The newest conversations of the caller, newest first.
 	 *
 	 * A conversation's moment is its last message (`sentAt`), else the moment
 	 * it was opened (`createdAt`). A message is unread when someone else sent
-	 * it and the caller is not in its `readBy`. With `$pupilRefs` only the
-	 * conversations about one of those pupils (`recordRef`) count.
+	 * it and the caller is not in its `readBy`. The card lists LIMIT of them.
 	 *
-	 * @param list<array<string, mixed>>               $threads   The caller's threads, as portaliq lists them.
-	 * @param array<string, list<array<string, mixed>>> $byThread  The messages per thread id.
-	 * @param string                                    $staffRef  The caller's own reference (her user id).
-	 * @param list<string>|null                         $pupilRefs The pupils to narrow to, or null for all.
-	 * @param int                                       $limit     How many conversations to list.
+	 * @param list<array<string, mixed>>                $threads  The caller's threads, as portaliq lists them.
+	 * @param array<string, list<array<string, mixed>>> $byThread The messages per thread id.
+	 * @param string                                    $staffRef The caller's own reference (her user id).
 	 *
 	 * @return array<string, mixed> threads (threadId, title, about, line, sentAt, fromMe, unread), unreadCount, total.
 	 *
 	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/proposal.md
 	 */
-	public function newest(array $threads, array $byThread, string $staffRef, ?array $pupilRefs=null, int $limit=self::LIMIT): array {
+	public function newest(array $threads, array $byThread, string $staffRef): array {
 		$rows = [];
 		foreach ($threads as $thread) {
-			if ($pupilRefs !== null && in_array((string)($thread['recordRef'] ?? ''), $pupilRefs, true) === false) {
-				continue;
-			}
-
 			$threadId = self::idOf(row: $thread);
-			if ($threadId === '') {
-				continue;
+			if ($threadId !== '') {
+				$rows[] = self::row(thread: $thread, threadId: $threadId, messages: ($byThread[$threadId] ?? []), staffRef: $staffRef);
 			}
-
-			$rows[] = self::row(thread: $thread, threadId: $threadId, messages: ($byThread[$threadId] ?? []), staffRef: $staffRef);
 		}
 
 		usort($rows, static fn (array $one, array $two): int => strcmp((string)$two['sentAt'], (string)$one['sentAt']));
 
 		return [
-			'threads' => array_slice($rows, 0, max(0, $limit)),
+			'threads' => array_slice($rows, 0, self::LIMIT),
 			'unreadCount' => count(array_filter($rows, static fn (array $row): bool => $row['unread'] === true)),
 			'total' => count($rows),
 		];

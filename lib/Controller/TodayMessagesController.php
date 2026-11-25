@@ -74,11 +74,20 @@ class TodayMessagesController extends Controller {
 			return new JSONResponse(data: ['error' => $this->l10n->t('Sign in to open this page.')], statusCode: Http::STATUS_UNAUTHORIZED);
 		}
 
+		return new JSONResponse(data: $this->messages->for(user: $user, view: $this->view()));
+	}//end parentMessages()
+
+	/**
+	 * The Today view the page asks for; anything but a string is the Teacher view.
+	 *
+	 * @return string
+	 */
+	private function view(): string {
 		$view = $this->request->getParam('view', '');
 		if (is_string($view) === false) {
-			$view = '';
+			return '';
 		}
 
-		return new JSONResponse(data: $this->messages->for(user: $user, view: $view));
-	}//end parentMessages()
+		return $view;
+	}//end view()
 }//end class

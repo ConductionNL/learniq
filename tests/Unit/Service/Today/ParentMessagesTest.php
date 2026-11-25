@@ -117,15 +117,10 @@ class ParentMessagesTest extends TestCase {
 	 * @return void
 	 */
 	public function testPupilRefsNarrowTheConversations(): void {
-		$answer = (new ParentMessages())->newest(
-			threads: [self::thread(id: 'a', title: 'Over Vera'), self::thread(id: 'b', title: 'Over Sami', recordRef: 'sami')],
-			byThread: [],
-			staffRef: 'daan',
-			pupilRefs: ['sami']
-		);
+		$threads = [self::thread(id: 'a', title: 'Over Vera'), self::thread(id: 'b', title: 'Over Sami', recordRef: 'sami')];
 
-		self::assertSame(expected: ['b'], actual: array_column($answer['threads'], 'threadId'));
-		self::assertSame(expected: 1, actual: $answer['total']);
+		self::assertSame(expected: ['b'], actual: array_column((new ParentMessages())->about(threads: $threads, pupilRefs: ['sami']), 'id'));
+		self::assertSame(expected: ['a', 'b'], actual: array_column((new ParentMessages())->about(threads: $threads, pupilRefs: null), 'id'));
 	}//end testPupilRefsNarrowTheConversations()
 
 	/**

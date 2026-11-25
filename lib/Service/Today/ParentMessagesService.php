@@ -84,30 +84,38 @@ class ParentMessagesService {
 			$pupilRefs = $this->mentorPupilRefs(user: $user);
 		}
 
+		$answer = ['available' => false, 'view' => $this->viewOf(pupilRefs: $pupilRefs)];
 		$threads = $this->messages->threads(staffRef: $staffRef);
 		if ($threads === null) {
-			return ['available' => false, 'view' => $this->viewOf(pupilRefs: $pupilRefs), 'threads' => [], 'unreadCount' => 0, 'total' => 0];
+			return array_merge($answer, ['threads' => [], 'unreadCount' => 0, 'total' => 0]);
 		}
 
-		if ($pupilRefs !== null) {
-			$threads = array_values(
-				array_filter($threads, static fn (array $thread): bool => in_array((string)($thread['recordRef'] ?? ''), $pupilRefs, true) === true)
-			);
-		}
-
-		$byThread = [];
-		foreach ($threads as $thread) {
-			$threadId = self::idOf(row: $thread);
-			if ($threadId !== '') {
-				$byThread[$threadId] = ($this->messages->messages(threadId: $threadId, staffRef: $staffRef) ?? []);
-			}
-		}
-
-		return array_merge(
-			['available' => true, 'view' => $this->viewOf(pupilRefs: $pupilRefs)],
-			(new ParentMessages())->newest(threads: $threads, byThread: $byThread, staffRef: $staffRef)
+		$threads = (new ParentMessages())->about(threads: $threads, pupilRefs: $pupilRefs);
+		$newest = (new ParentMessages())->newest(
+			threads: $threads,
+			byThread: $this->messagesOf(threads: $threads, staffRef: $staffRef),
+			staffRef: $staffRef
 		);
+
+		return array_merge($answer, ['available' => true], $newest);
 	}//end for()
+
+	/**
+	 * The messages of each thread, read with the caller's own reference.
+	 *
+	 * @param list<array<string, mixed>> $threads  The threads.
+	 * @param string                     $staffRef The caller.
+	 *
+	 * @return array<string, list<array<string, mixed>>>
+	 */
+	private function messagesOf(array $threads, string $staffRef): array {
+		$byThread = [];
+		foreach (array_filter(array_map(static fn (array $thread): string => self::idOf(row: $thread), $threads)) as $threadId) {
+			$byThread[$threadId] = ($this->messages->messages(threadId: $threadId, staffRef: $staffRef) ?? []);
+		}
+
+		return $byThread;
+	}//end messagesOf()
 
 	/**
 	 * The references of the pupils in the groups the caller is the mentor of:
@@ -125,29 +133,35 @@ class ParentMessagesService {
 			return null;
 		}
 
-		$refs = [];
-		$mentor = false;
-		foreach ($cohorts as $cohort) {
-			if ((string)($cohort['mentorId'] ?? '') !== $user->getUID()) {
-				continue;
-			}
-
-			$mentor = true;
-			$refs = array_merge($refs, array_map('strval', (array)($cohort['learnerIds'] ?? [])));
-			$cohortId = self::idOf(row: $cohort);
-			foreach ($this->reader->rows(schema: 'enrolment', filters: ['cohortId' => $cohortId]) as $enrolment) {
-				$refs[] = (string)($enrolment['learnerRef'] ?? '');
-				$refs[] = (string)($enrolment['learnerId'] ?? '');
-				$refs[] = self::idOf(row: $enrolment);
-			}
+		$uid = $user->getUID();
+		$mentored = array_filter($cohorts, static fn (array $cohort): bool => (string)($cohort['mentorId'] ?? '') === $uid);
+		if ($mentored === []) {
+			return null;
 		}
 
-		if ($mentor === false) {
-			return null;
+		$refs = [];
+		foreach ($mentored as $cohort) {
+			$refs = array_merge($refs, $this->refsOfCohort(cohort: $cohort));
 		}
 
 		return array_values(array_unique(array_filter($refs, static fn (string $ref): bool => $ref !== '')));
 	}//end mentorPupilRefs()
+
+	/**
+	 * The user, profile and enrolment ids of one group's pupils.
+	 *
+	 * @param array<string, mixed> $cohort The group.
+	 *
+	 * @return list<string>
+	 */
+	private function refsOfCohort(array $cohort): array {
+		$refs = array_map('strval', array_values((array)($cohort['learnerIds'] ?? [])));
+		foreach ($this->reader->rows(schema: 'enrolment', filters: ['cohortId' => self::idOf(row: $cohort)]) as $enrolment) {
+			array_push($refs, (string)($enrolment['learnerRef'] ?? ''), (string)($enrolment['learnerId'] ?? ''), self::idOf(row: $enrolment));
+		}
+
+		return $refs;
+	}//end refsOfCohort()
 
 	/**
 	 * The view the answer was read for.
