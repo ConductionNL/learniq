@@ -429,12 +429,17 @@ export async function signInWithNextcloudAccount(
 	).newPage()
 	const site = siteUrl(portal)
 
-	await page.goto(site)
+	// The sign-in choices live on the account route; the home page only links
+	// to it ("Mijn <school>"), the way portal-design/boards.ts signInAs opens it.
+	await page.goto(`${site}&route=${encodeURIComponent('/mijn')}`)
 	await page.getByTestId('site-account-signin').waitFor({ timeout: 20_000 })
 	await shot(page, shots, 'login-choices')
-	// The button for this mode, as the site renders it (authApi.signInRoutes).
+	// The button for this mode, as the site renders it (authApi.signInRoutes):
+	// "uw" or "je" account, a school account, or a participant's.
 	await page
-		.getByRole('link', { name: 'Inloggen met uw account', exact: false })
+		.getByRole('link', {
+			name: /Inloggen (met (uw|je) (school)?account|als deelnemer)/,
+		})
 		.first()
 		.click()
 
