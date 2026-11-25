@@ -538,7 +538,9 @@ export function listJobs(
 			'--output=json',
 			'--limit=5000',
 		],
-		{ encoding: 'utf8', timeout: 60_000, stdio: 'pipe' },
+		// 5000 jobs with their arguments run past the default 1 MB of output
+		// (ENOBUFS) on an instance with an example set loaded.
+		{ encoding: 'utf8', timeout: 60_000, stdio: 'pipe', maxBuffer: 256 * 1024 * 1024 },
 	)
 	return (JSON.parse(listed) as Array<{ id: string; argument: string }>).map(
 		(job) => {
@@ -577,7 +579,7 @@ export function runLearniqJobs(
 	const listed = execFileSync(
 		command,
 		[...prefix, 'background-job:list', `--class=${jobClass}`, '--output=json'],
-		{ encoding: 'utf8', timeout: 60_000 },
+		{ encoding: 'utf8', timeout: 60_000, maxBuffer: 256 * 1024 * 1024 },
 	)
 	const jobs = JSON.parse(listed) as Array<{ id: string; argument: string }>
 	let ran = 0
