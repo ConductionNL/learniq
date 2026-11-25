@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-the-summary-follows-every-attendance-write
+ * @spec openspec/specs/attendance/spec.md#requirement-the-summary-follows-every-attendance-write
  */
 
 declare(strict_types=1);

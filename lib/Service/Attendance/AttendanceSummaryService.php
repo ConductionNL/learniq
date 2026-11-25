@@ -30,7 +30,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-the-summary-follows-every-attendance-write
+ * @spec openspec/specs/attendance/spec.md#requirement-the-summary-follows-every-attendance-write
  */
 
 declare(strict_types=1);
@@ -55,7 +55,7 @@ use Throwable;
 /**
  * Recounts and saves the attendance summaries of one learner.
  *
- * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-the-summary-follows-every-attendance-write
+ * @spec openspec/specs/attendance/spec.md#requirement-the-summary-follows-every-attendance-write
  */
 class AttendanceSummaryService implements AttendanceSummaryServiceInterface {
 
@@ -164,7 +164,7 @@ class AttendanceSummaryService implements AttendanceSummaryServiceInterface {
 	 *
 	 * @return int The number of rows saved.
 	 *
-	 * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-the-summary-follows-every-attendance-write
+	 * @spec openspec/specs/attendance/spec.md#requirement-the-summary-follows-every-attendance-write
 	 */
 	public function recompute(string $learnerId, array $schoolYears=[], string $tenantId='', ?string $learnerRef=null): int {
 		if ($learnerId === '') {
@@ -410,7 +410,7 @@ class AttendanceSummaryService implements AttendanceSummaryServiceInterface {
 	 *
 	 * @return array<int,string>
 	 *
-	 * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-the-summary-follows-every-attendance-write
+	 * @spec openspec/specs/attendance/spec.md#requirement-the-summary-follows-every-attendance-write
 	 */
 	public function schoolYearsOf(array $sessionIds): array {
 		$years = [];
@@ -571,7 +571,7 @@ class AttendanceSummaryService implements AttendanceSummaryServiceInterface {
 	 *
 	 * @return string A version 5 style uuid.
 	 *
-	 * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-the-summary-follows-every-attendance-write
+	 * @spec openspec/specs/attendance/spec.md#requirement-the-summary-follows-every-attendance-write
 	 */
 	public static function stableUuid(string $learnerId, string $schoolYear): string {
 		$hash = sha1(self::UUID_SEED . '|' . $learnerId . '|' . $schoolYear);

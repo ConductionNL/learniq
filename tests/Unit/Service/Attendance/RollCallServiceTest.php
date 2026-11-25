@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
+ * @spec openspec/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
  */
 
 declare(strict_types=1);
@@ -276,7 +276,7 @@ class RollCallServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-who-may-open-which-groups-register
+	 * @spec openspec/specs/attendance/spec.md#requirement-who-may-open-which-groups-register
 	 */
 	public function testATeacherCannotOpenAnotherGroup(): void {
 		try {
@@ -305,7 +305,7 @@ class RollCallServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-who-may-open-which-groups-register
+	 * @spec openspec/specs/attendance/spec.md#requirement-who-may-open-which-groups-register
 	 */
 	public function testACoordinatorOpensAnyGroup(): void {
 		$register = $this->service()->open(user: $this->user('ib'), cohortId: self::G3, date: null, sessionId: null);
@@ -320,7 +320,7 @@ class RollCallServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#scenario-the-teacher-marks-one-pupil-late-and-one-absent-without-permission
+	 * @spec openspec/specs/attendance/spec.md#scenario-the-teacher-marks-one-pupil-late-and-one-absent-without-permission
 	 */
 	public function testSaveWritesLateMinutesAndAnUnauthorisedAbsence(): void {
 		$register = $this->service()->save(
@@ -417,7 +417,7 @@ class RollCallServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#scenario-a-late-mark-without-minutes-is-refused
+	 * @spec openspec/specs/attendance/spec.md#scenario-a-late-mark-without-minutes-is-refused
 	 */
 	public function testALateMarkNeedsItsMinutes(): void {
 		foreach ([
@@ -451,7 +451,7 @@ class RollCallServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-an-approved-absence-report-fills-in-the-register
+	 * @spec openspec/specs/attendance/spec.md#requirement-an-approved-absence-report-fills-in-the-register
 	 */
 	public function testAnApprovedReportPrefillsAnAuthorisedAbsence(): void {
 		$this->store['excuse-request'] = [
@@ -521,7 +521,7 @@ class RollCallServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-the-register-can-be-changed-the-same-day
+	 * @spec openspec/specs/attendance/spec.md#requirement-the-register-can-be-changed-the-same-day
 	 */
 	public function testAnEarlierSavedDayIsReadOnlyForTheTeacher(): void {
 		$wednesday = $this->service()->open(user: $this->user('juf-7'), cohortId: self::G7, date: '2026-09-30', sessionId: null);
@@ -567,7 +567,7 @@ class RollCallServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-day-without-a-lesson-gets-one-when-the-register-is-saved
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-day-without-a-lesson-gets-one-when-the-register-is-saved
 	 */
 	public function testSavingADayWithoutALessonCreatesOne(): void {
 		$this->store['session'] = array_values(array_filter($this->store['session'], static fn (array $s): bool => $s['id'] !== self::TODAY_SESSION));

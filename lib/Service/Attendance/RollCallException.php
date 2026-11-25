@@ -18,7 +18,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-who-may-open-which-groups-register
+ * @spec openspec/specs/attendance/spec.md#requirement-who-may-open-which-groups-register
  */
 
 declare(strict_types=1);
@@ -30,7 +30,7 @@ use RuntimeException;
 /**
  * Why the roll-call refused a read or a save.
  *
- * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-who-may-open-which-groups-register
+ * @spec openspec/specs/attendance/spec.md#requirement-who-may-open-which-groups-register
  */
 class RollCallException extends RuntimeException {
 
@@ -55,7 +55,7 @@ class RollCallException extends RuntimeException {
 	 *
 	 * @return int
 	 *
-	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-who-may-open-which-groups-register
+	 * @spec openspec/specs/attendance/spec.md#requirement-who-may-open-which-groups-register
 	 */
 	public function getStatus(): int {
 		return $this->status;

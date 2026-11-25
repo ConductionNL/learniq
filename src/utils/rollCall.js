@@ -6,7 +6,7 @@
  * Plain ES module (not a .vue SFC) so it is directly importable from a Node
  * test runner without an SFC compile step.
  *
- * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
+ * @spec openspec/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
  *
  * SPDX-License-Identifier: EUPL-1.2
  * SPDX-FileCopyrightText: 2026 Conduction B.V.
@@ -40,7 +40,7 @@ export const MAX_LATE_MINUTES = 600
  * @param {object} pupil A pupil row from the server.
  * @param {string} status The new status.
  * @return {object} The changed row (a new object).
- * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
+ * @spec openspec/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
  */
 export function withStatus(pupil, status) {
 	const next = { ...pupil, status }
@@ -70,7 +70,7 @@ function lateMinutesFor(pupil, status) {
  *
  * @param {string|number|null} value The value.
  * @return {boolean}
- * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#scenario-a-late-mark-without-minutes-is-refused
+ * @spec openspec/specs/attendance/spec.md#scenario-a-late-mark-without-minutes-is-refused
  */
 export function validLateMinutes(value) {
 	const minutes = Number(value)
@@ -83,7 +83,7 @@ export function validLateMinutes(value) {
  *
  * @param {object[]} pupils Pupil rows.
  * @return {object[]} The incomplete rows.
- * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#scenario-a-late-mark-without-minutes-is-refused
+ * @spec openspec/specs/attendance/spec.md#scenario-a-late-mark-without-minutes-is-refused
  */
 export function incompleteMarks(pupils) {
 	return pupils.filter(
@@ -99,7 +99,7 @@ export function incompleteMarks(pupils) {
  *
  * @param {object[]} pupils Pupil rows.
  * @return {object[]} The marks.
- * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
+ * @spec openspec/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
  */
 export function marksToSave(pupils) {
 	return pupils.map(markToSave)
@@ -147,7 +147,7 @@ function trimmedReason(p) {
  *
  * @param {object[]} pupils Pupil rows.
  * @return {{present: number, late: number, absentAuthorised: number, absentUnauthorised: number}}
- * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
+ * @spec openspec/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
  */
 export function rollCallCounts(pupils) {
 	const counts = {
@@ -170,7 +170,7 @@ export function rollCallCounts(pupils) {
  *
  * @param {string|Date} value An ISO date-time or a Date.
  * @return {string} The date, or '' when it is not one.
- * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-the-teacher-reaches-the-register-from-the-menu-and-the-dashboard
+ * @spec openspec/specs/attendance/spec.md#requirement-the-teacher-reaches-the-register-from-the-menu-and-the-dashboard
  */
 export function localDate(value) {
 	const date = value instanceof Date ? value : new Date(value)
@@ -186,7 +186,7 @@ export function localDate(value) {
  * @param {object} scopeFilter The scope filter (e.g. `{ cohortId: [...] }`), or `{}`.
  * @param {Date} now The current moment.
  * @return {object} The filter, in the flat key shape OpenRegister reads.
- * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-the-teacher-reaches-the-register-from-the-menu-and-the-dashboard
+ * @spec openspec/specs/attendance/spec.md#requirement-the-teacher-reaches-the-register-from-the-menu-and-the-dashboard
  */
 export function sessionsToMarkFilter(scopeFilter, now) {
 	const endOfToday = new Date(now)
@@ -203,7 +203,7 @@ export function sessionsToMarkFilter(scopeFilter, now) {
  *
  * @param {object} session A Session row.
  * @return {{path: string, query: object}} A vue-router location.
- * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-the-teacher-reaches-the-register-from-the-menu-and-the-dashboard
+ * @spec openspec/specs/attendance/spec.md#requirement-the-teacher-reaches-the-register-from-the-menu-and-the-dashboard
  */
 export function rollCallRoute(session) {
 	const query = {}

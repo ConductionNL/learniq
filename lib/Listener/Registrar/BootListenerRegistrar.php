@@ -216,7 +216,7 @@ class BootListenerRegistrar {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-the-summary-follows-every-attendance-write
+	 * @spec openspec/specs/attendance/spec.md#requirement-the-summary-follows-every-attendance-write
 	 */
 	private function registerAttendanceListeners(IEventDispatcher $dispatcher, string $appId): void {
 		foreach ([ObjectCreatedEvent::class, ObjectUpdatedEvent::class, ObjectDeletedEvent::class] as $event) {

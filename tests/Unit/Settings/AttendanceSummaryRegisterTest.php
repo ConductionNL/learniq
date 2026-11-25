@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-who-reads-an-attendance-summary
+ * @spec openspec/specs/attendance/spec.md#requirement-who-reads-an-attendance-summary
  */
 
 declare(strict_types=1);
@@ -125,7 +125,7 @@ class AttendanceSummaryRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
 	 */
 	public function testTheRecordCarriesLateMinutesAndAReasonForAbsence(): void {
 		$schema = self::shippedSchema(slug: 'attendance-record');
@@ -151,7 +151,7 @@ class AttendanceSummaryRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-absence-and-lateness-are-counted-per-learner-per-school-year
+	 * @spec openspec/specs/attendance/spec.md#requirement-absence-and-lateness-are-counted-per-learner-per-school-year
 	 */
 	public function testThePrimarySchoolSummariesMatchTheCalculator(): void {
 		$set = json_decode((string)file_get_contents(__DIR__ . '/../../../lib/Settings/profiles/po.json'), true);

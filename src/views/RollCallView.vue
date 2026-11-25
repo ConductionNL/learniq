@@ -13,7 +13,7 @@
  between pupils. One save writes the day through /api/attendance/roll-call;
  the server decides who may open and save which group and day.
 
- @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
+ @spec openspec/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
 -->
 <template>
 	<div class="roll-call lq-board-page">
@@ -343,7 +343,7 @@ export default {
 		 * The page title, naming the group once one is chosen.
 		 *
 		 * @return {string} The title.
-		 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
+		 * @spec openspec/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
 		 */
 		title() {
 			const title = this.t('learniq', 'Attendance register')
@@ -352,7 +352,7 @@ export default {
 
 		/**
 		 * @return {object|null} The open group, as an NcSelect option.
-		 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-who-may-open-which-groups-register
+		 * @spec openspec/specs/attendance/spec.md#requirement-who-may-open-which-groups-register
 		 */
 		currentCohort() {
 			return (
@@ -363,7 +363,7 @@ export default {
 
 		/**
 		 * @return {object|null} The open lesson, as an NcSelect option.
-		 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
+		 * @spec openspec/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
 		 */
 		currentSession() {
 			return (
@@ -374,7 +374,7 @@ export default {
 
 		/**
 		 * @return {string} The counts line above the list.
-		 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
+		 * @spec openspec/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
 		 */
 		countsText() {
 			const c = rollCallCounts(this.pupils)
@@ -396,7 +396,7 @@ export default {
 		 * Load again when the query changes (group, day or lesson chosen).
 		 *
 		 * @return {void}
-		 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
+		 * @spec openspec/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
 		 */
 		'$route.query': function () {
 			this.load()
@@ -412,7 +412,7 @@ export default {
 		 * Read the register for the group, day and lesson in the query.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
+		 * @spec openspec/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
 		 */
 		async load() {
 			this.loading = true
@@ -450,7 +450,7 @@ export default {
 		 *
 		 * @param {object} data The register.
 		 * @return {void}
-		 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
+		 * @spec openspec/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
 		 */
 		apply(data) {
 			this.register = {
@@ -467,7 +467,7 @@ export default {
 		 *
 		 * @param {object} change Query values to change.
 		 * @return {void}
-		 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
+		 * @spec openspec/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
 		 */
 		go(change) {
 			const query = {
@@ -488,7 +488,7 @@ export default {
 		/**
 		 * @param {object} cohort The chosen group option.
 		 * @return {void}
-		 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-who-may-open-which-groups-register
+		 * @spec openspec/specs/attendance/spec.md#requirement-who-may-open-which-groups-register
 		 */
 		chooseCohort(cohort) {
 			if (cohort?.id) this.go({ cohortId: cohort.id, sessionId: undefined })
@@ -497,7 +497,7 @@ export default {
 		/**
 		 * @param {string} date The chosen day.
 		 * @return {void}
-		 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-the-register-can-be-changed-the-same-day
+		 * @spec openspec/specs/attendance/spec.md#requirement-the-register-can-be-changed-the-same-day
 		 */
 		chooseDate(date) {
 			if (date) this.go({ date, sessionId: undefined })
@@ -506,7 +506,7 @@ export default {
 		/**
 		 * @param {object} session The chosen lesson option.
 		 * @return {void}
-		 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
+		 * @spec openspec/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
 		 */
 		chooseSession(session) {
 			if (session?.id) this.go({ sessionId: session.id })
@@ -518,7 +518,7 @@ export default {
 		 * @param {number} index The pupil's row.
 		 * @param {string} status The mark.
 		 * @return {void}
-		 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
+		 * @spec openspec/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
 		 */
 		mark(index, status) {
 			if (!this.register.editable) return
@@ -533,7 +533,7 @@ export default {
 		 * @param {string} field The field.
 		 * @param {string|number} value The value.
 		 * @return {void}
-		 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
+		 * @spec openspec/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
 		 */
 		setField(index, field, value) {
 			this.pupils.splice(index, 1, { ...this.pupils[index], [field]: value })
@@ -546,7 +546,7 @@ export default {
 		 * @param {KeyboardEvent} event The key event.
 		 * @param {number} index The pupil's row.
 		 * @return {void}
-		 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
+		 * @spec openspec/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
 		 */
 		onKey(event, index) {
 			const action = rowKeyAction(event)
@@ -576,7 +576,7 @@ export default {
 		 * Save the register.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
+		 * @spec openspec/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
 		 */
 		async save() {
 			this.saveError = ''
@@ -656,7 +656,7 @@ export default {
 		/**
 		 * @param {string} status A mark.
 		 * @return {string} Its label.
-		 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
+		 * @spec openspec/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
 		 */
 		statusLabel(status) {
 			const labels = {
@@ -672,7 +672,7 @@ export default {
 		/**
 		 * @param {string} kind A reason for absence.
 		 * @return {string} Its label.
-		 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
+		 * @spec openspec/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
 		 */
 		reasonLabel(kind) {
 			return (
@@ -687,7 +687,7 @@ export default {
 		/**
 		 * @param {object} pupil A pupil row.
 		 * @return {string} What a screen reader hears on the row.
-		 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
+		 * @spec openspec/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
 		 */
 		pupilLabel(pupil) {
 			let label = this.t('learniq', '{name}: {mark}', {
@@ -707,7 +707,7 @@ export default {
 		/**
 		 * @param {object} report The absence report covering the day.
 		 * @return {string} The line shown under the pupil's name.
-		 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-an-approved-absence-report-fills-in-the-register
+		 * @spec openspec/specs/attendance/spec.md#requirement-an-approved-absence-report-fills-in-the-register
 		 */
 		reportText(report) {
 			if (report.lifecycle === 'approved') {

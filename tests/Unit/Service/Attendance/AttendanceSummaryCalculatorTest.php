@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-absence-and-lateness-are-counted-per-learner-per-school-year
+ * @spec openspec/specs/attendance/spec.md#requirement-absence-and-lateness-are-counted-per-learner-per-school-year
  */
 
 declare(strict_types=1);

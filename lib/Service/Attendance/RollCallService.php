@@ -28,7 +28,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
+ * @spec openspec/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
  */
 
 declare(strict_types=1);
@@ -47,7 +47,7 @@ use OCP\IUser;
 /**
  * Opens and saves one group's register of one day.
  *
- * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
+ * @spec openspec/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
  */
 class RollCallService implements RollCallServiceInterface {
 	use RollCallRows;
@@ -92,7 +92,7 @@ class RollCallService implements RollCallServiceInterface {
 	 *
 	 * @throws RollCallException When the caller may not open it, or the date is not a date.
 	 *
-	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-who-may-open-which-groups-register
+	 * @spec openspec/specs/attendance/spec.md#requirement-who-may-open-which-groups-register
 	 */
 	public function open(IUser $user, ?string $cohortId, ?string $date, ?string $sessionId): array {
 		$zone = $this->access->zone(user: $user);
@@ -148,7 +148,7 @@ class RollCallService implements RollCallServiceInterface {
 	 *
 	 * @throws RollCallException When the caller may not save it, or a mark is incomplete.
 	 *
-	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
 	 */
 	public function save(IUser $user, string $cohortId, string $date, ?string $sessionId, array $marks): array {
 		$zone = $this->access->zone(user: $user);
@@ -250,7 +250,7 @@ class RollCallService implements RollCallServiceInterface {
 	 *
 	 * @return string|null
 	 *
-	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-an-approved-absence-report-fills-in-the-register
+	 * @spec openspec/specs/attendance/spec.md#requirement-an-approved-absence-report-fills-in-the-register
 	 */
 	private function excuseFor(string $status, string $learnerId, string $date, ?array $record): ?string {
 		if ($status !== 'absent-excused') {

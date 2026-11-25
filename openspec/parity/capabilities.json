@@ -6051,8 +6051,8 @@
         "owner": "ConductionNL/learniq",
         "reachedOn": "/attendance/roll-call",
         "change": "attendance",
-        "spec": "openspec/changes/attendance-roll-call/specs/attendance",
-        "requirement": "openspec/changes/attendance-roll-call/specs/attendance :: A group teacher takes the day's register of their group in one screen"
+        "spec": "openspec/specs/attendance",
+        "requirement": "openspec/specs/attendance :: A group teacher takes the day's register of their group in one screen"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
@@ -6127,9 +6127,9 @@
         "evidence": "lib/Lifecycle/ExcuseApprovalHandler.php; extended through openspec/changes/archive/2026-11-24-absence-reports-seen-and-ended; e2e tests/e2e/portal-design/wilgenboom.spec.ts (written, runs in nightly)",
         "owner": "ConductionNL/learniq",
         "change": "attendance",
-        "spec": "openspec/changes/attendance-roll-call/specs/attendance",
+        "spec": "openspec/specs/attendance",
         "requirement": [
-          "openspec/changes/attendance-roll-call/specs/attendance :: An approved absence report fills in the register",
+          "openspec/specs/attendance :: An approved absence report fills in the register",
           "openspec/specs/attendance :: A decision on an absence report records who decided and when"
         ]
       },
@@ -10270,17 +10270,16 @@
       "name": "Count each learner's absent days, with and without permission, and late arrivals per school year.",
       "origin": "change",
       "built": {
-        "state": "building",
-        "evidence": "Partly built through openspec/changes/attendance-summary-per-school-year; its open tasks carry the rest.",
+        "state": "built",
+        "evidence": "lib/Service/Attendance/AttendanceSummaryCalculator.php and AttendanceSummaryService.php, kept current by AttendanceSummaryListener through AttendanceSummaryRecomputeJob, backfilled by the BackfillAttendanceSummaries repair step; schema AttendanceSummary. Tests: AttendanceSummaryCalculatorTest, AttendanceSummaryServiceTest, AttendanceSummaryRegisterTest. Checked live 25 Nov 2026 after a roll-call (openspec/changes/archive/2026-11-25-attendance-summary-per-school-year task 1.8).",
         "owner": "ConductionNL/learniq",
-        "change": "attendance-summary-per-school-year",
-        "requirement": "openspec/changes/attendance-summary-per-school-year/specs/attendance :: Absence and lateness are counted per learner per school year",
-        "plan": "openspec/changes/attendance-summary-per-school-year"
+        "change": "2026-11-25-attendance-summary-per-school-year",
+        "requirement": "openspec/specs/attendance :: Absence and lateness are counted per learner per school year"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
       "feature": "attendance-summary-per-school-year",
-      "learniq": "partial",
+      "learniq": "yes",
       "moodle": "unknown",
       "moodle-workplace": "unknown",
       "ilias": "unknown",

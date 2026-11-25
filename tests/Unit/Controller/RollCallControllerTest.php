@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-who-may-open-which-groups-register
+ * @spec openspec/specs/attendance/spec.md#requirement-who-may-open-which-groups-register
  */
 
 declare(strict_types=1);

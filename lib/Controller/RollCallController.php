@@ -21,7 +21,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-who-may-open-which-groups-register
+ * @spec openspec/specs/attendance/spec.md#requirement-who-may-open-which-groups-register
  */
 
 declare(strict_types=1);
@@ -44,7 +44,7 @@ use Throwable;
 /**
  * The roll-call endpoints.
  *
- * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-who-may-open-which-groups-register
+ * @spec openspec/specs/attendance/spec.md#requirement-who-may-open-which-groups-register
  */
 class RollCallController extends Controller {
 
@@ -78,7 +78,7 @@ class RollCallController extends Controller {
 	 *
 	 * @return JSONResponse
 	 *
-	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-who-may-open-which-groups-register
+	 * @spec openspec/specs/attendance/spec.md#requirement-who-may-open-which-groups-register
 	 *
 	 * @no-admin-idor-exempt the per-group guard is in the service, not here: RollCallAccess::cohortsFor()
 	 *  admits only teachers of the group or school-wide roles, and chosenCohort() answers 403 for any
@@ -106,7 +106,7 @@ class RollCallController extends Controller {
 	 *
 	 * @return JSONResponse
 	 *
-	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
 	 *
 	 * @no-admin-idor-exempt the per-group guard is in the service, not here: RollCallAccess::cohortsFor()
 	 *  admits only teachers of the group or school-wide roles, and chosenCohort() answers 403 for any

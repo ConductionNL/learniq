@@ -7,7 +7,7 @@
 // refused before anything is sent, what a save posts, and how a load or
 // save failure reads.
 //
-// @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
+// @spec openspec/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
 
 import assert from 'node:assert/strict'
 import { test } from 'node:test'

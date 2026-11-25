@@ -25,7 +25,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-existing-records-get-their-summaries
+ * @spec openspec/specs/attendance/spec.md#requirement-existing-records-get-their-summaries
  */
 
 declare(strict_types=1);
@@ -42,7 +42,7 @@ use Throwable;
 /**
  * Back-fills AttendanceSummary for every learner with records.
  *
- * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-existing-records-get-their-summaries
+ * @spec openspec/specs/attendance/spec.md#requirement-existing-records-get-their-summaries
  */
 class BackfillAttendanceSummaries implements IRepairStep {
 
@@ -76,7 +76,7 @@ class BackfillAttendanceSummaries implements IRepairStep {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-existing-records-get-their-summaries
+	 * @spec openspec/specs/attendance/spec.md#requirement-existing-records-get-their-summaries
 	 */
 	public function getName(): string {
 		return 'Count absences and late arrivals per learner per school year';
@@ -89,7 +89,7 @@ class BackfillAttendanceSummaries implements IRepairStep {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-existing-records-get-their-summaries
+	 * @spec openspec/specs/attendance/spec.md#requirement-existing-records-get-their-summaries
 	 */
 	public function run(IOutput $output): void {
 		$saved = 0;

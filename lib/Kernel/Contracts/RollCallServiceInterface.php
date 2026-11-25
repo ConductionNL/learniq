@@ -52,7 +52,7 @@ interface RollCallServiceInterface {
 	 *
 	 * @throws RollCallException When the caller may not open it, or the date is not a date.
 	 *
-	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-who-may-open-which-groups-register
+	 * @spec openspec/specs/attendance/spec.md#requirement-who-may-open-which-groups-register
 	 */
 	public function open(IUser $user, ?string $cohortId, ?string $date, ?string $sessionId): array;
 
@@ -69,7 +69,7 @@ interface RollCallServiceInterface {
 	 *
 	 * @throws RollCallException When the caller may not save it, or a mark is incomplete.
 	 *
-	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
 	 */
 	public function save(IUser $user, string $cohortId, string $date, ?string $sessionId, array $marks): array;
 }//end interface

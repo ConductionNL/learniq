@@ -19,7 +19,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
+ * @spec openspec/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
  */
 
 declare(strict_types=1);
@@ -32,7 +32,7 @@ use Throwable;
 /**
  * Reads ids and timestamps off OpenRegister rows.
  *
- * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
+ * @spec openspec/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
  */
 trait RollCallRows {
 
@@ -43,7 +43,7 @@ trait RollCallRows {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
 	 */
 	public function idOf(array $row): string {
 		return (string)($row['id'] ?? ($row['uuid'] ?? ($row['@self']['id'] ?? '')));
@@ -56,7 +56,7 @@ trait RollCallRows {
 	 *
 	 * @return DateTimeImmutable|null
 	 *
-	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
 	 */
 	public function moment(mixed $value): ?DateTimeImmutable {
 		if (is_string($value) === false || preg_match('/^\d{4}-\d{2}-\d{2}T/', $value) !== 1) {
