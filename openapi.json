@@ -256,6 +256,10 @@
             "description": "Receives one week's approval from the trainer's portal form."
         },
         {
+            "name": "portal-pok-signature",
+            "description": "The trainer signs a praktijkovereenkomst from the portal."
+        },
+        {
             "name": "portal-submission",
             "description": "Receives portaliq's hand-in forward for one pupil."
         },
@@ -5087,6 +5091,41 @@
                 "description": "Store the trainer's decision on one week of her student's hours. Public: it needs no login.",
                 "tags": [
                     "portal-hour-week"
+                ],
+                "security": [],
+                "responses": {
+                    "200": {
+                        "description": "The request succeeded.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Problem403"
+                    },
+                    "502": {
+                        "$ref": "#/components/responses/Problem502"
+                    }
+                }
+            }
+        },
+        "/portal/pok-signatures": {
+            "post": {
+                "operationId": "portal-pok-signature-sign",
+                "summary": "Store the trainer's signature on a praktijkovereenkomst",
+                "description": "Store the trainer's signature on a praktijkovereenkomst, stamped with the assurance her sign-in reached. Public: it needs no login.",
+                "tags": [
+                    "portal-pok-signature"
                 ],
                 "security": [],
                 "responses": {
