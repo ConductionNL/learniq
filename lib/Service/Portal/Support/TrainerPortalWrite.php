@@ -187,7 +187,10 @@ abstract class TrainerPortalWrite {
 	 * @spec openspec/changes/an-invited-trainer-may-activate-a-placement/specs/bpv/spec.md#requirement-an-invited-trainer-may-sign-a-praktijkovereenkomst
 	 */
 	protected function downstream(Throwable $exception): PortalOutcome {
-		$this->logger->error('[' . static::class . '] A portal trainer write failed: {msg}', ['msg' => $exception->getMessage(), 'exception' => $exception]);
+		$this->logger->error(
+			'[' . static::class . '] A portal trainer write failed: {msg}',
+			['msg' => $exception->getMessage(), 'exception' => $exception]
+		);
 
 		return new PortalOutcome(status: 502, body: ['error' => 'downstream_error'], reason: 'downstream');
 	}//end downstream()

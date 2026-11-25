@@ -70,11 +70,15 @@ trait PortalTrainerReceiver {
 			$form[$field] = $this->request->getParam($field);
 		}
 
+		$form = array_filter($form, static fn ($value): bool => $value !== null);
 		try {
-			$outcome = $step($admission->subject, (string)($admission->claims['trust'] ?? ''), array_filter($form, static fn ($value): bool => $value !== null));
+			$outcome = $step($admission->subject, (string)($admission->claims['trust'] ?? ''), $form);
 		} catch (Throwable $exception) {
 			// Never leak internals from a public route (ADR-005).
-			$this->logger->error('[' . static::class . '] A portal trainer request failed: {msg}', ['msg' => $exception->getMessage(), 'exception' => $exception]);
+			$this->logger->error(
+				'[' . static::class . '] A portal trainer request failed: {msg}',
+				['msg' => $exception->getMessage(), 'exception' => $exception]
+			);
 			return new JSONResponse(data: ['error' => 'downstream_error'], statusCode: Http::STATUS_BAD_GATEWAY);
 		}
 
