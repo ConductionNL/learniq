@@ -39,7 +39,6 @@ namespace OCA\Learniq\Listener\Registrar;
 
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCP\EventDispatcher\IEventDispatcher;
-use Psr\Log\LoggerInterface;
 
 /**
  * Names every listener registrar and the bootstrap phase it belongs to.
@@ -69,16 +68,15 @@ class EventListenerWiring {
 	/**
 	 * Subscribe every boot()-phase filtered object listener.
 	 *
-	 * @param IEventDispatcher     $dispatcher The live event dispatcher.
-	 * @param string               $appId      The Learniq app id (log context only).
-	 * @param LoggerInterface|null $logger     Says when a listener falls back to an unfiltered registration.
+	 * @param IEventDispatcher $dispatcher The live event dispatcher.
+	 * @param string $appId The Learniq app id (log context only).
 	 *
 	 * @return void
 	 *
 	 * @spec openspec/changes/retrofit-2026-05-24-annotate-scholiq/tasks.md#task-1
 	 */
-	public function bootFilteredListeners(IEventDispatcher $dispatcher, string $appId, ?LoggerInterface $logger=null): void {
-		(new BootListenerRegistrar(logger: $logger))->register(dispatcher: $dispatcher, appId: $appId);
+	public function bootFilteredListeners(IEventDispatcher $dispatcher, string $appId): void {
+		(new BootListenerRegistrar())->register(dispatcher: $dispatcher, appId: $appId);
 		(new CoverageListenerRegistrar())->register(dispatcher: $dispatcher, appId: $appId);
 
 	}//end bootFilteredListeners()
