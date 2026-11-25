@@ -405,7 +405,7 @@ export default {
 		 * The scopes the page offers: her own week, then each group she mentors.
 		 *
 		 * @return {Array<{id: string, label: string}>}
-		 * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
 		 */
 		scopes() {
 			return timetableScopes(this.mentorClasses, (text, vars) => t('learniq', text, vars))
@@ -485,7 +485,7 @@ export default {
 		/**
 		 * The lesson hours of the viewed week, for the grid mode (week-timetable-grid T2).
 		 *
-		 * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
 		 * @return {Array<object>} The CnWeekGrid rows.
 		 */
 		gridRows() {
@@ -495,7 +495,7 @@ export default {
 		/**
 		 * The viewed week's sessions as grid entries, each with its change pill.
 		 *
-		 * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
 		 * @return {Array<object>} The CnWeekGrid items.
 		 */
 		gridItems() {
@@ -505,7 +505,7 @@ export default {
 		/**
 		 * The grid's caption: the week number, its days and how many lessons it has.
 		 *
-		 * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
 		 * @return {string} The caption.
 		 */
 		gridCaption() {
@@ -580,7 +580,7 @@ export default {
 	 * Load the week, and the groups the caller mentors for the scope switch.
 	 *
 	 * @return {void}
-	 * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
 	 */
 	mounted() {
 		this.load()
@@ -654,7 +654,7 @@ export default {
 		 * Read the groups the caller mentors; she mentors none when the read fails.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
 		 */
 		async loadMentorClasses() {
 			this.mentorClasses = await fetchMentorClasses()
@@ -665,7 +665,7 @@ export default {
 		 *
 		 * @param {string} scope `mine`, or a mentor class id.
 		 * @return {void}
-		 * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
 		 */
 		setScope(scope) {
 			if (scope === this.scope) {

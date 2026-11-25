@@ -1846,6 +1846,8 @@ class FennaStory:
             "teacherIds": list(dict.fromkeys(teacher_ids)), "learnerIds": [p["nc"] for p in self.havo3],
             "period": "Schooljaar", "academicYear": STORY_YEAR, "lifecycle": "active", "locationId": hoofd["uuid"],
             "teacherAssignments": [{"teacherId": STORY_MENTOR, "role": "primary", "days": list(WEEKDAYS)}],
+            # The class's mentor, who switches My timetable to its week (week-timetable-grid T3).
+            "mentorId": STORY_MENTOR,
             "notes": "Havo/vwo leerjaar 3, de klas van meneer Jansen.", "kind": "teaching", "programmeYear": 3,
         })
         self.learner_refs = [p["profile_obj"]["uuid"] for p in self.havo3]

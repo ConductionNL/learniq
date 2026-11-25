@@ -175,7 +175,7 @@ export default {
 		/**
 		 * This week's five working days with their course days (week-timetable-grid T4).
 		 *
-		 * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-training-planner-sees-this-weeks-course-days-with-their-occupancy
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-training-planner-sees-this-weeks-course-days-with-their-occupancy
 		 * @return {Array<object>} Monday to Friday.
 		 */
 		week() {
@@ -238,7 +238,7 @@ export default {
 		/**
 		 * A course day's trainers and rooms on one line.
 		 *
-		 * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-training-planner-sees-this-weeks-course-days-with-their-occupancy
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-training-planner-sees-this-weeks-course-days-with-their-occupancy
 		 * @param {object} courseDay The course day of the week strip.
 		 * @return {string} The line.
 		 */

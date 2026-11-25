@@ -6520,12 +6520,12 @@
       "name": "Give each person their own timetable, not the whole school's.",
       "built": {
         "state": "built",
-        "evidence": "lib/Controller/TimetableController.php mine() (:125), route /api/timetable/mine, through lib/Service/PersonalTimetableService.php, which also reads sessionsForTeacher() so a substitute teacher sees the lessons they cover (learniq#1134 fixed); src/manifest.d/my-learning.json MyTimetable.",
+        "evidence": "lib/Controller/TimetableController.php mine() (:125), route /api/timetable/mine, through lib/Service/PersonalTimetableService.php, which also reads sessionsForTeacher() so a substitute teacher sees the lessons they cover (learniq#1134 fixed); src/manifest.d/my-learning.json MyTimetable. The week as day columns and lesson hours: src/views/MyTimetable.vue Lesson hours mode over CnWeekGrid (src/utils/weekGrid.js), with a mentor's switch to her mentor class (Cohort.mentorId, GET /api/timetable/mentor-classes through PersonalTimetableService::mentorClasses, the class's week through /api/timetable/cohort/{id}). Tests: TimetableControllerTest, tests/unit-js/weekGrid.test.mjs, SecondarySchoolExampleSetTest::testThreeHvbNamesItsMentor.",
         "owner": "ConductionNL/learniq",
         "change": "2026-07-07-personal-timetable",
-        "requirement": "openspec/specs/personal-timetable :: A signed-in user can see their own upcoming sessions",
-        "plan": [
-          "openspec/changes/week-timetable-grid"
+        "requirement": [
+          "openspec/specs/personal-timetable :: A signed-in user can see their own upcoming sessions",
+          "openspec/specs/personal-timetable :: A teacher reads her week as day columns and lesson hours"
         ]
       },
       "provider": "self",

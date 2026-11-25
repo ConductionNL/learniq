@@ -5,7 +5,7 @@
 // the week's start times, each session in its day and hour, and its change as
 // a pill in words. Run via `node --test tests/unit-js/` (`test:js-unit`).
 //
-// @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+// @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
 
 import assert from 'node:assert/strict'
 import { test } from 'node:test'

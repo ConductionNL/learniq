@@ -5,7 +5,7 @@
 // days, each with its course days and their occupancy; days that passed are
 // marked past. Run via `node --test tests/unit-js/` (`test:js-unit`).
 //
-// @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-training-planner-sees-this-weeks-course-days-with-their-occupancy
+// @spec openspec/specs/personal-timetable/spec.md#requirement-a-training-planner-sees-this-weeks-course-days-with-their-occupancy
 
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
