@@ -45,6 +45,7 @@ use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCP\EventDispatcher\IEventDispatcher;
+use Psr\Log\LoggerInterface;
 
 /**
  * Main application class for the Learniq Nextcloud app.
@@ -204,7 +205,11 @@ class Application extends App implements IBootstrap {
 	public function boot(IBootContext $context): void {
 		$dispatcher = $context->getServerContainer()->get(IEventDispatcher::class);
 
-		(new EventListenerWiring())->bootFilteredListeners(dispatcher: $dispatcher, appId: self::APP_ID);
+		(new EventListenerWiring())->bootFilteredListeners(
+			dispatcher: $dispatcher,
+			appId: self::APP_ID,
+			logger: $context->getServerContainer()->get(LoggerInterface::class)
+		);
 
 	}//end boot()
 }//end class

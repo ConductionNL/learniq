@@ -54,6 +54,7 @@ use OCA\Learniq\Listener\SessionConflictListener;
 use OCA\Learniq\Listener\ShillinqContributionSettledListener;
 use OCA\Learniq\Listener\SubjectChoiceValidator;
 use OCP\EventDispatcher\IEventDispatcher;
+use Psr\Log\LoggerInterface;
 
 /**
  * Subscribes the boot-phase object listeners that declare their register/schema interest.
@@ -65,6 +66,18 @@ use OCP\EventDispatcher\IEventDispatcher;
  * would move the same coupling around without reducing it.
  */
 class BootListenerRegistrar {
+
+	/**
+	 * Constructor.
+	 *
+	 * @param LoggerInterface|null $logger Says loudly when a listener falls back to an unfiltered registration; none in a bare test.
+	 *
+	 * @return void
+	 */
+	public function __construct(
+		private readonly ?LoggerInterface $logger=null,
+	) {
+	}//end __construct()
 
 	/**
 	 * Filtered object listeners registered at boot: event, listener, registers, schemas.
@@ -272,7 +285,7 @@ class BootListenerRegistrar {
 
 		// Loud on purpose. This fallback is correct but UNFILTERED, and while it
 		// was silent it was indistinguishable from a working narrowing.
-		\OCP\Server::get('Psr\\Log\\LoggerInterface')->warning(
+		$this->logger?->warning(
 			'OpenRegister ObjectEventSubscription unavailable: ' . $listener
 			. ' fell back to an UNFILTERED registration for ' . $event
 			. ' and will be invoked on every object write instance-wide.',
