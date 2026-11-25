@@ -21,7 +21,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
+ * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
  */
 
 declare(strict_types=1);
@@ -33,7 +33,7 @@ use DateTimeImmutable;
 /**
  * The facts of the First today rules about registers.
  *
- * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
+ * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
  */
 final class RegisterFacts {
 	use RowValues;
@@ -58,7 +58,7 @@ final class RegisterFacts {
 	 *
 	 * @return array<string, mixed> count, cohortId, cohortName, reportCount.
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#scenario-meester-daan-before-845
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/specs/dashboard/spec.md#scenario-meester-daan-before-845
 	 */
 	public function registerNotFilled(array $groups, DateTimeImmutable $now): array {
 		$open = array_values(array_filter($groups, static fn (array $group): bool => self::registerOpen(group: $group, now: $now)));
@@ -82,7 +82,7 @@ final class RegisterFacts {
 	 *
 	 * @return array<string, mixed> count (groups not filled), total (groups with a lesson today), cohortName (the first not filled).
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#scenario-the-directeur-at-905
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/specs/dashboard/spec.md#scenario-the-directeur-at-905
 	 */
 	public function registersNotFilledAt930(array $groups, DateTimeImmutable $now): array {
 		$withLessons = array_values(array_filter($groups, static fn (array $group): bool => (array)($group['sessions'] ?? []) !== []));
@@ -107,7 +107,7 @@ final class RegisterFacts {
 	 *
 	 * @return array<string, mixed> count, sessionId, cohortId, sessionTitle, endsAt (of the earliest).
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
 	 */
 	public function lessonRegisterOpen(array $sessions, DateTimeImmutable $now): array {
 		$open = array_values(

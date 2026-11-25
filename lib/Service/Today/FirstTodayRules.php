@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
+ * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
  */
 
 declare(strict_types=1);
@@ -32,7 +32,7 @@ namespace OCA\Learniq\Service\Today;
 /**
  * Which role reads which rules, in which order, and which rule wins.
  *
- * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
+ * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
  */
 final class FirstTodayRules {
 
@@ -136,7 +136,7 @@ final class FirstTodayRules {
 	 *
 	 * @return string|null
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
 	 */
 	public function roleFor(string $primaryRole, string $segment): ?string {
 		if ($primaryRole === 'instructor') {
@@ -191,7 +191,7 @@ final class FirstTodayRules {
 	 *
 	 * @return string|null
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-a-mentor-switches-today-to-her-mentor-class
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/specs/dashboard/spec.md#requirement-a-mentor-switches-today-to-her-mentor-class
 	 * @spec openspec/changes/bpv-coach-today-and-placement-board/tasks.md#T5
 	 */
 	public function inView(?string $role, string $view): ?string {
@@ -219,7 +219,7 @@ final class FirstTodayRules {
 	 *
 	 * @return array<string, mixed>|null `role`, `rule`, `count` and the rule's other facts; null when no rule has a row.
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
 	 */
 	public function first(string $role, callable $probe): ?array {
 		foreach ((self::ORDER[$role] ?? []) as $rule) {
@@ -239,7 +239,7 @@ final class FirstTodayRules {
 	 *
 	 * @return list<string>
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/tasks.md#T1
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/tasks.md#T1
 	 */
 	public function allRules(): array {
 		$rules = [];

@@ -425,6 +425,8 @@ return \OCA\Learniq\Middleware\Support\ApiPathAliases::withVersionedAliases([
         ['name' => 'todayFirst#bpvHours', 'url' => '/api/today/bpv-hours', 'verb' => 'GET'],
         // What waits for the exam committee (exam-committee-today-and-keuzedelen T3): results to establish per sitting and the agenda.
         ['name' => 'todayFirst#examCommittee', 'url' => '/api/today/exam-committee', 'verb' => 'GET'],
+        // Messages from parents on Today (today-first-per-school-role T5): the newest conversations through portaliq, read only.
+        ['name' => 'todayMessages#parentMessages', 'url' => '/api/today/parent-messages', 'verb' => 'GET'],
         // Course catalogue (enrolment-catalogue-self-signup): the signed-in
         // learner lists what they may sign up for, signs up for a course or a
         // programme, and withdraws an own sign-up; every write is for the

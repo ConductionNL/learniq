@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
+ * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
  */
 
 declare(strict_types=1);
@@ -34,7 +34,7 @@ use DateTimeImmutable;
 /**
  * The facts of the First today rules about follows.
  *
- * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
+ * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
  */
 final class FollowUpFacts {
 	use RowValues;
@@ -75,7 +75,7 @@ final class FollowUpFacts {
 	 *
 	 * @return array<string, mixed> count.
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
 	 */
 	public function bookingsToConfirm(array $slots, string $uid): array {
 		$waiting = array_filter(
@@ -95,7 +95,7 @@ final class FollowUpFacts {
 	 *
 	 * @return array<string, mixed> count (assignments), missing (hand-ins missing over them), assignmentId, assignmentTitle (the first).
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
 	 */
 	public function missingHandIns(array $assignments, array $groupSizes, TodayContext $context): array {
 		$today = $context->today();
@@ -136,7 +136,7 @@ final class FollowUpFacts {
 	 *
 	 * @return array<string, mixed> count (pupils not chosen), roundId, roundName, closesAt.
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-a-mentor-switches-today-to-her-mentor-class
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/specs/dashboard/spec.md#requirement-a-mentor-switches-today-to-her-mentor-class
 	 */
 	public function mentorTalksClosing(array $conference, TodayContext $context): array {
 		$slots = ($conference['slots'] ?? []);
@@ -188,7 +188,7 @@ final class FollowUpFacts {
 	 *
 	 * @return array<string, mixed> count, planId, schema (`group-plan` or `learning-plan`), endsOn (of the earliest).
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
 	 */
 	public function planEnding(array $plans, string $today): array {
 		$until = (new DateTimeImmutable($today))->modify('+' . self::PLAN_HORIZON_DAYS . ' days')->format('Y-m-d');
@@ -219,7 +219,7 @@ final class FollowUpFacts {
 	 *
 	 * @return array<string, mixed> count.
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
 	 */
 	public function signalNotTakenUp(array $requests): array {
 		return ['count' => count(array_filter($requests, static fn (array $request): bool => ($request['lifecycle'] ?? '') === 'submitted'))];
@@ -236,7 +236,7 @@ final class FollowUpFacts {
 	 *
 	 * @return array<string, mixed> count, decideBy (the earliest).
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
 	 */
 	public function leavePastHalf(array $requests, DateTimeImmutable $now): array {
 		$late = [];

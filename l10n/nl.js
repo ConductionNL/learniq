@@ -6654,7 +6654,10 @@ OC.L10N.register(
         "The examiner has responded.": "De reactie van de beoordelaar is binnen.",
         "Decide within the term.": "Beslis binnen de termijn.",
         "Decide before %1$s. The examiner has responded.": "Beslis voor %1$s. De reactie van de beoordelaar is binnen.",
-        "Decide before %1$s.": "Beslis voor %1$s."
+        "Decide before %1$s.": "Beslis voor %1$s.",
+        "Messages from parents": "Berichten van ouders",
+        "No messages from parents": "Geen berichten van ouders",
+        "{title}": "{title}"
     },
     "nplurals=2; plural=(n != 1);"
 )

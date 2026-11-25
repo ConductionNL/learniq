@@ -10,7 +10,7 @@
 //
 // Run via `node --test tests/unit-js/` (package.json `test:js-unit`).
 //
-// @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-a-mentor-switches-today-to-her-mentor-class
+// @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/specs/dashboard/spec.md#requirement-a-mentor-switches-today-to-her-mentor-class
 
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'

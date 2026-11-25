@@ -10655,17 +10655,17 @@
       "name": "Show each school role one card with the first thing it must act on today.",
       "origin": "change",
       "built": {
-        "state": "specified",
-        "evidence": "Not built yet: openspec/changes/today-first-per-school-role carries the work.",
+        "state": "built",
+        "evidence": "lib/Service/Today (FirstTodayRules, FirstTodayProbe, FirstTodayCard, TodayTiles, TodayCountFacts, ParentMessages), lib/Controller/TodayFirstController.php and TodayMessagesController.php (GET /api/today/first, /api/today/counts, /api/today/parent-messages), and Today's First today card, role tiles, Teacher/Mentor switch and messages from parents in src/menu-layout.simple.json; the po and vo example sets carry the boards' Monday states. Tests: FirstTodayRulesTest, FirstTodayFactsTest, FirstTodayServiceTest, TodayTilesTest, ParentMessagesTest, ParentMessagesServiceTest, TodayFirstExampleStatesTest, structureProfile.test.mjs, todayMentorView.test.mjs. Not checked in a browser. Built through openspec/changes/archive/2026-11-25-today-first-per-school-role.",
         "owner": "ConductionNL/learniq",
-        "change": "today-first-per-school-role",
-        "requirement": "openspec/changes/today-first-per-school-role/specs/dashboard :: Today shows one First today card per role, from the role's ordered rules",
-        "plan": "openspec/changes/today-first-per-school-role"
+        "change": "2026-11-25-today-first-per-school-role",
+        "requirement": "openspec/specs/dashboard :: Today shows one First today card per role, from the role's ordered rules",
+        "reachedOn": "/"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
       "feature": "today-first-per-school-role",
-      "learniq": "no",
+      "learniq": "yes",
       "moodle": "unknown",
       "moodle-workplace": "unknown",
       "ilias": "unknown",
@@ -10716,11 +10716,10 @@
       "origin": "change",
       "built": {
         "state": "building",
-        "evidence": "Partly built through openspec/changes/archive/2026-11-21-simple-today-dashboard (Today in src/menu-layout.simple.json); the First today card per role, the marking count and the signals per pupil are planned in today-first-per-school-role.",
+        "evidence": "Built through openspec/changes/archive/2026-11-21-simple-today-dashboard (Today in src/menu-layout.simple.json) and openspec/changes/archive/2026-11-25-today-first-per-school-role (the First today card per role, the role tiles with the marking count, the Teacher/Mentor switch and the messages from parents); the signals per pupil are not on Today yet.",
         "owner": "ConductionNL/learniq",
         "change": "simple-today-dashboard",
-        "requirement": "openspec/specs/dashboard :: REQ-STD-001 The start page is Today for the teaching roles in the simple structure",
-        "plan": "openspec/changes/today-first-per-school-role"
+        "requirement": "openspec/specs/dashboard :: REQ-STD-001 The start page is Today for the teaching roles in the simple structure"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",

@@ -21,7 +21,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-each-role-tile-counts-what-that-role-acts-on-and-opens-the-list-it-counts
+ * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/specs/dashboard/spec.md#requirement-each-role-tile-counts-what-that-role-acts-on-and-opens-the-list-it-counts
  */
 
 declare(strict_types=1);
@@ -39,7 +39,7 @@ use OCP\IUser;
 /**
  * Reads the rows the First today rules count.
  *
- * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-each-role-tile-counts-what-that-role-acts-on-and-opens-the-list-it-counts
+ * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/specs/dashboard/spec.md#requirement-each-role-tile-counts-what-that-role-acts-on-and-opens-the-list-it-counts
  */
 class FirstTodayReader {
 
@@ -82,7 +82,7 @@ class FirstTodayReader {
 	 *
 	 * @return TodayContext
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/tasks.md#T1
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/tasks.md#T1
 	 */
 	public function contextFor(IUser $user): TodayContext {
 		$now = (new DateTimeImmutable('@' . $this->time->getTime()))->setTimezone($this->access->zone(user: $user));
@@ -102,7 +102,7 @@ class FirstTodayReader {
 	 *
 	 * @return list<array<string, mixed>> Each `{cohort, sessions, records, reports}`.
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/tasks.md#T1
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/tasks.md#T1
 	 */
 	public function groupsToday(TodayContext $context, bool $own): array {
 		try {
@@ -149,7 +149,7 @@ class FirstTodayReader {
 	 *
 	 * @return list<array<string, mixed>>
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-each-role-tile-counts-what-that-role-acts-on-and-opens-the-list-it-counts
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/specs/dashboard/spec.md#requirement-each-role-tile-counts-what-that-role-acts-on-and-opens-the-list-it-counts
 	 */
 	public function rows(string $schema, array $filters=[]): array {
 		$found = $this->objectService->findAll(

@@ -9074,6 +9074,45 @@
                 }
             }
         },
+        "/today/parent-messages": {
+            "get": {
+                "operationId": "today-messages-parent-messages",
+                "summary": "The signed-in teacher's newest conversations with parents on Today",
+                "description": "The newest three conversations with parents the signed-in user takes part in, read through portaliq's staff messaging (read only), each with its title, the pupil it is about, the last line and whether it is unread; view=mentor narrows them to the pupils of her mentor class. Without portaliq the answer has available false and no rows. Needs a signed-in Nextcloud user.",
+                "tags": [
+                    "today-first"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The request succeeded.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "view",
+                        "in": "query",
+                        "required": false,
+                        "description": "The Today view; mentor narrows to the mentor class.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ]
+            }
+        },
         "/today/exam-committee": {
             "get": {
                 "operationId": "today-first-exam-committee",

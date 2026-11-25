@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
+ * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
  */
 
 declare(strict_types=1);
@@ -34,7 +34,7 @@ use OCP\IL10N;
 /**
  * Writes the sentence, the context line and the page of a First today card.
  *
- * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
+ * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
  */
 final class FirstTodayCard {
 
@@ -137,7 +137,7 @@ final class FirstTodayCard {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
 	 */
 	public function describe(array $card): array {
 		$rule = $card['rule'] ?? null;
@@ -159,7 +159,7 @@ final class FirstTodayCard {
 	 *
 	 * @return array<string, string>
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/tasks.md#T1
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/tasks.md#T1
 	 */
 	public function pages(): array {
 		if ($this->pages === null) {
@@ -187,7 +187,7 @@ final class FirstTodayCard {
 	 *
 	 * @return array{0: string, 1: string}|null Null for a rule Today writes no card for.
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
 	 */
 	private function lines(string $rule, array $card): ?array {
 		$title = $this->title(rule: $rule, count: (int) ($card['count'] ?? 0));
@@ -206,7 +206,7 @@ final class FirstTodayCard {
 	 *
 	 * @return string|null Null for a rule Today writes no card for.
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
 	 */
 	private function title(string $rule, int $count): ?string {
 		if ($rule === FirstTodayRules::REGISTER_NOT_FILLED) {
@@ -229,7 +229,7 @@ final class FirstTodayCard {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
 	 */
 	private function reason(string $rule, array $card): string {
 		$l10n = $this->l10n;
@@ -262,7 +262,7 @@ final class FirstTodayCard {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/tasks.md#T1
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/tasks.md#T1
 	 */
 	private function lessonReason(?string $title): string {
 		if ($title === null) {
@@ -279,7 +279,7 @@ final class FirstTodayCard {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/tasks.md#T1
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/tasks.md#T1
 	 */
 	private function roundReason(?string $round): string {
 		if ($round === null) {
@@ -297,7 +297,7 @@ final class FirstTodayCard {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/tasks.md#T1
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/tasks.md#T1
 	 */
 	private function groupsReason(int $count, int $total): string {
 		return $this->l10n->t('%1$s of %2$s groups with lessons today filled theirs in.', [(string) max(0, $total - $count), (string) $total]);
@@ -310,7 +310,7 @@ final class FirstTodayCard {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
 	 */
 	private function registerReason(array $card): string {
 		$reports = (int) ($card['reportCount'] ?? 0);
@@ -396,7 +396,7 @@ final class FirstTodayCard {
 	 *
 	 * @return string|null
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/tasks.md#T1
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/tasks.md#T1
 	 */
 	private function nameOf(mixed $value): ?string {
 		if (is_string($value) === true && trim($value) !== '') {

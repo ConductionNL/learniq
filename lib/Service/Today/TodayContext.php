@@ -19,7 +19,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/today-first-per-school-role/tasks.md#T1
+ * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/tasks.md#T1
  */
 
 declare(strict_types=1);
@@ -33,7 +33,7 @@ use OCP\IUser;
 /**
  * The user and the moment Today is asked for.
  *
- * @spec openspec/changes/today-first-per-school-role/tasks.md#T1
+ * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/tasks.md#T1
  */
 final class TodayContext {
 
@@ -56,7 +56,7 @@ final class TodayContext {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/tasks.md#T1
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/tasks.md#T1
 	 */
 	public function uid(): string {
 		return $this->user->getUID();
@@ -67,7 +67,7 @@ final class TodayContext {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/tasks.md#T1
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/tasks.md#T1
 	 */
 	public function today(): string {
 		return $this->now->format('Y-m-d');
@@ -78,7 +78,7 @@ final class TodayContext {
 	 *
 	 * @return DateTimeZone
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/tasks.md#T1
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/tasks.md#T1
 	 */
 	public function zone(): DateTimeZone {
 		return $this->now->getTimezone();
