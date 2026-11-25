@@ -225,7 +225,15 @@ class PersonalTimetableService implements PersonalTimetableServiceInterface {
 	 * Teacher membership: the caller's uid appears in `Cohort.teacherIds`.
 	 * Learner membership: the caller's uid appears in `Cohort.learnerIds`, or
 	 * the caller has an `Enrolment` whose `learnerId` is the caller and whose
-	 * `cohortId` is set. All reads are RBAC/multitenancy-scoped by ObjectService.
+	 * `cohortId` is set.
+	 *
+	 * The cohorts are read without RBAC and filtered on membership here: a
+	 * learner may not read a Cohort row unless its `ncGroupId` is one of her
+	 * groups, and no example set or SIS import sets one, so an RBAC-scoped read
+	 * left every learner listed in `learnerIds` with an empty timetable (found
+	 * live, 25 Nov 2026). No cohort row leaves this method, only the ids of the
+	 * cohorts the caller is listed in, and their lessons are read without RBAC
+	 * already. Multitenancy stays on. Enrolments are read as the caller.
 	 *
 	 * An enrolment that is withdrawn, completed or failed reaches nothing. A
 	 * live enrolment with no cohort names its course in $electives.
@@ -235,6 +243,8 @@ class PersonalTimetableService implements PersonalTimetableServiceInterface {
 	 * @param array<int,string> $electives Filled with the courses the caller is enrolled in without a cohort.
 	 *
 	 * @return array<int,string> The unique cohort UUIDs (may be empty).
+	 *
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-signed-in-user-can-see-their-own-upcoming-sessions
 	 */
 	private function resolveCallerCohortIds(string $uid, array &$taught, array &$electives): array {
 		$cohortIds = [];
@@ -248,7 +258,8 @@ class PersonalTimetableService implements PersonalTimetableServiceInterface {
 					'register' => self::LEARNIQ_REGISTER,
 					'schema' => 'cohort',
 				],
-			]
+			],
+			_rbac: false
 		);
 
 		foreach ($cohorts as $row) {

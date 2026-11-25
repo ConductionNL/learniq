@@ -48,3 +48,26 @@ export async function fetchLinkedLearners({ get, urlFor }, uid) {
 	)
 	return Array.from(byId.values())
 }
+
+/**
+ * The name a learner option reads: the profile's display name, else the
+ * name OpenRegister computes from the given and family name, else the user
+ * id. A LearnerProfile carries no `displayName`, so without the fallbacks
+ * every option read as a user id and typing the learner's name found nothing.
+ *
+ * @param {object} learner A learner profile row.
+ * @return {string} The label.
+ * @spec openspec/specs/school-structure/spec.md#requirement-frontend-is-declarative-with-one-named-subject-choice-picker-exception
+ */
+export function learnerLabel(learner) {
+	const composed = [learner.givenName, learner.familyName]
+		.filter((part) => typeof part === 'string' && part.trim() !== '')
+		.join(' ')
+	return (
+		learner.displayName ||
+		learner.fullName ||
+		(learner['@self'] && learner['@self'].name) ||
+		composed ||
+		learner.ncUserId
+	)
+}

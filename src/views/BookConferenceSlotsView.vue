@@ -66,8 +66,8 @@
 					:reduce="(o) => o.id"
 					label="label"
 					:loading="loadingLearners"
-					:inputLabel="t('learniq', 'Learner')"
-					:aria-label-combobox="t('learniq', 'Learner')" />
+					:inputLabel="t('learniq', 'For which child (or yourself)')"
+					:aria-label-combobox="t('learniq', 'For which child (or yourself)')" />
 			</div>
 
 			<div v-if="selectedRound" class="book-conference-slots__field">
@@ -136,7 +136,7 @@ import {
 	roundTeacherOptions,
 } from '../utils/conferenceRounds.js'
 import { conferenceSignupBody } from '../utils/conferenceSignupBody.js'
-import { fetchLinkedLearners } from '../utils/linkedLearners.js'
+import { fetchLinkedLearners, learnerLabel } from '../utils/linkedLearners.js'
 
 export default {
 	name: 'BookConferenceSlotsView',
@@ -206,7 +206,7 @@ export default {
 		learnerOptions() {
 			return this.learners.map((l) => ({
 				id: l.ncUserId,
-				label: l.displayName || l.ncUserId,
+				label: learnerLabel(l),
 			}))
 		},
 

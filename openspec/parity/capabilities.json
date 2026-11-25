@@ -2094,8 +2094,7 @@
         "evidence": "lib/Settings/learniq_register.json Credential.x-openregister-lifecycle.transitions.revoke, properties.revocationReason",
         "owner": "ConductionNL/openregister",
         "change": "certification",
-        "requirement": "openspec/specs/certification :: Revoking a certificate requires a reason",
-        "plan": "openspec/changes/board-dialog-inputs-and-row-names"
+        "requirement": "openspec/specs/certification :: Revoking a certificate requires a reason"
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -3279,8 +3278,7 @@
         "owner": "ConductionNL/openregister",
         "change": "enrolment",
         "spec": "openspec/specs/enrolment",
-        "requirement": "openspec/specs/enrolment :: Enrolment carries a destination school on withdrawal",
-        "plan": "openspec/changes/board-dialog-inputs-and-row-names"
+        "requirement": "openspec/specs/enrolment :: Enrolment carries a destination school on withdrawal"
       },
       "provider": "openregister",
       "providerHow": "read: declared in lib/Settings/learniq_register.json and executed by Open Register",
@@ -6728,8 +6726,7 @@
         "requirement": [
           "openspec/specs/parent-conferences :: Teachers publish free times from their availability",
           "openspec/changes/capability-rows-say-what-they-do/specs/parent-conferences :: A teacher enters and submits their own free times for a conference round"
-        ],
-        "plan": "openspec/changes/board-dialog-inputs-and-row-names"
+        ]
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",

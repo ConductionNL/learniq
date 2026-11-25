@@ -176,11 +176,19 @@ export class LiveFixtures {
 	 */
 	async object(slug: string, body: Record<string, unknown>): Promise<string> {
 		const api = await this.api()
-		const res = await api.post(
-			`/index.php/apps/openregister/api/objects/learniq/${slug}`,
-			{ data: { tenant_id: await this.tenant(), ...body } },
-		)
-		const created = await res.json().catch(() => null)
+		const url = `/index.php/apps/openregister/api/objects/learniq/${slug}`
+		let res = await api.post(url, { data: { tenant_id: await this.tenant(), ...body } })
+		let created = await res.json().catch(() => null)
+		// OpenRegister starts every object in its schema's initial state and refuses
+		// another one on create (`lifecycle-invalid-initial`). Create it in that
+		// state, then move it to the one asked for, as a user would.
+		const wanted = body.lifecycle
+		const startsElsewhere = created?.errors?.code === 'lifecycle-invalid-initial'
+		if (startsElsewhere && typeof wanted === 'string') {
+			const { lifecycle: _ignored, ...initial } = body
+			res = await api.post(url, { data: { tenant_id: await this.tenant(), ...initial } })
+			created = await res.json().catch(() => null)
+		}
 		const id = objectIdOf(created)
 		if (!res.ok() || id === null) {
 			throw new Error(
@@ -188,7 +196,33 @@ export class LiveFixtures {
 			)
 		}
 		this.objects.push({ slug, id })
+		if (startsElsewhere && typeof wanted === 'string') {
+			await this.moveTo(slug, id, wanted)
+		}
 		return id
+	}
+
+	/**
+	 * Move a fixture object to a lifecycle state. A course is published only
+	 * with a published lesson, so one is added first.
+	 *
+	 * @param slug The schema slug.
+	 * @param id The uuid.
+	 * @param lifecycle The state.
+	 */
+	private async moveTo(slug: string, id: string, lifecycle: string): Promise<void> {
+		if (slug === 'course' && lifecycle === 'published') {
+			const lesson = await this.object('lesson', { courseId: id, name: `Les ${this.run}`, order: 1, contentType: 'text' })
+			await this.moveTo('lesson', lesson, 'published')
+		}
+		const api = await this.api()
+		const res = await api.patch(`/index.php/apps/openregister/api/objects/learniq/${slug}/${id}`, { data: { lifecycle } })
+		const moved = await res.json().catch(() => null)
+		if (!res.ok() || moved?.lifecycle !== lifecycle) {
+			throw new Error(
+				`moving a ${slug} to ${lifecycle} was refused: HTTP ${res.status()} ${JSON.stringify(moved).slice(0, 600)}`,
+			)
+		}
 	}
 
 	/**

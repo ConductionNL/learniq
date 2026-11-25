@@ -43,6 +43,19 @@ function thisWeek(weekday: number, hour: number, minute = 0): string {
 }
 
 /**
+ * A moment on a weekday of next week: always ahead, so it is inside the
+ * picker's window, which reads lesson times from now on.
+ *
+ * @param weekday 1 is Monday.
+ * @param hour The hour.
+ * @param minute The minute.
+ * @return The ISO timestamp.
+ */
+function nextWeek(weekday: number, hour: number, minute = 0): string {
+	return thisWeek(weekday + 7, hour, minute)
+}
+
+/**
  * Pick one option of a picker select by typing its label.
  *
  * @param page The page.
@@ -50,9 +63,14 @@ function thisWeek(weekday: number, hour: number, minute = 0): string {
  * @param option The option's label.
  */
 async function pick(page: Page, name: string, option: string): Promise<void> {
-	await page.getByRole('combobox', { name }).first().click()
+	const box = page.getByRole('combobox', { name }).first()
+	await box.click()
 	await page.keyboard.type(option)
-	await page.getByRole('option', { name: new RegExp(option) }).first().click()
+	// The select highlights the typed part of an option, which can leave the
+	// option without an accessible name; wait for its text, then choose the
+	// highlighted match with Enter, as a keyboard user does.
+	await expect(page.getByRole('listbox').getByRole('option').filter({ hasText: option }).first()).toBeVisible()
+	await page.keyboard.press('Enter')
 }
 
 test.describe('elective choices in the picker and the timetable', () => {
@@ -71,6 +89,8 @@ test.describe('elective choices in the picker and the timetable', () => {
 				name: name(subject),
 				level: 'vo',
 				language: 'nl',
+				// A learner reads only published courses, so an elective she can pick is one.
+				lifecycle: 'published',
 			})
 		}
 		await fx.object('curriculum-plan', {
@@ -89,8 +109,8 @@ test.describe('elective choices in the picker and the timetable', () => {
 				cohortId: otherGroup,
 				courseId: course[subject],
 				title: name(subject),
-				startsAt: thisWeek(2, 10, 30),
-				endsAt: thisWeek(2, 11, 20),
+				startsAt: nextWeek(2, 10, 30),
+				endsAt: nextWeek(2, 11, 20),
 				lifecycle: 'scheduled',
 			})
 		}
