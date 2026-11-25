@@ -113,6 +113,7 @@ class PortalWerkprocesController extends Controller {
 	#[BruteForceProtection(action: self::THROTTLE_ACTION)]
 	public function submit(): JSONResponse {
 		return $this->receiveFromTrainer(
+			fields: self::FIELDS,
 			step: fn (string $trainerRef, string $trust, array $body): PortalOutcome => $this->assessments->submit(
 				trainerRef: $trainerRef,
 				trust: $trust,

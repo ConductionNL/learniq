@@ -1117,8 +1117,8 @@ class PortalContributionProviderTest extends TestCase {
 			$this->assertNotContains($server, $visit['fields'], $server);
 		}
 
-		// an-invited-trainer-may-activate-a-placement: an invited trainer may
-		// sign the POK (Ruben, 25 November 2026). It posts to learniq's own
+		// Since an-invited-trainer-may-activate-a-placement an invited trainer
+		// may sign the POK (Ruben, 25 November 2026). It posts to learniq's own
 		// endpoint, because only a forward carries the sign-in level, and the
 		// form sends only the agreement: who signed, in which role, when, how
 		// and how surely are the server's.

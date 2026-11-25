@@ -103,6 +103,7 @@ class PortalPokSignatureController extends Controller {
 	#[BruteForceProtection(action: self::THROTTLE_ACTION)]
 	public function sign(): JSONResponse {
 		return $this->receiveFromTrainer(
+			fields: self::FIELDS,
 			step: fn (string $trainerRef, string $trust, array $body): PortalOutcome => $this->signatures->sign(
 				trainerRef: $trainerRef,
 				trust: $trust,

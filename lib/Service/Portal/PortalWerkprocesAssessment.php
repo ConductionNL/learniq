@@ -130,11 +130,7 @@ class PortalWerkprocesAssessment extends TrainerPortalWrite implements PortalWer
 				object: $this->stamped(trainerRef: $trainerRef, trainer: $trainer, assurance: $assurance, body: $body)
 			);
 		} catch (Throwable $exception) {
-			$this->logger->error(
-				'[PortalWerkprocesAssessment] A portal assessment could not be stored: {msg}',
-				['msg' => $exception->getMessage(), 'exception' => $exception]
-			);
-			return new PortalOutcome(status: 502, body: ['error' => 'downstream_error'], reason: 'downstream');
+			return $this->downstream(exception: $exception);
 		}//end try
 
 		return new PortalOutcome(

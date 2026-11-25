@@ -35,6 +35,7 @@ use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IAppConfig;
 use Psr\Log\LoggerInterface;
+use Throwable;
 
 /**
  * The shared reads, writes and assurance checks of a trainer's portal write.
@@ -90,6 +91,8 @@ abstract class TrainerPortalWrite {
 	 * @param string $trust The session's trust (`low`, `substantial`, `high`).
 	 *
 	 * @return string `basic` for anything unknown.
+	 *
+	 * @spec openspec/changes/an-invited-trainer-may-activate-a-placement/specs/bpv/spec.md#requirement-an-invited-trainer-may-sign-a-praktijkovereenkomst
 	 */
 	protected function assuranceOf(string $trust): string {
 		return (self::TRUST_TO_ASSURANCE[$trust] ?? 'basic');
@@ -111,11 +114,7 @@ abstract class TrainerPortalWrite {
 			return null;
 		}
 
-		return new PortalOutcome(
-			status: 403,
-			body: ['error' => 'assurance_too_low', 'required' => $floor],
-			reason: 'assurance-too-low'
-		);
+		return new PortalOutcome(status: 403, body: ['error' => 'assurance_too_low', 'required' => $floor], reason: 'assurance-too-low');
 	}//end belowFloor()
 
 	/**
@@ -128,17 +127,33 @@ abstract class TrainerPortalWrite {
 	 * @return array<string, mixed>
 	 *
 	 * @throws \Throwable When OpenRegister refuses the write.
+	 *
+	 * @spec openspec/changes/an-invited-trainer-may-activate-a-placement/specs/bpv/spec.md#requirement-an-invited-trainer-may-sign-a-praktijkovereenkomst
 	 */
 	protected function store(string $schema, array $object): array {
-		$saved = $this->objectService->saveObject(
-			object: $object,
-			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: $schema)),
-			_rbac: false,
-			_multitenancy: false
-		);
+		$options = new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: $schema));
 
-		return $this->objectRow->asArray(object: $saved);
+		return $this->objectRow->asArray(object: $this->objectService->saveObject(object: $object, options: $options, _rbac: false, _multitenancy: false));
 	}//end store()
+
+	/**
+	 * The rows of one schema that match these filters, as the system.
+	 *
+	 * @param string               $schema The schema slug.
+	 * @param array<string, mixed> $config Filters, and `ids` / `limit` when given.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 *
+	 * @throws \Throwable When OpenRegister cannot be read.
+	 *
+	 * @spec openspec/changes/an-invited-trainer-may-activate-a-placement/specs/bpv/spec.md#requirement-an-invited-trainer-may-sign-a-praktijkovereenkomst
+	 */
+	protected function rows(string $schema, array $config): array {
+		$config['filters'] = array_merge(($config['filters'] ?? []), ['register' => self::REGISTER, 'schema' => $schema]);
+		$found = $this->objectService->findAll(config: $config, _rbac: false, _multitenancy: false);
+
+		return array_values(array_map(fn (mixed $object): array => $this->objectRow->asArray(object: $object), $found));
+	}//end rows()
 
 	/**
 	 * One learniq row by uuid, or null.
@@ -149,25 +164,31 @@ abstract class TrainerPortalWrite {
 	 * @return array<string, mixed>|null
 	 *
 	 * @throws \Throwable When OpenRegister cannot be read.
+	 *
+	 * @spec openspec/changes/an-invited-trainer-may-activate-a-placement/specs/bpv/spec.md#requirement-an-invited-trainer-may-sign-a-praktijkovereenkomst
 	 */
 	protected function row(string $schema, string $id): ?array {
-		$objects = $this->objectService->findAll(
-			config: [
-				'filters' => ['register' => self::REGISTER, 'schema' => $schema],
-				'ids' => [$id],
-				'limit' => 1,
-			],
-			_rbac: false,
-			_multitenancy: false
+		$matching = array_filter(
+			$this->rows(schema: $schema, config: ['ids' => [$id], 'limit' => 1]),
+			static fn (array $row): bool => ($row['id'] ?? ($row['uuid'] ?? null)) === $id
 		);
 
-		foreach ($objects as $object) {
-			$row = $this->objectRow->asArray(object: $object);
-			if (($row['id'] ?? ($row['uuid'] ?? null)) === $id) {
-				return $row;
-			}
-		}
-
-		return null;
+		return (array_values($matching)[0] ?? null);
 	}//end row()
+
+	/**
+	 * The answer to a write OpenRegister refused: logged, and 502 without
+	 * any of its detail (ADR-005).
+	 *
+	 * @param Throwable $exception What OpenRegister threw.
+	 *
+	 * @return PortalOutcome
+	 *
+	 * @spec openspec/changes/an-invited-trainer-may-activate-a-placement/specs/bpv/spec.md#requirement-an-invited-trainer-may-sign-a-praktijkovereenkomst
+	 */
+	protected function downstream(Throwable $exception): PortalOutcome {
+		$this->logger->error('[' . static::class . '] A portal trainer write failed: {msg}', ['msg' => $exception->getMessage(), 'exception' => $exception]);
+
+		return new PortalOutcome(status: 502, body: ['error' => 'downstream_error'], reason: 'downstream');
+	}//end downstream()
 }//end class

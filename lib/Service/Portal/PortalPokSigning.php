@@ -120,30 +120,16 @@ class PortalPokSigning extends TrainerPortalWrite implements PortalPokSigningInt
 		}
 
 		try {
-			$agreement = $this->row(schema: self::AGREEMENT_SCHEMA, id: $agreementId);
-			if ($agreement === null) {
-				return $this->notYours();
+			$agreement = $this->signableAgreement(trainerRef: $trainerRef, agreementId: $agreementId);
+			if ($agreement instanceof PortalOutcome) {
+				return $agreement;
 			}
 
-			$refusal = $this->agreementRefusal(trainerRef: $trainerRef, agreement: $agreement);
-			if ($refusal !== null) {
-				return $refusal;
-			}
-
-			if ($this->alreadySigned(trainerRef: $trainerRef, agreement: $agreement) === true) {
-				return new PortalOutcome(status: 409, body: ['error' => 'already_signed'], reason: 'already-signed');
-			}
-
-			$signature = $this->signature(trainerRef: $trainerRef, agreement: $agreement);
-			$signature['assuranceLevel'] = $assurance;
+			$signature = array_merge($this->signature(trainerRef: $trainerRef, agreement: $agreement), ['assuranceLevel' => $assurance]);
 			$row = $this->store(schema: self::SIGNATURE_SCHEMA, object: $signature);
 		} catch (Throwable $exception) {
-			$this->logger->error(
-				'[PortalPokSigning] A portal POK signature could not be stored: {msg}',
-				['msg' => $exception->getMessage(), 'exception' => $exception]
-			);
-			return new PortalOutcome(status: 502, body: ['error' => 'downstream_error'], reason: 'downstream');
-		}//end try
+			return $this->downstream(exception: $exception);
+		}
 
 		return new PortalOutcome(
 			status: 201,
@@ -154,6 +140,85 @@ class PortalPokSigning extends TrainerPortalWrite implements PortalPokSigningInt
 			]
 		);
 	}//end sign()
+
+	/**
+	 * The agreement she may sign now, or why not: it is unknown or not of her
+	 * own placement (one answer for both, so it does not tell her which
+	 * agreements exist), it no longer takes signatures, or she already signed
+	 * this version.
+	 *
+	 * @param string $trainerRef  The trainer's uuid.
+	 * @param string $agreementId The agreement the form names.
+	 *
+	 * @return array<string, mixed>|PortalOutcome
+	 *
+	 * @throws \Throwable When OpenRegister cannot be read.
+	 *
+	 * @spec openspec/changes/an-invited-trainer-may-activate-a-placement/specs/bpv/spec.md#requirement-an-invited-trainer-may-sign-a-praktijkovereenkomst
+	 */
+	private function signableAgreement(string $trainerRef, string $agreementId): array|PortalOutcome {
+		$agreement = $this->row(schema: self::AGREEMENT_SCHEMA, id: $agreementId);
+		if ($agreement === null || $this->isHers(trainerRef: $trainerRef, agreement: $agreement) === false) {
+			return new PortalOutcome(status: 403, body: ['error' => 'not_your_placement'], reason: 'not-your-placement');
+		}
+
+		$state = $this->text(value: ($agreement['lifecycle'] ?? 'draft'));
+		if (in_array($state, self::SIGNABLE_STATES, true) === false) {
+			return new PortalOutcome(status: 409, body: ['error' => 'not_open_for_signing', 'lifecycle' => $state], reason: 'not-open-for-signing');
+		}
+
+		$mine = $this->rows(
+			schema: self::SIGNATURE_SCHEMA,
+			config: ['filters' => ['subjectId' => $agreementId, 'signerId' => $trainerRef]]
+		);
+		foreach ($mine as $signature) {
+			if ($this->signs(signature: $signature, agreement: $agreement) === true) {
+				return new PortalOutcome(status: 409, body: ['error' => 'already_signed'], reason: 'already-signed');
+			}
+		}
+
+		return $agreement;
+	}//end signableAgreement()
+
+	/**
+	 * Whether the agreement belongs to a placement this trainer supervises,
+	 * and the trainer herself is known.
+	 *
+	 * @param string               $trainerRef The trainer's uuid.
+	 * @param array<string, mixed> $agreement  The Praktijkovereenkomst row.
+	 *
+	 * @return bool
+	 *
+	 * @throws \Throwable When OpenRegister cannot be read.
+	 *
+	 * @spec openspec/changes/an-invited-trainer-may-activate-a-placement/specs/bpv/spec.md#requirement-an-invited-trainer-may-sign-a-praktijkovereenkomst
+	 */
+	private function isHers(string $trainerRef, array $agreement): bool {
+		$placementId = $this->text(value: ($agreement['bpvPlacementId'] ?? null));
+		if ($placementId === '' || $this->row(schema: self::TRAINER_SCHEMA, id: $trainerRef) === null) {
+			return false;
+		}
+
+		$placement = $this->row(schema: self::PLACEMENT_SCHEMA, id: $placementId);
+
+		return $this->text(value: ($placement['practicalTrainerId'] ?? null)) === $trainerRef;
+	}//end isHers()
+
+	/**
+	 * Whether a stored signature is her praktijkopleider signature on this
+	 * version of the agreement.
+	 *
+	 * @param array<string, mixed> $signature A PokSignature row of hers.
+	 * @param array<string, mixed> $agreement The Praktijkovereenkomst row.
+	 *
+	 * @return bool
+	 *
+	 * @spec openspec/changes/an-invited-trainer-may-activate-a-placement/specs/bpv/spec.md#requirement-an-invited-trainer-may-sign-a-praktijkovereenkomst
+	 */
+	private function signs(array $signature, array $agreement): bool {
+		return $this->text(value: ($signature['signerRole'] ?? null)) === self::SIGNER_ROLE
+			&& (int)($signature['subjectVersion'] ?? 0) === (int)($agreement['version'] ?? 1);
+	}//end signs()
 
 	/**
 	 * The signature as it is stored, all of it the server's: the agreement's
@@ -178,90 +243,4 @@ class PortalPokSigning extends TrainerPortalWrite implements PortalPokSigningInt
 			'tenant_id' => $this->text(value: ($agreement['tenant_id'] ?? null)),
 		];
 	}//end signature()
-
-	/**
-	 * Why this agreement may not be signed by this trainer: she is unknown,
-	 * it no longer takes signatures, or its placement is not hers.
-	 *
-	 * @param string               $trainerRef The trainer's uuid.
-	 * @param array<string, mixed> $agreement  The Praktijkovereenkomst row.
-	 *
-	 * @return PortalOutcome|null Null when she may sign it.
-	 *
-	 * @throws \Throwable When OpenRegister cannot be read.
-	 *
-	 * @spec openspec/changes/an-invited-trainer-may-activate-a-placement/specs/bpv/spec.md#requirement-an-invited-trainer-may-sign-a-praktijkovereenkomst
-	 */
-	private function agreementRefusal(string $trainerRef, array $agreement): ?PortalOutcome {
-		if ($this->row(schema: self::TRAINER_SCHEMA, id: $trainerRef) === null) {
-			return $this->notYours();
-		}
-
-		$placementId = $this->text(value: ($agreement['bpvPlacementId'] ?? null));
-		$placement = null;
-		if ($placementId !== '') {
-			$placement = $this->row(schema: self::PLACEMENT_SCHEMA, id: $placementId);
-		}
-
-		if ($placement === null || $this->text(value: ($placement['practicalTrainerId'] ?? null)) !== $trainerRef) {
-			return $this->notYours();
-		}
-
-		$state = $this->text(value: ($agreement['lifecycle'] ?? 'draft'));
-		if (in_array($state, self::SIGNABLE_STATES, true) === false) {
-			return new PortalOutcome(status: 409, body: ['error' => 'not_open_for_signing', 'lifecycle' => $state], reason: 'not-open-for-signing');
-		}
-
-		return null;
-	}//end agreementRefusal()
-
-	/**
-	 * The one refusal for an agreement that is unknown or not hers, so the
-	 * answer does not tell her which agreements exist.
-	 *
-	 * @return PortalOutcome
-	 */
-	private function notYours(): PortalOutcome {
-		return new PortalOutcome(status: 403, body: ['error' => 'not_your_placement'], reason: 'not-your-placement');
-	}//end notYours()
-
-	/**
-	 * Whether she already signed this version of the agreement.
-	 *
-	 * @param string               $trainerRef The trainer's uuid.
-	 * @param array<string, mixed> $agreement  The Praktijkovereenkomst row.
-	 *
-	 * @return bool
-	 *
-	 * @throws \Throwable When OpenRegister cannot be read.
-	 */
-	private function alreadySigned(string $trainerRef, array $agreement): bool {
-		$agreementId = $this->text(value: ($agreement['id'] ?? null));
-		$version = (int)($agreement['version'] ?? 1);
-		$objects = $this->objectService->findAll(
-			config: [
-				'filters' => [
-					'register' => self::REGISTER,
-					'schema' => self::SIGNATURE_SCHEMA,
-					'subjectId' => $agreementId,
-					'signerId' => $trainerRef,
-				],
-			],
-			_rbac: false,
-			_multitenancy: false
-		);
-
-		foreach ($objects as $object) {
-			$row = $this->objectRow->asArray(object: $object);
-			if ($this->text(value: ($row['signerRole'] ?? null)) === self::SIGNER_ROLE
-				&& (int)($row['subjectVersion'] ?? 0) === $version
-				&& $this->text(value: ($row['signerId'] ?? null)) === $trainerRef
-				&& $this->text(value: ($row['subjectId'] ?? null)) === $agreementId
-			) {
-				return true;
-			}
-		}
-
-		return false;
-	}//end alreadySigned()
 }//end class

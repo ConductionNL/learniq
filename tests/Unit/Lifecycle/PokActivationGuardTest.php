@@ -384,17 +384,14 @@ class PokActivationGuardTest extends TestCase {
 			'assuranceLevel' => 'basic',
 			'method' => 'portal-click-to-confirm',
 		];
+		$student = self::threeSignatures()[0];
+		$school = self::threeSignatures()[1];
+		$verdict = fn (array $signatures, ?string $birthDate = '2000-01-01') => $this->makeGuard(signatures: $signatures, birthDate: $birthDate)
+			->check($this->pokObject(), 'activate', 'coordinator-1');
 
-		self::assertDenied(verdict: $this->makeGuard([$portal])->check($this->pokObject(), 'activate', 'coordinator-1'), context: 'only the trainer signed');
-
-		$withoutSchool = [self::threeSignatures()[0], $portal];
-		self::assertDenied(verdict: $this->makeGuard($withoutSchool)->check($this->pokObject(), 'activate', 'coordinator-1'), context: 'the school did not sign');
-
-		$all = [self::threeSignatures()[0], self::threeSignatures()[1], $portal];
-		self::assertAllowed(verdict: $this->makeGuard($all)->check($this->pokObject(), 'activate', 'coordinator-1'), context: 'all three signed');
-		self::assertDenied(
-			verdict: $this->makeGuard($all, birthDate: '2009-04-30')->check($this->pokObject(), 'activate', 'coordinator-1'),
-			context: 'a minor still needs a parent'
-		);
+		self::assertDenied(verdict: $verdict(signatures: [$portal]), context: 'only the trainer signed');
+		self::assertDenied(verdict: $verdict(signatures: [$student, $portal]), context: 'the school did not sign');
+		self::assertAllowed(verdict: $verdict(signatures: [$student, $school, $portal]), context: 'all three signed');
+		self::assertDenied(verdict: $verdict(signatures: [$student, $school, $portal], birthDate: '2009-04-30'), context: 'a minor still needs a parent');
 	}//end testAnInvitedTrainersSignatureDoesNotLowerWhatActivationNeeds()
 }//end class
