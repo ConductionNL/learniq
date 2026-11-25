@@ -94,23 +94,23 @@ class TodayFirstExampleStatesTest extends TestCase {
 	 * @return array<string, mixed>
 	 */
 	private static function group(string $set, string $name): array {
-		$cohort = current(array_filter(self::of($set, 'cohort'), static fn (array $row): bool => $row['name'] === $name));
-		self::assertIsArray($cohort, $name);
+		$cohort = current(array_filter(self::of(set: $set, schema: 'cohort'), static fn (array $row): bool => $row['name'] === $name));
+		self::assertIsArray(actual: $cohort, message: $name);
 		$sessions = array_values(
 			array_filter(
-				self::of($set, 'session'),
+				self::of(set: $set, schema: 'session'),
 				static fn (array $row): bool => ($row['cohortId'] ?? '') === $cohort['uuid'] && substr((string)$row['startsAt'], 0, 10) === self::MONDAY
 			)
 		);
 		$records = [];
 		foreach ($sessions as $session) {
 			$records[$session['uuid']] = count(
-				array_filter(self::of($set, 'attendance-record'), static fn (array $row): bool => $row['sessionId'] === $session['uuid'])
+				array_filter(self::of(set: $set, schema: 'attendance-record'), static fn (array $row): bool => $row['sessionId'] === $session['uuid'])
 			);
 		}
 
 		$reports = array_filter(
-			self::of($set, 'excuse-request'),
+			self::of(set: $set, schema: 'excuse-request'),
 			static fn (array $row): bool => in_array($row['learnerId'] ?? '', (array)$cohort['learnerIds'], true) === true
 				&& ($row['dateFrom'] ?? '') <= self::MONDAY && ($row['dateTo'] ?? '') >= self::MONDAY
 		);
@@ -126,11 +126,11 @@ class TodayFirstExampleStatesTest extends TestCase {
 	 * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#scenario-meester-daan-before-845
 	 */
 	public function testGroep7RegisterIsOpenWithTwoParentReports(): void {
-		$facts = (new RegisterFacts())->registerNotFilled(groups: [self::group('po', 'Groep 7')], now: self::at('08:40'));
+		$facts = (new RegisterFacts())->registerNotFilled(groups: [self::group(set: 'po', name: 'Groep 7')], now: self::at(time: '08:40'));
 
-		self::assertSame(1, $facts['count']);
-		self::assertSame('Groep 7', $facts['cohortName']);
-		self::assertSame(2, $facts['reportCount']);
+		self::assertSame(expected: 1, actual: $facts['count']);
+		self::assertSame(expected: 'Groep 7', actual: $facts['cohortName']);
+		self::assertSame(expected: 2, actual: $facts['reportCount']);
 	}//end testGroep7RegisterIsOpenWithTwoParentReports()
 
 	/**
@@ -140,25 +140,25 @@ class TodayFirstExampleStatesTest extends TestCase {
 	 */
 	public function testTheReportedPupilsAreNotMarkedYet(): void {
 		$profiles = array_filter(
-			self::of('po', 'learner-profile'),
+			self::of(set: 'po', schema: 'learner-profile'),
 			static fn (array $row): bool => in_array([$row['givenName'], $row['familyName']], [['Lina', 'Kievitlaan'], ['Hamza', 'Elzenhof']], true)
 		);
-		self::assertCount(2, $profiles);
+		self::assertCount(expectedCount: 2, haystack: $profiles);
 		foreach ($profiles as $profile) {
-			$marks = array_filter(self::of('po', 'attendance-record'), static fn (array $row): bool => $row['learnerRef'] === $profile['uuid']);
-			self::assertSame([], array_values($marks), $profile['givenName']);
+			$marks = array_filter(self::of(set: 'po', schema: 'attendance-record'), static fn (array $row): bool => $row['learnerRef'] === $profile['uuid']);
+			self::assertSame(expected: [], actual: array_values($marks), message: $profile['givenName']);
 			$reports = array_filter(
-				self::of('po', 'excuse-request'),
+				self::of(set: 'po', schema: 'excuse-request'),
 				static fn (array $row): bool => $row['learnerRef'] === $profile['uuid'] && $row['dateFrom'] === self::MONDAY && $row['lifecycle'] === 'approved'
 			);
-			self::assertCount(1, $reports, $profile['givenName']);
+			self::assertCount(expectedCount: 1, haystack: $reports, message: $profile['givenName']);
 			$summary = current(
 				array_filter(
-					self::of('po', 'attendance-summary'),
+					self::of(set: 'po', schema: 'attendance-summary'),
 					static fn (array $row): bool => $row['learnerRef'] === $profile['uuid'] && $row['schoolYear'] === '2026-2027'
 				)
 			);
-			self::assertSame(0, $summary['absentDays'], $profile['givenName']);
+			self::assertSame(expected: 0, actual: $summary['absentDays'], message: $profile['givenName']);
 		}
 	}//end testTheReportedPupilsAreNotMarkedYet()
 
@@ -168,23 +168,24 @@ class TodayFirstExampleStatesTest extends TestCase {
 	 * @return void
 	 */
 	public function testTessBakkersPlanEndsOnFridayWithoutEvaluation(): void {
-		$plans = array_values(array_filter(self::of('po', 'learning-plan'), static fn (array $row): bool => $row['lifecycle'] === 'active'));
+		$plans = array_values(array_filter(self::of(set: 'po', schema: 'learning-plan'), static fn (array $row): bool => $row['lifecycle'] === 'active'));
 		$facts = (new FollowUpFacts())->planEnding(
-			plans: ['group-plan' => self::of('po', 'group-plan'), 'learning-plan' => $plans],
+			plans: ['group-plan' => self::of(set: 'po', schema: 'group-plan'), 'learning-plan' => $plans],
 			today: self::MONDAY
 		);
 
-		self::assertSame(1, $facts['count']);
-		self::assertSame('learning-plan', $facts['schema']);
-		self::assertSame('2026-10-09', $facts['endsOn']);
-		self::assertSame('Friday', (new DateTimeImmutable($facts['endsOn']))->format('l'));
+		self::assertSame(expected: 1, actual: $facts['count']);
+		self::assertSame(expected: 'learning-plan', actual: $facts['schema']);
+		self::assertSame(expected: '2026-10-09', actual: $facts['endsOn']);
+		self::assertSame(expected: 'Friday', actual: (new DateTimeImmutable($facts['endsOn']))->format('l'));
 
 		$plan = current(array_filter($plans, static fn (array $row): bool => $row['uuid'] === $facts['planId']));
-		self::assertSame('po-ib-01', $plan['coordinatorId']);
-		$pupil = current(array_filter(self::of('po', 'learner-profile'), static fn (array $row): bool => $row['ncUserId'] === $plan['learnerId']));
-		self::assertSame(['Tess', 'Bakker'], [$pupil['givenName'], $pupil['familyName']]);
-		$enrolment = current(array_filter(self::of('po', 'enrolment'), static fn (array $row): bool => $row['learnerRef'] === $pupil['uuid']));
-		self::assertSame($plan['cohortId'], $enrolment['cohortId']);
+		self::assertSame(expected: 'po-ib-01', actual: $plan['coordinatorId']);
+		$profiles = self::of(set: 'po', schema: 'learner-profile');
+		$pupil = current(array_filter($profiles, static fn (array $row): bool => $row['ncUserId'] === $plan['learnerId']));
+		self::assertSame(expected: ['Tess', 'Bakker'], actual: [$pupil['givenName'], $pupil['familyName']]);
+		$enrolment = current(array_filter(self::of(set: 'po', schema: 'enrolment'), static fn (array $row): bool => $row['learnerRef'] === $pupil['uuid']));
+		self::assertSame(expected: $plan['cohortId'], actual: $enrolment['cohortId']);
 	}//end testTessBakkersPlanEndsOnFridayWithoutEvaluation()
 
 	/**
@@ -193,16 +194,16 @@ class TodayFirstExampleStatesTest extends TestCase {
 	 * @return void
 	 */
 	public function testTheSecondHourOf3hvbEndedWithoutARegister(): void {
-		$group = self::group('vo', '3HV-B');
+		$group = self::group(set: 'vo', name: '3HV-B');
 		$sessions = array_map(
 			static fn (array $session): array => array_merge($session, ['markCount' => $group['records'][$session['uuid']]]),
 			$group['sessions']
 		);
-		$facts = (new RegisterFacts())->lessonRegisterOpen(sessions: $sessions, now: self::at('10:15'));
+		$facts = (new RegisterFacts())->lessonRegisterOpen(sessions: $sessions, now: self::at(time: '10:15'));
 
-		self::assertSame(1, $facts['count']);
-		self::assertSame('Wiskunde A', $facts['sessionTitle']);
-		self::assertSame('2026-10-05T10:10:00+02:00', $facts['endsAt']);
+		self::assertSame(expected: 1, actual: $facts['count']);
+		self::assertSame(expected: 'Wiskunde A', actual: $facts['sessionTitle']);
+		self::assertSame(expected: '2026-10-05T10:10:00+02:00', actual: $facts['endsAt']);
 	}//end testTheSecondHourOf3hvbEndedWithoutARegister()
 
 	/**
@@ -212,8 +213,8 @@ class TodayFirstExampleStatesTest extends TestCase {
 	 */
 	public function testTwoLeaveRequestsWaitInEachSet(): void {
 		foreach (['po', 'vo'] as $set) {
-			$open = array_filter(self::of($set, 'leave-request'), static fn (array $row): bool => $row['lifecycle'] === 'submitted');
-			self::assertCount(2, $open, $set);
+			$open = array_filter(self::of(set: $set, schema: 'leave-request'), static fn (array $row): bool => $row['lifecycle'] === 'submitted');
+			self::assertCount(expectedCount: 2, haystack: $open, message: $set);
 		}
 	}//end testTwoLeaveRequestsWaitInEachSet()
 }//end class
