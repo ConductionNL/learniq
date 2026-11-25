@@ -949,4 +949,84 @@ class TimetableControllerTest extends TestCase {
 
 		$this->assertSame(['s-online' => 'https://meet.example.org/les', 's-bad' => null, 's-none' => null], $out);
 	}//end testAnOnlineLessonCarriesItsHttpsLinkOnly()
+
+	/**
+	 * A mentor reads the groups she mentors, by name, asked with her own uid;
+	 * a group of another mentor or none stays out even when the store returns it.
+	 *
+	 * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+	 *
+	 * @return void
+	 */
+	public function testAMentorReadsTheGroupsSheMentors(): void {
+		$this->signInAs('sanne');
+		$asked = [];
+		$entity = $this->createMock(ObjectEntity::class);
+		$entity->method('jsonSerialize')->willReturn(['id' => 'c-h4a', 'name' => 'H4a', 'mentorId' => 'sanne']);
+		$this->objectService->method('findAll')->willReturnCallback(
+			function (array $config) use (&$asked, $entity): array {
+				$asked[] = $config['filters'];
+				return [
+					['id' => 'c-h4b', 'name' => 'H4b', 'mentorId' => 'sanne'],
+					['id' => 'c-v4c', 'name' => 'V4c', 'mentorId' => 'daan'],
+					['id' => 'c-none', 'name' => 'H3a'],
+					$entity,
+				];
+			}
+		);
+
+		$response = $this->controller()->mentorClasses();
+
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+		$this->assertSame(
+			[['id' => 'c-h4a', 'name' => 'H4a'], ['id' => 'c-h4b', 'name' => 'H4b']],
+			$response->getData()['classes']
+		);
+		$this->assertSame([['register' => 'learniq', 'schema' => 'cohort', 'mentorId' => 'sanne']], $asked);
+	}//end testAMentorReadsTheGroupsSheMentors()
+
+	/**
+	 * A teacher who mentors no group gets an empty list, so the page shows no switch.
+	 *
+	 * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+	 *
+	 * @return void
+	 */
+	public function testATeacherWhoMentorsNoGroupGetsNoClasses(): void {
+		$this->signInAs('jan');
+		$this->objectService->method('findAll')->willReturn([['id' => 'c-h4b', 'name' => 'H4b', 'mentorId' => 'sanne']]);
+
+		$this->assertSame(['classes' => []], $this->controller()->mentorClasses()->getData());
+	}//end testATeacherWhoMentorsNoGroupGetsNoClasses()
+
+	/**
+	 * A failing read answers an empty list instead of an error page.
+	 *
+	 * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+	 *
+	 * @return void
+	 */
+	public function testAFailingReadAnswersNoClasses(): void {
+		$this->signInAs('sanne');
+		$this->objectService->method('findAll')->willThrowException(new \RuntimeException('store down'));
+
+		$response = $this->controller()->mentorClasses();
+
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+		$this->assertSame(['classes' => []], $response->getData());
+	}//end testAFailingReadAnswersNoClasses()
+
+	/**
+	 * Without a user the mentor classes are a 401 and nothing is read.
+	 *
+	 * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+	 *
+	 * @return void
+	 */
+	public function testMentorClassesWithoutAUserIs401(): void {
+		$this->userSession->method('getUser')->willReturn(null);
+		$this->objectService->expects($this->never())->method('findAll');
+
+		$this->assertSame(Http::STATUS_UNAUTHORIZED, $this->controller()->mentorClasses()->getStatus());
+	}//end testMentorClassesWithoutAUserIs401()
 }//end class

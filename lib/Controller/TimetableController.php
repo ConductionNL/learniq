@@ -208,6 +208,79 @@ class TimetableController extends Controller {
 	}//end cohort()
 
 	/**
+	 * The groups the caller is the mentor of, for the Mentor class scope of My timetable.
+	 *
+	 * Reads the cohorts with the caller's own rights and keeps those whose
+	 * `mentorId` is the caller; the filter is checked again here, so a store
+	 * that ignores the key cannot widen the list. A caller who mentors no
+	 * group gets an empty list, and the page then shows no switch.
+	 *
+	 * @return JSONResponse 200 with `classes` ({id, name}, by name); 401 without a user.
+	 *
+	 * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	public function mentorClasses(): JSONResponse {
+		$user = $this->userSession->getUser();
+		if ($user === null) {
+			return new JSONResponse(data: ['error' => 'Not authenticated'], statusCode: Http::STATUS_UNAUTHORIZED);
+		}
+
+		$uid = $user->getUID();
+		try {
+			$rows = $this->objectService->findAll(
+				[
+					'filters' => [
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => 'cohort',
+						'mentorId' => $uid,
+					],
+				]
+			);
+		} catch (\Exception $e) {
+			$this->logger->warning('[TimetableController] Mentor classes not readable: {msg}', ['msg' => $e->getMessage()]);
+			return new JSONResponse(data: ['classes' => []], statusCode: Http::STATUS_OK);
+		}
+
+		$classes = [];
+		foreach ($rows as $row) {
+			$cohort = $this->rowToArray(row: $row);
+			$id = (string)($cohort['id'] ?? ($cohort['uuid'] ?? ''));
+			if ($id === '' || ($cohort['mentorId'] ?? null) !== $uid) {
+				continue;
+			}
+
+			$classes[$id] = ['id' => $id, 'name' => (string)($cohort['name'] ?? ($cohort['title'] ?? $id))];
+		}
+
+		$classes = array_values($classes);
+		usort($classes, static fn (array $a, array $b): int => strnatcasecmp($a['name'], $b['name']));
+
+		return new JSONResponse(data: ['classes' => $classes], statusCode: Http::STATUS_OK);
+	}//end mentorClasses()
+
+	/**
+	 * A found object as an array, whether the store answers entities or arrays.
+	 *
+	 * @param mixed $row An ObjectService row.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private function rowToArray(mixed $row): array {
+		if (is_array($row) === true) {
+			return $row;
+		}
+
+		if ($row instanceof \JsonSerializable) {
+			$data = $row->jsonSerialize();
+			return is_array($data) === true ? $data : [];
+		}
+
+		return [];
+	}//end rowToArray()
+
+	/**
 	 * Whether the caller can read the cohort, through OpenRegister RBAC.
 	 *
 	 * Fails closed: a missing cohort, a refused read or an error all answer false.

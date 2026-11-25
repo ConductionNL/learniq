@@ -434,6 +434,10 @@
         {
             "name": "portal-elective",
             "description": "Receives portaliq's optional-lesson sign-up forward for one pupil."
+        },
+        {
+            "name": "cohort-sync-line",
+            "description": "When the groups the caller may open were last synced from the student administration."
         }
     ],
     "paths": {
@@ -1481,6 +1485,47 @@
                     },
                     "403": {
                         "$ref": "#/components/responses/Problem403"
+                    }
+                }
+            }
+        },
+        "/cohorts/sync-line": {
+            "get": {
+                "operationId": "cohortSyncLine-show",
+                "summary": "The line saying when the caller's groups were last synced",
+                "description": "The line saying when the groups the caller may open were last synced from the student administration, or '' when none of them is synced. Needs a signed-in Nextcloud user.",
+                "tags": [
+                    "cohort-sync-line"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The request succeeded.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    },
+                    "503": {
+                        "description": "The groups could not be read.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
                     }
                 }
             }
@@ -6848,6 +6893,34 @@
                             "type": "string"
                         }
                     }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The request succeeded.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    }
+                }
+            }
+        },
+        "/timetable/mentor-classes": {
+            "get": {
+                "operationId": "timetable-mentorClasses",
+                "summary": "The groups the caller is the mentor of",
+                "description": "The groups the caller is the mentor of, for the Mentor class scope of My timetable. Reads the cohorts with the caller's own rights and keeps those whose `mentorId` is the caller. A caller who mentors no group gets an empty list. Needs a signed-in Nextcloud user.",
+                "tags": [
+                    "timetable"
                 ],
                 "responses": {
                     "200": {

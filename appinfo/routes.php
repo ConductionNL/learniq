@@ -247,6 +247,8 @@ return \OCA\Learniq\Middleware\Support\ApiPathAliases::withVersionedAliases([
         // Read-only; #[NoAdminRequired] (any signed-in user) + #[NoCSRFRequired] (GET read).
         // Controller: TimetableController (slug: timetable).
         ['name' => 'timetable#mine', 'url' => '/api/timetable/mine', 'verb' => 'GET'],
+        // The groups the caller mentors, for the Mentor class scope of My timetable (week-timetable-grid T3).
+        ['name' => 'timetable#mentorClasses', 'url' => '/api/timetable/mentor-classes', 'verb' => 'GET'],
         // Cohort timetable: one cohort's sessions from the current timetable source
         // (planninq when installed, else Session), after an RBAC read of the cohort
         // (sessions-from-planninq).
