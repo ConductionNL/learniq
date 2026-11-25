@@ -1,11 +1,13 @@
 <?php
 
 /**
- * Learniq ProofOfEnrolmentPdf
+ * Learniq RecordPdf
  *
- * Renders a proof of enrolment through the document render endpoint and keeps
- * the PDF on the enrolment. The render endpoint answers with the PDF itself,
- * or with JSON carrying it base64 encoded under `content`.
+ * Renders one document through the document render endpoint and keeps the PDF
+ * on the learniq record it belongs to: a proof of enrolment on the enrolment,
+ * a guardian's answer to a permission request on that answer. The render
+ * endpoint answers with the PDF itself, or with JSON carrying it base64
+ * encoded under `content`.
  *
  * @category Service
  * @package  OCA\Learniq\Service\Portal
@@ -21,6 +23,7 @@
  * @link https://conduction.nl
  *
  * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-a-pupil-asks-for-a-proof-of-enrolment
+ * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-each-school-audience-offers-its-own-documents-grouped-per-record
  */
 
 declare(strict_types=1);
@@ -41,26 +44,17 @@ use Psr\Log\LoggerInterface;
 use Throwable;
 
 /**
- * Makes the PDF of a proof of enrolment and keeps it on the enrolment.
+ * Makes the PDF of one document and keeps it on its learniq record.
  *
  * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-a-pupil-asks-for-a-proof-of-enrolment
+ * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-each-school-audience-offers-its-own-documents-grouped-per-record
  */
-class ProofOfEnrolmentPdf {
+class RecordPdf {
 
 	/**
-	 * The register the enrolments live in.
+	 * The register the records live in.
 	 */
 	private const REGISTER = 'learniq';
-
-	/**
-	 * The enrolment schema.
-	 */
-	private const ENROLMENT_SCHEMA = 'enrolment';
-
-	/**
-	 * The template filinq renders the proof with.
-	 */
-	public const TEMPLATE_SLUG = 'proof-of-enrolment';
 
 	/**
 	 * filinq's render endpoint, after the app segment (the report card's).
@@ -75,8 +69,8 @@ class ProofOfEnrolmentPdf {
 	/**
 	 * Constructor.
 	 *
-	 * @param ObjectService   $objectService OpenRegister object access, to find the enrolment.
-	 * @param FileService     $fileService   Keeps the PDF on the enrolment.
+	 * @param ObjectService   $objectService OpenRegister object access, to find the record.
+	 * @param FileService     $fileService   Keeps the PDF on the record.
 	 * @param IClientService  $clientService HTTP client for the render endpoint.
 	 * @param IURLGenerator   $urlGenerator  Absolute URL of the render endpoint.
 	 * @param IAppManager     $appManager    Where the render app is installed.
@@ -95,23 +89,23 @@ class ProofOfEnrolmentPdf {
 	}//end __construct()
 
 	/**
-	 * Render the proof and keep it on the enrolment.
+	 * Render the document and keep it on its record.
 	 *
-	 * @param string               $enrolmentId The enrolment's id.
-	 * @param string               $fileName    The file's name: the proof's title.
-	 * @param array<string, mixed> $data        What the template shows.
+	 * @param PdfTarget            $target The template, the record and the file's name.
+	 * @param array<string, mixed> $data   What the template shows.
 	 *
-	 * @return bool Whether the proof was made and kept.
+	 * @return bool Whether the document was made and kept.
 	 *
 	 * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-a-pupil-asks-for-a-proof-of-enrolment
+	 * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-each-school-audience-offers-its-own-documents-grouped-per-record
 	 */
-	public function make(string $enrolmentId, string $fileName, array $data): bool {
-		$pdf = $this->render(data: $data);
+	public function make(PdfTarget $target, array $data): bool {
+		$pdf = $this->render(templateSlug: $target->templateSlug, data: $data);
 		if ($pdf === null) {
 			return false;
 		}
 
-		return $this->keep(enrolmentId: $enrolmentId, fileName: $fileName, pdf: $pdf);
+		return $this->keep(target: $target, pdf: $pdf);
 	}//end make()
 
 	/**
@@ -119,14 +113,15 @@ class ProofOfEnrolmentPdf {
 	 *
 	 * The render endpoint answers with the PDF itself, or with JSON carrying it base64 encoded under `content`.
 	 *
-	 * @param array<string, mixed> $data What the template shows.
+	 * @param string               $templateSlug The render template's slug.
+	 * @param array<string, mixed> $data         What the template shows.
 	 *
 	 * @return string|null
 	 */
-	private function render(array $data): ?string {
+	private function render(string $templateSlug, array $data): ?string {
 		$token = $this->appConfig->getValueString(app: AppIdentity::APP_ID, key: self::TOKEN_KEY, default: '');
 		if ($token === '') {
-			$this->logger->warning('Learniq: no render credential configured (learniq.docudesk_api_token); no proof of enrolment can be made.');
+			$this->logger->warning('Learniq: no render credential configured (learniq.docudesk_api_token); no document can be made.', ['template' => $templateSlug]);
 			return null;
 		}
 
@@ -135,14 +130,14 @@ class ProofOfEnrolmentPdf {
 			$response = $this->clientService->newClient()->post(
 				$url,
 				[
-					'json' => ['templateSlug' => self::TEMPLATE_SLUG, 'output' => 'pdf', 'data' => $data],
+					'json' => ['templateSlug' => $templateSlug, 'output' => 'pdf', 'data' => $data],
 					'timeout' => 60,
 					'headers' => ['Authorization' => 'Bearer '.$token, 'Accept' => 'application/pdf, application/json'],
 				]
 			);
 			$body = (string)$response->getBody();
 		} catch (Throwable $e) {
-			$this->logger->warning('Learniq: a proof of enrolment could not be rendered', ['reason' => $e->getMessage()]);
+			$this->logger->warning('Learniq: a document could not be rendered', ['template' => $templateSlug, 'reason' => $e->getMessage()]);
 			return null;
 		}
 
@@ -182,32 +177,31 @@ class ProofOfEnrolmentPdf {
 	}//end pdfFrom()
 
 	/**
-	 * Keep the PDF on the enrolment, replacing an earlier one of the same school year.
+	 * Keep the PDF on its record; a file of the same name is replaced.
 	 *
-	 * @param string $enrolmentId The enrolment's id.
-	 * @param string $fileName    The file's name: the proof's title.
-	 * @param string $pdf         The PDF bytes.
+	 * @param PdfTarget $target The record and the file's name.
+	 * @param string    $pdf    The PDF bytes.
 	 *
 	 * @return bool Whether it was kept.
 	 */
-	private function keep(string $enrolmentId, string $fileName, string $pdf): bool {
+	private function keep(PdfTarget $target, string $pdf): bool {
 		try {
-			$enrolment = $this->objectService->find(
-				id: $enrolmentId,
-				options: new ObjectFindOptions(register: self::REGISTER, schema: self::ENROLMENT_SCHEMA),
+			$record = $this->objectService->find(
+				id: $target->recordId,
+				options: new ObjectFindOptions(register: self::REGISTER, schema: $target->schema),
 				_rbac: false,
 				_multitenancy: false
 			);
-			if ($enrolment === null) {
+			if ($record === null) {
 				return false;
 			}
 
 			$this->fileService->saveFile(
-				objectEntity: $enrolment,
-				upload: new FileUpload(fileName: $fileName, content: $pdf, share: false, tags: [self::TEMPLATE_SLUG])
+				objectEntity: $record,
+				upload: new FileUpload(fileName: $target->fileName, content: $pdf, share: false, tags: [$target->templateSlug])
 			);
 		} catch (Throwable $e) {
-			$this->logger->warning('Learniq: a proof of enrolment could not be kept', ['reason' => $e->getMessage()]);
+			$this->logger->warning('Learniq: a rendered document could not be kept', ['template' => $target->templateSlug, 'reason' => $e->getMessage()]);
 			return false;
 		}
 
