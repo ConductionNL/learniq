@@ -1441,7 +1441,7 @@ def add_group7_today(b: Builder, pupils: list[dict], cohorts: dict) -> None:
 # today-first-per-school-role (board wilgenboom/LqRolB): the intern begeleider's First today reads "Het plan van
 # Tess Bakker loopt vrijdag af zonder evaluatie". Tess is a new pupil of groep 5/6 with a guardian; her plan is
 # active (no evaluation under way) and due for review on Friday 9 October 2026, within the rule's seven days.
-TESS = ("Tess", "Bakker", "2016-06-14", "Ilse")
+TESS = ("Tess", "Bakker", "2016-03-14", "Ilse")
 TESS_REVIEW = "2026-10-09"
 
 
@@ -1455,6 +1455,8 @@ def add_tess_plan(b: Builder, pupils: list[dict], cohorts: dict) -> dict:
     """
     group = cohorts["Groep 5/6"]
     nc, _ref = nearing_pupil(b, pupils, group, TESS)
+    # nearing_pupil enrols in leerjaar 7 (groep 7's pupils); Tess is in groep 6 of the combination group.
+    b.buckets["enrolment"][-1]["leerjaar"] = 6
     return b.add("learning-plan", {
         "learnerId": nc, "kind": "handelingsplan", "cohortId": group["uuid"], "coordinatorId": IB,
         "goals": [{"goalId": "lezen-avi-e5", "domain": "leren-en-ontwikkeling", "description": "Leest een AVI E5-tekst vloeiend voor."}],
