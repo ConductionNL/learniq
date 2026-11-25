@@ -959,9 +959,9 @@ class TimetableControllerTest extends TestCase {
 	 * @return void
 	 */
 	public function testAMentorReadsTheGroupsSheMentors(): void {
-		$this->signInAs('sanne');
+		$this->signInAs(uid: 'sanne');
 		$asked = [];
-		$entity = $this->createMock(ObjectEntity::class);
+		$entity = $this->createMock(originalClassName: ObjectEntity::class);
 		$entity->method('jsonSerialize')->willReturn(['id' => 'c-h4a', 'name' => 'H4a', 'mentorId' => 'sanne']);
 		$this->objectService->method('findAll')->willReturnCallback(
 			function (array $config) use (&$asked, $entity): array {
@@ -977,12 +977,12 @@ class TimetableControllerTest extends TestCase {
 
 		$response = $this->controller()->mentorClasses();
 
-		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+		$this->assertSame(expected: Http::STATUS_OK, actual: $response->getStatus());
 		$this->assertSame(
-			[['id' => 'c-h4a', 'name' => 'H4a'], ['id' => 'c-h4b', 'name' => 'H4b']],
-			$response->getData()['classes']
+			expected: [['id' => 'c-h4a', 'name' => 'H4a'], ['id' => 'c-h4b', 'name' => 'H4b']],
+			actual: $response->getData()['classes']
 		);
-		$this->assertSame([['register' => 'learniq', 'schema' => 'cohort', 'mentorId' => 'sanne']], $asked);
+		$this->assertSame(expected: [['register' => 'learniq', 'schema' => 'cohort', 'mentorId' => 'sanne']], actual: $asked);
 	}//end testAMentorReadsTheGroupsSheMentors()
 
 	/**
@@ -993,10 +993,10 @@ class TimetableControllerTest extends TestCase {
 	 * @return void
 	 */
 	public function testATeacherWhoMentorsNoGroupGetsNoClasses(): void {
-		$this->signInAs('jan');
+		$this->signInAs(uid: 'jan');
 		$this->objectService->method('findAll')->willReturn([['id' => 'c-h4b', 'name' => 'H4b', 'mentorId' => 'sanne']]);
 
-		$this->assertSame(['classes' => []], $this->controller()->mentorClasses()->getData());
+		$this->assertSame(expected: ['classes' => []], actual: $this->controller()->mentorClasses()->getData());
 	}//end testATeacherWhoMentorsNoGroupGetsNoClasses()
 
 	/**
@@ -1007,13 +1007,13 @@ class TimetableControllerTest extends TestCase {
 	 * @return void
 	 */
 	public function testAFailingReadAnswersNoClasses(): void {
-		$this->signInAs('sanne');
+		$this->signInAs(uid: 'sanne');
 		$this->objectService->method('findAll')->willThrowException(new \RuntimeException('store down'));
 
 		$response = $this->controller()->mentorClasses();
 
-		$this->assertSame(Http::STATUS_OK, $response->getStatus());
-		$this->assertSame(['classes' => []], $response->getData());
+		$this->assertSame(expected: Http::STATUS_OK, actual: $response->getStatus());
+		$this->assertSame(expected: ['classes' => []], actual: $response->getData());
 	}//end testAFailingReadAnswersNoClasses()
 
 	/**
@@ -1027,6 +1027,6 @@ class TimetableControllerTest extends TestCase {
 		$this->userSession->method('getUser')->willReturn(null);
 		$this->objectService->expects($this->never())->method('findAll');
 
-		$this->assertSame(Http::STATUS_UNAUTHORIZED, $this->controller()->mentorClasses()->getStatus());
+		$this->assertSame(expected: Http::STATUS_UNAUTHORIZED, actual: $this->controller()->mentorClasses()->getStatus());
 	}//end testMentorClassesWithoutAUserIs401()
 }//end class

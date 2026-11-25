@@ -576,6 +576,12 @@ export default {
 		},
 	},
 
+	/**
+	 * Load the week, and the groups the caller mentors for the scope switch.
+	 *
+	 * @return {void}
+	 * @spec openspec/changes/week-timetable-grid/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+	 */
 	mounted() {
 		this.load()
 		this.loadMentorClasses()
