@@ -198,7 +198,7 @@ test.describe('trainer: an invited workplace trainer', () => {
 				// internship-hours: the hours the agreement states, so her card
 				// has a real denominator to count against.
 				agreedHours: AGREED_HOURS,
-				lifecycle: 'active',
+				lifecycle: 'proposed',
 				tenant_id: TENANT,
 			},
 		)
