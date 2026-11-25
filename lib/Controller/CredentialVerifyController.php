@@ -274,7 +274,7 @@ class CredentialVerifyController extends Controller {
 	 *
 	 * @return JSONResponse
 	 *
-	 * @spec openspec/changes/credentials-migrate-with-validity/specs/certification/spec.md#requirement-a-migrated-certificate-keeps-its-dates-and-is-not-signed-as-learniqs-own
+	 * @spec openspec/specs/certification/spec.md#requirement-a-migrated-certificate-keeps-its-dates-and-is-not-signed-as-learniqs-own
 	 */
 	private function migratedVerdict(array $data, mixed $lifecycle, mixed $isExpired): JSONResponse {
 		return new JSONResponse(

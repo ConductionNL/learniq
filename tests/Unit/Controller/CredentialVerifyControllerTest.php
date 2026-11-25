@@ -488,7 +488,7 @@ class CredentialVerifyControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/credentials-migrate-with-validity/specs/certification/spec.md#scenario-someone-verifies-a-migrated-certificate
+	 * @spec openspec/specs/certification/spec.md#scenario-someone-verifies-a-migrated-certificate
 	 */
 	public function testAMigratedCertificateAnswersWithItsMigrationFacts(): void {
 		$this->keyManagementService->expects(self::never())->method('resolvePublicKeyByFingerprint');

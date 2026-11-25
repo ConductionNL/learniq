@@ -50,7 +50,7 @@ interface CredentialMigrationServiceInterface {
 	 *
 	 * @return array{commit: bool, runId: string|null, summary: array<string, int>, rows: array<int, array<string, mixed>>}
 	 *
-	 * @spec openspec/changes/credentials-migrate-with-validity/tasks.md
+	 * @spec openspec/changes/archive/2026-11-25-credentials-migrate-with-validity/tasks.md
 	 */
 	public function migrate(array $rows, string $tenantId, string $migratedBy, bool $commit, ?DateTimeImmutable $now = null): array;
 }//end interface

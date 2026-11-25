@@ -8802,20 +8802,20 @@
       "origin": "tender",
       "originUrl": "https://www.tenderned.nl/aankondigingen/overzicht/411287",
       "built": {
-        "state": "building",
-        "evidence": "lib/Settings/learniq_register.json:445",
-        "owner": "ConductionNL/openregister",
-        "reachedOn": "/credentials (list import)",
-        "change": "credentials-migrate-with-validity",
+        "state": "built",
+        "evidence": "lib/Service/CredentialMigrationService.php behind POST /api/credentials/migrate (dry run, then commit; dedupe on learner, course or regulation and old number), the Credential migration fields in lib/Settings/learniq_register.json, CredentialSigningService and CredentialVerifyController treating source migrated, and the Take over certificates dialog on the Credentials index. Tests: CredentialMigrationServiceTest, the controller test, tests/e2e/credential-migration.spec.ts. Checked live 25 Nov 2026: 20 rows twice, coverage moved once (0 to 19 of 484), the expiring row signed up for its refresher. Built through openspec/changes/archive/2026-11-25-credentials-migrate-with-validity.",
+        "owner": "ConductionNL/learniq",
+        "reachedOn": "/credentials > Take over certificates",
+        "change": "2026-11-25-credentials-migrate-with-validity",
         "requirement": [
-          "openspec/changes/credentials-migrate-with-validity/specs/certification :: Certificates from the previous system are uploaded with a dry run first",
-          "openspec/changes/credentials-migrate-with-validity/specs/certification :: A migrated certificate keeps its dates and is not signed as learniq's own"
+          "openspec/specs/certification :: Certificates from the previous system are uploaded with a dry run first",
+          "openspec/specs/certification :: A migrated certificate keeps its dates and is not signed as learniq's own"
         ]
       },
-      "provider": "openregister",
-      "providerHow": "OpenRegister's generic object import on the index page carries the rows; learniq only supplies the schema with a migrated source value.",
+      "provider": "self",
+      "providerHow": "read: the logic is in this repository, at the path in built.evidence",
       "feature": "certification",
-      "learniq": "partial",
+      "learniq": "yes",
       "evidence": {
         "moodle": "source read at moodle/moodle v5.2.3: Searched public/admin/tool/uploaduser, uploadcourse and badges for timecompleted, dateissued, import: none take historic completions or awards. public/badges/classes/badge.php:441 sets the expiry from the moment of issue ($now), so a badge cannot be issued with an old start date. Nearest is course backup and restore with user data, Moodle to Moodle only. Marketplace plugins (tool_certificate, local_recompletion) are not shipped.",
         "moodle-workplace": "read 2026-09-26: https://docs.moodle.org/502/en/Certifications_Configuration; an admin can \"Certify user\" and \"Select date\" for a custom past date, one user at a time; certificates can be issued with \"an expiry date (absolute and relative)\" (https://docs.moodle.org/502/en/Certificates_Configuration). Migrations move \"Issued certificates and templates\" and certification allocations between Workplace sites (https://docs.moodle.org/502/en/Migrations_Configuration), but its CSV import \"only supports departments and positions\", so a bulk import from a non-Workplace system is not documented.",

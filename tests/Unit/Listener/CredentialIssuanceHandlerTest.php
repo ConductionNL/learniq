@@ -560,7 +560,7 @@ class CredentialIssuanceHandlerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/credentials-migrate-with-validity/specs/certification/spec.md#requirement-a-migrated-certificate-keeps-its-dates-and-is-not-signed-as-learniqs-own
+	 * @spec openspec/specs/certification/spec.md#requirement-a-migrated-certificate-keeps-its-dates-and-is-not-signed-as-learniqs-own
 	 */
 	public function testAMigratedCertificatesTransitionIssuesNothing(): void {
 		$migrated = OrEntityFactory::make(

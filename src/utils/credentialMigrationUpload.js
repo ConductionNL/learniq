@@ -43,7 +43,7 @@ const REQUIRED = ['learner', 'issuedAt', 'legacyNumber']
  * @param {string} text The file contents.
  * @return {{rows: object[], missing: string[], ignored: string[]}} The rows, the required
  *   columns the header lacks (by heading), and the headings that were not recognised.
- * @spec openspec/changes/credentials-migrate-with-validity/specs/certification/spec.md#requirement-certificates-from-the-previous-system-are-uploaded-with-a-dry-run-first
+ * @spec openspec/specs/certification/spec.md#requirement-certificates-from-the-previous-system-are-uploaded-with-a-dry-run-first
  */
 export function migrationRowsFromCsv(text) {
 	const { rows, missing, ignored, keys } = rowsByColumns(text, { columns: COLUMNS, required: REQUIRED })
@@ -59,7 +59,7 @@ export function migrationRowsFromCsv(text) {
  *
  * @param {object|null} report The server's dry-run report.
  * @return {boolean}
- * @spec openspec/changes/credentials-migrate-with-validity/specs/certification/spec.md#requirement-certificates-from-the-previous-system-are-uploaded-with-a-dry-run-first
+ * @spec openspec/specs/certification/spec.md#requirement-certificates-from-the-previous-system-are-uploaded-with-a-dry-run-first
  */
 export function canTakeOver(report) {
 	return Boolean(report && report.commit === false && (report.summary?.ready ?? 0) > 0)

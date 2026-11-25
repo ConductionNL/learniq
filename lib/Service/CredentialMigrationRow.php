@@ -18,7 +18,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/credentials-migrate-with-validity/tasks.md
+ * @spec openspec/changes/archive/2026-11-25-credentials-migrate-with-validity/tasks.md
  */
 
 declare(strict_types=1);
@@ -32,7 +32,7 @@ use DateTimeZone;
 /**
  * The fields, reasons and record of one migrated certificate row.
  *
- * @spec openspec/changes/credentials-migrate-with-validity/tasks.md
+ * @spec openspec/changes/archive/2026-11-25-credentials-migrate-with-validity/tasks.md
  */
 final class CredentialMigrationRow {
 
@@ -48,7 +48,7 @@ final class CredentialMigrationRow {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/credentials-migrate-with-validity/tasks.md
+	 * @spec openspec/changes/archive/2026-11-25-credentials-migrate-with-validity/tasks.md
 	 */
 	public static function fields(array $row): array {
 		$text = static fn (string $key): string => self::text(row: $row, key: $key);
@@ -174,7 +174,7 @@ final class CredentialMigrationRow {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/credentials-migrate-with-validity/tasks.md
+	 * @spec openspec/changes/archive/2026-11-25-credentials-migrate-with-validity/tasks.md
 	 */
 	public static function recordFor(array $fields, array $match, array $target, string $tenantId): array {
 		$record = [
@@ -203,7 +203,7 @@ final class CredentialMigrationRow {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/credentials-migrate-with-validity/tasks.md
+	 * @spec openspec/changes/archive/2026-11-25-credentials-migrate-with-validity/tasks.md
 	 */
 	public static function keyOf(array $record): string {
 		return $record['learnerId'] . '|' . ($record['courseId'] ?? 'regulation:' . $record['regulationSlug']) . '|' . $record['legacyNumber'];

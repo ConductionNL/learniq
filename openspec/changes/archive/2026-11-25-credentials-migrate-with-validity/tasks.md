@@ -20,5 +20,6 @@
 
 ## 5. Close out
 
-- [ ] 5.1 Live check: upload a 20-row fixture twice; coverage moves once; one expiring row signs up for its refresher.
-- [ ] 5.2 Set row `cred-migrate-with-validity` to built and archive this change.
+- [x] 5.1 Live check: upload a 20-row fixture twice; coverage moves once; one expiring row signs up for its refresher.
+  - 2026-11-25 live (NC 34.0.6 + PostgreSQL 16, OpenRegister main, learniq development, po set loaded): as an hr user, `POST /api/credentials/migrate` with 20 rows (one for course DEMO-AVG ending in 20 days, 19 for a published all-employees regulation): first upload created 20 (`source: migrated`, one run id), second created 0 and skipped 20. `GET /api/compliance/coverage-by-regulation` for that regulation: 0 of 484 covered before, 19 (3.9%) after the first upload, still 19 after the second. `tests/e2e/credential-migration.spec.ts` 1/1: dry run 20 ready, commit 20, expiring the course row signs its learner up for the refresher (`renewalEnrolmentId`, enrolment source `credential-renewal`), second upload all duplicate.
+- [x] 5.2 Set row `cred-migrate-with-validity` to built and archive this change.

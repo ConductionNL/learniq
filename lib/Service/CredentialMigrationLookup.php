@@ -18,7 +18,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/credentials-migrate-with-validity/tasks.md
+ * @spec openspec/changes/archive/2026-11-25-credentials-migrate-with-validity/tasks.md
  */
 
 declare(strict_types=1);
@@ -32,7 +32,7 @@ use OCA\OpenRegister\Service\ObjectService;
 /**
  * The register lookups of a credential migration.
  *
- * @spec openspec/changes/credentials-migrate-with-validity/tasks.md
+ * @spec openspec/changes/archive/2026-11-25-credentials-migrate-with-validity/tasks.md
  */
 final class CredentialMigrationLookup {
 
@@ -64,7 +64,7 @@ final class CredentialMigrationLookup {
 	 *
 	 * @return array{courseId: string|null, regulationSlug: string|null}|null
 	 *
-	 * @spec openspec/changes/credentials-migrate-with-validity/tasks.md
+	 * @spec openspec/changes/archive/2026-11-25-credentials-migrate-with-validity/tasks.md
 	 */
 	public function target(array $fields, string $tenantId): ?array {
 		if ($fields['course'] !== '') {
@@ -107,7 +107,7 @@ final class CredentialMigrationLookup {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/credentials-migrate-with-validity/tasks.md
+	 * @spec openspec/changes/archive/2026-11-25-credentials-migrate-with-validity/tasks.md
 	 */
 	public function alreadyMigrated(array $record): bool {
 		$filters = [

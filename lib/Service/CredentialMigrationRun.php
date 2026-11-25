@@ -22,7 +22,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/credentials-migrate-with-validity/tasks.md
+ * @spec openspec/changes/archive/2026-11-25-credentials-migrate-with-validity/tasks.md
  */
 
 declare(strict_types=1);
@@ -47,7 +47,7 @@ use Throwable;
  * `issuedAt` and an optional `expiresAt` (both `YYYY-MM-DD`), and an optional
  * `kind` (default `certificate`).
  *
- * @spec openspec/changes/credentials-migrate-with-validity/tasks.md
+ * @spec openspec/changes/archive/2026-11-25-credentials-migrate-with-validity/tasks.md
  */
 final class CredentialMigrationRun {
 
@@ -93,7 +93,7 @@ final class CredentialMigrationRun {
 	 *
 	 * @return array{commit: bool, runId: string|null, summary: array<string, int>, rows: array<int, array<string, mixed>>}
 	 *
-	 * @spec openspec/changes/credentials-migrate-with-validity/tasks.md
+	 * @spec openspec/changes/archive/2026-11-25-credentials-migrate-with-validity/tasks.md
 	 */
 	public function migrate(array $rows, array $run): array {
 		$run['id'] = self::runIdFor(commit: $run['commit']);
