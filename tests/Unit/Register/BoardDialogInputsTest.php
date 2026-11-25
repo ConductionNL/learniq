@@ -23,7 +23,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/board-dialog-inputs-and-row-names/specs/board-dialogs/spec.md#requirement-a-transition-stores-the-reason-its-board-dialog-sends
+ * @spec openspec/specs/board-dialogs/spec.md#requirement-a-transition-stores-the-reason-its-board-dialog-sends
  */
 
 declare(strict_types=1);
