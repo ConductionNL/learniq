@@ -211,4 +211,36 @@ class TodayFirstControllerTest extends TestCase {
 		self::assertSame(expected: Http::STATUS_SERVICE_UNAVAILABLE, actual: $response->getStatus());
 		self::assertSame(expected: 'The BPV hours on Today could not be read. Try again.', actual: $response->getData()['error']);
 	}//end testBpvHoursAnswersTheCompaniesOr401Or503()
+
+	/**
+	 * The committee's lists come back with the agenda in words; nobody signed in gets 401; a failed read 503.
+	 *
+	 * @return void
+	 */
+	public function testExamCommitteeAnswersTheListsWithTheAgendaInWords(): void {
+		$service = $this->createMock(originalClassName: FirstTodayService::class);
+		$service->expects(self::once())->method('examCommitteeFor')->willReturn(
+			['sittings' => [], 'agenda' => [['key' => 'objections', 'count' => 1], ['key' => 'exemptions', 'count' => 2]]]
+		);
+
+		$response = $this->controller(service: $service)->examCommittee();
+		self::assertSame(expected: Http::STATUS_OK, actual: $response->getStatus());
+		self::assertSame(
+			expected: [
+				['key' => 'objections', 'count' => 1, 'item' => 'Objections to decide'],
+				['key' => 'exemptions', 'count' => 2, 'item' => 'Exemption requests to decide'],
+			],
+			actual: $response->getData()['agenda']
+		);
+
+		$none = $this->createMock(originalClassName: FirstTodayService::class);
+		$none->expects(self::never())->method('examCommitteeFor');
+		self::assertSame(expected: Http::STATUS_UNAUTHORIZED, actual: $this->controller(service: $none, signedIn: false)->examCommittee()->getStatus());
+
+		$failed = $this->createMock(originalClassName: FirstTodayService::class);
+		$failed->method('examCommitteeFor')->willReturn(null);
+		$response = $this->controller(service: $failed)->examCommittee();
+		self::assertSame(expected: Http::STATUS_SERVICE_UNAVAILABLE, actual: $response->getStatus());
+		self::assertSame(expected: 'What waits for the exam committee could not be read. Try again.', actual: $response->getData()['error']);
+	}//end testExamCommitteeAnswersTheListsWithTheAgendaInWords()
 }//end class

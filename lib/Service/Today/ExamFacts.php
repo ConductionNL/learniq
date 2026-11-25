@@ -113,6 +113,83 @@ final class ExamFacts {
 	}//end resultsWaiting()
 
 	/**
+	 * The results the committee still has to establish, per sitting, the earliest sitting first.
+	 *
+	 * @param array<string, list<array<string, mixed>>> $exam `results` (published grade entries), `sittings` (exam sittings)
+	 *                                                        and `exams` (the exams the sittings sit).
+	 *
+	 * @return list<array<string, mixed>> Per sitting: sittingId, title (the exam's), startsAt, results.
+	 *
+	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#T3
+	 */
+	public function resultsPerSitting(array $exam): array {
+		$counts = [];
+		foreach (($exam['results'] ?? []) as $result) {
+			$sitting = (string)($result['examSittingId'] ?? '');
+			if ($sitting !== '' && self::unestablished(result: $result) === true) {
+				$counts[$sitting] = (($counts[$sitting] ?? 0) + 1);
+			}
+		}
+
+		$titles = [];
+		foreach (($exam['exams'] ?? []) as $row) {
+			$titles[self::idOf(row: $row)] = trim((string)($row['title'] ?? ''));
+		}
+
+		$sittings = [];
+		foreach (($exam['sittings'] ?? []) as $row) {
+			$sittings[self::idOf(row: $row)] = $row;
+		}
+
+		$rows = [];
+		foreach ($counts as $sittingId => $count) {
+			$sitting = ($sittings[$sittingId] ?? []);
+			$rows[] = [
+				'sittingId' => (string)$sittingId,
+				'title' => ($titles[(string)($sitting['assessmentId'] ?? '')] ?? ''),
+				'startsAt' => (string)($sitting['startsAt'] ?? ''),
+				'results' => $count,
+			];
+		}
+
+		usort($rows, static fn (array $one, array $two): int => strcmp($one['startsAt'], $two['startsAt']));
+
+		return $rows;
+	}//end resultsPerSitting()
+
+	/**
+	 * The open items of the committee's next meeting: undecided objections, results to establish, exemption requests to decide.
+	 *
+	 * @param array<string, list<array<string, mixed>>> $open `objections`, `results` (published grade entries) and `exemptions`.
+	 *
+	 * @return list<array{key: string, count: int}> The items that have at least one row, in agenda order.
+	 *
+	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#T3
+	 */
+	public function agenda(array $open): array {
+		$counts = [
+			'objections' => count(
+				array_filter(($open['objections'] ?? []), static fn (array $row): bool => in_array(($row['lifecycle'] ?? ''), self::UNDECIDED, true))
+			),
+			'results' => count(
+				array_filter(($open['results'] ?? []), static fn (array $row): bool => ($row['examSittingId'] ?? '') !== '' && self::unestablished(result: $row))
+			),
+			'exemptions' => count(
+				array_filter(($open['exemptions'] ?? []), static fn (array $row): bool => in_array(($row['lifecycle'] ?? ''), ['submitted', 'in-assessment'], true))
+			),
+		];
+
+		$items = [];
+		foreach ($counts as $key => $count) {
+			if ($count > 0) {
+				$items[] = ['key' => $key, 'count' => $count];
+			}
+		}
+
+		return $items;
+	}//end agenda()
+
+	/**
 	 * Whether an objection is past midway between its `submittedAt` and its `decideBy`.
 	 *
 	 * @param array<string, mixed> $objection The objection.

@@ -82,6 +82,7 @@ class FirstTodayCardTest extends TestCase {
 			FirstTodayRules::ROLE_CARE_COORDINATOR,
 			FirstTodayRules::ROLE_HEAD,
 			FirstTodayRules::ROLE_BPV_COACH,
+			FirstTodayRules::ROLE_EXAM_COMMITTEE,
 		];
 		foreach ($roles as $role) {
 			foreach (FirstTodayRules::ORDER[$role] as $rule) {
@@ -138,10 +139,10 @@ class FirstTodayCardTest extends TestCase {
 	 */
 	public function testNoRuleOrARuleWithoutACardAddsNothing(): void {
 		$none = ['role' => 'group-teacher', 'rule' => null, 'count' => 0];
-		$exam = ['role' => 'exam-committee', 'rule' => FirstTodayRules::RESULTS_WAITING, 'count' => 2];
+		$unknown = ['role' => 'head', 'rule' => 'no-such-rule', 'count' => 2];
 
 		self::assertSame(expected: $none, actual: $this->card()->describe(card: $none));
-		self::assertSame(expected: $exam, actual: $this->card()->describe(card: $exam));
+		self::assertSame(expected: $unknown, actual: $this->card()->describe(card: $unknown));
 	}//end testNoRuleOrARuleWithoutACardAddsNothing()
 
 	/**
@@ -180,7 +181,31 @@ class FirstTodayCardTest extends TestCase {
 	public function testThePagesNameKnownRules(): void {
 		$pages = $this->card()->pages();
 
-		self::assertCount(expectedCount: 15, haystack: $pages);
+		self::assertCount(expectedCount: 17, haystack: $pages);
 		self::assertSame(expected: [], actual: array_diff(array_keys($pages), (new FirstTodayRules())->allRules()));
 	}//end testThePagesNameKnownRules()
+
+	/**
+	 * The committee's cards name the day to decide by and the examiner's answer, and the sittings the results come from.
+	 *
+	 * @return void
+	 */
+	public function testTheExamCommitteeCardsNameTheTermAndTheSittings(): void {
+		$responded = $this->card()->describe(
+			card: ['role' => 'exam-committee', 'rule' => 'objection-past-half', 'count' => 1, 'decideBy' => '2026-10-09T23:59:00+02:00', 'responded' => true]
+		);
+		$open = $this->card()->describe(card: ['role' => 'exam-committee', 'rule' => 'objection-past-half', 'count' => 2, 'decideBy' => '2026-10-09', 'responded' => false]);
+		$noDay = $this->card()->describe(card: ['role' => 'exam-committee', 'rule' => 'objection-past-half', 'count' => 1, 'decideBy' => null]);
+		$results = $this->card()->describe(card: ['role' => 'exam-committee', 'rule' => 'results-waiting', 'count' => 14, 'sittings' => 3]);
+
+		self::assertSame(expected: '1 objection is past half its decision time', actual: $responded['title']);
+		self::assertSame(expected: 'Decide before 2026-10-09. The examiner has responded.', actual: $responded['reason']);
+		self::assertSame(expected: 'ExamObjections', actual: $responded['page']);
+		self::assertSame(expected: '2 objections are past half their decision time', actual: $open['title']);
+		self::assertSame(expected: 'Decide before 2026-10-09.', actual: $open['reason']);
+		self::assertSame(expected: 'Decide within the term.', actual: $noDay['reason']);
+		self::assertSame(expected: '14 results have waited five working days to be established', actual: $results['title']);
+		self::assertSame(expected: 'From 3 sittings.', actual: $results['reason']);
+		self::assertSame(expected: 'ExamSittings', actual: $results['page']);
+	}//end testTheExamCommitteeCardsNameTheTermAndTheSittings()
 }//end class

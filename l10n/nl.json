@@ -6777,7 +6777,39 @@
         "{students} students · {weeks} weeks · waiting since {oldestWeek}": "{students} studenten · {weeks} weken · wacht sinds {oldestWeek}",
         "{hours} h": "{hours} uur",
         "No hours waiting for a company": "Geen uren die wachten op een leerbedrijf",
-        "The BPV hours on Today could not be read. Try again.": "De BPV-uren op Vandaag konden niet worden gelezen. Probeer het opnieuw."
+        "The BPV hours on Today could not be read. Try again.": "De BPV-uren op Vandaag konden niet worden gelezen. Probeer het opnieuw.",
+        "Results to establish": "Resultaten vaststellen",
+        "{results} results": "{results} resultaten",
+        "No results to establish": "Geen resultaten om vast te stellen",
+        "Open items for the next meeting": "Agendapunten voor de volgende vergadering",
+        "{count}": "{count}",
+        "Nothing waits for the committee": "Er wacht niets op de commissie",
+        "Coming sittings": "Komende afnames",
+        "{headcount} candidates": "{headcount} kandidaten",
+        "No sittings planned": "Geen afnames gepland",
+        "Exam objections": "Bezwaren tegen examenuitslagen",
+        "Exam objection": "Bezwaar tegen een examenuitslag",
+        "Objections the exam committee decides": "Bezwaren waarover de examencommissie beslist",
+        "Sittings whose results the exam committee establishes": "Afnames waarvan de examencommissie de resultaten vaststelt",
+        "Objections to decide": "Bezwaren om over te beslissen",
+        "Exemption requests to decide": "Vrijstellingsverzoeken om over te beslissen",
+        "What waits for the exam committee could not be read. Try again.": "Wat op de examencommissie wacht kon niet worden gelezen. Probeer het opnieuw.",
+        "_%n objection is past half its decision time_::_%n objections are past half their decision time_": [
+            "%n bezwaar is over de helft van de beslistermijn",
+            "%n bezwaren zijn over de helft van de beslistermijn"
+        ],
+        "_%n result has waited five working days to be established_::_%n results have waited five working days to be established_": [
+            "%n resultaat wacht al vijf werkdagen op vaststelling",
+            "%n resultaten wachten al vijf werkdagen op vaststelling"
+        ],
+        "_From %n sitting._::_From %n sittings._": [
+            "Uit %n afname.",
+            "Uit %n afnames."
+        ],
+        "The examiner has responded.": "De reactie van de beoordelaar is binnen.",
+        "Decide within the term.": "Beslis binnen de termijn.",
+        "Decide before %1$s. The examiner has responded.": "Beslis voor %1$s. De reactie van de beoordelaar is binnen.",
+        "Decide before %1$s.": "Beslis voor %1$s."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

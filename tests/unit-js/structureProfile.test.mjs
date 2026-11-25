@@ -249,6 +249,8 @@ const FIRST_TODAY_RULES = {
 	coordinator: ['plan-ending', 'signal-not-taken-up'],
 	'administration-manager': ['leave-past-half', 'over-limit-not-reported', 'registers-not-filled-at-930'],
 	admin: ['leave-past-half', 'over-limit-not-reported', 'registers-not-filled-at-930'],
+	// The exam committee's own Today (exam-committee-today-and-keuzedelen T3), in a school only.
+	'compliance-officer': ['objection-past-half', 'results-waiting'],
 }
 
 /**
@@ -398,7 +400,8 @@ const TEACHING = [
 const KNOWN_UNLINKED = {
 	admin: [
 		...CONCERN,
-		...PLANNING,
+		// ExamSittings is linked from the compliance landing (exam-committee-today-and-keuzedelen T3).
+		...PLANNING.filter((id) => id !== 'ExamSittingsMenu'),
 		...TEACHING,
 		'AdmissionsReviewBoardMenu',
 		'BehaviourIncidentsMenu',
@@ -697,8 +700,9 @@ test('the full profile is exactly the plain manifest build', () => {
 	// board is a view mode of BpvPlacements, not a page); 358 with
 	// CourseParticipants and CourseParticipantDetail (training-provider-course-days T7).
 	// One more with ExamRegistrations (exam-registration-and-certificate-issue);
-	// 361 with SchoolActivities (school-activities-staff-side).
-	assert.equal(plain.pages.length, 361)
+	// 361 with SchoolActivities (school-activities-staff-side); 363 with
+	// ExamObjections and ExamObjectionDetail (exam-committee-today-and-keuzedelen T3).
+	assert.equal(plain.pages.length, 363)
 })
 
 test('menu-layout.json holds no profile key, so the full profile cannot gain an overlay', () => {
@@ -1677,6 +1681,80 @@ test('the Today page is a valid page of the installed manifest schema', () => {
 		true,
 		JSON.stringify(validate.errors?.slice(0, 5)),
 	)
+})
+
+/** The exam committee's Today: the Dashboard overlay for compliance officers in a school. */
+const EXAM_TODAY = SIMPLE.pages.find(
+	(overlay) => overlay.id === 'Dashboard' && overlay.page && overlay.when?.['user.primaryRole']?.in?.includes('compliance-officer'),
+)
+
+test('the exam committee gets its own Today in a school, and keeps the role dashboard elsewhere', () => {
+	// exam-committee-today-and-keuzedelen T3 (LqRolC).
+	const school = { segment: 'mbo', chosen: 'mbo' }
+	const inSchool = build(SIMPLE, 'compliance-officer', school).pages.find((page) => page.id === 'Dashboard')
+	assert.equal(inSchool.type, 'dashboard')
+	assert.equal(inSchool.config.widgets.length, 4)
+	const inCompany = build(SIMPLE, 'compliance-officer', NEVER).pages.find((page) => page.id === 'Dashboard')
+	assert.notEqual(inCompany.config?.widgets?.[0]?.id, 'exam-first-rule')
+	// A teacher in a school keeps the teachers' Today.
+	const teacher = build(SIMPLE, 'instructor', school).pages.find((page) => page.id === 'Dashboard')
+	assert.ok(teacher.config.widgets.some((widget) => widget.id === 'today-first-rule'))
+	assert.ok(!teacher.config.widgets.some((widget) => widget.id === 'exam-first-rule'))
+})
+
+test('the exam committee\'s Today reads its server lists and links only pages the full menu offers it', () => {
+	const widgets = Object.fromEntries(EXAM_TODAY.config.widgets.map((widget) => [widget.id, widget]))
+	assert.deepEqual(widgets['exam-first-rule'].content.visibleWhen, { endpoint: '/apps/learniq/api/today/first', field: 'title', op: 'notEmpty' })
+	assert.deepEqual(widgets['exam-results-per-sitting'].content.endpointSource, { url: '/apps/learniq/api/today/exam-committee', responsePath: 'sittings' })
+	assert.deepEqual(widgets['exam-agenda'].content.endpointSource, { url: '/apps/learniq/api/today/exam-committee', responsePath: 'agenda' })
+	assert.deepEqual(widgets['exam-coming-sittings'].content.filter, { lifecycle: 'planned', startsAt: { gte: '@today' } })
+	const placed = new Set(EXAM_TODAY.config.layout.map((item) => item.widgetId))
+	assert.deepEqual([...placed].sort(), Object.keys(widgets).sort())
+	for (const state of [{ segment: 'vo', chosen: 'vo' }, { segment: 'mbo', chosen: 'mbo' }, { segment: 'he', chosen: 'he' }]) {
+		const offered = reachable(build(FULL, 'compliance-officer', state))
+		const links = [
+			...firstTodayPages('compliance-officer'),
+			...EXAM_TODAY.config.layout.map((item) => item.headerLink?.route).filter(Boolean),
+		]
+		for (const link of links) {
+			assert.ok(offered.has(link), `${state.segment}: the committee gets a link to ${link}`)
+		}
+	}
+	for (const widget of Object.values(widgets)) {
+		if (widget.content.rowRoute) {
+			assert.ok(build(FULL, 'admin').pages.some((page) => page.id === widget.content.rowRoute), widget.content.rowRoute)
+		}
+	}
+	// The overlay is a valid page of the installed manifest schema.
+	const require = createRequire(import.meta.url)
+	const Ajv = require('ajv/dist/2020').default || require('ajv/dist/2020')
+	const validate = new Ajv({ allErrors: true, strict: false }).compile(
+		readJson('node_modules/@conduction/nextcloud-vue/src/schemas/app-manifest-v2.schema.json'),
+	)
+	const page = { id: 'Dashboard', route: '/', type: EXAM_TODAY.page.type, title: EXAM_TODAY.page.title, config: EXAM_TODAY.config }
+	assert.equal(validate({ ...structuredClone(BASE), pages: [page], menu: [] }), true, JSON.stringify(validate.errors?.slice(0, 5)))
+	// Every string has a Dutch one.
+	const dutch = readJson('l10n/nl.json').translations
+	const strings = [EXAM_TODAY.page.title]
+	for (const widget of Object.values(widgets)) {
+		strings.push(widget.title)
+		for (const key of ['emptyText', 'kicker']) {
+			if (widget.content[key]) {
+				strings.push(widget.content[key])
+			}
+		}
+		for (const trailing of widget.content.trailing || []) {
+			strings.push(trailing)
+		}
+	}
+	for (const item of EXAM_TODAY.config.layout) {
+		if (item.headerLink) {
+			strings.push(item.headerLink.label)
+		}
+	}
+	for (const text of strings) {
+		assert.ok(dutch[text], `no Dutch for ${text}`)
+	}
 })
 
 test('only the word full selects the full structure', () => {

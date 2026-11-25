@@ -100,6 +100,14 @@ final class FirstTodayCard {
 			'%n hour week has waited more than a week for its company',
 			'%n hour weeks have waited more than a week for their company',
 		],
+		FirstTodayRules::OBJECTION_PAST_HALF => [
+			'%n objection is past half its decision time',
+			'%n objections are past half their decision time',
+		],
+		FirstTodayRules::RESULTS_WAITING => [
+			'%n result has waited five working days to be established',
+			'%n results have waited five working days to be established',
+		],
 	];
 
 	/**
@@ -241,6 +249,8 @@ final class FirstTodayCard {
 			FirstTodayRules::PLACEMENT_WITHOUT_COMPANY => $this->lateReason(late: $this->nameOf(value: $card['lateLabel'] ?? null)),
 			FirstTodayRules::VISIT_WITHOUT_DATE => $l10n->t('Propose a date to the workplace trainer.'),
 			FirstTodayRules::HOURS_WAITING => $this->hoursReason(hours: (float) ($card['hours'] ?? 0), week: $this->nameOf(value: $card['isoWeek'] ?? null)),
+			FirstTodayRules::OBJECTION_PAST_HALF => $this->objectionReason(card: $card),
+			FirstTodayRules::RESULTS_WAITING => $l10n->n('From %n sitting.', 'From %n sittings.', (int) ($card['sittings'] ?? 0)),
 			default => $this->groupsReason(count: (int) ($card['count'] ?? 0), total: (int) ($card['total'] ?? 0)),
 		};
 	}//end reason()
@@ -351,6 +361,29 @@ final class FirstTodayCard {
 
 		return $this->l10n->t('%1$s hours wait for approval, the longest since %2$s.', [$amount, $week]);
 	}//end hoursReason()
+
+	/**
+	 * The line under an objection past half its term: the day to decide by, and whether the examiner answered.
+	 *
+	 * @param array<string, mixed> $card The facts: `decideBy` and `responded` of the objection due first.
+	 *
+	 * @return string
+	 *
+	 * @spec openspec/changes/exam-committee-today-and-keuzedelen/tasks.md#T3
+	 */
+	private function objectionReason(array $card): string {
+		$day = substr((string) ($this->nameOf(value: $card['decideBy'] ?? null) ?? ''), 0, 10);
+		$responded = (($card['responded'] ?? false) === true);
+		if ($day === '') {
+			return $responded === true ? $this->l10n->t('The examiner has responded.') : $this->l10n->t('Decide within the term.');
+		}
+
+		if ($responded === true) {
+			return $this->l10n->t('Decide before %1$s. The examiner has responded.', [$day]);
+		}
+
+		return $this->l10n->t('Decide before %1$s.', [$day]);
+	}//end objectionReason()
 
 	/**
 	 * A name to put in a line, or null when there is none.

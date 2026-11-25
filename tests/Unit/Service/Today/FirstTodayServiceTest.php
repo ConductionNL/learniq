@@ -263,4 +263,49 @@ class FirstTodayServiceTest extends TestCase {
 		);
 		self::assertSame(expected: ['bpv-placement', 'bpv-visit', 'bpv-placement', 'bpv-hour-week'], actual: $asked);
 	}//end testTheCoachReadsVisitsAndHoursInOrder()
+
+	/**
+	 * The exam committee reads the results to establish per sitting and the agenda; nobody else reads anything.
+	 *
+	 * @return void
+	 */
+	public function testExamCommitteeForReadsTheCommitteesListsOnly(): void {
+		$service = $this->service(role: 'compliance-officer', segment: 'mbo');
+		$this->reader->method('rows')->willReturnCallback(
+			static fn (string $schema): array => match ($schema) {
+				'grade-entry' => [
+					['examSittingId' => 's-1', 'lifecycle' => 'published', 'establishedAt' => ''],
+					['examSittingId' => 's-1', 'lifecycle' => 'published', 'establishedAt' => '2026-10-01T10:00:00+02:00'],
+				],
+				'exam-sitting' => [['id' => 's-1', 'assessmentId' => 'e-1', 'startsAt' => '2026-09-14T09:00:00+02:00']],
+				'exam' => [['id' => 'e-1', 'title' => 'Engels spreken']],
+				'exam-objection' => [['lifecycle' => 'examiner-responded']],
+				default => [],
+			}
+		);
+
+		self::assertSame(
+			expected: [
+				'sittings' => [['sittingId' => 's-1', 'title' => 'Engels spreken', 'startsAt' => '2026-09-14T09:00:00+02:00', 'results' => 1]],
+				'agenda' => [['key' => 'objections', 'count' => 1], ['key' => 'results', 'count' => 1]],
+			],
+			actual: $service->examCommitteeFor(user: $this->daan())
+		);
+
+		$teacher = $this->service(role: 'instructor', segment: 'mbo');
+		$this->reader->expects(self::never())->method('rows');
+		self::assertSame(expected: ['sittings' => [], 'agenda' => []], actual: $teacher->examCommitteeFor(user: $this->daan()));
+	}//end testExamCommitteeForReadsTheCommitteesListsOnly()
+
+	/**
+	 * A failed read of the committee's lists answers null.
+	 *
+	 * @return void
+	 */
+	public function testExamCommitteeForAnswersNullWhenTheReadFailed(): void {
+		$service = $this->service(role: 'compliance-officer', segment: 'vo');
+		$this->reader->method('rows')->willThrowException(new RuntimeException('down'));
+
+		self::assertNull(actual: $service->examCommitteeFor(user: $this->daan()));
+	}//end testExamCommitteeForAnswersNullWhenTheReadFailed()
 }//end class

@@ -266,4 +266,58 @@ class ProgrammeFactsTest extends TestCase {
 		);
 		self::assertSame(expected: ['count' => 0, 'sittings' => 0], actual: (new ExamFacts())->resultsWaiting(results: [], now: self::monday()));
 	}//end testResultsWaitingToBeEstablished()
+
+	/**
+	 * Results to establish per sitting, the earliest sitting first, with the exam's title; established ones stay out.
+	 *
+	 * @return void
+	 */
+	public function testResultsPerSittingTheEarliestFirst(): void {
+		$exam = [
+			'results' => [
+				['examSittingId' => 's-late', 'lifecycle' => 'published', 'establishedAt' => ''],
+				['examSittingId' => 's-early', 'lifecycle' => 'published', 'establishedAt' => ''],
+				['examSittingId' => 's-early', 'lifecycle' => 'published'],
+				['examSittingId' => 's-early', 'lifecycle' => 'published', 'establishedAt' => '2026-10-01T10:00:00+02:00'],
+				['examSittingId' => 's-early', 'lifecycle' => 'draft'],
+				['lifecycle' => 'published'],
+			],
+			'sittings' => [
+				['id' => 's-early', 'assessmentId' => 'e-1', 'startsAt' => '2026-09-14T09:00:00+02:00'],
+				['id' => 's-late', 'assessmentId' => 'e-2', 'startsAt' => '2026-09-21T09:00:00+02:00'],
+			],
+			'exams' => [['id' => 'e-1', 'title' => 'Engels spreken']],
+		];
+
+		self::assertSame(
+			expected: [
+				['sittingId' => 's-early', 'title' => 'Engels spreken', 'startsAt' => '2026-09-14T09:00:00+02:00', 'results' => 2],
+				['sittingId' => 's-late', 'title' => '', 'startsAt' => '2026-09-21T09:00:00+02:00', 'results' => 1],
+			],
+			actual: (new ExamFacts())->resultsPerSitting(exam: $exam)
+		);
+		self::assertSame(expected: [], actual: (new ExamFacts())->resultsPerSitting(exam: []));
+	}//end testResultsPerSittingTheEarliestFirst()
+
+	/**
+	 * The agenda counts undecided objections, results to establish and exemption requests to decide, and leaves out an empty item.
+	 *
+	 * @return void
+	 */
+	public function testTheAgendaCountsTheOpenItems(): void {
+		$open = [
+			'objections' => [['lifecycle' => 'submitted'], ['lifecycle' => 'examiner-responded'], ['lifecycle' => 'decided']],
+			'results' => [['examSittingId' => 's-1', 'lifecycle' => 'published'], ['lifecycle' => 'published']],
+			'exemptions' => [['lifecycle' => 'granted']],
+		];
+
+		self::assertSame(
+			expected: [['key' => 'objections', 'count' => 2], ['key' => 'results', 'count' => 1]],
+			actual: (new ExamFacts())->agenda(open: $open)
+		);
+		self::assertSame(
+			expected: [['key' => 'exemptions', 'count' => 1]],
+			actual: (new ExamFacts())->agenda(open: ['exemptions' => [['lifecycle' => 'in-assessment']]])
+		);
+	}//end testTheAgendaCountsTheOpenItems()
 }//end class
