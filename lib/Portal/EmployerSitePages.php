@@ -182,6 +182,11 @@ class EmployerSitePages implements EmployerSitePagesInterface {
 		'defaultSort' => ['field' => 'expiresAt', 'direction' => 'asc'],
 		// One group per certificate, the holders under it, as the board (REPORT-2, item 9).
 		'groupByField' => 'courseName',
+		// The groups stand where their first row stands in the expiry order, so the
+		// certificate that expires first is on top (portaliq collection-group-order;
+		// an older portaliq drops the key and orders the groups by heading).
+		// @spec openspec/changes/certificates-group-the-first-to-expire-first/tasks.md#T1
+		'groupOrder' => 'rows',
 		'fieldConfigs' => ['expiryStatus' => ['valueLabels' => self::EXPIRY_STATUS]],
 		'columns' => [
 			['field' => 'learnerName', 'label' => 'Employee'],

@@ -459,6 +459,22 @@ class EmployerSitePagesTest extends TestCase {
 	}//end testABookingListsItsParticipantsAndCertificatesGroup()
 
 	/**
+	 * The certificate groups read in expiry order: the group whose first holder's
+	 * certificate expires first stands on top (portaliq `groupOrder: 'rows'`).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/certificates-group-the-first-to-expire-first/tasks.md#T1
+	 */
+	public function testTheCertificateGroupsReadTheFirstToExpireFirst(): void {
+		$manifest     = (new PortalContributionProvider())->getContribution(['audience' => EmployerSitePages::AUDIENCE]);
+		$certificates = array_column($manifest['collections'], null, 'id')['employerCertificates'];
+		self::assertSame(expected: 'courseName', actual: $certificates['groupByField']);
+		self::assertSame(expected: 'rows', actual: $certificates['groupOrder']);
+		self::assertSame(expected: ['field' => 'expiresAt', 'direction' => 'asc'], actual: $certificates['defaultSort']);
+	}//end testTheCertificateGroupsReadTheFirstToExpireFirst()
+
+	/**
 	 * An opened booking names every field it shows in words the translator
 	 * moves: no field falls back to its English schema title. The state reads
 	 * as words, not as `confirmed`.
