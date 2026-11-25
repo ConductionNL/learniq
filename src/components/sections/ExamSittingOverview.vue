@@ -12,8 +12,8 @@
  any other request, then reloads both routes. A caller the routes refuse
  (not a planner, or a sitting they may not read) sees nothing of the sitting.
 
- @spec openspec/changes/exam-sitting-overview-section/specs/exam-schedule/spec.md#requirement-an-exam-sitting-shows-each-accommodated-learners-end-time
- @spec openspec/changes/exam-sitting-overview-section/specs/exam-schedule/spec.md#requirement-an-exam-sitting-shows-its-invigilator-places-and-who-is-free
+ @spec openspec/specs/exam-schedule/spec.md#requirement-an-exam-sitting-shows-each-accommodated-learners-end-time
+ @spec openspec/specs/exam-schedule/spec.md#requirement-an-exam-sitting-shows-its-invigilator-places-and-who-is-free
 -->
 <template>
 	<div v-if="!hidden" class="exam-sitting-overview">
@@ -123,7 +123,7 @@ export default {
 		 * The accommodated learners, as the overview lists them.
 		 *
 		 * @return {object[]} The rows.
-		 * @spec openspec/changes/exam-sitting-overview-section/specs/exam-schedule/spec.md#requirement-an-exam-sitting-shows-each-accommodated-learners-end-time
+		 * @spec openspec/specs/exam-schedule/spec.md#requirement-an-exam-sitting-shows-each-accommodated-learners-end-time
 		 */
 		accommodations() {
 			return Array.isArray(this.overview?.accommodations) ? this.overview.accommodations : []
@@ -133,7 +133,7 @@ export default {
 		 * "1 of 3 confirmed, 1 asked, 1 open".
 		 *
 		 * @return {string} The line.
-		 * @spec openspec/changes/exam-sitting-overview-section/specs/exam-schedule/spec.md#requirement-an-exam-sitting-shows-its-invigilator-places-and-who-is-free
+		 * @spec openspec/specs/exam-schedule/spec.md#requirement-an-exam-sitting-shows-its-invigilator-places-and-who-is-free
 		 */
 		placesLine() {
 			const places = this.overview?.invigilators ?? {}
@@ -151,7 +151,7 @@ export default {
 		 * Reload when the page moves to another sitting.
 		 *
 		 * @return {void}
-		 * @spec openspec/changes/exam-sitting-overview-section/specs/exam-schedule/spec.md#requirement-an-exam-sitting-shows-each-accommodated-learners-end-time
+		 * @spec openspec/specs/exam-schedule/spec.md#requirement-an-exam-sitting-shows-each-accommodated-learners-end-time
 		 */
 		objectId() {
 			this.load()
@@ -169,7 +169,7 @@ export default {
 		 * hides the section.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/exam-sitting-overview-section/specs/exam-schedule/spec.md#requirement-an-exam-sitting-shows-each-accommodated-learners-end-time
+		 * @spec openspec/specs/exam-schedule/spec.md#requirement-an-exam-sitting-shows-each-accommodated-learners-end-time
 		 */
 		async load() {
 			if (!this.objectId) {
@@ -208,7 +208,7 @@ export default {
 		 * Learner names from the profiles the caller may read; none on a failure.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/exam-sitting-overview-section/specs/exam-schedule/spec.md#requirement-an-exam-sitting-shows-each-accommodated-learners-end-time
+		 * @spec openspec/specs/exam-schedule/spec.md#requirement-an-exam-sitting-shows-each-accommodated-learners-end-time
 		 */
 		async loadNames() {
 			if (this.accommodations.length === 0) return
@@ -226,7 +226,7 @@ export default {
 		 * Display names of the free colleagues, from Nextcloud's user search.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/exam-sitting-overview-section/specs/exam-schedule/spec.md#requirement-an-exam-sitting-shows-its-invigilator-places-and-who-is-free
+		 * @spec openspec/specs/exam-schedule/spec.md#requirement-an-exam-sitting-shows-its-invigilator-places-and-who-is-free
 		 */
 		async loadPeople() {
 			const people = {}
@@ -246,22 +246,26 @@ export default {
 
 		/**
 		 * Ask a free colleague: a pending invigilation request for this sitting,
-		 * written through OpenRegister. On success both routes are read again
-		 * and the Invigilators list is told to refresh; a refusal shows the
-		 * server's message.
+		 * written through OpenRegister. The request carries the sitting's
+		 * tenant, which the invigilator-assignment schema requires (without it
+		 * every "Ask" answered "Validation failed"). On success both routes are
+		 * read again and the Invigilators list is told to refresh; a refusal
+		 * shows the server's message.
 		 *
 		 * @param {string} uid The colleague.
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/exam-sitting-overview-section/specs/exam-schedule/spec.md#requirement-an-exam-sitting-shows-its-invigilator-places-and-who-is-free
+		 * @spec openspec/specs/exam-schedule/spec.md#requirement-an-exam-sitting-shows-its-invigilator-places-and-who-is-free
 		 */
 		async ask(uid) {
 			if (this.asking !== '') return
 			this.asking = uid
 			this.askError = ''
 			try {
+				const { data: sitting } = await axios.get(generateUrl(objectsUrl('exam-sitting', this.objectId)))
 				await axios.post(generateUrl(objectsUrl('invigilator-assignment')), {
 					examSittingId: this.objectId,
 					invigilatorId: uid,
+					tenant_id: sitting?.tenant_id ?? null,
 				})
 				await this.load()
 				this.$emit('refresh')
@@ -279,7 +283,7 @@ export default {
 		 *
 		 * @param {string} learnerId The learner's user id.
 		 * @return {string} The name.
-		 * @spec openspec/changes/exam-sitting-overview-section/specs/exam-schedule/spec.md#requirement-an-exam-sitting-shows-each-accommodated-learners-end-time
+		 * @spec openspec/specs/exam-schedule/spec.md#requirement-an-exam-sitting-shows-each-accommodated-learners-end-time
 		 */
 		learnerName(learnerId) {
 			return this.names[learnerId] || this.t('learniq', 'A learner')
@@ -290,7 +294,7 @@ export default {
 		 *
 		 * @param {string} uid The user id.
 		 * @return {string} The name.
-		 * @spec openspec/changes/exam-sitting-overview-section/specs/exam-schedule/spec.md#requirement-an-exam-sitting-shows-its-invigilator-places-and-who-is-free
+		 * @spec openspec/specs/exam-schedule/spec.md#requirement-an-exam-sitting-shows-its-invigilator-places-and-who-is-free
 		 */
 		personName(uid) {
 			return this.people[uid] || uid
@@ -301,7 +305,7 @@ export default {
 		 *
 		 * @param {string} value An ISO date-time.
 		 * @return {string} The time.
-		 * @spec openspec/changes/exam-sitting-overview-section/specs/exam-schedule/spec.md#requirement-an-exam-sitting-shows-each-accommodated-learners-end-time
+		 * @spec openspec/specs/exam-schedule/spec.md#requirement-an-exam-sitting-shows-each-accommodated-learners-end-time
 		 */
 		clockTime(value) {
 			const date = new Date(value)

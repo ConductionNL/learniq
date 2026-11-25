@@ -1256,6 +1256,24 @@
 						}
 					},
 					{
+						"id": "today-parent-messages",
+						"type": "record-list",
+						"title": "Messages from parents",
+						"icon": "MessageTextOutline",
+						"_note": "today-first-per-school-role T5: the reader's newest three conversations with parents, read only. GET /apps/learniq/api/today/parent-messages reads portaliq's staff messaging with her own reference, so only conversations she takes part in come back (lib/Service/Today/ParentMessages, ParentMessagesService); each row is the conversation's title, the pupil it is about and its last line, newest first. Without portaliq the list is empty.",
+						"content": {
+							"endpointSource": {
+								"url": "/apps/learniq/api/today/parent-messages",
+								"responsePath": "threads"
+							},
+							"presentation": "rows",
+							"title": "{title}",
+							"meta": "{about}",
+							"text": "{line}",
+							"emptyText": "No messages from parents"
+						}
+					},
+					{
 						"id": "mentor-role-tiles",
 						"type": "stat-grid",
 						"title": "To do today",
@@ -1312,6 +1330,24 @@
 									"caption": "in {byTile.parentReportsWaiting.groups} groups"
 								}
 							]
+						}
+					},
+					{
+						"id": "mentor-parent-messages",
+						"type": "record-list",
+						"title": "Messages from parents",
+						"icon": "MessageTextOutline",
+						"_note": "today-first-per-school-role T5: the reader's newest three conversations with parents, read only. GET /apps/learniq/api/today/parent-messages reads portaliq's staff messaging with her own reference, so only conversations she takes part in come back (lib/Service/Today/ParentMessages, ParentMessagesService); each row is the conversation's title, the pupil it is about and its last line, newest first. Without portaliq the list is empty. The Mentor view narrows them to the pupils of her mentor class.",
+						"content": {
+							"endpointSource": {
+								"url": "/apps/learniq/api/today/parent-messages?view=mentor",
+								"responsePath": "threads"
+							},
+							"presentation": "rows",
+							"title": "{title}",
+							"meta": "{about}",
+							"text": "{line}",
+							"emptyText": "No messages from parents"
 						}
 					},
 					{
@@ -1671,6 +1707,16 @@
 								"sizeToContent": true
 							},
 							{
+								"id": "t13",
+								"widgetId": "today-parent-messages",
+								"gridX": 8,
+								"gridY": 12,
+								"gridWidth": 4,
+								"gridHeight": 2,
+								"showTitle": true,
+								"sizeToContent": true
+							},
+							{
 								"id": "t8",
 								"widgetId": "today-dashboards",
 								"gridX": 0,
@@ -1734,7 +1780,17 @@
 								"widgetId": "mentor-role-tiles",
 								"gridX": 0,
 								"gridY": 9,
-								"gridWidth": 12,
+								"gridWidth": 8,
+								"gridHeight": 2,
+								"showTitle": true,
+								"sizeToContent": true
+							},
+							{
+								"id": "m6",
+								"widgetId": "mentor-parent-messages",
+								"gridX": 8,
+								"gridY": 9,
+								"gridWidth": 4,
 								"gridHeight": 2,
 								"showTitle": true,
 								"sizeToContent": true

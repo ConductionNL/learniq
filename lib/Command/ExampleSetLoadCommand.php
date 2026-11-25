@@ -141,7 +141,7 @@ class ExampleSetLoadCommand extends Command {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/example-portal-install-steps/specs/example-sets/spec.md#requirement-loading-a-set-gives-its-declared-learners-a-portal-account
+	 * @spec openspec/specs/example-sets/spec.md#requirement-loading-a-set-gives-its-declared-learners-a-portal-account
 	 */
 	public static function describeGrants(array $grants): string {
 		if ($grants['status'] === 'portaliq-too-old') {

@@ -23,7 +23,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-each-role-tile-counts-what-that-role-acts-on-and-opens-the-list-it-counts
+ * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/specs/dashboard/spec.md#requirement-each-role-tile-counts-what-that-role-acts-on-and-opens-the-list-it-counts
  */
 
 declare(strict_types=1);
@@ -35,7 +35,7 @@ use DateTimeImmutable;
 /**
  * The counts of the role tiles on Today.
  *
- * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-each-role-tile-counts-what-that-role-acts-on-and-opens-the-list-it-counts
+ * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/specs/dashboard/spec.md#requirement-each-role-tile-counts-what-that-role-acts-on-and-opens-the-list-it-counts
  */
 final class TodayCountFacts {
 	use RowValues;
@@ -69,7 +69,7 @@ final class TodayCountFacts {
 	 *
 	 * @return array<string, int> count, total (her lessons today that are not cancelled).
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/tasks.md#T2
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/tasks.md#T2
 	 */
 	public function registersNotFilled(array $sessions, DateTimeImmutable $now): array {
 		$held = array_values(array_filter($sessions, static fn (array $session): bool => ($session['lifecycle'] ?? '') !== 'cancelled'));
@@ -91,7 +91,7 @@ final class TodayCountFacts {
 	 *
 	 * @return array<string, int> count, groups (groups with at least one report).
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/tasks.md#T2
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/tasks.md#T2
 	 */
 	public function parentReportsWaiting(array $groups): array {
 		$count = 0;
@@ -114,7 +114,7 @@ final class TodayCountFacts {
 	 *
 	 * @return array<string, int> count (hand-ins to mark), assignments (assignments with at least one).
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/tasks.md#T2
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/tasks.md#T2
 	 */
 	public function submissionsToMark(array $assignments, array $submissions, array $cohortIds): array {
 		$mine = [];
@@ -148,7 +148,7 @@ final class TodayCountFacts {
 	 *
 	 * @return array<string, int> count (times to confirm), chosen, total (her times).
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/tasks.md#T2
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/tasks.md#T2
 	 */
 	public function conferenceTimes(array $slots, string $uid): array {
 		$mine = array_values(array_filter($slots, static fn (array $slot): bool => ($slot['teacherId'] ?? null) === $uid));
@@ -165,7 +165,7 @@ final class TodayCountFacts {
 	 *
 	 * @return array<string, int> count (groups filled), total (groups with a lesson today).
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#scenario-the-directeur-at-905
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/specs/dashboard/spec.md#scenario-the-directeur-at-905
 	 */
 	public function registersFilledPerGroup(array $groups): array {
 		$withLessons = array_values(array_filter($groups, static fn (array $group): bool => (array)($group['sessions'] ?? []) !== []));
@@ -188,7 +188,7 @@ final class TodayCountFacts {
 	 *
 	 * @return array{count: int, perYear: array<int, int>} count (pupils over all years), perYear.
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/tasks.md#T2
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/tasks.md#T2
 	 */
 	public function insufficientPerYear(array $finalGrades, array $cohorts): array {
 		$fails = [];
@@ -233,7 +233,7 @@ final class TodayCountFacts {
 	 *
 	 * @return array<string, int> count.
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/tasks.md#T2
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/tasks.md#T2
 	 */
 	public function lessonsCancelledToday(array $groups): array {
 		$seen = [];

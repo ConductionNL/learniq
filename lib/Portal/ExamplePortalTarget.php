@@ -19,7 +19,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/example-portal-install-steps/specs/example-sets/spec.md#requirement-loading-a-set-gives-its-declared-learners-a-portal-account
+ * @spec openspec/specs/example-sets/spec.md#requirement-loading-a-set-gives-its-declared-learners-a-portal-account
  */
 
 declare(strict_types=1);
@@ -29,7 +29,7 @@ namespace OCA\Learniq\Portal;
 /**
  * A portal's slug and the organisation it is bound to ('' while unbound).
  *
- * @spec openspec/changes/example-portal-install-steps/specs/example-sets/spec.md#requirement-loading-a-set-gives-its-declared-learners-a-portal-account
+ * @spec openspec/specs/example-sets/spec.md#requirement-loading-a-set-gives-its-declared-learners-a-portal-account
  */
 final class ExamplePortalTarget {
 

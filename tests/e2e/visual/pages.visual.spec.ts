@@ -455,6 +455,27 @@ authed.describe('gate-26 — every page component renders its own screen', () =>
 		await expect(page.getByText(/Case not found/i)).toHaveCount(0)
 		assertNoFatalErrors(errors)
 	})
+
+	// exam-sitting-overview-section task 2.3: the section on the sitting's
+	// detail page. A body section, not a page component, so the manifest
+	// assertion reads the detail page's bodyWidgets. It needs a seeded sitting
+	// (the vo example set); without one there is nothing to open.
+	authed('Exam sitting: extra time and invigilators', async ({ loggedInPage: page }) => {
+		const detail = (
+			effectiveManifest as {
+				pages?: Array<{ route?: string; type?: string; config?: { bodyWidgets?: Array<{ component?: string }> } }>
+			}
+		).pages?.find((p) => p.route === '/exam-sittings/:id')
+		expect(detail?.type).toBe('detail')
+		expect(detail?.config?.bodyWidgets?.map((w) => w.component)).toContain('ExamSittingOverview')
+		const errors = collectFatalErrors(page)
+		const sittingId = await firstObjectId(page, 'exam-sitting')
+		authed.skip(sittingId === null, 'no exam sitting seeded (load the vo example set)')
+		await openPage(page, `/exam-sittings/${sittingId}`, '.exam-sitting-overview')
+		await expect(page.locator('.exam-sitting-overview__heading').first()).toHaveText(/Extra time/)
+		await expect(page.getByTestId('exam-sitting-places')).toHaveText(/\d+ of \d+ confirmed, \d+ asked, \d+ open/)
+		assertNoFatalErrors(errors)
+	})
 })
 
 /**
