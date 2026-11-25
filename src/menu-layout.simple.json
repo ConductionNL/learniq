@@ -1051,6 +1051,485 @@
 								}
 							]
 						}
+					},
+					{
+						"id": "today-role-tiles",
+						"type": "stat-grid",
+						"title": "To do today",
+						"_note": "today-first-per-school-role T4: the reader's own role tiles. GET /apps/learniq/api/today/counts answers the tiles of her role (lib/Service/Today/TodayTiles::TILES) with `byTile`, the same tiles keyed by a camelCase id; a cell shows only while its count is in that answer, so a role draws only its own tiles, in the order the boards draw them. Each cell opens the list it counts. The widget is hidden when the role has no tiles.",
+						"visibleWhen": {
+							"endpoint": "/apps/learniq/api/today/counts",
+							"field": "tiles",
+							"op": "notEmpty"
+						},
+						"content": {
+							"columns": 4,
+							"endpointSource": {
+								"url": "/apps/learniq/api/today/counts"
+							},
+							"cells": [
+								{
+									"key": "registers-not-filled",
+									"label": "Registers to fill in",
+									"icon": "ClipboardCheckOutline",
+									"valueField": "byTile.registersNotFilled.count",
+									"format": {
+										"style": "decimal",
+										"decimals": 0
+									},
+									"route": {
+										"name": "RollCall"
+									},
+									"visibleWhen": {
+										"endpoint": "/apps/learniq/api/today/counts",
+										"field": "byTile.registersNotFilled.count",
+										"op": "gte",
+										"value": 0
+									},
+									"caption": "of {byTile.registersNotFilled.total} lessons so far"
+								},
+								{
+									"key": "submissions-to-mark",
+									"label": "Hand-ins to mark",
+									"icon": "FileDocumentEditOutline",
+									"valueField": "byTile.submissionsToMark.count",
+									"format": {
+										"style": "decimal",
+										"decimals": 0
+									},
+									"route": {
+										"name": "Assignments"
+									},
+									"visibleWhen": {
+										"endpoint": "/apps/learniq/api/today/counts",
+										"field": "byTile.submissionsToMark.count",
+										"op": "gte",
+										"value": 0
+									},
+									"caption": "over {byTile.submissionsToMark.assignments} assignments"
+								},
+								{
+									"key": "parent-reports-waiting",
+									"label": "Parent reports today",
+									"icon": "MessageAlertOutline",
+									"valueField": "byTile.parentReportsWaiting.count",
+									"format": {
+										"style": "decimal",
+										"decimals": 0
+									},
+									"route": {
+										"name": "ExcuseRequests"
+									},
+									"visibleWhen": {
+										"endpoint": "/apps/learniq/api/today/counts",
+										"field": "byTile.parentReportsWaiting.count",
+										"op": "gte",
+										"value": 0
+									},
+									"caption": "in {byTile.parentReportsWaiting.groups} groups"
+								},
+								{
+									"key": "conference-times",
+									"label": "Conference times to confirm",
+									"icon": "CalendarClockOutline",
+									"valueField": "byTile.conferenceTimes.count",
+									"format": {
+										"style": "decimal",
+										"decimals": 0
+									},
+									"route": {
+										"name": "ConferenceRounds"
+									},
+									"visibleWhen": {
+										"endpoint": "/apps/learniq/api/today/counts",
+										"field": "byTile.conferenceTimes.count",
+										"op": "gte",
+										"value": 0
+									},
+									"caption": "{byTile.conferenceTimes.chosen} of {byTile.conferenceTimes.total} chosen"
+								},
+								{
+									"key": "plans-ending",
+									"label": "Plans ending this week",
+									"icon": "ClipboardTextClockOutline",
+									"valueField": "byTile.plansEnding.count",
+									"format": {
+										"style": "decimal",
+										"decimals": 0
+									},
+									"route": {
+										"name": "LearningPlans"
+									},
+									"visibleWhen": {
+										"endpoint": "/apps/learniq/api/today/counts",
+										"field": "byTile.plansEnding.count",
+										"op": "gte",
+										"value": 0
+									},
+									"caption": "without an evaluation"
+								},
+								{
+									"key": "registers-filled-per-group",
+									"label": "Attendance per group",
+									"icon": "ClipboardListOutline",
+									"valueField": "byTile.registersFilledPerGroup.count",
+									"format": {
+										"style": "decimal",
+										"decimals": 0
+									},
+									"route": {
+										"name": "SessionsToday"
+									},
+									"visibleWhen": {
+										"endpoint": "/apps/learniq/api/today/counts",
+										"field": "byTile.registersFilledPerGroup.count",
+										"op": "gte",
+										"value": 0
+									},
+									"caption": "of {byTile.registersFilledPerGroup.total} registers filled"
+								},
+								{
+									"key": "insufficient-per-year",
+									"label": "Pupils with 3+ insufficient",
+									"icon": "AlertCircleOutline",
+									"valueField": "byTile.insufficientPerYear.count",
+									"format": {
+										"style": "decimal",
+										"decimals": 0
+									},
+									"route": {
+										"name": "FinalGrades",
+										"query": {
+											"passed": "false"
+										}
+									},
+									"visibleWhen": {
+										"endpoint": "/apps/learniq/api/today/counts",
+										"field": "byTile.insufficientPerYear.count",
+										"op": "gte",
+										"value": 0
+									},
+									"caption": "counted per school year"
+								},
+								{
+									"key": "lessons-cancelled-today",
+									"label": "Lessons cancelled today",
+									"icon": "CalendarRemoveOutline",
+									"valueField": "byTile.lessonsCancelledToday.count",
+									"format": {
+										"style": "decimal",
+										"decimals": 0
+									},
+									"route": {
+										"name": "SessionsToday"
+									},
+									"visibleWhen": {
+										"endpoint": "/apps/learniq/api/today/counts",
+										"field": "byTile.lessonsCancelledToday.count",
+										"op": "gte",
+										"value": 0
+									}
+								},
+								{
+									"key": "leave-to-decide",
+									"label": "Leave requests to decide",
+									"icon": "CalendarQuestion",
+									"valueField": "byTile.leaveToDecide.count",
+									"format": {
+										"style": "decimal",
+										"decimals": 0
+									},
+									"route": {
+										"name": "LeaveRequests",
+										"query": {
+											"lifecycle": "submitted"
+										}
+									},
+									"visibleWhen": {
+										"endpoint": "/apps/learniq/api/today/counts",
+										"field": "byTile.leaveToDecide.count",
+										"op": "gte",
+										"value": 0
+									}
+								}
+							]
+						}
+					},
+					{
+						"id": "mentor-role-tiles",
+						"type": "stat-grid",
+						"title": "To do today",
+						"_note": "today-first-per-school-role T4: the reader's own role tiles. GET /apps/learniq/api/today/counts?view=mentor answers the tiles of her role (lib/Service/Today/TodayTiles::TILES) with `byTile`, the same tiles keyed by a camelCase id; a cell shows only while its count is in that answer, so a role draws only its own tiles, in the order the boards draw them. Each cell opens the list it counts. The widget is hidden when the role has no tiles.",
+						"visibleWhen": {
+							"endpoint": "/apps/learniq/api/today/counts?view=mentor",
+							"field": "tiles",
+							"op": "notEmpty"
+						},
+						"content": {
+							"columns": 4,
+							"endpointSource": {
+								"url": "/apps/learniq/api/today/counts?view=mentor"
+							},
+							"cells": [
+								{
+									"key": "conference-times",
+									"label": "Conference times to confirm",
+									"icon": "CalendarClockOutline",
+									"valueField": "byTile.conferenceTimes.count",
+									"format": {
+										"style": "decimal",
+										"decimals": 0
+									},
+									"route": {
+										"name": "ConferenceRounds"
+									},
+									"visibleWhen": {
+										"endpoint": "/apps/learniq/api/today/counts?view=mentor",
+										"field": "byTile.conferenceTimes.count",
+										"op": "gte",
+										"value": 0
+									},
+									"caption": "{byTile.conferenceTimes.chosen} of {byTile.conferenceTimes.total} chosen"
+								},
+								{
+									"key": "parent-reports-waiting",
+									"label": "Parent reports today",
+									"icon": "MessageAlertOutline",
+									"valueField": "byTile.parentReportsWaiting.count",
+									"format": {
+										"style": "decimal",
+										"decimals": 0
+									},
+									"route": {
+										"name": "ExcuseRequests"
+									},
+									"visibleWhen": {
+										"endpoint": "/apps/learniq/api/today/counts?view=mentor",
+										"field": "byTile.parentReportsWaiting.count",
+										"op": "gte",
+										"value": 0
+									},
+									"caption": "in {byTile.parentReportsWaiting.groups} groups"
+								}
+							]
+						}
+					},
+					{
+						"id": "bpv-first-rule",
+						"type": "banner",
+						"title": "First today",
+						"_note": "bpv-coach-today-and-placement-board T5: the BPV-begeleider's own First today card. GET /api/today/first?view=bpv answers the first of her rules with a row (a student of hers without a company while the BPV period runs, a company visit of hers without a date, hour weeks of her students waiting more than seven days) with its sentence, its line and the page it opens (lib/Service/Today/first-today-pages.json). No rule, no title, no card. The BPV view (today-first-per-school-role T3: it joins the same switch) is offered only to a reader who is the school coach of at least one placement.",
+						"content": {
+							"layout": "attention",
+							"variant": "warning",
+							"kicker": "First today",
+							"title": "{subject.title}",
+							"text": "{subject.title}",
+							"reason": "{subject.reason}",
+							"visibleWhen": {
+								"endpoint": "/apps/learniq/api/today/first?view=bpv",
+								"field": "title",
+								"op": "notEmpty"
+							},
+							"actions": [
+								{
+									"label": "Open",
+									"route": {
+										"name": "@subject.page"
+									}
+								}
+							]
+						}
+					},
+					{
+						"id": "bpv-visits-week",
+						"type": "week-strip",
+						"title": "Company visits this week",
+						"_note": "bpv-coach-today-and-placement-board T5: her company visits of the week as day columns (LqRolB 'Bedrijfsbezoeken in week 42'), on the agreed moment (`plannedAt`). A visit without a date has no day: the First today card and the Company visits list name those.",
+						"content": {
+							"source": {
+								"register": "learniq",
+								"schema": "bpv-visit",
+								"filter": {
+									"schoolCoachId": "@me",
+									"lifecycle": "planned"
+								},
+								"extend": [
+									"learnerRef",
+									"bpvPlacementId"
+								]
+							},
+							"dateField": "plannedAt",
+							"titleField": "learnerRef.fullName",
+							"metaFields": [
+								"bpvPlacementId.trainingCompanyName",
+								"visitKind"
+							],
+							"emptyText": "No visits",
+							"moreRoute": "BpvVisits"
+						}
+					},
+					{
+						"id": "bpv-phases",
+						"type": "stat-grid",
+						"title": "Students per phase",
+						"_note": "bpv-coach-today-and-placement-board T5: her students per phase (LqRolB 'Studenten per fase'), counted on bpv-placement where she is the school coach, one figure per phase in the board's column order, each opening the placement board on that phase; the header link opens the whole board ('Naar het bord').",
+						"headerLink": {
+							"label": "To the board",
+							"route": "BpvPlacements",
+							"query": {
+								"_view": "board"
+							}
+						},
+						"content": {
+							"columns": 3,
+							"cells": [
+								{
+									"key": "searching",
+									"label": "Searching",
+									"format": {
+										"style": "decimal",
+										"decimals": 0
+									},
+									"source": {
+										"register": "learniq",
+										"schema": "bpv-placement",
+										"metric": "count",
+										"filter": {
+											"schoolCoachId": "@me",
+											"phase": "searching"
+										}
+									},
+									"route": {
+										"name": "BpvPlacements",
+										"query": {
+											"_view": "board",
+											"phase": "searching"
+										}
+									}
+								},
+								{
+									"key": "agreement",
+									"label": "Agreement",
+									"format": {
+										"style": "decimal",
+										"decimals": 0
+									},
+									"source": {
+										"register": "learniq",
+										"schema": "bpv-placement",
+										"metric": "count",
+										"filter": {
+											"schoolCoachId": "@me",
+											"phase": "agreement"
+										}
+									},
+									"route": {
+										"name": "BpvPlacements",
+										"query": {
+											"_view": "board",
+											"phase": "agreement"
+										}
+									}
+								},
+								{
+									"key": "running",
+									"label": "Running",
+									"format": {
+										"style": "decimal",
+										"decimals": 0
+									},
+									"source": {
+										"register": "learniq",
+										"schema": "bpv-placement",
+										"metric": "count",
+										"filter": {
+											"schoolCoachId": "@me",
+											"phase": "running"
+										}
+									},
+									"route": {
+										"name": "BpvPlacements",
+										"query": {
+											"_view": "board",
+											"phase": "running"
+										}
+									}
+								},
+								{
+									"key": "assessment",
+									"label": "Being assessed",
+									"format": {
+										"style": "decimal",
+										"decimals": 0
+									},
+									"source": {
+										"register": "learniq",
+										"schema": "bpv-placement",
+										"metric": "count",
+										"filter": {
+											"schoolCoachId": "@me",
+											"phase": "assessment"
+										}
+									},
+									"route": {
+										"name": "BpvPlacements",
+										"query": {
+											"_view": "board",
+											"phase": "assessment"
+										}
+									}
+								},
+								{
+									"key": "rounding-off",
+									"label": "Rounding off",
+									"format": {
+										"style": "decimal",
+										"decimals": 0
+									},
+									"source": {
+										"register": "learniq",
+										"schema": "bpv-placement",
+										"metric": "count",
+										"filter": {
+											"schoolCoachId": "@me",
+											"phase": "rounding-off"
+										}
+									},
+									"route": {
+										"name": "BpvPlacements",
+										"query": {
+											"_view": "board",
+											"phase": "rounding-off"
+										}
+									}
+								},
+								{
+									"key": "done",
+									"label": "Done",
+									"format": {
+										"style": "decimal",
+										"decimals": 0
+									},
+									"source": {
+										"register": "learniq",
+										"schema": "bpv-placement",
+										"metric": "count",
+										"filter": {
+											"schoolCoachId": "@me",
+											"phase": "done"
+										}
+									},
+									"route": {
+										"name": "BpvPlacements",
+										"query": {
+											"_view": "board",
+											"phase": "done"
+										}
+									}
+								}
+							]
+						}
 					}
 				],
 				"layout": [],
@@ -1163,10 +1642,20 @@
 								"showTitle": true
 							},
 							{
+								"id": "t12",
+								"widgetId": "today-role-tiles",
+								"gridX": 0,
+								"gridY": 12,
+								"gridWidth": 8,
+								"gridHeight": 2,
+								"showTitle": true,
+								"sizeToContent": true
+							},
+							{
 								"id": "t8",
 								"widgetId": "today-dashboards",
 								"gridX": 0,
-								"gridY": 12,
+								"gridY": 14,
 								"gridWidth": 12,
 								"gridHeight": 3,
 								"showTitle": false,
@@ -1222,10 +1711,20 @@
 								"showTitle": true
 							},
 							{
+								"id": "m5",
+								"widgetId": "mentor-role-tiles",
+								"gridX": 0,
+								"gridY": 9,
+								"gridWidth": 12,
+								"gridHeight": 2,
+								"showTitle": true,
+								"sizeToContent": true
+							},
+							{
 								"id": "m3",
 								"widgetId": "today-dashboards",
 								"gridX": 0,
-								"gridY": 9,
+								"gridY": 11,
 								"gridWidth": 12,
 								"gridHeight": 3,
 								"showTitle": false,
@@ -1233,6 +1732,66 @@
 							}
 						],
 						"emptyText": "No open signals for the pupils you mentor"
+					},
+					{
+						"id": "bpv",
+						"label": "BPV coach",
+						"visibleWhen": {
+							"source": {
+								"register": "learniq",
+								"schema": "bpv-placement",
+								"filter": {
+									"schoolCoachId": "@me"
+								}
+							},
+							"op": "gt",
+							"value": 0
+						},
+						"layout": [
+							{
+								"id": "b0",
+								"widgetId": "bpv-first-rule",
+								"gridX": 0,
+								"gridY": 1,
+								"gridWidth": 12,
+								"gridHeight": 2,
+								"showTitle": false,
+								"sizeToContent": true
+							},
+							{
+								"id": "b1",
+								"widgetId": "bpv-visits-week",
+								"gridX": 0,
+								"gridY": 3,
+								"gridWidth": 12,
+								"gridHeight": 4,
+								"showTitle": true,
+								"headerLink": {
+									"label": "All visits",
+									"route": "BpvVisits"
+								}
+							},
+							{
+								"id": "b2",
+								"widgetId": "bpv-phases",
+								"gridX": 0,
+								"gridY": 7,
+								"gridWidth": 6,
+								"gridHeight": 3,
+								"showTitle": true
+							},
+							{
+								"id": "b3",
+								"widgetId": "today-dashboards",
+								"gridX": 0,
+								"gridY": 10,
+								"gridWidth": 12,
+								"gridHeight": 3,
+								"showTitle": false,
+								"showActions": false
+							}
+						],
+						"emptyText": "No placements where you are the school coach"
 					}
 				]
 			}

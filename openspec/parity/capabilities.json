@@ -6607,10 +6607,7 @@
         "owner": "ConductionNL/learniq",
         "change": "dashboard",
         "spec": "openspec/specs/dashboard",
-        "requirement": "openspec/specs/dashboard :: Per-role group-gated dashboard menu items",
-        "plan": [
-          "openspec/changes/student-portal-reads-like-the-boards"
-        ]
+        "requirement": "openspec/specs/dashboard :: Per-role group-gated dashboard menu items"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",

@@ -19,7 +19,9 @@ use OCA\Learniq\Kernel\Contracts\DashboardRoleServiceInterface;
 use OCA\Learniq\Kernel\Contracts\SegmentServiceInterface;
 use OCA\Learniq\Service\Today\FirstTodayReader;
 use OCA\Learniq\Service\Today\TodayContext;
+use OCA\Learniq\Service\Today\FirstTodayProbe;
 use OCA\Learniq\Service\Today\FirstTodayService;
+use OCA\Learniq\Service\Today\TodayTiles;
 use OCP\IUser;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -202,7 +204,11 @@ class TodayTilesTest extends TestCase {
 		);
 
 		self::assertSame(
-			expected: ['role' => 'care-coordinator', 'tiles' => [['id' => 'plans-ending', 'count' => 1]]],
+			expected: [
+				'role' => 'care-coordinator',
+				'tiles' => [['id' => 'plans-ending', 'count' => 1]],
+				'byTile' => ['plansEnding' => ['id' => 'plans-ending', 'count' => 1]],
+			],
 			actual: $service->tilesFor(user: $this->daan())
 		);
 	}//end testTheCareCoordinatorCountsPlansEnding()
@@ -218,8 +224,67 @@ class TodayTilesTest extends TestCase {
 		$this->reader->expects(self::never())->method('rows');
 		$this->reader->expects(self::never())->method('groupsToday');
 
-		self::assertSame(expected: [], actual: $service->tilesFor(user: $this->daan())['tiles']);
+		$answer = $service->tilesFor(user: $this->daan());
+		self::assertSame(expected: [], actual: $answer['tiles']);
+		self::assertSame(expected: [], actual: $answer['byTile']);
 	}//end testARoleWithoutTilesReadsNothing()
+
+	/**
+	 * Every tile is keyed by the camelCase form of its id, which a caption token can name.
+	 *
+	 * @return void
+	 */
+	public function testByTileKeysEveryTileInCamelCase(): void {
+		$tiles = [];
+		foreach (TodayTiles::TILES as $ids) {
+			foreach ($ids as $id) {
+				$tiles[$id] = ['id' => $id, 'count' => 2];
+			}
+		}
+
+		$keyed = $this->tiles()->byTile(tiles: array_values($tiles));
+
+		self::assertSame(
+			expected: [
+				'registersNotFilled',
+				'parentReportsWaiting',
+				'conferenceTimes',
+				'submissionsToMark',
+				'plansEnding',
+				'registersFilledPerGroup',
+				'insufficientPerYear',
+				'lessonsCancelledToday',
+				'leaveToDecide',
+			],
+			actual: array_keys($keyed)
+		);
+		foreach (array_keys($keyed) as $key) {
+			self::assertMatchesRegularExpression(pattern: '/^[A-Za-z0-9_]+$/', string: $key);
+		}
+
+		self::assertSame(expected: ['id' => 'leave-to-decide', 'count' => 2], actual: $keyed['leaveToDecide']);
+	}//end testByTileKeysEveryTileInCamelCase()
+
+	/**
+	 * A row without an id is left out of the keyed tiles.
+	 *
+	 * @return void
+	 */
+	public function testByTileSkipsARowWithoutAnId(): void {
+		self::assertSame(expected: [], actual: $this->tiles()->byTile(tiles: [['count' => 3], ['id' => '', 'count' => 1]]));
+	}//end testByTileSkipsARowWithoutAnId()
+
+	/**
+	 * Tiles over a reader and a probe that are never asked: byTile() reads nothing.
+	 *
+	 * @return TodayTiles
+	 */
+	private function tiles(): TodayTiles {
+		$reader = $this->createMock(originalClassName: FirstTodayReader::class);
+		$reader->expects(self::never())->method('rows');
+
+		return new TodayTiles(reader: $reader, probe: new FirstTodayProbe(reader: $reader));
+	}//end tiles()
 
 	/**
 	 * A failed read answers null, so the controller can say so.

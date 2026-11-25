@@ -159,7 +159,7 @@ class PortalValueLabels {
 	 *
 	 * @var array<string, string>
 	 *
-	 * @spec openspec/changes/student-portal-reads-like-the-boards/specs/portal-contribution/spec.md#requirement-the-student-pages-use-the-words-of-the-boards
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-the-student-pages-use-the-words-of-the-boards
 	 */
 	public const HOUR_WEEK_STATUS = [
 		// Written day by day and kept for later ("Bewaren voor later",
