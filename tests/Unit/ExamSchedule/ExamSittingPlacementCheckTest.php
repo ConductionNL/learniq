@@ -161,7 +161,11 @@ class ExamSittingPlacementCheckTest extends TestCase {
 		$wired   = $this->fx->wire(service: $this->createMock(originalClassName: ObjectService::class));
 		$service = $this->createMock(originalClassName: ObjectService::class);
 		$service->method('findAll')->willReturnCallback(
-			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $wired->findAll(config: $config, _rbac: $_rbac, _multitenancy: $_multitenancy)
+			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $wired->findAll(
+				config: $config,
+				_rbac: $_rbac,
+				_multitenancy: $_multitenancy
+			)
 		);
 		$service->method('find')->willReturnCallback(
 			function (int|string $id, ?ObjectFindOptions $options = null, bool $_rbac = true) use ($wired) {
