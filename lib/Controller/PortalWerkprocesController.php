@@ -33,8 +33,8 @@ namespace OCA\Learniq\Controller;
 use OCA\Learniq\Kernel\AppIdentity;
 use OCA\Learniq\Kernel\Contracts\PortalAssertionVerifierInterface;
 use OCA\Learniq\Kernel\Contracts\PortalWerkprocesAssessmentInterface;
+use OCA\Learniq\Service\Portal\PortalOutcome;
 use OCP\AppFramework\Controller;
-use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\AnonRateLimit;
 use OCP\AppFramework\Http\Attribute\BruteForceProtection;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
@@ -42,7 +42,6 @@ use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IRequest;
 use Psr\Log\LoggerInterface;
-use Throwable;
 
 /**
  * Receives one werkproces assessment from the trainer's portal form.
@@ -51,7 +50,7 @@ use Throwable;
  */
 class PortalWerkprocesController extends Controller {
 
-	use PortalFormFields;
+	use PortalTrainerReceiver;
 
 	/**
 	 * The only audience this endpoint serves.
@@ -113,35 +112,12 @@ class PortalWerkprocesController extends Controller {
 	#[AnonRateLimit(limit: 600, period: 60)]
 	#[BruteForceProtection(action: self::THROTTLE_ACTION)]
 	public function submit(): JSONResponse {
-		$claims = $this->verifier->verify(jwt: (string)$this->request->getHeader(PortalAssertionVerifierInterface::HEADER));
-		if ($claims === null) {
-			$response = new JSONResponse(data: ['error' => 'unauthorized'], statusCode: Http::STATUS_UNAUTHORIZED);
-			$response->throttle(['action' => self::THROTTLE_ACTION]);
-			return $response;
-		}
-
-		// The trainer is the subject portaliq resolved, never a value the form
-		// sent: `practicalTrainerId` is the scope claim the action declares.
-		$trainerRef = $this->stringParam(name: 'practicalTrainerId');
-		if (($claims['audience'] ?? '') !== self::AUDIENCE || $trainerRef === '') {
-			return new JSONResponse(data: ['error' => 'forbidden'], statusCode: Http::STATUS_FORBIDDEN);
-		}
-
-		try {
-			$outcome = $this->assessments->submit(
+		return $this->receiveFromTrainer(
+			step: fn (string $trainerRef, string $trust, array $body): PortalOutcome => $this->assessments->submit(
 				trainerRef: $trainerRef,
-				trust: (string)($claims['trust'] ?? ''),
-				body: $this->body()
-			);
-		} catch (Throwable $exception) {
-			// Never leak internals from a public route (ADR-005).
-			$this->logger->error(
-				'[PortalWerkprocesController] A portal assessment failed: {msg}',
-				['msg' => $exception->getMessage(), 'exception' => $exception]
-			);
-			return new JSONResponse(data: ['error' => 'downstream_error'], statusCode: Http::STATUS_BAD_GATEWAY);
-		}
-
-		return new JSONResponse(data: $outcome->body, statusCode: $outcome->status);
+				trust: $trust,
+				body: $body
+			)
+		);
 	}//end submit()
 }//end class
