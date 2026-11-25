@@ -150,7 +150,9 @@ class FirstTodayCardTest extends TestCase {
 	 * @return void
 	 */
 	public function testTheBpvCardsNameTheLateLineAndTheHours(): void {
-		$daan = $this->card()->describe(card: ['role' => 'bpv-coach', 'rule' => 'placement-without-company', 'count' => 1, 'lateLabel' => '5 weken te laat']);
+		$daan = $this->card()->describe(
+			card: ['role' => 'bpv-coach', 'rule' => 'placement-without-company', 'count' => 1, 'lateLabel' => '5 weken te laat']
+		);
 		$plain = $this->card()->describe(card: ['role' => 'bpv-coach', 'rule' => 'placement-without-company', 'count' => 2, 'lateLabel' => '']);
 		$visit = $this->card()->describe(card: ['role' => 'bpv-coach', 'rule' => 'visit-without-date', 'count' => 1]);
 		$hours = $this->card()->describe(card: ['role' => 'bpv-coach', 'rule' => 'hours-waiting', 'count' => 2, 'hours' => 30.5, 'isoWeek' => '2026-W40']);
