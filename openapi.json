@@ -7459,6 +7459,39 @@
                 }
             }
         },
+        "/portal/practical-exam-signatures": {
+            "post": {
+                "operationId": "portal-practical-exam-sign-candidate",
+                "summary": "Sign the submitted assessment of a candidate at a sitting: the portal's signing action",
+                "description": "Sign the submitted assessment of a candidate at a sitting: the portal's signing action. Public: it needs no login.",
+                "tags": [
+                    "portal-practical-exam"
+                ],
+                "security": [],
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "The request succeeded.",
+                        "headers": {
+                            "API-Version": {
+                                "$ref": "#/components/headers/API-Version"
+                            }
+                        },
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Problem401"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Problem403"
+                    }
+                }
+            }
+        },
         "/portal/practical-exam-sittings/{id}": {
             "get": {
                 "operationId": "portal-practical-exam-sitting",

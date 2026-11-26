@@ -703,7 +703,7 @@ class GuardianSitePagesTest extends TestCase {
 		// Only an active grant resolves, and the audience stays read-only apart
 		// from the assessment he is assigned to (practical-exam-assessment).
 		self::assertSame(['lifecycle' => 'active'], $shares['filter']);
-		self::assertSame(['assessPracticalExam'], array_column($manifest['actions'], 'id'));
+		self::assertSame(expected: ['assessPracticalExam', 'signPracticalExam'], actual: array_column($manifest['actions'], 'id'));
 	}//end testTheAssessorOverviewNamesCandidates()
 
 	/**
