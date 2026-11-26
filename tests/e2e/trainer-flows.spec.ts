@@ -198,6 +198,15 @@ test.describe('trainer: an invited workplace trainer', () => {
 				// internship-hours: the hours the agreement states, so her card
 				// has a real denominator to count against.
 				agreedHours: AGREED_HOURS,
+				// A placement is confirmed only for a verified training
+				// company (BpvConfirmationGuard); the seeded placements carry
+				// the same block, as mbo-trainer-flows does.
+				trainingCompanyVerification: {
+					provider: 'sbb',
+					status: 'verified',
+					verifiedAt: '2026-08-15T10:00:00+02:00',
+					expiresAt: '2029-08-15T23:59:00+02:00',
+				},
 				lifecycle: 'active',
 				tenant_id: TENANT,
 			},

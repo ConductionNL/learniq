@@ -7,6 +7,7 @@
 - [x] **T3**: the endpoint verifies the assertion, takes the signer from its claim, and writes `signerId`, `signerRole`, `signedAt`, `method` and `assuranceLevel` server side
   - PHPUnit over the real verifier, and the real payload against the shipped `PokSignature` fragment
 - [x] **T4**: `bpv_pok_min_assurance` (default `basic`) is read on every write; below it the signature is refused and the refusal names the level required
-- [ ] **T5**: e2e in `trainer-flows.spec.ts`: step e turns from "her signature is refused" into "her signature is stored and says `basic`", and a school floor of `substantial` refuses it again
+- [x] **T5**: e2e in `trainer-flows.spec.ts`: step e turns from "her signature is refused" into "her signature is stored and says `basic`", and a school floor of `substantial` refuses it again
   - written, runs in nightly (needs a live instance with portaliq)
+  - Live 2026-11-26 (NC 34.0.6 + PostgreSQL 16 + OpenRegister main + portaliq development, mbo set, `AUDIENCE_FLOW_PORTAL=esdoornveen`, the portal with the `nextcloud` sign-in mode): trainer-flows 7/7, step e stores the signature as `basic` and a `substantial` floor refuses it. Spec fix: the suite's placement carries a verified `trainingCompanyVerification`, which `BpvConfirmationGuard` asks before confirm (as mbo-trainer-flows does). The signature row stays after the run (OpenRegister answers 405 on its delete: signatures are immutable).
 - [x] **T6**: the placement's lifecycle is unchanged; assert that an activated placement still needs every signature it needed before
