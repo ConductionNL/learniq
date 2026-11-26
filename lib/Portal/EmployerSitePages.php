@@ -177,6 +177,11 @@ class EmployerSitePages implements EmployerSitePagesInterface {
 		['field' => 'employerStatus', 'label' => 'Status', 'valueLabels' => self::BOOKING_STATUS],
 	];
 
+	/**
+	 * The certificates table; the verify column reads "Controleren" (linkLabel).
+	 *
+	 * @spec openspec/changes/archive/2026-11-26-certificates-group-the-first-to-expire-first/tasks.md#T2
+	 */
 	private const EMPLOYER_CERTIFICATES_EXTRA = [
 		'filter' => ['lifecycle' => 'issued', 'kind' => 'certificate'],
 		'defaultSort' => ['field' => 'expiresAt', 'direction' => 'asc'],
@@ -195,7 +200,6 @@ class EmployerSitePages implements EmployerSitePagesInterface {
 			['field' => 'expiryLabel', 'label' => 'Status'],
 			['field' => 'renewalLine', 'label' => 'Renewal'],
 			// The link reads "Controleren", not the bare address (live check of the warmtepompacademie board).
-			// @spec openspec/changes/archive/2026-11-26-certificates-group-the-first-to-expire-first/tasks.md#T2
 			['field' => 'verificationUrl', 'label' => 'Check or download', 'render' => 'link', 'linkLabel' => 'Check'],
 		],
 	];

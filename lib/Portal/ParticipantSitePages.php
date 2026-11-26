@@ -75,6 +75,11 @@ class ParticipantSitePages {
 		'lifecycle',
 	];
 
+	/**
+	 * The certificates table; the verify column reads "Controleren" (linkLabel).
+	 *
+	 * @spec openspec/changes/archive/2026-11-26-certificates-group-the-first-to-expire-first/tasks.md#T2
+	 */
 	private const PARTICIPANT_CERTIFICATES_EXTRA = [
 		// A certificate names its holder by the profile uuid in `learnerId`.
 		'scopeField' => 'learnerId',
@@ -86,7 +91,6 @@ class ParticipantSitePages {
 			['field' => 'expiresAt', 'label' => 'Valid until', 'render' => 'date'],
 			['field' => 'expiryLabel', 'label' => 'Status'],
 			// The link reads "Controleren", not the bare address (live check of the warmtepompacademie board).
-			// @spec openspec/changes/archive/2026-11-26-certificates-group-the-first-to-expire-first/tasks.md#T2
 			['field' => 'verificationUrl', 'label' => 'Check or download', 'render' => 'link', 'linkLabel' => 'Check'],
 			// The open wallet offer as a QR code with its link (portaliq link-field-qr-code).
 			['field' => 'walletOfferUri', 'label' => 'Wallet', 'render' => 'qr', 'linkLabel' => 'Add to wallet'],
