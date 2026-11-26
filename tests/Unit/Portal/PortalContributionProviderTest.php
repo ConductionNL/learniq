@@ -995,7 +995,7 @@ class PortalContributionProviderTest extends TestCase {
 		$this->assertSame([], $manifest['notifications']);
 		// Read-only — zero create-actions.
 		// Read-only apart from the assessment he is assigned to, through learniq's own endpoint.
-		$this->assertSame(['assessPracticalExam', 'signPracticalExam'], array_column($manifest['actions'], 'id'));
+		$this->assertSame(expected: ['assessPracticalExam', 'signPracticalExam'], actual: array_column($manifest['actions'], 'id'));
 		$this->assertSame('endpoint-forward', $manifest['actions'][0]['type']);
 		$this->assertSame('/apps/learniq/api/portal/practical-exam-assessments', $manifest['actions'][0]['endpoint']);
 		$this->assertSame('externalAssessorId', $manifest['actions'][0]['subjectField']);
