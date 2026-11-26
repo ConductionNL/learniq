@@ -4,7 +4,8 @@
  * Learniq Student Flow Actions
  *
  * The portal actions of the round 5 learner flows, contributed to the
- * student audience next to the test and hand-in actions. Each is an
+ * student audience next to the test and hand-in actions. Each but the plain
+ * `create` that adds her own document is an
  * `endpoint-forward` to a learniq receiver on the pattern of #1096 and #1142:
  * portaliq stamps the pupil's own `learnerRef` (`subjectField`) over any
  * client value, and the receiver enforces every rule and writes as the pupil.
@@ -40,14 +41,22 @@ namespace OCA\Learniq\Portal;
 class StudentFlowActions {
 
 	/**
+	 * The id of the action that adds a document to her own dossier.
+	 *
+	 * @var string
+	 */
+	public const UPLOAD_ACTION = 'uploadStudentDocument';
+
+	/**
 	 * Every learner-flow action, in the order the portal lists them.
 	 *
 	 * @return array<int, array<string, mixed>>
 	 *
 	 * @spec openspec/specs/attendance/spec.md#requirement-a-learner-checks-in-with-the-code
+	 * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-a-learner-adds-a-document-to-her-own-dossier
 	 */
 	public function actions(): array {
-		return [$this->checkIn(), $this->requestProofOfEnrolment()];
+		return [$this->checkIn(), $this->requestProofOfEnrolment(), $this->uploadStudentDocument()];
 	}//end actions()
 
 	/**
@@ -96,4 +105,43 @@ class StudentFlowActions {
 			'successMessage' => 'Your proof of enrolment is ready. You find it under your documents.',
 		];
 	}//end requestProofOfEnrolment()
+
+	/**
+	 * Add a document to her own dossier ("Document toevoegen" on
+	 * esdoornveen/Documenten; school-documents-on-the-portal T3). A plain
+	 * `create` on `learner-document`: portaliq stamps her own `learnerRef`
+	 * over any client value and keeps the file in the new record's folder,
+	 * which LearnerDocuments lists under "Added by you".
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-a-learner-adds-a-document-to-her-own-dossier
+	 */
+	private function uploadStudentDocument(): array {
+		return [
+			'id' => self::UPLOAD_ACTION,
+			'type' => 'create',
+			'label' => 'Add a document',
+			'register' => 'learniq',
+			'schema' => LearnerDocuments::OWN_SCHEMA,
+			'scopeField' => 'learnerRef',
+			'scopeClaim' => 'learnerRef',
+			'minTrust' => 'low',
+			'fields' => ['title', 'note', 'attachmentRef'],
+			'fieldConfigs' => [
+				'title' => ['label' => 'What is the document?', 'required' => true],
+				'note' => ['label' => 'A note for the school', 'required' => false],
+				'attachmentRef' => [
+					'type' => 'file',
+					'label' => 'The document',
+					'required' => true,
+					'multiple' => false,
+					'accept' => ExcuseAttachmentField::ACCEPT,
+					'maxSizeMb' => ExcuseAttachmentField::MAX_SIZE_MB,
+				],
+			],
+			'submitLabel' => 'Add the document',
+			'successMessage' => 'Your document is added. You find it under your documents.',
+		];
+	}//end uploadStudentDocument()
 }//end class

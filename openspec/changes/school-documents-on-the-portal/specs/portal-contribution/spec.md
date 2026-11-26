@@ -35,3 +35,19 @@ The employer audience MUST offer one download that bundles the certificates of h
 - **WHEN** Linda chooses "Alle geldige certificaten downloaden"
 - **THEN** she receives one file with four certificates
 - @e2e exclude bundle contents asserted in unit tests; spec-only proposal
+
+### Requirement: A learner adds a document to her own dossier
+
+The student audience MUST offer `uploadStudentDocument`, a create action on `learner-document` that takes a title, an optional note and one file, with the learner taken from her sign-in over any client value. Her Documents page MUST list what she added under "Added by you" in the group of her current enrolment only (her active enrolment enrolled most recently), so a learner with two enrolments reads each document once; another learner's document MUST NOT be listed.
+
+#### Scenario: Milan adds his first-aid diploma
+- **GIVEN** Milan has one active enrolment
+- **WHEN** he adds "EHBO-diploma" with its PDF from Documenten
+- **THEN** "EHBO-diploma" appears under "Added by you" in the group of that enrolment
+- @e2e exclude listing asserted in LearnerDocumentsTest; the upload is portaliq's create action
+
+#### Scenario: Two enrolments, one listing
+- **GIVEN** a learner with an active enrolment from 2025 and one from 2026, and one document of her own
+- **WHEN** she opens Documenten
+- **THEN** the document appears only in the 2026 group
+- @e2e exclude asserted in LearnerDocumentsTest

@@ -20,6 +20,7 @@
  * @link https://conduction.nl
  *
  * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-each-school-audience-offers-its-own-documents-grouped-per-record
+ * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-a-learner-adds-a-document-to-her-own-dossier
  */
 
 declare(strict_types=1);
@@ -260,4 +261,86 @@ class LearnerDocumentsTest extends TestCase {
 		self::assertSame(expected: [], actual: $this->reader(rows: ['enrolment' => new RuntimeException('down')], files: [])->forEnrolment('enr-1'));
 		self::assertSame(expected: [], actual: $this->reader(rows: [], files: [])->forEnrolment(''));
 	}//end testNothingWithoutAReadableEnrolment()
+
+	/**
+	 * Milan's own "EHBO-diploma" is listed under "Added by you" with the
+	 * title he gave it, newest first; another learner's document is not.
+	 *
+	 * @return void
+	 */
+	public function testWhatSheAddedHerselfIsListedUnderAddedByYou(): void {
+		$reader = $this->reader(
+			rows: [
+				'enrolment' => [['id' => 'enr-2', 'learnerRef' => 'milan', 'lifecycle' => 'active', 'inschrijvingDate' => '2026-08-20']],
+				'learner-document' => [
+					['id' => 'ld-1', 'learnerRef' => 'milan', 'title' => 'VCA-certificaat', '@self' => ['created' => '2026-09-01T10:00:00+00:00']],
+					['id' => 'ld-2', 'learnerRef' => 'milan', 'title' => 'EHBO-diploma', '@self' => ['created' => '2026-10-05T10:00:00+00:00']],
+					['id' => 'ld-3', 'learnerRef' => 'noor', 'title' => 'Zwemdiploma', '@self' => ['created' => '2026-10-06T10:00:00+00:00']],
+				],
+			],
+			files: [
+				'ld-1' => [$this->file(id: 21, name: 'vca.pdf')],
+				'ld-2' => [$this->file(id: 22, name: 'scan_0001.pdf')],
+				'ld-3' => [$this->file(id: 23, name: 'zwem.pdf')],
+			]
+		);
+
+		$entries = $reader->forEnrolment('enr-2');
+
+		self::assertSame(expected: ['22', '21'], actual: array_column($entries, 'id'));
+		self::assertSame(expected: ['EHBO-diploma', 'VCA-certificaat'], actual: array_column($entries, 'title'));
+		self::assertSame(expected: ['nl:Added by you', 'nl:Added by you'], actual: array_column($entries, 'group'));
+		self::assertSame(expected: ['register' => 'learniq', 'schema' => 'learner-document', 'id' => 'ld-2', 'fileId' => '22'], actual: $entries[0]['file']);
+		self::assertContains(needle: 'learner-document', haystack: $this->schemas);
+	}//end testWhatSheAddedHerselfIsListedUnderAddedByYou()
+
+	/**
+	 * With two active enrolments her own document is listed once, under the
+	 * one enrolled most recently; an ended enrolment never lists it and
+	 * does not even read her documents.
+	 *
+	 * @return void
+	 */
+	public function testHerOwnDocumentShowsOnlyUnderHerCurrentEnrolment(): void {
+		$rows   = [
+			'enrolment' => [
+				['id' => 'enr-old', 'learnerRef' => 'milan', 'lifecycle' => 'active', 'inschrijvingDate' => '2025-08-20'],
+				['id' => 'enr-new', 'learnerRef' => 'milan', 'lifecycle' => 'active', 'inschrijvingDate' => '2026-08-20'],
+				['id' => 'enr-done', 'learnerRef' => 'milan', 'lifecycle' => 'completed', 'inschrijvingDate' => '2027-08-20'],
+				['id' => 'enr-other', 'learnerRef' => 'noor', 'lifecycle' => 'active', 'inschrijvingDate' => '2028-08-20'],
+			],
+			'learner-document' => [['id' => 'ld-1', 'learnerRef' => 'milan', 'title' => 'EHBO-diploma']],
+		];
+		$files  = ['ld-1' => [$this->file(id: 31, name: 'ehbo.pdf')]];
+		$reader = $this->reader(rows: $rows, files: $files);
+
+		self::assertSame(expected: ['31'], actual: array_column($reader->forEnrolment('enr-new'), 'id'));
+		self::assertSame(expected: [], actual: $reader->forEnrolment('enr-old'));
+
+		$this->schemas = [];
+		self::assertSame(expected: [], actual: $reader->forEnrolment('enr-done'));
+		self::assertNotContains(needle: 'learner-document', haystack: $this->schemas);
+	}//end testHerOwnDocumentShowsOnlyUnderHerCurrentEnrolment()
+
+	/**
+	 * Two active enrolments enrolled on the same day: the first id is the
+	 * current one, so the document still shows exactly once.
+	 *
+	 * @return void
+	 */
+	public function testASameDayTieKeepsTheFirstId(): void {
+		$reader = $this->reader(
+			rows: [
+				'enrolment' => [
+					['id' => 'enr-b', 'learnerRef' => 'milan', 'lifecycle' => 'active', 'inschrijvingDate' => '2026-08-20'],
+					['id' => 'enr-a', 'learnerRef' => 'milan', 'lifecycle' => 'active', 'inschrijvingDate' => '2026-08-20'],
+				],
+				'learner-document' => [['id' => 'ld-1', 'learnerRef' => 'milan', 'title' => 'EHBO-diploma']],
+			],
+			files: ['ld-1' => [$this->file(id: 41, name: 'ehbo.pdf')]]
+		);
+
+		self::assertSame(expected: ['41'], actual: array_column($reader->forEnrolment('enr-a'), 'id'));
+		self::assertSame(expected: [], actual: $reader->forEnrolment('enr-b'));
+	}//end testASameDayTieKeepsTheFirstId()
 }//end class
