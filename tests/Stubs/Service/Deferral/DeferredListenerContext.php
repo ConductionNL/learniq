@@ -34,13 +34,26 @@ class DeferredListenerContext {
 	 * @param string|null                     $userId  The acting user, when known.
 	 * @param string|null                     $orgUuid The acting organisation, when known.
 	 * @param array<int, array<string, mixed>> $entries The buffered entries.
+	 * @param object|null                     $cause   The write cause at deferral time (openregister's
+	 *                                                 CauseFrame); null keeps the job a person's.
 	 */
 	public function __construct(
 		private readonly ?string $userId,
 		private readonly ?string $orgUuid,
 		private readonly array $entries,
+		private readonly ?object $cause = null,
 	) {
 	}//end __construct()
+
+	/**
+	 * The write cause captured at deferral time, or null for a person acting directly.
+	 *
+	 * @return object|null The cause (openregister's CauseFrame), or null.
+	 */
+	public function getCause(): ?object {
+		return $this->cause;
+
+	}//end getCause()
 
 	/**
 	 * The acting user.
