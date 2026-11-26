@@ -64,6 +64,30 @@ class ParticipantSitePagesTest extends TestCase {
 	}//end testEveryReadIsHisOwn()
 
 	/**
+	 * His certificates link to their check page with a word, not with the bare address.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/certificates-group-the-first-to-expire-first/tasks.md#T2
+	 */
+	public function testHisCertificatesLinkToTheirCheckPageWithAWord(): void {
+		$links = [];
+		foreach (self::manifest()['collections'] as $collection) {
+			foreach (($collection['columns'] ?? []) as $column) {
+				if ($column['field'] === 'verificationUrl') {
+					$links[] = $column;
+				}
+			}
+		}
+
+		self::assertNotSame(expected: [], actual: $links);
+		foreach ($links as $column) {
+			self::assertSame(expected: 'link', actual: $column['render']);
+			self::assertSame(expected: 'Check', actual: $column['linkLabel']);
+		}
+	}//end testHisCertificatesLinkToTheirCheckPageWithAWord()
+
+	/**
 	 * The overview opens with the greeting and the next course day as a highlight,
 	 * and every field a block reads is projected.
 	 *

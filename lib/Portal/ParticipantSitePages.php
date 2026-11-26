@@ -85,7 +85,9 @@ class ParticipantSitePages {
 			['field' => 'courseName', 'label' => 'Certificate'],
 			['field' => 'expiresAt', 'label' => 'Valid until', 'render' => 'date'],
 			['field' => 'expiryLabel', 'label' => 'Status'],
-			['field' => 'verificationUrl', 'label' => 'Check or download', 'render' => 'link'],
+			// The link reads "Controleren", not the bare address (live check of the warmtepompacademie board).
+			// @spec openspec/changes/certificates-group-the-first-to-expire-first/tasks.md#T2
+			['field' => 'verificationUrl', 'label' => 'Check or download', 'render' => 'link', 'linkLabel' => 'Check'],
 			// The open wallet offer as a QR code with its link (portaliq link-field-qr-code).
 			['field' => 'walletOfferUri', 'label' => 'Wallet', 'render' => 'qr', 'linkLabel' => 'Add to wallet'],
 		],

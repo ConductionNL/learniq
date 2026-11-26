@@ -475,6 +475,22 @@ class EmployerSitePagesTest extends TestCase {
 	}//end testTheCertificateGroupsReadTheFirstToExpireFirst()
 
 	/**
+	 * Each certificate row links to its own check page with a word, not with
+	 * the bare address: the column carries a `linkLabel` the translator moves.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/certificates-group-the-first-to-expire-first/tasks.md#T2
+	 */
+	public function testEachCertificateRowLinksToItsCheckPageWithAWord(): void {
+		$manifest     = (new PortalContributionProvider())->getContribution(['audience' => EmployerSitePages::AUDIENCE]);
+		$certificates = array_column($manifest['collections'], null, 'id')['employerCertificates'];
+		$columns      = array_column($certificates['columns'], null, 'field');
+		self::assertSame(expected: 'link', actual: $columns['verificationUrl']['render']);
+		self::assertSame(expected: 'Check', actual: $columns['verificationUrl']['linkLabel']);
+	}//end testEachCertificateRowLinksToItsCheckPageWithAWord()
+
+	/**
 	 * An opened booking names every field it shows in words the translator
 	 * moves: no field falls back to its English schema title. The state reads
 	 * as words, not as `confirmed`.

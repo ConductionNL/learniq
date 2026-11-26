@@ -194,7 +194,9 @@ class EmployerSitePages implements EmployerSitePagesInterface {
 			['field' => 'expiresAt', 'label' => 'Valid until', 'render' => 'date'],
 			['field' => 'expiryLabel', 'label' => 'Status'],
 			['field' => 'renewalLine', 'label' => 'Renewal'],
-			['field' => 'verificationUrl', 'label' => 'Check or download', 'render' => 'link'],
+			// The link reads "Controleren", not the bare address (live check of the warmtepompacademie board).
+			// @spec openspec/changes/certificates-group-the-first-to-expire-first/tasks.md#T2
+			['field' => 'verificationUrl', 'label' => 'Check or download', 'render' => 'link', 'linkLabel' => 'Check'],
 		],
 	];
 
