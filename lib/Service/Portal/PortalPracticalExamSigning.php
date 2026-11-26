@@ -42,6 +42,7 @@ use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IAppConfig;
 use Psr\Log\LoggerInterface;
+use Override;
 use Throwable;
 
 /**
@@ -163,6 +164,7 @@ class PortalPracticalExamSigning implements PortalPracticalExamSigningInterface 
 	 * @spec openspec/changes/practical-exam-assessment/tasks.md#t9
 	 * @spec openspec/changes/practical-exam-assessment/specs/exam-board/spec.md#requirement-a-practical-exam-result-needs-both-assessors
 	 */
+	#[Override]
 	public function signForCandidate(string $assessorRef, string $trust, string $sittingId, string $learnerRef): PortalOutcome {
 		$assurance = (self::TRUST_TO_ASSURANCE[$trust] ?? 'basic');
 		$floor     = $this->floor();
