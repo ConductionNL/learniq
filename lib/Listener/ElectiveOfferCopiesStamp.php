@@ -160,11 +160,14 @@ class ElectiveOfferCopiesStamp implements IEventListener {
 	}//end entityOf()
 
 	/**
-	 * Save a sign-up's offer again when its copies changed.
+	 * Save a sign-up's offer again when its copies changed; the save's own
+	 * updating event stamps the fresh copies.
 	 *
 	 * @param object $entity The saved sign-up.
 	 *
 	 * @return void
+	 *
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-pupil-reads-her-schools-open-support-lessons-and-signs-herself-up
 	 */
 	private function refreshOfferOf(object $entity): void {
 		if ($this->slug(entity: $entity) !== ElectiveServiceInterface::SIGN_UP_SCHEMA) {
@@ -187,8 +190,11 @@ class ElectiveOfferCopiesStamp implements IEventListener {
 				return;
 			}
 
+			// The offer is saved as stored: its copies are read-only
+			// properties, which OpenRegister lets only the write's own
+			// ObjectUpdatingEvent set, so stampOffer() writes the fresh ones.
 			$this->objects->saveObject(
-				object: array_merge($offer, $copies),
+				object: $offer,
 				options: new ObjectSaveOptions(
 					target: new ObjectFindTarget(register: ElectiveServiceInterface::REGISTER, schema: ElectiveService::OFFER_SCHEMA),
 					uuid: $offerId

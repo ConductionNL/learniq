@@ -229,5 +229,24 @@ class VocationalCollegeRulesTest(unittest.TestCase):
         self.assertEqual(mbo.placement_day_near(mbo.dt.date(2025, 9, 19), placement), mbo.dt.date(2025, 9, 18))
 
 
+class PrimarySchoolTodayTest(unittest.TestCase):
+    """The committed po set carries the states the Today boards draw on the story Monday (today-first-per-school-role)."""
+
+    def test_the_intern_begeleider_reads_one_plan_ending_on_friday(self) -> None:
+        with open(os.path.join(PROFILES, "po.json"), encoding="utf-8") as handle:
+            objects = json.load(handle)["x-openregister"]["seedData"]["objects"]
+        po = import_script("po")
+        monday = po.STORY_TODAY.isoformat()
+        week_on = (po.STORY_TODAY + po.dt.timedelta(days=7)).isoformat()
+        # The rule of FollowUpFacts::planEnding: an active plan whose end falls within seven days.
+        ending = [p for p in objects.get("learning-plan", []) if p["lifecycle"] == "active" and monday <= p["nextReviewAt"] <= week_on]
+        ending += [p for p in objects.get("group-plan", []) if p["lifecycle"] == "active" and monday <= p["periodEndDate"] <= week_on]
+        self.assertEqual(len(ending), 1)
+        pupil = next(o for o in objects["learner-profile"] if o["ncUserId"] == ending[0]["learnerId"])
+        self.assertEqual((pupil["givenName"], pupil["familyName"]), ("Tess", "Bakker"))
+        self.assertEqual((ending[0]["nextReviewAt"], ending[0]["coordinatorId"]), ("2026-10-09", po.IB))
+        self.assertFalse([e for e in objects.get("learning-plan-evaluation", []) if e["learningPlanId"] == ending[0]["uuid"]])
+
+
 if __name__ == "__main__":
     unittest.main()

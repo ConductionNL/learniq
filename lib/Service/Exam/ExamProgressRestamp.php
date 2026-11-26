@@ -212,7 +212,7 @@ class ExamProgressRestamp {
 			return '';
 		}
 
-		return trim((string) (($this->first(schema: 'assessment', filters: [], ids: [$assessmentId]) ?? [])['title'] ?? ''));
+		return trim((string) (($this->first(schema: 'exam', filters: [], ids: [$assessmentId]) ?? [])['title'] ?? ''));
 	}//end examCode()
 
 	/**

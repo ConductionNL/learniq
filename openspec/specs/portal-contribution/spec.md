@@ -1145,3 +1145,36 @@ The student contribution MUST declare readable columns for `studentGrades` (subj
 - **WHEN** Milan opens "BPV en uren" from his menu
 - **THEN** the week's status reads "Teruggestuurd"
 - @e2e exclude declaration only, covered by PHPUnit `PortalContributionProviderTest::testHoursPageIsInTheMenuAndASentBackWeekSaysSo` and `GuardianSitePagesTest::testThePupilOverviewAndShortMenu`
+
+### Requirement: A guardian is offered a cancel only on a time that can still be cancelled
+
+`cancelConferenceTime` MUST declare `rowWhen: {field: lifecycle, in: [booked, acknowledged]}`, the states in which ConferenceSlotBookingSync lets a parent cancel. Every row action learniq contributes MUST declare a `rowWhen` on a field its collection projects, with values the schema's lifecycle allows. The condition is presentation only: ConferenceSlotBookingSync keeps refusing a cancel the time does not allow, including one after the booking window closed, which the condition cannot express.
+
+#### Scenario: Fatima sees the cancel on her booked time only
+- GIVEN Fatima has a booked time, a completed time and a cancelled time for Vera
+- WHEN she opens "Uw gesprekstijden"
+- THEN only the booked time offers "Deze tijd afzeggen"
+- @e2e exclude the hiding is portaliq's (`tests/row-action.spec.mjs`, update-row-action-condition); learniq's declaration is pinned by `PortalRowActionConditionsTest`, and the live check is in the PR
+
+### Requirement: A portal endpoint refusal names the fields to change
+
+A learniq portal endpoint that refuses a form's answers with 422 MUST name each refused field: an answer left empty in `errors` as `{field: ''}`, and an answer of the wrong kind in `invalid` as `{field: kind}` (`integer`, `range`, `date`). It MUST keep its `error` code and status, and MUST name only the form's own fields, never a claim. An endpoint action whose answers portaliq should shape MUST declare the schema they belong to: `approveHourWeek` declares `bpv-hour-week`, so `hoursApproved` is a number.
+
+#### Scenario: Petra sends a week of hours without choosing the week
+- GIVEN the trainer's form "Approve the hours of a week"
+- WHEN it reaches learniq without `hourWeekId`
+- THEN the answer is 422 `{error: 'incomplete', errors: {hourWeekId: ''}}`
+- @e2e exclude endpoint body; covered by tests/Unit/Service/Portal/PortalHourWeekApprovalTest.php (testAnIncompleteOrUnknownWeekIsRefused)
+
+#### Scenario: Linda books too many places and types a birth date the wrong way round
+- GIVEN the employer's forms "Book places" and "Fill in a birth date"
+- WHEN she asks for 13 places, and gives 14-03-1994 as a birth date
+- THEN the first answer is 422 with `invalid: {participantCount: 'range'}` and the second with `invalid: {birthDate: 'date'}`
+- AND an empty form names every empty field in `errors`
+- @e2e tests/e2e/portal-design/warmtepompacademie.spec.ts (the 13 places; the birth date and the empty form by tests/Unit/Service/Portal/PortalEmployerBookingsTest.php and PortalAnswersTest.php)
+
+#### Scenario: The hours are a number
+- GIVEN the trainer's action `approveHourWeek`
+- WHEN portaliq reads it
+- THEN it declares the schema `bpv-hour-week`, whose `hoursApproved` is a number
+- @e2e tests/e2e/portal-design/esdoornveen.spec.ts

@@ -169,12 +169,16 @@ class ElectiveSignUpRules implements IEventListener {
 	 * @param SignUpWrite $write The write.
 	 *
 	 * @return object|null The entity.
+	 *
+	 * @spec openspec/specs/enrolment/spec.md#requirement-every-sign-up-obeys-the-same-rules-whoever-writes-it
 	 */
 	private function signUpEntity(SignUpWrite $write): ?object {
 		$entity = $write->object();
-		if ($this->schemaResolver->registerSlug(entity: $entity) !== ElectiveServiceInterface::REGISTER
-			|| $this->schemaResolver->schemaSlug(entity: $entity) !== ElectiveServiceInterface::SIGN_UP_SCHEMA
-		) {
+		// A guard: resolved whatever the listener slug contract says, so the
+		// rules run on every instance (guardSchemaSlug() also answers '' for
+		// an object outside learniq's register). Behind the contract they never
+		// ran: a pupil could sign up twice, past the places or for another pupil.
+		if ($this->schemaResolver->guardSchemaSlug(entity: $entity) !== ElectiveServiceInterface::SIGN_UP_SCHEMA) {
 			return null;
 		}
 

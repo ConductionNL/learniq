@@ -18,7 +18,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/today-first-per-school-role/tasks.md#T1
+ * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/tasks.md#T1
  */
 
 declare(strict_types=1);
@@ -31,7 +31,7 @@ use Exception;
 /**
  * A row's id and a stored moment.
  *
- * @spec openspec/changes/today-first-per-school-role/tasks.md#T1
+ * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/tasks.md#T1
  */
 trait RowValues {
 

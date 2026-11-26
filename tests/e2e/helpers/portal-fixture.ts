@@ -42,9 +42,10 @@
  * by its own unit tests.
  */
 
-import type { APIRequestContext, Browser, Page } from '@playwright/test'
+import type { APIRequestContext, APIResponse, Browser, Page } from '@playwright/test'
 
 import { expect, request, test } from '@playwright/test'
+import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { baseUrl } from '../base-url.ts'
 
@@ -93,16 +94,131 @@ export async function createRow(
 	schema: string,
 	data: Record<string, unknown>,
 ): Promise<Record<string, any>> {
-	const res = await api.post(
-		`/apps/openregister/api/objects/${register}/${schema}`,
-		{ data },
-	)
+	const res = await postInInitialState(api, register, schema, data)
 	expect(res.status(), await res.text()).toBeLessThan(300)
 	const row = await res.json()
 	const id = String(row?.id ?? row?.uuid ?? '')
 	expect(id, `created ${schema} without an id`).not.toBe('')
 	created.push({ register, schema, id })
-	return row
+	return await movedToAsked(api, register, schema, row, data)
+}
+
+/**
+ * POST an object; when OpenRegister refuses the asked lifecycle on create
+ * (`lifecycle-invalid-initial`: every object starts in its schema's initial
+ * state), POST it again without one, so it starts in that initial state.
+ *
+ * @param {APIRequestContext} api The caller.
+ * @param {string} register The register.
+ * @param {string} schema The schema slug.
+ * @param {object} data The object.
+ * @return {Promise<APIResponse>} The answer to the create that counts.
+ */
+async function postInInitialState(
+	api: APIRequestContext,
+	register: string,
+	schema: string,
+	data: Record<string, unknown>,
+): Promise<APIResponse> {
+	const url = `/apps/openregister/api/objects/${register}/${schema}`
+	const res = await api.post(url, { data })
+	if (res.status() < 300 || typeof data.lifecycle !== 'string') {
+		return res
+	}
+	const refusal = await res.json().catch(() => null)
+	if (refusal?.errors?.code !== 'lifecycle-invalid-initial') {
+		return res
+	}
+	const { lifecycle: _asked, ...initial } = data
+	return await api.post(url, { data: initial })
+}
+
+/**
+ * Move a just-created object to the lifecycle the fixture asked for, as an
+ * administrator does, when it started elsewhere. A no-op when it already
+ * stands there or no lifecycle was asked.
+ *
+ * @param {APIRequestContext} api The caller.
+ * @param {string} register The register.
+ * @param {string} schema The schema slug.
+ * @param {object} row The created object.
+ * @param {object} data The object as asked.
+ * @return {Promise<Record<string, any>>} The object in the asked state.
+ */
+async function movedToAsked(
+	api: APIRequestContext,
+	register: string,
+	schema: string,
+	row: Record<string, any>,
+	data: Record<string, unknown>,
+): Promise<Record<string, any>> {
+	const asked = data.lifecycle
+	if (typeof asked !== 'string' || row?.lifecycle === asked) {
+		return row
+	}
+	const id = String(row?.id ?? row?.uuid ?? '')
+	let moved: Record<string, any> = row
+	// One state at a time along the schema's transitions, so each step's guard
+	// runs as it would for a person; a schema this repository does not ship
+	// is moved in one step.
+	for (const state of lifecyclePath(register, schema, String(row?.lifecycle ?? ''), asked)) {
+		const res = await api.patch(
+			`/apps/openregister/api/objects/${register}/${schema}/${id}`,
+			{ data: { lifecycle: state } },
+		)
+		moved = await res.json().catch(() => null)
+		expect(
+			res.ok() && moved?.lifecycle === state,
+			`moving the new ${schema} to ${state} (on the way to ${asked}) was refused: HTTP ${res.status()} ${JSON.stringify(moved).slice(0, 400)}`,
+		).toBe(true)
+	}
+	return moved
+}
+
+/**
+ * The states between two lifecycle states along the schema's transitions
+ * (shortest path), read from learniq's own register; `[to]` when the schema
+ * is not in it or no path exists.
+ *
+ * @param {string} register The register.
+ * @param {string} schema The schema slug.
+ * @param {string} from The state the object is in.
+ * @param {string} to The state asked for.
+ * @return {string[]} The states to move through, ending with `to`.
+ */
+function lifecyclePath(register: string, schema: string, from: string, to: string): string[] {
+	const transitions = register === 'learniq' ? learniqTransitions(schema) : []
+	const queue: string[][] = [[from]]
+	const seen = new Set([from])
+	while (queue.length > 0) {
+		const pathSoFar = queue.shift() as string[]
+		const at = pathSoFar[pathSoFar.length - 1]
+		for (const t of transitions) {
+			const sources = Array.isArray(t.from) ? t.from : [t.from]
+			if (!sources.includes(at) || seen.has(t.to)) {
+				continue
+			}
+			if (t.to === to) {
+				return [...pathSoFar.slice(1), to]
+			}
+			seen.add(t.to)
+			queue.push([...pathSoFar, t.to])
+		}
+	}
+	return [to]
+}
+
+/**
+ * A learniq schema's lifecycle transitions, from lib/Settings/learniq_register.json.
+ *
+ * @param {string} schema The schema slug.
+ * @return {Array<{from: string | string[], to: string}>} The transitions.
+ */
+function learniqTransitions(schema: string): Array<{ from: string | string[]; to: string }> {
+	const file = path.join(__dirname, '..', '..', '..', 'lib', 'Settings', 'learniq_register.json')
+	const schemas = JSON.parse(fs.readFileSync(file, 'utf8'))?.components?.schemas ?? {}
+	const found = Object.values(schemas).find((s: any) => s?.slug === schema) as any
+	return Object.values(found?.['x-openregister-lifecycle']?.transitions ?? {}) as Array<{ from: string | string[]; to: string }>
 }
 
 /**
@@ -129,9 +245,7 @@ export async function createRowIfSupported(
 	schema: string,
 	data: Record<string, unknown>,
 ): Promise<Record<string, any> | undefined> {
-	const res = await api
-		.post(`/apps/openregister/api/objects/${register}/${schema}`, { data })
-		.catch(() => null)
+	const res = await postInInitialState(api, register, schema, data).catch(() => null)
 	if (!res || res.status() >= 300) {
 		console.log(
 			`fixture: this instance would not create a ${schema}${res ? ` (${res.status()}: ${(await res.text()).slice(0, 200)})` : ''}`,
@@ -146,7 +260,10 @@ export async function createRowIfSupported(
 	}
 
 	created.push({ register, schema, id })
-	return row
+	return await movedToAsked(api, register, schema, row, data).catch((error) => {
+		console.log(`fixture: ${String(error?.message ?? error).split('\n')[0]}`)
+		return undefined
+	})
 }
 
 /**
@@ -429,12 +546,17 @@ export async function signInWithNextcloudAccount(
 	).newPage()
 	const site = siteUrl(portal)
 
-	await page.goto(site)
+	// The sign-in choices live on the account route; the home page only links
+	// to it ("Mijn <school>"), the way portal-design/boards.ts signInAs opens it.
+	await page.goto(`${site}&route=${encodeURIComponent('/mijn')}`)
 	await page.getByTestId('site-account-signin').waitFor({ timeout: 20_000 })
 	await shot(page, shots, 'login-choices')
-	// The button for this mode, as the site renders it (authApi.signInRoutes).
+	// The button for this mode, as the site renders it (authApi.signInRoutes):
+	// "uw" or "je" account, a school account, or a participant's.
 	await page
-		.getByRole('link', { name: 'Inloggen met uw account', exact: false })
+		.getByRole('link', {
+			name: /Inloggen (met (uw|je) (school)?account|als deelnemer)/,
+		})
 		.first()
 		.click()
 

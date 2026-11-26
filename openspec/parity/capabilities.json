@@ -6766,8 +6766,7 @@
           "openspec/changes/capability-rows-say-what-they-do/specs/parent-conferences :: A guardian chooses which teachers they want to speak to in a signup"
         ],
         "plan": [
-          "openspec/changes/guardian-tasks-per-child-and-self-assessment",
-          "openspec/changes/parent-row-actions-only-where-they-apply"
+          "openspec/changes/guardian-tasks-per-child-and-self-assessment"
         ]
       },
       "provider": "self",
@@ -9946,23 +9945,23 @@
       "area": "assessment",
       "name": "Plan an exam week with rooms, extra time and invigilators, and see the clashes.",
       "built": {
-        "state": "building",
-        "evidence": "Pages ExamPeriods, ExamPeriodDetail, ExamSittings and ExamSittingDetail (src/manifest.d/exam-schedule.json, detail :217) plan the week; lib/Listener/ExamSittingPlacementCheck.php:102-112 records rooms, capacity and clashWarnings on save, and the sitting detail lists invigilation requests answered through InvigilatorAssignmentCheck and InvigilatorResponseGuard. Missing: the extra time per learner and the invigilators who are free. lib/Service/ExamSittingOverview.php:79 overview() computes each accommodated learner's end time and room, and :101 availableInvigilators() the free colleagues, served at GET /api/exam-sittings/{id}/overview and /available-invigilators (appinfo/routes.php:346-347, lib/Controller/ExamScheduleController.php:84, :107), but no page or component in src/ calls either route.",
+        "state": "built",
+        "evidence": "Pages ExamPeriods, ExamPeriodDetail, ExamSittings and ExamSittingDetail (src/manifest.d/exam-schedule.json) plan the week; lib/Listener/ExamSittingPlacementCheck.php records rooms, capacity and clashWarnings on save, and the sitting detail lists invigilation requests answered through InvigilatorAssignmentCheck and InvigilatorResponseGuard. The section src/components/sections/ExamSittingOverview.vue on ExamSittingDetail shows each accommodated learner's end time (lib/Service/ExamSittingOverview.php overview(), GET /api/exam-sittings/{id}/overview) and the colleagues free for the whole sitting with Ask (availableInvigilators(), GET /api/exam-sittings/{id}/available-invigilators). e2e tests/e2e/exam-sitting-overview.spec.ts passed live 2026-11-25; node tests/unit-js/examSittingOverview.test.mjs.",
         "owner": "ConductionNL/learniq",
         "change": "exam-sitting-overview-section",
-        "reachedOn": "/exam-periods, /exam-sittings/:id (rooms and clashes); extra time and free invigilators: nothing",
-        "readOn": "2026-10-07",
+        "reachedOn": "/exam-sittings/:id > Extra time and invigilators",
+        "readOn": "2026-11-25",
         "note": "Spec round part 3 (7 Oct): the delivered part is 2026-09-29-timetabling-exam-schedule; the missing part is specified in exam-sitting-overview-section.",
         "requirement": [
           "openspec/specs/exam-schedule :: Exam periods and sittings",
-          "openspec/changes/exam-sitting-overview-section/specs/exam-schedule :: An exam sitting shows each accommodated learner's end time",
-          "openspec/changes/exam-sitting-overview-section/specs/exam-schedule :: An exam sitting shows its invigilator places and who is free"
+          "openspec/specs/exam-schedule :: An exam sitting shows each accommodated learner's end time",
+          "openspec/specs/exam-schedule :: An exam sitting shows its invigilator places and who is free"
         ]
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
       "feature": "assessment",
-      "learniq": "partial",
+      "learniq": "yes",
       "moodle": "unknown",
       "moodle-workplace": "unknown",
       "ilias": "unknown",
@@ -10048,7 +10047,6 @@
         ],
         "plan": [
           "openspec/changes/example-portal-declares-its-site",
-          "openspec/changes/example-portal-install-steps",
           "openspec/changes/school-portals-match-their-boards"
         ]
       },
@@ -10655,17 +10653,17 @@
       "name": "Show each school role one card with the first thing it must act on today.",
       "origin": "change",
       "built": {
-        "state": "specified",
-        "evidence": "Not built yet: openspec/changes/today-first-per-school-role carries the work.",
+        "state": "built",
+        "evidence": "lib/Service/Today (FirstTodayRules, FirstTodayProbe, FirstTodayCard, TodayTiles, TodayCountFacts, ParentMessages), lib/Controller/TodayFirstController.php and TodayMessagesController.php (GET /api/today/first, /api/today/counts, /api/today/parent-messages), and Today's First today card, role tiles, Teacher/Mentor switch and messages from parents in src/menu-layout.simple.json; the po and vo example sets carry the boards' Monday states. Tests: FirstTodayRulesTest, FirstTodayFactsTest, FirstTodayServiceTest, TodayTilesTest, ParentMessagesTest, ParentMessagesServiceTest, TodayFirstExampleStatesTest, structureProfile.test.mjs, todayMentorView.test.mjs. Not checked in a browser. Built through openspec/changes/archive/2026-11-25-today-first-per-school-role.",
         "owner": "ConductionNL/learniq",
-        "change": "today-first-per-school-role",
-        "requirement": "openspec/changes/today-first-per-school-role/specs/dashboard :: Today shows one First today card per role, from the role's ordered rules",
-        "plan": "openspec/changes/today-first-per-school-role"
+        "change": "2026-11-25-today-first-per-school-role",
+        "requirement": "openspec/specs/dashboard :: Today shows one First today card per role, from the role's ordered rules",
+        "reachedOn": "/"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",
       "feature": "today-first-per-school-role",
-      "learniq": "no",
+      "learniq": "yes",
       "moodle": "unknown",
       "moodle-workplace": "unknown",
       "ilias": "unknown",
@@ -10716,11 +10714,10 @@
       "origin": "change",
       "built": {
         "state": "building",
-        "evidence": "Partly built through openspec/changes/archive/2026-11-21-simple-today-dashboard (Today in src/menu-layout.simple.json); the First today card per role, the marking count and the signals per pupil are planned in today-first-per-school-role.",
+        "evidence": "Built through openspec/changes/archive/2026-11-21-simple-today-dashboard (Today in src/menu-layout.simple.json) and openspec/changes/archive/2026-11-25-today-first-per-school-role (the First today card per role, the role tiles with the marking count, the Teacher/Mentor switch and the messages from parents); the signals per pupil are not on Today yet.",
         "owner": "ConductionNL/learniq",
         "change": "simple-today-dashboard",
-        "requirement": "openspec/specs/dashboard :: REQ-STD-001 The start page is Today for the teaching roles in the simple structure",
-        "plan": "openspec/changes/today-first-per-school-role"
+        "requirement": "openspec/specs/dashboard :: REQ-STD-001 The start page is Today for the teaching roles in the simple structure"
       },
       "provider": "self",
       "providerHow": "read: the logic is in this repository, at the path in built.evidence",

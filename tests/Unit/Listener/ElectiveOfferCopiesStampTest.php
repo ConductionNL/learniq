@@ -140,7 +140,7 @@ class ElectiveOfferCopiesStampTest extends TestCase {
 	}//end testAnOfferWriteCarriesTheCopies()
 
 	/**
-	 * A saved sign-up saves its offer again with fresh copies, without RBAC;
+	 * A saved sign-up saves its offer again, without RBAC, so its updating event stamps fresh copies;
 	 * an unchanged offer, an unknown offer or a sign-up without one is not saved.
 	 *
 	 * @return void
@@ -151,7 +151,8 @@ class ElectiveOfferCopiesStampTest extends TestCase {
 		$this->stamp(stored: $stored)->handle(new ObjectCreatedEvent($signUp));
 
 		self::assertCount(expectedCount: 1, haystack: $this->saved);
-		self::assertSame(expected: array_merge($stored, self::COPIES), actual: $this->saved[0]['object']);
+		// Saved as stored: the read-only copies are written by the save's own updating event.
+		self::assertSame(expected: $stored, actual: $this->saved[0]['object']);
 		self::assertSame(expected: 'offer-1', actual: $this->saved[0]['uuid']);
 		self::assertSame(expected: 'elective-offer', actual: $this->saved[0]['schema']);
 		self::assertFalse(condition: $this->saved[0]['_rbac']);

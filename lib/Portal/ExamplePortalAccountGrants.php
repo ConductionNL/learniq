@@ -31,7 +31,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/example-portal-install-steps/specs/example-sets/spec.md#requirement-loading-a-set-gives-its-declared-learners-a-portal-account
+ * @spec openspec/specs/example-sets/spec.md#requirement-loading-a-set-gives-its-declared-learners-a-portal-account
  */
 
 declare(strict_types=1);
@@ -48,7 +48,7 @@ use Throwable;
 /**
  * Asks portaliq for the declared learners' portal accounts, once.
  *
- * @spec openspec/changes/example-portal-install-steps/specs/example-sets/spec.md#requirement-loading-a-set-gives-its-declared-learners-a-portal-account
+ * @spec openspec/specs/example-sets/spec.md#requirement-loading-a-set-gives-its-declared-learners-a-portal-account
  */
 class ExamplePortalAccountGrants implements ExamplePortalAccountGrantsInterface {
 
@@ -118,7 +118,7 @@ class ExamplePortalAccountGrants implements ExamplePortalAccountGrantsInterface 
 	 *
 	 * @return array{status: string, granted: int, kept: int, waiting: int, failed: int, reasons: array<int, string>}
 	 *
-	 * @spec openspec/changes/example-portal-install-steps/specs/example-sets/spec.md#requirement-loading-a-set-gives-its-declared-learners-a-portal-account
+	 * @spec openspec/specs/example-sets/spec.md#requirement-loading-a-set-gives-its-declared-learners-a-portal-account
 	 */
 	public function grant(string $profileId): array {
 		$declaration = $this->declarations->forSet(setId: $profileId);

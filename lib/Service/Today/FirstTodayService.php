@@ -20,7 +20,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
+ * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
  */
 
 declare(strict_types=1);
@@ -36,7 +36,7 @@ use Throwable;
 /**
  * Answers the First today card for a user.
  *
- * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
+ * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
  */
 class FirstTodayService {
 
@@ -91,8 +91,8 @@ class FirstTodayService {
 	 * @return array<string, mixed>|null `role` (null when Today has no card for her), `rule` (null when nothing
 	 *                                   is first), `count` (0 when nothing is first) and the winning rule's facts.
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
-	 * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-a-mentor-switches-today-to-her-mentor-class
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/specs/dashboard/spec.md#requirement-a-mentor-switches-today-to-her-mentor-class
 	 */
 	public function cardFor(IUser $user, string $view=''): ?array {
 		try {
@@ -114,7 +114,7 @@ class FirstTodayService {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/specs/dashboard/spec.md#requirement-today-shows-one-first-today-card-per-role-from-the-roles-ordered-rules
 	 */
 	public function forUser(IUser $user, string $view=''): array {
 		$role = $this->roleOf(user: $user, view: $view);
@@ -140,8 +140,8 @@ class FirstTodayService {
 	 * @return array<string, mixed>|null `role` (null when Today has no card for her), `tiles`, each
 	 *                                   `{id, count, ...}`, and `byTile`, the same tiles keyed for the manifest.
 	 *
-	 * @spec openspec/changes/today-first-per-school-role/specs/dashboard/spec.md#requirement-each-role-tile-counts-what-that-role-acts-on-and-opens-the-list-it-counts
-	 * @spec openspec/changes/today-first-per-school-role/tasks.md#T4
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/specs/dashboard/spec.md#requirement-each-role-tile-counts-what-that-role-acts-on-and-opens-the-list-it-counts
+	 * @spec openspec/changes/archive/2026-11-25-today-first-per-school-role/tasks.md#T4
 	 */
 	public function tilesFor(IUser $user, string $view=''): ?array {
 		try {

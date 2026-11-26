@@ -8,8 +8,8 @@
 //
 // Run via `node --test tests/unit-js/` (package.json `test:js-unit`).
 //
-// @spec openspec/changes/exam-sitting-overview-section/specs/exam-schedule/spec.md#requirement-an-exam-sitting-shows-each-accommodated-learners-end-time
-// @spec openspec/changes/exam-sitting-overview-section/specs/exam-schedule/spec.md#requirement-an-exam-sitting-shows-its-invigilator-places-and-who-is-free
+// @spec openspec/specs/exam-schedule/spec.md#requirement-an-exam-sitting-shows-each-accommodated-learners-end-time
+// @spec openspec/specs/exam-schedule/spec.md#requirement-an-exam-sitting-shows-its-invigilator-places-and-who-is-free
 
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
@@ -113,7 +113,7 @@ test('a sitting the caller may not read, or a non-planner, hides the section', a
 	assert.equal(vm.loadError, 'The extra time and invigilators could not be loaded.')
 })
 
-test('"Ask" writes a pending request through OpenRegister, reads both routes again and refreshes the list', async () => {
+test('"Ask" writes a pending request in the sitting\'s tenant through OpenRegister, reads both routes again and refreshes the list', async () => {
 	let asked = false
 	const { vm, http, emitted } = await section((call) => {
 		if (call.method === 'post') {
@@ -124,6 +124,7 @@ test('"Ask" writes a pending request through OpenRegister, reads both routes aga
 			return { data: { ...OVERVIEW, invigilators: { needed: 3, confirmed: ['anna'], pending: asked ? ['bram'] : [], open: asked ? 1 : 2 } } }
 		}
 		if (call.url.endsWith('/available-invigilators')) return { data: { invigilators: asked ? [] : ['bram'] } }
+		if (call.url.endsWith('/exam-sitting/s-1')) return { data: { id: 's-1', tenant_id: 'tenant-1' } }
 		return routes(call)
 	})
 	await vm.load()
@@ -131,13 +132,14 @@ test('"Ask" writes a pending request through OpenRegister, reads both routes aga
 
 	await vm.ask('bram')
 
-	assert.deepEqual(http.calls[0], {
+	assert.equal(http.calls[0].url, '/nc/apps/openregister/api/objects/learniq/exam-sitting/s-1')
+	assert.deepEqual(http.calls[1], {
 		method: 'post',
 		url: '/nc/apps/openregister/api/objects/learniq/invigilator-assignment',
-		body: { examSittingId: 's-1', invigilatorId: 'bram' },
+		body: { examSittingId: 's-1', invigilatorId: 'bram', tenant_id: 'tenant-1' },
 		config: undefined,
 	})
-	assert.deepEqual(http.calls.slice(1, 3).map((c) => c.url), [
+	assert.deepEqual(http.calls.slice(2, 4).map((c) => c.url), [
 		'/nc/apps/learniq/api/exam-sittings/s-1/overview',
 		'/nc/apps/learniq/api/exam-sittings/s-1/available-invigilators',
 	])

@@ -102,8 +102,9 @@ class ElectiveSignUpRulesTest extends TestCase {
 		);
 
 		$resolver = $this->createMock(ListenerSchemaResolver::class);
-		$resolver->method('registerSlug')->willReturn('learniq');
-		$resolver->method('schemaSlug')->willReturnCallback(static fn ($entity) => $entity->getSchema());
+		// A guard: the slug is resolved whatever the listener slug contract says.
+		$resolver->method('guardSchemaSlug')->willReturnCallback(static fn ($entity) => $entity->getSchema());
+		$resolver->expects($this->never())->method('schemaSlug');
 
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn($uid);
@@ -313,8 +314,7 @@ class ElectiveSignUpRulesTest extends TestCase {
 		$session->method('getUser')->willReturn(null);
 		$anonymous = new ObjectCreatingEvent($signUp);
 		$resolver = $this->createMock(ListenerSchemaResolver::class);
-		$resolver->method('registerSlug')->willReturn('learniq');
-		$resolver->method('schemaSlug')->willReturn('elective-sign-up');
+		$resolver->method('guardSchemaSlug')->willReturn('elective-sign-up');
 		$electives = $this->createMock(ElectiveService::class);
 		$electives->expects($this->never())->method('caller');
 		(new ElectiveSignUpRules($electives, $resolver, $session, $this->createMock(IGroupManager::class), new NullLogger()))->handle($anonymous);

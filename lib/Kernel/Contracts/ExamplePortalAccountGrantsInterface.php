@@ -54,7 +54,7 @@ interface ExamplePortalAccountGrantsInterface {
 	 *
 	 * @return array{status: string, granted: int, kept: int, waiting: int, failed: int, reasons: array<int, string>}
 	 *
-	 * @spec openspec/changes/example-portal-install-steps/specs/example-sets/spec.md#requirement-loading-a-set-gives-its-declared-learners-a-portal-account
+	 * @spec openspec/specs/example-sets/spec.md#requirement-loading-a-set-gives-its-declared-learners-a-portal-account
 	 */
 	public function grant(string $profileId): array;
 }//end interface

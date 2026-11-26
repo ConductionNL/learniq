@@ -230,7 +230,9 @@ test.describe('mbo assessor: his access date and the shared entries', () => {
 			{ headers: { Authorization: `Bearer ${assessor.token}` } },
 		)
 		expect(opened.status(), await opened.text()).toBe(200)
-		expect(String((await opened.json()).title ?? '')).toBe('Werkplekopdracht: meterkast vervangen')
+		// portaliq answers one collection row as `{object: {...}}`.
+		const body = await opened.json()
+		expect(String((body.object ?? body).title ?? '')).toBe('Werkplekopdracht: meterkast vervangen')
 
 		const closed = await assessor.page.request.get(
 			`/apps/portaliq/portal/api/collections/learniq/portfolio-entry/${leftOutEntryId}?collection=eaSharedPortfolioEntries`,
@@ -249,8 +251,9 @@ test.describe('mbo assessor: his access date and the shared entries', () => {
 	})
 
 	test('d. on the page he reads until when, and the entry shared with him', async () => {
-		await openRoute(assessor.page, PORTAL, 'learniq/eaSharedPortfolios')
-		await assessor.page.getByText(SELECTED_TITLE).first().click()
+		// The share's own page (AssessorSitePages::sharePage), opened by its
+		// route: a row of "Met u gedeeld" opens the share's fields in place.
+		await openRoute(assessor.page, PORTAL, `learniq/eaShare/${selectedShareId}`)
 		await expect(assessor.page.getByText(/U heeft toegang tot en met/).first()).toBeVisible({ timeout: 20_000 })
 		await expect(assessor.page.getByText('Werkplekopdracht: meterkast vervangen').first()).toBeVisible()
 		await expect(assessor.page.getByText('Reflectie op de stageweek')).toHaveCount(0)
