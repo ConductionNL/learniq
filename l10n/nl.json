@@ -6828,7 +6828,15 @@
         "The document": "Het document",
         "Add the document": "Document toevoegen",
         "Your document is added. You find it under your documents.": "Je document is toegevoegd. Je vindt het bij je documenten.",
-        "Added by you": "Door jou toegevoegd"
+        "Added by you": "Door jou toegevoegd",
+        "Practical Exam Assessment Draft": "Concept beoordeling praktijkexamen",
+        "The assessor whose unfinished assessment this is, stamped by the portal from his sign-in.": "De beoordelaar van wie deze onafgemaakte beoordeling is, vastgelegd door het portaal uit zijn inlog.",
+        "The organisation the portal stamps on what the assessor writes.": "De organisatie die het portaal vastlegt op wat de beoordelaar schrijft.",
+        "Which candidate": "Welke kandidaat",
+        "Choose the exam and the candidate you assess.": "Kies het examen en de kandidaat die u beoordeelt.",
+        "The criteria": "De criteria",
+        "Score each criterion of the assessment model. What you fill in is kept as you go.": "Geef elk criterium van het beoordelingsmodel een score. Wat u invult, wordt meteen bewaard.",
+        "Say whether the candidate passed the practical exam.": "Geef aan of de kandidaat voor het praktijkexamen is geslaagd."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

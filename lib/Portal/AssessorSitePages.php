@@ -178,11 +178,50 @@ class AssessorSitePages {
 	];
 
 	/**
+	 * The schema portaliq keeps an assessor's unfinished assessment on.
+	 *
+	 * @var string
+	 */
+	public const ASSESSMENT_DRAFT_SCHEMA = 'practical-exam-assessment-draft';
+
+	/**
+	 * The steps of the assessment form: who and what, the scores, a review.
+	 *
+	 * @spec openspec/changes/practical-exam-assessment/tasks.md#T6
+	 */
+	private const ASSESS_STEPS = [
+		[
+			'id' => 'candidate',
+			'title' => 'Which candidate',
+			'description' => 'Choose the exam and the candidate you assess.',
+			'fields' => ['examSittingId', 'learnerRef', 'assessmentModelId'],
+		],
+		[
+			'id' => 'criteria',
+			'title' => 'The criteria',
+			'description' => 'Score each criterion of the assessment model. What you fill in is kept as you go.',
+			'fields' => ['criteria'],
+		],
+		[
+			'id' => 'judgement',
+			'title' => 'Your judgement',
+			'description' => 'Say whether the candidate passed the practical exam.',
+			'fields' => ['outcome'],
+		],
+		['id' => 'check', 'title' => 'Check and send', 'review' => true],
+	];
+
+	/**
 	 * The assessment form (practical-exam-assessment): through learniq's own
 	 * endpoint, because only a forwarded request carries the assertion, and
 	 * the assertion is where his sign-in level is. The server only accepts it
 	 * for a candidate at a sitting he holds a live assignment for, writes who
-	 * assessed and at which assurance level, and keeps every step as a draft.
+	 * assessed and at which assurance level. The form runs in steps, and
+	 * portaliq keeps every step as an OpenRegister draft on
+	 * `practical-exam-assessment-draft`, so a dropped connection loses nothing
+	 * and the endpoint receives only the finished assessment.
+	 *
+	 * @spec openspec/changes/practical-exam-assessment/tasks.md#T6
 	 */
 	public const ASSESS_ACTION = [
 		'id' => 'assessPracticalExam',
@@ -195,6 +234,14 @@ class AssessorSitePages {
 		'scopeClaim' => 'externalAssessorId',
 		'fields' => ['examSittingId', 'learnerRef', 'assessmentModelId', 'criteria', 'outcome'],
 		'requiredFields' => ['examSittingId', 'learnerRef', 'outcome'],
+		// In steps with a review (portaliq site-multi-step-forms); every step
+		// is saved as a draft he resumes after a dropped connection, kept 30
+		// days. An endpoint action has no schema of its own, so the draft is
+		// kept on its own draft schema (portaliq endpoint-forward-draft-schema;
+		// an older portaliq drops the key and offers no draft).
+		'steps' => self::ASSESS_STEPS,
+		'draft' => ['retentionDays' => 30],
+		'draftSchema' => ['register' => self::REGISTER, 'schema' => self::ASSESSMENT_DRAFT_SCHEMA],
 		// He picks the exam and the candidate from his own assignments: the
 		// collection provider reads the subject-scoped `eaExams`.
 		'optionsProviders' => [

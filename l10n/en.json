@@ -6124,7 +6124,15 @@
         "The document": "The document",
         "Add the document": "Add the document",
         "Your document is added. You find it under your documents.": "Your document is added. You find it under your documents.",
-        "Added by you": "Added by you"
+        "Added by you": "Added by you",
+        "Practical Exam Assessment Draft": "Practical Exam Assessment Draft",
+        "The assessor whose unfinished assessment this is, stamped by the portal from his sign-in.": "The assessor whose unfinished assessment this is, stamped by the portal from his sign-in.",
+        "The organisation the portal stamps on what the assessor writes.": "The organisation the portal stamps on what the assessor writes.",
+        "Which candidate": "Which candidate",
+        "Choose the exam and the candidate you assess.": "Choose the exam and the candidate you assess.",
+        "The criteria": "The criteria",
+        "Score each criterion of the assessment model. What you fill in is kept as you go.": "Score each criterion of the assessment model. What you fill in is kept as you go.",
+        "Say whether the candidate passed the practical exam.": "Say whether the candidate passed the practical exam."
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
