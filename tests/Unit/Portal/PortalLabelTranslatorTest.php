@@ -277,6 +277,24 @@ class PortalLabelTranslatorTest extends TestCase {
 	}//end testTheTrainerAndAssessorReadDutch()
 
 	/**
+	 * The trainer's assessment form names its save-for-later button as the
+	 * board draws it: "Bewaren voor later" (portaliq action-draft-label).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/trainer-saves-an-assessment-for-later/tasks.md#T2
+	 */
+	public function testTheTrainersSaveForLaterButtonReadsAsTheBoard(): void {
+		$english = array_column((new PortalContributionProvider())->getContribution(['audience' => 'praktijkopleider'])['actions'], null, 'id');
+		self::assertSame('Keep for later', $english['createWerkprocesAssessment']['draftLabel']);
+
+		$factory = $this->createMock(IFactory::class);
+		$factory->method('get')->with('learniq')->willReturn($this->dutchL10n());
+		$dutch = array_column((new PortalContributionProvider(l10nFactory: $factory))->getContribution(['audience' => 'praktijkopleider'])['actions'], null, 'id');
+		self::assertSame('Bewaren voor later', $dutch['createWerkprocesAssessment']['draftLabel']);
+	}//end testTheTrainersSaveForLaterButtonReadsAsTheBoard()
+
+	/**
 	 * Only visible strings move: ids, field names, schemas, the `labelField`
 	 * a dropdown reads, and every scope value stay exactly as they were.
 	 *

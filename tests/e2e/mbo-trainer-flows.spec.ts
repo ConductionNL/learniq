@@ -108,6 +108,8 @@ const CODES: Record<string, string> = {
 const FORM = 'Beoordeling van een werkproces versturen'
 const NEXT = /^(Volgende|Verder)( stap)?$/
 const KEEP = /Bewaren voor later/
+/** The notes field: optional, so portaliq adds " (niet verplicht)" to its name. */
+const WHY = /^Waarom( \(niet verplicht\))?$/
 
 /**
  * A field the form draws under its own name, found by that name in any
@@ -301,9 +303,12 @@ test.describe('mbo trainer: a student, and an assessment finished later', () => 
 			.getByRole('group', { name: 'Uw oordeel', exact: true })
 			.getByRole('radio', { name: 'Competent', exact: true })
 			.check()
-		await form.getByRole('textbox', { name: 'Waarom', exact: true }).fill(NOTES)
+		await form.getByRole('textbox', { name: WHY }).fill(NOTES)
 		await shot(trainer.page, SHOTS, 'b1-halfway')
 		await form.getByRole('button', { name: KEEP }).click()
+		// The save dialog says how long the draft is kept; she saves and stops.
+		await trainer.page.getByTestId('form-save-draft-save').click()
+		await expect(trainer.page.getByTestId('form-save-draft-dialog')).toBeHidden({ timeout: 20_000 })
 
 		// Learniq writes no draft assessment from the portal.
 		await openHome(trainer.page, PORTAL)
@@ -316,14 +321,13 @@ test.describe('mbo trainer: a student, and an assessment finished later', () => 
 		test.skip(!draftKept, "this instance's portaliq drops the action's draft key (portaliq #1152 not landed)")
 		const form = await openForm()
 
-		// The form continues with her answers.
-		await expect(form.getByRole('textbox', { name: 'Werkproces', exact: true })).toHaveValue(WERKPROCES_LABEL)
-		await form.getByRole('button', { name: NEXT }).click()
-		await expect(form.getByRole('textbox', { name: 'Waarom', exact: true })).toHaveValue(NOTES)
-		await form.getByRole('button', { name: NEXT }).click()
+		// The form asks whether she continues with her answers. Every required
+		// answer is there, so it opens on the review step with them.
+		await trainer.page.getByTestId('form-resume-draft-resume').click()
+		await expect(form.getByText(WERKPROCES_LABEL).first()).toBeVisible({ timeout: 20_000 })
+		await expect(form.getByText(NOTES).first()).toBeVisible()
 
-		// The review step, then send.
-		await expect(form.getByText(WERKPROCES_LABEL).first()).toBeVisible()
+		// Send.
 		await form.getByRole('button', { name: 'Beoordeling versturen', exact: true }).click()
 		await expect(trainer.page.getByText('Uw beoordeling is verstuurd').first()).toBeVisible({ timeout: 20_000 })
 		await shot(trainer.page, SHOTS, 'c1-sent')

@@ -81,6 +81,8 @@ class PortalLabelTranslator {
 		'subtitle',
 		'emptyLabel',
 		'markdown',
+		// A form's save-for-later button (portaliq action-draft-label).
+		'draftLabel',
 	];
 
 	/**

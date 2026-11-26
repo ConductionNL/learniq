@@ -748,6 +748,7 @@ class TrainerSitePages {
 	 * @spec openspec/changes/an-invited-trainer-may-assess/specs/bpv/spec.md#requirement-an-invited-trainer-may-submit-a-werkproces-assessment
 	 * @spec openspec/changes/site-workplace-trainer-portal-design/specs/portal-contribution/spec.md#requirement-new-a-trainer-assesses-a-werkproces-in-plain-words
 	 * @spec openspec/changes/trainer-saves-an-assessment-for-later/tasks.md#T1
+	 * @spec openspec/changes/trainer-saves-an-assessment-for-later/tasks.md#T2
 	 */
 	private function assessmentAction(): array {
 		return [
@@ -771,6 +772,9 @@ class TrainerSitePages {
 			// site-multi-step-forms REQ-SMF-020). The draft is kept 30 days.
 			'steps' => self::CREATE_WERKPROCES_ASSESSMENT_STEPS,
 			'draft' => ['retentionDays' => 30],
+			// "Bewaren voor later", as the board draws the button (portaliq
+			// action-draft-label; an older portaliq drops the key and shows its own words).
+			'draftLabel' => 'Keep for later',
 			// An endpoint action has no schema of its own: portaliq keeps the
 			// unfinished assessment as an OpenRegister draft here, the endpoint
 			// receives only the finished one (portaliq endpoint-forward-draft-schema;
