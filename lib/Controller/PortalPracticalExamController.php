@@ -155,6 +155,33 @@ class PortalPracticalExamController extends Controller {
 	}//end sign()
 
 	/**
+	 * Sign the submitted assessment of a candidate at a sitting: the portal's signing action.
+	 *
+	 * The assessor picks the exam and the candidate from his own assignments,
+	 * so the form sends `examSittingId` and `learnerRef`, never an assessment
+	 * id he could not read.
+	 *
+	 * @return JSONResponse 201 `{signatureId, role, assuranceLevel, signedAt}`, or 401 / 403 / 409 / 422 / 502.
+	 *
+	 * @spec openspec/changes/practical-exam-assessment/tasks.md#t9
+	 * @spec openspec/changes/practical-exam-assessment/specs/exam-board/spec.md#requirement-a-practical-exam-result-needs-both-assessors
+	 */
+	#[PublicPage]
+	#[NoCSRFRequired]
+	#[AnonRateLimit(limit: 600, period: 60)]
+	#[BruteForceProtection(action: self::THROTTLE_ACTION)]
+	public function signCandidate(): JSONResponse {
+		return $this->forAssessor(
+			call: fn (string $assessorRef, array $claims): PortalOutcome => $this->signing->signForCandidate(
+				assessorRef: $assessorRef,
+				trust: (string)($claims['trust'] ?? ''),
+				sittingId: $this->stringParam(name: 'examSittingId'),
+				learnerRef: $this->stringParam(name: 'learnerRef')
+			)
+		);
+	}//end signCandidate()
+
+	/**
 	 * One exam sitting and its documents, for an assessor assigned to it.
 	 *
 	 * @param string $id The sitting.

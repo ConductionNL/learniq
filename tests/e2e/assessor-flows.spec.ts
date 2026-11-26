@@ -23,8 +23,8 @@
  *   a. he signs in and lands on an overview listing what is shared with him,
  *      by candidate, portfolio and the date his access runs to;
  *   b. a revoked share grants nothing, and neither does another assessor's;
- *   c. his portal offers him one action, the practical exam form, and a
- *      write he was never offered is refused;
+ *   c. his portal offers him two actions, the practical exam form and its
+ *      signature, and a write he was never offered is refused;
  *   and, in the second block (practical-exam-assessment T9):
  *   d. his day lists only the candidates he is assigned to, not another
  *      assessor's sitting;
@@ -32,8 +32,9 @@
  *      `assuranceLevel: basic`;
  *   f. a sitting he is not assigned to resolves nothing and takes no
  *      assessment from him;
- *   g. the second assessor signs (fixme: the portal declares no signing
- *      action yet, so nothing in portaliq reaches the signatures endpoint).
+ *   g. he signs the assessment from the portal (`signPracticalExam`): once,
+ *      at `basic`, and one signature does not bring it to the exam board;
+ *      a sitting he is not assigned to takes no signature.
  *
  * Screenshots land in `test-results/audience-flow/assessor/`.
  *
@@ -317,7 +318,7 @@ test.describe('assessor: a portfolio shared with an external assessor', () => {
 		await shot(assessor.page, SHOTS, 'b1-shares')
 	})
 
-	test('c. his portal offers him the practical exam form and nothing else', async () => {
+	test('c. his portal offers him the practical exam form, its signature, and nothing else', async () => {
 		const manifest = await assessor.page.request.get(
 			'/apps/portaliq/portal/api/contributions',
 			{ headers: { Authorization: `Bearer ${assessor.token}` } },
@@ -325,11 +326,11 @@ test.describe('assessor: a portfolio shared with an external assessor', () => {
 		expect(manifest.status(), await manifest.text()).toBe(200)
 		const body = await manifest.json()
 		expect(body.audience).toBe('external-assessor')
-		// practical-exam-assessment gave him one action: the assessment form.
+		// practical-exam-assessment gave him two actions: the assessment form and its signature.
 		const actions = (body.contributions ?? []).flatMap(
 			(contribution: { actions?: Array<{ id: string }> }) => (contribution.actions ?? []).map((action) => action.id),
 		)
-		expect(actions).toEqual(['assessPracticalExam'])
+		expect(actions).toEqual(['assessPracticalExam', 'signPracticalExam'])
 
 		// And a write he was never offered is refused rather than stored.
 		const written = await assessor.page.request.post(
@@ -575,10 +576,36 @@ test.describe('assessor: the practical exams he is assigned to', () => {
 		expect(((await stored.json()).results ?? []).length, 'nothing was stored for the sitting').toBe(0)
 	})
 
-	test.fixme('g. a second assessor signs, and the result reaches the exam board', async () => {
-		// The signatures endpoint (POST /api/portal/practical-exam-assessments/{id}/signatures)
-		// takes a forwarded assertion, but the assessor portal declares no
-		// signing action, so nothing in portaliq reaches it yet. The two-signature
-		// rule is asserted in PortalPracticalExamSigningTest and PracticalExamBoardResultsTest.
+	test('g. he signs from the portal, once, and one signature is not a result yet', async () => {
+		const sign = (data: Record<string, unknown>) => examiner.page.request.post(
+			'/apps/portaliq/portal/api/actions/learniq/signPracticalExam',
+			{ headers: { Authorization: `Bearer ${examiner.token}` }, data },
+		)
+
+		// He names the exam and the candidate; the server finds the one submitted assessment (step e).
+		const signed = await sign({ examSittingId: mySittings[0], learnerRef: myCandidate, signerId: 'someone-else' })
+		expect(signed.status(), await signed.text()).toBeLessThan(300)
+
+		const stored = await admin.get(
+			`/apps/openregister/api/objects/learniq/signature?subjectKind=practical-exam-assessment&signerId=${examinerRef}`,
+		)
+		expect(stored.status(), await stored.text()).toBe(200)
+		const signatures = (await stored.json()).results ?? []
+		for (const row of signatures) {
+			created.push({ register: 'learniq', schema: 'signature', id: String(row.id ?? row.uuid) })
+		}
+		expect(signatures.length, 'his one signature').toBe(1)
+		expect(signatures[0].signerRole).toBe('assessor')
+		expect(signatures[0].assuranceLevel).toBe('basic')
+
+		// A second signature from him is refused, and so is one at a sitting he is not assigned to.
+		expect((await sign({ examSittingId: mySittings[0], learnerRef: myCandidate })).status()).toBeGreaterThanOrEqual(400)
+		expect((await sign({ examSittingId: foreignSitting, learnerRef: foreignCandidate })).status()).toBeGreaterThanOrEqual(400)
+
+		// The second assessor has not signed, so the exam board does not see the result yet.
+		const board = await admin.get(`/apps/learniq/api/practical-exam-results?examSittingId=${mySittings[0]}`)
+		expect(board.status(), await board.text()).toBe(200)
+		const results = (await board.json()).results ?? []
+		expect(results.length, 'one signature is not enough').toBe(0)
 	})
 })

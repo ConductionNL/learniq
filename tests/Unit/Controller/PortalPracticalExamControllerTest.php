@@ -123,6 +123,24 @@ class PortalPracticalExamControllerTest extends TestCase {
 		self::assertSame(['signatureId' => 'sig-1', 'role' => 'second'], $response->getData());
 	}
 
+	public function testThePortalSignatureIsAskedForThisAssessorsCandidateAtTheSitting(): void {
+		$this->verifier->method('verify')->willReturnOnConsecutiveCalls(
+			['audience' => 'external-assessor', 'trust' => 'low'],
+			['audience' => 'praktijkopleider', 'trust' => 'low'],
+			null
+		);
+		$this->signing->expects($this->once())->method('signForCandidate')->with('ruud', 'low', 's-1', 'daan')
+			->willReturn(new PortalOutcome(status: 201, body: ['signatureId' => 'sig-2', 'role' => 'first']));
+
+		$params = ['externalAssessorId' => 'ruud', 'examSittingId' => 's-1', 'learnerRef' => 'daan', 'signerId' => 'somebody'];
+		$signed = $this->controller(params: $params)->signCandidate();
+		self::assertSame(201, $signed->getStatus());
+		self::assertSame(['signatureId' => 'sig-2', 'role' => 'first'], $signed->getData());
+
+		self::assertSame(403, $this->controller(params: $params)->signCandidate()->getStatus());
+		self::assertSame(401, $this->controller(params: $params)->signCandidate()->getStatus());
+	}
+
 	public function testTheSittingIsAskedForThisAssessorAndAnotherAudienceGetsNothing(): void {
 		$this->verifier->method('verify')->willReturnOnConsecutiveCalls(['audience' => 'external-assessor', 'trust' => 'low'], ['audience' => 'praktijkopleider', 'trust' => 'low']);
 		$this->sittings->expects($this->once())->method('sitting')->with('ruud', 's-1')

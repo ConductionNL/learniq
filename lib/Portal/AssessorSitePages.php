@@ -226,6 +226,37 @@ class AssessorSitePages {
 		],
 	];
 
+	/**
+	 * His signature on a submitted assessment (practical-exam-assessment T9):
+	 * the result reaches the exam board only once both assessors signed. The
+	 * assessment was written by the other assessor and is not in his
+	 * listings, so he names the exam and the candidate from his own
+	 * assignments and the server signs the one submitted assessment there,
+	 * at the assurance level of his session.
+	 */
+	public const SIGN_ACTION = [
+		'id' => 'signPracticalExam',
+		'type' => 'endpoint-forward',
+		'label' => 'Sign a practical exam assessment',
+		'endpoint' => '/apps/learniq/api/portal/practical-exam-signatures',
+		'method' => 'POST',
+		'minTrust' => 'low',
+		'subjectField' => 'externalAssessorId',
+		'scopeClaim' => 'externalAssessorId',
+		'fields' => ['examSittingId', 'learnerRef'],
+		'requiredFields' => ['examSittingId', 'learnerRef'],
+		'optionsProviders' => self::ASSESS_ACTION['optionsProviders'],
+		'fieldConfigs' => [
+			'examSittingId' => ['label' => 'The exam', 'required' => true],
+			'learnerRef' => ['label' => 'The candidate', 'required' => true],
+		],
+		'submitLabel' => 'Sign the assessment',
+		'confirmation' => [
+			'title' => 'Your signature has been stored',
+			'body' => 'The result reaches the exam board once both assessors have signed.',
+		],
+	];
+
 	private const ASSESSOR_COLLECTIONS = [
 		[
 			'id' => 'eaSharedPortfolios',
@@ -426,8 +457,9 @@ class AssessorSitePages {
 		$contribution = [
 			'label' => 'Learniq',
 			'collections' => self::ASSESSOR_COLLECTIONS,
-			// Read-only apart from the assessment he is assigned to (practical-exam-assessment).
-			'actions' => [self::ASSESS_ACTION],
+			// Read-only apart from the assessment he is assigned to and his
+			// signature on it (practical-exam-assessment).
+			'actions' => [self::ASSESS_ACTION, self::SIGN_ACTION],
 			'notifications' => [],
 		];
 		// The share names its candidate and portfolio, and the assessor gets an

@@ -45,4 +45,18 @@ interface PortalPracticalExamSigningInterface {
 	 * @spec openspec/changes/practical-exam-assessment/specs/exam-board/spec.md#requirement-a-practical-exam-result-needs-both-assessors
 	 */
 	public function sign(string $assessorRef, string $trust, string $assessmentId): PortalOutcome;
+
+	/**
+	 * Sign the one submitted assessment of a candidate at a sitting, as the calling assessor.
+	 *
+	 * @param string $assessorRef The `externalAssessorId` claim.
+	 * @param string $trust       The session's trust (`low`, `substantial`, `high`).
+	 * @param string $sittingId   The exam sitting.
+	 * @param string $learnerRef  The candidate.
+	 *
+	 * @return PortalOutcome The outcome.
+	 *
+	 * @spec openspec/changes/practical-exam-assessment/tasks.md#t9
+	 */
+	public function signForCandidate(string $assessorRef, string $trust, string $sittingId, string $learnerRef): PortalOutcome;
 }//end interface

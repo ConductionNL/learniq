@@ -219,6 +219,8 @@ return \OCA\Learniq\Middleware\Support\ApiPathAliases::withVersionedAliases([
         ['name' => 'portalPracticalExam#draft',  'url' => '/api/portal/practical-exam-assessments/draft', 'verb' => 'GET'],
         // The second half of the exam: each assessor signs the submitted assessment, and reads his sitting's documents.
         ['name' => 'portalPracticalExam#sign',    'url' => '/api/portal/practical-exam-assessments/{id}/signatures', 'verb' => 'POST'],
+        // The portal's signing action: the candidate at a sitting, the server finds the one submitted assessment.
+        ['name' => 'portalPracticalExam#signCandidate', 'url' => '/api/portal/practical-exam-signatures', 'verb' => 'POST'],
         ['name' => 'portalPracticalExam#sitting', 'url' => '/api/portal/practical-exam-sittings/{id}', 'verb' => 'GET'],
         // The exam board's practical exam results: only those both assessors signed.
         ['name' => 'practicalExamResults#index',  'url' => '/api/practical-exam-results', 'verb' => 'GET'],

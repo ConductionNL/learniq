@@ -144,6 +144,64 @@ class PortalPracticalExamSigning implements PortalPracticalExamSigningInterface 
 	}//end sign()
 
 	/**
+	 * Sign the submitted assessment of a candidate at a sitting, as the calling assessor.
+	 *
+	 * This is the portal's signing action: the assessor picks the exam and
+	 * the candidate from his own assignments, because the assessment itself
+	 * was written by the other assessor and is not in his listings. Exactly
+	 * one submitted assessment of that candidate at that sitting is signed;
+	 * none answers 409 `not_submitted`, more than one 409 `several_assessments`,
+	 * so a signature never lands on a guess.
+	 *
+	 * @param string $assessorRef The `externalAssessorId` claim.
+	 * @param string $trust       The session's trust (`low`, `substantial`, `high`).
+	 * @param string $sittingId   The exam sitting.
+	 * @param string $learnerRef  The candidate.
+	 *
+	 * @return PortalOutcome 201 with the signature; 403, 409, 422 or 502 otherwise.
+	 *
+	 * @spec openspec/changes/practical-exam-assessment/tasks.md#t9
+	 * @spec openspec/changes/practical-exam-assessment/specs/exam-board/spec.md#requirement-a-practical-exam-result-needs-both-assessors
+	 */
+	public function signForCandidate(string $assessorRef, string $trust, string $sittingId, string $learnerRef): PortalOutcome {
+		$assurance = (self::TRUST_TO_ASSURANCE[$trust] ?? 'basic');
+		$floor     = $this->floor();
+		if (self::ASSURANCE_ORDER[$assurance] < self::ASSURANCE_ORDER[$floor]) {
+			return new PortalOutcome(status: 403, body: ['error' => 'assurance_too_low', 'required' => $floor], reason: 'assurance-too-low');
+		}
+
+		if ($assessorRef === '' || $sittingId === '' || $learnerRef === '') {
+			return new PortalOutcome(status: 422, body: ['error' => 'incomplete'], reason: 'incomplete');
+		}
+
+		try {
+			$candidate = ['examSittingId' => $sittingId, 'learnerRef' => $learnerRef];
+			if ($this->assignmentFor(assessorRef: $assessorRef, assessment: $candidate) === null) {
+				return new PortalOutcome(status: 403, body: ['error' => 'not_assigned'], reason: 'not-assigned');
+			}
+
+			$submitted = $this->all(schema: self::ASSESSMENT_SCHEMA, wanted: array_merge($candidate, ['lifecycle' => 'submitted']));
+			if ($submitted === []) {
+				return new PortalOutcome(status: 409, body: ['error' => 'not_submitted'], reason: 'not-submitted');
+			}
+
+			if (count($submitted) > 1) {
+				return new PortalOutcome(status: 409, body: ['error' => 'several_assessments'], reason: 'several-assessments');
+			}
+
+			$assessmentId = $this->text(value: ($submitted[0]['id'] ?? ($submitted[0]['uuid'] ?? null)));
+
+			return $this->signChecked(assessorRef: $assessorRef, assurance: $assurance, assessmentId: $assessmentId);
+		} catch (Throwable $exception) {
+			$this->logger->error(
+				'[PortalPracticalExamSigning] A practical exam signature could not be stored: {msg}',
+				['msg' => $exception->getMessage(), 'exception' => $exception]
+			);
+			return new PortalOutcome(status: 502, body: ['error' => 'downstream_error'], reason: 'downstream');
+		}
+	}//end signForCandidate()
+
+	/**
 	 * Refuse what the assessor may not sign, then store his signature.
 	 *
 	 * An assessment that does not exist answers like one he is not assigned
@@ -250,6 +308,20 @@ class PortalPracticalExamSigning implements PortalPracticalExamSigningInterface 
 	 * @return array<string, mixed>|null The row, or null.
 	 */
 	private function first(string $schema, array $wanted): ?array {
+		$rows = $this->all(schema: $schema, wanted: $wanted);
+
+		return ($rows[0] ?? null);
+	}//end first()
+
+	/**
+	 * Every row of a schema whose fields hold exactly the wanted values.
+	 *
+	 * @param string               $schema The schema slug.
+	 * @param array<string, mixed> $wanted Field => value; `id` matches the object id.
+	 *
+	 * @return array<int, array<string, mixed>> The rows.
+	 */
+	private function all(string $schema, array $wanted): array {
 		$filters = array_merge(['register' => self::REGISTER, 'schema' => $schema], $wanted);
 		$config  = ['filters' => $filters, 'limit' => 10];
 		if (isset($wanted['id']) === true) {
@@ -258,15 +330,16 @@ class PortalPracticalExamSigning implements PortalPracticalExamSigningInterface 
 		}
 
 		$objects = $this->objectService->findAll(config: $config, _rbac: false, _multitenancy: false);
+		$rows    = [];
 		foreach ($objects as $object) {
 			$row = $this->objectRow->asArray(object: $object);
 			if ($this->holds(row: $row, wanted: $wanted) === true) {
-				return $row;
+				$rows[] = $row;
 			}
 		}
 
-		return null;
-	}//end first()
+		return $rows;
+	}//end all()
 
 	/**
 	 * Whether a row holds every wanted value; the store's filter is not trusted alone.
