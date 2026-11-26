@@ -356,8 +356,8 @@ class PortalContributionProviderTest extends TestCase {
 		);
 		$this->assertSame(expected: ['title', 'note', 'attachmentRef'], actual: $action['fields']);
 		$this->assertSame(expected: 'file', actual: $action['fieldConfigs']['attachmentRef']['type']);
-		$this->assertFalse($action['fieldConfigs']['attachmentRef']['multiple']);
-		$this->assertTrue($action['fieldConfigs']['title']['required']);
+		$this->assertFalse(condition: $action['fieldConfigs']['attachmentRef']['multiple']);
+		$this->assertTrue(condition: $action['fieldConfigs']['title']['required']);
 
 		$page   = array_column($manifest['pages'], null, 'id')['studentDocuments'];
 		$offers = array_column(array_filter($page['blocks'], static fn (array $block): bool => $block['type'] === 'action'), 'action');

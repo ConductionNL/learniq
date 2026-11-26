@@ -290,7 +290,10 @@ class LearnerDocumentsTest extends TestCase {
 		self::assertSame(expected: ['22', '21'], actual: array_column($entries, 'id'));
 		self::assertSame(expected: ['EHBO-diploma', 'VCA-certificaat'], actual: array_column($entries, 'title'));
 		self::assertSame(expected: ['nl:Added by you', 'nl:Added by you'], actual: array_column($entries, 'group'));
-		self::assertSame(expected: ['register' => 'learniq', 'schema' => 'learner-document', 'id' => 'ld-2', 'fileId' => '22'], actual: $entries[0]['file']);
+		self::assertSame(
+			expected: ['register' => 'learniq', 'schema' => 'learner-document', 'id' => 'ld-2', 'fileId' => '22'],
+			actual: $entries[0]['file']
+		);
 		self::assertContains(needle: 'learner-document', haystack: $this->schemas);
 	}//end testWhatSheAddedHerselfIsListedUnderAddedByYou()
 

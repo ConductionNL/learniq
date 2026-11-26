@@ -740,10 +740,7 @@ class StudentPortalPages {
 			'group' => ParentSitePages::GROUP,
 			'blocks' => [
 				['type' => 'richText', 'markdown' => 'Your reports, choices, agreements and certificates. You can download and keep them all.'],
-				// A proof of enrolment for a side job or a travel card (school-documents-on-the-portal T4).
-				['type' => 'action', 'action' => 'requestProofOfEnrolment'],
-				// A document of her own for her dossier (school-documents-on-the-portal T3).
-				['type' => 'action', 'action' => StudentFlowActions::UPLOAD_ACTION],
+				...(new StudentFlowActions())->documentBlocks(),
 				[
 					'type' => 'documents',
 					'collection' => 'studentEnrolments',

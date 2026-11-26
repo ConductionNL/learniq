@@ -60,6 +60,22 @@ class StudentFlowActions {
 	}//end actions()
 
 	/**
+	 * The action blocks of her Documents page: a proof of enrolment for a
+	 * side job or a travel card (school-documents-on-the-portal T4), and a
+	 * document of her own for her dossier (T3).
+	 *
+	 * @return array<int, array<string, string>>
+	 *
+	 * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-a-learner-adds-a-document-to-her-own-dossier
+	 */
+	public function documentBlocks(): array {
+		return [
+			['type' => 'action', 'action' => 'requestProofOfEnrolment'],
+			['type' => 'action', 'action' => self::UPLOAD_ACTION],
+		];
+	}//end documentBlocks()
+
+	/**
 	 * Check in to a lesson with the code on the board
 	 * (attendance-self-check-in). The pupil types only the code; learniq finds
 	 * the open check-in of the pupil's own lesson it belongs to.

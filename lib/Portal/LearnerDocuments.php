@@ -112,7 +112,11 @@ class LearnerDocuments {
 			$this->agreements(learnerRef: $learnerRef, l10n: $l10n),
 			$this->grouped(rows: $this->certificates(enrolmentId: $enrolmentId), schema: 'credential', group: $l10n->t('Certificates')),
 			// What she added herself (uploadStudentDocument), once, under her current enrolment.
-			$this->grouped(rows: $this->ownDocuments(enrolment: $enrolment, learnerRef: $learnerRef), schema: self::OWN_SCHEMA, group: $l10n->t('Added by you'))
+			$this->grouped(
+				rows: $this->ownDocuments(enrolment: $enrolment, learnerRef: $learnerRef),
+				schema: self::OWN_SCHEMA,
+				group: $l10n->t('Added by you')
+			)
 		);
 	}//end forEnrolment()
 
