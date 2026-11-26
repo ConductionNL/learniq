@@ -123,25 +123,15 @@ class PortalPracticalExamSigning implements PortalPracticalExamSigningInterface 
 	 * @spec openspec/changes/practical-exam-assessment/specs/exam-board/spec.md#requirement-an-assessor-is-linked-to-an-exam-sitting-by-a-record
 	 */
 	public function sign(string $assessorRef, string $trust, string $assessmentId): PortalOutcome {
-		$assurance = (self::TRUST_TO_ASSURANCE[$trust] ?? 'basic');
-		$floor     = $this->floor();
-		if (self::ASSURANCE_ORDER[$assurance] < self::ASSURANCE_ORDER[$floor]) {
-			return new PortalOutcome(status: 403, body: ['error' => 'assurance_too_low', 'required' => $floor], reason: 'assurance-too-low');
-		}
-
-		if ($assessorRef === '' || $assessmentId === '') {
-			return new PortalOutcome(status: 422, body: ['error' => 'incomplete'], reason: 'incomplete');
-		}
-
-		try {
-			return $this->signChecked(assessorRef: $assessorRef, assurance: $assurance, assessmentId: $assessmentId);
-		} catch (Throwable $exception) {
-			$this->logger->error(
-				'[PortalPracticalExamSigning] A practical exam signature could not be stored: {msg}',
-				['msg' => $exception->getMessage(), 'exception' => $exception]
-			);
-			return new PortalOutcome(status: 502, body: ['error' => 'downstream_error'], reason: 'downstream');
-		}
+		return $this->guarded(
+			trust: $trust,
+			required: [$assessorRef, $assessmentId],
+			call: fn (string $assurance): PortalOutcome => $this->signChecked(
+				assessorRef: $assessorRef,
+				assurance: $assurance,
+				assessmentId: $assessmentId
+			)
+		);
 	}//end sign()
 
 	/**
@@ -166,34 +156,42 @@ class PortalPracticalExamSigning implements PortalPracticalExamSigningInterface 
 	 */
 	#[Override]
 	public function signForCandidate(string $assessorRef, string $trust, string $sittingId, string $learnerRef): PortalOutcome {
+		return $this->guarded(
+			trust: $trust,
+			required: [$assessorRef, $sittingId, $learnerRef],
+			call: fn (string $assurance): PortalOutcome => $this->signCandidateChecked(
+				assessorRef: $assessorRef,
+				assurance: $assurance,
+				candidate: ['examSittingId' => $sittingId, 'learnerRef' => $learnerRef]
+			)
+		);
+	}//end signForCandidate()
+
+	/**
+	 * The checks every signature starts with, then the call, with a failed write as 502.
+	 *
+	 * The school's floor refuses before anything is read, and an empty
+	 * required value answers 422.
+	 *
+	 * @param string                           $trust    The session's trust.
+	 * @param array<int, string>               $required The values that must not be empty.
+	 * @param callable(string): PortalOutcome $call     The signing, given the session's assurance level.
+	 *
+	 * @return PortalOutcome The outcome.
+	 */
+	private function guarded(string $trust, array $required, callable $call): PortalOutcome {
 		$assurance = (self::TRUST_TO_ASSURANCE[$trust] ?? 'basic');
 		$floor     = $this->floor();
 		if (self::ASSURANCE_ORDER[$assurance] < self::ASSURANCE_ORDER[$floor]) {
 			return new PortalOutcome(status: 403, body: ['error' => 'assurance_too_low', 'required' => $floor], reason: 'assurance-too-low');
 		}
 
-		if ($assessorRef === '' || $sittingId === '' || $learnerRef === '') {
+		if (in_array('', $required, true) === true) {
 			return new PortalOutcome(status: 422, body: ['error' => 'incomplete'], reason: 'incomplete');
 		}
 
 		try {
-			$candidate = ['examSittingId' => $sittingId, 'learnerRef' => $learnerRef];
-			if ($this->assignmentFor(assessorRef: $assessorRef, assessment: $candidate) === null) {
-				return new PortalOutcome(status: 403, body: ['error' => 'not_assigned'], reason: 'not-assigned');
-			}
-
-			$submitted = $this->all(schema: self::ASSESSMENT_SCHEMA, wanted: array_merge($candidate, ['lifecycle' => 'submitted']));
-			if ($submitted === []) {
-				return new PortalOutcome(status: 409, body: ['error' => 'not_submitted'], reason: 'not-submitted');
-			}
-
-			if (count($submitted) > 1) {
-				return new PortalOutcome(status: 409, body: ['error' => 'several_assessments'], reason: 'several-assessments');
-			}
-
-			$assessmentId = $this->text(value: ($submitted[0]['id'] ?? ($submitted[0]['uuid'] ?? null)));
-
-			return $this->signChecked(assessorRef: $assessorRef, assurance: $assurance, assessmentId: $assessmentId);
+			return $call($assurance);
 		} catch (Throwable $exception) {
 			$this->logger->error(
 				'[PortalPracticalExamSigning] A practical exam signature could not be stored: {msg}',
@@ -201,7 +199,35 @@ class PortalPracticalExamSigning implements PortalPracticalExamSigningInterface 
 			);
 			return new PortalOutcome(status: 502, body: ['error' => 'downstream_error'], reason: 'downstream');
 		}
-	}//end signForCandidate()
+	}//end guarded()
+
+	/**
+	 * Find the one submitted assessment of the candidate at the sitting, then sign it.
+	 *
+	 * @param string               $assessorRef The calling assessor.
+	 * @param string               $assurance   The assurance level of his session.
+	 * @param array<string, mixed> $candidate   `examSittingId` and `learnerRef`.
+	 *
+	 * @return PortalOutcome The outcome.
+	 */
+	private function signCandidateChecked(string $assessorRef, string $assurance, array $candidate): PortalOutcome {
+		if ($this->assignmentFor(assessorRef: $assessorRef, assessment: $candidate) === null) {
+			return new PortalOutcome(status: 403, body: ['error' => 'not_assigned'], reason: 'not-assigned');
+		}
+
+		$submitted = $this->all(schema: self::ASSESSMENT_SCHEMA, wanted: array_merge($candidate, ['lifecycle' => 'submitted']));
+		if ($submitted === []) {
+			return new PortalOutcome(status: 409, body: ['error' => 'not_submitted'], reason: 'not-submitted');
+		}
+
+		if (count($submitted) > 1) {
+			return new PortalOutcome(status: 409, body: ['error' => 'several_assessments'], reason: 'several-assessments');
+		}
+
+		$assessmentId = $this->text(value: ($submitted[0]['id'] ?? ($submitted[0]['uuid'] ?? null)));
+
+		return $this->signChecked(assessorRef: $assessorRef, assurance: $assurance, assessmentId: $assessmentId);
+	}//end signCandidateChecked()
 
 	/**
 	 * Refuse what the assessor may not sign, then store his signature.

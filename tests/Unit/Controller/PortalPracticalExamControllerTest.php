@@ -123,6 +123,11 @@ class PortalPracticalExamControllerTest extends TestCase {
 		self::assertSame(['signatureId' => 'sig-1', 'role' => 'second'], $response->getData());
 	}
 
+	/**
+	 * The signing action reaches the service with his candidate and sitting; another audience or no assertion does not.
+	 *
+	 * @return void
+	 */
 	public function testThePortalSignatureIsAskedForThisAssessorsCandidateAtTheSitting(): void {
 		$this->verifier->method('verify')->willReturnOnConsecutiveCalls(
 			['audience' => 'external-assessor', 'trust' => 'low'],
@@ -134,12 +139,12 @@ class PortalPracticalExamControllerTest extends TestCase {
 
 		$params = ['externalAssessorId' => 'ruud', 'examSittingId' => 's-1', 'learnerRef' => 'daan', 'signerId' => 'somebody'];
 		$signed = $this->controller(params: $params)->signCandidate();
-		self::assertSame(201, $signed->getStatus());
-		self::assertSame(['signatureId' => 'sig-2', 'role' => 'first'], $signed->getData());
+		self::assertSame(expected: 201, actual: $signed->getStatus());
+		self::assertSame(expected: ['signatureId' => 'sig-2', 'role' => 'first'], actual: $signed->getData());
 
-		self::assertSame(403, $this->controller(params: $params)->signCandidate()->getStatus());
-		self::assertSame(401, $this->controller(params: $params)->signCandidate()->getStatus());
-	}
+		self::assertSame(expected: 403, actual: $this->controller(params: $params)->signCandidate()->getStatus());
+		self::assertSame(expected: 401, actual: $this->controller(params: $params)->signCandidate()->getStatus());
+	}//end testThePortalSignatureIsAskedForThisAssessorsCandidateAtTheSitting()
 
 	public function testTheSittingIsAskedForThisAssessorAndAnotherAudienceGetsNothing(): void {
 		$this->verifier->method('verify')->willReturnOnConsecutiveCalls(['audience' => 'external-assessor', 'trust' => 'low'], ['audience' => 'praktijkopleider', 'trust' => 'low']);

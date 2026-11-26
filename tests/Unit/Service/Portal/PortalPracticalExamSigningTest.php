@@ -24,6 +24,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Service\Portal;
 
 use DateTime;
+use OCA\Learniq\Service\Portal\PortalOutcome;
 use OCA\Learniq\Service\Portal\PortalPracticalExamSigning;
 use OCA\Learniq\Tests\Support\RegisterFaithfulStore;
 use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
@@ -38,7 +39,7 @@ use RuntimeException;
  * Ruud (first) and Sanne (second) sign Daan's assessment; Piet, not assigned, cannot.
  *
  * @covers \OCA\Learniq\Service\Portal\PortalPracticalExamSigning
- * @uses   \OCA\Learniq\Service\Portal\PortalOutcome
+ * @uses   PortalOutcome
  * @uses   \OCA\Learniq\Service\Portal\Support\AssessmentRowValues
  * @uses   \OCA\Learniq\Support\ObjectRow
  * @uses   \OCA\Learniq\Service\Portal\PortalPracticalExamAssessment
@@ -183,54 +184,86 @@ class PortalPracticalExamSigningTest extends TestCase {
 		self::assertSame(['error' => 'downstream_error'], $failed->body);
 	}
 
+	/**
+	 * Sanne signs Daan's submitted assessment by naming the sitting and the candidate, once.
+	 *
+	 * @return void
+	 */
 	public function testTheSecondAssessorSignsTheCandidatesSubmittedAssessmentFromThePortal(): void {
-		$outcome = $this->service()->signForCandidate(assessorRef: self::SANNE, trust: 'substantial', sittingId: self::SITTING, learnerRef: self::DAAN);
+		$outcome = $this->signFor(assessor: self::SANNE, trust: 'substantial', learner: self::DAAN);
 
-		self::assertSame(201, $outcome->status);
-		self::assertSame('second', $outcome->body['role']);
+		self::assertSame(expected: 201, actual: $outcome->status);
+		self::assertSame(expected: 'second', actual: $outcome->body['role']);
 		$rows = $this->signatures();
-		self::assertCount(1, $rows);
-		self::assertSame(self::ASSESSMENT, $rows[0]['subjectId'], 'the submitted one, not her own draft');
-		self::assertSame(self::SANNE, $rows[0]['signerId']);
-		self::assertSame('substantial', $rows[0]['assuranceLevel']);
-		self::assertSame('exam-assessor-assignment:as-2', $rows[0]['evidenceRef']);
+		self::assertCount(expectedCount: 1, haystack: $rows);
+		self::assertSame(expected: self::ASSESSMENT, actual: $rows[0]['subjectId'], message: 'the submitted one, not her own draft');
+		self::assertSame(expected: self::SANNE, actual: $rows[0]['signerId']);
+		self::assertSame(expected: 'substantial', actual: $rows[0]['assuranceLevel']);
+		self::assertSame(expected: 'exam-assessor-assignment:as-2', actual: $rows[0]['evidenceRef']);
 
-		$again = $this->service()->signForCandidate(assessorRef: self::SANNE, trust: 'substantial', sittingId: self::SITTING, learnerRef: self::DAAN);
-		self::assertSame(['error' => 'already_signed'], $again->body);
-	}
+		$again = $this->signFor(assessor: self::SANNE, trust: 'substantial', learner: self::DAAN);
+		self::assertSame(expected: ['error' => 'already_signed'], actual: $again->body);
+	}//end testTheSecondAssessorSignsTheCandidatesSubmittedAssessmentFromThePortal()
 
+	/**
+	 * Without a live assignment, or without exactly one submitted assessment, nothing is signed.
+	 *
+	 * @return void
+	 */
 	public function testThePortalSignatureNeedsALiveAssignmentAndExactlyOneSubmittedAssessment(): void {
-		$withdrawn = $this->service()->signForCandidate(assessorRef: self::PIET, trust: 'high', sittingId: self::SITTING, learnerRef: self::DAAN);
-		self::assertSame(403, $withdrawn->status);
-		self::assertSame(['error' => 'not_assigned'], $withdrawn->body);
+		$withdrawn = $this->signFor(assessor: self::PIET, trust: 'high', learner: self::DAAN);
+		self::assertSame(expected: 403, actual: $withdrawn->status);
+		self::assertSame(expected: ['error' => 'not_assigned'], actual: $withdrawn->body);
 
-		$otherCandidate = $this->service()->signForCandidate(assessorRef: self::RUUD, trust: 'low', sittingId: self::SITTING, learnerRef: 'ee010008-0000-4000-8000-000000000599');
-		self::assertSame(['error' => 'not_assigned'], $otherCandidate->body);
+		$otherCandidate = $this->signFor(assessor: self::RUUD, trust: 'low', learner: 'ee010008-0000-4000-8000-000000000599');
+		self::assertSame(expected: ['error' => 'not_assigned'], actual: $otherCandidate->body);
 
 		$this->store->rows['practical-exam-assessment'][0]['lifecycle'] = 'draft';
-		$none = $this->service()->signForCandidate(assessorRef: self::RUUD, trust: 'low', sittingId: self::SITTING, learnerRef: self::DAAN);
-		self::assertSame(409, $none->status);
-		self::assertSame(['error' => 'not_submitted'], $none->body);
+		$none = $this->signFor(assessor: self::RUUD, trust: 'low', learner: self::DAAN);
+		self::assertSame(expected: 409, actual: $none->status);
+		self::assertSame(expected: ['error' => 'not_submitted'], actual: $none->body);
 
 		$this->store->rows['practical-exam-assessment'][0]['lifecycle'] = 'submitted';
 		$this->store->rows['practical-exam-assessment'][1]['lifecycle'] = 'submitted';
-		$several = $this->service()->signForCandidate(assessorRef: self::RUUD, trust: 'low', sittingId: self::SITTING, learnerRef: self::DAAN);
-		self::assertSame(409, $several->status);
-		self::assertSame(['error' => 'several_assessments'], $several->body);
-		self::assertSame([], $this->signatures());
-	}
+		$several = $this->signFor(assessor: self::RUUD, trust: 'low', learner: self::DAAN);
+		self::assertSame(expected: 409, actual: $several->status);
+		self::assertSame(expected: ['error' => 'several_assessments'], actual: $several->body);
+		self::assertSame(expected: [], actual: $this->signatures());
+	}//end testThePortalSignatureNeedsALiveAssignmentAndExactlyOneSubmittedAssessment()
 
+	/**
+	 * The floor refuses before any read; an empty value is 422 and a failed write 502.
+	 *
+	 * @return void
+	 */
 	public function testThePortalSignatureKeepsTheFloorAndAnswersIncompleteAndFailedWrites(): void {
 		$this->floor = 'substantial';
-		self::assertSame(['error' => 'assurance_too_low', 'required' => 'substantial'], $this->service()->signForCandidate(assessorRef: self::RUUD, trust: 'low', sittingId: self::SITTING, learnerRef: self::DAAN)->body);
-		self::assertSame([], $this->store->reads, 'the floor refuses before any read');
+		$refused     = $this->signFor(assessor: self::RUUD, trust: 'low', learner: self::DAAN);
+		self::assertSame(expected: ['error' => 'assurance_too_low', 'required' => 'substantial'], actual: $refused->body);
+		self::assertSame(expected: [], actual: $this->store->reads, message: 'the floor refuses before any read');
 
 		$this->floor = 'basic';
-		self::assertSame(422, $this->service()->signForCandidate(assessorRef: self::RUUD, trust: 'low', sittingId: '', learnerRef: self::DAAN)->status);
-		self::assertSame(422, $this->service()->signForCandidate(assessorRef: self::RUUD, trust: 'low', sittingId: self::SITTING, learnerRef: '')->status);
-		self::assertSame(422, $this->service()->signForCandidate(assessorRef: '', trust: 'low', sittingId: self::SITTING, learnerRef: self::DAAN)->status);
+		$service     = $this->service();
+		$noSitting   = $service->signForCandidate(assessorRef: self::RUUD, trust: 'low', sittingId: '', learnerRef: self::DAAN);
+		self::assertSame(expected: 422, actual: $noSitting->status);
+		self::assertSame(expected: 422, actual: $this->signFor(assessor: self::RUUD, trust: 'low', learner: '')->status);
+		self::assertSame(expected: 422, actual: $this->signFor(assessor: '', trust: 'low', learner: self::DAAN)->status);
 
 		$this->failSave = true;
-		self::assertSame(['error' => 'downstream_error'], $this->service()->signForCandidate(assessorRef: self::RUUD, trust: 'low', sittingId: self::SITTING, learnerRef: self::DAAN)->body);
-	}
+		$failed         = $this->signFor(assessor: self::RUUD, trust: 'low', learner: self::DAAN);
+		self::assertSame(expected: ['error' => 'downstream_error'], actual: $failed->body);
+	}//end testThePortalSignatureKeepsTheFloorAndAnswersIncompleteAndFailedWrites()
+
+	/**
+	 * Sign from the portal at the shared sitting.
+	 *
+	 * @param string $assessor The calling assessor.
+	 * @param string $trust    The session's trust.
+	 * @param string $learner  The candidate.
+	 *
+	 * @return PortalOutcome The outcome.
+	 */
+	private function signFor(string $assessor, string $trust, string $learner): PortalOutcome {
+		return $this->service()->signForCandidate(assessorRef: $assessor, trust: $trust, sittingId: self::SITTING, learnerRef: $learner);
+	}//end signFor()
 }
