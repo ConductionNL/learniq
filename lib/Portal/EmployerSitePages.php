@@ -177,6 +177,11 @@ class EmployerSitePages implements EmployerSitePagesInterface {
 		['field' => 'employerStatus', 'label' => 'Status', 'valueLabels' => self::BOOKING_STATUS],
 	];
 
+	/**
+	 * The certificates table; the verify column reads "Controleren" (linkLabel).
+	 *
+	 * @spec openspec/changes/archive/2026-11-26-certificates-group-the-first-to-expire-first/tasks.md#T2
+	 */
 	private const EMPLOYER_CERTIFICATES_EXTRA = [
 		'filter' => ['lifecycle' => 'issued', 'kind' => 'certificate'],
 		'defaultSort' => ['field' => 'expiresAt', 'direction' => 'asc'],
@@ -185,7 +190,7 @@ class EmployerSitePages implements EmployerSitePagesInterface {
 		// The groups stand where their first row stands in the expiry order, so the
 		// certificate that expires first is on top (portaliq collection-group-order;
 		// an older portaliq drops the key and orders the groups by heading).
-		// @spec openspec/changes/certificates-group-the-first-to-expire-first/tasks.md#T1
+		// @spec openspec/changes/archive/2026-11-26-certificates-group-the-first-to-expire-first/tasks.md#T1
 		'groupOrder' => 'rows',
 		'fieldConfigs' => ['expiryStatus' => ['valueLabels' => self::EXPIRY_STATUS]],
 		'columns' => [
@@ -194,7 +199,8 @@ class EmployerSitePages implements EmployerSitePagesInterface {
 			['field' => 'expiresAt', 'label' => 'Valid until', 'render' => 'date'],
 			['field' => 'expiryLabel', 'label' => 'Status'],
 			['field' => 'renewalLine', 'label' => 'Renewal'],
-			['field' => 'verificationUrl', 'label' => 'Check or download', 'render' => 'link'],
+			// The link reads "Controleren", not the bare address (live check of the warmtepompacademie board).
+			['field' => 'verificationUrl', 'label' => 'Check or download', 'render' => 'link', 'linkLabel' => 'Check'],
 		],
 	];
 

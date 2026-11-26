@@ -4318,6 +4318,7 @@ OC.L10N.register(
         "Valid": "Geldig",
         "Renewal": "Herhaling",
         "Check or download": "Controleren of downloaden",
+        "Check": "Controleren",
         "All certificates": "Alle certificaten",
         "Certificates": "Certificaten",
         "Expiry": "Verloopt",

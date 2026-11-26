@@ -464,7 +464,7 @@ class EmployerSitePagesTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/certificates-group-the-first-to-expire-first/tasks.md#T1
+	 * @spec openspec/changes/archive/2026-11-26-certificates-group-the-first-to-expire-first/tasks.md#T1
 	 */
 	public function testTheCertificateGroupsReadTheFirstToExpireFirst(): void {
 		$manifest     = (new PortalContributionProvider())->getContribution(['audience' => EmployerSitePages::AUDIENCE]);
@@ -473,6 +473,22 @@ class EmployerSitePagesTest extends TestCase {
 		self::assertSame(expected: 'rows', actual: $certificates['groupOrder']);
 		self::assertSame(expected: ['field' => 'expiresAt', 'direction' => 'asc'], actual: $certificates['defaultSort']);
 	}//end testTheCertificateGroupsReadTheFirstToExpireFirst()
+
+	/**
+	 * Each certificate row links to its own check page with a word, not with
+	 * the bare address: the column carries a `linkLabel` the translator moves.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/archive/2026-11-26-certificates-group-the-first-to-expire-first/tasks.md#T2
+	 */
+	public function testEachCertificateRowLinksToItsCheckPageWithAWord(): void {
+		$manifest     = (new PortalContributionProvider())->getContribution(['audience' => EmployerSitePages::AUDIENCE]);
+		$certificates = array_column($manifest['collections'], null, 'id')['employerCertificates'];
+		$columns      = array_column($certificates['columns'], null, 'field');
+		self::assertSame(expected: 'link', actual: $columns['verificationUrl']['render']);
+		self::assertSame(expected: 'Check', actual: $columns['verificationUrl']['linkLabel']);
+	}//end testEachCertificateRowLinksToItsCheckPageWithAWord()
 
 	/**
 	 * An opened booking names every field it shows in words the translator

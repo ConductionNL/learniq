@@ -23,6 +23,7 @@
  * @spec openspec/changes/portal-board-checks-run-on-a-real-instance/specs/example-sets/spec.md#requirement-the-board-checks-run-against-any-instance-that-loaded-the-sets
  * @spec openspec/changes/school-portals-match-their-boards/specs/example-sets/spec.md#requirement-the-portal-declarations-follow-their-boards
  * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-sends-a-colleague-in-place-of-a-participant-before-the-deadline
+ * @spec openspec/specs/portal-contribution/spec.md#scenario-the-certificaten-table-puts-the-f-gassen-group-on-top
  */
 
 import { expect, request, test } from '@playwright/test'
