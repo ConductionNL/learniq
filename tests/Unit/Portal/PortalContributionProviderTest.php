@@ -338,6 +338,45 @@ class PortalContributionProviderTest extends TestCase {
 	}//end testStudentInboxIsScopedInbox()
 
 	/**
+	 * Her own document is a create on `learner-document` scoped to her own
+	 * learnerRef, taking only a title, a note and one file, and her
+	 * Documents page offers it beside the proof of enrolment.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-a-learner-adds-a-document-to-her-own-dossier
+	 */
+	public function testTheLearnerAddsADocumentToHerOwnDossier(): void {
+		$manifest = $this->provider->getContribution(self::STUDENT_SUBJECT);
+		$action   = array_column($manifest['actions'], null, 'id')['uploadStudentDocument'];
+
+		$this->assertSame(
+			expected: ['create', 'learniq', 'learner-document', 'learnerRef', 'learnerRef', 'low'],
+			actual: [$action['type'], $action['register'], $action['schema'], $action['scopeField'], $action['scopeClaim'], $action['minTrust']]
+		);
+		$this->assertSame(expected: ['title', 'note', 'attachmentRef'], actual: $action['fields']);
+		$this->assertSame(expected: 'file', actual: $action['fieldConfigs']['attachmentRef']['type']);
+		$this->assertFalse(condition: $action['fieldConfigs']['attachmentRef']['multiple']);
+		$this->assertTrue(condition: $action['fieldConfigs']['title']['required']);
+
+		$page   = array_column($manifest['pages'], null, 'id')['studentDocuments'];
+		$offers = array_column(array_filter($page['blocks'], static fn (array $block): bool => $block['type'] === 'action'), 'action');
+		$this->assertSame(expected: ['requestProofOfEnrolment', 'uploadStudentDocument'], actual: $offers);
+
+		// The shipped schema holds every field the action asks and the learner it stamps.
+		$register = json_decode((string) file_get_contents(__DIR__.'/../../../lib/Settings/learniq_register.json'), true);
+		$schemas  = array_column($register['components']['schemas'], null, 'slug');
+		$this->assertContains(needle: 'learner-document', haystack: $register['components']['registers']['learniq']['schemas']);
+		$schema = $schemas['learner-document'];
+		foreach (array_merge($action['fields'], [$action['scopeField']]) as $field) {
+			$this->assertArrayHasKey(key: $field, array: $schema['properties'], message: $field);
+		}
+
+		$this->assertSame(expected: ['learnerRef', 'title'], actual: $schema['required']);
+		$this->assertSame(expected: ['learnerRef'], actual: $schema['x-openregister-processing']['dataCategories']);
+	}//end testTheLearnerAddsADocumentToHerOwnDossier()
+
+	/**
 	 * Student create-actions whitelist intake fields only — no grade, status,
 	 * lifecycle or staff field is exposed.
 	 *
@@ -369,6 +408,7 @@ class PortalContributionProviderTest extends TestCase {
 				'leaveWorkGroup',
 				'checkIn',
 				'requestProofOfEnrolment',
+				'uploadStudentDocument',
 				'signUpForElective',
 				'bookConferenceSlotAsPupil'
 			],

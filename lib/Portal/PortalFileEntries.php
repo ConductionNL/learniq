@@ -45,10 +45,14 @@ class PortalFileEntries {
 
 	/**
 	 * The field that names a paper, per schema; the file name when it is empty.
+	 *
+	 * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-a-learner-adds-a-document-to-her-own-dossier
 	 */
 	private const TITLE_FIELDS = [
 		'report-card' => 'periodName',
 		'school-document' => 'title',
+		// Her own document reads the title she gave it (uploadStudentDocument).
+		'learner-document' => 'title',
 	];
 
 	/**

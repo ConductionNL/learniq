@@ -62,6 +62,13 @@ class LearnerDocuments {
 	private const OFFERED_AGREEMENT = ['pending-signatures', 'active', 'completed'];
 
 	/**
+	 * The schema of a document she adds to her own dossier herself.
+	 *
+	 * @var string
+	 */
+	public const OWN_SCHEMA = 'learner-document';
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService     $objectService OpenRegister reads (system context: portaliq proved the enrolment first).
@@ -86,6 +93,7 @@ class LearnerDocuments {
 	 * @return array<int, array<string, mixed>>
 	 *
 	 * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-each-school-audience-offers-its-own-documents-grouped-per-record
+	 * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-a-learner-adds-a-document-to-her-own-dossier
 	 */
 	public function forEnrolment(string $enrolmentId): array {
 		$enrolment  = $this->enrolment(id: $enrolmentId);
@@ -102,7 +110,13 @@ class LearnerDocuments {
 			// Files kept on the enrolment itself, such as her proof of enrolment (T4).
 			$this->grouped(rows: [$enrolment], schema: 'enrolment', group: $l10n->t('Choices and statements')),
 			$this->agreements(learnerRef: $learnerRef, l10n: $l10n),
-			$this->grouped(rows: $this->certificates(enrolmentId: $enrolmentId), schema: 'credential', group: $l10n->t('Certificates'))
+			$this->grouped(rows: $this->certificates(enrolmentId: $enrolmentId), schema: 'credential', group: $l10n->t('Certificates')),
+			// What she added herself (uploadStudentDocument), once, under her current enrolment.
+			$this->grouped(
+				rows: $this->ownDocuments(enrolment: $enrolment, learnerRef: $learnerRef),
+				schema: self::OWN_SCHEMA,
+				group: $l10n->t('Added by you')
+			)
 		);
 	}//end forEnrolment()
 
@@ -141,6 +155,72 @@ class LearnerDocuments {
 			default => $l10n->t('Waiting for your parent'),
 		};
 	}//end signingState()
+
+	/**
+	 * The documents she added to her own dossier, listed only under her
+	 * current enrolment (the active one most recently enrolled, the one her
+	 * proof of enrolment proves), so a learner with two enrolments reads
+	 * each document once. Another learner's document never shows.
+	 *
+	 * @param array<string, mixed> $enrolment  The enrolment the group is for.
+	 * @param string               $learnerRef Her learner profile.
+	 *
+	 * @return array<int, array<string, mixed>> Her own `learner-document` rows, or none.
+	 *
+	 * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-a-learner-adds-a-document-to-her-own-dossier
+	 */
+	private function ownDocuments(array $enrolment, string $learnerRef): array {
+		if ($this->isCurrent(enrolment: $enrolment, learnerRef: $learnerRef) === false) {
+			return [];
+		}
+
+		$rows = $this->matching(
+			rows: $this->read(schema: self::OWN_SCHEMA, filters: ['learnerRef' => $learnerRef]),
+			field: 'learnerRef',
+			value: $learnerRef,
+			states: []
+		);
+		usort($rows, static fn (array $a, array $b): int => strcmp((string)($b['@self']['created'] ?? ''), (string)($a['@self']['created'] ?? '')));
+
+		return $rows;
+	}//end ownDocuments()
+
+	/**
+	 * Whether this enrolment is her current one: active, and of her active
+	 * enrolments the one enrolled most recently (ties keep the first id).
+	 *
+	 * @param array<string, mixed> $enrolment  The enrolment the group is for.
+	 * @param string               $learnerRef Her learner profile.
+	 *
+	 * @return bool True for her current enrolment.
+	 *
+	 * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-a-learner-adds-a-document-to-her-own-dossier
+	 */
+	private function isCurrent(array $enrolment, string $learnerRef): bool {
+		if ((string)($enrolment['lifecycle'] ?? '') !== 'active') {
+			return false;
+		}
+
+		$active = $this->matching(
+			rows: $this->read(schema: 'enrolment', filters: ['learnerRef' => $learnerRef, 'lifecycle' => 'active']),
+			field: 'learnerRef',
+			value: $learnerRef,
+			states: ['active']
+		);
+		usort(
+			$active,
+			static function (array $a, array $b): int {
+				$byDate = strcmp((string)($b['inschrijvingDate'] ?? ''), (string)($a['inschrijvingDate'] ?? ''));
+				if ($byDate !== 0) {
+					return $byDate;
+				}
+
+				return strcmp((string)($a['id'] ?? ''), (string)($b['id'] ?? ''));
+			}
+		);
+
+		return $active !== [] && (string)($active[0]['id'] ?? '') === (string)($enrolment['id'] ?? '');
+	}//end isCurrent()
 
 	/**
 	 * The learner's report cards published to her and her parents.

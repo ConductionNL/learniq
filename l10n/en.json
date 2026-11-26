@@ -6117,7 +6117,14 @@
         "Organisation": "Organisation",
         "The organisation the portal stamps on what the trainer writes.": "The organisation the portal stamps on what the trainer writes.",
         "The workplace trainer whose unfinished assessment this is, stamped by the portal from her sign-in.": "The workplace trainer whose unfinished assessment this is, stamped by the portal from her sign-in.",
-        "Werkproces Assessment Draft": "Werkproces Assessment Draft"
+        "Werkproces Assessment Draft": "Werkproces Assessment Draft",
+        "Add a document": "Add a document",
+        "What is the document?": "What is the document?",
+        "A note for the school": "A note for the school",
+        "The document": "The document",
+        "Add the document": "Add the document",
+        "Your document is added. You find it under your documents.": "Your document is added. You find it under your documents.",
+        "Added by you": "Added by you"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"
