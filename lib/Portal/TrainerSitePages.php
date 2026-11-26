@@ -321,6 +321,13 @@ class TrainerSitePages {
 		],
 	];
 
+	/**
+	 * The schema portaliq keeps a trainer's unfinished assessment on.
+	 *
+	 * @var string
+	 */
+	public const ASSESSMENT_DRAFT_SCHEMA = 'werkproces-assessment-draft';
+
 	private const CREATE_WERKPROCES_ASSESSMENT_FIELDS = [
 		'bpvPlacementId',
 		'curriculumPlanId',
@@ -740,6 +747,7 @@ class TrainerSitePages {
 	 *
 	 * @spec openspec/changes/an-invited-trainer-may-assess/specs/bpv/spec.md#requirement-an-invited-trainer-may-submit-a-werkproces-assessment
 	 * @spec openspec/changes/site-workplace-trainer-portal-design/specs/portal-contribution/spec.md#requirement-new-a-trainer-assesses-a-werkproces-in-plain-words
+	 * @spec openspec/changes/trainer-saves-an-assessment-for-later/tasks.md#T1
 	 */
 	private function assessmentAction(): array {
 		return [
@@ -763,6 +771,11 @@ class TrainerSitePages {
 			// site-multi-step-forms REQ-SMF-020). The draft is kept 30 days.
 			'steps' => self::CREATE_WERKPROCES_ASSESSMENT_STEPS,
 			'draft' => ['retentionDays' => 30],
+			// An endpoint action has no schema of its own: portaliq keeps the
+			// unfinished assessment as an OpenRegister draft here, the endpoint
+			// receives only the finished one (portaliq endpoint-forward-draft-schema;
+			// an older portaliq drops the key and offers no draft).
+			'draftSchema' => ['register' => 'learniq', 'schema' => self::ASSESSMENT_DRAFT_SCHEMA],
 			'requiredFields' => ['bpvPlacementId', 'werkprocesCode', 'werkprocesLabel', 'assessment'],
 			'optionsProviders' => self::CREATE_WERKPROCES_ASSESSMENT_OPTIONS_PROVIDERS,
 			'fieldConfigs' => self::CREATE_WERKPROCES_ASSESSMENT_FIELD_CONFIGS,

@@ -7023,6 +7023,45 @@
       {
         "@self": {
           "register": "learniq",
+          "schema": "werkproces-assessment-draft",
+          "slug": "werkprocesassessmentdraft-werkprocesassessmentdraft-1-1",
+          "id": "ee00ffc1-0000-4000-8000-000000000001"
+        },
+        "bpvPlacementId": "ee000011-0000-4000-8000-000000000001",
+        "werkprocesCode": "Voorbeeld Werkprocescode 1",
+        "werkprocesLabel": "Voorbeeld Werkproceslabel 1",
+        "assessment": "competent",
+        "practicalTrainerId": "ee00005b-0000-4000-8000-000000000001"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "werkproces-assessment-draft",
+          "slug": "werkprocesassessmentdraft-werkprocesassessmentdraft-2-2",
+          "id": "ee00ffc1-0000-4000-8000-000000000002"
+        },
+        "bpvPlacementId": "ee000011-0000-4000-8000-000000000002",
+        "werkprocesCode": "Voorbeeld Werkprocescode 2",
+        "werkprocesLabel": "Voorbeeld Werkproceslabel 2",
+        "assessment": "nog-niet-competent",
+        "practicalTrainerId": "ee00005b-0000-4000-8000-000000000002"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "werkproces-assessment-draft",
+          "slug": "werkprocesassessmentdraft-werkprocesassessmentdraft-3-3",
+          "id": "ee00ffc1-0000-4000-8000-000000000003"
+        },
+        "bpvPlacementId": "ee000011-0000-4000-8000-000000000003",
+        "werkprocesCode": "Voorbeeld Werkprocescode 3",
+        "werkprocesLabel": "Voorbeeld Werkproceslabel 3",
+        "assessment": "competent",
+        "practicalTrainerId": "ee00005b-0000-4000-8000-000000000003"
+      },
+      {
+        "@self": {
+          "register": "learniq",
           "schema": "portfolio-entry",
           "slug": "portfolioentry-voorbeeld-title-1-1",
           "id": "ee000058-0000-4000-8000-000000000001"
