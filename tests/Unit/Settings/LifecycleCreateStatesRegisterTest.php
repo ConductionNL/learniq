@@ -60,6 +60,7 @@ class LifecycleCreateStatesRegisterTest extends TestCase {
 			'a werkproces assessment is recorded as submitted' => ['WerkprocesAssessment', 'draft', ['submitted'], '0.4.0'],
 			'an import report is written once the import resolves' => ['CoursePackageImportReport', 'running', ['succeeded', 'partial', 'failed'], '0.2.0'],
 			'a student keeps a week of hours for later' => ['BpvHourWeek', 'submitted', ['draft'], '0.5.1'],
+			'a practical exam assessment is recorded as submitted' => ['PracticalExamAssessment', 'draft', ['submitted'], '0.1.1'],
 		];
 	}//end createStatesProvider()
 

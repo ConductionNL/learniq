@@ -106,7 +106,7 @@ const CODES: Record<string, string> = {
 }
 // The action's label and its buttons, as the Dutch site shows them.
 const FORM = 'Beoordeling van een werkproces versturen'
-const NEXT = /^(Volgende|Verder)$/
+const NEXT = /^(Volgende|Verder)( stap)?$/
 const KEEP = /Bewaren voor later/
 
 /**
@@ -119,7 +119,8 @@ const KEEP = /Bewaren voor later/
  */
 function codeField(form: Locator, key: string): Locator {
 	const words = key.replace(/([a-z])([A-Z])/g, '$1 $2').split(' ')
-	return form.getByRole('textbox', { name: new RegExp(`^${words.join('\\s*')}$`, 'i') })
+	// An optional field reads "(niet verplicht)" after its name.
+	return form.getByRole('textbox', { name: new RegExp(`^${words.join('\\s*')}(\\s*\\(niet verplicht\\))?$`, 'i') })
 }
 
 test.describe.configure({ mode: 'serial' })
@@ -216,6 +217,17 @@ test.describe('mbo trainer: a student, and an assessment finished later', () => 
 			periodFrom: '2026-09-01',
 			periodTo: '2027-01-31',
 			agreedHours: 640,
+			// A placement is confirmed only for a verified training company
+			// (BpvConfirmationGuard); the seeded placements carry the same.
+			trainingCompanyVerification: {
+				provider: 'sbb',
+				status: 'verified',
+				verifiedAt: '2026-08-15T10:00:00+02:00',
+				expiresAt: '2029-08-15T23:59:00+02:00',
+			},
+			// Created as proposed and moved through checkLeerbedrijf, confirm
+			// and activate by createRow (OpenRegister refuses a non-initial
+			// state on create).
 			lifecycle: 'active',
 			tenant_id: TENANT,
 		})

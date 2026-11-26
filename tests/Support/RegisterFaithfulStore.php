@@ -249,6 +249,12 @@ final class RegisterFaithfulStore {
 			return [];
 		}
 
+		// OpenRegister refuses a slug its register does not carry
+		// (SchemaNotInRegisterException); a read of such a slug is a bug.
+		if (array_key_exists($schema, self::declaredProperties()) === false) {
+			throw new RuntimeException('Schema slug "' . $schema . '" is not carried by register "learniq".');
+		}
+
 		$declared = (self::declaredProperties()[$schema] ?? []);
 		self::bindLikePostgres(schema: $schema, filters: $filters);
 		// `config.ids` (top level, not a filter) narrows the read to those

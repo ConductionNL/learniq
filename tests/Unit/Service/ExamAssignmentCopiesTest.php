@@ -60,7 +60,7 @@ class ExamAssignmentCopiesTest extends TestCase {
 				],
 				['id' => 'sitting-no-rooms', 'assessmentId' => 'as-1', 'startsAt' => '2026-11-17T09:00:00+01:00', 'roomIds' => ['room-unnamed']],
 			],
-			'assessment' => [['id' => 'as-1', 'title' => 'Storingen zoeken aan warmtepompen']],
+			'exam' => [['id' => 'as-1', 'title' => 'Storingen zoeken aan warmtepompen']],
 			'room' => [
 				['id' => 'room-w2', 'name' => 'Werkplaats W2'],
 				['id' => 'room-w3', 'name' => 'Werkplaats W3'],

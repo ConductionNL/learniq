@@ -415,9 +415,11 @@ test.describe('assessor: the practical exams he is assigned to', () => {
 		})
 
 		const today = new Date().toISOString().slice(0, 10)
+		// A practical exam has no items, so AssessmentPublishGuard refuses to
+		// publish it; nothing on his side reads the exam's state, so it stays
+		// in its initial one.
 		const exam = await createRow(admin, created, 'learniq', 'exam', {
 			title: EXAM_TITLE,
-			lifecycle: 'published',
 			tenant_id: TENANT,
 		})
 		const period = await createRow(admin, created, 'learniq', 'exam-period', {
@@ -432,6 +434,7 @@ test.describe('assessor: the practical exams he is assigned to', () => {
 			name: ROOM_NAME,
 			code: `W2-${RUN}`,
 			capacity: 12,
+			kind: 'lab',
 			tenant_id: TENANT,
 		})
 
