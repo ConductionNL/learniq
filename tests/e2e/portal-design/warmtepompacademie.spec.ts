@@ -544,3 +544,51 @@ test.describe.serial('warmtepompacademie: Linda sends a colleague instead', () =
 		await page.context().close()
 	})
 })
+
+test.describe('warmtepompacademie: a refused booking names its field', () => {
+	// @e2e openspec/specs/portal-contribution/spec.md#requirement-a-portal-endpoint-refusal-names-the-fields-to-change
+	test('Linda asks for 13 places: learniq names the field, the form keeps 12', async ({
+		browser,
+	}, info) => {
+		test.skip(info.project.name === 'phone', 'the refusal is the same on the phone; the desktop project runs it')
+		await ensurePortalAccount(LINDA.user, 'employer', LINDA.claims, LINDA.name)
+		const page = await signInAs(browser, PORTAL, LINDA.user, { width: 1440, height: 1000 })
+		const token =
+			(await page.evaluate((key) => sessionStorage.getItem(key), SITE_TOKEN_KEY)) ?? ''
+		expect(token, "Linda's bearer").not.toBe('')
+
+		// What the form forwards: learniq names the field and the kind of mistake.
+		const editions = await page.request.get(
+			'/apps/portaliq/portal/api/collections/learniq/cohort?collection=employerEditions',
+			{ headers: { Authorization: `Bearer ${token}` } },
+		)
+		expect(editions.status(), await editions.text()).toBe(200)
+		const edition = ((await editions.json()).objects ?? [])[0]
+		test.skip(!edition, 'no course date of the academy is open for booking')
+		const refused = await page.request.post(
+			'/apps/portaliq/portal/api/actions/learniq/enrolEmployees',
+			{ headers: { Authorization: `Bearer ${token}` }, data: { cohortId: edition.id, participantCount: 13 } },
+		)
+		expect(refused.status()).toBe(422)
+		expect((await refused.json()).invalid).toEqual({ participantCount: 'range' })
+
+		// The form: the count is a number input, and 13 is refused on that field.
+		await page.getByRole('button', { name: 'Medewerkers inschrijven' }).first().click()
+		const form = page.locator('form').filter({ hasText: 'Aantal deelnemers' })
+		await form.getByLabel('Cursus en datum').selectOption(String(edition.id))
+		const count = form.getByRole('spinbutton', { name: 'Aantal deelnemers' })
+		await expect(count).toHaveAttribute('type', 'number')
+		// The stepper keeps a typed count within 1 to 12 (portaliq site-forms), so
+		// the form never sends 13: the box and the line show the 12 it would send,
+		// also when 13 is typed a second time.
+		const line = form.getByTestId('f-enrolEmployees-participantCount-line')
+		for (const attempt of [1, 2]) {
+			await count.fill('13')
+			await count.press('Tab')
+			await expect(count, `typed 13, attempt ${attempt}`).toHaveValue('12')
+			await expect(line).toHaveText('12 deelnemers')
+		}
+		await form.getByTestId('schema-form-cancel').click()
+		await page.context().close()
+	})
+})

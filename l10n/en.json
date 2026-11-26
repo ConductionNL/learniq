@@ -6108,7 +6108,11 @@
         "Download all valid certificates": "Download all valid certificates",
         "The file with all valid certificates is ready under Downloads.": "The file with all valid certificates is ready under Downloads.",
         "Ask for the download above; the file appears here.": "Ask for the download above; the file appears here.",
-        "Valid certificates, %s": "Valid certificates, %s"
+        "Valid certificates, %s": "Valid certificates, %s",
+        "Organisation": "Organisation",
+        "The organisation the portal stamps on what the trainer writes.": "The organisation the portal stamps on what the trainer writes.",
+        "The workplace trainer whose unfinished assessment this is, stamped by the portal from her sign-in.": "The workplace trainer whose unfinished assessment this is, stamped by the portal from her sign-in.",
+        "Werkproces Assessment Draft": "Werkproces Assessment Draft"
     },
     "plurals": "",
     "pluralForm": "nplurals=2; plural=(n != 1);"

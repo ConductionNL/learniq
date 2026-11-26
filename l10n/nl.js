@@ -6657,7 +6657,11 @@ OC.L10N.register(
         "Decide before %1$s.": "Beslis voor %1$s.",
         "Messages from parents": "Berichten van ouders",
         "No messages from parents": "Geen berichten van ouders",
-        "{title}": "{title}"
+        "{title}": "{title}",
+        "Organisation": "Organisatie",
+        "The organisation the portal stamps on what the trainer writes.": "De organisatie die het portaal vastlegt op wat de praktijkopleider schrijft.",
+        "The workplace trainer whose unfinished assessment this is, stamped by the portal from her sign-in.": "De praktijkopleider van wie deze onafgemaakte beoordeling is, vastgelegd door het portaal uit haar inlog.",
+        "Werkproces Assessment Draft": "Concept werkprocesbeoordeling"
     },
     "nplurals=2; plural=(n != 1);"
 )
