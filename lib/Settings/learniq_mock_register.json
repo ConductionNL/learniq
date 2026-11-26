@@ -7062,6 +7062,69 @@
       {
         "@self": {
           "register": "learniq",
+          "schema": "practical-exam-assessment-draft",
+          "slug": "practicalexamassessmentdraft-practicalexamassessmentdraft-1-1",
+          "id": "ee00ffc2-0000-4000-8000-000000000001"
+        },
+        "examSittingId": "ee000098-0000-4000-8000-000000000001",
+        "learnerRef": "ee000046-0000-4000-8000-000000000001",
+        "assessmentModelId": "ee000065-0000-4000-8000-000000000001",
+        "criteria": [
+          {
+            "criterionId": "Voorbeeld Criterionid 1",
+            "label": "Voorbeeld Label 1",
+            "score": 1.0,
+            "notes": "Voorbeeld Notes 1"
+          }
+        ],
+        "outcome": "pass",
+        "externalAssessorId": "ee000034-0000-4000-8000-000000000001"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "practical-exam-assessment-draft",
+          "slug": "practicalexamassessmentdraft-practicalexamassessmentdraft-2-2",
+          "id": "ee00ffc2-0000-4000-8000-000000000002"
+        },
+        "examSittingId": "ee000098-0000-4000-8000-000000000002",
+        "learnerRef": "ee000046-0000-4000-8000-000000000002",
+        "assessmentModelId": "ee000065-0000-4000-8000-000000000002",
+        "criteria": [
+          {
+            "criterionId": "Voorbeeld Criterionid 2",
+            "label": "Voorbeeld Label 2",
+            "score": 2.0,
+            "notes": "Voorbeeld Notes 2"
+          }
+        ],
+        "outcome": null,
+        "externalAssessorId": "ee000034-0000-4000-8000-000000000002"
+      },
+      {
+        "@self": {
+          "register": "learniq",
+          "schema": "practical-exam-assessment-draft",
+          "slug": "practicalexamassessmentdraft-practicalexamassessmentdraft-3-3",
+          "id": "ee00ffc2-0000-4000-8000-000000000003"
+        },
+        "examSittingId": "ee000098-0000-4000-8000-000000000003",
+        "learnerRef": "ee000046-0000-4000-8000-000000000003",
+        "assessmentModelId": "ee000065-0000-4000-8000-000000000003",
+        "criteria": [
+          {
+            "criterionId": "Voorbeeld Criterionid 3",
+            "label": "Voorbeeld Label 3",
+            "score": 3.0,
+            "notes": "Voorbeeld Notes 3"
+          }
+        ],
+        "outcome": "fail",
+        "externalAssessorId": "ee000034-0000-4000-8000-000000000003"
+      },
+      {
+        "@self": {
+          "register": "learniq",
           "schema": "portfolio-entry",
           "slug": "portfolioentry-voorbeeld-title-1-1",
           "id": "ee000058-0000-4000-8000-000000000001"

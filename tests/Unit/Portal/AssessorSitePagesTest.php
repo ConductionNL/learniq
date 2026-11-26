@@ -248,6 +248,58 @@ class AssessorSitePagesTest extends TestCase {
 	}//end testHisDayListsTodaysExamsWithTimeCandidateExamAndRoom()
 
 	/**
+	 * The assessment form runs in steps, every step kept as a draft on its own
+	 * draft schema: every field of the form is on a step, the draft schema
+	 * holds every field and the assessor the portal stamps, requires nothing,
+	 * and the steps read in Dutch.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/practical-exam-assessment/tasks.md#T6
+	 */
+	public function testEveryStepOfTheAssessmentIsKeptAsADraft(): void {
+		$actions = array_column(array: (new AssessorSitePages())->contribution()['actions'], column_key: null, index_key: 'id');
+		$action  = $actions['assessPracticalExam'];
+
+		self::assertSame(expected: 'endpoint-forward', actual: $action['type']);
+		self::assertSame(expected: ['retentionDays' => 30], actual: $action['draft']);
+		self::assertSame(expected: ['register' => 'learniq', 'schema' => 'practical-exam-assessment-draft'], actual: $action['draftSchema']);
+
+		// Every field of the form is asked on exactly one step, and the last step is the review.
+		$stepFields = [];
+		foreach ($action['steps'] as $step) {
+			$stepFields = array_merge($stepFields, ($step['fields'] ?? []));
+		}
+
+		self::assertSame(expected: $action['fields'], actual: $stepFields);
+		self::assertTrue(condition: end($action['steps'])['review']);
+
+		$register = json_decode(json: (string) file_get_contents(filename: __DIR__.'/../../../lib/Settings/learniq_register.json'), associative: true);
+		$schemas  = array_column(array: $register['components']['schemas'], column_key: null, index_key: 'slug');
+		self::assertContains(needle: 'practical-exam-assessment-draft', haystack: $register['components']['registers']['learniq']['schemas']);
+		$draft = $schemas['practical-exam-assessment-draft'];
+		self::assertSame(expected: [], actual: $draft['required']);
+		self::assertTrue(condition: $draft['x-openregister']['hardDelete']);
+		foreach (array_merge($action['fields'], [$action['subjectField']]) as $field) {
+			self::assertArrayHasKey(key: $field, array: $draft['properties'], message: $field);
+		}
+
+		// The criteria a dropped connection must not lose keep the shape of the real assessment.
+		self::assertSame(
+			expected: $schemas['practical-exam-assessment']['properties']['criteria'],
+			actual: $draft['properties']['criteria']
+		);
+
+		$dutch = json_decode(json: (string) file_get_contents(filename: __DIR__.'/../../../l10n/nl.json'), associative: true)['translations'];
+		foreach ($action['steps'] as $step) {
+			self::assertArrayHasKey(key: $step['title'], array: $dutch, message: $step['title']);
+			if (isset($step['description']) === true) {
+				self::assertArrayHasKey(key: $step['description'], array: $dutch, message: $step['description']);
+			}
+		}
+	}//end testEveryStepOfTheAssessmentIsKeptAsADraft()
+
+	/**
 	 * A share's own page says until when his access runs, has words for a share
 	 * without an end date, and lists the entries of that share's portfolio.
 	 *
