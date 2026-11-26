@@ -747,8 +747,8 @@ class TrainerSitePages {
 	 *
 	 * @spec openspec/changes/an-invited-trainer-may-assess/specs/bpv/spec.md#requirement-an-invited-trainer-may-submit-a-werkproces-assessment
 	 * @spec openspec/changes/site-workplace-trainer-portal-design/specs/portal-contribution/spec.md#requirement-new-a-trainer-assesses-a-werkproces-in-plain-words
-	 * @spec openspec/changes/trainer-saves-an-assessment-for-later/tasks.md#T1
-	 * @spec openspec/changes/trainer-saves-an-assessment-for-later/tasks.md#T2
+	 * @spec openspec/changes/archive/2026-11-26-trainer-saves-an-assessment-for-later/tasks.md#T1
+	 * @spec openspec/changes/archive/2026-11-26-trainer-saves-an-assessment-for-later/tasks.md#T2
 	 */
 	private function assessmentAction(): array {
 		return [

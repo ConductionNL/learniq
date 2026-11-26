@@ -282,7 +282,7 @@ class PortalLabelTranslatorTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/trainer-saves-an-assessment-for-later/tasks.md#T2
+	 * @spec openspec/changes/archive/2026-11-26-trainer-saves-an-assessment-for-later/tasks.md#T2
 	 */
 	public function testTheTrainersSaveForLaterButtonReadsAsTheBoard(): void {
 		$english = array_column((new PortalContributionProvider())->getContribution(['audience' => 'praktijkopleider'])['actions'], null, 'id');

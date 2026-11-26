@@ -108,7 +108,7 @@ class PlacementPagesTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/trainer-saves-an-assessment-for-later/tasks.md#T1
+	 * @spec openspec/changes/archive/2026-11-26-trainer-saves-an-assessment-for-later/tasks.md#T1
 	 */
 	public function testTheUnfinishedAssessmentIsKeptOnItsDraftSchema(): void {
 		$action = array_column(self::manifest(audience: 'praktijkopleider')['actions'], null, 'id')['createWerkprocesAssessment'];
