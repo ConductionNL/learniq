@@ -68,7 +68,7 @@ class ParticipantSitePagesTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/certificates-group-the-first-to-expire-first/tasks.md#T2
+	 * @spec openspec/changes/archive/2026-11-26-certificates-group-the-first-to-expire-first/tasks.md#T2
 	 */
 	public function testHisCertificatesLinkToTheirCheckPageWithAWord(): void {
 		$links = [];

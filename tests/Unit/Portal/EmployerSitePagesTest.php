@@ -464,7 +464,7 @@ class EmployerSitePagesTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/certificates-group-the-first-to-expire-first/tasks.md#T1
+	 * @spec openspec/changes/archive/2026-11-26-certificates-group-the-first-to-expire-first/tasks.md#T1
 	 */
 	public function testTheCertificateGroupsReadTheFirstToExpireFirst(): void {
 		$manifest     = (new PortalContributionProvider())->getContribution(['audience' => EmployerSitePages::AUDIENCE]);
@@ -480,7 +480,7 @@ class EmployerSitePagesTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/certificates-group-the-first-to-expire-first/tasks.md#T2
+	 * @spec openspec/changes/archive/2026-11-26-certificates-group-the-first-to-expire-first/tasks.md#T2
 	 */
 	public function testEachCertificateRowLinksToItsCheckPageWithAWord(): void {
 		$manifest     = (new PortalContributionProvider())->getContribution(['audience' => EmployerSitePages::AUDIENCE]);

@@ -185,7 +185,7 @@ class EmployerSitePages implements EmployerSitePagesInterface {
 		// The groups stand where their first row stands in the expiry order, so the
 		// certificate that expires first is on top (portaliq collection-group-order;
 		// an older portaliq drops the key and orders the groups by heading).
-		// @spec openspec/changes/certificates-group-the-first-to-expire-first/tasks.md#T1
+		// @spec openspec/changes/archive/2026-11-26-certificates-group-the-first-to-expire-first/tasks.md#T1
 		'groupOrder' => 'rows',
 		'fieldConfigs' => ['expiryStatus' => ['valueLabels' => self::EXPIRY_STATUS]],
 		'columns' => [
@@ -195,7 +195,7 @@ class EmployerSitePages implements EmployerSitePagesInterface {
 			['field' => 'expiryLabel', 'label' => 'Status'],
 			['field' => 'renewalLine', 'label' => 'Renewal'],
 			// The link reads "Controleren", not the bare address (live check of the warmtepompacademie board).
-			// @spec openspec/changes/certificates-group-the-first-to-expire-first/tasks.md#T2
+			// @spec openspec/changes/archive/2026-11-26-certificates-group-the-first-to-expire-first/tasks.md#T2
 			['field' => 'verificationUrl', 'label' => 'Check or download', 'render' => 'link', 'linkLabel' => 'Check'],
 		],
 	];
