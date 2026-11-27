@@ -77,3 +77,5 @@ bom-npm.cdx.json
 # Python bytecode (the example-set scripts write it when tests import them)
 __pycache__/
 *.pyc
+# nextcloud-vue stylesheet, copied by webpack.config.js (LibraryStylesheetCopy)
+/css/nextcloud-vue.css

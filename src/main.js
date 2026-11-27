@@ -45,7 +45,8 @@ import {
 import { buildWorkspaceRuntime, DEFAULT_SEGMENT } from './utils/workspaceRuntime.js'
 
 // Library CSS — must be explicit import (webpack tree-shakes side-effect imports from aliased packages)
-import '@conduction/nextcloud-vue/css/index.css'
+// The library stylesheet is linked by templates/index.php (css/nextcloud-vue.css,
+// copied by LibraryStylesheetCopy), not inserted from this bundle as text.
 // gridstack is a REQUIRED peer of @conduction/nextcloud-vue that no consumer
 // declares; it used to resolve by accident from a hoisted node_modules outside
 // the repo. Its stylesheet is the silent half: v12 sizes items with
