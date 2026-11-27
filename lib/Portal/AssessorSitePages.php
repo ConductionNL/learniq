@@ -14,10 +14,10 @@
  * no heading, so the overview lists the shares with the longest access first
  * and each row names the date his access runs to.
  *
- * The exam day, the assessment form, offline tolerance, joint sign-off and the
- * exam documents are not here: no schema links an assessor to an exam. They
- * stay in the change's tasks, with `mbo-practical-exam-assessment` as the
- * proposed follow-up.
+ * His exam day (practical-exam-assessment) opens the overview: a day
+ * calendar over his own live assignments, so only today's exams show, each
+ * with its time span, candidate, exam and room. The list of all his exams
+ * follows it.
  *
  * @category Portal
  * @package  OCA\Learniq\Portal
@@ -32,7 +32,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/site-external-assessor-portal-design/specs/portal-contribution/spec.md#requirement-an-external-assessor-lands-on-what-is-shared-with-him-and-until-when
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-an-external-assessor-lands-on-what-is-shared-with-him-and-until-when
  */
 
 declare(strict_types=1);
@@ -42,7 +42,7 @@ namespace OCA\Learniq\Portal;
 /**
  * Builds the assessor's overview and his menu.
  *
- * @spec openspec/changes/site-external-assessor-portal-design/specs/portal-contribution/spec.md#requirement-an-external-assessor-lands-on-what-is-shared-with-him-and-until-when
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-an-external-assessor-lands-on-what-is-shared-with-him-and-until-when
  */
 class AssessorSitePages {
 
@@ -52,6 +52,321 @@ class AssessorSitePages {
 	 * @var string
 	 */
 	private const REGISTER = 'learniq';
+
+	private const EA_OVERVIEW_BLOCKS = [
+		// His day first: today's exams he assesses, as a day calendar over his
+		// own assignments (practical-exam-assessment T5). The calendar's day
+		// range is what keeps it to today; each entry reads the time span, the
+		// candidate, and the exam with its room.
+		[
+			'type' => 'calendar',
+			'label' => 'Your exams today',
+			'display' => 'timetable',
+			'range' => 'day',
+			'firstLabel' => 'Your first exam',
+			'sources' => self::EXAMS_TODAY_SOURCES,
+		],
+		// Then all his exams, earliest first. Each row names the time, the
+		// candidate, the exam and the room.
+		[
+			'type' => 'collection',
+			'label' => 'Your exams',
+			'collection' => 'eaExams',
+			'sort' => ['field' => 'sittingStartsAt', 'direction' => 'asc'],
+		],
+		// One list, longest access first. Each row names the candidate,
+		// the portfolio and the date his access runs to, so the mockup's
+		// sentence is read off the rows until portaliq can fill a text
+		// block from a record.
+		[
+			'type' => 'collection',
+			// "Gedeeld met u", as the board esdoornveen/Beoordelaar heads the list.
+			'label' => 'Shared with you',
+			'collection' => 'eaSharedPortfolios',
+			'sort' => ['field' => 'expiresAt', 'direction' => 'desc'],
+		],
+		['type' => 'inbox', 'label' => 'Messages', 'limit' => 2],
+	];
+
+	/**
+	 * The day calendar's source: his live assignments (`eaExams`), placed at
+	 * the sitting's start and end, titled by the candidate, with the exam as
+	 * the meta line and the room as the note.
+	 */
+	public const EXAMS_TODAY_SOURCES = [
+		[
+			'collection' => 'eaExams',
+			'startField' => 'sittingStartsAt',
+			'endField' => 'sittingEndsAt',
+			'titleField' => 'learnerName',
+			'metaField' => 'examTitle',
+			'noteField' => 'sittingRoom',
+		],
+	];
+
+	/**
+	 * How a list of shared portfolios reads, for the assessor and the trainer alike.
+	 */
+	public const SHARED_PORTFOLIO_LISTING = [
+		'label' => 'Portfolios shared with me',
+		'listable' => true,
+		'minTrust' => 'low',
+		// Only active grants resolve — a revoked share must return no rows.
+		'filter' => ['lifecycle' => 'active'],
+		'fields' => [
+			'portfolioId',
+			'entryIds',
+			'sharedWithKind',
+			'sharedBy',
+			'expiresAt',
+			'lifecycle',
+		],
+	];
+
+	/**
+	 * The live-share join behind the shared entries: his shares, only while
+	 * active and not past `expiresAt` (portaliq REQ-SMO-023), and from each the
+	 * entries it selects. A revoked or expired share grants nothing, and a
+	 * share's own selection is the only thing it opens.
+	 *
+	 * A share of a whole portfolio (no `entryIds`) grants no entry here; it
+	 * grants through {@see self::WHOLE_PORTFOLIO_VIA}.
+	 */
+	public const SHARED_ENTRIES_VIA = [
+		'register' => self::REGISTER,
+		'schema' => 'portfolio-share',
+		'scopeField' => 'sharedWithExternalAssessorId',
+		'targetField' => 'entryIds',
+		'match' => 'id',
+		'when' => ['field' => 'lifecycle', 'in' => ['active']],
+		'validUntilField' => 'expiresAt',
+	];
+
+	/**
+	 * The live-share join behind a whole-portfolio share: the same live,
+	 * unexpired shares, and from each the portfolio it opens whole. The server
+	 * stamps `wholePortfolioId` only on a share without a selection
+	 * (ReadableCopies), so a share that selects entries contributes nothing
+	 * here and its left-out entries stay closed. The entries are matched on
+	 * their `portfolioId`.
+	 */
+	public const WHOLE_PORTFOLIO_VIA = [
+		'register' => self::REGISTER,
+		'schema' => 'portfolio-share',
+		'scopeField' => 'sharedWithExternalAssessorId',
+		'targetField' => 'wholePortfolioId',
+		'match' => 'scopeField',
+		'when' => ['field' => 'lifecycle', 'in' => ['active']],
+		'validUntilField' => 'expiresAt',
+	];
+
+	/**
+	 * The entry fields an assessor reads. The submission, assessment, training
+	 * record and credential an entry may point at stay out: he has no scope on
+	 * those records.
+	 */
+	private const ENTRY_FIELDS = ['portfolioId', 'title', 'evidenceKind', 'attachmentRef', 'reflectionText'];
+
+	/**
+	 * The access sentence on a share's own page (portaliq REQ-SMO-027), with
+	 * the words for a share that has no end date.
+	 */
+	private const ACCESS_SENTENCE = [
+		'type' => 'richText',
+		'template' => 'Your access runs until {expiresAt}.',
+		'whenEmpty' => ['expiresAt' => 'Your access has no end date. The school ends the access.'],
+	];
+
+	/**
+	 * The schema portaliq keeps an assessor's unfinished assessment on.
+	 *
+	 * @var string
+	 */
+	public const ASSESSMENT_DRAFT_SCHEMA = 'practical-exam-assessment-draft';
+
+	/**
+	 * The steps of the assessment form: who and what, the scores, a review.
+	 *
+	 * @spec openspec/changes/practical-exam-assessment/tasks.md#T6
+	 */
+	private const ASSESS_STEPS = [
+		[
+			'id' => 'candidate',
+			'title' => 'Which candidate',
+			'description' => 'Choose the exam and the candidate you assess.',
+			'fields' => ['examSittingId', 'learnerRef', 'assessmentModelId'],
+		],
+		[
+			'id' => 'criteria',
+			'title' => 'The criteria',
+			'description' => 'Score each criterion of the assessment model. What you fill in is kept as you go.',
+			'fields' => ['criteria'],
+		],
+		[
+			'id' => 'judgement',
+			'title' => 'Your judgement',
+			'description' => 'Say whether the candidate passed the practical exam.',
+			'fields' => ['outcome'],
+		],
+		['id' => 'check', 'title' => 'Check and send', 'review' => true],
+	];
+
+	/**
+	 * The assessment form (practical-exam-assessment): through learniq's own
+	 * endpoint, because only a forwarded request carries the assertion, and
+	 * the assertion is where his sign-in level is. The server only accepts it
+	 * for a candidate at a sitting he holds a live assignment for, writes who
+	 * assessed and at which assurance level. The form runs in steps, and
+	 * portaliq keeps every step as an OpenRegister draft on
+	 * `practical-exam-assessment-draft`, so a dropped connection loses nothing
+	 * and the endpoint receives only the finished assessment.
+	 *
+	 * @spec openspec/changes/practical-exam-assessment/tasks.md#T6
+	 */
+	public const ASSESS_ACTION = [
+		'id' => 'assessPracticalExam',
+		'type' => 'endpoint-forward',
+		'label' => 'Assess a practical exam',
+		'endpoint' => '/apps/learniq/api/portal/practical-exam-assessments',
+		'method' => 'POST',
+		'minTrust' => 'low',
+		'subjectField' => 'externalAssessorId',
+		'scopeClaim' => 'externalAssessorId',
+		'fields' => ['examSittingId', 'learnerRef', 'assessmentModelId', 'criteria', 'outcome'],
+		'requiredFields' => ['examSittingId', 'learnerRef', 'outcome'],
+		// In steps with a review (portaliq site-multi-step-forms); every step
+		// is saved as a draft he resumes after a dropped connection, kept 30
+		// days. An endpoint action has no schema of its own, so the draft is
+		// kept on its own draft schema (portaliq endpoint-forward-draft-schema;
+		// an older portaliq drops the key and offers no draft).
+		'steps' => self::ASSESS_STEPS,
+		'draft' => ['retentionDays' => 30],
+		'draftSchema' => ['register' => self::REGISTER, 'schema' => self::ASSESSMENT_DRAFT_SCHEMA],
+		// He picks the exam and the candidate from his own assignments: the
+		// collection provider reads the subject-scoped `eaExams`.
+		'optionsProviders' => [
+			'examSittingId' => [
+				'type' => 'collection',
+				'register' => self::REGISTER,
+				'schema' => 'exam-assessor-assignment',
+				'labelField' => 'examTitle',
+				'valueField' => 'examSittingId',
+			],
+			'learnerRef' => [
+				'type' => 'collection',
+				'register' => self::REGISTER,
+				'schema' => 'exam-assessor-assignment',
+				'labelField' => 'learnerName',
+				'valueField' => 'learnerRef',
+			],
+		],
+		'fieldConfigs' => [
+			'examSittingId' => ['label' => 'The exam', 'required' => true],
+			'learnerRef' => ['label' => 'The candidate', 'required' => true],
+			'criteria' => ['label' => 'The criteria you scored'],
+			'outcome' => ['label' => 'Your judgement', 'required' => true],
+		],
+		'submitLabel' => 'Send the assessment',
+		'confirmation' => [
+			'title' => 'Your assessment has been sent',
+			'body' => 'It reaches the exam board once the second assessor has signed it too.',
+		],
+	];
+
+	/**
+	 * His signature on a submitted assessment (practical-exam-assessment T9):
+	 * the result reaches the exam board only once both assessors signed. The
+	 * assessment was written by the other assessor and is not in his
+	 * listings, so he names the exam and the candidate from his own
+	 * assignments and the server signs the one submitted assessment there,
+	 * at the assurance level of his session.
+	 */
+	public const SIGN_ACTION = [
+		'id' => 'signPracticalExam',
+		'type' => 'endpoint-forward',
+		'label' => 'Sign a practical exam assessment',
+		'endpoint' => '/apps/learniq/api/portal/practical-exam-signatures',
+		'method' => 'POST',
+		'minTrust' => 'low',
+		'subjectField' => 'externalAssessorId',
+		'scopeClaim' => 'externalAssessorId',
+		'fields' => ['examSittingId', 'learnerRef'],
+		'requiredFields' => ['examSittingId', 'learnerRef'],
+		'optionsProviders' => self::ASSESS_ACTION['optionsProviders'],
+		'fieldConfigs' => [
+			'examSittingId' => ['label' => 'The exam', 'required' => true],
+			'learnerRef' => ['label' => 'The candidate', 'required' => true],
+		],
+		'submitLabel' => 'Sign the assessment',
+		'confirmation' => [
+			'title' => 'Your signature has been stored',
+			'body' => 'The result reaches the exam board once both assessors have signed.',
+		],
+	];
+
+	private const ASSESSOR_COLLECTIONS = [
+		[
+			'id' => 'eaSharedPortfolios',
+			'register' => self::REGISTER,
+			'schema' => 'portfolio-share',
+			'scopeField' => 'sharedWithExternalAssessorId',
+			'scopeClaim' => 'externalAssessorId',
+			...self::SHARED_PORTFOLIO_LISTING,
+		],
+		[
+			'id' => 'eaSharedPortfolioEntries',
+			'register' => self::REGISTER,
+			'schema' => 'portfolio-entry',
+			'scopeField' => 'id',
+			'scopeClaim' => 'externalAssessorId',
+			'label' => 'Shared parts',
+			'listable' => true,
+			'minTrust' => 'low',
+			'via' => self::SHARED_ENTRIES_VIA,
+			'fields' => self::ENTRY_FIELDS,
+			'columns' => [
+				['field' => 'title', 'label' => 'Part'],
+			],
+		],
+		[
+			'id' => 'eaWholePortfolioEntries',
+			'register' => self::REGISTER,
+			'schema' => 'portfolio-entry',
+			'scopeField' => 'portfolioId',
+			'scopeClaim' => 'externalAssessorId',
+			'label' => 'Shared parts',
+			'listable' => true,
+			'minTrust' => 'low',
+			'via' => self::WHOLE_PORTFOLIO_VIA,
+			'fields' => self::ENTRY_FIELDS,
+			'columns' => [
+				['field' => 'title', 'label' => 'Part'],
+			],
+		],
+		[
+			// The exams he is assigned to (practical-exam-assessment): scoped
+			// by the assignment's own `externalAssessorId`, so a sitting
+			// without an assignment for him lists nothing.
+			'id' => 'eaExams',
+			'register' => self::REGISTER,
+			'schema' => 'exam-assessor-assignment',
+			'scopeField' => 'externalAssessorId',
+			'scopeClaim' => 'externalAssessorId',
+			'label' => 'Your exams',
+			'listable' => true,
+			'minTrust' => 'low',
+			// A withdrawn assignment grants nothing.
+			'filter' => ['lifecycle' => 'assigned'],
+			'fields' => ['examSittingId', 'learnerRef', 'role', 'lifecycle', 'learnerName', 'sittingStartsAt', 'sittingEndsAt', 'examTitle', 'sittingRoom'],
+			'columns' => [
+				['field' => 'sittingStartsAt', 'label' => 'Time', 'render' => 'datetime'],
+				['field' => 'learnerName', 'label' => 'Candidate'],
+				['field' => 'examTitle', 'label' => 'Exam'],
+				['field' => 'sittingRoom', 'label' => 'Room'],
+				['field' => 'role', 'label' => 'As assessor'],
+			],
+		],
+	];
 
 	/**
 	 * The shares granted to this assessor, by whose work and until when.
@@ -64,7 +379,7 @@ class AssessorSitePages {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/site-external-assessor-portal-design/specs/portal-contribution/spec.md#requirement-new-a-share-names-its-candidate-and-portfolio
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-new-a-share-names-its-candidate-and-portfolio
 	 */
 	public function withReadableNames(array $collection): array {
 		$collection['fields'] = array_values(
@@ -87,12 +402,12 @@ class AssessorSitePages {
 	 *
 	 * @return array<int, array<string, mixed>>
 	 *
-	 * @spec openspec/changes/site-external-assessor-portal-design/specs/portal-contribution/spec.md#requirement-an-external-assessor-lands-on-what-is-shared-with-him-and-until-when
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-external-assessor-lands-on-what-is-shared-with-him-and-until-when
 	 */
 	public function pages(array $collections): array {
 		$pages = [$this->overviewPage()];
 		foreach ($collections as $collection) {
-			$pages[] = [
+			$page = [
 				'id' => (string)$collection['id'],
 				'label' => (string)($collection['label'] ?? $collection['id']),
 				'group' => ParentSitePages::GROUP,
@@ -101,18 +416,61 @@ class AssessorSitePages {
 					['type' => 'detail', 'collection' => (string)$collection['id']],
 				],
 			];
+			// The menu is Overzicht, Gedeeld met mij and his exams; the entries
+			// are read from a share's own page.
+			if (in_array($collection['id'], ['eaSharedPortfolios', 'eaExams'], true) === false) {
+				$page['menu'] = false;
+			}
+
+			$pages[] = $page;
 		}
+
+		$pages[] = $this->sharePage();
 
 		return $pages;
 	}//end pages()
 
 	/**
-	 * The overview: how long his access runs, then every candidate shared with
-	 * him, then his messages.
+	 * One share's own page: until when his access runs, in a sentence, and the
+	 * parts of that portfolio the share opens to him: the selected ones, or
+	 * all of them for a whole-portfolio share. Out of the menu.
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/site-external-assessor-portal-design/specs/portal-contribution/spec.md#requirement-an-external-assessor-lands-on-what-is-shared-with-him-and-until-when
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-new-an-external-assessor-opens-the-shared-entries-and-only-those
+	 */
+	public function sharePage(): array {
+		return [
+			'id' => 'eaShare',
+			'label' => 'Portfolio',
+			'menu' => false,
+			'record' => ['collection' => 'eaSharedPortfolios', 'titleFields' => ['learnerName']],
+			'blocks' => [
+				self::ACCESS_SENTENCE,
+				[
+					'type' => 'collection',
+					'collection' => 'eaSharedPortfolioEntries',
+					'recordField' => 'portfolioId',
+					'recordKey' => 'portfolioId',
+				],
+				[
+					'type' => 'collection',
+					'collection' => 'eaWholePortfolioEntries',
+					'recordField' => 'portfolioId',
+					'recordKey' => 'portfolioId',
+				],
+			],
+		];
+	}//end sharePage()
+
+	/**
+	 * The overview: his exams today, all his exams, then every candidate
+	 * shared with him and until when, then his messages.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-external-assessor-lands-on-what-is-shared-with-him-and-until-when
+	 * @spec openspec/changes/practical-exam-assessment/specs/exam-board/spec.md#requirement-an-assessor-is-linked-to-an-exam-sitting-by-a-record
 	 */
 	private function overviewPage(): array {
 		return [
@@ -121,18 +479,7 @@ class AssessorSitePages {
 			'icon' => 'ViewDashboard',
 			'group' => ParentSitePages::GROUP,
 			'home' => true,
-			'blocks' => [
-				// One list, longest access first. Each row names the candidate,
-				// the portfolio and the date his access runs to, so the mockup's
-				// sentence is read off the rows until portaliq can fill a text
-				// block from a record.
-				[
-					'type' => 'collection',
-					'collection' => 'eaSharedPortfolios',
-					'sort' => ['field' => 'expiresAt', 'direction' => 'desc'],
-				],
-				['type' => 'inbox', 'label' => 'Messages', 'limit' => 2],
-			],
+			'blocks' => self::EA_OVERVIEW_BLOCKS,
 		];
 	}//end overviewPage()
 	/**
@@ -156,29 +503,10 @@ class AssessorSitePages {
 	public function contribution(): array {
 		$contribution = [
 			'label' => 'Learniq',
-			'collections' => [
-				[
-					'id' => 'eaSharedPortfolios',
-					'register' => self::REGISTER,
-					'schema' => 'portfolio-share',
-					'scopeField' => 'sharedWithExternalAssessorId',
-					'scopeClaim' => 'externalAssessorId',
-					'label' => 'Portfolios shared with me',
-					'listable' => true,
-					'minTrust' => 'low',
-					// Only active grants resolve — a revoked share must return no rows.
-					'filter' => ['lifecycle' => 'active'],
-					'fields' => [
-						'portfolioId',
-						'entryIds',
-						'sharedWithKind',
-						'sharedBy',
-						'expiresAt',
-						'lifecycle',
-					],
-				],
-			],
-			'actions' => [],
+			'collections' => self::ASSESSOR_COLLECTIONS,
+			// Read-only apart from the assessment he is assigned to and his
+			// signature on it (practical-exam-assessment).
+			'actions' => [self::ASSESS_ACTION, self::SIGN_ACTION],
 			'notifications' => [],
 		];
 		// The share names its candidate and portfolio, and the assessor gets an

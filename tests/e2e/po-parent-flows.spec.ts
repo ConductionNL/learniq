@@ -51,6 +51,8 @@
  *      homework, attendance, calendar and news on one page, and the calendar
  *      page holds her child's school events and holidays;
  *   g. her child's teacher reads as a name, never as a Nextcloud user id.
+ *   i. the teacher asks permission for a trip, she answers for her own child and is
+ *      refused for another, the teacher reads who said yes and who has not answered.
  *
  * Every page the guardian sees is the Vue site (`/apps/portaliq/site`), on its
  * signed-in routes (`&route=/mijn/learniq/<collection>` and the shell's own
@@ -837,6 +839,86 @@ test.describe('po: teacher and parent flows', () => {
 			'po-leerkracht-',
 		)
 		await shot(parent, 'g1-teacher-by-name')
+	})
+
+	test('i. the teacher asks permission, the guardian answers for her own child only, the teacher sees the outcome', async ({
+		browser,
+	}) => {
+		const title = `Excursie Openluchtmuseum (${RUN})`
+		// The teacher asks: groep 7's trip, naming Vera and a classmate.
+		const asked = await teacherCreate('permission-request', {
+			title,
+			explanation: 'We gaan met de bus. Graag uw toestemming.',
+			happensOn: new Date(Date.now() + 14 * 86_400_000).toISOString().slice(0, 10),
+			respondBy: new Date(Date.now() + 7 * 86_400_000).toISOString().slice(0, 10),
+			cohortId: GROUP_7,
+			learnerRefs: [CHILD.ref, OTHER_CHILD],
+			treatSilenceAsRefusal: true,
+			tenant_id: TENANT,
+		})
+		const requestId = String(asked.id ?? asked.uuid)
+		expect(asked.lifecycle ?? 'open').toBe('open')
+
+		// The guardian sees the open request among her children's.
+		await expect
+			.poll(
+				async () =>
+					(await portalRows('permission-request', 'parentPermissionRequests')).some(
+						(row) => (row.id ?? row['@self']?.id) === requestId,
+					),
+				{ timeout: 15_000 },
+			)
+			.toBe(true)
+		await openPage(parent, 'learniq/parentPermissionRequests')
+		await expect(parent.getByText(title).first()).toBeVisible({ timeout: 15_000 })
+		await shot(parent, 'i1-permission-request')
+
+		const answerUrl = '/apps/portaliq/portal/api/collections/learniq/permission-request?actionId=answerPermissionRequest'
+		// For a child that is not hers the answer is refused, and nothing is stored.
+		const refused = await parent.request.post(answerUrl, {
+			headers: bearer(),
+			data: { permissionRequestId: requestId, learnerRef: OTHER_CHILD, answer: 'yes' },
+		})
+		expect(refused.status(), await refused.text()).toBeGreaterThanOrEqual(400)
+
+		// For Vera it is taken, stamped with the guardian and her assurance.
+		const answered = await parent.request.post(answerUrl, {
+			headers: bearer(),
+			data: { permissionRequestId: requestId, learnerRef: CHILD.ref, answer: 'yes' },
+		})
+		expect(answered.status(), await answered.text()).toBeLessThan(300)
+
+		const responses = async (): Promise<Array<Record<string, any>>> => {
+			const res = await teacher.get(
+				`/apps/openregister/api/objects/learniq/permission-response?permissionRequestId=${requestId}&_limit=50`,
+			)
+			expect(res.status()).toBe(200)
+			return ((await res.json()).results ?? []).filter(
+				(row: Record<string, any>) => row.permissionRequestId === requestId,
+			)
+		}
+		await expect.poll(async () => (await responses()).length, { timeout: 15_000 }).toBe(1)
+		const [response] = await responses()
+		created.push({ schema: 'permission-response', id: String(response.id ?? response['@self']?.id) })
+		expect(response.learnerRef).toBe(CHILD.ref)
+		expect(response.answer).toBe('yes')
+		expect(response.answeredByRef).toBe(GUARDIAN.ref)
+		expect(response.answeredAt).toBeTruthy()
+		expect(String(response.assuranceLevel ?? '')).not.toBe('')
+
+		// The teacher reads who said yes, and who has not answered.
+		const staff = await signInToNextcloud(browser, TEACHER)
+		await staff.goto(`/index.php/apps/learniq/permission-slips/${requestId}`)
+		await dismissTour(staff)
+		await expect(staff.getByText('1 of 2 answered')).toBeVisible({ timeout: 30_000 })
+		await expect(staff.getByText('Not answered counts as no.')).toBeVisible()
+		const yes = staff.locator('section, div').filter({ has: staff.getByText('Answered yes', { exact: true }) }).last()
+		await expect(yes).toContainText(CHILD.name)
+		await shot(staff, 'i2-teacher-outcome')
+		await staff.close()
+
+		// Close the request, so it does not stay a task on the guardian's overview.
+		expect(await transition(requestId, 'close')).toBe('closed')
 	})
 
 	/**

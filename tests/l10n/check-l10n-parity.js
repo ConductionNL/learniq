@@ -2,6 +2,9 @@
 /**
  * l10n translation-PARITY gate.
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Guards that every REQUIRED locale carries a real translation for every
  * English source key. Without this, a new English string ships and the other
  * languages silently fall back to English with a green pipeline — the app
@@ -48,9 +51,6 @@
  * Ratchet exit codes: 0 at the baseline; 1 worse, better, or no baseline.
  *
  * @spec openspec/changes/archive/2026-09-29-wire-l10n-parity-ci-gate/tasks.md#task-3
- *
- * SPDX-License-Identifier: EUPL-1.2
- * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
  */
 
 'use strict'
@@ -143,7 +143,10 @@ for (const set of sets) {
 		continue // this app does not ship this translation set
 	}
 	checkedSets++
-	const enKeys = Object.keys(set.load(set.enFile))
+	// The key list is en.json's for both sets: en.js ships only the English
+	// entries that differ from their key (scripts/build-l10n-js.js), because
+	// the browser answers a missing key with the key itself.
+	const enKeys = Object.keys(loadJsonSet(path.join(L10N_DIR, 'en.json')))
 	observed[set.kind] = { total: enKeys.length, gaps: {} }
 	for (const loc of REQUIRED) {
 		const locFile = set.file(loc)

@@ -25,10 +25,13 @@
      integration hint; Nextcloud's DependencyAnalyzer does not enforce
      <app> entries, so that declaration never gated anything.
 
- The #user-settings slot feeds LearniqNotificationSettings into CnAppRoot's
- hosted NcAppSettingsDialog, which CnAppNav opens when the user clicks the
- manifest menu entry with action: "user-settings". Per-user settings are
- about which notifications the user receives; instance-wide configuration
+ CnAppRoot's user settings dialog (the manifest menu entry with action:
+ "user-settings") shows the library's default sections, among them the
+ notification preferences scoped to learniq. `quietHours` adds the library's
+ quiet-hours block under them: the person's delivery window in OpenRegister,
+ read and saved at /apps/openregister/api/notification-delivery-window, which
+ applies to every app (notification-quiet-hours-through-openregister, board
+ LqMeldingen). Instance-wide configuration
  (register, AI features, credential signing) lives in the NC Admin panel.
 -->
 <template>
@@ -40,11 +43,9 @@
 		:formatters="formatters"
 		:cellWidgets="cellWidgets"
 		appId="learniq"
+		:quietHours="true"
 		:translate="translateForApp"
 		:initialOrganisationUuid="callerTenant">
-		<template #user-settings>
-			<LearniqNotificationSettings />
-		</template>
 		<!-- The tenant context carries learniq's tenant id, not an organisation
 		     name, so the library's tenant badge would print a raw id. Keep it
 		     hidden, as it was before the context was fed. The slot needs a real
@@ -59,12 +60,13 @@
 
 <script>
 import { CnAppRoot } from '@conduction/nextcloud-vue'
+import axios from '@nextcloud/axios'
 import { getCanonicalLocale, translate as ncT } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
 import { markRaw } from 'vue'
 import LearnerNameCell from './components/cells/LearnerNameCell.vue'
-import LearniqNotificationSettings from './views/LearniqNotificationSettings.vue'
 import { createConnectionHandlers } from './utils/connectionRegistry.js'
+import { createCourseDayHandlers } from './utils/courseDayBoard.js'
 import { createFormatters } from './utils/timeBlocks.js'
 
 export default {
@@ -72,7 +74,6 @@ export default {
 
 	components: {
 		CnAppRoot,
-		LearniqNotificationSettings,
 	},
 
 	props: {
@@ -125,10 +126,15 @@ export default {
 			 * in `registry`, so the Integrations page's Add integration handler
 			 * has to travel through that prop.
 			 */
-			headerActionHandlers: createConnectionHandlers({
-				generateUrl,
-				assign: (url) => window.location.assign(url),
-			}),
+			headerActionHandlers: {
+				...createConnectionHandlers({
+					generateUrl,
+					assign: (url) => window.location.assign(url),
+				}),
+
+				// The course days board's move (training-provider-course-days T4).
+				...createCourseDayHandlers({ post: (url, body) => axios.post(url, body), generateUrl }),
+			},
 
 			/**
 			 * List column formatters learniq adds to the library's built-ins,

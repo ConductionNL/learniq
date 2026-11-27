@@ -21,9 +21,13 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Controller;
 
+use DateTime;
 use OCA\Learniq\Controller\HourPlanController;
+use OCA\Learniq\Service\Calendar\SchoolYear;
 use OCA\Learniq\Service\HourPlanActivityService;
 use OCP\AppFramework\Http;
+use OCP\AppFramework\Utility\ITimeFactory;
+use OCP\IAppConfig;
 use OCP\IGroupManager;
 use OCP\IRequest;
 use OCP\IUser;
@@ -40,26 +44,68 @@ class HourPlanControllerTest extends TestCase {
 	 *
 	 * @param string|null       $uid    The caller, or null for none.
 	 * @param array<int,string> $groups The caller's groups.
+	 * @param string            $today  Today, `Y-m-d`.
+	 * @param string            $start  The school's `school_year_start`.
+	 * @param string|null       $asked  The year forYear must be asked for, or null for any.
 	 *
 	 * @return HourPlanController
 	 */
-	private function controller(?string $uid, array $groups = []): HourPlanController {
-		$session = $this->createMock(IUserSession::class);
+	private function controller(
+		?string $uid,
+		array $groups = [],
+		string $today = '2026-10-21',
+		string $start = '08-01',
+		?string $asked = null
+	): HourPlanController {
+		$session = $this->createMock(originalClassName: IUserSession::class);
 		$user = null;
 		if ($uid !== null) {
-			$user = $this->createMock(IUser::class);
+			$user = $this->createMock(originalClassName: IUser::class);
 			$user->method('getUID')->willReturn($uid);
 		}
 
 		$session->method('getUser')->willReturn($user);
-		$groupManager = $this->createMock(IGroupManager::class);
+		$groupManager = $this->createMock(originalClassName: IGroupManager::class);
 		$groupManager->method('isAdmin')->willReturn(false);
 		$groupManager->method('isInGroup')->willReturnCallback(static fn (string $u, string $g): bool => in_array($g, $groups, true));
-		$service = $this->createMock(HourPlanActivityService::class);
-		$service->method('intakeYearOf')->willReturnCallback(static fn (string $y): ?string => preg_match('/^\d{4}-\d{4}$/', $y) === 1 ? $y : null);
-		$service->method('forYear')->willReturn(['academicYear' => '2026-2027', 'activities' => [['cohortId' => 'c-mv2a']], 'cohortsWithoutPlan' => []]);
+		$service = $this->createMock(originalClassName: HourPlanActivityService::class);
+		$service->method('intakeYearOf')->willReturnCallback(
+			static function (string $y): ?string {
+				if (preg_match('/^\d{4}-\d{4}$/', $y) === 1) {
+					return $y;
+				}
 
-		return new HourPlanController($this->createMock(IRequest::class), $session, $groupManager, $service);
+				return null;
+			}
+		);
+		$forYear = $service->method('forYear');
+		if ($asked !== null) {
+			$forYear = $service->expects(self::once())->method('forYear')->with($asked);
+		}
+
+		$forYear->willReturn(['academicYear' => '2026-2027', 'activities' => [['cohortId' => 'c-mv2a']], 'cohortsWithoutPlan' => []]);
+
+		$config = $this->createMock(originalClassName: IAppConfig::class);
+		$config->method('getValueString')->willReturnCallback(
+			static function (string $app, string $key, string $default) use ($start): string {
+				if ($key === SchoolYear::KEY) {
+					return $start;
+				}
+
+				return $default;
+			}
+		);
+		$time = $this->createMock(originalClassName: ITimeFactory::class);
+		$time->method('getDateTime')->willReturn(new DateTime($today));
+
+		return new HourPlanController(
+			request: $this->createMock(originalClassName: IRequest::class),
+			userSession: $session,
+			groupManager: $groupManager,
+			activities: $service,
+			schoolYear: new SchoolYear(appConfig: $config),
+			time: $time
+		);
 	}//end controller()
 
 	/**
@@ -68,8 +114,14 @@ class HourPlanControllerTest extends TestCase {
 	 * @return void
 	 */
 	public function testLearnerIsRefused(): void {
-		self::assertSame(Http::STATUS_FORBIDDEN, $this->controller(uid: 'pupil', groups: ['learners'])->activities(academicYear: '2026-2027')->getStatus());
-		self::assertSame(Http::STATUS_UNAUTHORIZED, $this->controller(uid: null)->activities(academicYear: '2026-2027')->getStatus());
+		self::assertSame(
+			expected: Http::STATUS_FORBIDDEN,
+			actual: $this->controller(uid: 'pupil', groups: ['learners'])->activities(academicYear: '2026-2027')->getStatus()
+		);
+		self::assertSame(
+			expected: Http::STATUS_UNAUTHORIZED,
+			actual: $this->controller(uid: null)->activities(academicYear: '2026-2027')->getStatus()
+		);
 	}//end testLearnerIsRefused()
 
 	/**
@@ -79,9 +131,42 @@ class HourPlanControllerTest extends TestCase {
 	 */
 	public function testStaffReadsTheActivities(): void {
 		$response = $this->controller(uid: 'coord', groups: ['team-leads'])->activities(academicYear: '2026-2027');
-		self::assertSame(Http::STATUS_OK, $response->getStatus());
-		self::assertSame('c-mv2a', $response->getData()['activities'][0]['cohortId']);
+		self::assertSame(expected: Http::STATUS_OK, actual: $response->getStatus());
+		self::assertSame(expected: 'c-mv2a', actual: $response->getData()['activities'][0]['cohortId']);
 
-		self::assertSame(Http::STATUS_BAD_REQUEST, $this->controller(uid: 'coord', groups: ['instructors'])->activities(academicYear: '2026')->getStatus());
+		self::assertSame(
+			expected: Http::STATUS_BAD_REQUEST,
+			actual: $this->controller(uid: 'coord', groups: ['instructors'])->activities(academicYear: '2026')->getStatus()
+		);
 	}//end testStaffReadsTheActivities()
+
+	/**
+	 * Without a year, the next school year is read, counted from the school's own start.
+	 *
+	 * @return void
+	 */
+	public function testNoYearReadsTheNextSchoolYearFromTheSchoolsStart(): void {
+		$response = $this->controller(uid: 'coord', groups: ['team-leads'], today: '2026-08-20', start: '09-01', asked: '2026-2027')->activities();
+		self::assertSame(expected: Http::STATUS_OK, actual: $response->getStatus());
+		self::assertSame(expected: '2025-2026', actual: $response->getData()['currentAcademicYear']);
+
+		$response = $this->controller(uid: 'coord', groups: ['team-leads'], today: '2026-08-20', asked: '2027-2028')->activities(academicYear: '');
+		self::assertSame(expected: '2026-2027', actual: $response->getData()['currentAcademicYear']);
+	}//end testNoYearReadsTheNextSchoolYearFromTheSchoolsStart()
+
+	/**
+	 * A year asked for is read as asked, whatever today is.
+	 *
+	 * @return void
+	 */
+	public function testAnAskedYearIsReadAsAsked(): void {
+		$response = $this->controller(
+			uid: 'coord',
+			groups: ['instructors'],
+			start: '09-01',
+			asked: '2024-2025'
+		)->activities(academicYear: '2024-2025');
+		self::assertSame(expected: Http::STATUS_OK, actual: $response->getStatus());
+		self::assertSame(expected: '2026-2027', actual: $response->getData()['currentAcademicYear']);
+	}//end testAnAskedYearIsReadAsAsked()
 }//end class

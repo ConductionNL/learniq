@@ -573,7 +573,7 @@ A sign-up for a course on request MUST stay pending until a user in `instructors
 #### Scenario: A manager approves a request
 
 - **GIVEN** a pending sign-up by p.ganpat for "Leidinggeven aan hybride teams", with p.ganpat's manager as `managerId`
-- **WHEN** the manager opens "Sign-up requests" and chooses "Approve"
+- **WHEN** the manager opens "Aanmeldverzoeken", finds the request as "Aangevraagd" under "Wachten op besluit", and approves it from the row's "Acties" menu
 - **THEN** the enrolment is active and p.ganpat gets a notification that the sign-up was approved
 
 ### Requirement: A learner withdraws their own sign-up
@@ -659,6 +659,85 @@ When an assignment has `groupSubmission` and names a work group set, the hand-in
 - **WHEN** s.dekker hands in the plan on the hand-in screen
 - **THEN** the submission lists all four members of "Groep 5"
 - **AND** each of them sees the hand-in on their own assignment page
+
+### Requirement: A mandatory enrolment shows its deadline to the learner
+
+An `Enrolment` MUST be able to carry a `dueDate`. The learner's own course list MUST show that date and the number of days left, from the materialised `daysRemaining` calculation.
+
+#### Scenario: The learner reads the deadline of a mandatory course
+
+- **GIVEN** an active enrolment for "Werken op hoogte" with `dueDate` 30 days from today
+- **WHEN** the learner opens "Mijn leren"
+- **THEN** the course shows its due date and 30 days left
+
+#### Scenario: An enrolment without a deadline shows none
+
+- **GIVEN** an active enrolment with no `dueDate`
+- **WHEN** the enrolment is read
+- **THEN** `daysRemaining` is null and no due date is shown
+
+### Requirement: A learner sees which of their courses is late
+
+An `Enrolment` MUST compute `isOverdue` (active, with a `dueDate` in the past) and `ragStatus`: `completed` for a completed enrolment, `red` when overdue, `amber` when seven days or fewer are left, and `green` otherwise. The learner's course list MUST show that state per course.
+
+#### Scenario: A course past its deadline reads as late
+
+- **GIVEN** an active enrolment whose `dueDate` was yesterday
+- **WHEN** the learner opens "Mijn leren"
+- **THEN** the course is marked late and its `ragStatus` is `red`
+
+#### Scenario: A course close to its deadline reads amber
+
+- **GIVEN** an active enrolment with five days left
+- **WHEN** the enrolment is read
+- **THEN** `isOverdue` is false and `ragStatus` is `amber`
+
+### Requirement: Staff enrol one learner in a course
+
+Staff who may create enrolments MUST be able to enrol one learner in one course from the enrolments page or the learner's page. The new `Enrolment` MUST name the learner and the course and start in `pending`.
+
+#### Scenario: A team lead enrols one employee
+
+- **GIVEN** a published course and a learner with no enrolment for it
+- **WHEN** a team lead creates an enrolment for that learner and course
+- **THEN** an `Enrolment` in `pending` exists naming the learner and the course
+- **AND** the learner's page lists the course
+
+### Requirement: Applications are decided from the admissions review board
+
+The admissions review board MUST let a coordinator decide each pending application: place it, put it on the waiting list, or reject it. Each decision MUST run as a lifecycle transition through `AdmissionsDecisionGuard`, so the capacity and reason rules hold whoever decides.
+
+#### Scenario: A coordinator places an applicant from the board
+
+- **GIVEN** an application in `intake-completed` in a round with free places
+- **WHEN** the coordinator chooses to place it on the review board
+- **THEN** the application moves to `placed`
+
+#### Scenario: A rejection needs a reason
+
+- **GIVEN** an application on the review board
+- **WHEN** the coordinator rejects it without a reason
+- **THEN** the rejection is refused
+
+### Requirement: An mbo student chooses a keuzedeel inside its window
+
+A school MUST be able to offer keuzedelen per period with code, name, study load, a choice window and places, and a student MUST be able to choose one for herself inside the window; a choice outside the window or for a full offer MUST be refused in words. The student page MUST show the choice state with the window's end.
+
+#### Scenario: Not yet chosen
+- **GIVEN** the keuzedelen of period 3 can be chosen until 16 October
+- **WHEN** Milan's coach opens his page on 5 October
+- **THEN** it reads "Keuzedeel periode 3: Nog niet gekozen, kan tot 16 oktober"
+- @e2e exclude staff screen; spec-only proposal
+
+### Requirement: A student's exam progress reads in words
+
+A student MUST carry the number of exam components passed out of those in her exam plan and her next sitting, readable as "{n} van {total} examenonderdelen behaald" and "Volgende: {code} op {date}".
+
+#### Scenario: Milan
+- **GIVEN** Milan passed 3 of 11 components and NE-3F-CE is on 3 November
+- **WHEN** his page is read
+- **THEN** it shows "3 van 11 examenonderdelen behaald" and "Volgende: NE-3F-CE op 3 november"
+- @e2e exclude as above
 
 ## Standards
 Studielink, Edukoppeling, OOAPI 5.0, IMS LIS (legacy), Schema.org `EducationEvent`, eduPersonAffiliation propagation.

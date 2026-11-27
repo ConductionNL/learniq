@@ -49,7 +49,7 @@ class TimetableVisibilityRegisterTest extends TestCase {
 	}//end setUp()
 
 	/**
-	 * The policy's defaults are the service's defaults, and only team leads and compliance officers write it.
+	 * The policy's defaults are the service's defaults, and only admins write it.
 	 *
 	 * @return void
 	 *
@@ -64,7 +64,7 @@ class TimetableVisibilityRegisterTest extends TestCase {
 		}
 
 		self::assertSame(['authenticated'], $policy['authorization']['read']);
-		self::assertSame(['team-leads', 'compliance-officers'], $policy['authorization']['create']);
+		self::assertSame(['admin'], $policy['authorization']['create']);
 		self::assertSame($policy['authorization']['create'], $policy['authorization']['update']);
 	}//end testPolicy()
 
@@ -81,9 +81,13 @@ class TimetableVisibilityRegisterTest extends TestCase {
 
 		// A floor, not a pin: other changes bump Session too (bulk change weeks adds changeBatchId).
 		self::assertTrue(version_compare($session['version'], '0.2.0', '>='));
-		self::assertSame(['instructors', 'hr', 'compliance-officers', 'team-leads'], $session['authorization']['read']);
+		// Coordinators and administration managers read every lesson, without write (decided 25 Nov 2026, teacher-dashboard-own-groups 1.6).
+		self::assertSame(
+			expected: ['instructors', 'hr', 'compliance-officers', 'team-leads', 'coordinators', 'administration-managers'],
+			actual: $session['authorization']['read']
+		);
 		self::assertNotContains('authenticated', $session['authorization']['read']);
 		self::assertNotContains('learners', $session['authorization']['read']);
-		self::assertSame($session['authorization']['read'], $session['authorization']['update']);
+		self::assertSame(expected: ['instructors', 'hr', 'compliance-officers', 'team-leads'], actual: $session['authorization']['update']);
 	}//end testSessionReadIsStaffOnly()
 }//end class

@@ -22,6 +22,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\Portal;
 
+require_once __DIR__ . '/EmployerCompanyTenancyTest.php';
+
 use OCA\Learniq\Portal\CallerOrganisations;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
@@ -63,6 +65,38 @@ class CallerOrganisationsTest extends TestCase {
 		$this->assertFalse(condition: (new CallerOrganisations(container: $container, logger: $this->createMock(originalClassName: LoggerInterface::class)))->includes('de-wilgenboom'));
 
 	}//end testWithoutOpenRegisterNothingIsIncluded()
+
+	/**
+	 * The caller's own organisation with a slug comes with its OpenRegister
+	 * uuid; another school's, an empty slug and an organisation without a uuid
+	 * give no tenant.
+	 *
+	 * @return void
+	 */
+	public function testTheTenantIsTheCallersOwnOrganisationWithItsUuid(): void {
+		$service = new class {
+			/**
+			 * The user's organisations.
+			 *
+			 * @return array<int, object>
+			 */
+			public function getUserOrganisations(): array {
+				return [
+					new FakeOrganisationEntity(slug: 'de-wilgenboom', uuid: 'uuid-wilgenboom'),
+					new FakeOrganisationEntity(slug: 'zonder-uuid', uuid: ''),
+					'not an entity',
+				];
+			}
+		};
+		$organisations = $this->organisations(service: $service);
+
+		$tenant = $organisations->tenant(slug: ' de-wilgenboom ');
+		$this->assertSame(expected: ['de-wilgenboom', 'uuid-wilgenboom'], actual: [$tenant?->slug, $tenant?->uuid]);
+		$this->assertNull(actual: $organisations->tenant(slug: 'vaartveld-college'));
+		$this->assertNull(actual: $organisations->tenant(slug: 'zonder-uuid'));
+		$this->assertNull(actual: $organisations->tenant(slug: ''));
+		$this->assertTrue(condition: $organisations->includes(slug: 'zonder-uuid'), message: 'membership alone still answers includes()');
+	}//end testTheTenantIsTheCallersOwnOrganisationWithItsUuid()
 
 	/**
 	 * The service under test over a container answering one service.

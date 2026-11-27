@@ -13,20 +13,15 @@
  * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
  * SPDX-License-Identifier: EUPL-1.2
  *
- * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-the-summary-follows-every-attendance-write
+ * @spec openspec/specs/attendance/spec.md#requirement-the-summary-follows-every-attendance-write
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\BackgroundJob;
 
-use OCA\Learniq\Service\Attendance\AttendanceSummaryService;
-use OCA\OpenRegister\BackgroundJob\ActorForwardedJob;
+use OCA\Learniq\Kernel\Contracts\AttendanceSummaryServiceInterface;
 use OCA\OpenRegister\Service\Deferral\DeferredListenerContext;
-use OCA\OpenRegister\Service\OrganisationService;
-use OCP\AppFramework\Utility\ITimeFactory;
-use OCP\IUserManager;
-use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
@@ -42,33 +37,21 @@ use Throwable;
  * @psalm-suppress UnusedClass Enqueued by ListenerDeferralService at request
  *  shutdown, never constructed by name.
  */
-class AttendanceSummaryRecomputeJob extends ActorForwardedJob {
+class AttendanceSummaryRecomputeJob extends ForwardedJob {
 
 	/**
 	 * Constructor.
 	 *
-	 * @param ITimeFactory             $time         Clock, for the base job.
-	 * @param IUserSession             $userSession  Actor forwarding, for the base job.
-	 * @param IUserManager             $userManager  Actor forwarding, for the base job.
-	 * @param OrganisationService      $organisation Tenant context, for the base job.
+	 * @param ActorForwarding $forwarding Clock, session, user manager and tenant context.
 	 * @param LoggerInterface          $logger       Logger; the base declares it protected.
-	 * @param AttendanceSummaryService $summaries    The recount.
+	 * @param AttendanceSummaryServiceInterface $summaries    The recount.
 	 */
 	public function __construct(
-		ITimeFactory $time,
-		IUserSession $userSession,
-		IUserManager $userManager,
-		OrganisationService $organisation,
+		ActorForwarding $forwarding,
 		LoggerInterface $logger,
-		private readonly AttendanceSummaryService $summaries,
+		private readonly AttendanceSummaryServiceInterface $summaries,
 	) {
-		parent::__construct(
-			time: $time,
-			userSession: $userSession,
-			userManager: $userManager,
-			organisation: $organisation,
-			logger: $logger
-		);
+		parent::__construct(forwarding: $forwarding, logger: $logger);
 	}//end __construct()
 
 	/**
@@ -78,7 +61,7 @@ class AttendanceSummaryRecomputeJob extends ActorForwardedJob {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-the-summary-follows-every-attendance-write
+	 * @spec openspec/specs/attendance/spec.md#requirement-the-summary-follows-every-attendance-write
 	 */
 	protected function runDeferred(DeferredListenerContext $context): void {
 		$learners = [];
@@ -99,6 +82,21 @@ class AttendanceSummaryRecomputeJob extends ActorForwardedJob {
 			}
 		}
 
+		$this->recountLearners(learners: $learners);
+	}//end runDeferred()
+
+	/**
+	 * Recount the attendance summaries of each learner for the school years of
+	 * their marked sessions; a failed recount is logged and the rest go on.
+	 *
+	 * @param array<string,array<string,mixed>> $learners Per learner id: the sessions marked (sessionIds), the tenant (tenantId)
+	 *                                                   and the learner ref (learnerRef).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/attendance/spec.md#requirement-the-summary-follows-every-attendance-write
+	 */
+	private function recountLearners(array $learners): void {
 		foreach ($learners as $learnerId => $learner) {
 			try {
 				$this->summaries->recompute(
@@ -114,5 +112,5 @@ class AttendanceSummaryRecomputeJob extends ActorForwardedJob {
 				);
 			}
 		}
-	}//end runDeferred()
+	}//end recountLearners()
 }//end class

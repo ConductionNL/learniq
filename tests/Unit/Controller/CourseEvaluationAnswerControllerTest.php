@@ -16,8 +16,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#requirement-learner-answers-an-evaluation
- * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#requirement-campaign-results-for-staff
+ * @spec openspec/specs/course-evaluation-answering/spec.md#requirement-learner-answers-an-evaluation
+ * @spec openspec/specs/course-evaluation-answering/spec.md#requirement-campaign-results-for-staff
  */
 
 declare(strict_types=1);
@@ -100,8 +100,8 @@ class CourseEvaluationAnswerControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-an-uninvited-user-is-refused
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-an-uninvited-user-is-refused
 	 */
 	public function testTheCallerAnswersOnlyTheirOwn(): void {
 		$controller = $this->controller(uid: 'jan');
@@ -122,7 +122,7 @@ class CourseEvaluationAnswerControllerTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-small-groups-are-protected
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-small-groups-are-protected
 	 */
 	public function testOnlyStaffReadResults(): void {
 		$staff = $this->controller(uid: 'tom', views: ['teacher', 'student']);

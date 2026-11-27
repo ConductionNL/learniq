@@ -35,6 +35,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Repair;
 
+use OCA\Learniq\Repair\Support\RepairRowWalk;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Migration\IOutput;
 use OCP\Migration\IRepairStep;
@@ -52,12 +55,12 @@ class BackfillLearnerProfileNames implements IRepairStep {
 
 	private const SCHEMA = 'learner-profile';
 
-	private const PAGE_SIZE = 200;
-
 	/**
-	 * Hard stop so a paging defect can never loop forever.
+	 * Pages through the schema this step back-fills.
+	 *
+	 * @var RepairRowWalk
 	 */
-	private const MAX_PAGES = 10000;
+	private readonly RepairRowWalk $rows;
 
 	/**
 	 * Constructor.
@@ -71,6 +74,7 @@ class BackfillLearnerProfileNames implements IRepairStep {
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
 	) {
+		$this->rows = new RepairRowWalk(objectService: $objectService, logger: $logger, label: 'BackfillLearnerProfileNames');
 	}//end __construct()
 
 	/**
@@ -86,6 +90,8 @@ class BackfillLearnerProfileNames implements IRepairStep {
 
 	/**
 	 * Page through every learner profile and save the ones not named yet.
+	 * Paging by offset is stable here: a save changes a profile's name, not
+	 * its place in the list.
 	 *
 	 * @param IOutput $output Repair output.
 	 *
@@ -94,76 +100,16 @@ class BackfillLearnerProfileNames implements IRepairStep {
 	 * @spec openspec/changes/pupils-read-by-name/specs/school-structure/spec.md#requirement-a-pupil-reads-by-name
 	 */
 	public function run(IOutput $output): void {
-		$counts = ['scanned' => 0, 'named' => 0, 'failed' => 0];
-
-		try {
-			for ($page = 0; $page < self::MAX_PAGES; $page++) {
-				$rows = $this->page(offset: ($page * self::PAGE_SIZE));
-				foreach ($rows as $row) {
-					$counts['scanned']++;
-					$outcome = $this->nameRow(row: $row);
-					if ($outcome !== null) {
-						$counts[$outcome]++;
-					}
-				}
-
-				if (count($rows) < self::PAGE_SIZE) {
-					break;
-				}
-			}
-		} catch (Throwable $exception) {
-			// OpenRegister absent or the register not imported yet: the next
-			// upgrade retries.
-			$this->logger->warning(
-				'[BackfillLearnerProfileNames] Stopped early: {msg}',
-				['msg' => $exception->getMessage()]
-			);
-		}
+		$counts = $this->rows->walk(
+			schema: self::SCHEMA,
+			visit: fn (array $row): ?string => $this->nameRow(row: $row)
+		);
 
 		$output->info(
-			'BackfillLearnerProfileNames: ' . $counts['named'] . ' named, ' . $counts['failed']
-			. ' failed, of ' . $counts['scanned'] . ' scanned.'
+			'BackfillLearnerProfileNames: ' . $counts->countOf(key: 'named') . ' named, ' . $counts->countOf(key: 'failed')
+			. ' failed, of ' . $counts->countOf(key: 'scanned') . ' scanned.'
 		);
 	}//end run()
-
-	/**
-	 * One page of profiles as arrays.
-	 *
-	 * Paging by offset is stable here: a save changes a profile's name, not
-	 * its place in the list.
-	 *
-	 * @param int $offset Row offset.
-	 *
-	 * @return array<int, array<string, mixed>>
-	 */
-	private function page(int $offset): array {
-		$objects = $this->objectService->findAll(
-			config: [
-				'filters' => [
-					'register' => self::REGISTER,
-					'schema'   => self::SCHEMA,
-				],
-				'limit'   => self::PAGE_SIZE,
-				'offset'  => $offset,
-			],
-			_rbac: false,
-			_multitenancy: false
-		);
-
-		$rows = [];
-		foreach ($objects as $object) {
-			if (is_array($object) === true) {
-				$rows[] = $object;
-				continue;
-			}
-
-			if (is_object($object) === true && method_exists($object, 'jsonSerialize') === true) {
-				$rows[] = (array)$object->jsonSerialize();
-			}
-		}
-
-		return $rows;
-	}//end page()
 
 	/**
 	 * Save one profile when its stored name differs from its given and family name.
@@ -184,6 +130,18 @@ class BackfillLearnerProfileNames implements IRepairStep {
 			return null;
 		}
 
+		return $this->saveNamed(row: $row, uuid: $uuid);
+	}//end nameRow()
+
+	/**
+	 * Save the learner profile so OpenRegister stores its derived name.
+	 *
+	 * @param array<string,mixed> $row  The learner profile, its name derived.
+	 * @param string              $uuid Its uuid.
+	 *
+	 * @return string Counter to bump: named, or failed when the save threw.
+	 */
+	private function saveNamed(array $row, string $uuid): string {
 		try {
 			// The `@self` block would make OpenRegister check the acting
 			// user's folder rights, which a session-less step never has.
@@ -192,9 +150,10 @@ class BackfillLearnerProfileNames implements IRepairStep {
 
 			$this->objectService->saveObject(
 				object: $object,
-				register: self::REGISTER,
-				schema: self::SCHEMA,
-				uuid: $uuid,
+				options: new ObjectSaveOptions(
+					target: new ObjectFindTarget(register: self::REGISTER, schema: self::SCHEMA),
+					uuid: $uuid
+				),
 				_rbac: false,
 				_multitenancy: false
 			);
@@ -207,7 +166,7 @@ class BackfillLearnerProfileNames implements IRepairStep {
 		}
 
 		return 'named';
-	}//end nameRow()
+	}//end saveNamed()
 
 	/**
 	 * The name OpenRegister computes from `{{ givenName }} {{ familyName }}`.

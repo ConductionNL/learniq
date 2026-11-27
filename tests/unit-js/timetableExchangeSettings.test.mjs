@@ -30,10 +30,10 @@ test('maps become rows per source and back, empty rows dropped', () => {
 })
 
 test('every source the server knows has a label', () => {
-	const php = readFileSync(
-		new URL('../../lib/Service/TimetableExchangeSettings.php', import.meta.url),
-		'utf8',
-	)
+	// The source list is declared on the settings contract since the kernel split.
+	const php = ['../../lib/Service/TimetableExchangeSettings.php', '../../lib/Kernel/Contracts/TimetableExchangeSettingsInterface.php']
+		.map((file) => readFileSync(new URL(file, import.meta.url), 'utf8'))
+		.join('\n')
 	const ids = [...php.matchAll(/'(roster-[a-z-]+)'/g)].map((m) => m[1])
 	assert.ok(ids.length >= 4)
 	for (const id of ids) {

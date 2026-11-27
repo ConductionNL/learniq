@@ -16,11 +16,9 @@
  @spec openspec/specs/personal-timetable/spec.md#requirement-a-signed-in-user-can-see-their-own-upcoming-sessions
 -->
 <template>
-	<div class="my-timetable">
+	<div class="my-timetable lq-board-page">
 		<div class="my-timetable__header">
-			<h2 class="my-timetable__title">
-				{{ t('learniq', 'My timetable') }}
-			</h2>
+			<CnPageHeader :title="t('learniq', 'My timetable')" />
 			<div class="my-timetable__controls">
 				<NcButton
 					variant="tertiary"
@@ -53,6 +51,13 @@
 						@click="setMode('week')">
 						{{ t('learniq', 'Week') }}
 					</NcButton>
+					<NcButton
+						:variant="mode === 'grid' ? 'primary' : 'secondary'"
+						:disabled="loading"
+						data-testid="timetable-mode-grid"
+						@click="setMode('grid')">
+						{{ t('learniq', 'Lesson hours') }}
+					</NcButton>
 				</div>
 				<NcButton
 					variant="secondary"
@@ -61,6 +66,25 @@
 					{{ t('learniq', 'Subscribe in your calendar') }}
 				</NcButton>
 			</div>
+		</div>
+
+		<!-- week-timetable-grid T3: a mentor switches to her mentor class's week. -->
+		<div
+			v-if="scopes.length > 1"
+			class="my-timetable__scopes"
+			role="group"
+			:aria-label="t('learniq', 'Whose timetable')"
+			data-testid="timetable-scopes">
+			<NcButton
+				v-for="option in scopes"
+				:key="option.id"
+				:variant="scope === option.id ? 'primary' : 'secondary'"
+				:aria-pressed="scope === option.id ? 'true' : 'false'"
+				:disabled="loading"
+				:data-testid="'timetable-scope-' + option.id"
+				@click="setScope(option.id)">
+				{{ option.label }}
+			</NcButton>
 		</div>
 
 		<NcLoadingIcon v-if="loading" :size="44" class="my-timetable__loading" />
@@ -83,13 +107,11 @@
 			}}
 		</NcNoteCard>
 
-		<section
+		<CnDetailCard
 			v-if="!loading && !error && changes.length > 0"
+			:title="changesTitle"
 			class="my-timetable__changes"
 			aria-live="polite">
-			<h3 class="my-timetable__changes-title">
-				{{ t('learniq', "Today's changes") }}
-			</h3>
 			<ul class="my-timetable__changes-list">
 				<li
 					v-for="session in changes"
@@ -110,167 +132,178 @@
 					>
 				</li>
 			</ul>
-		</section>
+		</CnDetailCard>
 
-		<NcEmptyContent
-			v-if="
-				!loading && !error && sessions.length === 0 && standby.length === 0
-			"
-			:name="t('learniq', 'No sessions')"
-			:description="emptyDescription">
-			<template #icon>
-				<span class="icon-calendar" />
-			</template>
-		</NcEmptyContent>
-
-		<div
-			v-if="!loading && !error && (sessions.length > 0 || standby.length > 0)"
-			class="my-timetable__grid"
-			:class="{ 'my-timetable__grid--single': mode === 'today' }">
-			<section
-				v-for="day in visibleDays"
-				:key="day.iso"
-				class="my-timetable__day"
-				:class="{ 'my-timetable__day--today': day.isToday }">
-				<header class="my-timetable__day-head">
-					<span class="my-timetable__day-name">{{ day.weekday }}</span>
-					<span class="my-timetable__day-date">{{ day.dateLabel }}</span>
-				</header>
-				<ul class="my-timetable__sessions">
-					<li
-						v-for="block in day.standby"
-						:key="'standby-' + block.slotId + block.date"
-						class="my-timetable__standby">
-						<span class="my-timetable__session-time"
-							>{{ block.startsAt }}–{{ block.endsAt }}</span
-						>
-						<span class="my-timetable__session-name">{{
-							t('learniq', 'Standby')
-						}}</span>
-					</li>
-					<li
-						v-if="day.sessions.length === 0 && day.standby.length === 0"
-						class="my-timetable__none">
-						{{ t('learniq', 'No sessions') }}
-					</li>
-					<li
-						v-for="session in day.sessions"
-						:key="session.id"
-						class="my-timetable__session"
-						:class="{
-							'my-timetable__session--cancelled':
-								session.lifecycle === 'cancelled',
-						}">
-						<div
-							:tabindex="isLearniqSession(session) ? 0 : undefined"
-							:role="isLearniqSession(session) ? 'button' : undefined"
-							class="my-timetable__session-main"
-							:aria-label="sessionAria(session)"
-							@click="openSession(session)"
-							@keyup.enter="openSession(session)">
-							<span class="my-timetable__session-time">{{
-								timeRange(session)
-							}}</span>
+		<CnDetailCard
+			v-if="!loading && !error"
+			class="my-timetable__week">
+			<NcEmptyContent
+				v-if="sessions.length === 0 && standby.length === 0"
+				:name="t('learniq', 'No sessions')"
+				:description="emptyDescription">
+				<template #icon>
+					<span class="icon-calendar" />
+				</template>
+			</NcEmptyContent>
+			<!-- week-timetable-grid T2: the week as day columns and lesson hours. -->
+			<CnWeekGrid
+				v-else-if="mode === 'grid'"
+				:week="weekStart"
+				:rows="gridRows"
+				:items="gridItems"
+				:caption="gridCaption"
+				:navigation="false"
+				data-testid="timetable-week-grid"
+				@itemClick="(item) => openSession(item.session)" />
+			<div
+				v-else
+				class="my-timetable__grid"
+				:class="{ 'my-timetable__grid--single': mode === 'today' }">
+				<section
+					v-for="day in visibleDays"
+					:key="day.iso"
+					class="my-timetable__day"
+					:class="{ 'my-timetable__day--today': day.isToday }">
+					<header class="my-timetable__day-head">
+						<span class="my-timetable__day-name">{{ day.weekday }}</span>
+						<span class="my-timetable__day-date">{{ day.dateLabel }}</span>
+					</header>
+					<ul class="my-timetable__sessions">
+						<li
+							v-for="block in day.standby"
+							:key="'standby-' + block.slotId + block.date"
+							class="my-timetable__standby">
+							<span class="my-timetable__session-time"
+								>{{ block.startsAt }}–{{ block.endsAt }}</span
+							>
 							<span class="my-timetable__session-name">{{
-								session.title || t('learniq', 'Untitled session')
+								t('learniq', 'Standby')
 							}}</span>
-							<span
-								v-if="session.room"
-								class="my-timetable__session-loc"
-								>{{ session.room.name }}</span
-							>
-							<span
-								v-else-if="session.location"
-								class="my-timetable__session-loc"
-								>{{ session.location }}</span
-							>
-							<span
+						</li>
+						<li
+							v-if="day.sessions.length === 0 && day.standby.length === 0"
+							class="my-timetable__none">
+							{{ t('learniq', 'No sessions') }}
+						</li>
+						<li
+							v-for="session in day.sessions"
+							:key="session.id"
+							class="my-timetable__session"
+							:class="{
+								'my-timetable__session--cancelled':
+									session.lifecycle === 'cancelled',
+							}">
+							<div
+								:tabindex="isLearniqSession(session) ? 0 : undefined"
+								:role="isLearniqSession(session) ? 'button' : undefined"
+								class="my-timetable__session-main"
+								:aria-label="sessionAria(session)"
+								@click="openSession(session)"
+								@keyup.enter="openSession(session)">
+								<span class="my-timetable__session-time">{{
+									timeRange(session)
+								}}</span>
+								<span class="my-timetable__session-name">{{
+									session.title || t('learniq', 'Untitled session')
+								}}</span>
+								<span
+									v-if="session.room"
+									class="my-timetable__session-loc"
+									>{{ session.room.name }}</span
+								>
+								<span
+									v-else-if="session.location"
+									class="my-timetable__session-loc"
+									>{{ session.location }}</span
+								>
+								<span
+									v-if="
+										session.lifecycle
+										&& session.lifecycle !== 'scheduled'
+									"
+									class="my-timetable__session-badge"
+									:class="
+										'my-timetable__session-badge--'
+										+ session.lifecycle
+									">
+									{{ statusLabel(session) }}
+								</span>
+								<span
+									v-if="session.cover"
+									class="my-timetable__session-badge my-timetable__session-badge--cover">
+									{{ t('learniq', 'Cover') }}
+								</span>
+								<span
+									v-if="noteTopic(session)"
+									class="my-timetable__session-topic">
+									{{ noteTopic(session) }}
+								</span>
+							</div>
+							<details
+								v-if="session.notes && session.notes.length > 0"
+								class="my-timetable__notes">
+								<summary>
+									<NoteTextOutline :size="14" />
+									{{ notesSummary(session) }}
+								</summary>
+								<ul class="my-timetable__notes-list">
+									<li
+										v-for="note in session.notes"
+										:key="note.id"
+										class="my-timetable__note">
+										<strong v-if="note.topic">{{
+											note.topic
+										}}</strong>
+										<span>{{ note.text }}</span>
+										<em
+											v-if="note.audience === 'cover'"
+											class="my-timetable__note-audience">
+											{{
+												t('learniq', 'For the covering teacher')
+											}}
+										</em>
+									</li>
+								</ul>
+							</details>
+							<NcButton
 								v-if="
-									session.lifecycle
-									&& session.lifecycle !== 'scheduled'
+									joinUrl(session) && session.lifecycle !== 'cancelled'
 								"
-								class="my-timetable__session-badge"
-								:class="
-									'my-timetable__session-badge--'
-									+ session.lifecycle
-								">
-								{{ statusLabel(session) }}
-							</span>
-							<span
-								v-if="session.cover"
-								class="my-timetable__session-badge my-timetable__session-badge--cover">
-								{{ t('learniq', 'Cover') }}
-							</span>
-							<span
-								v-if="noteTopic(session)"
-								class="my-timetable__session-topic">
-								{{ noteTopic(session) }}
-							</span>
-						</div>
-						<details
-							v-if="session.notes && session.notes.length > 0"
-							class="my-timetable__notes">
-							<summary>
-								<NoteTextOutline :size="14" />
-								{{ notesSummary(session) }}
-							</summary>
-							<ul class="my-timetable__notes-list">
-								<li
-									v-for="note in session.notes"
-									:key="note.id"
-									class="my-timetable__note">
-									<strong v-if="note.topic">{{
-										note.topic
-									}}</strong>
-									<span>{{ note.text }}</span>
-									<em
-										v-if="note.audience === 'cover'"
-										class="my-timetable__note-audience">
-										{{
-											t('learniq', 'For the covering teacher')
-										}}
-									</em>
-								</li>
-							</ul>
-						</details>
-						<NcButton
-							v-if="
-								joinUrl(session) && session.lifecycle !== 'cancelled'
-							"
-							class="my-timetable__session-manage"
-							variant="secondary"
-							:href="joinUrl(session)"
-							target="_blank"
-							rel="noopener noreferrer"
-							:aria-label="
-								t(
-									'learniq',
-									'Join this lesson online (opens in a new tab)',
-								)
-							"
-							data-testid="session-join">
-							{{ t('learniq', 'Join') }}
-						</NcButton>
-						<NcButton
-							v-if="session.canAddNote"
-							class="my-timetable__session-manage"
-							variant="tertiary"
-							:aria-label="t('learniq', 'Add a note to this lesson')"
-							@click="notingSession = session">
-							{{ t('learniq', 'Add note') }}
-						</NcButton>
-						<NcButton
-							v-if="isLearniqSession(session)"
-							class="my-timetable__session-manage"
-							variant="tertiary"
-							:aria-label="t('learniq', 'Manage this session')"
-							@click="manage(session)">
-							{{ t('learniq', 'Manage') }}
-						</NcButton>
-					</li>
-				</ul>
-			</section>
-		</div>
+								class="my-timetable__session-manage"
+								variant="secondary"
+								:href="joinUrl(session)"
+								target="_blank"
+								rel="noopener noreferrer"
+								:aria-label="
+									t(
+										'learniq',
+										'Join this lesson online (opens in a new tab)',
+									)
+								"
+								data-testid="session-join">
+								{{ t('learniq', 'Join') }}
+							</NcButton>
+							<NcButton
+								v-if="session.canAddNote"
+								class="my-timetable__session-manage"
+								variant="tertiary"
+								:aria-label="t('learniq', 'Add a note to this lesson')"
+								@click="notingSession = session">
+								{{ t('learniq', 'Add note') }}
+							</NcButton>
+							<NcButton
+								v-if="isLearniqSession(session)"
+								class="my-timetable__session-manage"
+								variant="tertiary"
+								:aria-label="t('learniq', 'Manage this session')"
+								@click="manage(session)">
+								{{ t('learniq', 'Manage') }}
+							</NcButton>
+						</li>
+					</ul>
+				</section>
+			</div>
+		</CnDetailCard>
 
 		<SubstitutionModal
 			v-if="managingSession"
@@ -291,17 +324,21 @@
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader, CnWeekGrid } from '@conduction/nextcloud-vue'
 import { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
 import NoteTextOutline from 'vue-material-design-icons/NoteTextOutline.vue'
 import LessonNoteDialog from '../dialogs/LessonNoteDialog.vue'
 import SubstitutionModal from '../dialogs/SubstitutionModal.vue'
 import TimetableCalendarFeedDialog from '../dialogs/TimetableCalendarFeedDialog.vue'
 import {
+	fetchCohortTimetable,
+	fetchMentorClasses,
 	fetchMyStandby,
 	fetchMyTimetable,
 	isLearniqSession,
 } from '../api/timetable.js'
 import { joinUrl } from '../utils/onlineLesson.js'
+import { isoWeek, lessonHourRows, timetableScopes, weekGridItems } from '../utils/weekGrid.js'
 
 /**
  * Compute the Monday (00:00, local) of the week containing `date`.
@@ -321,11 +358,14 @@ function mondayOf(date) {
 export default {
 	name: 'MyTimetable',
 	components: {
+		CnDetailCard,
+		CnPageHeader,
+		CnWeekGrid,
+		LessonNoteDialog,
 		NcButton,
 		NcEmptyContent,
 		NcLoadingIcon,
 		NcNoteCard,
-		LessonNoteDialog,
 		NoteTextOutline,
 		SubstitutionModal,
 		TimetableCalendarFeedDialog,
@@ -353,10 +393,34 @@ export default {
 			source: 'learniq',
 			// The caller's standby blocks this week (timetabling-standby-slots).
 			standby: [],
+			// The groups the caller mentors (week-timetable-grid T3), and the
+			// scope in view: `mine`, or the id of one of those groups.
+			mentorClasses: [],
+			scope: 'mine',
 		}
 	},
 
 	computed: {
+		/**
+		 * The scopes the page offers: her own week, then each group she mentors.
+		 *
+		 * @return {Array<{id: string, label: string}>}
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+		 */
+		scopes() {
+			return timetableScopes(this.mentorClasses, (text, vars) => t('learniq', text, vars))
+		},
+
+		/**
+		 * Title of the card that lists today's changed sessions.
+		 *
+		 * @return {string}
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-signed-in-user-can-see-their-own-upcoming-sessions
+		 */
+		changesTitle() {
+			return t('learniq', "Today's changes")
+		},
+
 		/**
 		 * Exclusive end of the current week (next Monday 00:00).
 		 *
@@ -418,6 +482,41 @@ export default {
 		 * @return {Array<object>} The visible day descriptors.
 		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-signed-in-user-can-see-their-own-upcoming-sessions
 		 */
+		/**
+		 * The lesson hours of the viewed week, for the grid mode (week-timetable-grid T2).
+		 *
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+		 * @return {Array<object>} The CnWeekGrid rows.
+		 */
+		gridRows() {
+			return lessonHourRows(this.sessions, (text, vars) => t('learniq', text, vars))
+		},
+
+		/**
+		 * The viewed week's sessions as grid entries, each with its change pill.
+		 *
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+		 * @return {Array<object>} The CnWeekGrid items.
+		 */
+		gridItems() {
+			return weekGridItems(this.sessions, (text, vars) => t('learniq', text, vars))
+		},
+
+		/**
+		 * The grid's caption: the week number, its days and how many lessons it has.
+		 *
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+		 * @return {string} The caption.
+		 */
+		gridCaption() {
+			const lessons = this.sessions.filter((session) => session.lifecycle !== 'cancelled').length
+			return t('learniq', 'Week {week} · {range} · {count} lessons', {
+				week: isoWeek(this.weekStart),
+				range: this.rangeLabel,
+				count: lessons,
+			})
+		},
+
 		visibleDays() {
 			if (this.mode === 'today') {
 				const todayCol = this.days.find((d) => d.isToday)
@@ -450,6 +549,11 @@ export default {
 		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-signed-in-user-can-see-their-own-upcoming-sessions
 		 */
 		emptyDescription() {
+			if (this.scope !== 'mine') {
+				return this.mode === 'today'
+					? t('learniq', 'This group has no lessons today.')
+					: t('learniq', 'This group has no lessons this week.')
+			}
 			return this.mode === 'today'
 				? t('learniq', 'You have no sessions scheduled for today.')
 				: t(
@@ -472,8 +576,15 @@ export default {
 		},
 	},
 
+	/**
+	 * Load the week, and the groups the caller mentors for the scope switch.
+	 *
+	 * @return {void}
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+	 */
 	mounted() {
 		this.load()
+		this.loadMentorClasses()
 	},
 
 	methods: {
@@ -502,6 +613,20 @@ export default {
 			this.loading = true
 			this.error = ''
 			try {
+				if (this.scope !== 'mine') {
+					// A mentor class's week: its lessons only. Today's changes and
+					// standby blocks are the caller's own, so they stay out.
+					const result = await fetchCohortTimetable(
+						this.scope,
+						this.weekStart.toISOString(),
+						this.weekEnd.toISOString(),
+					)
+					this.sessions = result.sessions
+					this.changes = []
+					this.source = result.source
+					this.standby = []
+					return
+				}
 				const result = await fetchMyTimetable(
 					this.weekStart.toISOString(),
 					this.weekEnd.toISOString(),
@@ -523,6 +648,31 @@ export default {
 			} finally {
 				this.loading = false
 			}
+		},
+
+		/**
+		 * Read the groups the caller mentors; she mentors none when the read fails.
+		 *
+		 * @return {Promise<void>}
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+		 */
+		async loadMentorClasses() {
+			this.mentorClasses = await fetchMentorClasses()
+		},
+
+		/**
+		 * Switch between her own week and a mentor class's week.
+		 *
+		 * @param {string} scope `mine`, or a mentor class id.
+		 * @return {void}
+		 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+		 */
+		setScope(scope) {
+			if (scope === this.scope) {
+				return
+			}
+			this.scope = scope
+			this.load()
 		},
 
 		/**
@@ -709,15 +859,12 @@ export default {
 
 <style scoped lang="scss">
 .my-timetable {
-	padding: 16px;
-
 	&__header {
 		display: flex;
 		flex-wrap: wrap;
 		align-items: center;
 		justify-content: space-between;
 		gap: 12px;
-		margin-bottom: 16px;
 	}
 
 	&__title {
@@ -740,6 +887,13 @@ export default {
 		display: flex;
 		gap: 4px;
 		margin-inline-start: 12px;
+	}
+
+	&__scopes {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 4px;
+		margin-block-end: 12px;
 	}
 
 	&__loading {
@@ -907,20 +1061,6 @@ export default {
 			background: var(--color-primary-element);
 			color: var(--color-primary-element-text);
 		}
-	}
-
-	&__changes {
-		margin-bottom: 16px;
-		padding: 12px;
-		border: 1px solid var(--color-warning);
-		border-radius: var(--border-radius-large, 8px);
-		background: var(--color-background-hover);
-	}
-
-	&__changes-title {
-		margin: 0 0 8px;
-		font-size: 0.95em;
-		font-weight: 600;
 	}
 
 	&__changes-list {

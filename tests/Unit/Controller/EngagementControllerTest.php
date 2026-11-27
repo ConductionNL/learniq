@@ -36,6 +36,7 @@ use OCP\IUserSession;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 
 /**
  * Tests for EngagementController::getMe().
@@ -80,7 +81,11 @@ class EngagementControllerTest extends TestCase {
 		// willReturnCallback() hands the closure its arguments POSITIONALLY,
 		// so the closure must mirror that order.
 		$objectService->method('find')->willReturnCallback(
-			static function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($level, $levelThrows) {
+			static function (int|string $id, ?ObjectFindOptions $options = null) use ($level, $levelThrows) {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				if ($levelThrows === true) {
 					throw new DoesNotExistException('no such EngagementLevel');
 				}
@@ -268,4 +273,48 @@ class EngagementControllerTest extends TestCase {
 
 		self::assertSame(Http::STATUS_UNAUTHORIZED, $response->getStatus());
 	}//end testAnAnonymousCallerIsRefused()
+
+	/**
+	 * The refused and failed answers are exact, the failure is logged once
+	 * with its exception, and a blank or non-string levelId is not looked up.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/engagement/spec.md#scenario-a-learner-sees-their-own-points-and-level-regardless-of-leaderboard-opt-out
+	 */
+	public function testTheExactAnswersAndTheFailureLog(): void {
+		self::assertSame(['error' => 'Not authenticated'], $this->makeController(authenticated: false)->getMe()->getData());
+
+		$logger = $this->createMock(LoggerInterface::class);
+		$logger->expects(self::once())->method('error')->with(
+			'Could not read the caller\'s LearnerEngagement row',
+			self::callback(static fn (array $context): bool => $context['app'] === 'learniq' && $context['exception'] instanceof RuntimeException)
+		);
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('findAll')->willThrowException(new RuntimeException('the store is unreachable'));
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('learner-1');
+		$session = $this->createMock(IUserSession::class);
+		$session->method('getUser')->willReturn($user);
+		$failing = new EngagementController(
+			request: $this->createMock(IRequest::class),
+			userSession: $session,
+			objectService: $objectService,
+			l10n: $this->createMock(IL10N::class),
+			logger: $logger,
+		);
+		self::assertSame(['error' => 'Could not read your engagement record'], $failing->getMe()->getData());
+
+		foreach (['', 7] as $levelId) {
+			$response = $this->makeController(
+				engagementRows: [['learnerId' => 'learner-1', 'levelId' => $levelId]],
+				levelThrows: true,
+			)->getMe();
+			self::assertSame(
+				['totalPoints' => 0.0, 'levelName' => null, 'currentStreakDays' => 0, 'summary' => ''],
+				$response->getData(),
+				var_export($levelId, true)
+			);
+		}
+	}//end testTheExactAnswersAndTheFailureLog()
 }//end class

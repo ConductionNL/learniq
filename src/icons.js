@@ -22,6 +22,7 @@ import AccountClockOutline from 'vue-material-design-icons/AccountClockOutline.v
 import AccountGroup from 'vue-material-design-icons/AccountGroup.vue'
 import AccountGroupOutline from 'vue-material-design-icons/AccountGroupOutline.vue'
 import AccountHeartOutline from 'vue-material-design-icons/AccountHeartOutline.vue'
+import AccountMultiple from 'vue-material-design-icons/AccountMultiple.vue'
 import AccountMultipleOutline from 'vue-material-design-icons/AccountMultipleOutline.vue'
 import AccountOutline from 'vue-material-design-icons/AccountOutline.vue'
 import AccountPlusOutline from 'vue-material-design-icons/AccountPlusOutline.vue'
@@ -34,6 +35,7 @@ import AlertDecagramOutline from 'vue-material-design-icons/AlertDecagramOutline
 import AlertOctagonOutline from 'vue-material-design-icons/AlertOctagonOutline.vue'
 import AlertOutline from 'vue-material-design-icons/AlertOutline.vue'
 import ApplicationOutline from 'vue-material-design-icons/ApplicationOutline.vue'
+import ArrowRightCircleOutline from 'vue-material-design-icons/ArrowRightCircleOutline.vue'
 import Bandage from 'vue-material-design-icons/Bandage.vue'
 import BellOutline from 'vue-material-design-icons/BellOutline.vue'
 import BookAlertOutline from 'vue-material-design-icons/BookAlertOutline.vue'
@@ -47,6 +49,7 @@ import Calendar from 'vue-material-design-icons/Calendar.vue'
 import CalendarCheckOutline from 'vue-material-design-icons/CalendarCheckOutline.vue'
 import CalendarClockOutline from 'vue-material-design-icons/CalendarClockOutline.vue'
 import CalendarMultiselectOutline from 'vue-material-design-icons/CalendarMultiselectOutline.vue'
+import CalendarQuestion from 'vue-material-design-icons/CalendarQuestion.vue'
 import CalendarRangeOutline from 'vue-material-design-icons/CalendarRangeOutline.vue'
 import CalendarRemoveOutline from 'vue-material-design-icons/CalendarRemoveOutline.vue'
 import CalendarStar from 'vue-material-design-icons/CalendarStar.vue'
@@ -81,6 +84,7 @@ import DatabaseExportOutline from 'vue-material-design-icons/DatabaseExportOutli
 import DatabaseImportOutline from 'vue-material-design-icons/DatabaseImportOutline.vue'
 import DatabaseOutline from 'vue-material-design-icons/DatabaseOutline.vue'
 import Door from 'vue-material-design-icons/Door.vue'
+import Download from 'vue-material-design-icons/Download.vue'
 import Earth from 'vue-material-design-icons/Earth.vue'
 import EmoticonOutline from 'vue-material-design-icons/EmoticonOutline.vue'
 import ExportVariant from 'vue-material-design-icons/ExportVariant.vue'
@@ -118,6 +122,8 @@ import HumanWheelchair from 'vue-material-design-icons/HumanWheelchair.vue'
 import InformationOutline from 'vue-material-design-icons/InformationOutline.vue'
 import LinkVariant from 'vue-material-design-icons/LinkVariant.vue'
 import Lock from 'vue-material-design-icons/Lock.vue'
+import LockOpenVariantOutline from 'vue-material-design-icons/LockOpenVariantOutline.vue'
+import LockOutline from 'vue-material-design-icons/LockOutline.vue'
 import MapMarker from 'vue-material-design-icons/MapMarker.vue'
 import MapMarkerCheckOutline from 'vue-material-design-icons/MapMarkerCheckOutline.vue'
 import MapMarkerOutline from 'vue-material-design-icons/MapMarkerOutline.vue'
@@ -142,9 +148,11 @@ import Plus from 'vue-material-design-icons/Plus.vue'
 import PodiumGold from 'vue-material-design-icons/PodiumGold.vue'
 import PowerPlugOutline from 'vue-material-design-icons/PowerPlugOutline.vue'
 import RobotOutline from 'vue-material-design-icons/RobotOutline.vue'
+import Run from 'vue-material-design-icons/Run.vue'
 import ScaleBalance from 'vue-material-design-icons/ScaleBalance.vue'
 import School from 'vue-material-design-icons/School.vue'
 import SchoolOutline from 'vue-material-design-icons/SchoolOutline.vue'
+import SendOutline from 'vue-material-design-icons/SendOutline.vue'
 import ShareVariant from 'vue-material-design-icons/ShareVariant.vue'
 import ShareVariantOutline from 'vue-material-design-icons/ShareVariantOutline.vue'
 import ShieldAccountOutline from 'vue-material-design-icons/ShieldAccountOutline.vue'
@@ -166,6 +174,7 @@ import Target from 'vue-material-design-icons/Target.vue'
 import TargetVariant from 'vue-material-design-icons/TargetVariant.vue'
 import TextBoxOutline from 'vue-material-design-icons/TextBoxOutline.vue'
 import Timeline from 'vue-material-design-icons/Timeline.vue'
+import TrayArrowDown from 'vue-material-design-icons/TrayArrowDown.vue'
 import TrendingUp from 'vue-material-design-icons/TrendingUp.vue'
 import Trophy from 'vue-material-design-icons/Trophy.vue'
 import TrophyOutline from 'vue-material-design-icons/TrophyOutline.vue'
@@ -185,6 +194,7 @@ export default {
 	AccountGroup,
 	AccountGroupOutline,
 	AccountHeartOutline,
+	AccountMultiple,
 	AccountMultipleOutline,
 	AccountOutline,
 	AccountPlusOutline,
@@ -197,6 +207,7 @@ export default {
 	AlertOctagonOutline,
 	AlertOutline,
 	ApplicationOutline,
+	ArrowRightCircleOutline,
 	Bandage,
 	BellOutline,
 	BookAlertOutline,
@@ -210,6 +221,7 @@ export default {
 	CalendarCheckOutline,
 	CalendarClockOutline,
 	CalendarMultiselectOutline,
+	CalendarQuestion,
 	CalendarRangeOutline,
 	CalendarRemoveOutline,
 	CalendarStar,
@@ -244,6 +256,7 @@ export default {
 	DatabaseImportOutline,
 	DatabaseOutline,
 	Door,
+	Download,
 	Earth,
 	EmoticonOutline,
 	ExportVariant,
@@ -281,6 +294,8 @@ export default {
 	InformationOutline,
 	LinkVariant,
 	Lock,
+	LockOpenVariantOutline,
+	LockOutline,
 	MapMarker,
 	MapMarkerCheckOutline,
 	MapMarkerOutline,
@@ -305,9 +320,11 @@ export default {
 	PodiumGold,
 	PowerPlugOutline,
 	RobotOutline,
+	Run,
 	ScaleBalance,
 	School,
 	SchoolOutline,
+	SendOutline,
 	ShareVariant,
 	ShareVariantOutline,
 	ShieldAccountOutline,
@@ -329,6 +346,7 @@ export default {
 	TargetVariant,
 	TextBoxOutline,
 	Timeline,
+	TrayArrowDown,
 	TrendingUp,
 	Trophy,
 	TrophyOutline,

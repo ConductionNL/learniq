@@ -9,7 +9,15 @@
  * on the instance), and skip with that reason otherwise.
  *
  * @spec openspec/changes/example-portal-declares-its-site/specs/example-sets/spec.md
- * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-the-overview-follows-the-designed-board
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-the-overview-follows-the-designed-board
+ * @spec openspec/changes/portal-board-checks-run-on-a-real-instance/specs/example-sets/spec.md#requirement-the-board-checks-run-against-any-instance-that-loaded-the-sets
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-the-guardian-reads-that-the-school-saw-her-report
+ * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-each-school-audience-offers-its-own-documents-grouped-per-record
+ * @spec openspec/specs/portal-contribution/spec.md
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-a-guardian-is-offered-a-cancel-only-on-a-time-that-can-still-be-cancelled
+ *
+ * Covers:
+ *   @e2e openspec/specs/portal-contribution/spec.md#scenario-fatima-asks-leave-for-vera
  */
 
 import type { Page } from '@playwright/test'
@@ -17,10 +25,13 @@ import type { Page } from '@playwright/test'
 import { expect, request, test } from '@playwright/test'
 import * as path from 'node:path'
 import { baseUrl } from '../base-url.ts'
-import { siteUrl, waitForAccountPage } from '../helpers/portal-fixture.ts'
-import { ACR_SUBSTANTIAL, startStubDigid } from '../helpers/stub-digid.ts'
+import { SITE_TOKEN_KEY, siteUrl, waitForAccountPage } from '../helpers/portal-fixture.ts'
+import { ACR_SUBSTANTIAL } from '../helpers/stub-digid.ts'
+import { apiAs, LiveFixtures } from '../live-fixtures.ts'
 import {
+	ADMIN_CREDENTIALS,
 	boardShot,
+	dated,
 	expectNoHorizontalScroll,
 	expectNoSeriousAxeFinding,
 	expectTexts,
@@ -28,6 +39,7 @@ import {
 	expectWidgetOrder,
 	openSitePage,
 	SHOTS,
+	startBroker,
 } from './boards.ts'
 
 const PORTAL = 'wilgenboom'
@@ -52,7 +64,8 @@ test.describe('wilgenboom: the website', () => {
 	test('Home', async ({ page }, info) => {
 		await openSitePage(page, PORTAL, '/')
 		await expectTexts(page, [
-			'vrijdag 9 oktober is een studiedag',
+			'Let op',
+			dated('Vrijdag 9 oktober is een studiedag'),
 			'Een school waar elk kind kan groeien',
 			'Kom kennismaken',
 			'Direct regelen',
@@ -72,7 +85,7 @@ test.describe('wilgenboom: the website', () => {
 			'nlNewsList',
 			'nlSignIn',
 			'nlEventList',
-			'nlLinkList',
+			'nlLinkColumns',
 		])
 		await expectTheme(page, PORTAL, DESIGN, info)
 		if (info.project.name === 'phone') {
@@ -108,7 +121,7 @@ test.describe('wilgenboom: the website', () => {
 		await openSitePage(page, PORTAL, '/zoeken')
 		await expectTexts(page, [
 			'Nieuws en documenten',
-			'Ouderavond op donderdag 29 oktober',
+			dated('Ouderavond op donderdag 29 oktober'),
 			'Zo werkt de ouderavond dit jaar',
 		])
 		await boardShot(page, PORTAL, 'Zoeken', info)
@@ -146,7 +159,7 @@ test.describe('wilgenboom: Mijn Wilgenboom (Fatima Hulstkamp)', () => {
 			'PORTAL_DESIGN_DIGID_ISSUER is not set: the guardian signs in with DigiD through the stub broker',
 		)
 		test.setTimeout(300_000)
-		const stub = await startStubDigid(
+		const stub = await startBroker(
 			issuer,
 			process.env.PORTAL_DESIGN_DIGID_CLIENT ?? 'wilgenboom-portal',
 			path.join(SHOTS, 'stub-key.pem'),
@@ -156,10 +169,7 @@ test.describe('wilgenboom: Mijn Wilgenboom (Fatima Hulstkamp)', () => {
 		// The school links Fatima to the portal; a second invite of the same guardian is answered, not duplicated.
 		const admin = await request.newContext({
 			baseURL: baseUrl(),
-			httpCredentials: {
-				username: process.env.NC_ADMIN_USER ?? 'admin',
-				password: process.env.NC_ADMIN_PASS ?? 'admin',
-			},
+			httpCredentials: ADMIN_CREDENTIALS,
 			extraHTTPHeaders: { 'OCS-APIRequest': 'true' },
 		})
 		const invite = await admin.post(
@@ -223,7 +233,8 @@ test.describe('wilgenboom: Mijn Wilgenboom (Fatima Hulstkamp)', () => {
 		await expectTexts(parent, [
 			'Afwezig melden',
 			'Wat u nog moet doen',
-			'Oudergesprekken groep 4, oktober 2026',
+			// One task per child per open round, named by the child (guardian-tasks-per-child-and-self-assessment).
+			'Kies een tijd voor het oudergesprek van Sami',
 			'Mijn kinderen',
 			'Vera',
 			'Sami',
@@ -231,6 +242,10 @@ test.describe('wilgenboom: Mijn Wilgenboom (Fatima Hulstkamp)', () => {
 			'Woensdag naar de kinderboerderij: dit moet mee',
 			'Deze maand',
 		])
+		// Vera already has a time, so her round asks nothing.
+		await expect(
+			parent.getByText('Kies een tijd voor het oudergesprek van Vera'),
+		).toHaveCount(0)
 		if (info.project.name === 'phone') {
 			await expectNoHorizontalScroll(parent)
 		}
@@ -246,7 +261,183 @@ test.describe('wilgenboom: Mijn Wilgenboom (Fatima Hulstkamp)', () => {
 	// Playwright needs the fixtures argument destructured; these tests read the shared signed-in page.
 	// eslint-disable-next-line no-empty-pattern
 	test('MijnLijst: the absence reports', async ({}, info) => {
-		await expectTexts(parent, ['Sami heeft buikgriep', 'Vera heeft koorts'])
+		// The board's MijnLijst is the Afwezigheid page, not the overview.
+		await parent.goto(
+			`${siteUrl(PORTAL)}&route=${encodeURIComponent('/mijn/learniq/parentAbsence')}`,
+		)
+		await waitForAccountPage(parent)
+		await expectTexts(parent, [
+			'Sami heeft buikgriep',
+			'Vera heeft koorts',
+			// Juf Esra saw this morning's report when she opened the register
+			// (absence-reports-seen-and-ended): seen, not yet decided.
+			/Gezien door .*Esra.* om \d{1,2}[.:]\d{2} uur/i,
+		])
 		await boardShot(parent, PORTAL, 'MijnLijst', info)
+	})
+
+	// Playwright needs the fixtures argument destructured; these tests read the shared signed-in page.
+	// eslint-disable-next-line no-empty-pattern
+	test('Documenten: the reports per child', async ({}, info) => {
+		// school-documents-on-the-portal: her children's published reports, a group per child.
+		await parent.goto(
+			`${siteUrl(PORTAL)}&route=${encodeURIComponent('/mijn/learniq/parentDocuments')}`,
+		)
+		await waitForAccountPage(parent)
+		await expectTexts(parent, ['Groep 7', 'Groep 4', 'PDF'])
+		if (info.project.name === 'phone') {
+			await expectNoHorizontalScroll(parent)
+		}
+		await expectNoSeriousAxeFinding(parent)
+		await boardShot(parent, PORTAL, 'Documenten', info)
+	})
+
+	// Playwright needs the fixtures argument destructured; these tests read the shared signed-in page.
+	// eslint-disable-next-line no-empty-pattern
+	test('Uw gesprekstijden: the cancel only on a booked or acknowledged time', async ({}, info) => {
+		// parent-row-actions-only-where-they-apply T3. The po set gives Fatima one
+		// acknowledged time; the run adds a cancelled one for the same child in the
+		// same round, which she reads without a cancel.
+		test.skip(
+			info.project.name === 'phone',
+			'the check writes a time once; the desktop project runs it',
+		)
+		const fx = new LiveFixtures()
+		try {
+			const [acknowledged] = await fx.find('conference-slot', {
+				guardianRef: FATIMA.ref,
+				lifecycle: 'acknowledged',
+			})
+			expect(acknowledged, "Fatima's acknowledged time in the po set").toBeTruthy()
+			const start = new Date(new Date(acknowledged.endsAt).getTime() + 60 * 60 * 1000)
+			const end = new Date(start.getTime() + 10 * 60 * 1000)
+			const cancelledId = await fx.object('conference-slot', {
+				conferenceRoundId: acknowledged.conferenceRoundId,
+				teacherId: acknowledged.teacherId,
+				teacherName: acknowledged.teacherName,
+				learnerId: acknowledged.learnerId,
+				learnerRef: acknowledged.learnerRef,
+				guardianRef: FATIMA.ref,
+				startsAt: start.toISOString(),
+				endsAt: end.toISOString(),
+				slotLabel: `Geannuleerde tijd (${fx.run})`,
+				lifecycle: 'free',
+			})
+			const admin = await fx.api()
+			const cancelled = await admin.post(
+				`/index.php/apps/openregister/api/objects/${cancelledId}/transition`,
+				{ data: { action: 'cancel' } },
+			)
+			expect(cancelled.status(), await cancelled.text()).toBe(200)
+
+			await parent.goto(
+				`${siteUrl(PORTAL)}&route=${encodeURIComponent('/mijn/learniq/parentConferenceSlots')}`,
+			)
+			await waitForAccountPage(parent)
+			// The table reads the status in words (portal-fields-read-in-words).
+			await expectTexts(parent, ['Uw gesprekstijden', 'Bevestigd door de leerkracht', 'Gesprek geannuleerd'])
+			const cancels = parent.getByRole('button', { name: 'Deze tijd annuleren' })
+			await expect(cancels).toHaveCount(1)
+			const row = parent.locator('tr, [role="row"]').filter({ has: cancels.first() })
+			await expect(row.first()).toContainText('Bevestigd door de leerkracht')
+			await expect(row.first()).not.toContainText('Gesprek geannuleerd')
+			await boardShot(parent, PORTAL, 'Gesprekstijden', info)
+		} finally {
+			await fx.teardown()
+		}
+	})
+
+	// Playwright needs the fixtures argument destructured; these tests read the shared signed-in page.
+	// eslint-disable-next-line no-empty-pattern
+	test('Verlof: Fatima asks, the directeur allows, she reads the decision', async ({}, info) => {
+		// leave-requests-decided-by-the-school T7. The request is the run's own:
+		// two school days a few weeks ahead, removed afterwards. The directeur is a
+		// temporary member of the deciders' group (LeaveDecisionGuard::DECIDERS).
+		test.skip(
+			info.project.name === 'phone',
+			'the flow writes a request once; the desktop project runs it',
+		)
+		const fx = new LiveFixtures()
+		const admin = await fx.api()
+		try {
+			const profiles = await admin.get(
+				'/index.php/apps/openregister/api/objects/learniq/learner-profile?givenName=Vera&familyName=Hulstkamp&_limit=5',
+			)
+			expect(profiles.status(), await profiles.text()).toBe(200)
+			const vera = ((await profiles.json()).results ?? [])[0]
+			expect(vera, "Vera Hulstkamp's profile").toBeTruthy()
+			const veraRef = String(vera.id ?? vera.uuid)
+
+			// A Monday and Tuesday at least three weeks ahead.
+			const monday = new Date()
+			monday.setUTCDate(monday.getUTCDate() + 21)
+			monday.setUTCDate(monday.getUTCDate() + ((8 - monday.getUTCDay()) % 7))
+			const tuesday = new Date(monday)
+			tuesday.setUTCDate(monday.getUTCDate() + 1)
+			const ymd = (d: Date): string => d.toISOString().slice(0, 10)
+			const reason = `De bruiloft van haar tante in Marokko (${fx.run})`
+
+			// Fatima asks for leave for Vera, with her own bearer.
+			const token =
+				(await parent.evaluate((key) => sessionStorage.getItem(key), SITE_TOKEN_KEY)) ?? ''
+			expect(token, "Fatima's bearer").not.toBe('')
+			// A `create` action is written through the collection; the action
+			// route forwards `endpoint` actions only and answers 403 for this one.
+			const asked = await parent.request.post(
+				'/apps/portaliq/portal/api/collections/learniq/leave-request',
+				{
+					headers: { Authorization: `Bearer ${token}` },
+					data: {
+						actionId: 'requestLeave',
+						learnerRef: veraRef,
+						dateFrom: ymd(monday),
+						dateTo: ymd(tuesday),
+						kind: 'wedding',
+						reason,
+					},
+				},
+			)
+			expect(asked.status(), await asked.text()).toBeLessThan(300)
+
+			const stored = await admin.get(
+				`/index.php/apps/openregister/api/objects/learniq/leave-request?learnerRef=${veraRef}&_limit=200`,
+			)
+			expect(stored.status(), await stored.text()).toBe(200)
+			const row = ((await stored.json()).results ?? []).find(
+				(r: Record<string, any>) => r.reason === reason,
+			)
+			expect(row, 'her request, as stored').toBeTruthy()
+			const requestId = String(row.id ?? row.uuid)
+			fx.adopt('leave-request', requestId)
+			expect(row.lifecycle).toBe('submitted')
+			expect(Number(row.schoolDays)).toBe(2)
+
+			// It waits for the school on her overview's leave page.
+			await parent.goto(
+				`${siteUrl(PORTAL)}&route=${encodeURIComponent('/mijn/learniq/parentLeave')}`,
+			)
+			await waitForAccountPage(parent)
+			await expectTexts(parent, ['Uw verlofaanvragen', 'Bruiloft', 'Ingediend'])
+
+			// The directeur allows it, with a short explanation.
+			const directeur = await fx.user('directeur', ['administration-managers'])
+			const api = await apiAs(directeur.id, directeur.password)
+			const note = `Veel plezier op de bruiloft (${fx.run})`
+			const allowed = await api.post(
+				`/index.php/apps/openregister/api/objects/${requestId}/transition`,
+				// A transition's input values travel under `data`.
+				{ data: { action: 'allow', data: { decisionNote: note } } },
+			)
+			expect(allowed.status(), await allowed.text()).toBe(200)
+			await api.dispose()
+
+			// Fatima reads the decision and the school's explanation.
+			await parent.reload()
+			await waitForAccountPage(parent)
+			await expectTexts(parent, ['Toegestaan', note])
+			await boardShot(parent, PORTAL, 'Verlof', info)
+		} finally {
+			await fx.teardown()
+		}
 	})
 })

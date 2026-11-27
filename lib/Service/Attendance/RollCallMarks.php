@@ -20,7 +20,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
+ * @spec openspec/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
  */
 
 declare(strict_types=1);
@@ -30,7 +30,7 @@ namespace OCA\Learniq\Service\Attendance;
 /**
  * Validates marks and turns them into AttendanceRecord bodies.
  *
- * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
+ * @spec openspec/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
  */
 class RollCallMarks {
 	use RollCallRows;
@@ -50,26 +50,24 @@ class RollCallMarks {
 	 * The row of one pupil as the page shows it: the saved mark, else an
 	 * approved report, else present.
 	 *
-	 * @param string                    $learnerId The pupil.
-	 * @param string                    $name      Display name.
-	 * @param array<string, mixed>|null $profile   The pupil's profile.
-	 * @param array<string, mixed>|null $record    The saved record.
-	 * @param array<string, mixed>|null $report    A report covering the day.
+	 * @param array{learnerId: string, name: string, profile: array<string, mixed>|null} $pupil The pupil, the display name and the pupil's profile.
+	 * @param array{record: array<string, mixed>|null, report: array<string, mixed>|null} $day   The saved record and a report covering the day.
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-an-approved-absence-report-fills-in-the-register
+	 * @spec openspec/specs/attendance/spec.md#requirement-an-approved-absence-report-fills-in-the-register
 	 */
-	public function pupilRow(string $learnerId, string $name, ?array $profile, ?array $record, ?array $report): array {
+	public function pupilRow(array $pupil, array $day): array {
 		$learnerRef = null;
-		if ($profile !== null) {
-			$learnerRef = $this->idOf(row: $profile);
+		if ($pupil['profile'] !== null) {
+			$learnerRef = $this->idOf(row: $pupil['profile']);
 		}
 
+		$report = $day['report'];
 		$row = [
-			'learnerId' => $learnerId,
+			'learnerId' => $pupil['learnerId'],
 			'learnerRef' => $learnerRef,
-			'name' => $name,
+			'name' => $pupil['name'],
 			'status' => 'present',
 			'lateMinutes' => null,
 			'absenceReasonKind' => null,
@@ -80,19 +78,8 @@ class RollCallMarks {
 			'report' => $this->reportSummary(report: $report),
 		];
 
-		if ($record !== null) {
-			return array_merge(
-				$row,
-				[
-					'status' => (string)($record['status'] ?? 'present'),
-					'lateMinutes' => $this->intOrNull(value: ($record['lateMinutes'] ?? null)),
-					'absenceReasonKind' => $this->kindOrNull(value: ($record['absenceReasonKind'] ?? null)),
-					'reason' => (string)($record['reason'] ?? ''),
-					'recordId' => $this->idOf(row: $record),
-					'markedVia' => (string)($record['markedVia'] ?? 'teacher'),
-					'saved' => true,
-				]
-			);
+		if ($day['record'] !== null) {
+			return $this->savedRow(row: $row, record: $day['record']);
 		}
 
 		if ($report !== null && ($report['lifecycle'] ?? null) === 'approved') {
@@ -105,13 +92,36 @@ class RollCallMarks {
 	}//end pupilRow()
 
 	/**
+	 * A pupil's page row with the saved mark filled in.
+	 *
+	 * @param array<string, mixed> $row    The row without a mark.
+	 * @param array<string, mixed> $record The saved record.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function savedRow(array $row, array $record): array {
+		return array_merge(
+			$row,
+			[
+				'status' => (string)($record['status'] ?? 'present'),
+				'lateMinutes' => $this->intOrNull(value: ($record['lateMinutes'] ?? null)),
+				'absenceReasonKind' => $this->kindOrNull(value: ($record['absenceReasonKind'] ?? null)),
+				'reason' => (string)($record['reason'] ?? ''),
+				'recordId' => $this->idOf(row: $record),
+				'markedVia' => (string)($record['markedVia'] ?? 'teacher'),
+				'saved' => true,
+			]
+		);
+	}//end savedRow()
+
+	/**
 	 * The roll-call reason for an ExcuseRequest.reasonKind.
 	 *
 	 * @param string $reasonKind ExcuseRequest.reasonKind.
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-an-approved-absence-report-fills-in-the-register
+	 * @spec openspec/specs/attendance/spec.md#requirement-an-approved-absence-report-fills-in-the-register
 	 */
 	public static function reasonFromReport(string $reasonKind): string {
 		return (self::REPORT_REASONS[$reasonKind] ?? 'other');
@@ -125,7 +135,7 @@ class RollCallMarks {
 	 *
 	 * @return string|null One of: not-in-group, status, late-minutes, reason-kind, reason.
 	 *
-	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#scenario-a-late-mark-without-minutes-is-refused
+	 * @spec openspec/specs/attendance/spec.md#scenario-a-late-mark-without-minutes-is-refused
 	 */
 	public function problemWith(array $mark, array $learnerIds): ?string {
 		if (in_array(($mark['learnerId'] ?? null), $learnerIds, true) === false) {
@@ -188,7 +198,7 @@ class RollCallMarks {
 	 *
 	 * @return array{status: string, lateMinutes: int|null, absenceReasonKind: string|null, reason: string|null}
 	 *
-	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
 	 */
 	public function normalise(array $mark): array {
 		$status = (string)$mark['status'];
@@ -217,7 +227,7 @@ class RollCallMarks {
 	 *
 	 * @return bool
 	 *
-	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
 	 */
 	public function unchanged(array $record, array $mark): bool {
 		return ($record['status'] ?? null) === $mark['status']
@@ -250,7 +260,7 @@ class RollCallMarks {
 	 *
 	 * @return int|null
 	 *
-	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
 	 */
 	public function minutesAttended(array $mark, ?int $minutes, ?array $record): ?int {
 		if (in_array($mark['status'], self::ABSENCES, true) === true) {
@@ -287,6 +297,10 @@ class RollCallMarks {
 			'reason' => (string)($report['reason'] ?? ''),
 			'dateFrom' => substr((string)($report['dateFrom'] ?? ''), 0, 10),
 			'dateTo' => substr((string)($report['dateTo'] ?? ''), 0, 10),
+			// Who of the group's teachers first saw it, and when
+			// (absence-reports-seen-and-ended).
+			'seenBy' => (string)($report['seenBy'] ?? ''),
+			'seenAt' => (string)($report['seenAt'] ?? ''),
 		];
 	}//end reportSummary()
 

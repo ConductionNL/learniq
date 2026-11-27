@@ -25,7 +25,7 @@
  *
  * @spec openspec/changes/archive/2026-07-16-report-card-composer/specs/grading/spec.md#scenario-publishrepublish-proceeds-unaffected-when-no-reportperiod-governs-the-entry
  * @spec openspec/changes/archive/2026-07-16-report-card-composer/specs/grading/spec.md#scenario-an-ordinary-teacher-cannot-publish-a-grade-for-a-locked-report-period
- * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
+ * @spec openspec/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
  */
 
 declare(strict_types=1);
@@ -200,7 +200,7 @@ class ReportPeriodLockGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#scenario-a-principal-cannot-override-alone
+	 * @spec openspec/specs/governance-four-eyes/spec.md#scenario-a-principal-cannot-override-alone
 	 */
 	public function testAPrincipalCannotOverrideAlone(): void {
 		$guard = $this->makeGuard(fraudCaseAllows: true, reportPeriods: [self::LOCKED]);
@@ -216,7 +216,7 @@ class ReportPeriodLockGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#scenario-a-second-person-approves-a-correction
+	 * @spec openspec/specs/governance-four-eyes/spec.md#scenario-a-second-person-approves-a-correction
 	 */
 	public function testASecondPersonsApprovalLetsTheRequesterRepublish(): void {
 		$guard = $this->makeGuard(fraudCaseAllows: true, reportPeriods: [self::LOCKED], corrections: [self::APPROVED]);
@@ -231,7 +231,7 @@ class ReportPeriodLockGuardTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
+	 * @spec openspec/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
 	 */
 	public function testAnApprovalCoversOnlyItsOwnCase(): void {
 		$cases = [

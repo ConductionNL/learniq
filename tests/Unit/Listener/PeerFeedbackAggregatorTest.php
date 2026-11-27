@@ -32,6 +32,8 @@ use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
 use PHPUnit\Framework\TestCase;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Tests for PeerFeedbackAggregator::handle() on PeerReview -> released.
@@ -61,20 +63,30 @@ class PeerFeedbackAggregatorTest extends TestCase {
 	 * @param array<string,mixed> $assignment Assignment fixture (peerReviewAnonymity).
 	 * @param array<int,array<string,mixed>> $releasedReviews Released PeerReview fixtures for the submission.
 	 * @param array<string,mixed>|null $existingSummary Existing PeerFeedbackSummary, or null.
+	 * @param array<mixed>|null $learnerIds The Submission's learnerIds, or null when the Submission cannot be read.
 	 *
 	 * @return PeerFeedbackAggregator
 	 */
-	private function makeAggregator(array $assignment, array $releasedReviews, ?array $existingSummary = null): PeerFeedbackAggregator {
+	private function makeAggregator(
+		array $assignment,
+		array $releasedReviews,
+		?array $existingSummary = null,
+		?array $learnerIds = ['learner-1']
+	): PeerFeedbackAggregator {
 		$objectService = $this->createMock(ObjectService::class);
 
 		$objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($assignment): ?ObjectEntity {
+			function (int|string $id, ?ObjectFindOptions $options = null) use ($assignment, $learnerIds): ?ObjectEntity {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				if ($schema === 'assignment') {
 					return OrEntityFactory::make($assignment, 'assignment');
 				}
 
-				if ($schema === 'submission') {
-					return OrEntityFactory::make(['id' => (string)$id, 'tenant_id' => 'tenant-1'], 'submission');
+				if ($schema === 'submission' && $learnerIds !== null) {
+					return OrEntityFactory::make(['id' => (string)$id, 'tenant_id' => 'tenant-1', 'learnerIds' => $learnerIds], 'submission');
 				}
 
 				return null;
@@ -96,7 +108,10 @@ class PeerFeedbackAggregatorTest extends TestCase {
 		);
 
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
+			function (array|ObjectEntity $object, ObjectSaveOptions $options = new ObjectSaveOptions()): ObjectEntity {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
 				$data = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
 				$this->savedObjects[] = [
 					'register' => (string)$register,
@@ -135,66 +150,104 @@ class PeerFeedbackAggregatorTest extends TestCase {
 	}//end makeEvent()
 
 	/**
-	 * Blind anonymity: feedbackItems[].reviewerId is computed as null.
+	 * Every anonymity mode the Assignment can carry.
+	 *
+	 * @return array<string, array{0: string}>
+	 */
+	public static function anonymityModes(): array {
+		return [
+			'blind'        => ['blind'],
+			'double-blind' => ['double-blind'],
+			'open'         => ['open'],
+		];
+	}//end anonymityModes()
+
+	/**
+	 * The summary the learner reads carries the comments and scores but no
+	 * reviewer user id and no PeerReview id, whatever the anonymity mode.
+	 *
+	 * @param string $anonymity The Assignment's peerReviewAnonymity.
 	 *
 	 * @return void
 	 *
+	 * @dataProvider anonymityModes
+	 *
 	 * @spec openspec/specs/assignments/spec.md#scenario-blind-and-double-blind-hide-reviewer-identity-in-the-feedback-summary
+	 * @spec openspec/specs/assignments/spec.md#scenario-a-learner-opens-the-feedback-on-their-work
 	 */
-	public function testBlindAnonymityNullsReviewerId(): void {
-		$assignment = ['id' => 'assignment-1', 'peerReviewAnonymity' => 'blind'];
+	public function testTheSummaryCarriesNoReviewerIdentity(string $anonymity): void {
+		$assignment = ['id' => 'assignment-1', 'peerReviewAnonymity' => $anonymity];
 		$reviews = [
-			['id' => 'pr-1', 'submissionId' => 'sub-1', 'reviewerId' => 'reviewer-a', 'totalScore' => 8, 'comments' => 'Good', 'rubricScores' => []],
+			[
+				'id' => 'pr-1',
+				'submissionId' => 'sub-1',
+				'reviewerId' => 'reviewer-a',
+				'totalScore' => 8,
+				'comments' => 'Good',
+				'rubricScores' => [['criterionId' => 'c-1', 'points' => 4]]
+			],
 		];
 
 		$aggregator = $this->makeAggregator($assignment, $reviews);
 		$aggregator->handle($this->makeEvent(['id' => 'pr-1', 'submissionId' => 'sub-1', 'assignmentId' => 'assignment-1']));
 
 		self::assertCount(1, $this->savedObjects);
-		$summary = $this->savedObjects[0]['object'];
 		self::assertSame('peer-feedback-summary', $this->savedObjects[0]['schema']);
-		self::assertNull($summary['feedbackItems'][0]['reviewerId']);
-	}//end testBlindAnonymityNullsReviewerId()
+		$summary = $this->savedObjects[0]['object'];
+		self::assertSame(
+			expected: [['comments' => 'Good', 'rubricScores' => [['criterionId' => 'c-1', 'points' => 4]]]],
+			actual: $summary['feedbackItems']
+		);
+		$serialised = (string)json_encode($summary);
+		self::assertStringNotContainsString(needle: 'reviewer-a', haystack: $serialised);
+		self::assertStringNotContainsString(needle: 'pr-1', haystack: $serialised);
+		self::assertStringNotContainsString(needle: 'reviewerId', haystack: $serialised);
+	}//end testTheSummaryCarriesNoReviewerIdentity()
 
 	/**
-	 * Double-blind anonymity: feedbackItems[].reviewerId is also computed as null.
+	 * The summary names the Submission's own learners, the people its read
+	 * rule lets in; empty and non-string entries and repeats are dropped.
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/specs/assignments/spec.md#scenario-blind-and-double-blind-hide-reviewer-identity-in-the-feedback-summary
+	 * @spec openspec/specs/assignments/spec.md#scenario-another-learners-summary
 	 */
-	public function testDoubleBlindAnonymityNullsReviewerId(): void {
-		$assignment = ['id' => 'assignment-1', 'peerReviewAnonymity' => 'double-blind'];
+	public function testTheSummaryNamesTheSubmissionsLearners(): void {
 		$reviews = [
 			['id' => 'pr-1', 'submissionId' => 'sub-1', 'reviewerId' => 'reviewer-a', 'totalScore' => 8, 'comments' => 'Good', 'rubricScores' => []],
 		];
 
-		$aggregator = $this->makeAggregator($assignment, $reviews);
+		$aggregator = $this->makeAggregator(
+			assignment: ['id' => 'assignment-1'],
+			releasedReviews: $reviews,
+			existingSummary: null,
+			learnerIds: ['fenna', '', 7, 'sem', 'fenna']
+		);
 		$aggregator->handle($this->makeEvent(['id' => 'pr-1', 'submissionId' => 'sub-1', 'assignmentId' => 'assignment-1']));
 
 		$summary = $this->savedObjects[0]['object'];
-		self::assertNull($summary['feedbackItems'][0]['reviewerId']);
-	}//end testDoubleBlindAnonymityNullsReviewerId()
+		self::assertSame(expected: ['fenna', 'sem'], actual: $summary['learnerIds']);
+		self::assertSame(expected: 'tenant-1', actual: $summary['tenant_id']);
+	}//end testTheSummaryNamesTheSubmissionsLearners()
 
 	/**
-	 * Open anonymity: feedbackItems[].reviewerId is populated with the reviewer's identity.
+	 * A Submission that cannot be read leaves the summary readable by staff
+	 * only: no learner is named and no tenant is guessed.
 	 *
 	 * @return void
-	 *
-	 * @spec openspec/specs/assignments/spec.md#scenario-open-anonymity-reveals-reviewer-identity-in-the-feedback-summary
 	 */
-	public function testOpenAnonymityPopulatesReviewerId(): void {
-		$assignment = ['id' => 'assignment-1', 'peerReviewAnonymity' => 'open'];
+	public function testAnUnreadableSubmissionNamesNoLearner(): void {
 		$reviews = [
 			['id' => 'pr-1', 'submissionId' => 'sub-1', 'reviewerId' => 'reviewer-a', 'totalScore' => 8, 'comments' => 'Good', 'rubricScores' => []],
 		];
 
-		$aggregator = $this->makeAggregator($assignment, $reviews);
+		$aggregator = $this->makeAggregator(assignment: ['id' => 'assignment-1'], releasedReviews: $reviews, existingSummary: null, learnerIds: null);
 		$aggregator->handle($this->makeEvent(['id' => 'pr-1', 'submissionId' => 'sub-1', 'assignmentId' => 'assignment-1']));
 
 		$summary = $this->savedObjects[0]['object'];
-		self::assertSame('reviewer-a', $summary['feedbackItems'][0]['reviewerId']);
-	}//end testOpenAnonymityPopulatesReviewerId()
+		self::assertSame(expected: [], actual: $summary['learnerIds']);
+		self::assertSame(expected: '', actual: $summary['tenant_id']);
+	}//end testAnUnreadableSubmissionNamesNoLearner()
 
 	/**
 	 * reviewCount and averageScore recompute correctly across multiple released reviews.

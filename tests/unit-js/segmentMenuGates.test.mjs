@@ -128,7 +128,8 @@ function surfaces(state, all = false) {
 // leads under My learning duplicate the admin's People entry, and the line
 // manager's Request an exemption entry duplicates the admin's Exemptions entry
 // under Compliance. The compliance officer's Absence reports entry under
-// Compliance duplicates the admin's Absence reports entry under People. They
+// Compliance duplicates the admin's Absence reports entry under People, and
+// their Proctoring review entry under Compliance the admin's under Learning. They
 // are role gates, not segment gates, so they are left out of what this test
 // compares.
 const ADMIN_REACHES_ELSEWHERE = new Set([
@@ -136,6 +137,7 @@ const ADMIN_REACHES_ELSEWHERE = new Set([
 	'menu:TeamLeadSignUpRequestsMenu',
 	'menu:RequestExemptionMenu',
 	'menu:AbsenceReportsComplianceMenu',
+	'menu:ProctoringReviewComplianceMenu',
 ])
 const ALL = surfaces(NEVER, true)
 function hiddenIn(state) {
@@ -150,6 +152,7 @@ const BPV_CARDS = [
 	'PraktijkovereenkomstenMenu',
 	'WerkprocesAssessmentsMenu',
 	'BpvVisitReportsMenu',
+	'BpvVisitsMenu',
 	'PraktijkopleidersMenu',
 ].map((id) => `card:ProgressLanding:${id}`)
 const BSA_CARDS = [
@@ -173,6 +176,9 @@ const ENGAGEMENT_AND_EVALUATION_CARDS = [
 const EXAM_BOARD_CARDS = [
 	'ExemptionCasesMenu',
 	'FraudCasesMenu',
+	// exam-committee-today-and-keuzedelen T3: the committee's objections and sittings.
+	'ExamObjectionsMenu',
+	'ExamCommitteeSittingsMenu',
 	'ItemRevisionFlagsMenu',
 ].map((id) => `card:ComplianceLanding:${id}`)
 const COMPANY_CARDS = ['Compliance', 'ExternalTraining'].map(
@@ -192,7 +198,10 @@ const SCHOOL_ONLY_MENU = [
 	'ConferenceScheduleBoardMenu',
 	'ConferenceReportsMenu',
 	'AbsenceReportsMenu',
+	'LeaveRequestsMenu',
 	'SchoolEventsMenu',
+	'PermissionRequestsMenu',
+	'SchoolActivitiesMenu',
 ].map((id) => `menu:${id}`)
 
 test('the built structure has the surfaces this test reasons about', () => {
@@ -368,6 +377,7 @@ function validateWith(name, mutate) {
 		'src/manifest.json',
 		'src/menu-layout.json',
 		'lib/Service/DashboardRoleService.php',
+		'lib/Kernel/Contracts/DashboardRoleServiceInterface.php',
 		'lib/Settings/learniq_register.json',
 	]) {
 		mkdirSync(dirname(join(root, rel)), { recursive: true })

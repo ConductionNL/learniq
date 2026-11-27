@@ -35,8 +35,10 @@ const ISSUED_AT = '2026-03-03T09:00:00+00:00'
  * @return The menu item.
  */
 async function headerAction(page: Page, name: string) {
+	// The header's menu is "More" on the board look; "Actions" is the tab bar's.
 	await page
-		.getByRole('button', { name: 'Actions' })
+		.getByRole('main')
+		.getByRole('button', { name: /^(More|Actions)$/ })
 		.first()
 		.click({ timeout: 60_000 })
 	return page.getByRole('menuitem', { name })
@@ -94,10 +96,22 @@ test.describe('certificate for Europass', () => {
 			).click({
 				timeout: 30_000,
 			})
-			const confirm = page.getByRole('dialog').getByRole('button', {
-				name: /Confirm|Create Europass version|OK|Yes/,
-			})
-			if (await confirm.isVisible({ timeout: 10_000 }).catch(() => false)) {
+			// One button: a locator matching more than one makes isVisible() throw,
+			// and the confirm was never clicked.
+			const confirm = page
+				.getByRole('dialog')
+				.getByRole('button', {
+					name: /Confirm|Create Europass version|OK|Yes/,
+				})
+				.first()
+			// isVisible() does not wait; under load the dialog opens seconds
+			// after the click, and a skipped confirm creates nothing.
+			if (
+				await confirm
+					.waitFor({ state: 'visible', timeout: 15_000 })
+					.then(() => true)
+					.catch(() => false)
+			) {
 				await confirm.click()
 			}
 			await expect(

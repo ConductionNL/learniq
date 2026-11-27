@@ -28,15 +28,16 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-audit-of-corrections
+ * @spec openspec/specs/governance-four-eyes/spec.md#requirement-audit-of-corrections
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle\Action;
 
-use OCA\Learniq\Service\Grading\CorrectionApprovals;
-use OCA\OpenRegister\Lifecycle\LifecycleActionInterface;
+use OCA\Learniq\Kernel\Contracts\CorrectionApprovalsInterface;
+use OCA\OpenRegister\Lifecycle\LifecycleActionContext;
+use OCA\OpenRegister\Lifecycle\ContextLifecycleActionInterface;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -44,19 +45,19 @@ use Throwable;
 /**
  * Names the approved correction that covers a republish on the grade entry.
  *
- * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-audit-of-corrections
+ * @spec openspec/specs/governance-four-eyes/spec.md#requirement-audit-of-corrections
  */
-class LinkCoveringCorrectionAction implements LifecycleActionInterface {
+class LinkCoveringCorrectionAction implements ContextLifecycleActionInterface {
 
 	/**
 	 * Constructor.
 	 *
-	 * @param CorrectionApprovals $approvals   The approved correction for a grade entry.
+	 * @param CorrectionApprovalsInterface $approvals   The approved correction for a grade entry.
 	 * @param IUserSession        $userSession The session whose user publishes.
 	 * @param LoggerInterface     $logger      PSR logger.
 	 */
 	public function __construct(
-		private readonly CorrectionApprovals $approvals,
+		private readonly CorrectionApprovalsInterface $approvals,
 		private readonly IUserSession $userSession,
 		private readonly LoggerInterface $logger,
 	) {
@@ -70,18 +71,16 @@ class LinkCoveringCorrectionAction implements LifecycleActionInterface {
 	 * correction, never a reason to refuse the publish (the period lock guard
 	 * decides that).
 	 *
-	 * @param array<string,mixed> $objectData   The entry after the lifecycle field moved to published.
-	 * @param array<string,mixed> $previousData The entry before the transition (unused).
-	 * @param array<string,mixed> $parameters   The declared `actionParameters` (none).
-	 * @param string              $actionName   The declared action name.
+	 * @param LifecycleActionContext $context The transition; its objectData is the entry after the lifecycle field
+	 *                                        moved to published.
 	 *
 	 * @return array<string,mixed> The entry, with the link when a correction covers it.
 	 *
-	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#scenario-a-second-person-approves-a-correction
-	 *
-	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleActionInterface's.
+	 * @spec openspec/specs/governance-four-eyes/spec.md#scenario-a-second-person-approves-a-correction
 	 */
-	public function execute(array $objectData, array $previousData, array $parameters, string $actionName): array {
+	public function execute(LifecycleActionContext $context): array {
+		$objectData = $context->objectData;
+
 		$publisher = (string)($this->userSession->getUser()?->getUID() ?? '');
 
 		try {

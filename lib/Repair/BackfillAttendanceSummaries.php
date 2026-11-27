@@ -25,14 +25,14 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-existing-records-get-their-summaries
+ * @spec openspec/specs/attendance/spec.md#requirement-existing-records-get-their-summaries
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Repair;
 
-use OCA\Learniq\Service\Attendance\AttendanceSummaryService;
+use OCA\Learniq\Kernel\Contracts\AttendanceSummaryServiceInterface;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Migration\IOutput;
 use OCP\Migration\IRepairStep;
@@ -42,7 +42,7 @@ use Throwable;
 /**
  * Back-fills AttendanceSummary for every learner with records.
  *
- * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-existing-records-get-their-summaries
+ * @spec openspec/specs/attendance/spec.md#requirement-existing-records-get-their-summaries
  */
 class BackfillAttendanceSummaries implements IRepairStep {
 
@@ -59,14 +59,14 @@ class BackfillAttendanceSummaries implements IRepairStep {
 	 * Constructor.
 	 *
 	 * @param ObjectService            $objectService OpenRegister object access.
-	 * @param AttendanceSummaryService $summaries     The recount.
+	 * @param AttendanceSummaryServiceInterface $summaries     The recount.
 	 * @param LoggerInterface          $logger        PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly AttendanceSummaryService $summaries,
+		private readonly AttendanceSummaryServiceInterface $summaries,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()
@@ -76,7 +76,7 @@ class BackfillAttendanceSummaries implements IRepairStep {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-existing-records-get-their-summaries
+	 * @spec openspec/specs/attendance/spec.md#requirement-existing-records-get-their-summaries
 	 */
 	public function getName(): string {
 		return 'Count absences and late arrivals per learner per school year';
@@ -89,7 +89,7 @@ class BackfillAttendanceSummaries implements IRepairStep {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-existing-records-get-their-summaries
+	 * @spec openspec/specs/attendance/spec.md#requirement-existing-records-get-their-summaries
 	 */
 	public function run(IOutput $output): void {
 		$saved = 0;

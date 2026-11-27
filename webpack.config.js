@@ -1,3 +1,4 @@
+const { LibraryStylesheetCopy, withLeanBundles } = require('@conduction/nextcloud-vue/webpack')
 const webpackConfig = require('@nextcloud/webpack-vue-config')
 const fs = require('fs')
 // SPDX-License-Identifier: EUPL-1.2
@@ -28,6 +29,11 @@ webpackConfig.entry = {
 	display: {
 		import: path.join(__dirname, 'src', 'display.js'),
 		filename: appId + '-display.js',
+	},
+	// The public certificate check page (certificate-verification-and-key-rotation): no app shell.
+	verify: {
+		import: path.join(__dirname, 'src', 'verify.js'),
+		filename: appId + '-verify.js',
 	},
 }
 
@@ -275,4 +281,11 @@ webpackConfig.resolve.fallback = {
 	stream: require.resolve('stream-browserify'),
 }
 
-module.exports = webpackConfig
+// nextcloud-vue's stylesheet goes to css/nextcloud-vue.css, which
+// templates/index.php links instead of learniq-main inserting ~1.1 MB of CSS
+// text on every load.
+webpackConfig.plugins.push(new LibraryStylesheetCopy())
+
+// css-loader writes no source maps into the JavaScript, and @nextcloud/vue's
+// index is side-effect free (one Nc* import no longer bundles every component).
+module.exports = withLeanBundles(webpackConfig)

@@ -22,8 +22,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#requirement-learner-answers-an-evaluation
- * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#requirement-campaign-results-for-staff
+ * @spec openspec/specs/course-evaluation-answering/spec.md#requirement-learner-answers-an-evaluation
+ * @spec openspec/specs/course-evaluation-answering/spec.md#requirement-campaign-results-for-staff
  */
 
 declare(strict_types=1);
@@ -31,9 +31,9 @@ declare(strict_types=1);
 namespace OCA\Learniq\Controller;
 
 use DateTimeImmutable;
-use OCA\Learniq\AppInfo\Application;
-use OCA\Learniq\Service\CourseEvaluationAnswerService;
-use OCA\Learniq\Service\DashboardRoleService;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\CourseEvaluationAnswerServiceInterface;
+use OCA\Learniq\Kernel\Contracts\DashboardRoleServiceInterface;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -45,7 +45,7 @@ use OCP\IUserSession;
 /**
  * The learner's evaluation page and the staff result figures.
  *
- * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#requirement-learner-answers-an-evaluation
+ * @spec openspec/specs/course-evaluation-answering/spec.md#requirement-learner-answers-an-evaluation
  */
 class CourseEvaluationAnswerController extends Controller {
 
@@ -59,18 +59,18 @@ class CourseEvaluationAnswerController extends Controller {
 	 *
 	 * @param IRequest                      $request              The request.
 	 * @param IUserSession                  $userSession          The caller.
-	 * @param CourseEvaluationAnswerService $answers              Lists, answers and sums up invitations.
-	 * @param DashboardRoleService          $dashboardRoleService Staff check.
+	 * @param CourseEvaluationAnswerServiceInterface $answers              Lists, answers and sums up invitations.
+	 * @param DashboardRoleServiceInterface          $dashboardRoleService Staff check.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		IRequest $request,
 		private readonly IUserSession $userSession,
-		private readonly CourseEvaluationAnswerService $answers,
-		private readonly DashboardRoleService $dashboardRoleService,
+		private readonly CourseEvaluationAnswerServiceInterface $answers,
+		private readonly DashboardRoleServiceInterface $dashboardRoleService,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -79,7 +79,7 @@ class CourseEvaluationAnswerController extends Controller {
 	 *
 	 * @return JSONResponse
 	 *
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -102,8 +102,8 @@ class CourseEvaluationAnswerController extends Controller {
 	 *
 	 * @return JSONResponse
 	 *
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-cannot-answer-twice
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-an-uninvited-user-is-refused
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-a-learner-cannot-answer-twice
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-an-uninvited-user-is-refused
 	 */
 	#[NoAdminRequired]
 	public function answer(string $invitationId, array $answers = []): JSONResponse {
@@ -126,7 +126,7 @@ class CourseEvaluationAnswerController extends Controller {
 	 *
 	 * @return JSONResponse
 	 *
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-small-groups-are-protected
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-small-groups-are-protected
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]

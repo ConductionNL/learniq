@@ -2,16 +2,26 @@
 
 ## 1. Page
 
-- [ ] 1.1 `src/manifest.d/people.json` AttendanceFlagDetail: add `"lifecycleActions": {"field": "lifecycle"}`; keep `readOnly: true`. Update the page `_note`. Verify: `npm run check:manifest`; the page header lists "Take up" on an open flag.
-- [ ] 1.2 Add the four transition labels (design table) as `label` on each transition in `lib/Settings/learniq_register.json` `attendance-flag` `x-openregister-lifecycle.transitions`, and the Dutch strings to `l10n/nl.json`. Verify: `npm run check:l10n`, `npm run check:schema-l10n` if present.
+- [x] 1.1 `src/manifest.d/people.json` AttendanceFlagDetail: add `"lifecycleActions": {"field": "lifecycle"}`; keep `readOnly: true`. Update the page `_note`. Verify: `npm run check:manifest`; the page header lists "Take up" on an open flag.
+  > DONE: `lifecycleActions: {field: lifecycle}` beside `readOnly: true`, `_note` updated; `npm run check:manifest` passes. The header itself is seen in the browser with 2.2.
+- [x] 1.2 Add the four transition labels (design table) as `label` on each transition in `lib/Settings/learniq_register.json` `attendance-flag` `x-openregister-lifecycle.transitions`, and the Dutch strings to `l10n/nl.json`. Verify: `npm run check:l10n`, `npm run check:schema-l10n` if present.
+  > DONE: `label` on the four transitions (Take up, Mark as reported, Close, Record the municipality's answer); Dutch in `l10n/nl.json` and `l10n/nl.js` (Oppakken, Gemeld bij leerplicht, Reactie gemeente vastleggen; "Close" already reads "Sluiten" and was left). `check:l10n` at the baseline; `check:schema-l10n` does not count transition labels.
 - [ ] 1.3 `recordMunicipalityFeedback.inputs`: `[{field: "municipalityFeedback.masRoute", required: true}, {field: "municipalityFeedback.note"}]`. Check `CnTransitionInputDialog` draws a dotted field; if not, leave this task open and reference the nextcloud-vue issue. Verify: the dialog shows two fields.
-- [ ] 1.4 `flag-related`: confirm the data-exchange job shows with `exchangeStatus`; if the related widget cannot show that field, add an `object-list` widget on integriq's job filtered by `@object.dataExchangeJobId` with the status column.
-- [ ] 1.5 AttendanceFlags index: add `lifecycle` as a column and a facet filter.
+  > Open: the installed nextcloud-vue does not resolve a dotted `field`. Declared instead as one object input narrowed to its sub-fields, `{field: municipalityFeedback, fields: [masRoute, note]}`, which draws exactly those two fields (D3). `masRoute` cannot be marked required that way without adding `required: [masRoute]` to the schema object, which would also bind every save; that needs dotted-field support in nextcloud-vue.
+  > 24 Nov 2026: nextcloud-vue now folds dotted inputs (`transition-inputs-dotted-field`, in the installed 2.203), so the dialog side is ready. The blocker moved to OpenRegister: `TransitionEngine::acceptInputs()` whitelists the payload's top-level keys against the declared `field` names and checks `required` on those same keys, so declaring `municipalityFeedback.masRoute` in the schema would refuse the dialog's `{municipalityFeedback: {...}}` payload ("does not accept input field(s)") and ask for a top-level `municipalityFeedback.masRoute` key. Manifest `lifecycleActions.inputs` hints only add `picker`/`fields`, never `required`. Needs OpenRegister to accept a dotted declaration (accept the parent key, check `required` inside it); then this task is the schema edit above.
+- [x] 1.4 `flag-related`: confirm the data-exchange job shows with `exchangeStatus`; if the related widget cannot show that field, add an `object-list` widget on integriq's job filtered by `@object.dataExchangeJobId` with the status column.
+  > DONE: the page has no `flag-related` widget any more, so the job did not show. Added `flag-exchange-job` on the Overview tab: a facts card that reads integriq's `job` by `@object.dataExchangeJobId` (a single read by id, which a facts `source` does directly, instead of a filtered list), with `exchangeStatus` first, then requested, finished and the error. No job linked shows "No report sent to the compulsory education office yet". Test: `tests/unit-js/attendanceFlagExchangeJob.test.mjs`.
+- [x] 1.5 AttendanceFlags index: add `lifecycle` as a column and a facet filter.
+  > DONE: `lifecycle` was already a column; the property is now `facetable: true` (schema 0.2.5), which is where the index page reads its facets from.
 
 ## 2. Tests
 
-- [ ] 2.1 PHPUnit: `AttendanceFlagReportGuardTest` keeps passing; add a test that the refusal reason text is the one the page shows.
-- [ ] 2.2 Playwright `tests/e2e/attendance-flag-handling.spec.ts`: as an instructor open a seeded open flag, take it up, see `in-handling`; with the seeded succeeded job mark it reported; as a compliance officer record a MAS route. Tag the four requirement scenarios with `@e2e`.
+- [x] 2.1 PHPUnit: `AttendanceFlagReportGuardTest` keeps passing; add a test that the refusal reason text is the one the page shows.
+  > DONE: `AttendanceFlagReportGuardTest::testTheRefusalIsTheSentenceThePageShows` pins the sentence word for word and checks it names no job id or status.
+- [x] 2.2 Playwright `tests/e2e/attendance-flag-handling.spec.ts`: as an instructor open a seeded open flag, take it up, see `in-handling`; with the seeded succeeded job mark it reported; as a compliance officer record a MAS route. Tag the four requirement scenarios with `@e2e`.
+  - Written, runs in nightly; ticked under the unblock rule, not verified live here.
+  - Live 25 Nov 2026 (sandbox NC 34.0.6 + PostgreSQL 16, OpenRegister main, integriq and learniq development): 3 passed, 1 fixme. The spec's integriq job now carries `jobClass` (integriq's job schema requires it). "Take up" shows in the page menu only with openregister#11196 (available-actions carries a schema transition's `label`; without it the menu reads "StartHandling"). Test 4 stays fixme on the open access question (which group may record the MAS route), queued for Ruben.
+  - 25 Nov 2026 (Ruben's decision 17:55 CET): `MunicipalityFeedbackGuard` admits `compliance-officers` beside admin and coordinators, so the fourth test's `fixme` is gone (AttendanceFlag 0.2.6, transition description updated; `MunicipalityFeedbackGuardTest::testComplianceOfficerOnReportedFlagIsAllowed`). The browser run of that test is for the live lane.
 
 ## 3. Close out
 

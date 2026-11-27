@@ -3,6 +3,9 @@
 /**
  * Learniq EmployerSitePages
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * The employer's portal: a company that sends its people to the institute's
  * courses (the Warmtepompacademie board: Linda Jansen of Jansen
  * Installatietechniek BV). She reads her company's bookings with their days,
@@ -29,40 +32,30 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-reads-only-her-own-companys-people-and-bookings
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-reads-only-her-own-companys-people-and-bookings
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Portal;
 
+use OCA\Learniq\Kernel\Contracts\EmployerSitePagesInterface;
+
 /**
  * Builds the employer's collections, actions and pages.
  *
- * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-reads-only-her-own-companys-people-and-bookings
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-reads-only-her-own-companys-people-and-bookings
  */
-class EmployerSitePages {
+class EmployerSitePages implements EmployerSitePagesInterface {
 
 	/**
 	 * The audience.
 	 */
 	public const AUDIENCE = 'employer';
-
-	/**
-	 * The claim every employer collection is scoped by.
-	 */
-	public const CLAIM = 'organisationRef';
-
-	/**
-	 * The claim the booking form's editions are scoped by.
-	 */
-	public const LOCATION_CLAIM = 'editionLocationRef';
 
 	/**
 	 * The provider method that answers a booking's steps.
@@ -127,12 +120,241 @@ class EmployerSitePages {
 		'birth-date-missing' => 'Birth date missing',
 	];
 
+	private const EMPLOYER_EDITIONS = [
+		'id' => 'employerEditions',
+		'register' => self::REGISTER,
+		'schema' => 'cohort',
+		'scopeField' => 'locationId',
+		'scopeClaim' => self::LOCATION_CLAIM,
+		'label' => 'Course dates you can book',
+		'listable' => false,
+		'minTrust' => 'low',
+		'filter' => ['lifecycle' => 'planned'],
+		'fields' => ['name', 'courseId', 'period', 'locationId', 'lifecycle'],
+	];
+
+	private const EMPLOYER_PARTICIPANTS_EXTRA = [
+		'fieldConfigs' => ['detailsStatus' => ['valueLabels' => self::DETAILS_STATUS]],
+		// "Collega in zijn plaats" on each participant who still has a place
+		// (employer-substitutes-a-colleague T4).
+		'rowActions' => [self::SUBSTITUTE_ACTION],
+		'columns' => [
+			['field' => 'learnerName', 'label' => 'Participant'],
+			['field' => 'certificateLine', 'label' => 'Certificate'],
+			['field' => 'detailsStatus', 'label' => 'Details', 'valueLabels' => self::DETAILS_STATUS],
+		],
+	];
+
+	/**
+	 * The row action that sends a colleague in place of a participant.
+	 *
+	 * @var string
+	 */
+	public const SUBSTITUTE_ACTION = 'substituteParticipant';
+
+	private const SUBSTITUTE_FIELD_CONFIGS = [
+		'enrolmentId' => ['label' => 'Participant', 'required' => true],
+		'substituteRef' => [
+			'label' => 'Colleague who goes instead',
+			'required' => true,
+			'help' => 'The place stays on the booking. Until the working day before the course at 12.00.',
+		],
+	];
+
+		private const EMPLOYER_EMPLOYEES_EXTRA = [
+		'filter' => ['lifecycle' => 'active'],
+		'defaultSort' => ['field' => 'familyName', 'direction' => 'asc'],
+		'columns' => [
+			['field' => 'fullName', 'label' => 'Name'],
+			['field' => 'department', 'label' => 'Department'],
+		],
+	];
+
+	private const EMPLOYER_BOOKINGS_COLUMNS = [
+		['field' => 'firstDay', 'label' => 'First day', 'render' => 'date'],
+		['field' => 'courseName', 'label' => 'Course name'],
+		['field' => 'participantNames', 'label' => 'Participants'],
+		['field' => 'employerStatus', 'label' => 'Status', 'valueLabels' => self::BOOKING_STATUS],
+	];
+
+	/**
+	 * The certificates table; the verify column reads "Controleren" (linkLabel).
+	 *
+	 * @spec openspec/changes/archive/2026-11-26-certificates-group-the-first-to-expire-first/tasks.md#T2
+	 */
+	private const EMPLOYER_CERTIFICATES_EXTRA = [
+		'filter' => ['lifecycle' => 'issued', 'kind' => 'certificate'],
+		'defaultSort' => ['field' => 'expiresAt', 'direction' => 'asc'],
+		// One group per certificate, the holders under it, as the board (REPORT-2, item 9).
+		'groupByField' => 'courseName',
+		// The groups stand where their first row stands in the expiry order, so the
+		// certificate that expires first is on top (portaliq collection-group-order;
+		// an older portaliq drops the key and orders the groups by heading).
+		// @spec openspec/changes/archive/2026-11-26-certificates-group-the-first-to-expire-first/tasks.md#T1
+		'groupOrder' => 'rows',
+		'fieldConfigs' => ['expiryStatus' => ['valueLabels' => self::EXPIRY_STATUS]],
+		'columns' => [
+			['field' => 'learnerName', 'label' => 'Employee'],
+			['field' => 'courseName', 'label' => 'Certificate'],
+			['field' => 'expiresAt', 'label' => 'Valid until', 'render' => 'date'],
+			['field' => 'expiryLabel', 'label' => 'Status'],
+			['field' => 'renewalLine', 'label' => 'Renewal'],
+			// The link reads "Controleren", not the bare address (live check of the warmtepompacademie board).
+			['field' => 'verificationUrl', 'label' => 'Check or download', 'render' => 'link', 'linkLabel' => 'Check'],
+		],
+	];
+
+	private const EMPLOYER_CERTIFICATES_FIELDS = [
+		'organisationRef',
+		'learnerName',
+		'courseName',
+		'kind',
+		'validUntilLabel',
+		'expiresAt',
+		'expiryStatus',
+		'expiryLabel',
+		'renewalLine',
+		'verificationUrl',
+		'lifecycle',
+	];
+
+	private const ENROL_EMPLOYEES_FIELD_CONFIGS = [
+		'cohortId' => ['label' => 'Course and date', 'required' => true],
+		// Portaliq's count stepper; an older portaliq drops the widget and asks for a number.
+		'participantCount' => [
+			'label' => 'Number of participants',
+			'required' => true,
+			'widget' => 'count',
+			'min' => 1,
+			'max' => 12,
+			'unit' => ['one' => 'participant', 'other' => 'participants'],
+			'help' => 'You fill in the names in the next step. Six participants or more? Ask for a day of your own.',
+		],
+	];
+
+	private const SUPPLY_BIRTH_DATE_FIELD_CONFIGS = [
+		'learnerRef' => ['label' => 'Participant', 'required' => true],
+		'birthDate' => [
+			'label' => 'Birth date',
+			'required' => true,
+			'help' => 'The exam institution uses the birth date to register the participant. We keep it only with this participant.',
+		],
+	];
+
+	private const ADD_BOOKING_PARTICIPANT_FIELD_CONFIGS = [
+		'bookingRef' => ['label' => 'Booking', 'required' => true],
+		'learnerRef' => ['label' => 'Employee', 'required' => true],
+	];
+
+	private const EMPLOYER_OPEN_TASKS = [
+		'id' => 'employerOpenTasks',
+		'label' => 'Still to do',
+		'menu' => false,
+		'blocks' => [
+			[
+				'type' => 'collection',
+				'collection' => 'employerOpenTasks',
+				'display' => 'rows',
+				'titleFields' => ['openTask'],
+				'subtitleField' => 'openTaskNote',
+				'dateField' => 'openTaskDueAt',
+			],
+			['type' => 'action', 'action' => 'supplyBirthDate'],
+		],
+	];
+
+	private const EMPLOYER_EMPLOYEES = [
+		'id' => 'employerEmployees',
+		'label' => 'Employees',
+		'icon' => 'AccountGroupOutline',
+		'group' => self::GROUP_COURSES,
+		'blocks' => [
+			['type' => 'collection', 'collection' => 'employerEmployees'],
+			['type' => 'action', 'action' => 'addBookingParticipant'],
+		],
+	];
+
+	private const EMPLOYER_CERTIFICATES = [
+		'id' => 'employerCertificates',
+		'label' => 'Certificates',
+		'icon' => 'CertificateOutline',
+		'group' => self::GROUP_COURSES,
+		'blocks' => [
+			['type' => 'collection', 'collection' => 'employerCertificates'],
+			// "Alle geldige certificaten downloaden": one ZIP, kept with her
+			// company's documents below (school-documents-on-the-portal T5).
+			['type' => 'action', 'action' => 'employerCertificatesDownload'],
+			[
+				'type' => 'documents',
+				'collection' => 'employerCompany',
+				'eachRecord' => true,
+				'titleFields' => ['name'],
+				'emptyLabel' => 'Ask for the download above; the file appears here.',
+			],
+		],
+	];
+
+	private const BOOKING_ROWS = [
+		'display' => 'rows',
+		'dateField' => 'firstDay',
+		'titleFields' => ['courseName'],
+		'subtitleField' => 'participantNames',
+		'statusField' => 'employerStatus',
+		'statusTones' => self::BOOKING_TONES,
+		'statusNoteField' => 'statusNote',
+	];
+
+	private const EMPLOYER_COMING_BOOKINGS_BLOCK = [
+		'type' => 'collection',
+		'collection' => 'employerComingBookings',
+		...self::BOOKING_ROWS,
+		'limit' => 3,
+		'sort' => ['field' => 'firstDay', 'direction' => 'asc'],
+	];
+
+	private const EMPLOYER_TASKS_BLOCK = [
+		'type' => 'tasks',
+		'label' => 'First this',
+		'display' => 'highlight',
+		'eyebrow' => 'First this',
+		'collection' => 'employerOpenTasks',
+		'titleFields' => ['openTask'],
+		'subtitleFields' => ['openTaskNote'],
+		'dueField' => 'openTaskDueAt',
+		'buttonLabel' => 'Fill in the birth date',
+	];
+
+	private const EMPLOYER_BOOKINGS_BLOCKS = [
+		[
+			'type' => 'collection',
+			'collection' => 'employerBookings',
+			...self::BOOKING_ROWS,
+			'sort' => ['field' => 'firstDay', 'direction' => 'asc'],
+		],
+		['type' => 'steps', 'collection' => 'employerBookings', 'label' => 'Where does this booking stand?'],
+		// The board's participants (Detail): each name with the certificate
+		// line and whether the details are complete (REPORT-2, item 9). A
+		// table, not dated rows: portaliq draws a collection's row actions
+		// ("Collega in zijn plaats", employer-substitutes-a-colleague T4) in
+		// its table only, and the collection's columns are these three.
+		[
+			'type' => 'collection',
+			'label' => 'Participants',
+			'collection' => 'employerParticipants',
+			'recordField' => 'bookingRef',
+		],
+		['type' => 'detail', 'collection' => 'employerBookings'],
+		['type' => 'action', 'action' => 'supplyBirthDate'],
+		['type' => 'action', 'action' => 'addBookingParticipant'],
+		['type' => 'cta', 'action' => 'enrolEmployees', 'label' => 'New booking'],
+	];
+
 	/**
 	 * The employer's manifest.
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-reads-only-her-own-companys-people-and-bookings
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-reads-only-her-own-companys-people-and-bookings
 	 */
 	public function contribution(): array {
 		$collections = $this->collections();
@@ -156,10 +378,10 @@ class EmployerSitePages {
 	 *
 	 * @return array<int, array<string, mixed>>
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-reads-only-her-own-companys-people-and-bookings
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-reads-only-her-own-companys-people-and-bookings
 	 */
 	public function collections(): array {
-		$statusConfig = ['employerStatus' => ['valueLabels' => self::BOOKING_STATUS]];
+		$statusConfig = self::bookingFieldConfigs();
 
 		return [
 			$this->direct(
@@ -184,12 +406,7 @@ class EmployerSitePages {
 					'steps' => ['label' => 'Where does this booking stand?', 'provider' => self::STEPS_PROVIDER],
 					'defaultSort' => ['field' => 'firstDay', 'direction' => 'desc'],
 					'fieldConfigs' => $statusConfig,
-					'columns' => [
-						['field' => 'firstDay', 'label' => 'First day', 'render' => 'date'],
-						['field' => 'courseName', 'label' => 'Course name'],
-						['field' => 'participantNames', 'label' => 'Participants'],
-						['field' => 'employerStatus', 'label' => 'Status', 'valueLabels' => self::BOOKING_STATUS],
-					],
+					'columns' => self::EMPLOYER_BOOKINGS_COLUMNS,
 				]
 			),
 			$this->direct(
@@ -204,14 +421,7 @@ class EmployerSitePages {
 				schema: 'enrolment',
 				label: 'Participants',
 				fields: $this->participantFields(),
-				extra: [
-					'fieldConfigs' => ['detailsStatus' => ['valueLabels' => self::DETAILS_STATUS]],
-					'columns' => [
-						['field' => 'learnerName', 'label' => 'Participant'],
-						['field' => 'certificateLine', 'label' => 'Certificate'],
-						['field' => 'detailsStatus', 'label' => 'Details', 'valueLabels' => self::DETAILS_STATUS],
-					],
-				]
+				extra: self::EMPLOYER_PARTICIPANTS_EXTRA
 			),
 			// Names only: never the birth date, the address or anything the
 			// institute keeps for itself.
@@ -220,30 +430,67 @@ class EmployerSitePages {
 				schema: 'learner-profile',
 				label: 'Employees',
 				fields: ['organisationRef', 'fullName', 'givenName', 'familyName', 'department', 'lifecycle'],
-				extra: [
-					'filter' => ['lifecycle' => 'active'],
-					'defaultSort' => ['field' => 'familyName', 'direction' => 'asc'],
-					'columns' => [
-						['field' => 'fullName', 'label' => 'Name'],
-						['field' => 'department', 'label' => 'Department'],
-					],
-				]
+				extra: self::EMPLOYER_EMPLOYEES_EXTRA
 			),
 			$this->certificatesCollection(),
-			[
-				'id' => 'employerEditions',
-				'register' => self::REGISTER,
-				'schema' => 'cohort',
-				'scopeField' => 'locationId',
-				'scopeClaim' => self::LOCATION_CLAIM,
-				'label' => 'Course dates you can book',
-				'listable' => false,
-				'minTrust' => 'low',
-				'filter' => ['lifecycle' => 'planned'],
-				'fields' => ['name', 'courseId', 'period', 'locationId', 'lifecycle'],
-			],
+			$this->companyCollection(),
+			self::EMPLOYER_EDITIONS,
 		];
 	}//end collections()
+
+	/**
+	 * Every booking field she reads on an opened booking, in words: portaliq
+	 * shows a field without a label by its schema title, in English, so the
+	 * detail read "Booking number", "Days" and "Booked on" (portal proof run 3).
+	 *
+	 * @return array<string, array<string, mixed>>
+	 *
+	 * @spec openspec/changes/board-checks-follow-the-live-week/specs/portal-contribution/spec.md#requirement-an-opened-booking-names-its-fields-in-the-readers-language
+	 */
+	public static function bookingFieldConfigs(): array {
+		return [
+			'bookingNumber' => ['label' => 'Booking number'],
+			'bookingLabel' => ['label' => 'Booking'],
+			'courseName' => ['label' => 'Course name'],
+			'firstDay' => ['label' => 'First day'],
+			'dayLabel' => ['label' => 'Days'],
+			'timeLabel' => ['label' => 'Time'],
+			'placeLabel' => ['label' => 'Where'],
+			'trainerName' => ['label' => 'Trainer'],
+			'participantCount' => ['label' => 'Places'],
+			'participantNames' => ['label' => 'Participants'],
+			'missingDetailsCount' => ['label' => 'Details missing'],
+			'employerStatus' => ['label' => 'Status', 'valueLabels' => self::BOOKING_STATUS],
+			'statusNote' => ['label' => 'Status note'],
+			'detailsDueAt' => ['label' => 'Details due'],
+			'requestedAt' => ['label' => 'Booked on'],
+			'upcoming' => ['label' => 'Coming'],
+			'lifecycle' => ['label' => 'Stage of the booking', 'valueLabels' => self::BOOKING_STATUS],
+		];
+	}//end bookingFieldConfigs()
+
+	/**
+	 * Her own company's row, read only for its documents: the certificates
+	 * ZIP she asked for is kept on it (school-documents-on-the-portal T5).
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-an-employer-downloads-every-valid-certificate-at-once
+	 */
+	public function companyCollection(): array {
+		return $this->direct(
+			id: 'employerCompany',
+			schema: 'client-organisation',
+			label: 'Your company',
+			fields: ['name'],
+			extra: [
+				// The row's own id is her company: the organisationRef claim.
+				'scopeField' => 'id',
+				'listable' => false,
+				'documents' => ['label' => 'Downloads', 'provider' => 'employerDocuments'],
+			]
+		);
+	}//end companyCollection()
 
 	/**
 	 * The certificates her people hold, the first to expire first. Only
@@ -252,39 +499,15 @@ class EmployerSitePages {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/portal-certificates/specs/portal-contribution/spec.md#requirement-an-employer-sees-her-peoples-certificates-the-first-to-expire-first
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-sees-her-peoples-certificates-the-first-to-expire-first
 	 */
 	public function certificatesCollection(): array {
 		return $this->direct(
 			id: 'employerCertificates',
 			schema: 'credential',
 			label: 'Certificates in your company',
-			fields: [
-				'organisationRef',
-				'learnerName',
-				'courseName',
-				'kind',
-				'validUntilLabel',
-				'expiresAt',
-				'expiryStatus',
-				'expiryLabel',
-				'renewalLine',
-				'verificationUrl',
-				'lifecycle',
-			],
-			extra: [
-				'filter' => ['lifecycle' => 'issued', 'kind' => 'certificate'],
-				'defaultSort' => ['field' => 'expiresAt', 'direction' => 'asc'],
-				'fieldConfigs' => ['expiryStatus' => ['valueLabels' => self::EXPIRY_STATUS]],
-				'columns' => [
-					['field' => 'learnerName', 'label' => 'Employee'],
-					['field' => 'courseName', 'label' => 'Certificate'],
-					['field' => 'expiresAt', 'label' => 'Valid until', 'render' => 'date'],
-					['field' => 'expiryLabel', 'label' => 'Status'],
-					['field' => 'renewalLine', 'label' => 'Renewal'],
-					['field' => 'verificationUrl', 'label' => 'Check or download', 'render' => 'link'],
-				],
-			]
+			fields: self::EMPLOYER_CERTIFICATES_FIELDS,
+			extra: self::EMPLOYER_CERTIFICATES_EXTRA
 		);
 	}//end certificatesCollection()
 
@@ -295,7 +518,7 @@ class EmployerSitePages {
 	 *
 	 * @return array<int, array<string, mixed>>
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
 	 */
 	public function actions(): array {
 		return [
@@ -307,19 +530,7 @@ class EmployerSitePages {
 				fields: ['cohortId', 'participantCount'],
 				extra: [
 					'optionsProviders' => ['cohortId' => $this->options(schema: 'cohort', label: 'name', value: 'id')],
-					'fieldConfigs' => [
-						'cohortId' => ['label' => 'Course and date', 'required' => true],
-						// Portaliq's count stepper; an older portaliq drops the widget and asks for a number.
-						'participantCount' => [
-							'label' => 'Number of participants',
-							'required' => true,
-							'widget' => 'count',
-							'min' => 1,
-							'max' => 12,
-							'unit' => ['one' => 'participant', 'other' => 'participants'],
-							'help' => 'You fill in the names in the next step. Six participants or more? Ask for a day of your own.',
-						],
-					],
+					'fieldConfigs' => self::ENROL_EMPLOYEES_FIELD_CONFIGS,
 					'requiredFields' => ['cohortId', 'participantCount'],
 					'submitLabel' => 'Book these places',
 					'successMessage' => 'Your booking is received. Now fill in who takes each place.',
@@ -336,15 +547,13 @@ class EmployerSitePages {
 						'bookingRef' => $this->options(schema: 'course-booking', label: 'bookingLabel', value: 'id'),
 						'learnerRef' => $this->options(schema: 'learner-profile', label: 'fullName', value: 'id'),
 					],
-					'fieldConfigs' => [
-						'bookingRef' => ['label' => 'Booking', 'required' => true],
-						'learnerRef' => ['label' => 'Employee', 'required' => true],
-					],
+					'fieldConfigs' => self::ADD_BOOKING_PARTICIPANT_FIELD_CONFIGS,
 					'requiredFields' => ['bookingRef', 'learnerRef'],
 					'submitLabel' => 'Put on the booking',
 					'successMessage' => 'The employee has a place on the booking.',
 				]
 			),
+			$this->substituteAction(),
 			$this->endpoint(
 				id: 'supplyBirthDate',
 				path: 'birth-date',
@@ -354,21 +563,69 @@ class EmployerSitePages {
 				extra: [
 					// The participants still missing a birth date: the first enrolment collection.
 					'optionsProviders' => ['learnerRef' => $this->options(schema: 'enrolment', label: 'learnerName', value: 'learnerRef')],
-					'fieldConfigs' => [
-						'learnerRef' => ['label' => 'Participant', 'required' => true],
-						'birthDate' => [
-							'label' => 'Birth date',
-							'required' => true,
-							'help' => 'The exam institution uses the birth date to register the participant. We keep it only with this participant.',
-						],
-					],
+					'fieldConfigs' => self::SUPPLY_BIRTH_DATE_FIELD_CONFIGS,
 					'requiredFields' => ['learnerRef', 'birthDate'],
 					'submitLabel' => 'Save',
 					'successMessage' => 'The birth date is saved. The participant can take the exam.',
 				]
 			),
+			$this->certificatesDownloadAction(),
 		];
 	}//end actions()
+
+	/**
+	 * "Alle geldige certificaten downloaden": one ZIP of every valid
+	 * certificate of her people, kept on her company's row and listed under
+	 * Downloads on the certificates page (school-documents-on-the-portal T5).
+	 * Nothing to fill in: the company comes from the claim.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/school-documents-on-the-portal/specs/portal-contribution/spec.md#requirement-an-employer-downloads-every-valid-certificate-at-once
+	 */
+	public function certificatesDownloadAction(): array {
+		return $this->endpoint(
+			id: 'employerCertificatesDownload',
+			path: 'certificates-archive',
+			schema: 'client-organisation',
+			label: 'Download all valid certificates',
+			fields: [],
+			extra: [
+				'submitLabel' => 'Download all valid certificates',
+				'successMessage' => 'The file with all valid certificates is ready under Downloads.',
+			]
+		);
+	}//end certificatesDownloadAction()
+
+	/**
+	 * "Collega in zijn plaats": a row action on her participants that sends
+	 * one of her people in place of that participant. Portaliq stamps the
+	 * row's enrolment id; the receiver reads the booking and the replaced
+	 * participant from it, checks both are her company's, and refuses after
+	 * the deadline. Shown only on a participant who still has a place.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-sends-a-colleague-in-place-of-a-participant-before-the-deadline
+	 */
+	public function substituteAction(): array {
+		return $this->endpoint(
+			id: self::SUBSTITUTE_ACTION,
+			path: 'substitutions',
+			schema: 'enrolment',
+			label: 'A colleague in their place',
+			fields: ['enrolmentId', 'substituteRef'],
+			extra: [
+				'rowField' => 'enrolmentId',
+				'rowWhen' => ['field' => 'lifecycle', 'in' => ['pending', 'active']],
+				'optionsProviders' => ['substituteRef' => $this->options(schema: 'learner-profile', label: 'fullName', value: 'id')],
+				'fieldConfigs' => self::SUBSTITUTE_FIELD_CONFIGS,
+				'requiredFields' => ['enrolmentId', 'substituteRef'],
+				'submitLabel' => 'Send this colleague',
+				'successMessage' => 'Your colleague takes the place. The participant you replaced gets a message.',
+			]
+		);
+	}//end substituteAction()
 
 	/**
 	 * Her pages: the overview, the bookings with the open one in detail, her
@@ -376,45 +633,15 @@ class EmployerSitePages {
 	 *
 	 * @return array<int, array<string, mixed>>
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-lands-on-what-waits-for-her
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-lands-on-what-waits-for-her
 	 */
 	public function pages(): array {
 		return [
 			$this->overviewPage(),
 			$this->bookingsPage(),
-			[
-				'id' => 'employerEmployees',
-				'label' => 'Employees',
-				'icon' => 'AccountGroupOutline',
-				'group' => self::GROUP_COURSES,
-				'blocks' => [
-					['type' => 'collection', 'collection' => 'employerEmployees'],
-					['type' => 'action', 'action' => 'addBookingParticipant'],
-				],
-			],
-			[
-				'id' => 'employerCertificates',
-				'label' => 'Certificates',
-				'icon' => 'CertificateOutline',
-				'group' => self::GROUP_COURSES,
-				'blocks' => [['type' => 'collection', 'collection' => 'employerCertificates']],
-			],
-			[
-				'id' => 'employerOpenTasks',
-				'label' => 'Still to do',
-				'menu' => false,
-				'blocks' => [
-					[
-						'type' => 'collection',
-						'collection' => 'employerOpenTasks',
-						'display' => 'rows',
-						'titleFields' => ['openTask'],
-						'subtitleField' => 'openTaskNote',
-						'dateField' => 'openTaskDueAt',
-					],
-					['type' => 'action', 'action' => 'supplyBirthDate'],
-				],
-			],
+			self::EMPLOYER_EMPLOYEES,
+			self::EMPLOYER_CERTIFICATES,
+			self::EMPLOYER_OPEN_TASKS,
 		];
 	}//end pages()
 
@@ -424,7 +651,7 @@ class EmployerSitePages {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-lands-on-what-waits-for-her
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-lands-on-what-waits-for-her
 	 */
 	private function overviewPage(): array {
 		return [
@@ -435,30 +662,8 @@ class EmployerSitePages {
 			'home' => true,
 			'blocks' => [
 				['type' => 'greeting', 'label' => 'Book places', 'action' => 'enrolEmployees'],
-				[
-					'type' => 'tasks',
-					'label' => 'First this',
-					'display' => 'highlight',
-					'eyebrow' => 'First this',
-					'collection' => 'employerOpenTasks',
-					'titleFields' => ['openTask'],
-					'subtitleFields' => ['openTaskNote'],
-					'dueField' => 'openTaskDueAt',
-					'buttonLabel' => 'Fill in the birth date',
-				],
-				[
-					'type' => 'collection',
-					'collection' => 'employerComingBookings',
-					'display' => 'rows',
-					'dateField' => 'firstDay',
-					'titleFields' => ['courseName'],
-					'subtitleField' => 'participantNames',
-					'statusField' => 'employerStatus',
-					'statusTones' => self::BOOKING_TONES,
-					'statusNoteField' => 'statusNote',
-					'limit' => 3,
-					'sort' => ['field' => 'firstDay', 'direction' => 'asc'],
-				],
+				self::EMPLOYER_TASKS_BLOCK,
+				self::EMPLOYER_COMING_BOOKINGS_BLOCK,
 				['type' => 'cta', 'page' => 'employerBookings', 'label' => 'All bookings'],
 				$this->certificateRows(),
 				['type' => 'cta', 'page' => 'employerCertificates', 'label' => 'All certificates'],
@@ -476,7 +681,7 @@ class EmployerSitePages {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
 	 */
 	private function bookingsPage(): array {
 		return [
@@ -485,26 +690,7 @@ class EmployerSitePages {
 			'icon' => 'CalendarAccountOutline',
 			'group' => self::GROUP_COURSES,
 			'record' => ['collection' => 'employerBookings', 'titleFields' => ['courseName']],
-			'blocks' => [
-				[
-					'type' => 'collection',
-					'collection' => 'employerBookings',
-					'display' => 'rows',
-					'dateField' => 'firstDay',
-					'titleFields' => ['courseName'],
-					'subtitleField' => 'participantNames',
-					'statusField' => 'employerStatus',
-					'statusTones' => self::BOOKING_TONES,
-					'statusNoteField' => 'statusNote',
-					'sort' => ['field' => 'firstDay', 'direction' => 'asc'],
-				],
-				['type' => 'steps', 'collection' => 'employerBookings', 'label' => 'Where does this booking stand?'],
-				['type' => 'collection', 'collection' => 'employerParticipants', 'recordField' => 'bookingRef'],
-				['type' => 'detail', 'collection' => 'employerBookings'],
-				['type' => 'action', 'action' => 'supplyBirthDate'],
-				['type' => 'action', 'action' => 'addBookingParticipant'],
-				['type' => 'cta', 'action' => 'enrolEmployees', 'label' => 'New booking'],
-			],
+			'blocks' => self::EMPLOYER_BOOKINGS_BLOCKS,
 		];
 	}//end bookingsPage()
 
@@ -514,7 +700,7 @@ class EmployerSitePages {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/portal-certificates/specs/portal-contribution/spec.md#requirement-an-employer-sees-her-peoples-certificates-the-first-to-expire-first
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-sees-her-peoples-certificates-the-first-to-expire-first
 	 */
 	private function certificateRows(): array {
 		return [

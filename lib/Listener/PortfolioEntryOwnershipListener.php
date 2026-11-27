@@ -31,10 +31,11 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -66,7 +67,7 @@ class PortfolioEntryOwnershipListener implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param ListenerSchemaResolver $schemaResolver Resolves the event entity's schema slug.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Resolves the event entity's schema slug.
 	 * @param IUserSession           $userSession    The acting user.
 	 * @param IGroupManager          $groupManager   Admin and staff checks.
 	 * @param ObjectService          $objectService  Resolves the portfolio the entry points at.
@@ -75,7 +76,7 @@ class PortfolioEntryOwnershipListener implements IEventListener {
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ListenerSchemaResolver $schemaResolver,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
 		private readonly IUserSession $userSession,
 		private readonly IGroupManager $groupManager,
 		private readonly ObjectService $objectService,
@@ -132,11 +133,7 @@ class PortfolioEntryOwnershipListener implements IEventListener {
 	 * @spec openspec/specs/nextcloud-app/spec.md#requirement-a-learner-runs-the-transitions-on-their-own-rows
 	 */
 	private function writtenEntity(ObjectCreatingEvent|ObjectUpdatingEvent $event): ObjectEntity {
-		if ($event instanceof ObjectUpdatingEvent === true) {
-			return $event->getNewObject();
-		}
-
-		return $event->getObject();
+		return (new WrittenObject())->entityOf(event: $event);
 	}//end writtenEntity()
 
 	/**
@@ -186,7 +183,7 @@ class PortfolioEntryOwnershipListener implements IEventListener {
 			return null;
 		}
 
-		$portfolio = $this->objectService->find(id: $portfolioId, register: 'learniq', schema: 'portfolio');
+		$portfolio = $this->objectService->find(id: $portfolioId, options: new ObjectFindOptions(register: 'learniq', schema: 'portfolio'));
 		$learnerId = ($portfolio?->jsonSerialize()['learnerId'] ?? null);
 		if (is_string($learnerId) === false) {
 			return null;

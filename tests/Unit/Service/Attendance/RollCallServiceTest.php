@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
+ * @spec openspec/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
  */
 
 declare(strict_types=1);
@@ -30,6 +30,7 @@ use OCA\Learniq\Service\Attendance\RollCallLessons;
 use OCA\Learniq\Service\Attendance\RollCallMarks;
 use OCA\Learniq\Service\Attendance\RollCallReader;
 use OCA\Learniq\Service\Attendance\RollCallService;
+use OCA\Learniq\Service\Attendance\ReportSeenStamp;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\Learniq\Tests\Support\RegisterSchemaPayloads;
 use OCA\OpenRegister\Db\ObjectEntity;
@@ -41,6 +42,7 @@ use OCP\IL10N;
 use OCP\IUser;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * The day's register of one group.
@@ -129,7 +131,11 @@ class RollCallServiceTest extends TestCase {
 			}
 		);
 		$objects->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend=[], $register=null, $schema=null, ?string $uuid=null, bool $_rbac=true): ObjectEntity {
+			function (array|ObjectEntity $object, ObjectSaveOptions $options = new ObjectSaveOptions(), bool $_rbac = true): ObjectEntity {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
+				$uuid = $options->uuid;
 				$data = (array)$object;
 				$data['id'] = ($uuid ?? ('new-' . count($this->saved)));
 				$this->saved[] = ['schema' => $schema, 'uuid' => $uuid, 'object' => $object, 'rbac' => $_rbac];
@@ -180,7 +186,8 @@ class RollCallServiceTest extends TestCase {
 			marks: new RollCallMarks(),
 			objectService: $objects,
 			time: $time,
-			l10n: $l10n
+			l10n: $l10n,
+			seen: new ReportSeenStamp(objectService: $objects, time: $time)
 		);
 	}//end service()
 
@@ -248,6 +255,7 @@ class RollCallServiceTest extends TestCase {
 		self::assertSame(['Daan Beekdal', 'Noor Weidehof', 'Vera Hulstkamp'], array_column($register['pupils'], 'name'));
 		self::assertSame(['present', 'present', 'present'], array_column($register['pupils'], 'status'));
 		self::assertSame([false, false, false], array_column($register['pupils'], 'saved'));
+		self::assertSame(['b0000000-0000-4000-8000-000000000002', 'b0000000-0000-4000-8000-000000000003', 'b0000000-0000-4000-8000-000000000001'], array_column($register['pupils'], 'learnerRef'));
 	}//end testATeacherOpensTodaysRegisterOfTheirGroup()
 
 	/**
@@ -268,7 +276,7 @@ class RollCallServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-who-may-open-which-groups-register
+	 * @spec openspec/specs/attendance/spec.md#requirement-who-may-open-which-groups-register
 	 */
 	public function testATeacherCannotOpenAnotherGroup(): void {
 		try {
@@ -297,7 +305,7 @@ class RollCallServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-who-may-open-which-groups-register
+	 * @spec openspec/specs/attendance/spec.md#requirement-who-may-open-which-groups-register
 	 */
 	public function testACoordinatorOpensAnyGroup(): void {
 		$register = $this->service()->open(user: $this->user('ib'), cohortId: self::G3, date: null, sessionId: null);
@@ -312,7 +320,7 @@ class RollCallServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#scenario-the-teacher-marks-one-pupil-late-and-one-absent-without-permission
+	 * @spec openspec/specs/attendance/spec.md#scenario-the-teacher-marks-one-pupil-late-and-one-absent-without-permission
 	 */
 	public function testSaveWritesLateMinutesAndAnUnauthorisedAbsence(): void {
 		$register = $this->service()->save(
@@ -409,7 +417,7 @@ class RollCallServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#scenario-a-late-mark-without-minutes-is-refused
+	 * @spec openspec/specs/attendance/spec.md#scenario-a-late-mark-without-minutes-is-refused
 	 */
 	public function testALateMarkNeedsItsMinutes(): void {
 		foreach ([
@@ -443,7 +451,7 @@ class RollCallServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-an-approved-absence-report-fills-in-the-register
+	 * @spec openspec/specs/attendance/spec.md#requirement-an-approved-absence-report-fills-in-the-register
 	 */
 	public function testAnApprovedReportPrefillsAnAuthorisedAbsence(): void {
 		$this->store['excuse-request'] = [
@@ -476,11 +484,44 @@ class RollCallServiceTest extends TestCase {
 	}//end testAnApprovedReportPrefillsAnAuthorisedAbsence()
 
 	/**
+	 * Allowed leave covering the day pre-fills an absence with permission, as an approved
+	 * report does; leave still waiting for a decision, or of another day, changes nothing,
+	 * and an approved report of the same pupil stays.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/archive/2026-11-24-leave-requests-decided-by-the-school/tasks.md
+	 */
+	public function testAllowedLeavePrefillsAnAbsenceWithPermission(): void {
+		$this->store['leave-request'] = [
+			['id' => 'l-vera', 'learnerRef' => 'b0000000-0000-4000-8000-000000000001', 'dateFrom' => '2026-10-01', 'dateTo' => '2026-10-02', 'kind' => 'wedding', 'reason' => 'Bruiloft in de familie', 'lifecycle' => 'allowed'],
+			['id' => 'l-daan', 'learnerRef' => 'b0000000-0000-4000-8000-000000000002', 'dateFrom' => '2026-10-02', 'dateTo' => '2026-10-02', 'kind' => 'funeral', 'reason' => 'Uitvaart opa', 'lifecycle' => 'submitted'],
+			['id' => 'l-noor', 'learnerRef' => 'b0000000-0000-4000-8000-000000000003', 'dateFrom' => '2026-10-05', 'dateTo' => '2026-10-06', 'kind' => 'other', 'reason' => 'Later', 'lifecycle' => 'allowed'],
+		];
+
+		$register = $this->service()->open(user: $this->user('juf-7'), cohortId: null, date: null, sessionId: null);
+
+		$vera = self::pupil($register, 'vera');
+		self::assertSame('absent-excused', $vera['status']);
+		self::assertSame('other', $vera['absenceReasonKind']);
+		self::assertSame('Bruiloft in de familie', $vera['reason']);
+		self::assertSame(['id' => 'l-vera', 'lifecycle' => 'approved', 'reasonKind' => 'family-circumstance'], array_intersect_key($vera['report'], ['id' => 1, 'lifecycle' => 1, 'reasonKind' => 1]));
+		self::assertSame('present', self::pupil($register, 'daan')['status'], 'leave not yet decided changes nothing');
+		self::assertNull(self::pupil($register, 'noor')['report'], 'leave of another day changes nothing');
+
+		$this->store['excuse-request'] = [
+			['id' => 'x-vera', 'learnerId' => 'vera', 'dateFrom' => '2026-10-02', 'dateTo' => '2026-10-02', 'reason' => 'Griep', 'reasonKind' => 'illness', 'lifecycle' => 'approved'],
+		];
+		$register = $this->service()->open(user: $this->user('juf-7'), cohortId: null, date: null, sessionId: null);
+		self::assertSame('x-vera', self::pupil($register, 'vera')['report']['id'], 'an approved report of the same day stays');
+	}//end testAllowedLeavePrefillsAnAbsenceWithPermission()
+
+	/**
 	 * A teacher's saved earlier day is read-only for them; an unsaved one is not; school-wide staff may change it.
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-the-register-can-be-changed-the-same-day
+	 * @spec openspec/specs/attendance/spec.md#requirement-the-register-can-be-changed-the-same-day
 	 */
 	public function testAnEarlierSavedDayIsReadOnlyForTheTeacher(): void {
 		$wednesday = $this->service()->open(user: $this->user('juf-7'), cohortId: self::G7, date: '2026-09-30', sessionId: null);
@@ -526,7 +567,7 @@ class RollCallServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-day-without-a-lesson-gets-one-when-the-register-is-saved
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-day-without-a-lesson-gets-one-when-the-register-is-saved
 	 */
 	public function testSavingADayWithoutALessonCreatesOne(): void {
 		$this->store['session'] = array_values(array_filter($this->store['session'], static fn (array $s): bool => $s['id'] !== self::TODAY_SESSION));
@@ -595,4 +636,76 @@ class RollCallServiceTest extends TestCase {
 		$this->expectException(RollCallException::class);
 		$this->service()->open(user: $this->user('juf-7'), cohortId: null, date: '02-10-2026', sessionId: null);
 	}//end testABadDateIsRefused()
+
+	/**
+	 * The first group teacher to open the register stamps an open report as
+	 * seen; the lifecycle stays, later openings change nothing, and neither a
+	 * decided report nor a coordinator outside teacherIds is stamped.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/attendance/spec.md#scenario-juf-esra-opens-the-register
+	 */
+	public function testAGroupTeachersFirstLookIsRecordedOnce(): void {
+		$this->store['excuse-request'] = [
+			['id' => 'x-daan', 'learnerId' => 'daan', 'dateFrom' => '2026-10-02', 'dateTo' => '2026-10-02', 'reason' => 'Ziek', 'reasonKind' => 'illness', 'lifecycle' => 'submitted', 'teacherIds' => ['juf-7']],
+			['id' => 'x-vera', 'learnerId' => 'vera', 'dateFrom' => '2026-10-02', 'dateTo' => '2026-10-02', 'reason' => 'Griep', 'reasonKind' => 'illness', 'lifecycle' => 'approved', 'teacherIds' => ['juf-7']],
+		];
+
+		$this->service()->open(user: $this->user('ib'), cohortId: self::G7, date: null, sessionId: null);
+		self::assertSame([], $this->savedReports(), 'a coordinator outside teacherIds does not count as the teacher having seen it');
+
+		$register = $this->service()->open(user: $this->user('juf-7'), cohortId: null, date: null, sessionId: null);
+		$saved = $this->savedReports();
+		self::assertSame(['x-daan'], array_keys($saved), 'only the open report of her own group is stamped');
+		self::assertSame('juf-7', $saved['x-daan']['object']['seenBy']);
+		self::assertSame('2026-10-02T07:00:00+00:00', $saved['x-daan']['object']['seenAt']);
+		self::assertSame('submitted', $saved['x-daan']['object']['lifecycle'], 'seeing does not decide');
+		self::assertFalse($saved['x-daan']['rbac']);
+		self::assertSame('juf-7', self::pupil($register, 'daan')['report']['seenBy']);
+
+		$this->store['excuse-request'][0] = array_merge($this->store['excuse-request'][0], ['seenBy' => 'juf-7', 'seenAt' => '2026-10-02T07:00:00+00:00']);
+		$this->saved = [];
+		$this->service(now: self::FRIDAY_0900 + 3600)->open(user: $this->user('juf-7'), cohortId: null, date: null, sessionId: null);
+		self::assertSame([], $this->savedReports(), 'a second look changes nothing');
+	}//end testAGroupTeachersFirstLookIsRecordedOnce()
+
+	/**
+	 * An illness without a last day covers every following day, until it is ended.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/attendance/spec.md#scenario-better-on-wednesday
+	 */
+	public function testAnOpenIllnessCoversEachDayUntilEnded(): void {
+		$this->store['excuse-request'] = [
+			['id' => 'x-noor', 'learnerId' => 'noor', 'dateFrom' => '2026-09-30', 'reason' => 'Ziek', 'reasonKind' => 'illness', 'lifecycle' => 'approved'],
+			['id' => 'x-daan', 'learnerId' => 'daan', 'dateFrom' => '2026-09-30', 'reason' => 'Tandarts', 'reasonKind' => 'medical-appointment', 'lifecycle' => 'approved'],
+		];
+
+		$register = $this->service()->open(user: $this->user('juf-7'), cohortId: null, date: null, sessionId: null);
+		self::assertSame('x-noor', self::pupil($register, 'noor')['report']['id']);
+		self::assertSame('absent-excused', self::pupil($register, 'noor')['status']);
+		self::assertNull(self::pupil($register, 'daan')['report'], 'only an illness may stay open');
+
+		$this->store['excuse-request'][0]['dateTo'] = '2026-10-01';
+		$register = $this->service()->open(user: $this->user('juf-7'), cohortId: null, date: null, sessionId: null);
+		self::assertNull(self::pupil($register, 'noor')['report'], 'better on Thursday: Friday no longer lists it');
+	}//end testAnOpenIllnessCoversEachDayUntilEnded()
+
+	/**
+	 * The excuse-request saves, keyed by report id.
+	 *
+	 * @return array<string, array<string, mixed>>
+	 */
+	private function savedReports(): array {
+		$reports = [];
+		foreach ($this->saved as $save) {
+			if ($save['schema'] === 'excuse-request') {
+				$reports[(string)$save['uuid']] = $save;
+			}
+		}
+
+		return $reports;
+	}//end savedReports()
 }//end class

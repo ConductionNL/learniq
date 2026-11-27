@@ -46,7 +46,9 @@ use Psr\Log\LoggerInterface;
  * Guards the AttendanceFlag `recordMunicipalityFeedback` self-loop transition.
  *
  * The transition proceeds only when ALL of the following hold:
- *   1. The acting user is in one of the authorised groups (`admin`, `coordinators`).
+ *   1. The acting user is in one of the authorised groups (`admin`, `coordinators`,
+ *      `compliance-officers`; the compliance officer added by Ruben's decision of
+ *      25 Nov 2026, the leerplicht contact who records the MAS route).
  *   2. The job's `target` is `leerplicht` — municipalityFeedback (the MAS-route)
  *      only makes sense for a verzuimloket report to a municipality.
  *
@@ -61,6 +63,7 @@ use Psr\Log\LoggerInterface;
  * guard so it runs the day OpenRegister guards self-loops.
  *
  * @spec openspec/changes/archive/2026-07-13-verzuim-report-composer/tasks.md#task-2.2
+ * @spec openspec/changes/attendance-flag-report-actions/specs/attendance/spec.md#scenario-a-coordinator-records-the-mas-route
  */
 class MunicipalityFeedbackGuard implements LifecycleGuardInterface {
 
@@ -77,6 +80,7 @@ class MunicipalityFeedbackGuard implements LifecycleGuardInterface {
 	private const AUTHORISED_GROUPS = [
 		'admin',
 		'coordinators',
+		'compliance-officers',
 	];
 
 	/**
@@ -107,6 +111,7 @@ class MunicipalityFeedbackGuard implements LifecycleGuardInterface {
 	 * @return GuardResult Allow, or deny when the caller or the flag does not qualify.
 	 *
 	 * @spec openspec/changes/archive/2026-07-13-verzuim-report-composer/tasks.md#task-2.2
+	 * @spec openspec/changes/attendance-flag-report-actions/specs/attendance/spec.md#scenario-a-coordinator-records-the-mas-route
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
@@ -117,7 +122,7 @@ class MunicipalityFeedbackGuard implements LifecycleGuardInterface {
 			$this->logger->warning(
 				'[MunicipalityFeedbackGuard] No session user — denying recordMunicipalityFeedback.'
 			);
-			return GuardResult::deny('Only a signed-in admin or coordinator can record municipality feedback.');
+			return GuardResult::deny('Only a signed-in admin, coordinator or compliance officer can record municipality feedback.');
 		}
 
 		if ($lifecycle !== self::REPORTED) {
@@ -133,7 +138,7 @@ class MunicipalityFeedbackGuard implements LifecycleGuardInterface {
 				'[MunicipalityFeedbackGuard] Actor {a} is not in an authorised group — denying recordMunicipalityFeedback.',
 				['a' => $userId]
 			);
-			return GuardResult::deny('Only an admin or coordinator can record municipality feedback.');
+			return GuardResult::deny('Only an admin, coordinator or compliance officer can record municipality feedback.');
 		}
 
 		return GuardResult::allow();
@@ -144,18 +149,14 @@ class MunicipalityFeedbackGuard implements LifecycleGuardInterface {
 	 *
 	 * @param string $actor NC user ID of the requester.
 	 *
-	 * @return bool True when the user is in admin / coordinator.
+	 * @return bool True when the user is in admin / coordinators / compliance-officers.
 	 *
 	 * @spec openspec/changes/archive/2026-07-13-verzuim-report-composer/tasks.md#task-2.2
+	 * @spec openspec/changes/attendance-flag-report-actions/specs/attendance/spec.md#scenario-a-coordinator-records-the-mas-route
 	 */
 	private function actorIsAuthorised(string $actor): bool {
-		$user = $this->userManager->get($actor);
-		if ($user === null) {
-			return false;
-		}
+		$groups = new ActorGroups(userManager: $this->userManager, groupManager: $this->groupManager);
 
-		$actorGroups = $this->groupManager->getUserGroupIds($user);
-
-		return count(array_intersect($actorGroups, self::AUTHORISED_GROUPS)) > 0;
+		return $groups->isInAny(actor: $actor, groups: self::AUTHORISED_GROUPS);
 	}//end actorIsAuthorised()
 }//end class

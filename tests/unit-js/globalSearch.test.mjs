@@ -114,3 +114,39 @@ test('groupGlobalSearchResults: handles empty/missing inputs without throwing', 
 	assert.deepEqual(groupGlobalSearchResults(), { learners: [], staff: [], cohorts: [] })
 	assert.deepEqual(groupGlobalSearchResults([], []), { learners: [], staff: [], cohorts: [] })
 })
+
+test('groupGlobalSearchResults: ids and routes fall back through _id, uuid and @self', () => {
+	const groups = groupGlobalSearchResults(
+		[
+			{ _id: 'a1', givenName: 'Ada', roles: ['learner'] },
+			{ uuid: 'u2', '@self': { id: 's2' }, ncUserId: 'bob', roles: ['mentor'] },
+			{ '@self': { id: 's3', name: 'Self' } },
+		],
+		[
+			{ uuid: 'c1', '@self': { name: 'Klas 1A' } },
+			{ '@self': { id: 'c2' } },
+		],
+	)
+	assert.deepEqual(groups, {
+		learners: [
+			{ id: 'a1', label: 'Ada', route: { path: '/learner-profiles/a1' } },
+			{ id: 's3', label: 'Self', route: { path: '/learner-profiles/undefined' } },
+		],
+		staff: [{ id: 'u2', label: 'bob', route: { path: '/learner-profiles/u2' } }],
+		cohorts: [
+			{ id: 'c1', label: 'Klas 1A', route: { path: '/cohorts/c1' } },
+			{ id: 'c2', label: undefined, route: { path: '/cohorts/undefined' } },
+		],
+	})
+	assert.deepEqual(groupGlobalSearchResults(undefined, null).cohorts, [])
+})
+
+test('a non-positive or non-numeric limit falls back to 8, a non-string term builds nothing', () => {
+	for (const limit of [0, -2, '5', Number.NaN]) {
+		assert.equal(buildGlobalSearchRequests('x', { limit })[0].params._limit, 8)
+	}
+	assert.deepEqual(buildGlobalSearchRequests(42), [])
+	const requests = buildGlobalSearchRequests(' Sem ')
+	assert.notEqual(requests[0].params, requests[1].params)
+	assert.deepEqual(Object.keys(requests[1]), ['kind', 'register', 'schema', 'params'])
+})

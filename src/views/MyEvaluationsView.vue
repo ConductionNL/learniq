@@ -9,11 +9,11 @@
  answers one through POST /api/evaluations/{invitationId}/answer. The answers
  are stored without the learner's name; an answered invitation leaves the list.
 
- @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#requirement-learner-answers-an-evaluation
+ @spec openspec/specs/course-evaluation-answering/spec.md#requirement-learner-answers-an-evaluation
 -->
 <template>
-	<div class="my-evaluations">
-		<h2>{{ t('learniq', 'My evaluations') }}</h2>
+	<div class="my-evaluations lq-board-page">
+		<CnPageHeader :title="t('learniq', 'My evaluations')" />
 		<p class="my-evaluations__intro">
 			{{ t('learniq', 'Your answers are stored without your name.') }}
 		</p>
@@ -24,15 +24,14 @@
 			{{ error }}
 		</NcNoteCard>
 		<NcLoadingIcon v-if="loading" :size="32" />
-		<template v-else-if="current">
-			<h3>{{ current.campaignName }}</h3>
+		<CnDetailCard v-else-if="current" :title="current.campaignName">
 			<p>{{ current.courseName }}</p>
 			<EvaluationAnswerForm
 				:campaignQuestions="current.questions"
 				:busy="posting"
 				@submit="send"
 				@cancel="current = null" />
-		</template>
+		</CnDetailCard>
 		<NcEmptyContent
 			v-else-if="invitations.length === 0"
 			:name="t('learniq', 'No evaluations to fill in')"
@@ -42,41 +41,44 @@
 					'When a course asks for your opinion, you find it here.',
 				)
 			" />
-		<ul v-else class="my-evaluations__list">
-			<li
-				v-for="invitation in invitations"
-				:key="invitation.invitationId"
-				class="my-evaluations__item">
-				<div>
-					<strong>{{ invitation.campaignName }}</strong>
-					<div>{{ invitation.courseName }}</div>
-					<div class="my-evaluations__due">
-						{{
-							t('learniq', 'Open until {date}', {
-								date: formatDate(invitation.closesAt),
-							})
-						}}
+		<CnDetailCard v-else :title="t('learniq', 'Open evaluations')">
+			<ul class="my-evaluations__list">
+				<li
+					v-for="invitation in invitations"
+					:key="invitation.invitationId"
+					class="my-evaluations__item">
+					<div>
+						<strong>{{ invitation.campaignName }}</strong>
+						<div>{{ invitation.courseName }}</div>
+						<div class="my-evaluations__due">
+							{{
+								t('learniq', 'Open until {date}', {
+									date: formatDate(invitation.closesAt),
+								})
+							}}
+						</div>
 					</div>
-				</div>
-				<NcButton
-					v-if="
-						invitation.instrumentKind === 'external-form'
-						&& invitation.externalFormUrl
-					"
-					:href="invitation.externalFormUrl"
-					target="_blank"
-					rel="noopener noreferrer">
-					{{ t('learniq', 'Open the form') }}
-				</NcButton>
-				<NcButton v-else variant="primary" @click="start(invitation)">
-					{{ t('learniq', 'Fill in') }}
-				</NcButton>
-			</li>
-		</ul>
+					<NcButton
+						v-if="
+							invitation.instrumentKind === 'external-form'
+							&& invitation.externalFormUrl
+						"
+						:href="invitation.externalFormUrl"
+						target="_blank"
+						rel="noopener noreferrer">
+						{{ t('learniq', 'Open the form') }}
+					</NcButton>
+					<NcButton v-else variant="primary" @click="start(invitation)">
+						{{ t('learniq', 'Fill in') }}
+					</NcButton>
+				</li>
+			</ul>
+		</CnDetailCard>
 	</div>
 </template>
 
 <script>
+import { CnDetailCard, CnPageHeader } from '@conduction/nextcloud-vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcEmptyContent, NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
@@ -86,6 +88,8 @@ export default {
 	name: 'MyEvaluationsView',
 
 	components: {
+		CnDetailCard,
+		CnPageHeader,
 		EvaluationAnswerForm,
 		NcButton,
 		NcEmptyContent,
@@ -118,7 +122,7 @@ export default {
 		 * Fetch the open invitations.
 		 *
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
+		 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
 		 */
 		async load() {
 			this.loading = true
@@ -141,7 +145,7 @@ export default {
 		 *
 		 * @param {object} invitation The invitation.
 		 * @return {void}
-		 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
+		 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
 		 */
 		start(invitation) {
 			this.sent = false
@@ -154,7 +158,7 @@ export default {
 		 *
 		 * @param {{answers: object}} body The answers.
 		 * @return {Promise<void>}
-		 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-cannot-answer-twice
+		 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-a-learner-cannot-answer-twice
 		 */
 		async send(body) {
 			this.posting = true
@@ -181,7 +185,7 @@ export default {
 		 *
 		 * @param {number|undefined} status The HTTP status of the refusal.
 		 * @return {string}
-		 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-cannot-answer-twice
+		 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-a-learner-cannot-answer-twice
 		 */
 		sendError(status) {
 			if (status === 409) {
@@ -207,7 +211,7 @@ export default {
 		 *
 		 * @param {string} value An ISO date-time.
 		 * @return {string}
-		 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
+		 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
 		 */
 		formatDate(value) {
 			const date = new Date(value)
@@ -218,23 +222,15 @@ export default {
 </script>
 
 <style scoped>
-.my-evaluations {
-	padding: calc(var(--default-grid-baseline) * 4);
-	max-width: 720px;
-	display: flex;
-	flex-direction: column;
-	gap: calc(var(--default-grid-baseline) * 3);
-}
-
 .my-evaluations__intro,
 .my-evaluations__due {
 	color: var(--color-text-maxcontrast);
 }
 
 .my-evaluations__list {
-	display: flex;
-	flex-direction: column;
-	gap: calc(var(--default-grid-baseline) * 2);
+	margin: 0;
+	padding: 0;
+	list-style: none;
 }
 
 .my-evaluations__item {
@@ -242,8 +238,7 @@ export default {
 	justify-content: space-between;
 	align-items: center;
 	gap: calc(var(--default-grid-baseline) * 3);
-	padding: calc(var(--default-grid-baseline) * 3);
-	border: 1px solid var(--color-border);
-	border-radius: var(--border-radius-large);
+	padding: 16px 0;
+	border-top: 1px solid var(--color-border);
 }
 </style>

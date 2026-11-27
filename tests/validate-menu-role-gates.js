@@ -61,6 +61,9 @@ const REPO_ROOT = path.resolve(__dirname, '..')
 const MANIFEST = path.join(REPO_ROOT, 'src', 'manifest.json')
 const FRAGMENT_DIR = path.join(REPO_ROOT, 'src', 'manifest.d')
 const RESOLVER = path.join(REPO_ROOT, 'lib', 'Service', 'DashboardRoleService.php')
+// The role => group map lives on the resolver's contract since the kernel
+// split; the resolver reads it as self::GROUP_BACKED_ROLES.
+const RESOLVER_CONTRACT = path.join(REPO_ROOT, 'lib', 'Kernel', 'Contracts', 'DashboardRoleServiceInterface.php')
 const REGISTER = path.join(REPO_ROOT, 'lib', 'Settings', 'learniq_register.json')
 const MENU_LAYOUT = path.join(REPO_ROOT, 'src', 'menu-layout.json')
 const DEFAULT_SEGMENT = 'corporate'
@@ -82,24 +85,31 @@ const UNIVERSAL = new Set([
 	// support-confidential-concern-report design D5: anyone can be bullied or
 	// harassed, staff included, so everyone can reach the counsellors.
 	'ReportConcernMenu',
+	// ai-disclosure-for-every-user (decision 399): a student or teacher whose
+	// work an AI feature reads can find out that it does, and where it runs.
+	'AiProcessingDisclosureMenu',
 ])
 
 /**
  * Read the role literals resolvePrimaryRole() can actually return.
  *
- * Three sources, all in DashboardRoleService.php: the GROUP_BACKED_ROLES map
- * keys, the hardcoded 'admin' short-circuit, and the 'learner' fallback.
+ * Three sources: the GROUP_BACKED_ROLES map keys (declared on
+ * DashboardRoleServiceInterface, or on the resolver itself), the hardcoded
+ * 'admin' short-circuit, and the 'learner' fallback.
  *
  * @return {Set<string>} Every role literal the resolver can emit.
  */
 function emittableRoles() {
-	const src = fs.readFileSync(RESOLVER, 'utf8')
+	const src = [RESOLVER, RESOLVER_CONTRACT]
+		.filter((file) => fs.existsSync(file))
+		.map((file) => fs.readFileSync(file, 'utf8'))
+		.join('\n')
 
 	const block = src.match(/GROUP_BACKED_ROLES\s*=\s*\[([\s\S]*?)\];/)
 	if (block === null) {
 		console.error(
 			'FAIL: could not find GROUP_BACKED_ROLES in '
-				+ path.relative(REPO_ROOT, RESOLVER)
+				+ path.relative(REPO_ROOT, RESOLVER) + ' or ' + path.relative(REPO_ROOT, RESOLVER_CONTRACT)
 				+ '\n      The resolver changed shape. Update this gate rather than deleting it.',
 		)
 		process.exit(1)

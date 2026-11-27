@@ -3,6 +3,9 @@
 /**
  * Learniq Admissions Decision Guard
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Lifecycle guard for the Application schema's completeIntake transition
  * (intake-scheduled -> intake-completed) and its three decision transitions
  * (intake-completed -> placed | waitlisted | rejected) plus the promote
@@ -30,6 +33,11 @@
  *   time (no materialised per-round counter — mirrors BsaTrajectory's
  *   rejected "materialised count" alternative in design.md, avoiding a race
  *   between concurrent placed transitions).
+ * - Review panel (any kind, place / waitlist / reject): when the round names
+ *   panelMemberIds, the decision waits until every member has recorded their
+ *   AdmissionAdvice and more than half advised that outcome
+ *   (ReviewPanelGate, ReviewPanelDecision); the refusal says how far the
+ *   panel is.
  *
  * Legitimate PHP per ADR-031 "Lifecycle guards" — every branch is a
  * cross-object read (the referenced AdmissionsRound, or a live count of
@@ -42,8 +50,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -51,12 +57,15 @@
  * @spec openspec/specs/enrolment/spec.md#requirement-an-mbo-applicant-who-applies-by-the-deadline-and-completes-the-mandatory-intake-has-a-right-to-admission
  * @spec openspec/specs/enrolment/spec.md#requirement-a-vo-schooladvies-must-be-adjusted-upward-when-the-doorstroomtoets-scores-higher-unless-motivated
  * @spec openspec/specs/enrolment/spec.md#requirement-placement-capacity-is-enforced-and-a-waitlisted-application-is-auto-promoted-when-a-seat-frees-up
+ * @spec openspec/changes/capability-rows-say-what-they-do/specs/enrolment/spec.md#requirement-a-review-panel-decides-an-application-together
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
+use OCA\Learniq\Service\AdmissionPanelReads;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
@@ -66,6 +75,7 @@ use Psr\Log\LoggerInterface;
  * Guards the Application completeIntake / place / waitlist / reject / promote transitions.
  *
  * @spec openspec/specs/enrolment/spec.md#requirement-an-mbo-applicant-who-applies-by-the-deadline-and-completes-the-mandatory-intake-has-a-right-to-admission
+ * @spec openspec/changes/capability-rows-say-what-they-do/specs/enrolment/spec.md#requirement-a-review-panel-decides-an-application-together
  */
 class AdmissionsDecisionGuard implements LifecycleGuardInterface {
 
@@ -126,15 +136,22 @@ class AdmissionsDecisionGuard implements LifecycleGuardInterface {
 	 * @return GuardResult Allow, or deny with the reason shown to the caller.
 	 *
 	 * @spec openspec/specs/enrolment/spec.md#requirement-an-mbo-applicant-who-applies-by-the-deadline-and-completes-the-mandatory-intake-has-a-right-to-admission
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/enrolment/spec.md#requirement-a-review-panel-decides-an-application-together
 	 *
 	 * @SuppressWarnings(PHPMD.UnusedFormalParameter) The signature is LifecycleGuardInterface's.
 	 */
 	public function check(array $object, string $action, string $userId): GuardResult {
-		if ($this->allows(object: $object) === true) {
-			return GuardResult::allow();
+		if ($this->allows(object: $object) === false) {
+			return GuardResult::deny(self::DENIAL);
 		}
 
-		return GuardResult::deny(self::DENIAL);
+		$gate = new ReviewPanelGate(reads: new AdmissionPanelReads(objectService: $this->objectService, logger: $this->logger));
+		$panelRefusal = $gate->refusal(object: $object, action: $action);
+		if ($panelRefusal !== null) {
+			return GuardResult::deny($panelRefusal);
+		}
+
+		return GuardResult::allow();
 	}//end check()
 
 	/**
@@ -176,7 +193,7 @@ class AdmissionsDecisionGuard implements LifecycleGuardInterface {
 			return true;
 		}
 
-		return $this->checkDecision(round: $round, object: $object, roundId: $roundId, to: $to);
+		return $this->checkDecision(round: $round, args: ['object' => $object, 'roundId' => $roundId, 'to' => $to]);
 	}//end allows()
 
 	/**
@@ -186,15 +203,17 @@ class AdmissionsDecisionGuard implements LifecycleGuardInterface {
 	 * the referenced AdmissionsRound already resolved by check().
 	 *
 	 * @param array<string,mixed> $round AdmissionsRound property array.
-	 * @param array<string,mixed> $object Application property array.
-	 * @param string $roundId AdmissionsRound UUID.
-	 * @param string $to Target lifecycle state.
+	 * @param array{object: array<string,mixed>, roundId: string, to: string} $args The object, roundId, to.
 	 *
 	 * @return bool True when the decision may proceed; false blocks the transition.
 	 *
 	 * @spec openspec/specs/enrolment/spec.md#requirement-a-vo-schooladvies-must-be-adjusted-upward-when-the-doorstroomtoets-scores-higher-unless-motivated
 	 */
-	private function checkDecision(array $round, array $object, string $roundId, string $to): bool {
+	private function checkDecision(array $round, array $args): bool {
+		$object = $args['object'];
+		$roundId = $args['roundId'];
+		$to = $args['to'];
+
 		$kind = (string)($round['kind'] ?? 'generic');
 
 		if ($kind === 'vo-schooladvies-doorstroomtoets' && $this->schooladviesAdjustmentSatisfied(object: $object) === false) {
@@ -215,7 +234,13 @@ class AdmissionsDecisionGuard implements LifecycleGuardInterface {
 			return false;
 		}
 
-		if ($to === 'placed' && $this->capacityReached(round: $round, roundId: $roundId, tenantId: (string)($object['tenant_id'] ?? '')) === true) {
+		if (
+			$to === 'placed' && $this->capacityReached(round: $round,
+			args: [
+				'roundId' => $roundId,
+				'tenantId' => (string)($object['tenant_id'] ?? ''),
+			]
+		) === true) {
 			$this->logger->info(
 				'[AdmissionsDecisionGuard] AdmissionsRound {id} — capacity reached; blocking placement (target waitlisted instead).',
 				['id' => $roundId]
@@ -265,21 +290,50 @@ class AdmissionsDecisionGuard implements LifecycleGuardInterface {
 	 * @spec openspec/specs/enrolment/spec.md#requirement-an-mbo-applicant-who-applies-by-the-deadline-and-completes-the-mandatory-intake-has-a-right-to-admission
 	 */
 	private function toelatingsrechtBlocksRejection(array $round, array $object): bool {
-		$deadline = $round['applicationDeadline'] ?? null;
-		$submittedAt = $object['submittedAt'] ?? null;
-
-		$withinDeadline = true;
-		if (is_string($deadline) === true && $deadline !== '' && is_string($submittedAt) === true && $submittedAt !== '') {
-			$deadlineTs = strtotime($deadline);
-			$submittedTs = strtotime($submittedAt);
-			$withinDeadline = ($deadlineTs !== false && $submittedTs !== false && $submittedTs <= $deadlineTs);
-		}
+		$withinDeadline = $this->submittedByDeadline(
+			deadline: ($round['applicationDeadline'] ?? null),
+			submittedAt: ($object['submittedAt'] ?? null)
+		);
 
 		$adviesGiven = ($object['studiekeuzeadviesGiven'] ?? false) === true;
 		$decisionReason = trim((string)($object['decisionReason'] ?? ''));
 
 		return $withinDeadline === true && $adviesGiven === true && $decisionReason === '';
 	}//end toelatingsrechtBlocksRejection()
+
+	/**
+	 * Whether an application came in by the round's deadline. Without both
+	 * dates as non-empty strings it counts as on time; a date that does not
+	 * parse counts as late.
+	 *
+	 * @param mixed $deadline    The round's applicationDeadline.
+	 * @param mixed $submittedAt The application's submittedAt.
+	 *
+	 * @return bool
+	 */
+	private function submittedByDeadline(mixed $deadline, mixed $submittedAt): bool {
+		if ($this->isFilledString(value: $deadline) === false || $this->isFilledString(value: $submittedAt) === false) {
+			return true;
+		}
+
+		$deadlineTs = strtotime($deadline);
+		$submittedTs = strtotime($submittedAt);
+
+		return ($deadlineTs !== false && $submittedTs !== false && $submittedTs <= $deadlineTs);
+	}//end submittedByDeadline()
+
+	/**
+	 * Whether a value is a non-empty string.
+	 *
+	 * @param mixed $value The value.
+	 *
+	 * @return bool
+	 *
+	 * @phpstan-assert-if-true non-empty-string $value
+	 */
+	private function isFilledString(mixed $value): bool {
+		return is_string($value) === true && $value !== '';
+	}//end isFilledString()
 
 	/**
 	 * VO schooladvies-adjustment branch.
@@ -300,26 +354,41 @@ class AdmissionsDecisionGuard implements LifecycleGuardInterface {
 			return true;
 		}
 
-		$adjusted = $object['schoolAdviceAdjustedLevel'] ?? null;
-		if ($adjusted === $doorstroom) {
+		if ($this->isAdjustedOrMotivated(object: $object, doorstroom: $doorstroom) === true) {
 			return true;
 		}
 
-		$motivation = trim((string)($object['adjustmentMotivation'] ?? ''));
-		if ($motivation !== '') {
-			return true;
-		}
-
-		// Pro/vmbo-bb exemption: both the original advice and the toets result
-		// are pro or vmbo-bb.
-		if (in_array($schooladvies, ['pro', 'vmbo-bb'], true) === true
-			&& in_array($doorstroom, ['pro', 'vmbo-bb'], true) === true
-		) {
-			return true;
-		}
-
-		return false;
+		return $this->isProVmboBbExemption(schooladvies: $schooladvies, doorstroom: $doorstroom);
 	}//end schooladviesAdjustmentSatisfied()
+
+	/**
+	 * Whether the advice was adjusted to the toets result, or the school
+	 * motivated keeping it.
+	 *
+	 * @param array<string,mixed> $object     Application property array.
+	 * @param mixed               $doorstroom The doorstroomtoets level.
+	 *
+	 * @return bool
+	 */
+	private function isAdjustedOrMotivated(array $object, mixed $doorstroom): bool {
+		$adjusted = $object['schoolAdviceAdjustedLevel'] ?? null;
+
+		return $adjusted === $doorstroom || trim((string)($object['adjustmentMotivation'] ?? '')) !== '';
+	}//end isAdjustedOrMotivated()
+
+	/**
+	 * Pro/vmbo-bb exemption: both the original advice and the toets result
+	 * are pro or vmbo-bb.
+	 *
+	 * @param mixed $schooladvies The schooladvies level.
+	 * @param mixed $doorstroom   The doorstroomtoets level.
+	 *
+	 * @return bool
+	 */
+	private function isProVmboBbExemption(mixed $schooladvies, mixed $doorstroom): bool {
+		return in_array($schooladvies, ['pro', 'vmbo-bb'], true) === true
+			&& in_array($doorstroom, ['pro', 'vmbo-bb'], true) === true;
+	}//end isProVmboBbExemption()
 
 	/**
 	 * Whether the doorstroomtoets result outranks the schooladvies on the shared ordinal.
@@ -354,14 +423,16 @@ class AdmissionsDecisionGuard implements LifecycleGuardInterface {
 	 * Capacity branch: whether the round's placed/converted count has reached capacity.
 	 *
 	 * @param array<string,mixed> $round AdmissionsRound property array.
-	 * @param string $roundId AdmissionsRound UUID.
-	 * @param string $tenantId Tenant ID to scope the query.
+	 * @param array{roundId: string, tenantId: string} $args The roundId, tenantId.
 	 *
 	 * @return bool True when capacity has been reached (placement must be blocked).
 	 *
 	 * @spec openspec/specs/enrolment/spec.md#requirement-placement-capacity-is-enforced-and-a-waitlisted-application-is-auto-promoted-when-a-seat-frees-up
 	 */
-	private function capacityReached(array $round, string $roundId, string $tenantId): bool {
+	private function capacityReached(array $round, array $args): bool {
+		$roundId = $args['roundId'];
+		$tenantId = $args['tenantId'];
+
 		$capacity = $round['capacity'] ?? null;
 		if (is_int($capacity) === false) {
 			// Null/uncapped.
@@ -407,8 +478,7 @@ class AdmissionsDecisionGuard implements LifecycleGuardInterface {
 	private function fetchRound(string $roundId): ?array {
 		$round = $this->objectService->find(
 			id: $roundId,
-			register: self::LEARNIQ_REGISTER,
-			schema: self::ADMISSIONS_ROUND_SCHEMA
+			options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::ADMISSIONS_ROUND_SCHEMA)
 		);
 
 		if ($round === null) {

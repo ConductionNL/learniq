@@ -3,6 +3,9 @@
 /**
  * An in-memory OpenRegister stand-in that answers the way the live one does.
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Most fakes in this suite answer whatever they are asked, so a call site that
  * passes the wrong config can only pass. This one copies two behaviours of
  * OpenRegister that decide whether a lookup works at all:
@@ -79,8 +82,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -92,6 +93,7 @@ namespace OCA\Learniq\Tests\Support;
 
 use DateTime;
 use OCA\OpenRegister\Db\ObjectEntity;
+use OCA\OpenRegister\Lifecycle\LifecycleActionContext;
 use OCA\OpenRegister\Lifecycle\LifecycleActionInterface;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use RuntimeException;
@@ -245,6 +247,12 @@ final class RegisterFaithfulStore {
 		$schema = ($filters['schema'] ?? null);
 		if (is_string($schema) === false || ($filters['register'] ?? null) !== 'learniq') {
 			return [];
+		}
+
+		// OpenRegister refuses a slug its register does not carry
+		// (SchemaNotInRegisterException); a read of such a slug is a bug.
+		if (array_key_exists($schema, self::declaredProperties()) === false) {
+			throw new RuntimeException('Schema slug "' . $schema . '" is not carried by register "learniq".');
 		}
 
 		$declared = (self::declaredProperties()[$schema] ?? []);
@@ -502,7 +510,8 @@ final class RegisterFaithfulStore {
 	 *
 	 * An unresolved `$variable` or an operator object denies (fail closed,
 	 * as MagicRbacHandler emits the impossible predicate for an unresolved
-	 * variable); this store models equality only.
+	 * variable); this store models equality, plus `$exists` and a literal
+	 * `$eq` (absent or null counts as not set, as the SQL column is NULL).
 	 *
 	 * @param array<string, mixed> $row   The row.
 	 * @param array<string, mixed> $match The rule's match.
@@ -511,6 +520,24 @@ final class RegisterFaithfulStore {
 	 */
 	private function rowMatches(array $row, array $match): bool {
 		foreach ($match as $property => $expected) {
+			if (is_array($expected) === true && count($expected) === 1 && array_key_exists('$exists', $expected) === true) {
+				if ((($row[$property] ?? null) !== null) !== (bool)$expected['$exists']) {
+					return false;
+				}
+
+				continue;
+			}
+
+			if (is_array($expected) === true && count($expected) === 1 && array_key_exists('$eq', $expected) === true
+				&& (
+					is_array($expected['$eq']) === false && (
+						is_string($expected['$eq']) === false || str_starts_with($expected['$eq'], '$') === false
+					)
+				)
+			) {
+				$expected = $expected['$eq'];
+			}
+
 			if ($expected === '$userId' || $expected === '$user') {
 				$expected = $this->actingUser;
 				if ($expected === '') {
@@ -718,10 +745,12 @@ final class RegisterFaithfulStore {
 				}
 
 				$object = $this->lifecycleActions[$name]->execute(
-					$object,
-					$stored,
-					(array)($envelope['actionParameters'] ?? []),
-					$name
+					new LifecycleActionContext(
+						objectData: $object,
+						previousData: $stored,
+						parameters: (array)($envelope['actionParameters'] ?? []),
+						actionName: $name
+					)
 				);
 			}
 

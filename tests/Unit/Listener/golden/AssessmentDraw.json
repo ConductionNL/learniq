@@ -1,0 +1,794 @@
+{
+    "another schema": {
+        "calls": [],
+        "itemFetches": [],
+        "log": []
+    },
+    "assessment missing": {
+        "calls": [
+            {
+                "findAll": {
+                    "ids": [
+                        "a-1"
+                    ],
+                    "filters": {
+                        "tenant_id": "t-1",
+                        "register": "learniq",
+                        "schema": "exam"
+                    },
+                    "limit": 1
+                }
+            }
+        ],
+        "itemFetches": [],
+        "log": [
+            {
+                "level": "warning",
+                "message": "[AssessmentDrawResolver] Assessment {id} not found or out-of-tenant; leaving drawnItemRefs empty (fail-closed).",
+                "context": {
+                    "id": "a-1"
+                }
+            }
+        ]
+    },
+    "fixed items in order": {
+        "calls": [
+            {
+                "findAll": {
+                    "ids": [
+                        "a-1"
+                    ],
+                    "filters": {
+                        "tenant_id": "t-1",
+                        "register": "learniq",
+                        "schema": "exam"
+                    },
+                    "limit": 1
+                }
+            },
+            {
+                "findAll": {
+                    "ids": [
+                        "i-1"
+                    ],
+                    "filters": {
+                        "tenant_id": "t-1",
+                        "register": "learniq",
+                        "schema": "item"
+                    },
+                    "limit": 1
+                }
+            },
+            {
+                "findAll": {
+                    "ids": [
+                        "i-2"
+                    ],
+                    "filters": {
+                        "tenant_id": "t-1",
+                        "register": "learniq",
+                        "schema": "item"
+                    },
+                    "limit": 1
+                }
+            },
+            {
+                "findAll": {
+                    "ids": [
+                        "i-missing"
+                    ],
+                    "filters": {
+                        "tenant_id": "t-1",
+                        "register": "learniq",
+                        "schema": "item"
+                    },
+                    "limit": 1
+                }
+            },
+            {
+                "findAll": {
+                    "ids": [
+                        "i-3"
+                    ],
+                    "filters": {
+                        "tenant_id": "t-1",
+                        "register": "learniq",
+                        "schema": "item"
+                    },
+                    "limit": 1
+                }
+            },
+            {
+                "saveObject": {
+                    "object": {
+                        "id": "r-1",
+                        "assessmentId": "a-1",
+                        "tenant_id": "t-1",
+                        "responses": [],
+                        "drawnItemRefs": [
+                            {
+                                "itemId": "i-1",
+                                "points": 4,
+                                "optionOrder": null
+                            },
+                            {
+                                "itemId": "i-2",
+                                "points": 5,
+                                "optionOrder": null
+                            },
+                            {
+                                "itemId": "i-3",
+                                "points": 0,
+                                "optionOrder": null
+                            }
+                        ]
+                    },
+                    "register": "learniq",
+                    "schema": "assessment-result"
+                }
+            }
+        ],
+        "itemFetches": [],
+        "log": [
+            {
+                "level": "info",
+                "message": "[AssessmentDrawResolver] Resolved {count} drawnItemRefs for AssessmentResult on Assessment {id}.",
+                "context": {
+                    "count": 3,
+                    "id": "a-1"
+                }
+            }
+        ]
+    },
+    "fixed items, options shuffled": {
+        "calls": [
+            {
+                "findAll": {
+                    "ids": [
+                        "a-1"
+                    ],
+                    "filters": {
+                        "tenant_id": "t-1",
+                        "register": "learniq",
+                        "schema": "exam"
+                    },
+                    "limit": 1
+                }
+            },
+            {
+                "findAll": {
+                    "ids": [
+                        "i-1"
+                    ],
+                    "filters": {
+                        "tenant_id": "t-1",
+                        "register": "learniq",
+                        "schema": "item"
+                    },
+                    "limit": 1
+                }
+            },
+            {
+                "resolveOrder": "i-1"
+            },
+            {
+                "findAll": {
+                    "ids": [
+                        "i-2"
+                    ],
+                    "filters": {
+                        "tenant_id": "t-1",
+                        "register": "learniq",
+                        "schema": "item"
+                    },
+                    "limit": 1
+                }
+            },
+            {
+                "resolveOrder": "i-2"
+            },
+            {
+                "findAll": {
+                    "ids": [
+                        "i-missing"
+                    ],
+                    "filters": {
+                        "tenant_id": "t-1",
+                        "register": "learniq",
+                        "schema": "item"
+                    },
+                    "limit": 1
+                }
+            },
+            {
+                "findAll": {
+                    "ids": [
+                        "i-3"
+                    ],
+                    "filters": {
+                        "tenant_id": "t-1",
+                        "register": "learniq",
+                        "schema": "item"
+                    },
+                    "limit": 1
+                }
+            },
+            {
+                "resolveOrder": "i-3"
+            },
+            {
+                "saveObject": {
+                    "object": {
+                        "id": "r-1",
+                        "assessmentId": "a-1",
+                        "tenant_id": "t-1",
+                        "responses": [],
+                        "drawnItemRefs": [
+                            {
+                                "itemId": "i-1",
+                                "points": 4,
+                                "optionOrder": {
+                                    "shuffled": [
+                                        "A",
+                                        "B",
+                                        "C"
+                                    ]
+                                }
+                            },
+                            {
+                                "itemId": "i-2",
+                                "points": 5,
+                                "optionOrder": null
+                            },
+                            {
+                                "itemId": "i-3",
+                                "points": 0,
+                                "optionOrder": null
+                            }
+                        ]
+                    },
+                    "register": "learniq",
+                    "schema": "assessment-result"
+                }
+            }
+        ],
+        "itemFetches": [],
+        "log": [
+            {
+                "level": "info",
+                "message": "[AssessmentDrawResolver] Resolved {count} drawnItemRefs for AssessmentResult on Assessment {id}.",
+                "context": {
+                    "count": 3,
+                    "id": "a-1"
+                }
+            }
+        ]
+    },
+    "fixed items, order shuffled": {
+        "calls": [
+            {
+                "findAll": {
+                    "ids": [
+                        "a-1"
+                    ],
+                    "filters": {
+                        "tenant_id": "t-1",
+                        "register": "learniq",
+                        "schema": "exam"
+                    },
+                    "limit": 1
+                }
+            },
+            {
+                "saveObject": {
+                    "object": {
+                        "id": "r-1",
+                        "assessmentId": "a-1",
+                        "tenant_id": "t-1",
+                        "responses": [],
+                        "drawnItemRefs": [
+                            {
+                                "itemId": "i-1",
+                                "points": 4,
+                                "optionOrder": null
+                            },
+                            {
+                                "itemId": "i-2",
+                                "points": 5,
+                                "optionOrder": null
+                            },
+                            {
+                                "itemId": "i-3",
+                                "points": 0,
+                                "optionOrder": null
+                            }
+                        ]
+                    },
+                    "register": "learniq",
+                    "schema": "assessment-result"
+                }
+            }
+        ],
+        "itemFetches": [
+            {
+                "findAll": {
+                    "ids": [
+                        "i-1"
+                    ],
+                    "filters": {
+                        "tenant_id": "t-1",
+                        "register": "learniq",
+                        "schema": "item"
+                    },
+                    "limit": 1
+                }
+            },
+            {
+                "findAll": {
+                    "ids": [
+                        "i-2"
+                    ],
+                    "filters": {
+                        "tenant_id": "t-1",
+                        "register": "learniq",
+                        "schema": "item"
+                    },
+                    "limit": 1
+                }
+            },
+            {
+                "findAll": {
+                    "ids": [
+                        "i-3"
+                    ],
+                    "filters": {
+                        "tenant_id": "t-1",
+                        "register": "learniq",
+                        "schema": "item"
+                    },
+                    "limit": 1
+                }
+            },
+            {
+                "findAll": {
+                    "ids": [
+                        "i-missing"
+                    ],
+                    "filters": {
+                        "tenant_id": "t-1",
+                        "register": "learniq",
+                        "schema": "item"
+                    },
+                    "limit": 1
+                }
+            }
+        ],
+        "log": [
+            {
+                "level": "info",
+                "message": "[AssessmentDrawResolver] Resolved {count} drawnItemRefs for AssessmentResult on Assessment {id}.",
+                "context": {
+                    "count": 3,
+                    "id": "a-1"
+                }
+            }
+        ]
+    },
+    "no assessment id": {
+        "calls": [],
+        "itemFetches": [],
+        "log": []
+    },
+    "no item refs": {
+        "calls": [
+            {
+                "findAll": {
+                    "ids": [
+                        "a-1"
+                    ],
+                    "filters": {
+                        "tenant_id": "t-1",
+                        "register": "learniq",
+                        "schema": "exam"
+                    },
+                    "limit": 1
+                }
+            },
+            {
+                "saveObject": {
+                    "object": {
+                        "id": "r-1",
+                        "assessmentId": "a-1",
+                        "tenant_id": "t-1",
+                        "responses": [],
+                        "drawnItemRefs": []
+                    },
+                    "register": "learniq",
+                    "schema": "assessment-result"
+                }
+            }
+        ],
+        "itemFetches": [],
+        "log": [
+            {
+                "level": "info",
+                "message": "[AssessmentDrawResolver] Resolved {count} drawnItemRefs for AssessmentResult on Assessment {id}.",
+                "context": {
+                    "count": 0,
+                    "id": "a-1"
+                }
+            }
+        ]
+    },
+    "random draw": {
+        "calls": [
+            {
+                "findAll": {
+                    "ids": [
+                        "a-1"
+                    ],
+                    "filters": {
+                        "tenant_id": "t-1",
+                        "register": "learniq",
+                        "schema": "exam"
+                    },
+                    "limit": 1
+                }
+            },
+            {
+                "findAll": {
+                    "filters": {
+                        "itemBankId": "bank-1",
+                        "lifecycle": "published",
+                        "tenant_id": "t-1",
+                        "register": "learniq",
+                        "schema": "item"
+                    }
+                }
+            },
+            {
+                "saveObject": {
+                    "object": {
+                        "id": "r-1",
+                        "assessmentId": "a-1",
+                        "tenant_id": "t-1",
+                        "responses": [],
+                        "drawnItemRefs": [
+                            {
+                                "itemId": "i-1",
+                                "points": 2,
+                                "optionOrder": null
+                            },
+                            {
+                                "itemId": "i-4",
+                                "points": 1,
+                                "optionOrder": null
+                            }
+                        ]
+                    },
+                    "register": "learniq",
+                    "schema": "assessment-result"
+                }
+            }
+        ],
+        "itemFetches": [
+            {
+                "findAll": {
+                    "ids": [
+                        "i-1"
+                    ],
+                    "filters": {
+                        "tenant_id": "t-1",
+                        "register": "learniq",
+                        "schema": "item"
+                    },
+                    "limit": 1
+                }
+            },
+            {
+                "findAll": {
+                    "ids": [
+                        "i-4"
+                    ],
+                    "filters": {
+                        "tenant_id": "t-1",
+                        "register": "learniq",
+                        "schema": "item"
+                    },
+                    "limit": 1
+                }
+            }
+        ],
+        "log": [
+            {
+                "level": "info",
+                "message": "[AssessmentDrawResolver] Resolved {count} drawnItemRefs for AssessmentResult on Assessment {id}.",
+                "context": {
+                    "count": 2,
+                    "id": "a-1"
+                }
+            }
+        ]
+    },
+    "random draw, no bank": {
+        "calls": [
+            {
+                "findAll": {
+                    "ids": [
+                        "a-1"
+                    ],
+                    "filters": {
+                        "tenant_id": "t-1",
+                        "register": "learniq",
+                        "schema": "exam"
+                    },
+                    "limit": 1
+                }
+            }
+        ],
+        "itemFetches": [],
+        "log": [
+            {
+                "level": "error",
+                "message": "[AssessmentDrawResolver] Item pool for Assessment {id} cannot supply the configured drawCount across distinct variant groups; leaving drawnItemRefs empty (fail-closed).",
+                "context": {
+                    "id": "a-1"
+                }
+            }
+        ]
+    },
+    "random draw, no pool config": {
+        "calls": [
+            {
+                "findAll": {
+                    "ids": [
+                        "a-1"
+                    ],
+                    "filters": {
+                        "tenant_id": "t-1",
+                        "register": "learniq",
+                        "schema": "exam"
+                    },
+                    "limit": 1
+                }
+            }
+        ],
+        "itemFetches": [],
+        "log": [
+            {
+                "level": "error",
+                "message": "[AssessmentDrawResolver] Item pool for Assessment {id} cannot supply the configured drawCount across distinct variant groups; leaving drawnItemRefs empty (fail-closed).",
+                "context": {
+                    "id": "a-1"
+                }
+            }
+        ]
+    },
+    "random draw, no tenant, difficulty filter": {
+        "calls": [
+            {
+                "findAll": {
+                    "ids": [
+                        "a-1"
+                    ],
+                    "filters": {
+                        "register": "learniq",
+                        "schema": "exam"
+                    },
+                    "limit": 1
+                }
+            },
+            {
+                "findAll": {
+                    "filters": {
+                        "itemBankId": "bank-1",
+                        "lifecycle": "published",
+                        "register": "learniq",
+                        "schema": "item"
+                    }
+                }
+            }
+        ],
+        "itemFetches": [],
+        "log": [
+            {
+                "level": "error",
+                "message": "[AssessmentDrawResolver] Item pool for Assessment {id} cannot supply the configured drawCount across distinct variant groups; leaving drawnItemRefs empty (fail-closed).",
+                "context": {
+                    "id": "a-1"
+                }
+            }
+        ]
+    },
+    "random draw, shuffled, every group": {
+        "calls": [
+            {
+                "findAll": {
+                    "ids": [
+                        "a-1"
+                    ],
+                    "filters": {
+                        "tenant_id": "t-1",
+                        "register": "learniq",
+                        "schema": "exam"
+                    },
+                    "limit": 1
+                }
+            },
+            {
+                "findAll": {
+                    "filters": {
+                        "itemBankId": "bank-1",
+                        "lifecycle": "published",
+                        "tenant_id": "t-1",
+                        "register": "learniq",
+                        "schema": "item"
+                    }
+                }
+            },
+            {
+                "saveObject": {
+                    "object": {
+                        "id": "r-1",
+                        "assessmentId": "a-1",
+                        "tenant_id": "t-1",
+                        "responses": [],
+                        "drawnItemRefs": [
+                            {
+                                "itemId": "i-1",
+                                "points": 2,
+                                "optionOrder": null
+                            },
+                            {
+                                "itemId": "i-2",
+                                "points": 5,
+                                "optionOrder": null
+                            },
+                            {
+                                "itemId": "i-3",
+                                "points": 0,
+                                "optionOrder": null
+                            },
+                            {
+                                "itemId": "i-4",
+                                "points": 1,
+                                "optionOrder": null
+                            }
+                        ]
+                    },
+                    "register": "learniq",
+                    "schema": "assessment-result"
+                }
+            }
+        ],
+        "itemFetches": [
+            {
+                "findAll": {
+                    "ids": [
+                        "i-1"
+                    ],
+                    "filters": {
+                        "tenant_id": "t-1",
+                        "register": "learniq",
+                        "schema": "item"
+                    },
+                    "limit": 1
+                }
+            },
+            {
+                "findAll": {
+                    "ids": [
+                        "i-2"
+                    ],
+                    "filters": {
+                        "tenant_id": "t-1",
+                        "register": "learniq",
+                        "schema": "item"
+                    },
+                    "limit": 1
+                }
+            },
+            {
+                "findAll": {
+                    "ids": [
+                        "i-3"
+                    ],
+                    "filters": {
+                        "tenant_id": "t-1",
+                        "register": "learniq",
+                        "schema": "item"
+                    },
+                    "limit": 1
+                }
+            },
+            {
+                "findAll": {
+                    "ids": [
+                        "i-4"
+                    ],
+                    "filters": {
+                        "tenant_id": "t-1",
+                        "register": "learniq",
+                        "schema": "item"
+                    },
+                    "limit": 1
+                }
+            }
+        ],
+        "log": [
+            {
+                "level": "info",
+                "message": "[AssessmentDrawResolver] Resolved {count} drawnItemRefs for AssessmentResult on Assessment {id}.",
+                "context": {
+                    "count": 4,
+                    "id": "a-1"
+                }
+            }
+        ]
+    },
+    "random draw, too few groups": {
+        "calls": [
+            {
+                "findAll": {
+                    "ids": [
+                        "a-1"
+                    ],
+                    "filters": {
+                        "tenant_id": "t-1",
+                        "register": "learniq",
+                        "schema": "exam"
+                    },
+                    "limit": 1
+                }
+            },
+            {
+                "findAll": {
+                    "filters": {
+                        "itemBankId": "bank-1",
+                        "lifecycle": "published",
+                        "tenant_id": "t-1",
+                        "register": "learniq",
+                        "schema": "item"
+                    }
+                }
+            }
+        ],
+        "itemFetches": [],
+        "log": [
+            {
+                "level": "error",
+                "message": "[AssessmentDrawResolver] Item pool for Assessment {id} cannot supply the configured drawCount across distinct variant groups; leaving drawnItemRefs empty (fail-closed).",
+                "context": {
+                    "id": "a-1"
+                }
+            }
+        ]
+    },
+    "random draw, zero count": {
+        "calls": [
+            {
+                "findAll": {
+                    "ids": [
+                        "a-1"
+                    ],
+                    "filters": {
+                        "tenant_id": "t-1",
+                        "register": "learniq",
+                        "schema": "exam"
+                    },
+                    "limit": 1
+                }
+            }
+        ],
+        "itemFetches": [],
+        "log": [
+            {
+                "level": "error",
+                "message": "[AssessmentDrawResolver] Item pool for Assessment {id} cannot supply the configured drawCount across distinct variant groups; leaving drawnItemRefs empty (fail-closed).",
+                "context": {
+                    "id": "a-1"
+                }
+            }
+        ]
+    }
+}

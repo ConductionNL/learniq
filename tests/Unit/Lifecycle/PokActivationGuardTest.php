@@ -34,8 +34,10 @@ use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Utility\ITimeFactory;
+use OCA\Learniq\Tests\Support\CapturingLogger;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 
 /**
  * Tests for the PokActivationGuard lifecycle guard (pending-signatures → active).
@@ -74,7 +76,11 @@ class PokActivationGuardTest extends TestCase {
 			}
 		);
 		$objectService->method('find')->willReturnCallback(
-			static function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($rows) {
+			static function (int|string $id, ?ObjectFindOptions $options = null) use ($rows) {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				if (isset($rows[(string)$schema][(string)$id]) === false) {
 					throw new DoesNotExistException('not found');
 				}
@@ -277,4 +283,115 @@ class PokActivationGuardTest extends TestCase {
 		self::assertDenied($guard->check($object, 'activate', ''));
 
 	}//end testMissingIdFailsClosedWithoutQuerying()
+	/**
+	 * Every outcome with its whole message, the signature query and the log
+	 * lines, recorded: complete, a missing role, a minor without a parent, an
+	 * unknown age, a missing role and parent, no tenant, a uuid-only object,
+	 * a later version.
+	 *
+	 * @return void
+	 */
+	public function testEachOutcomeAsRecorded(): void {
+		$student = ['signerRole' => 'student', 'signerId' => 'student-1', 'signedAt' => '2025-08-22T19:05:00+02:00'];
+		$cases = [
+			'complete' => [self::threeSignatures(), '2000-01-01', $this->pokObject()],
+			'a missing role' => [array_slice(self::threeSignatures(), 0, 2), '2000-01-01', $this->pokObject()],
+			'a minor without a parent' => [self::threeSignatures(), '2009-04-30', $this->pokObject()],
+			'an unknown age' => [self::threeSignatures(), null, $this->pokObject()],
+			'a missing role and parent' => [[$student], '2009-04-30', $this->pokObject(version: 3)],
+			'no tenant' => [self::threeSignatures(), '2000-01-01', array_merge($this->pokObject(), ['tenant_id' => ''])],
+			'a uuid only' => [self::threeSignatures(), '2000-01-01', ['uuid' => 'pok-2', 'bpvPlacementId' => 'placement-1', 'tenant_id' => 'tenant-a']],
+			'no id' => [self::threeSignatures(), '2000-01-01', ['bpvPlacementId' => 'placement-1']],
+		];
+
+		$actual = [];
+		foreach ($cases as $name => [$signatures, $birthDate, $pok]) {
+			$queries = [];
+			$logger = new CapturingLogger();
+			$result = $this->recordingGuard(signatures: $signatures, birthDate: $birthDate, queries: $queries, logger: $logger)->check($pok, 'activate', 'coordinator-1');
+			$actual[$name] = ['allowed' => $result->isAllowed(), 'message' => $result->getMessage(), 'queries' => $queries, 'log' => $logger->dump()];
+		}
+
+		$golden = __DIR__ . '/golden/PokActivationGuard.json';
+		if (getenv('RECORD_GOLDEN') === '1') {
+			file_put_contents($golden, json_encode($actual, (JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)) . "\n");
+		}
+
+		self::assertSame(json_decode((string)file_get_contents($golden), true), json_decode((string)json_encode($actual), true));
+	}//end testEachOutcomeAsRecorded()
+
+	/**
+	 * A guard like makeGuard()'s that records the signature queries and logs.
+	 *
+	 * @param array<int, array<string, mixed>> $signatures Rows to return for any pok-signature query.
+	 * @param string|null                      $birthDate  The learner's date of birth.
+	 * @param array<int, mixed>                $queries    The signature queries, appended to.
+	 * @param CapturingLogger                  $logger     The guard's logger.
+	 *
+	 * @return PokActivationGuard
+	 */
+	private function recordingGuard(array $signatures, ?string $birthDate, array &$queries, CapturingLogger $logger): PokActivationGuard {
+		$rows = [
+			'bpv-placement' => ['placement-1' => ['id' => 'placement-1', 'learnerId' => 'student-1', 'learnerRef' => 'lp-1']],
+			'learner-profile' => ['lp-1' => ['id' => 'lp-1', 'ncUserId' => 'student-1', 'birthDate' => $birthDate, 'parentIds' => ['ouder-1']]],
+		];
+
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('findAll')->willReturnCallback(
+			function (array $config) use ($signatures, &$queries) {
+				if ($config['filters']['schema'] === 'pok-signature') {
+					$queries[] = $config;
+					return $signatures;
+				}
+
+				return [];
+			}
+		);
+		$objectService->method('find')->willReturnCallback(
+			static function (int|string $id, ?ObjectFindOptions $options = null) use ($rows) {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
+				if (isset($rows[(string)$schema][(string)$id]) === false) {
+					throw new DoesNotExistException('not found');
+				}
+
+				return OrEntityFactory::make($rows[(string)$schema][(string)$id], (string)$schema);
+			}
+		);
+
+		$time = $this->createMock(ITimeFactory::class);
+		$time->method('now')->willReturn(new DateTimeImmutable('2025-09-01 12:00:00', new DateTimeZone('Europe/Amsterdam')));
+
+		return new PokActivationGuard($objectService, $logger, new PokParentSignatureRule($objectService, new LearnerRefResolver($objectService), $time));
+	}//end recordingGuard()
+
+	/**
+	 * A trainer's portal signature, stamped `basic` from an invitation, counts
+	 * as her signature and nothing more: activation still needs the student's
+	 * and the school's, and a minor's parent's (an-invited-trainer-may-activate-a-placement T6).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/an-invited-trainer-may-activate-a-placement/specs/bpv/spec.md#requirement-an-invited-trainer-may-sign-a-praktijkovereenkomst
+	 */
+	public function testAnInvitedTrainersSignatureDoesNotLowerWhatActivationNeeds(): void {
+		$portal = [
+			'signerRole' => 'praktijkopleider',
+			'signerId' => 'trainer-1',
+			'signedAt' => '2025-08-25T12:05:00Z',
+			'assuranceLevel' => 'basic',
+			'method' => 'portal-click-to-confirm',
+		];
+		$student = self::threeSignatures()[0];
+		$school = self::threeSignatures()[1];
+		$verdict = fn (array $signatures, ?string $birthDate = '2000-01-01') => $this->makeGuard(signatures: $signatures, birthDate: $birthDate)
+			->check($this->pokObject(), 'activate', 'coordinator-1');
+
+		self::assertDenied(verdict: $verdict(signatures: [$portal]), context: 'only the trainer signed');
+		self::assertDenied(verdict: $verdict(signatures: [$student, $portal]), context: 'the school did not sign');
+		self::assertAllowed(verdict: $verdict(signatures: [$student, $school, $portal]), context: 'all three signed');
+		self::assertDenied(verdict: $verdict(signatures: [$student, $school, $portal], birthDate: '2009-04-30'), context: 'a minor still needs a parent');
+	}//end testAnInvitedTrainersSignatureDoesNotLowerWhatActivationNeeds()
 }//end class

@@ -25,6 +25,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Controller;
 
 use OCA\Learniq\Controller\ExchangeGateController;
+use OCA\Learniq\Service\CallerActions;
 use OCA\Learniq\Controller\ExchangeRequestController;
 use OCA\Learniq\Exception\ExchangeRequestRefusedException;
 use OCA\Learniq\Exception\IntegriqUnavailableException;
@@ -39,6 +40,7 @@ use OCP\IRequest;
 use OCP\IUser;
 use OCP\IUserSession;
 use PHPUnit\Framework\TestCase;
+use OCA\Learniq\Tests\Support\LegacyObjectArgs;
 
 /**
  * Session, action and ownership checks, and the answers.
@@ -121,7 +123,15 @@ class ExchangeControllersTest extends TestCase {
 			$decision ?? ['decision' => 'refuse', 'code' => 'teldatum-unconfirmed', 'reason' => 'Not confirmed.', 'checkedAt' => '2026-10-01T09:00:00+02:00', 'records' => []]
 		);
 
-		return new ExchangeGateController($this->request(), $this->session(), $this->actions($allowed, 'exchange.gate-read'), $objects, $gate);
+		return new ExchangeGateController(
+			request: $this->request(),
+			caller: new CallerActions(
+				userSession: $this->session(),
+				actionAuth: $this->actions($allowed, 'exchange.gate-read')
+			),
+			objectService: $objects,
+			gate: $gate
+		);
 	}//end gateController()
 
 	/**
@@ -164,11 +174,13 @@ class ExchangeControllersTest extends TestCase {
 		$this->assertSame(Http::STATUS_FORBIDDEN, $this->gateController(['id' => 'job-1', 'ownerApp' => 'learniq'], false)->show('job-1')->getStatus());
 
 		$controller = new ExchangeGateController(
-			$this->request(),
-			$this->session(false),
-			$this->createMock(ActionAuthService::class),
-			$this->createMock(ObjectService::class),
-			$this->createMock(ExchangeGateService::class)
+			request: $this->request(),
+			caller: new CallerActions(
+				userSession: $this->session(false),
+				actionAuth: $this->createMock(ActionAuthService::class)
+			),
+			objectService: $this->createMock(ObjectService::class),
+			gate: $this->createMock(ExchangeGateService::class)
 		);
 		$this->assertSame(Http::STATUS_UNAUTHORIZED, $controller->show('job-1')->getStatus());
 	}//end testTheGateRouteRefusesTheRest()
@@ -178,16 +190,23 @@ class ExchangeControllersTest extends TestCase {
 	 *
 	 * @param IntegriqExchangeClient $integriq The client.
 	 * @param ObjectService|null     $objects  The store.
+	 * @param bool                   $allowed  Whether exchange.request is granted.
 	 *
 	 * @return ExchangeRequestController The controller.
 	 */
-	private function requestController(IntegriqExchangeClient $integriq, ?ObjectService $objects = null): ExchangeRequestController {
+	private function requestController(
+		IntegriqExchangeClient $integriq,
+		?ObjectService $objects = null,
+		bool $allowed = true
+	): ExchangeRequestController {
 		return new ExchangeRequestController(
-			$this->request(),
-			$this->session(),
-			$this->actions(true, 'exchange.request'),
-			$integriq,
-			$objects ?? $this->createMock(ObjectService::class)
+			request: $this->request(),
+			caller: new CallerActions(
+				userSession: $this->session(),
+				actionAuth: $this->actions(allowed: $allowed, expected: 'exchange.request')
+			),
+			integriq: $integriq,
+			objectService: $objects ?? $this->createMock(ObjectService::class)
 		);
 	}//end requestController()
 
@@ -210,12 +229,12 @@ class ExchangeControllersTest extends TestCase {
 			'coordinator-1'
 		)->willReturn('job-8');
 		$objects = $this->createMock(ObjectService::class);
-		$objects->expects($this->once())->method('saveObject')->with(
-			['exchangeJobId' => 'job-8', 'target' => 'oso', 'learnerUserId' => 'pupil-1', 'status' => 'pending'],
-			$this->anything(),
-			'learniq',
-			'dossier-review'
-		);
+		$objects->expects($this->once())->method('saveObject')->with(...LegacyObjectArgs::with(method: 'saveObject', expected: [
+				'object' => ['exchangeJobId' => 'job-8', 'target' => 'oso', 'learnerUserId' => 'pupil-1', 'status' => 'pending'],
+				'extend' => $this->anything(),
+				'register' => 'learniq',
+				'schema' => 'dossier-review',
+			]));
 
 		$response = $this->requestController($integriq, $objects)->create();
 
@@ -243,4 +262,51 @@ class ExchangeControllersTest extends TestCase {
 		$this->assertSame(Http::STATUS_CONFLICT, $response->getStatus());
 		$this->assertSame(['code' => 'mapping-missing', 'reason' => 'No mapping.'], $response->getData());
 	}//end testTheRequestRouteAnswersFailures()
+
+	/**
+	 * An administrator sends a cohort's pupil data to ROD: integriq is asked for
+	 * a bron-rod export job with the ROD mapping and the cohort, and the answer
+	 * carries the job id. No parent review opens for a cohort export.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/data-exchange/spec.md#requirement-a-user-requests-an-export-to-a-chosen-target-from-the-data-exchange-page
+	 */
+	public function testACohortIsSentToRod(): void {
+		$this->params = ['target' => 'bron-rod', 'cohortId' => 'cohort-4'];
+		$integriq     = $this->createMock(originalClassName: IntegriqExchangeClient::class);
+		$integriq->expects($this->once())->method('requestJob')->with(
+			'bron-rod',
+			'export',
+			'user/coordinator-1',
+			['schema' => 'learner-profile', 'filters' => [], 'cohortId' => 'cohort-4'],
+			'learniq-bron-rod-export-learner',
+			'coordinator-1'
+		)->willReturn('job-21');
+		$objects = $this->createMock(originalClassName: ObjectService::class);
+		$objects->expects($this->never())->method('saveObject');
+
+		$response = $this->requestController(integriq: $integriq, objects: $objects)->create();
+
+		$this->assertSame(expected: Http::STATUS_CREATED, actual: $response->getStatus());
+		$this->assertSame(expected: ['jobId' => 'job-21'], actual: $response->getData());
+	}//end testACohortIsSentToRod()
+
+	/**
+	 * A user the action matrix does not grant exchange.request is refused with
+	 * 403, and no job is asked for.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/data-exchange/spec.md#requirement-a-user-requests-an-export-to-a-chosen-target-from-the-data-exchange-page
+	 */
+	public function testAUserWithoutTheRightIsRefused(): void {
+		$this->params = ['target' => 'bron-rod'];
+		$integriq     = $this->createMock(originalClassName: IntegriqExchangeClient::class);
+		$integriq->expects($this->never())->method('requestJob');
+
+		$response = $this->requestController(integriq: $integriq, allowed: false)->create();
+
+		$this->assertSame(expected: Http::STATUS_FORBIDDEN, actual: $response->getStatus());
+	}//end testAUserWithoutTheRightIsRefused()
 }//end class

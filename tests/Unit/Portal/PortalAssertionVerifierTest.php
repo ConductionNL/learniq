@@ -29,8 +29,10 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Portal;
 
 use OCA\Learniq\Portal\PortalAssertionVerifier;
+use OCP\IAppConfig;
 use OCP\IConfig;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 
 /**
  * Tests for PortalAssertionVerifier::verify().
@@ -178,17 +180,142 @@ class PortalAssertionVerifierTest extends TestCase {
 	 * @return void
 	 */
 	public function testOnlyTheDedicatedSecretCounts(): void {
-		$config = $this->createMock(IConfig::class);
-		$config->method('getAppValue')->willReturnCallback(
-			static fn (string $app, string $key, string $default = ''): string => ($app === 'portaliq' && $key === 'jwt_signing_secret') ? self::SECRET : $default
+		$config = $this->createMock(IAppConfig::class);
+		$config->method('getValueString')->willReturnCallback(
+			static fn (string $app, string $key, string $default = '', bool $lazy = false): string => ($app === 'portaliq' && $key === 'jwt_signing_secret' && $lazy === false) ? self::SECRET : $default
 		);
 		self::assertIsArray((new PortalAssertionVerifier(config: $config))->verify(jwt: $this->mint()));
 
-		$short = $this->createMock(IConfig::class);
-		$short->method('getAppValue')->willReturn('too-short');
-		$short->method('getSystemValue')->willReturn(self::SECRET);
+		$short = $this->createMock(IAppConfig::class);
+		$short->method('getValueString')->willReturn('too-short');
 		self::assertNull((new PortalAssertionVerifier(config: $short))->verify(jwt: $this->mint()));
 
 		self::assertNull((new PortalAssertionVerifier())->verify(jwt: $this->mint()));
 	}//end testOnlyTheDedicatedSecretCounts()
+
+	/**
+	 * REGRESSION (13-14 Oct 2026, 401 on every portal action): portaliq stores
+	 * the secret SENSITIVE, so the legacy `IConfig::getAppValue()` returns the
+	 * encrypted value and only `IAppConfig::getValueString()` returns the real
+	 * secret. The mock answers both ways, so the old legacy read fails here
+	 * on the signature check.
+	 *
+	 * @return void
+	 */
+	public function testTheSensitiveSecretIsReadDecrypted(): void {
+		$ciphertext = '$AppConfigEncryption$' . str_repeat('a1b2c3d4e5f6', 22);
+		$config = $this->createMockForIntersectionOfInterfaces([IConfig::class, IAppConfig::class]);
+		$config->method('getAppValue')->willReturn($ciphertext);
+		$config->method('getValueString')->willReturn(self::SECRET);
+
+		self::assertIsArray((new PortalAssertionVerifier(config: $config))->verify(jwt: $this->mint()));
+		self::assertNull((new PortalAssertionVerifier(config: $config))->verify(jwt: $this->mint(secret: $ciphertext)));
+	}//end testTheSensitiveSecretIsReadDecrypted()
+
+	/**
+	 * The reason a verifier logs for one token, or '' when it accepted it.
+	 *
+	 * @param string $jwt The token.
+	 *
+	 * @return string
+	 */
+	private function refusalOf(string $jwt): string {
+		$reasons = [];
+		$logger = $this->createMock(LoggerInterface::class);
+		$logger->method('debug')->willReturnCallback(
+			static function (string $message, array $context) use (&$reasons): void {
+				$reasons[] = $message.': '.$context['reason'];
+			}
+		);
+		$verifier = new PortalAssertionVerifier(config: null, secretOverride: self::SECRET, logger: $logger);
+
+		$claims = $verifier->verify(jwt: $jwt);
+		self::assertSame($claims === null, $reasons !== []);
+
+		return implode(' | ', $reasons);
+	}//end refusalOf()
+
+	/**
+	 * Every check refuses with its own reason, in the documented order, and
+	 * a valid assertion is accepted without a log line.
+	 *
+	 * @return void
+	 */
+	public function testEachRefusalNamesItsCheck(): void {
+		$now = time();
+		$prefix = 'Learniq: portal assertion rejected: ';
+		$signed = function (string $claims): string {
+			$hPart = $this->b64(bytes: '{"alg":"HS256","typ":"JWT"}');
+			$cPart = $this->b64(bytes: $claims);
+			return $hPart.'.'.$cPart.'.'.$this->b64(bytes: hash_hmac('sha256', $hPart.'.'.$cPart, self::SECRET, true));
+		};
+
+		$cases = [
+			'accepted'          => [$this->mint(), ''],
+			'empty'             => ['', 'malformed structure'],
+			'two parts'         => ['a.b', 'malformed structure'],
+			'four parts'        => ['a.b.c.d', 'malformed structure'],
+			'empty part'        => ['a..c', 'malformed structure'],
+			'header not json'   => ['a.b.c', 'unexpected algorithm'],
+			'alg none'          => [$this->mint(alg: 'none'), 'unexpected algorithm'],
+			'alg lower'         => [$this->mint(alg: 'hs256'), 'unexpected algorithm'],
+			'forged'            => [$this->mint(secret: self::OTHER_SECRET), 'signature mismatch'],
+			'forged and wrong'  => [$this->mint(secret: self::OTHER_SECRET, overrides: ['use' => null]), 'signature mismatch'],
+			'claims not json'   => [$signed('not json'), 'malformed claims'],
+			'claims scalar'     => [$signed('42'), 'malformed claims'],
+			'no use'            => [$this->mint(overrides: ['use' => null, 'iss' => 'x']), 'not an assertion'],
+			'session'           => [$this->mint(overrides: ['use' => 'session']), 'not an assertion'],
+			'issuer'            => [$this->mint(overrides: ['iss' => 'someone-else', 'sub' => '']), 'unexpected issuer'],
+			'no subject'        => [$this->mint(overrides: ['sub' => null, 'exp' => null]), 'missing subject'],
+			'empty subject'     => [$this->mint(overrides: ['sub' => '']), 'missing subject'],
+			'numeric subject'   => [$this->mint(overrides: ['sub' => 7]), 'missing subject'],
+			'no exp'            => [$this->mint(overrides: ['exp' => null, 'iat' => null]), 'expired or missing exp'],
+			'string exp'        => [$this->mint(overrides: ['exp' => (string)($now + 60)]), 'expired or missing exp'],
+			'expired'           => [$this->mint(overrides: ['iat' => ($now - 120), 'exp' => ($now - 60)]), 'expired or missing exp'],
+			'no iat'            => [$this->mint(overrides: ['iat' => null]), 'implausible iat'],
+			'string iat'        => [$this->mint(overrides: ['iat' => (string)$now]), 'implausible iat'],
+			'future iat'        => [$this->mint(overrides: ['iat' => ($now + 600), 'exp' => ($now + 660)]), 'implausible iat'],
+			'iat after exp'     => [$this->mint(overrides: ['iat' => ($now + 30), 'exp' => ($now + 20)]), 'implausible iat'],
+			'iat in leeway'     => [$this->mint(overrides: ['iat' => ($now + 30), 'exp' => ($now + 60)]), ''],
+		];
+
+		foreach ($cases as $name => [$jwt, $reason]) {
+			$expected = '';
+			if ($reason !== '') {
+				$expected = $prefix.$reason;
+			}
+
+			self::assertSame($expected, $this->refusalOf(jwt: $jwt), $name);
+		}
+	}//end testEachRefusalNamesItsCheck()
+
+	/**
+	 * Without a usable secret nothing is even parsed: a missing, short or
+	 * config-less secret refuses first; a plain override wins over config.
+	 *
+	 * @return void
+	 */
+	public function testTheSecretIsCheckedFirstAndTheOverrideWins(): void {
+		$reasons = [];
+		$logger = $this->createMock(LoggerInterface::class);
+		$logger->method('debug')->willReturnCallback(
+			static function (string $message, array $context) use (&$reasons): void {
+				$reasons[] = $context['reason'];
+			}
+		);
+		$wrong = $this->createMock(IAppConfig::class);
+		$wrong->method('getValueString')->willReturn(self::OTHER_SECRET);
+		$short = $this->createMock(IAppConfig::class);
+		$short->method('getValueString')->willReturn('too-short');
+
+		self::assertIsArray((new PortalAssertionVerifier(config: $wrong, secretOverride: self::SECRET, logger: $logger))->verify(jwt: $this->mint()));
+		self::assertNull((new PortalAssertionVerifier(config: null, secretOverride: 'short', logger: $logger))->verify(jwt: ''));
+		self::assertNull((new PortalAssertionVerifier(config: $short, logger: $logger))->verify(jwt: ''));
+		self::assertNull((new PortalAssertionVerifier(logger: $logger))->verify(jwt: ''));
+		self::assertNull((new PortalAssertionVerifier(config: $wrong, logger: $logger))->verify(jwt: $this->mint()));
+		self::assertSame(
+			['no usable signing secret', 'no usable signing secret', 'no usable signing secret', 'signature mismatch'],
+			$reasons
+		);
+	}//end testTheSecretIsCheckedFirstAndTheOverrideWins()
 }//end class

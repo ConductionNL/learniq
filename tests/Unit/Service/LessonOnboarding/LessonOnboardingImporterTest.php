@@ -22,6 +22,8 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Service\LessonOnboarding;
 
 use OCA\Learniq\Service\CoursePackage\CoursePackageFileWriter;
+use OCA\Learniq\Service\LessonOnboarding\LessonOnboardingWriters;
+use OCA\Learniq\Service\LessonOnboarding\LessonOnboardingReaders;
 use OCA\Learniq\Service\CoursePackage\CoursePackageObjectWriter;
 use OCA\Learniq\Service\LessonOnboarding\LessonDraftBuilder;
 use OCA\Learniq\Service\LessonOnboarding\LessonOnboardingImporter;
@@ -38,6 +40,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
+use OCA\Learniq\Tests\Support\LegacyObjectArgs;
 
 /**
  * The confirmed import: guards, the draft lesson, its materials, the row.
@@ -107,14 +110,18 @@ class LessonOnboardingImporterTest extends TestCase {
 
 		$this->importer = new LessonOnboardingImporter(
 			objectService: $this->objectService,
-			objectWriter: $this->objectWriter,
-			fileWriter: $this->fileWriter,
-			extractor: $this->extractor,
-			draftBuilder: new LessonDraftBuilder(),
-			transitionEngine: $this->transitionEngine,
-			rootFolder: $root,
-			folderSetting: $folderSetting,
-			logger: $this->createMock(LoggerInterface::class),
+			readers: new LessonOnboardingReaders(
+				extractor: $this->extractor,
+				draftBuilder: new LessonDraftBuilder(),
+				rootFolder: $root,
+				folderSetting: $folderSetting
+			),
+			writers: new LessonOnboardingWriters(
+				objectWriter: $this->objectWriter,
+				fileWriter: $this->fileWriter,
+				transitionEngine: $this->transitionEngine
+			),
+			logger: $this->createMock(LoggerInterface::class)
 		);
 
 	}//end setUp()
@@ -186,6 +193,7 @@ class LessonOnboardingImporterTest extends TestCase {
 		$updated = null;
 		$this->objectService->expects($this->once())->method('saveObject')->willReturnCallback(
 			function (...$args) use (&$updated) {
+				$args = LegacyObjectArgs::positional(method: 'saveObject', args: $args);
 				$updated = $args;
 				return OrEntityFactory::make([], 'lesson');
 			}
@@ -437,14 +445,18 @@ class LessonOnboardingImporterTest extends TestCase {
 		$folderSetting->method('tenantOf')->willReturn('00000000-0000-0000-0000-000000000009');
 		$this->importer = new LessonOnboardingImporter(
 			objectService: $this->objectService,
-			objectWriter: $this->objectWriter,
-			fileWriter: $this->fileWriter,
-			extractor: $this->extractor,
-			draftBuilder: new LessonDraftBuilder(),
-			transitionEngine: $this->transitionEngine,
-			rootFolder: $root,
-			folderSetting: $folderSetting,
-			logger: $this->createMock(LoggerInterface::class),
+			readers: new LessonOnboardingReaders(
+				extractor: $this->extractor,
+				draftBuilder: new LessonDraftBuilder(),
+				rootFolder: $root,
+				folderSetting: $folderSetting
+			),
+			writers: new LessonOnboardingWriters(
+				objectWriter: $this->objectWriter,
+				fileWriter: $this->fileWriter,
+				transitionEngine: $this->transitionEngine
+			),
+			logger: $this->createMock(LoggerInterface::class)
 		);
 	}//end setUpFailingNoteWriter()
 }//end class

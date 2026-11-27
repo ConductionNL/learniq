@@ -25,6 +25,7 @@ import { request as playwrightRequest } from '@playwright/test'
 import { execFileSync } from 'child_process'
 import { randomBytes } from 'crypto'
 import { baseUrl } from './base-url.ts'
+import { occPrefix } from './shared-instance.ts'
 
 /** The groups learniq declares; the only ones a temporary user may join. */
 const LEARNIQ_GROUPS = new Set([
@@ -35,6 +36,7 @@ const LEARNIQ_GROUPS = new Set([
 	'team-leads',
 	'hr',
 	'compliance-officers',
+	'administration-managers',
 ])
 
 export interface TempUser {
@@ -174,11 +176,19 @@ export class LiveFixtures {
 	 */
 	async object(slug: string, body: Record<string, unknown>): Promise<string> {
 		const api = await this.api()
-		const res = await api.post(
-			`/index.php/apps/openregister/api/objects/learniq/${slug}`,
-			{ data: { tenant_id: await this.tenant(), ...body } },
-		)
-		const created = await res.json().catch(() => null)
+		const url = `/index.php/apps/openregister/api/objects/learniq/${slug}`
+		let res = await api.post(url, { data: { tenant_id: await this.tenant(), ...body } })
+		let created = await res.json().catch(() => null)
+		// OpenRegister starts every object in its schema's initial state and refuses
+		// another one on create (`lifecycle-invalid-initial`). Create it in that
+		// state, then move it to the one asked for, as a user would.
+		const wanted = body.lifecycle
+		const startsElsewhere = created?.errors?.code === 'lifecycle-invalid-initial'
+		if (startsElsewhere && typeof wanted === 'string') {
+			const { lifecycle: _ignored, ...initial } = body
+			res = await api.post(url, { data: { tenant_id: await this.tenant(), ...initial } })
+			created = await res.json().catch(() => null)
+		}
 		const id = objectIdOf(created)
 		if (!res.ok() || id === null) {
 			throw new Error(
@@ -186,7 +196,55 @@ export class LiveFixtures {
 			)
 		}
 		this.objects.push({ slug, id })
+		if (startsElsewhere && typeof wanted === 'string') {
+			await this.moveTo(slug, id, wanted)
+		}
 		return id
+	}
+
+	/**
+	 * Move a fixture object to a lifecycle state. What a publish guard asks
+	 * for is added first: a course is published with a published lesson, a
+	 * programme with a published curriculum plan that requires a course.
+	 *
+	 * @param slug The schema slug.
+	 * @param id The uuid.
+	 * @param lifecycle The state.
+	 */
+	private async moveTo(slug: string, id: string, lifecycle: string): Promise<void> {
+		const api = await this.api()
+		if (slug === 'course' && lifecycle === 'published') {
+			const lesson = await this.object('lesson', { courseId: id, name: `Les ${this.run}`, order: 1, contentType: 'text' })
+			await this.moveTo('lesson', lesson, 'published')
+		}
+		if (slug === 'programme' && lifecycle === 'published') {
+			const programme = await this.read('programme', id)
+			const courseIds = Array.isArray(programme.courseIds) ? programme.courseIds.map(String) : []
+			const required = courseIds[0] ?? await this.object('course', {
+				code: `PLAN-${this.run}`,
+				name: `Plan course ${this.run}`,
+				level: String(programme.level ?? 'corporate'),
+				language: 'nl',
+			})
+			const plan = await this.object('curriculum-plan', {
+				name: `Plan ${this.run}`,
+				kind: 'pta',
+				formula: 'weighted-average',
+				requiredCourseIds: [required],
+			})
+			await this.moveTo('curriculum-plan', plan, 'published')
+			const linked = await api.patch(`/index.php/apps/openregister/api/objects/learniq/programme/${id}`, { data: { curriculumPlanId: plan } })
+			if (!linked.ok()) {
+				throw new Error(`linking a curriculum plan to a programme was refused: HTTP ${linked.status()} ${(await linked.text()).slice(0, 600)}`)
+			}
+		}
+		const res = await api.patch(`/index.php/apps/openregister/api/objects/learniq/${slug}/${id}`, { data: { lifecycle } })
+		const moved = await res.json().catch(() => null)
+		if (!res.ok() || moved?.lifecycle !== lifecycle) {
+			throw new Error(
+				`moving a ${slug} to ${lifecycle} was refused: HTTP ${res.status()} ${JSON.stringify(moved).slice(0, 600)}`,
+			)
+		}
 	}
 
 	/**
@@ -410,14 +468,13 @@ export async function signInAs(browser: Browser, user: TempUser): Promise<Page> 
 /**
  * The occ command, split into the executable and its leading arguments.
  *
+ * Resolved by the suite's own binding to the instance under test, never the
+ * shared developer container.
+ *
  * @return [command, ...prefix]
  */
-function occCommand(): string[] {
-	return (
-		process.env.LEARNIQ_E2E_OCC ?? 'docker exec -u www-data nextcloud php occ'
-	)
-		.split(/\s+/)
-		.filter((part) => part !== '')
+export function occCommand(): string[] {
+	return occPrefix()
 }
 
 /**
@@ -481,7 +538,9 @@ export function listJobs(
 			'--output=json',
 			'--limit=5000',
 		],
-		{ encoding: 'utf8', timeout: 60_000, stdio: 'pipe' },
+		// 5000 jobs with their arguments run past the default 1 MB of output
+		// (ENOBUFS) on an instance with an example set loaded.
+		{ encoding: 'utf8', timeout: 60_000, stdio: 'pipe', maxBuffer: 256 * 1024 * 1024 },
 	)
 	return (JSON.parse(listed) as Array<{ id: string; argument: string }>).map(
 		(job) => {
@@ -502,7 +561,7 @@ export function listJobs(
  * The shared instance runs no cron daemon, so a queued job (a certificate
  * reissue run, for one) only runs when someone executes it. This runs each
  * matching job once through `occ background-job:execute`, on the command
- * prefix in `LEARNIQ_E2E_OCC` (default: the dev container). It only ever
+ * occ prefix of the instance under test (occPrefix). It only ever
  * executes jobs of the learniq class it is given.
  *
  * @param jobClass The job class, e.g. `OCA\\Learniq\\BackgroundJob\\CredentialReissueJob`.
@@ -520,7 +579,7 @@ export function runLearniqJobs(
 	const listed = execFileSync(
 		command,
 		[...prefix, 'background-job:list', `--class=${jobClass}`, '--output=json'],
-		{ encoding: 'utf8', timeout: 60_000 },
+		{ encoding: 'utf8', timeout: 60_000, maxBuffer: 256 * 1024 * 1024 },
 	)
 	const jobs = JSON.parse(listed) as Array<{ id: string; argument: string }>
 	let ran = 0

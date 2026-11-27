@@ -26,11 +26,15 @@ namespace OCA\Learniq\Tests\Unit\Repair;
 use OCA\Learniq\Repair\MigrateDataSubjectRequestsToOpenRegister;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Db\ObjectEntity;
+use OCA\OpenRegister\Db\Schema;
+use OCA\OpenRegister\Db\SchemaMapper;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Migration\IOutput;
 use PHPUnit\Framework\TestCase;
+use Psr\Container\ContainerInterface;
 use Psr\Log\NullLogger;
 use RuntimeException;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Tests for MigrateDataSubjectRequestsToOpenRegister::run().
@@ -66,6 +70,27 @@ class MigrateDataSubjectRequestsToOpenRegisterTest extends TestCase {
 	private bool $noSourceSchema = false;
 
 	/**
+	 * When set, reads return plain arrays plus one object that cannot be serialised.
+	 *
+	 * @var bool
+	 */
+	private bool $rawRows = false;
+
+	/**
+	 * Every findAll as "register/schema".
+	 *
+	 * @var array<int, string>
+	 */
+	private array $reads = [];
+
+	/**
+	 * The container handed to the step; null builds it without one.
+	 *
+	 * @var ContainerInterface|null
+	 */
+	private ?ContainerInterface $container = null;
+
+	/**
 	 * Messages the step wrote.
 	 *
 	 * @var array<int, string>
@@ -82,17 +107,25 @@ class MigrateDataSubjectRequestsToOpenRegisterTest extends TestCase {
 		$objectService->method('findAll')->willReturnCallback(
 			function (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array {
 				$key = ($config['filters']['register'] ?? '') . '/' . ($config['filters']['schema'] ?? '');
+				$this->reads[] = $key;
 				if ($this->noSourceSchema === true && $key === 'learniq/data-subject-request') {
 					throw new RuntimeException('Schema not found');
 				}
 
 				$rows = array_slice(($this->rows[$key] ?? []), (int)($config['offset'] ?? 0), (int)($config['limit'] ?? 200));
+				if ($this->rawRows === true) {
+					return array_merge($rows, [new \stdClass()]);
+				}
 
 				return OrEntityFactory::makeMany($rows, (string)($config['filters']['schema'] ?? ''));
 			}
 		);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null, ?string $uuid = null, bool $_rbac = true): ObjectEntity {
+			function (array|ObjectEntity $object, ObjectSaveOptions $options = new ObjectSaveOptions(), bool $_rbac = true): ObjectEntity {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
+				$uuid = $options->uuid;
 				if ($this->failSaves === true) {
 					throw new RuntimeException('register missing');
 				}
@@ -104,8 +137,43 @@ class MigrateDataSubjectRequestsToOpenRegisterTest extends TestCase {
 			}
 		);
 
-		return new MigrateDataSubjectRequestsToOpenRegister($objectService, new NullLogger());
+		return new MigrateDataSubjectRequestsToOpenRegister(objectService: $objectService, logger: new NullLogger(), container: $this->container);
 	}//end makeStep()
+
+	/**
+	 * A container whose SchemaMapper answers the retired slug per application.
+	 *
+	 * @param array<string, int> $schemasPerApplication Application id => number of schema rows; missing = none.
+	 * @param bool               $lookupFails           Whether the lookup throws.
+	 *
+	 * @return ContainerInterface
+	 */
+	private function containerWith(array $schemasPerApplication, bool $lookupFails = false): ContainerInterface {
+		$schemaMapper = $this->createMock(originalClassName: SchemaMapper::class);
+		$schemaMapper->method('findAllByApplicationAndSlug')->willReturnCallback(
+			function (string $slug, string $application) use ($schemasPerApplication, $lookupFails): array {
+				if ($lookupFails === true) {
+					throw new RuntimeException('schema table missing');
+				}
+
+				self::assertSame(expected: 'data-subject-request', actual: $slug);
+				return array_fill(0, ($schemasPerApplication[$application] ?? 0), new Schema());
+			}
+		);
+
+		$container = $this->createMock(originalClassName: ContainerInterface::class);
+		$container->method('get')->willReturnCallback(
+			static function (string $id) use ($schemaMapper): object {
+				if ($id === SchemaMapper::class) {
+					return $schemaMapper;
+				}
+
+				throw new RuntimeException('not registered: ' . $id);
+			}
+		);
+
+		return $container;
+	}//end containerWith()
 
 	/**
 	 * An IOutput double that records messages.
@@ -260,4 +328,165 @@ class MigrateDataSubjectRequestsToOpenRegisterTest extends TestCase {
 		self::assertNotFalse($import);
 		self::assertLessThan($import, $migrate);
 	}//end testTheStepRunsBeforeTheRegisterImport()
+
+	/**
+	 * The notes carry the marker, an unmapped kind, the trimmed description
+	 * and one history line per entry, exactly; they stop at 4000 characters.
+	 *
+	 * @return void
+	 */
+	public function testTheNotesAreWrittenExactly(): void {
+		$row = [
+			'kind'        => 'objection',
+			'description' => "  Bezwaar tegen verwerking.\n",
+			'auditTrail'  => [
+				['recordedAt' => '2026-03-02', 'recordedBy' => 'po-1', 'action' => 'startReview', 'note' => 'urgent'],
+				'not-an-entry',
+				['action' => 'close', 'note' => ''],
+			],
+		];
+		self::assertSame(
+			"learniq-migration: dsr-9\nOriginal kind: objection\n\nBezwaar tegen verwerking.\n\nHistory:\n- 2026-03-02 po-1: startReview (urgent)\n-  : close",
+			MigrateDataSubjectRequestsToOpenRegister::toCase(row: $row, sourceId: 'dsr-9')['notes']
+		);
+
+		$bare = ['kind' => 'deletion', 'description' => '   ', 'auditTrail' => 'none'];
+		self::assertSame('learniq-migration: dsr-9', MigrateDataSubjectRequestsToOpenRegister::toCase(row: $bare, sourceId: 'dsr-9')['notes']);
+
+		$long = ['description' => str_repeat('a', 5000)];
+		self::assertSame(4000, mb_strlen(MigrateDataSubjectRequestsToOpenRegister::toCase(row: $long, sourceId: 'dsr-9')['notes']));
+	}//end testTheNotesAreWrittenExactly()
+
+	/**
+	 * Only a case whose notes start with the marker and name a source counts
+	 * as migrated; every other case leaves its request to be moved.
+	 *
+	 * @return void
+	 */
+	public function testOnlyAMarkedCaseCountsAsMigrated(): void {
+		$this->rows['learniq/data-subject-request'] = [
+			$this->request(id: 'dsr-1'),
+			$this->request(id: 'dsr-2'),
+			$this->request(id: 'dsr-3'),
+			$this->request(id: 'dsr-4'),
+		];
+		$this->rows['data-subject-requests/dataSubjectRequest'] = [
+			['id' => 'c-1', 'notes' => MigrateDataSubjectRequestsToOpenRegister::MARKER . "dsr-1\nmore"],
+			['id' => 'c-2', 'notes' => "learniz-migration: dsr-2\n"],
+			['id' => 'c-3', 'notes' => MigrateDataSubjectRequestsToOpenRegister::MARKER . " dsr-3 \n"],
+			['id' => 'c-4', 'notes' => MigrateDataSubjectRequestsToOpenRegister::MARKER . "   \ndsr-4"],
+			['id' => 'c-5'],
+		];
+		$this->makeStep()->run($this->repairOutput());
+
+		self::assertSame(['dsr-2', 'dsr-4'], array_map(static fn (array $save): string => substr(strtok($save['object']['notes'], "\n"), 19), $this->saves));
+		self::assertSame('Learniq privacy requests: 2 moved, 2 already moved, 0 failed (of 4).', end($this->messages));
+	}//end testOnlyAMarkedCaseCountsAsMigrated()
+
+	/**
+	 * Every page is read, plain array rows count, and an object that cannot
+	 * be serialised is passed over.
+	 *
+	 * @return void
+	 */
+	public function testEveryPageAndEveryRowShapeIsRead(): void {
+		$this->rows['learniq/data-subject-request'] = array_map(fn (int $i): array => $this->request(id: 'dsr-' . $i), range(1, 450));
+		$this->makeStep()->run($this->repairOutput());
+		self::assertSame('Learniq privacy requests: 450 moved, 0 already moved, 0 failed (of 450).', end($this->messages));
+
+		$this->rawRows = true;
+		$this->rows['learniq/data-subject-request'][] = $this->request(id: 'dsr-new');
+		$this->makeStep()->run($this->repairOutput());
+		self::assertSame('Learniq privacy requests: 1 moved, 450 already moved, 0 failed (of 451).', end($this->messages));
+	}//end testEveryPageAndEveryRowShapeIsRead()
+
+	/**
+	 * An unreadable OpenRegister register stops the run before anything moves.
+	 *
+	 * @return void
+	 */
+	public function testAnUnreadableTargetMovesNothing(): void {
+		$this->rows['learniq/data-subject-request'] = [$this->request(id: 'dsr-1')];
+		$objectService = $this->createMock(ObjectService::class);
+		$objectService->method('findAll')->willReturnCallback(
+			function (array $config = []): array {
+				if (($config['filters']['register'] ?? '') === 'data-subject-requests') {
+					throw new RuntimeException('register missing');
+				}
+
+				return OrEntityFactory::makeMany($this->rows['learniq/data-subject-request'], 'data-subject-request');
+			}
+		);
+		$objectService->expects(self::never())->method('saveObject');
+
+		(new MigrateDataSubjectRequestsToOpenRegister($objectService, new NullLogger()))->run($this->repairOutput());
+
+		self::assertSame('Learniq privacy requests: could not read the OpenRegister register, nothing moved (register missing).', end($this->messages));
+	}//end testAnUnreadableTargetMovesNothing()
+	/**
+	 * Without the retired schema on the instance the step never reads its slug.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/avg-verwerkingsregister/spec.md#requirement-privacy-requests-live-in-openregisters-data-subject-request-register
+	 */
+	public function testAnInstanceWithoutTheSchemaNeverReadsItsSlug(): void {
+		$this->container = $this->containerWith(schemasPerApplication: []);
+		$this->rows['learniq/data-subject-request'] = [$this->request(id: 'dsr-1')];
+		$this->makeStep()->run($this->repairOutput());
+
+		self::assertSame(expected: [], actual: $this->reads);
+		self::assertSame(expected: [], actual: $this->saves);
+		self::assertSame(
+			expected: ['Learniq privacy requests: this instance has no learniq data subject request schema, nothing to move.'],
+			actual: $this->messages
+		);
+	}//end testAnInstanceWithoutTheSchemaNeverReadsItsSlug()
+
+	/**
+	 * A schema the instance still holds, under learniq or the pre-rename scholiq id, is read and moved.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/avg-verwerkingsregister/spec.md#requirement-privacy-requests-live-in-openregisters-data-subject-request-register
+	 */
+	public function testAHeldSchemaIsReadAndMoved(): void {
+		foreach (['learniq' => ['learniq' => 1], 'scholiq' => ['scholiq' => 2]] as $label => $held) {
+			$this->rows = ['learniq/data-subject-request' => [$this->request(id: 'dsr-' . $label)]];
+			$this->saves = [];
+			$this->container = $this->containerWith(schemasPerApplication: $held);
+			$step = $this->makeStep();
+
+			self::assertTrue(condition: $step->sourceSchemaExists(), message: $label);
+			$step->run($this->repairOutput());
+			self::assertCount(expectedCount: 1, haystack: $this->saves, message: $label);
+		}
+	}//end testAHeldSchemaIsReadAndMoved()
+
+	/**
+	 * A failed lookup falls back to reading, so a moved row is never lost to a lookup error.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/avg-verwerkingsregister/spec.md#requirement-privacy-requests-live-in-openregisters-data-subject-request-register
+	 */
+	public function testAFailedLookupFallsBackToReading(): void {
+		$this->container = $this->containerWith(schemasPerApplication: [], lookupFails: true);
+		$this->rows['learniq/data-subject-request'] = [$this->request(id: 'dsr-1')];
+		$step = $this->makeStep();
+
+		self::assertNull(actual: $step->sourceSchemaExists());
+		$step->run($this->repairOutput());
+		self::assertCount(expectedCount: 1, haystack: $this->saves);
+		self::assertContains(needle: 'learniq/data-subject-request', haystack: $this->reads);
+	}//end testAFailedLookupFallsBackToReading()
+
+	/**
+	 * Without a container the step cannot ask and reads directly.
+	 *
+	 * @return void
+	 */
+	public function testWithoutAContainerTheLookupHasNoAnswer(): void {
+		self::assertNull(actual: $this->makeStep()->sourceSchemaExists());
+	}//end testWithoutAContainerTheLookupHasNoAnswer()
 }//end class

@@ -2,11 +2,11 @@
 	"_meta": {
 		"spdx-license": "EUPL-1.2",
 		"spdx-copyright": "2026 Conduction B.V.",
-		"description": "The SIMPLE structure profile, and the default one (openspec/changes/simple-structure-profile). `menu-layout.json` is the FULL profile and is untouched: an administrator brings it back with the setting `menu_structure`. Both profiles are built from the same manifest and the same fragments, so nothing is deleted and every page stays routable; this file only decides what the navigation offers first. THE STANDARD KEYS (`removals`, `settingsSection`) go to the library's buildManifest exactly as the full file's do. `relocations` is ABSENT on purpose, and must stay absent rather than become `{}`: the simple menu is flat, and the library's relocation step ends by dropping every entry that has no route, no href, no action and no children, which is what a caption is. THE TWO PROFILE KEYS are read by src/utils/structureProfile.js. `menu` is merged BEFORE the manifest's own menu. buildManifest merges entries by id and the FIRST definition of a key wins, so an entry here that carries only `id` and `order` takes its label, icon, route and visibleIf from the manifest, and an entry the manifest does not know (the three captions, the entries whose id ends in Simple) is added as written. `pages` holds page overlays: `configAppend` appends header links and report cards to pages the simple menu opens. One overlay is of another kind: `Dashboard` carries `when`, `page` and `config`, and turns the page at `/` into the Today dashboard for the roles it names (see its own _note).",
-		"roleNote": "THE MENU FOLLOWS THE ROLE, with the signal learniq already has: `user.primaryRole`, resolved on the server by DashboardRoleService from the Nextcloud groups. A `visibleIf` written here may only NARROW the one the manifest has for that route, never widen it. tests/unit-js/structureProfile.test.mjs builds both profiles for every role and fails when an entry here shows to a role the full menu does not show that page to. The ceiling is ten main entries for every role, twelve for a Nextcloud administrator (who sees the teacher's menu plus Timetables and Compliance), and two more for somebody who is also the confidential counsellor or a line manager.",
+		"description": "The SIMPLE structure profile, and the default one (openspec/changes/archive/2026-11-21-simple-structure-profile). `menu-layout.json` is the FULL profile and is untouched: an administrator brings it back with the setting `menu_structure`. Both profiles are built from the same manifest and the same fragments, so nothing is deleted and every page stays routable; this file only decides what the navigation offers first. THE STANDARD KEYS (`removals`, `settingsSection`) go to the library's buildManifest exactly as the full file's do. `relocations` is ABSENT on purpose, and must stay absent rather than become `{}`: the simple menu is flat, and the library's relocation step ends by dropping every entry that has no route, no href, no action and no children, which is what a caption is. THE TWO PROFILE KEYS are read by src/utils/structureProfile.js. `menu` is merged BEFORE the manifest's own menu. buildManifest merges entries by id and the FIRST definition of a key wins, so an entry here that carries only `id` and `order` takes its label, icon, route and visibleIf from the manifest, and an entry the manifest does not know (the three captions, the entries whose id ends in Simple) is added as written. `pages` holds page overlays: `configAppend` appends header links and report cards to pages the simple menu opens. One overlay is of another kind: `Dashboard` carries `when`, `page` and `config`, and turns the page at `/` into the Today dashboard for the roles it names (see its own _note).",
+		"roleNote": "THE MENU FOLLOWS THE ROLE, with the signal learniq already has: `user.primaryRole`, resolved on the server by DashboardRoleService from the Nextcloud groups. A `visibleIf` written here may only NARROW the one the manifest has for that route, never widen it. tests/unit-js/structureProfile.test.mjs builds both profiles for every role and fails when an entry here shows to a role the full menu does not show that page to. The menus follow the per-role table of specs/navigation, read off the sidebars of the learniq boards: an administrator and the administration get hr's menu, without Groups, Lessons, Grades, Progress or Timetables. The ceiling is ten main entries for every role, twelve for a Nextcloud administrator, and two more for somebody who is also the confidential counsellor or a line manager.",
 		"simpleIdsNote": "Six entries end in `Simple`. Without a relocation step a child stays under its group, so Learners and Attendance (children of People), Grades (child of Learning), Dossier notes (child of the pupil dossier group), Pick electives and Book a conversation (children of groups this profile empties) cannot be lifted to the top level by id. Each gets a top-level twin here with its own id, and the original is removed by name. GroupsSimple opens a page that had no menu entry at all: Cohorts. The design's Nakijken has no entry: learniq lists submissions per assignment only (`/assignments/:assignmentId/submissions`), so there is no page a menu entry could open.",
 		"removalsNote": "Every leaf of the manifest menu that is not in this profile's main menu, footer or settings. A group with no route disappears once its children are gone. Removed is not unreachable: the header links and report cards in `pages`, the cards on Progress and Compliance and the lists on Lessons and assignments and People link most of them. The ones nothing links yet are listed by name in KNOWN_UNLINKED in the test, per role, waiting for the link-cards hub page.",
-		"settingsNote": "The full profile lifts two entries into the settings foldout. This profile adds the set-up lists (templates, periods, rooms, screens, locations, schools, staff, fees, rounds) and the import, export and exchange tools. Each keeps its own visibleIf."
+		"settingsNote": "The full profile lifts four entries into the settings foldout. This profile adds the set-up lists (templates, periods, rooms, screens, locations, schools, staff, fees, rounds), the course-package tools, the one Uitwisselingen entry (DataExchange, admin only; its page links the rejections, teldatum checks and parent reviews) and Marktplaats and Functies en roadmap. Three captions group the foldout as the AppZijbalk fold draws it: Rapportages en automatisering, De app inrichten, Over de app; the order values in `menu` put each entry under its caption. Each keeps its own visibleIf."
 	},
 	"removals": [
 		"AbsenceReportsComplianceMenu",
@@ -15,7 +15,6 @@
 		"AccessibilityFeedbacksMenu",
 		"AccessibilityLimitationsMenu",
 		"AdmissionsReviewBoardMenu",
-		"AiProcessingDisclosureMenu",
 		"ApplicationsMenu",
 		"Assessments",
 		"Assignments",
@@ -25,6 +24,7 @@
 		"BpvHourWeeksMenu",
 		"BpvPlacementsMenu",
 		"BpvVisitReportsMenu",
+		"BpvVisitsMenu",
 		"BsaDecisionsMenu",
 		"BsaRiskDashboardMenu",
 		"BsaTrajectoriesMenu",
@@ -36,6 +36,9 @@
 		"Compliance",
 		"ConferenceReportsMenu",
 		"ConferenceScheduleBoardMenu",
+		"CourseDaysMenu",
+		"ExamRegistrationsMenu",
+		"CourseParticipantsMenu",
 		"CourseEvaluationResponsesMenu",
 		"CoursePackageImportReportsMenu",
 		"CourseQualityReportMenu",
@@ -50,6 +53,7 @@
 		"DashboardStudent",
 		"DashboardTeacher",
 		"DossierNotesMenu",
+		"DossierReviewsMenu",
 		"ElectiveOffersMenu",
 		"EngagementLevelsMenu",
 		"EngagementRiskFlagsMenu",
@@ -59,6 +63,8 @@
 		"EvaluationCampaignsMenu",
 		"ExamAccommodationsMenu",
 		"ExamSittingsMenu",
+		"ExchangeJobsMenu",
+		"ExchangeRejectionsMenu",
 		"ExemptionCasesMenu",
 		"ExternalAssessorsMenu",
 		"ExternalTraining",
@@ -69,6 +75,7 @@
 		"GroupPlans",
 		"GroupTrendHeatmapMenu",
 		"HourPlanActivitiesMenu",
+		"ImportExportToolsMenu",
 		"ImportedCoursesMenu",
 		"ImprovementActionsMenu",
 		"InvigilatorAssignmentsMenu",
@@ -79,7 +86,9 @@
 		"LearnerEngagementsMenu",
 		"LearnerProfilesMenu",
 		"LearningPlans",
+		"LeaveRequestsMenu",
 		"LessonCompletionsMenu",
+		"PermissionRequestsMenu",
 		"PointAwardsMenu",
 		"PointRulesMenu",
 		"PortfolioEntriesMenu",
@@ -89,9 +98,12 @@
 		"PraktijkopleidersMenu",
 		"PraktijkovereenkomstenMenu",
 		"PrivacyGovernanceDashboardMenu",
+		"ProctoringReviewComplianceMenu",
+		"ProctoringReviewMenu",
 		"ReportCardsMenu",
 		"ReportConcernMenu",
 		"RollCallMenu",
+		"SchoolActivitiesMenu",
 		"SchoolAdviezenMenu",
 		"SchoolEventsMenu",
 		"SessionsThisWeekMenu",
@@ -103,6 +115,7 @@
 		"SubjectChoicesMenu",
 		"SupportRequests",
 		"TeacherAvailabilitiesMenu",
+		"TeldatumChecksMenu",
 		"TimetableConflictQueueMenu",
 		"TrajectoriesMenu",
 		"WellbeingCheckInsMenu",
@@ -127,13 +140,11 @@
 		"AdmissionsRoundsMenu",
 		"ConferenceRoundsMenu",
 		"ExamPeriodsMenu",
-		"ExchangeJobsMenu",
-		"ExchangeRejectionsMenu",
-		"TeldatumChecksMenu",
-		"ImportExportToolsMenu",
-		"DossierReviewsMenu",
 		"CoursePackageImportMenu",
-		"CoursePackageExportMenu"
+		"CoursePackageExportMenu",
+		"DataExchange",
+		"StoreMenu",
+		"FeaturesRoadmapMenu"
 	],
 	"menu": [
 		{
@@ -156,9 +167,7 @@
 				"user.primaryRole": {
 					"in": [
 						"instructor",
-						"coordinator",
-						"administration-manager",
-						"admin"
+						"coordinator"
 					]
 				}
 			}
@@ -166,7 +175,7 @@
 		{
 			"id": "TeachingCaption",
 			"type": "caption",
-			"label": "Teaching",
+			"label": "Learning",
 			"order": 20
 		},
 		{
@@ -181,9 +190,7 @@
 					"in": [
 						"coordinator",
 						"team-lead",
-						"compliance-officer",
-						"administration-manager",
-						"admin"
+						"compliance-officer"
 					]
 				}
 			}
@@ -191,7 +198,15 @@
 		{
 			"id": "GroupLearning",
 			"label": "Lessons and assignments",
-			"order": 24
+			"order": 24,
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"instructor",
+						"coordinator"
+					]
+				}
+			}
 		},
 		{
 			"id": "GradesSimple",
@@ -202,8 +217,7 @@
 			"visibleIf": {
 				"user.primaryRole": {
 					"in": [
-						"instructor",
-						"admin"
+						"instructor"
 					]
 				}
 			}
@@ -217,7 +231,9 @@
 						"learner",
 						"hr",
 						"team-lead",
-						"compliance-officer"
+						"compliance-officer",
+						"administration-manager",
+						"admin"
 					]
 				}
 			}
@@ -233,7 +249,9 @@
 						"hr",
 						"team-lead",
 						"compliance-officer",
-						"confidential-counsellor"
+						"confidential-counsellor",
+						"administration-manager",
+						"admin"
 					]
 				}
 			}
@@ -333,7 +351,15 @@
 			"id": "LearnersCaption",
 			"type": "caption",
 			"label": "Learners",
-			"order": 40
+			"order": 40,
+			"visibleIf": {
+				"user.primaryRole": {
+					"notIn": [
+						"learner",
+						"guardian"
+					]
+				}
+			}
 		},
 		{
 			"id": "LearnersSimple",
@@ -373,7 +399,16 @@
 		},
 		{
 			"id": "GroupProgress",
-			"order": 46
+			"order": 46,
+			"visibleIf": {
+				"user.primaryRole": {
+					"in": [
+						"instructor",
+						"coordinator",
+						"team-lead"
+					]
+				}
+			}
 		},
 		{
 			"id": "CareSimple",
@@ -385,8 +420,7 @@
 				"user.primaryRole": {
 					"in": [
 						"instructor",
-						"coordinator",
-						"admin"
+						"coordinator"
 					]
 				}
 			}
@@ -398,7 +432,8 @@
 				"user.primaryRole": {
 					"in": [
 						"hr",
-						"administration-manager"
+						"administration-manager",
+						"admin"
 					]
 				}
 			}
@@ -444,6 +479,47 @@
 		{
 			"id": "ConcernReportsMenu",
 			"order": 61
+		},
+		{
+			"id": "ReportsCaption",
+			"type": "caption",
+			"label": "Reports and automation",
+			"section": "settings",
+			"order": -10
+		},
+		{
+			"id": "ReportsMenu",
+			"order": -9
+		},
+		{
+			"id": "FlowsMenu",
+			"order": -8
+		},
+		{
+			"id": "XapiStatementsMenu",
+			"order": -7
+		},
+		{
+			"id": "SetUpCaption",
+			"type": "caption",
+			"label": "Set up the app",
+			"section": "settings",
+			"order": 0
+		},
+		{
+			"id": "AboutCaption",
+			"type": "caption",
+			"label": "About the app",
+			"section": "settings",
+			"order": 990
+		},
+		{
+			"id": "StoreMenu",
+			"order": 991
+		},
+		{
+			"id": "FeaturesRoadmapMenu",
+			"order": 992
 		}
 	],
 	"nav": {
@@ -481,7 +557,7 @@
 	"pages": [
 		{
 			"id": "Dashboard",
-			"_note": "The Today dashboard (openspec/changes/simple-today-dashboard). In the simple structure the page at `/` becomes a typed dashboard for the four roles that teach or run teaching, and stays the role dashboard it was for everybody else and in the full structure. `when` names those roles, `page` changes the page's kind, `config` holds library widgets only. EVERY NUMBER IS A FILTER ON REAL FIELDS, AND THE SAME FILTER AS THE LIST IT OPENS: Lessons today and Lessons this week open the two session lists that carry the same filter themselves; Due this week, Unexcused today and the First today card pass their filter in the address. The card's count filter is written flat, because the library's count source writes a nested operator as JSON. THE BOARD (LqDashboard, 6 October 2026) PUTS THE PAGE IN TWO COLUMNS under the card: a main column eight wide with the lessons of today (an object-table on Session, startsAt today, opening a lesson and the Lessons today list), and the open attendance flags (an object-table on attendance-flag, lifecycle open, opening a flag and the Attendance flags list with the same filter), and a side column four wide with the four counters two by two, as the board draws them (the stacked tile of nextcloud-vue 2.64.0 puts the label on its own line, so two columns hold it; the horizontal card cut it to 'Assignm' and 'Unexcus', seen live 6 October 2026). The board has no week strip, so the simple Today has none (7 October 2026). The flags table carries no 'my groups': the flag names a cohort, not a teacher, and no filter says which cohorts are the reader's. WHAT THE DESIGN SHOWS AND THIS DOES NOT, because learniq has no data or page for it: to mark (submissions are listed per assignment), the present percentage, signals per pupil by name, messages from parents, the filled-in state per lesson and the Docent / Mentor switch. The three role dashboards stay one card away. THE CARD CARRIES `text` EQUAL TO ITS TITLE: nextcloud-vue 2.60.0 collapses any banner whose `content.text` is empty before it looks at `visibleWhen` (CnDashboardPage isCollapsedWidget), so a card with a title and no text could never show. The attention layout draws the title, not the text. A TILE'S `route` IS ALWAYS `{ name }`: a bare string is read as a path, so `SessionsToday` opened `/apps/learniq/SessionsToday`, which is no page (seen in a browser, 5 October 2026). THE OTHER DASHBOARDS CARD DRAWS ITS OWN FRAME: the card grid wraps itself in a titled card (default title Explore), so the dashboard's frame around it is switched off (`showTitle` and `showActions` false on the layout item) and the title is passed to the grid. The grid's own Actions menu has no switch.",
+			"_note": "The Today dashboard (openspec/changes/archive/2026-11-21-simple-today-dashboard). In the simple structure the page at `/` becomes a typed dashboard for the four roles that teach or run teaching, and stays the role dashboard it was for everybody else and in the full structure. `when` names those roles, `page` changes the page's kind, `config` holds library widgets only. EVERY NUMBER IS A FILTER ON REAL FIELDS, AND THE SAME FILTER AS THE LIST IT OPENS: Lessons today and Lessons this week open the two session lists that carry the same filter themselves; Due this week, Unexcused today and the First today card pass their filter in the address. The card's count filter is written flat, because the library's count source writes a nested operator as JSON. THE BOARD (LqDashboard, 6 October 2026) PUTS THE PAGE IN TWO COLUMNS under the card: a main column eight wide with the lessons of today (an object-table on Session, startsAt today, opening a lesson and the Lessons today list), and the open attendance flags (an object-table on attendance-flag, lifecycle open, opening a flag and the Attendance flags list with the same filter), and a side column four wide with the four counters two by two, as the board draws them (the stacked tile of nextcloud-vue 2.64.0 puts the label on its own line, so two columns hold it; the horizontal card cut it to 'Assignm' and 'Unexcus', seen live 6 October 2026). The board has no week strip, so the simple Today has none (7 October 2026). The flags table carries no 'my groups': the flag names a cohort, not a teacher, and no filter says which cohorts are the reader's. WHAT THE DESIGN SHOWS AND THIS DOES NOT, because learniq has no data or page for it: to mark (submissions are listed per assignment), the present percentage, signals per pupil by name, messages from parents, the filled-in state per lesson. The three role dashboards stay one card away. THE CARD CARRIES `text` EQUAL TO ITS TITLE: nextcloud-vue 2.60.0 collapses any banner whose `content.text` is empty before it looks at `visibleWhen` (CnDashboardPage isCollapsedWidget), so a card with a title and no text could never show. The attention layout draws the title, not the text. A TILE'S `route` IS ALWAYS `{ name }`: a bare string is read as a path, so `SessionsToday` opened `/apps/learniq/SessionsToday`, which is no page (seen in a browser, 5 October 2026). THE OTHER DASHBOARDS CARD DRAWS ITS OWN FRAME: the card grid wraps itself in a titled card (default title Explore), so the dashboard's frame around it is switched off (`showTitle` and `showActions` false on the layout item) and the title is passed to the grid. The grid's own Actions menu has no switch. THE ROLE CHOICE (Docent | Mentor, as LqDashboard draws it) is the page's `views`: Teacher holds the Today grid, Mentor the open attendance flags of the pupils the reader mentors (AttendanceFlag.mentorId = @me) with their count. Both views share the widget definitions in `widgets`; the page's own `layout` is empty so the grid sits in the region the choice controls. The library has no per-view visibility, so every role that gets Today sees both views; a teacher who mentors nobody sees the mentor view's empty text.",
 			"when": {
 				"user.primaryRole": {
 					"in": [
@@ -499,7 +575,6 @@
 			},
 			"config": {
 				"allowEdit": false,
-				"description": "Your lessons and what needs you today",
 				"headerActions": [
 					{
 						"id": "open-roll-call",
@@ -511,23 +586,13 @@
 				],
 				"widgets": [
 					{
-						"id": "today-greeting",
-						"type": "header",
-						"title": "Greeting",
-						"content": {
-							"title": "Today",
-							"showDate": true,
-							"ground": true
-						}
-					},
-					{
 						"id": "today-first",
 						"type": "banner",
 						"title": "First today",
 						"content": {
 							"layout": "attention",
 							"variant": "error",
-							"kicker": "First today",
+							"kicker": "Attendance",
 							"title": "Attendance flags nobody has picked up",
 							"text": "Attendance flags nobody has picked up",
 							"reason": "{value} attendance flags are still open. Open one to start the follow-up.",
@@ -820,22 +885,1133 @@
 								}
 							]
 						}
+					},
+					{
+						"id": "mentor-signals",
+						"type": "object-table",
+						"title": "Signals in my mentor group",
+						"content": {
+							"source": {
+								"register": "learniq",
+								"schema": "attendance-flag",
+								"filter": {
+									"lifecycle": "open",
+									"mentorId": "@me"
+								},
+								"limit": 8
+							},
+							"columns": [
+								{
+									"key": "learnerId",
+									"label": "Pupil",
+									"widget": "avatar"
+								},
+								{
+									"key": "flagKind",
+									"label": "Signal",
+									"widget": "badge"
+								},
+								{
+									"key": "daysSinceFlag",
+									"label": "Days",
+									"cellClass": "cn-cell--muted"
+								}
+							],
+							"rowRoute": "AttendanceFlagDetail",
+							"viewAllRoute": {
+								"name": "AttendanceFlags",
+								"query": {
+									"lifecycle": "open",
+									"mentorId": "@me"
+								}
+							},
+							"viewAllLabel": "View all",
+							"hideHeader": true,
+							"borderless": true,
+							"emptyText": "No open signals for the pupils you mentor"
+						}
+					},
+					{
+						"id": "mentor-open-signals",
+						"type": "stat",
+						"title": "Open signals",
+						"content": {
+							"label": "Open signals",
+							"icon": "AccountAlertOutline",
+							"layout": "stacked",
+							"format": {
+								"style": "decimal",
+								"decimals": 0
+							},
+							"source": {
+								"register": "learniq",
+								"schema": "attendance-flag",
+								"metric": "count",
+								"filter": {
+									"lifecycle": "open",
+									"mentorId": "@me"
+								}
+							},
+							"route": {
+								"name": "AttendanceFlags",
+								"query": {
+									"lifecycle": "open",
+									"mentorId": "@me"
+								}
+							}
+						}
+					},
+					{
+						"id": "today-nearing",
+						"type": "object-table",
+						"title": "Nearly 16 hours",
+						"content": {
+							"source": {
+								"register": "learniq",
+								"schema": "attendance-summary",
+								"filter": {
+									"thresholdNearing": true
+								},
+								"order": {
+									"unauthorisedHoursWindow": "desc"
+								},
+								"limit": 5
+							},
+							"columns": [
+								{
+									"key": "learnerId",
+									"label": "Pupil",
+									"widget": "avatar"
+								},
+								{
+									"key": "windowLabel",
+									"label": "Hours of the limit",
+									"cellClass": "cn-cell--muted"
+								}
+							],
+							"viewAllRoute": {
+								"name": "AttendanceNearingLimit"
+							},
+							"viewAllLabel": "View all",
+							"hideHeader": true,
+							"borderless": true,
+							"emptyText": "Nobody is close to the limit"
+						}
+					},
+					{
+						"id": "today-first-rule",
+						"type": "banner",
+						"title": "First today",
+						"_note": "today-first-per-school-role T1: the reader's own First today card. GET /api/today/first answers the first rule of her role's ordered list with a row, and for a rule Today has a card for its sentence (title), its line (reason) and the page its action opens (page, from lib/Service/Today/first-today-pages.json). The page asks once; a role only ever reads its own rule, and every page in that file is one each role of the rule reaches (REQ-STD-003). No rule, no title, no card.",
+						"content": {
+							"layout": "attention",
+							"variant": "warning",
+							"kicker": "First today",
+							"title": "{subject.title}",
+							"text": "{subject.title}",
+							"reason": "{subject.reason}",
+							"visibleWhen": {
+								"endpoint": "/apps/learniq/api/today/first",
+								"field": "title",
+								"op": "notEmpty"
+							},
+							"actions": [
+								{
+									"label": "Open",
+									"route": {
+										"name": "@subject.page"
+									}
+								}
+							]
+						}
+					},
+					{
+						"id": "mentor-first-rule",
+						"type": "banner",
+						"title": "First today",
+						"_note": "today-first-per-school-role T1: the reader's own First today card. GET /api/today/first answers the first rule of her role's ordered list with a row, and for a rule Today has a card for its sentence (title), its line (reason) and the page its action opens (page, from lib/Service/Today/first-today-pages.json). The page asks once; a role only ever reads its own rule, and every page in that file is one each role of the rule reaches (REQ-STD-003). No rule, no title, no card.",
+						"content": {
+							"layout": "attention",
+							"variant": "warning",
+							"kicker": "First today",
+							"title": "{subject.title}",
+							"text": "{subject.title}",
+							"reason": "{subject.reason}",
+							"visibleWhen": {
+								"endpoint": "/apps/learniq/api/today/first?view=mentor",
+								"field": "title",
+								"op": "notEmpty"
+							},
+							"actions": [
+								{
+									"label": "Open",
+									"route": {
+										"name": "@subject.page"
+									}
+								}
+							]
+						}
+					},
+					{
+						"id": "today-role-tiles",
+						"type": "stat-grid",
+						"title": "To do today",
+						"_note": "today-first-per-school-role T4: the reader's own role tiles. GET /apps/learniq/api/today/counts answers the tiles of her role (lib/Service/Today/TodayTiles::TILES) with `byTile`, the same tiles keyed by a camelCase id; a cell shows only while its count is in that answer, so a role draws only its own tiles, in the order the boards draw them. Each cell opens the list it counts. The widget is hidden when the role has no tiles.",
+						"visibleWhen": {
+							"endpoint": "/apps/learniq/api/today/counts",
+							"field": "tiles",
+							"op": "notEmpty"
+						},
+						"content": {
+							"columns": 4,
+							"endpointSource": {
+								"url": "/apps/learniq/api/today/counts"
+							},
+							"cells": [
+								{
+									"key": "registers-not-filled",
+									"label": "Registers to fill in",
+									"icon": "ClipboardCheckOutline",
+									"valueField": "byTile.registersNotFilled.count",
+									"format": {
+										"style": "decimal",
+										"decimals": 0
+									},
+									"route": {
+										"name": "RollCall"
+									},
+									"visibleWhen": {
+										"endpoint": "/apps/learniq/api/today/counts",
+										"field": "byTile.registersNotFilled.count",
+										"op": "gte",
+										"value": 0
+									},
+									"caption": "of {byTile.registersNotFilled.total} lessons so far"
+								},
+								{
+									"key": "submissions-to-mark",
+									"label": "Hand-ins to mark",
+									"icon": "FileDocumentEditOutline",
+									"valueField": "byTile.submissionsToMark.count",
+									"format": {
+										"style": "decimal",
+										"decimals": 0
+									},
+									"route": {
+										"name": "Assignments"
+									},
+									"visibleWhen": {
+										"endpoint": "/apps/learniq/api/today/counts",
+										"field": "byTile.submissionsToMark.count",
+										"op": "gte",
+										"value": 0
+									},
+									"caption": "over {byTile.submissionsToMark.assignments} assignments"
+								},
+								{
+									"key": "parent-reports-waiting",
+									"label": "Parent reports today",
+									"icon": "MessageAlertOutline",
+									"valueField": "byTile.parentReportsWaiting.count",
+									"format": {
+										"style": "decimal",
+										"decimals": 0
+									},
+									"route": {
+										"name": "ExcuseRequests"
+									},
+									"visibleWhen": {
+										"endpoint": "/apps/learniq/api/today/counts",
+										"field": "byTile.parentReportsWaiting.count",
+										"op": "gte",
+										"value": 0
+									},
+									"caption": "in {byTile.parentReportsWaiting.groups} groups"
+								},
+								{
+									"key": "conference-times",
+									"label": "Conference times to confirm",
+									"icon": "CalendarClockOutline",
+									"valueField": "byTile.conferenceTimes.count",
+									"format": {
+										"style": "decimal",
+										"decimals": 0
+									},
+									"route": {
+										"name": "ConferenceRounds"
+									},
+									"visibleWhen": {
+										"endpoint": "/apps/learniq/api/today/counts",
+										"field": "byTile.conferenceTimes.count",
+										"op": "gte",
+										"value": 0
+									},
+									"caption": "{byTile.conferenceTimes.chosen} of {byTile.conferenceTimes.total} chosen"
+								},
+								{
+									"key": "plans-ending",
+									"label": "Plans ending this week",
+									"icon": "ClipboardTextClockOutline",
+									"valueField": "byTile.plansEnding.count",
+									"format": {
+										"style": "decimal",
+										"decimals": 0
+									},
+									"route": {
+										"name": "LearningPlans"
+									},
+									"visibleWhen": {
+										"endpoint": "/apps/learniq/api/today/counts",
+										"field": "byTile.plansEnding.count",
+										"op": "gte",
+										"value": 0
+									},
+									"caption": "without an evaluation"
+								},
+								{
+									"key": "registers-filled-per-group",
+									"label": "Attendance per group",
+									"icon": "ClipboardListOutline",
+									"valueField": "byTile.registersFilledPerGroup.count",
+									"format": {
+										"style": "decimal",
+										"decimals": 0
+									},
+									"route": {
+										"name": "SessionsToday"
+									},
+									"visibleWhen": {
+										"endpoint": "/apps/learniq/api/today/counts",
+										"field": "byTile.registersFilledPerGroup.count",
+										"op": "gte",
+										"value": 0
+									},
+									"caption": "of {byTile.registersFilledPerGroup.total} registers filled"
+								},
+								{
+									"key": "insufficient-per-year",
+									"label": "Pupils with 3+ insufficient",
+									"icon": "AlertCircleOutline",
+									"valueField": "byTile.insufficientPerYear.count",
+									"format": {
+										"style": "decimal",
+										"decimals": 0
+									},
+									"route": {
+										"name": "FinalGrades",
+										"query": {
+											"passed": "false"
+										}
+									},
+									"visibleWhen": {
+										"endpoint": "/apps/learniq/api/today/counts",
+										"field": "byTile.insufficientPerYear.count",
+										"op": "gte",
+										"value": 0
+									},
+									"caption": "counted per school year"
+								},
+								{
+									"key": "lessons-cancelled-today",
+									"label": "Lessons cancelled today",
+									"icon": "CalendarRemoveOutline",
+									"valueField": "byTile.lessonsCancelledToday.count",
+									"format": {
+										"style": "decimal",
+										"decimals": 0
+									},
+									"route": {
+										"name": "SessionsToday"
+									},
+									"visibleWhen": {
+										"endpoint": "/apps/learniq/api/today/counts",
+										"field": "byTile.lessonsCancelledToday.count",
+										"op": "gte",
+										"value": 0
+									}
+								},
+								{
+									"key": "leave-to-decide",
+									"label": "Leave requests to decide",
+									"icon": "CalendarQuestion",
+									"valueField": "byTile.leaveToDecide.count",
+									"format": {
+										"style": "decimal",
+										"decimals": 0
+									},
+									"route": {
+										"name": "LeaveRequests",
+										"query": {
+											"lifecycle": "submitted"
+										}
+									},
+									"visibleWhen": {
+										"endpoint": "/apps/learniq/api/today/counts",
+										"field": "byTile.leaveToDecide.count",
+										"op": "gte",
+										"value": 0
+									}
+								}
+							]
+						}
+					},
+					{
+						"id": "today-parent-messages",
+						"type": "record-list",
+						"title": "Messages from parents",
+						"icon": "MessageTextOutline",
+						"_note": "today-first-per-school-role T5: the reader's newest three conversations with parents, read only. GET /apps/learniq/api/today/parent-messages reads portaliq's staff messaging with her own reference, so only conversations she takes part in come back (lib/Service/Today/ParentMessages, ParentMessagesService); each row is the conversation's title, the pupil it is about and its last line, newest first. Without portaliq the list is empty.",
+						"content": {
+							"endpointSource": {
+								"url": "/apps/learniq/api/today/parent-messages",
+								"responsePath": "threads"
+							},
+							"presentation": "rows",
+							"title": "{title}",
+							"meta": "{about}",
+							"text": "{line}",
+							"emptyText": "No messages from parents"
+						}
+					},
+					{
+						"id": "mentor-role-tiles",
+						"type": "stat-grid",
+						"title": "To do today",
+						"_note": "today-first-per-school-role T4: the reader's own role tiles. GET /apps/learniq/api/today/counts?view=mentor answers the tiles of her role (lib/Service/Today/TodayTiles::TILES) with `byTile`, the same tiles keyed by a camelCase id; a cell shows only while its count is in that answer, so a role draws only its own tiles, in the order the boards draw them. Each cell opens the list it counts. The widget is hidden when the role has no tiles.",
+						"visibleWhen": {
+							"endpoint": "/apps/learniq/api/today/counts?view=mentor",
+							"field": "tiles",
+							"op": "notEmpty"
+						},
+						"content": {
+							"columns": 4,
+							"endpointSource": {
+								"url": "/apps/learniq/api/today/counts?view=mentor"
+							},
+							"cells": [
+								{
+									"key": "conference-times",
+									"label": "Conference times to confirm",
+									"icon": "CalendarClockOutline",
+									"valueField": "byTile.conferenceTimes.count",
+									"format": {
+										"style": "decimal",
+										"decimals": 0
+									},
+									"route": {
+										"name": "ConferenceRounds"
+									},
+									"visibleWhen": {
+										"endpoint": "/apps/learniq/api/today/counts?view=mentor",
+										"field": "byTile.conferenceTimes.count",
+										"op": "gte",
+										"value": 0
+									},
+									"caption": "{byTile.conferenceTimes.chosen} of {byTile.conferenceTimes.total} chosen"
+								},
+								{
+									"key": "parent-reports-waiting",
+									"label": "Parent reports today",
+									"icon": "MessageAlertOutline",
+									"valueField": "byTile.parentReportsWaiting.count",
+									"format": {
+										"style": "decimal",
+										"decimals": 0
+									},
+									"route": {
+										"name": "ExcuseRequests"
+									},
+									"visibleWhen": {
+										"endpoint": "/apps/learniq/api/today/counts?view=mentor",
+										"field": "byTile.parentReportsWaiting.count",
+										"op": "gte",
+										"value": 0
+									},
+									"caption": "in {byTile.parentReportsWaiting.groups} groups"
+								}
+							]
+						}
+					},
+					{
+						"id": "mentor-parent-messages",
+						"type": "record-list",
+						"title": "Messages from parents",
+						"icon": "MessageTextOutline",
+						"_note": "today-first-per-school-role T5: the reader's newest three conversations with parents, read only. GET /apps/learniq/api/today/parent-messages reads portaliq's staff messaging with her own reference, so only conversations she takes part in come back (lib/Service/Today/ParentMessages, ParentMessagesService); each row is the conversation's title, the pupil it is about and its last line, newest first. Without portaliq the list is empty. The Mentor view narrows them to the pupils of her mentor class.",
+						"content": {
+							"endpointSource": {
+								"url": "/apps/learniq/api/today/parent-messages?view=mentor",
+								"responsePath": "threads"
+							},
+							"presentation": "rows",
+							"title": "{title}",
+							"meta": "{about}",
+							"text": "{line}",
+							"emptyText": "No messages from parents"
+						}
+					},
+					{
+						"id": "bpv-first-rule",
+						"type": "banner",
+						"title": "First today",
+						"_note": "bpv-coach-today-and-placement-board T5: the BPV-begeleider's own First today card. GET /api/today/first?view=bpv answers the first of her rules with a row (a student of hers without a company while the BPV period runs, a company visit of hers without a date, hour weeks of her students waiting more than seven days) with its sentence, its line and the page it opens (lib/Service/Today/first-today-pages.json). No rule, no title, no card. The BPV view (today-first-per-school-role T3: it joins the same switch) is offered only to a reader who is the school coach of at least one placement.",
+						"content": {
+							"layout": "attention",
+							"variant": "warning",
+							"kicker": "First today",
+							"title": "{subject.title}",
+							"text": "{subject.title}",
+							"reason": "{subject.reason}",
+							"visibleWhen": {
+								"endpoint": "/apps/learniq/api/today/first?view=bpv",
+								"field": "title",
+								"op": "notEmpty"
+							},
+							"actions": [
+								{
+									"label": "Open",
+									"route": {
+										"name": "@subject.page"
+									}
+								}
+							]
+						}
+					},
+					{
+						"id": "bpv-visits-week",
+						"type": "week-strip",
+						"title": "Company visits this week",
+						"_note": "bpv-coach-today-and-placement-board T5: her company visits of the week as day columns (LqRolB 'Bedrijfsbezoeken in week 42'), on the agreed moment (`plannedAt`). A visit without a date has no day: the First today card and the Company visits list name those.",
+						"content": {
+							"source": {
+								"register": "learniq",
+								"schema": "bpv-visit",
+								"filter": {
+									"schoolCoachId": "@me",
+									"lifecycle": "planned"
+								},
+								"extend": [
+									"learnerRef",
+									"bpvPlacementId"
+								]
+							},
+							"dateField": "plannedAt",
+							"titleField": "learnerRef.fullName",
+							"metaFields": [
+								"bpvPlacementId.trainingCompanyName",
+								"visitKind"
+							],
+							"emptyText": "No visits",
+							"moreRoute": "BpvVisits"
+						}
+					},
+					{
+						"id": "bpv-phases",
+						"type": "stat-grid",
+						"title": "Students per phase",
+						"_note": "bpv-coach-today-and-placement-board T5: her students per phase (LqRolB 'Studenten per fase'), counted on bpv-placement where she is the school coach, one figure per phase in the board's column order, each opening the placement board on that phase; the header link opens the whole board ('Naar het bord').",
+						"headerLink": {
+							"label": "To the board",
+							"route": "BpvPlacements",
+							"query": {
+								"_view": "board"
+							}
+						},
+						"content": {
+							"columns": 3,
+							"cells": [
+								{
+									"key": "searching",
+									"label": "Searching",
+									"format": {
+										"style": "decimal",
+										"decimals": 0
+									},
+									"source": {
+										"register": "learniq",
+										"schema": "bpv-placement",
+										"metric": "count",
+										"filter": {
+											"schoolCoachId": "@me",
+											"phase": "searching"
+										}
+									},
+									"route": {
+										"name": "BpvPlacements",
+										"query": {
+											"_view": "board",
+											"phase": "searching"
+										}
+									}
+								},
+								{
+									"key": "agreement",
+									"label": "Agreement",
+									"format": {
+										"style": "decimal",
+										"decimals": 0
+									},
+									"source": {
+										"register": "learniq",
+										"schema": "bpv-placement",
+										"metric": "count",
+										"filter": {
+											"schoolCoachId": "@me",
+											"phase": "agreement"
+										}
+									},
+									"route": {
+										"name": "BpvPlacements",
+										"query": {
+											"_view": "board",
+											"phase": "agreement"
+										}
+									}
+								},
+								{
+									"key": "running",
+									"label": "Running",
+									"format": {
+										"style": "decimal",
+										"decimals": 0
+									},
+									"source": {
+										"register": "learniq",
+										"schema": "bpv-placement",
+										"metric": "count",
+										"filter": {
+											"schoolCoachId": "@me",
+											"phase": "running"
+										}
+									},
+									"route": {
+										"name": "BpvPlacements",
+										"query": {
+											"_view": "board",
+											"phase": "running"
+										}
+									}
+								},
+								{
+									"key": "assessment",
+									"label": "Being assessed",
+									"format": {
+										"style": "decimal",
+										"decimals": 0
+									},
+									"source": {
+										"register": "learniq",
+										"schema": "bpv-placement",
+										"metric": "count",
+										"filter": {
+											"schoolCoachId": "@me",
+											"phase": "assessment"
+										}
+									},
+									"route": {
+										"name": "BpvPlacements",
+										"query": {
+											"_view": "board",
+											"phase": "assessment"
+										}
+									}
+								},
+								{
+									"key": "rounding-off",
+									"label": "Rounding off",
+									"format": {
+										"style": "decimal",
+										"decimals": 0
+									},
+									"source": {
+										"register": "learniq",
+										"schema": "bpv-placement",
+										"metric": "count",
+										"filter": {
+											"schoolCoachId": "@me",
+											"phase": "rounding-off"
+										}
+									},
+									"route": {
+										"name": "BpvPlacements",
+										"query": {
+											"_view": "board",
+											"phase": "rounding-off"
+										}
+									}
+								},
+								{
+									"key": "done",
+									"label": "Done",
+									"format": {
+										"style": "decimal",
+										"decimals": 0
+									},
+									"source": {
+										"register": "learniq",
+										"schema": "bpv-placement",
+										"metric": "count",
+										"filter": {
+											"schoolCoachId": "@me",
+											"phase": "done"
+										}
+									},
+									"route": {
+										"name": "BpvPlacements",
+										"query": {
+											"_view": "board",
+											"phase": "done"
+										}
+									}
+								}
+							]
+						}
+					},
+					{
+						"id": "bpv-hours-per-company",
+						"type": "record-list",
+						"title": "Hours waiting for a company",
+						"_note": "bpv-coach-today-and-placement-board T5: LqRolB 'Uren die wachten op een leerbedrijf, langst wachtend eerst'. GET /api/today/bpv-hours answers the submitted hour weeks of the placements she coaches, per training company, the longest waiting company first. The board's 'Herinneren' (a notice to the praktijkopleider) is not drawn: the praktijkopleider is a portal user that no notification reaches yet (the portal-task seam addresses no trainer subject, site-workplace-trainer-portal-design T5).",
+						"content": {
+							"endpointSource": {
+								"url": "/apps/learniq/api/today/bpv-hours",
+								"responsePath": "companies"
+							},
+							"presentation": "rows",
+							"title": "{company}",
+							"meta": "{students} students · {weeks} weeks · waiting since {oldestWeek}",
+							"trailing": [
+								"{hours} h"
+							],
+							"emptyText": "No hours waiting for a company"
+						}
+					}
+				],
+				"layout": [],
+				"title": "Today",
+				"greeting": "date",
+				"subtitleByRole": null,
+				"subtitleOfSchoolByRole": null,
+				"showActionsMenu": false,
+				"showWidgetActions": false,
+				"viewsLabel": "Role",
+				"defaultView": "teacher",
+				"views": [
+					{
+						"id": "teacher",
+						"label": "Teacher",
+						"layout": [
+							{
+								"id": "t1",
+								"widgetId": "today-first-rule",
+								"gridX": 0,
+								"gridY": 1,
+								"gridWidth": 8,
+								"gridHeight": 2,
+								"showTitle": false,
+								"sizeToContent": true
+							},
+							{
+								"id": "t2",
+								"widgetId": "today-first",
+								"gridX": 8,
+								"gridY": 1,
+								"gridWidth": 4,
+								"gridHeight": 2,
+								"showTitle": false,
+								"sizeToContent": true
+							},
+							{
+								"id": "t3",
+								"widgetId": "today-lessons-today",
+								"gridX": 8,
+								"gridY": 3,
+								"gridWidth": 2,
+								"gridHeight": 2,
+								"showTitle": false,
+								"dateChip": false
+							},
+							{
+								"id": "t4",
+								"widgetId": "today-lessons-week",
+								"gridX": 10,
+								"gridY": 3,
+								"gridWidth": 2,
+								"gridHeight": 2,
+								"showTitle": false,
+								"dateChip": false
+							},
+							{
+								"id": "t5",
+								"widgetId": "today-due-week",
+								"gridX": 8,
+								"gridY": 5,
+								"gridWidth": 2,
+								"gridHeight": 2,
+								"showTitle": false,
+								"dateChip": false
+							},
+							{
+								"id": "t6",
+								"widgetId": "today-unexcused",
+								"gridX": 10,
+								"gridY": 5,
+								"gridWidth": 2,
+								"gridHeight": 2,
+								"showTitle": false,
+								"dateChip": false
+							},
+							{
+								"id": "t9",
+								"widgetId": "today-lessons",
+								"gridX": 0,
+								"gridY": 3,
+								"gridWidth": 8,
+								"gridHeight": 4,
+								"showTitle": true,
+								"headerLink": {
+									"label": "Week timetable",
+									"route": "MyTimetable"
+								}
+							},
+							{
+								"id": "t10",
+								"widgetId": "today-signals",
+								"gridX": 0,
+								"gridY": 7,
+								"gridWidth": 8,
+								"gridHeight": 5,
+								"showTitle": true,
+								"headerLink": {
+									"label": "All learners",
+									"route": "LearnerProfiles"
+								}
+							},
+							{
+								"id": "t11",
+								"widgetId": "today-nearing",
+								"gridX": 8,
+								"gridY": 7,
+								"gridWidth": 4,
+								"gridHeight": 5,
+								"showTitle": true
+							},
+							{
+								"id": "t12",
+								"widgetId": "today-role-tiles",
+								"gridX": 0,
+								"gridY": 12,
+								"gridWidth": 8,
+								"gridHeight": 2,
+								"showTitle": true,
+								"sizeToContent": true
+							},
+							{
+								"id": "t13",
+								"widgetId": "today-parent-messages",
+								"gridX": 8,
+								"gridY": 12,
+								"gridWidth": 4,
+								"gridHeight": 2,
+								"showTitle": true,
+								"sizeToContent": true
+							},
+							{
+								"id": "t8",
+								"widgetId": "today-dashboards",
+								"gridX": 0,
+								"gridY": 14,
+								"gridWidth": 12,
+								"gridHeight": 3,
+								"showTitle": false,
+								"showActions": false
+							}
+						]
+					},
+					{
+						"id": "mentor",
+						"label": "Mentor",
+						"visibleWhen": {
+							"endpoint": "/apps/learniq/api/timetable/mentor-classes",
+							"field": "classes",
+							"op": "notEmpty"
+						},
+						"layout": [
+							{
+								"id": "m0",
+								"widgetId": "mentor-first-rule",
+								"gridX": 0,
+								"gridY": 1,
+								"gridWidth": 12,
+								"gridHeight": 2,
+								"showTitle": false,
+								"sizeToContent": true
+							},
+							{
+								"id": "m1",
+								"widgetId": "mentor-signals",
+								"gridX": 0,
+								"gridY": 3,
+								"gridWidth": 8,
+								"gridHeight": 6,
+								"showTitle": true
+							},
+							{
+								"id": "m2",
+								"widgetId": "mentor-open-signals",
+								"gridX": 8,
+								"gridY": 3,
+								"gridWidth": 2,
+								"gridHeight": 2,
+								"showTitle": false,
+								"dateChip": false
+							},
+							{
+								"id": "m4",
+								"widgetId": "today-nearing",
+								"gridX": 8,
+								"gridY": 5,
+								"gridWidth": 4,
+								"gridHeight": 4,
+								"showTitle": true
+							},
+							{
+								"id": "m5",
+								"widgetId": "mentor-role-tiles",
+								"gridX": 0,
+								"gridY": 9,
+								"gridWidth": 8,
+								"gridHeight": 2,
+								"showTitle": true,
+								"sizeToContent": true
+							},
+							{
+								"id": "m6",
+								"widgetId": "mentor-parent-messages",
+								"gridX": 8,
+								"gridY": 9,
+								"gridWidth": 4,
+								"gridHeight": 2,
+								"showTitle": true,
+								"sizeToContent": true
+							},
+							{
+								"id": "m3",
+								"widgetId": "today-dashboards",
+								"gridX": 0,
+								"gridY": 11,
+								"gridWidth": 12,
+								"gridHeight": 3,
+								"showTitle": false,
+								"showActions": false
+							}
+						],
+						"emptyText": "No open signals for the pupils you mentor"
+					},
+					{
+						"id": "bpv",
+						"label": "BPV coach",
+						"visibleWhen": {
+							"source": {
+								"register": "learniq",
+								"schema": "bpv-placement",
+								"filter": {
+									"schoolCoachId": "@me"
+								}
+							},
+							"op": "gt",
+							"value": 0
+						},
+						"layout": [
+							{
+								"id": "b0",
+								"widgetId": "bpv-first-rule",
+								"gridX": 0,
+								"gridY": 1,
+								"gridWidth": 12,
+								"gridHeight": 2,
+								"showTitle": false,
+								"sizeToContent": true
+							},
+							{
+								"id": "b1",
+								"widgetId": "bpv-visits-week",
+								"gridX": 0,
+								"gridY": 3,
+								"gridWidth": 12,
+								"gridHeight": 4,
+								"showTitle": true,
+								"headerLink": {
+									"label": "All visits",
+									"route": "BpvVisits"
+								}
+							},
+							{
+								"id": "b2",
+								"widgetId": "bpv-phases",
+								"gridX": 0,
+								"gridY": 7,
+								"gridWidth": 6,
+								"gridHeight": 3,
+								"showTitle": true
+							},
+							{
+								"id": "b4",
+								"widgetId": "bpv-hours-per-company",
+								"gridX": 6,
+								"gridY": 7,
+								"gridWidth": 6,
+								"gridHeight": 3,
+								"showTitle": true,
+								"headerLink": {
+									"label": "BPV placements",
+									"route": "BpvPlacements"
+								}
+							},
+							{
+								"id": "b3",
+								"widgetId": "today-dashboards",
+								"gridX": 0,
+								"gridY": 10,
+								"gridWidth": 12,
+								"gridHeight": 3,
+								"showTitle": false,
+								"showActions": false
+							}
+						],
+						"emptyText": "No placements where you are the school coach"
+					}
+				]
+			}
+		},
+		{
+			"id": "Dashboard",
+			"_note": "The exam committee's Today (exam-committee-today-and-keuzedelen T3, board esdoornveen/LqRolC). In a school (vo, mbo, he) the compliance officers are the exam committee (DashboardRoleService::EXAM_BOARD_GROUP), so for them the page at `/` becomes their own day: the First today card (GET /api/today/first: an objection past half its term, then results not established five working days after grading), the results to establish per sitting and the open items of the next meeting (GET /api/today/exam-committee), and the coming sittings. A company's or training provider's compliance officer keeps the role dashboard: it has no exam committee. The meeting itself and its minutes stay out (decidiq handles meetings); the agenda only lists what waits for the committee. Every page it opens is one the compliance landing offers the committee (Exam objections, Exam sittings).",
+			"when": {
+				"user.primaryRole": {
+					"in": [
+						"compliance-officer"
+					]
+				},
+				"workspace.segment": {
+					"in": [
+						"vo",
+						"mbo",
+						"he"
+					]
+				}
+			},
+			"page": {
+				"type": "dashboard",
+				"title": "Today",
+				"component": null
+			},
+			"config": {
+				"allowEdit": false,
+				"title": "Today",
+				"greeting": "date",
+				"showActionsMenu": false,
+				"showWidgetActions": false,
+				"widgets": [
+					{
+						"id": "exam-first-rule",
+						"type": "banner",
+						"title": "First today",
+						"content": {
+							"layout": "attention",
+							"variant": "warning",
+							"kicker": "First today",
+							"title": "{subject.title}",
+							"text": "{subject.title}",
+							"reason": "{subject.reason}",
+							"visibleWhen": {
+								"endpoint": "/apps/learniq/api/today/first",
+								"field": "title",
+								"op": "notEmpty"
+							},
+							"actions": [
+								{
+									"label": "Open",
+									"route": {
+										"name": "@subject.page"
+									}
+								}
+							]
+						}
+					},
+					{
+						"id": "exam-results-per-sitting",
+						"type": "record-list",
+						"title": "Results to establish",
+						"content": {
+							"endpointSource": {
+								"url": "/apps/learniq/api/today/exam-committee",
+								"responsePath": "sittings"
+							},
+							"presentation": "rows",
+							"title": "{title}",
+							"meta": "{startsAt|date}",
+							"trailing": [
+								"{results} results"
+							],
+							"rowRoute": "ExamSittingDetail",
+							"rowIdField": "sittingId",
+							"emptyText": "No results to establish"
+						}
+					},
+					{
+						"id": "exam-agenda",
+						"type": "record-list",
+						"title": "Open items for the next meeting",
+						"content": {
+							"endpointSource": {
+								"url": "/apps/learniq/api/today/exam-committee",
+								"responsePath": "agenda"
+							},
+							"presentation": "rows",
+							"title": "{item}",
+							"trailing": [
+								"{count}"
+							],
+							"emptyText": "Nothing waits for the committee"
+						}
+					},
+					{
+						"id": "exam-coming-sittings",
+						"type": "record-list",
+						"title": "Coming sittings",
+						"content": {
+							"register": "learniq",
+							"schema": "exam-sitting",
+							"filter": {
+								"lifecycle": "planned",
+								"startsAt": {
+									"gte": "@today"
+								}
+							},
+							"sort": {
+								"field": "startsAt",
+								"direction": "asc"
+							},
+							"limit": 5,
+							"extend": [
+								"assessmentId"
+							],
+							"presentation": "rows",
+							"title": "{assessmentId.title}",
+							"meta": "{startsAt|date}",
+							"trailing": [
+								"{headcount} candidates"
+							],
+							"rowRoute": "ExamSittingDetail",
+							"emptyText": "No sittings planned"
+						}
 					}
 				],
 				"layout": [
 					{
-						"id": "t1",
-						"widgetId": "today-greeting",
-						"gridX": 0,
-						"gridY": 0,
-						"gridWidth": 12,
-						"gridHeight": 1,
-						"showTitle": false,
-						"sizeToContent": true
-					},
-					{
-						"id": "t2",
-						"widgetId": "today-first",
+						"id": "e0",
+						"widgetId": "exam-first-rule",
 						"gridX": 0,
 						"gridY": 1,
 						"gridWidth": 12,
@@ -844,84 +2020,45 @@
 						"sizeToContent": true
 					},
 					{
-						"id": "t3",
-						"widgetId": "today-lessons-today",
-						"gridX": 8,
-						"gridY": 3,
-						"gridWidth": 2,
-						"gridHeight": 2,
-						"showTitle": false,
-						"dateChip": false
-					},
-					{
-						"id": "t4",
-						"widgetId": "today-lessons-week",
-						"gridX": 10,
-						"gridY": 3,
-						"gridWidth": 2,
-						"gridHeight": 2,
-						"showTitle": false,
-						"dateChip": false
-					},
-					{
-						"id": "t5",
-						"widgetId": "today-due-week",
-						"gridX": 8,
-						"gridY": 5,
-						"gridWidth": 2,
-						"gridHeight": 2,
-						"showTitle": false,
-						"dateChip": false
-					},
-					{
-						"id": "t6",
-						"widgetId": "today-unexcused",
-						"gridX": 10,
-						"gridY": 5,
-						"gridWidth": 2,
-						"gridHeight": 2,
-						"showTitle": false,
-						"dateChip": false
-					},
-					{
-						"id": "t9",
-						"widgetId": "today-lessons",
+						"id": "e1",
+						"widgetId": "exam-results-per-sitting",
 						"gridX": 0,
 						"gridY": 3,
-						"gridWidth": 8,
+						"gridWidth": 6,
 						"gridHeight": 4,
 						"showTitle": true,
 						"headerLink": {
-							"label": "Week timetable",
-							"route": "MyTimetable"
+							"label": "Exam sittings",
+							"route": "ExamSittings"
 						}
 					},
 					{
-						"id": "t10",
-						"widgetId": "today-signals",
-						"gridX": 0,
-						"gridY": 7,
-						"gridWidth": 8,
-						"gridHeight": 5,
+						"id": "e2",
+						"widgetId": "exam-agenda",
+						"gridX": 6,
+						"gridY": 3,
+						"gridWidth": 6,
+						"gridHeight": 4,
 						"showTitle": true,
 						"headerLink": {
-							"label": "All learners",
-							"route": "LearnerProfiles"
+							"label": "Exam objections",
+							"route": "ExamObjections"
 						}
 					},
 					{
-						"id": "t8",
-						"widgetId": "today-dashboards",
+						"id": "e3",
+						"widgetId": "exam-coming-sittings",
 						"gridX": 0,
-						"gridY": 12,
+						"gridY": 7,
 						"gridWidth": 12,
-						"gridHeight": 3,
-						"showTitle": false,
-						"showActions": false
+						"gridHeight": 4,
+						"showTitle": true,
+						"headerLink": {
+							"label": "Exam sittings",
+							"route": "ExamSittings"
+						}
 					}
-				],
-				"showHeader": false,
-				"showWidgetActions": false
+				]
 			}
 		},
 		{
@@ -967,6 +2104,75 @@
 			}
 		},
 		{
+			"id": "GradeEntries",
+			"_note": "LqLlCijfers: the learner reads their own grades in the one grade-entries list, as the lenses Mijn cijfers / Concept / Alle cijfers, not on a page of their own (gate 68, duplicate index pages). The GradeEntry read rule already limits a learner to their own released entries, so the lens filters narrow presentation and grant nothing. The list is read only, repeats no learner column, and a row opens GradeImpactDetail, what that grade does to the period average. Only the full structure lacks this overlay: there a learner gets the staff lenses, whose All grades lens is the same list.",
+			"when": {
+				"user.primaryRole": {
+					"in": [
+						"learner"
+					]
+				}
+			},
+			"config": {
+				"readOnly": true,
+				"headerButtons": [],
+				"rowRoute": "GradeImpactDetail",
+				"searchPlaceholder": "Search by course",
+				"quickFilters": [
+					{
+						"label": "My grades",
+						"filter": {
+							"learnerId": "@me",
+							"lifecycle": "published"
+						},
+						"showCount": true,
+						"default": true
+					},
+					{
+						"label": "Draft",
+						"filter": {
+							"lifecycle": "concept"
+						},
+						"showCount": true
+					},
+					{
+						"label": "All grades",
+						"filter": {},
+						"showCount": true
+					}
+				],
+				"columns": [
+					{
+						"key": "courseName",
+						"label": "Course"
+					},
+					{
+						"key": "value",
+						"label": "Grade",
+						"widget": "number"
+					},
+					{
+						"key": "weight",
+						"label": "Weight"
+					},
+					{
+						"key": "period",
+						"label": "Period"
+					},
+					{
+						"key": "gradedAt",
+						"label": "Graded At",
+						"formatter": "date"
+					},
+					{
+						"key": "comment",
+						"label": "Comment"
+					}
+				],
+				"massActionNameField": "courseName"
+			}
+		},
+		{
 			"id": "LearnerProfiles",
 			"configAppend": {
 				"headerActions": [
@@ -976,6 +2182,13 @@
 						"icon": "AccountGroup",
 						"handler": "navigate",
 						"route": "Enrolments"
+					},
+					{
+						"id": "open-sign-up-requests",
+						"label": "Sign-up requests",
+						"icon": "AccountClockOutline",
+						"handler": "navigate",
+						"route": "SignUpRequests"
 					},
 					{
 						"id": "open-credentials",
@@ -1011,6 +2224,20 @@
 						"icon": "CalendarRemoveOutline",
 						"handler": "navigate",
 						"route": "ExcuseRequests"
+					},
+					{
+						"id": "open-leave-requests",
+						"label": "Leave to decide",
+						"icon": "CalendarQuestion",
+						"handler": "navigate",
+						"route": "LeaveRequests"
+					},
+					{
+						"id": "open-nearing-limit",
+						"label": "Nearly 16 hours",
+						"icon": "AlertCircleOutline",
+						"handler": "navigate",
+						"route": "AttendanceNearingLimit"
 					}
 				]
 			}
@@ -1138,13 +2365,10 @@
 				"headerActions": [
 					{
 						"id": "report-a-concern",
-						"type": "open-form",
+						"type": "open-modal",
+						"target": "ConcernReportDialog",
 						"label": "Report a concern",
-						"formTitle": "Report a concern",
 						"icon": "ShieldAlertOutline",
-						"register": "learniq",
-						"schema": "concern-report",
-						"successMessage": "Your concern is sent to the confidential counsellor.",
 						"props": {
 							"learnerId": "@objectId"
 						}
@@ -1178,6 +2402,160 @@
 							"learnerId"
 						],
 						"successMessage": "Your concern is sent to the confidential counsellor."
+					}
+				]
+			}
+		},
+		{
+			"id": "ExchangeJobs",
+			"configAppend": {
+				"headerActions": [
+					{
+						"id": "open-exchange-rejections",
+						"label": "Rejections",
+						"icon": "CloseCircleOutline",
+						"handler": "navigate",
+						"route": "ExchangeRejections"
+					},
+					{
+						"id": "open-teldatum-checks",
+						"label": "Teldatum checks",
+						"icon": "CalendarCheckOutline",
+						"handler": "navigate",
+						"route": "TeldatumChecks"
+					},
+					{
+						"id": "open-parent-reviews",
+						"label": "Parent reviews",
+						"icon": "AccountCheckOutline",
+						"handler": "navigate",
+						"route": "DossierReviews"
+					}
+				]
+			}
+		},
+		{
+			"id": "GroupPupils",
+			"_note": "LqLijst vaartveld (vo): the mentor's list shows a signal, absence this year, the grade average and the mentor talk, with the pupils who have a signal first. The data is the same GET /api/pupil-list; only the columns and the order change.",
+			"when": {
+				"workspace.segment": "vo"
+			},
+			"config": {
+				"columns": [
+					{
+						"key": "name",
+						"label": "Pupil",
+						"widget": "avatar",
+						"widgetProps": {
+							"nameField": "name"
+						}
+					},
+					{
+						"key": "signal",
+						"label": "Signal",
+						"enum": [
+							"attendance-flag",
+							"nearing-threshold",
+							"insufficient-grades"
+						],
+						"enumLabels": {
+							"attendance-flag": "Attendance signal",
+							"nearing-threshold": "Close to the absence limit",
+							"insufficient-grades": "Three or more insufficient grades"
+						}
+					},
+					{
+						"key": "absentDays",
+						"label": "Absent this year",
+						"widget": "number",
+						"widgetProps": {
+							"unit": {
+								"one": "{count} day",
+								"other": "{count} days"
+							}
+						}
+					},
+					{
+						"key": "average",
+						"label": "Average",
+						"widget": "number"
+					},
+					{
+						"key": "conferenceAt",
+						"label": "Mentor talk",
+						"formatter": "datetime"
+					}
+				],
+				"sourceConfig": {
+					"url": "/apps/learniq/api/pupil-list",
+					"rowsPath": "results",
+					"totalPath": "total",
+					"refusedText": "Only the teachers of a group and school-wide staff see its pupils.",
+					"sort": "signal-first"
+				}
+			}
+		},
+		{
+			"id": "GroupPupils",
+			"_note": "LqLijst esdoornveen (mbo): a student's company, approved placement hours, absence and the placement's state, from the running bpv-placement in GET /api/pupil-list.",
+			"when": {
+				"workspace.segment": "mbo"
+			},
+			"config": {
+				"columns": [
+					{
+						"key": "name",
+						"label": "Student",
+						"widget": "avatar",
+						"widgetProps": {
+							"nameField": "name"
+						}
+					},
+					{
+						"key": "company",
+						"label": "Company"
+					},
+					{
+						"key": "bpvHoursApproved",
+						"label": "Approved placement hours",
+						"widget": "number",
+						"widgetProps": {
+							"unit": {
+								"one": "{count} hour",
+								"other": "{count} hours"
+							}
+						}
+					},
+					{
+						"key": "absentDays",
+						"label": "Absent this year",
+						"widget": "number",
+						"widgetProps": {
+							"unit": {
+								"one": "{count} day",
+								"other": "{count} days"
+							}
+						}
+					},
+					{
+						"key": "placementState",
+						"label": "Status",
+						"enum": [
+							"proposed",
+							"sbb-verification-pending",
+							"confirmed",
+							"active",
+							"completed",
+							"terminated"
+						],
+						"enumLabels": {
+							"proposed": "Proposed",
+							"sbb-verification-pending": "Awaiting SBB check",
+							"confirmed": "Confirmed",
+							"active": "Placement running",
+							"completed": "Completed",
+							"terminated": "Ended early"
+						}
 					}
 				]
 			}

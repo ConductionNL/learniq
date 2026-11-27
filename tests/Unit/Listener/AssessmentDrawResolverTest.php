@@ -38,6 +38,7 @@ use OCA\Learniq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Tests for AssessmentDrawResolver::handle() on ObjectCreatedEvent<AssessmentResult>.
@@ -130,7 +131,10 @@ class AssessmentDrawResolverTest extends TestCase {
 		);
 
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null): ObjectEntity {
+			function (array|ObjectEntity $object, ObjectSaveOptions $options = new ObjectSaveOptions()): ObjectEntity {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
 				$this->savedObjects[] = [
 					'register' => (string)$register,
 					'schema' => (string)$schema,
@@ -291,6 +295,69 @@ class AssessmentDrawResolverTest extends TestCase {
 		self::assertSame($itemIds, array_unique($itemIds));
 
 	}//end testRandomDrawDrawsConfiguredCountFromFilteredPool()
+
+	/**
+	 * Two learners starting the same random-draw test each get their own five
+	 * items from a pool of twenty: every attempt stores its own set, and the
+	 * sets are drawn independently, so over ten pairs they do not always match.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/assessment/spec.md#requirement-each-learner-gets-their-own-random-draw-from-the-item-pool
+	 */
+	public function testTwoLearnersEachGetTheirOwnDraw(): void {
+		$this->seed(
+			schema: 'exam',
+			record: [
+				'id' => 'assessment-1',
+				'uuid' => 'assessment-1',
+				'tenant_id' => 'tenant-a',
+				'itemSelectionMode' => 'random-draw',
+				'itemPoolConfig' => ['itemBankId' => 'bank-1', 'drawCount' => 5],
+				'shuffleItemOrder' => false,
+				'shuffleAnswerOptions' => false,
+			]
+		);
+		$pool = [];
+		for ($i = 1; $i <= 20; $i++) {
+			$pool[] = "item-$i";
+			$this->seed(
+				schema: 'item',
+				record: [
+					'id' => "item-$i",
+					'uuid' => "item-$i",
+					'tenant_id' => 'tenant-a',
+					'itemBankId' => 'bank-1',
+					'lifecycle' => 'published',
+					'maxScore' => 1,
+				]
+			);
+		}
+
+		$pairsThatDiffer = 0;
+		for ($pair = 0; $pair < 10; $pair++) {
+			$sets = [];
+			foreach (['learner-a', 'learner-b'] as $learner) {
+				$this->savedObjects = [];
+				$attempt = ['id' => "result-$pair-$learner", 'assessmentId' => 'assessment-1', 'learnerId' => $learner, 'tenant_id' => 'tenant-a'];
+				$this->makeResolver()->handle(event: $this->makeResultEvent(data: $attempt));
+				$drawn = $this->savedDrawnItemRefs();
+				self::assertIsArray(actual: $drawn, message: 'every attempt stores its own drawnItemRefs');
+				$ids = array_column(array: $drawn, column_key: 'itemId');
+				self::assertCount(expectedCount: 5, haystack: $ids);
+				self::assertSame(expected: $ids, actual: array_values(array: array_unique(array: $ids)));
+				self::assertSame(expected: [], actual: array_diff($ids, $pool));
+				sort(array: $ids);
+				$sets[] = $ids;
+			}
+
+			if ($sets[0] !== $sets[1]) {
+				$pairsThatDiffer++;
+			}
+		}
+
+		self::assertGreaterThan(expected: 0, actual: $pairsThatDiffer, message: 'ten pairs of independent draws never all match');
+	}//end testTwoLearnersEachGetTheirOwnDraw()
 
 	/**
 	 * A drawn set never includes two items from the same variant group —

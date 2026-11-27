@@ -22,13 +22,14 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Portal;
 
+use OCA\Learniq\Kernel\Contracts\EmployerBookingStepsInterface;
 use OCP\IL10N;
 use OCP\L10N\IFactory;
 use Psr\Log\LoggerInterface;
@@ -37,9 +38,9 @@ use Throwable;
 /**
  * Answers a booking's steps.
  *
- * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
  */
-class EmployerBookingSteps {
+class EmployerBookingSteps implements EmployerBookingStepsInterface {
 
 	/**
 	 * Constructor.
@@ -64,7 +65,7 @@ class EmployerBookingSteps {
 	 *
 	 * @return array<int, array{label: string, state: string, description?: string, date?: string}>
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
 	 */
 	public function forBooking(string $bookingId): array {
 		try {
@@ -89,7 +90,7 @@ class EmployerBookingSteps {
 	 *
 	 * @return array<int, array{label: string, state: string, description?: string, date?: string}>
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
 	 */
 	public function stepsOf(array $booking, ?IL10N $l10n): array {
 		$note = (string)($booking['statusNote'] ?? '');

@@ -3,6 +3,9 @@
 /**
  * Learniq Assessment Attempt Gate Listener
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Refuses to create an AssessmentResult (start an attempt) outside the
  * Assessment's availableFrom/availableUntil window, without the right access
  * code when the Assessment has one, or when the learner has used all of the
@@ -41,8 +44,6 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
@@ -54,11 +55,12 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\AssessmentAttemptLimits;
-use OCA\Learniq\Service\AssessmentResultAudience;
-use OCA\Learniq\Service\AssessmentResultPortalStamp;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\AssessmentAttemptLimitsInterface;
+use OCA\Learniq\Kernel\Contracts\AssessmentResultAudienceInterface;
+use OCA\Learniq\Kernel\Contracts\AssessmentResultPortalStampInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -84,25 +86,25 @@ class AssessmentAttemptGateListener implements IEventListener {
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService OR object access service.
-	 * @param ListenerSchemaResolver $schemaResolver Resolves the entity's schema slug.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Resolves the entity's schema slug.
 	 * @param IUserSession $userSession NC user session.
 	 * @param IGroupManager $groupManager NC group manager (admin check).
-	 * @param AssessmentResultAudience $audience Stamps who may read the attempt (learniq#949).
-	 * @param AssessmentResultPortalStamp $portalStamp Stamps learnerRef and the test's title for the portal.
+	 * @param AssessmentResultAudienceInterface $audience Stamps who may read the attempt (learniq#949).
+	 * @param AssessmentResultPortalStampInterface $portalStamp Stamps learnerRef and the test's title for the portal.
 	 * @param LoggerInterface $logger PSR logger.
-	 * @param AssessmentAttemptLimits $limits Window, access code, attempts left and the server's start stamp.
+	 * @param AssessmentAttemptLimitsInterface $limits Window, access code, attempts left and the server's start stamp.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
-		private readonly ListenerSchemaResolver $schemaResolver,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
 		private readonly IUserSession $userSession,
 		private readonly IGroupManager $groupManager,
-		private readonly AssessmentResultAudience $audience,
-		private readonly AssessmentResultPortalStamp $portalStamp,
+		private readonly AssessmentResultAudienceInterface $audience,
+		private readonly AssessmentResultPortalStampInterface $portalStamp,
 		private readonly LoggerInterface $logger,
-		private readonly AssessmentAttemptLimits $limits,
+		private readonly AssessmentAttemptLimitsInterface $limits,
 	) {
 	}//end __construct()
 
@@ -214,10 +216,12 @@ class AssessmentAttemptGateListener implements IEventListener {
 		try {
 			$object = $this->objectService->find(
 				id: $id,
-				register: self::LEARNIQ_REGISTER,
-				schema: self::ASSESSMENT_SCHEMA,
-				_rbac: false,
-				_render: false
+				options: new ObjectFindOptions(
+					register: self::LEARNIQ_REGISTER,
+					schema: self::ASSESSMENT_SCHEMA,
+					render: false
+				),
+				_rbac: false
 			);
 		} catch (Throwable $exception) {
 			$this->logger->warning(

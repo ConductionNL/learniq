@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
  */
 
 declare(strict_types=1);
@@ -87,9 +87,41 @@ class EmployerBookingFactsTest extends TestCase {
 		self::assertSame('birth-date-missing', $facts['enrolments']['en-2']['detailsStatus']);
 		self::assertSame('Vul de geboortedatum van Youssef Test in', $facts['enrolments']['en-2']['openTask']);
 		self::assertSame('Certificaat geldig tot 30 november 2026', $facts['enrolments']['en-2']['certificateLine']);
+		self::assertSame('2026-11-30', $facts['enrolments']['en-2']['certificateValidUntil']);
+		self::assertNull($facts['enrolments']['en-1']['certificateValidUntil']);
 		self::assertSame('complete', $facts['enrolments']['en-1']['detailsStatus']);
 		self::assertNull($facts['enrolments']['en-1']['openTask']);
 	}//end testAMissingBirthDateBeforeAnExamWaitsForTheEmployer()
+
+	/**
+	 * With today given, a booking is coming up to and including its last
+	 * course day and no longer after it; a two-day course is still coming on
+	 * its second day. Without today the days are left out of it, as the
+	 * example sets write it.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/past-course-days-drop-off/specs/portal-contribution/spec.md#requirement-a-course-day-that-has-passed-is-no-longer-coming
+	 */
+	public function testABookingStopsBeingComingAfterItsLastDay(): void {
+		$zone = new \DateTimeZone('Europe/Amsterdam');
+		$sessions = [self::session('2026-10-20T08:30:00+02:00', '2026-10-20T16:30:00+02:00'), self::session('2026-10-21T08:30:00+02:00', '2026-10-21T16:30:00+02:00')];
+		$derive = static fn (?string $today): array => (new EmployerBookingFacts())->derive(
+			booking: ['participantCount' => 1, 'lifecycle' => 'confirmed'],
+			course: ['name' => 'Basis'],
+			sessions: $sessions,
+			participants: [self::person('1', 'Daan', null)],
+			today: ($today === null ? null : new \DateTimeImmutable($today, $zone))
+		);
+
+		self::assertTrue($derive('2026-10-20 09:00')['booking']['upcoming'], 'on the first day');
+		self::assertTrue($derive('2026-10-21 23:30')['booking']['upcoming'], 'on the last day');
+		$after = $derive('2026-10-22 00:10');
+		self::assertFalse($after['booking']['upcoming'], 'the day after');
+		self::assertFalse($after['enrolments']['en-1']['upcoming'], 'his course day drops off too');
+		self::assertTrue($derive(null)['booking']['upcoming'], 'the seeded copies leave the days out');
+		self::assertFalse((new EmployerBookingFacts())->upcoming(lifecycle: 'completed', days: [], today: null));
+	}//end testABookingStopsBeingComingAfterItsLastDay()
 
 	/**
 	 * A course without an exam never asks for a birth date.
@@ -142,6 +174,54 @@ class EmployerBookingFactsTest extends TestCase {
 	}//end testOpenPlacesAndAReceivedBooking()
 
 	/**
+	 * Every participant's course day carries the course's bring list, trimmed,
+	 * with empty lines and non-text left out; a course without one gives an empty list.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-course-says-what-to-bring
+	 */
+	public function testTheParticipantsCourseDayCarriesWhatToBring(): void {
+		$facts = (new EmployerBookingFacts())->derive(
+			booking: ['participantCount' => 2, 'lifecycle' => 'confirmed'],
+			course: ['name' => 'F-gassen: herhaling en examen', 'bringList' => [' Een geldig legitimatiebewijs ', '', 42, 'Werkschoenen en werkkleding']],
+			sessions: [self::session('2026-10-08T08:30:00+02:00', '2026-10-08T16:30:00+02:00')],
+			participants: [self::person('1', 'Tom', '1988-06-12'), self::person('2', 'Sanne', '1990-01-01')]
+		);
+
+		$expected = ['Een geldig legitimatiebewijs', 'Werkschoenen en werkkleding'];
+		self::assertSame($expected, $facts['enrolments']['en-1']['bringList']);
+		self::assertSame($expected, $facts['enrolments']['en-2']['bringList']);
+		self::assertArrayNotHasKey('bringList', $facts['booking']);
+		self::assertSame([], EmployerBookingFacts::bringList(course: ['name' => 'Basis']));
+		self::assertSame([], EmployerBookingFacts::bringList(course: ['bringList' => null]));
+	}//end testTheParticipantsCourseDayCarriesWhatToBring()
+
+	/**
+	 * The participant's current step of his booking: confirmation while the
+	 * booking is received, details while one of his is missing, the course day
+	 * when nothing is left, the result once completed, none when cancelled.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/archive/2026-11-17-training-provider-course-days/tasks.md#t7
+	 */
+	public function testTheParticipantsStepOfHisBooking(): void {
+		$facts = (new EmployerBookingFacts())->derive(
+			booking: ['participantCount' => 2, 'lifecycle' => 'confirmed'],
+			course: ['name' => 'F-gassen: herhaling en examen', 'tags' => ['examen']],
+			sessions: [self::session('2026-10-08T08:30:00+02:00', '2026-10-08T16:30:00+02:00')],
+			participants: [self::person('1', 'Tom', '1988-06-12'), self::person('2', 'Youssef', null)]
+		);
+		self::assertSame('course-day', $facts['enrolments']['en-1']['step']);
+		self::assertSame('details', $facts['enrolments']['en-2']['step']);
+
+		self::assertSame('confirmed', EmployerBookingFacts::participantStep(lifecycle: 'received', detailsStatus: 'complete'));
+		self::assertSame('result', EmployerBookingFacts::participantStep(lifecycle: 'completed', detailsStatus: 'birth-date-missing'));
+		self::assertNull(EmployerBookingFacts::participantStep(lifecycle: 'cancelled', detailsStatus: 'complete'));
+	}//end testTheParticipantsStepOfHisBooking()
+
+	/**
 	 * The seeded bookings of the training set carry exactly what the server would write.
 	 *
 	 * @return void
@@ -155,7 +235,7 @@ class EmployerBookingFactsTest extends TestCase {
 		$cohorts = $byId('cohort');
 		$staff = ['training-trainer-10' => 'Henk Dekker', 'training-trainer-11' => 'Fatima Ouali'];
 		$location = $objects['vestiging'][0];
-		self::assertCount(4, $objects['course-booking']);
+		self::assertCount(7, $objects['course-booking']);
 
 		foreach ($objects['course-booking'] as $booking) {
 			$participants = [];
@@ -196,7 +276,7 @@ class EmployerBookingFactsTest extends TestCase {
 		}//end foreach
 
 		$waiting = array_column($objects['course-booking'], 'employerStatus', 'bookingNumber');
-		self::assertSame(['I-2026-0377' => 'completed', 'I-2026-0412' => 'waiting-for-you', 'I-2026-0425' => 'confirmed', 'I-2026-0431' => 'received'], $waiting);
+		self::assertSame(['I-2026-0377' => 'completed', 'I-2026-0412' => 'waiting-for-you', 'I-2026-0425' => 'confirmed', 'I-2026-0431' => 'received', 'I-2026-0501' => 'waiting-for-you', 'I-2026-0502' => 'waiting-for-you', 'I-2026-0503' => 'waiting-for-you'], $waiting);
 	}//end testTheSeededBookingsAgreeWithTheServer()
 
 	/**

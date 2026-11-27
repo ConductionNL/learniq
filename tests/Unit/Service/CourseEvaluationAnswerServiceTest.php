@@ -22,8 +22,8 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#requirement-learner-answers-an-evaluation
- * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#requirement-campaign-results-for-staff
+ * @spec openspec/specs/course-evaluation-answering/spec.md#requirement-learner-answers-an-evaluation
+ * @spec openspec/specs/course-evaluation-answering/spec.md#requirement-campaign-results-for-staff
  */
 
 declare(strict_types=1);
@@ -42,13 +42,19 @@ use OCA\Learniq\Tests\Support\RegisterSchemaPayloads;
 use OCA\Learniq\Tests\Support\TransitionScope;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\RegisterSchemaRef;
+use OCA\OpenRegister\Service\Lifecycle\TransitionActor;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
+use OCA\OpenRegister\Service\Lifecycle\TransitionMove;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\IUser;
 use OCP\IUserSession;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use RuntimeException;
+use OCA\Learniq\Tests\Support\LegacyObjectArgs;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectDeletion;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 
 /**
  * Tests for CourseEvaluationAnswerService.
@@ -143,7 +149,11 @@ class CourseEvaluationAnswerServiceTest extends TestCase {
 			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $this->store->findAll($config, $_rbac, $_multitenancy)
 		);
 		$objects->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null): ?ObjectEntity {
+			function (int|string $id, ?ObjectFindOptions $options = null): ?ObjectEntity {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				foreach (($this->store->rows[(string)$schema] ?? []) as $row) {
 					if ($row['id'] === $id) {
 						return OrEntityFactory::make($row, (string)$schema);
@@ -155,9 +165,10 @@ class CourseEvaluationAnswerServiceTest extends TestCase {
 		);
 		// Read arguments by the real parameter names: the stub and
 		// OpenRegister's own ObjectService order them differently.
-		$names = array_map(static fn (\ReflectionParameter $parameter): string => $parameter->getName(), (new \ReflectionMethod(ObjectService::class, 'saveObject'))->getParameters());
+		$names = array_map(static fn (\ReflectionParameter $parameter): string => $parameter->getName(), LegacyObjectArgs::parameters(ObjectService::class, 'saveObject'));
 		$objects->method('saveObject')->willReturnCallback(
 			function (mixed ...$args) use ($names): ObjectEntity {
+				$args = LegacyObjectArgs::positional(method: 'saveObject', args: $args);
 				$named = array_combine(array_slice($names, 0, count($args)), $args);
 				$object = (array)$named['object'];
 				$schema = (string)($named['schema'] ?? '');
@@ -166,7 +177,10 @@ class CourseEvaluationAnswerServiceTest extends TestCase {
 			}
 		);
 		$objects->method('deleteObject')->willReturnCallback(
-			function (string $uuid, $register = null, $schema = null): bool {
+			function (ObjectDeletion $deletion): bool {
+				$uuid = $deletion->uuid;
+				$register = $deletion->target->register;
+				$schema = $deletion->target->schema;
 				$this->deleted[] = $uuid;
 				$this->store->rows[(string)$schema] = array_values(array_filter($this->store->rows[(string)$schema], static fn (array $row): bool => $row['id'] !== $uuid));
 				return true;
@@ -230,7 +244,7 @@ class CourseEvaluationAnswerServiceTest extends TestCase {
 	 */
 	private function runTransition(CourseEvaluationResponseSubmittedHandler $handler, string $caller, string $objectId, string $action, bool $asSystem): ObjectEntity {
 		$saved = $this->store->transition(schema: 'course-evaluation-response', objectId: $objectId, action: $action, asSystem: $asSystem);
-		$handler->handle(new ObjectTransitionedEvent($saved, $action, 'draft', 'submitted', $caller, 'learniq', 'course-evaluation-response'));
+		$handler->handle(new ObjectTransitionedEvent(object: $saved, move: new TransitionMove(action: $action, from: 'draft', to: 'submitted'), scope: new RegisterSchemaRef(register: 'learniq', schema: 'course-evaluation-response'), actor: new TransitionActor(userId: $caller)));
 
 		return $saved;
 	}//end runTransition()
@@ -250,7 +264,7 @@ class CourseEvaluationAnswerServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
 	 */
 	public function testALearnerAnswersAnInvitation(): void {
 		$service = $this->service();
@@ -278,7 +292,7 @@ class CourseEvaluationAnswerServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-anonymous-answers-cannot-be-linked
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-anonymous-answers-cannot-be-linked
 	 */
 	public function testAnonymousAnswersCannotBeLinked(): void {
 		$service = $this->service();
@@ -298,7 +312,7 @@ class CourseEvaluationAnswerServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-cannot-answer-twice
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-a-learner-cannot-answer-twice
 	 */
 	public function testALearnerCannotAnswerTwice(): void {
 		$service = $this->service();
@@ -313,7 +327,7 @@ class CourseEvaluationAnswerServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-an-uninvited-user-is-refused
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-an-uninvited-user-is-refused
 	 */
 	public function testAnUninvitedUserIsRefused(): void {
 		$service = $this->service(caller: 'klaas');
@@ -377,7 +391,7 @@ class CourseEvaluationAnswerServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-small-groups-are-protected
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-small-groups-are-protected
 	 */
 	public function testSmallGroupsAreProtected(): void {
 		$service = $this->service();
@@ -406,7 +420,7 @@ class CourseEvaluationAnswerServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
 	 */
 	public function testALearnerInNoGroupSeesAndAnswersTheirOwnInvitation(): void {
 		$service = $this->service(caller: 'jan', groups: []);
@@ -430,7 +444,7 @@ class CourseEvaluationAnswerServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-an-uninvited-user-is-refused
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-an-uninvited-user-is-refused
 	 */
 	public function testALearnerReadsNoOtherLearnersInvitation(): void {
 		$service = $this->service(caller: 'jan', groups: []);
@@ -464,7 +478,7 @@ class CourseEvaluationAnswerServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-small-groups-are-protected
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-small-groups-are-protected
 	 */
 	public function testStaffKeepTheirReads(): void {
 		$service = $this->service(caller: 'docent', groups: ['instructors']);
@@ -480,7 +494,7 @@ class CourseEvaluationAnswerServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
 	 */
 	public function testAnInvitedLearnerSubmitsThroughTheSystemTransition(): void {
 		$service = $this->service(caller: 'jan', groups: []);
@@ -501,7 +515,7 @@ class CourseEvaluationAnswerServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-anonymous-answers-cannot-be-linked
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-anonymous-answers-cannot-be-linked
 	 */
 	public function testAnotherSignedInUserCanNeitherReadNorUpdateADraft(): void {
 		$this->service(caller: 'piet', groups: []);
@@ -538,7 +552,7 @@ class CourseEvaluationAnswerServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-an-uninvited-user-is-refused
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-an-uninvited-user-is-refused
 	 */
 	public function testTheGuardStillRefusesOnTheSystemPath(): void {
 		$klaas = $this->service(caller: 'klaas', groups: []);
@@ -571,7 +585,7 @@ class CourseEvaluationAnswerServiceTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
 	 */
 	public function testAnOldOpenRegisterRefusesTheSubmit(): void {
 		$service = $this->service(caller: 'jan', groups: [], oldOpenRegister: true);

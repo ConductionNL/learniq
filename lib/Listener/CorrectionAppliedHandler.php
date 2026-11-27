@@ -3,6 +3,9 @@
 /**
  * Learniq Correction Applied Handler
  *
+ * SPDX-FileCopyrightText: 2026 Conduction B.V. <info@conduction.nl>
+ * SPDX-License-Identifier: EUPL-1.2
+ *
  * Listens for OpenRegister's ObjectTransitionedEvent on a GradeEntry
  * `publish` or `republish`. When an approved DataCorrectionRequest covered
  * that publish (the report period lock guard let it through on it), the
@@ -30,22 +33,22 @@
  * @copyright 2026 Conduction B.V.
  * @license   EUPL-1.2 https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
  *
- * SPDX-License-Identifier: EUPL-1.2
- *
  * @version GIT: <git-id>
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-audit-of-corrections
+ * @spec openspec/specs/governance-four-eyes/spec.md#requirement-audit-of-corrections
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\Grading\CorrectionApprovals;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\CorrectionApprovalsInterface;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -57,7 +60,7 @@ use Throwable;
  *
  * @implements IEventListener<Event>
  *
- * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-audit-of-corrections
+ * @spec openspec/specs/governance-four-eyes/spec.md#requirement-audit-of-corrections
  */
 class CorrectionAppliedHandler implements IEventListener {
 
@@ -66,16 +69,16 @@ class CorrectionAppliedHandler implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param ListenerSchemaResolver $schemas   Resolves the event's register and schema to slugs.
-	 * @param CorrectionApprovals    $approvals The approved correction for a grade entry.
+	 * @param ListenerSchemaResolverInterface $schemas   Resolves the event's register and schema to slugs.
+	 * @param CorrectionApprovalsInterface    $approvals The approved correction for a grade entry.
 	 * @param ObjectService          $objects   OpenRegister object access.
 	 * @param LoggerInterface        $logger    PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ListenerSchemaResolver $schemas,
-		private readonly CorrectionApprovals $approvals,
+		private readonly ListenerSchemaResolverInterface $schemas,
+		private readonly CorrectionApprovalsInterface $approvals,
 		private readonly ObjectService $objects,
 		private readonly LoggerInterface $logger,
 	) {
@@ -88,7 +91,7 @@ class CorrectionAppliedHandler implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#scenario-a-second-person-approves-a-correction
+	 * @spec openspec/specs/governance-four-eyes/spec.md#scenario-a-second-person-approves-a-correction
 	 */
 	public function handle(Event $event): void {
 		if ($event instanceof ObjectTransitionedEvent === false) {
@@ -105,6 +108,21 @@ class CorrectionAppliedHandler implements IEventListener {
 		$entry     = $event->getObject()->jsonSerialize();
 		$publisher = (string)($event->getUserId() ?? '');
 		$request   = $this->approvals->approvedFor(entry: $entry, publisher: $publisher);
+		$this->markApprovedApplied(request: $request, entry: $entry);
+	}//end handle()
+
+	/**
+	 * Mark the approved correction request applied, when there is one; a failure
+	 * is logged for the admin, the grade stays published.
+	 *
+	 * @param ?array              $request The approved correction request for the entry, or null without one.
+	 * @param array<string,mixed> $entry   The published grade entry.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/governance-four-eyes/spec.md#scenario-a-second-person-approves-a-correction
+	 */
+	private function markApprovedApplied(?array $request, array $entry): void {
 		if ($request === null) {
 			return;
 		}
@@ -120,7 +138,7 @@ class CorrectionAppliedHandler implements IEventListener {
 				['request' => $request['id'] ?? '', 'entry' => $entry['id'] ?? '', 'error' => $e->getMessage()]
 			);
 		}
-	}//end handle()
+	}//end markApprovedApplied()
 
 	/**
 	 * Move the request to applied through its `apply` transition.
@@ -140,9 +158,10 @@ class CorrectionAppliedHandler implements IEventListener {
 
 		$this->objects->saveObject(
 			object: $move,
-			register: self::REGISTER,
-			schema: 'data-correction-request',
-			uuid: $requestId,
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::REGISTER, schema: 'data-correction-request'),
+				uuid: $requestId
+			),
 			_rbac: false
 		);
 	}//end markApplied()

@@ -17,7 +17,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-audit-of-corrections
+ * @spec openspec/specs/governance-four-eyes/spec.md#requirement-audit-of-corrections
  */
 
 declare(strict_types=1);
@@ -39,7 +39,7 @@ use PHPUnit\Framework\TestCase;
 /**
  * DataCorrectionRequestStamp on create and update.
  *
- * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-audit-of-corrections
+ * @spec openspec/specs/governance-four-eyes/spec.md#requirement-audit-of-corrections
  */
 class DataCorrectionRequestStampTest extends TestCase {
 
@@ -103,7 +103,7 @@ class DataCorrectionRequestStampTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#scenario-an-auditor-reads-the-trail
+	 * @spec openspec/specs/governance-four-eyes/spec.md#scenario-an-auditor-reads-the-trail
 	 */
 	public function testARequestNamesTheRequesterAndTheValueBefore(): void {
 		$event = new ObjectCreatingEvent(OrEntityFactory::make(self::POSTED, 'data-correction-request'));
@@ -153,7 +153,7 @@ class DataCorrectionRequestStampTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#scenario-a-second-person-approves-a-correction
+	 * @spec openspec/specs/governance-four-eyes/spec.md#scenario-a-second-person-approves-a-correction
 	 */
 	public function testAnUpdateKeepsTheRequestAsAsked(): void {
 		$stored = [

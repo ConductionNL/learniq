@@ -26,6 +26,7 @@ namespace OCA\Learniq\Tests\Unit\Lifecycle\Action;
 use OCA\Learniq\Lifecycle\Action\SupersedePriorLearningPlanAction;
 use OCA\Learniq\Lifecycle\LearningPlanSignatureGuard;
 use OCA\Learniq\Tests\Support\GuardVerdicts;
+use OCA\OpenRegister\Lifecycle\LifecycleActionContext;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use PHPUnit\Framework\TestCase;
@@ -54,7 +55,14 @@ class SupersedePriorLearningPlanActionTest extends TestCase {
 		$engine->expects(self::once())->method('transition')->with('plan-v1', 'supersede');
 
 		$plan = ['id' => 'plan-v2', 'supersedesId' => 'plan-v1', 'lifecycle' => 'active'];
-		$result = (new SupersedePriorLearningPlanAction($engine))->execute($plan, ['lifecycle' => 'draft'], [], 'x');
+		$result = (new SupersedePriorLearningPlanAction($engine))->execute(
+			new LifecycleActionContext(
+				objectData: $plan,
+				previousData: ['lifecycle' => 'draft'],
+				parameters: [],
+				actionName: 'x'
+			)
+		);
 
 		self::assertSame($plan, $result);
 	}//end testSupersedesThePriorVersion()
@@ -69,7 +77,14 @@ class SupersedePriorLearningPlanActionTest extends TestCase {
 		$engine->expects(self::never())->method('transition');
 
 		$plan = ['id' => 'plan-v1', 'lifecycle' => 'active'];
-		self::assertSame($plan, (new SupersedePriorLearningPlanAction($engine))->execute($plan, [], [], 'x'));
+		self::assertSame($plan, (new SupersedePriorLearningPlanAction($engine))->execute(
+			new LifecycleActionContext(
+				objectData: $plan,
+				previousData: [],
+				parameters: [],
+				actionName: 'x'
+			)
+		));
 	}//end testFirstVersionSupersedesNothing()
 
 	/**
@@ -82,7 +97,14 @@ class SupersedePriorLearningPlanActionTest extends TestCase {
 		$engine->method('transition')->willThrowException(new RuntimeException('Transition "supersede" is not allowed from current state "closed".'));
 
 		$this->expectException(RuntimeException::class);
-		(new SupersedePriorLearningPlanAction($engine))->execute(['id' => 'plan-v2', 'supersedesId' => 'plan-v1'], [], [], 'x');
+		(new SupersedePriorLearningPlanAction($engine))->execute(
+			new LifecycleActionContext(
+				objectData: ['id' => 'plan-v2', 'supersedesId' => 'plan-v1'],
+				previousData: [],
+				parameters: [],
+				actionName: 'x'
+			)
+		);
 	}//end testFailedSupersedeThrows()
 
 	/**

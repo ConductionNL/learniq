@@ -28,15 +28,15 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
+ * @spec openspec/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\Grading\ReportPeriodLocks;
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Kernel\Contracts\ReportPeriodLocksInterface;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -49,7 +49,7 @@ use Throwable;
  *
  * @template-implements IEventListener<Event>
  *
- * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
+ * @spec openspec/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
  */
 class PublishedGradeFreezeListener implements IEventListener {
 
@@ -71,16 +71,16 @@ class PublishedGradeFreezeListener implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param ListenerSchemaResolver $schemaResolver Resolves the event entity's schema slug.
-	 * @param ReportPeriodLocks $locks The locked report period over a grade entry.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Resolves the event entity's schema slug.
+	 * @param ReportPeriodLocksInterface $locks The locked report period over a grade entry.
 	 * @param IUserSession $userSession The acting user.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ListenerSchemaResolver $schemaResolver,
-		private readonly ReportPeriodLocks $locks,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
+		private readonly ReportPeriodLocksInterface $locks,
 		private readonly IUserSession $userSession,
 		private readonly LoggerInterface $logger,
 	) {
@@ -93,7 +93,7 @@ class PublishedGradeFreezeListener implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
+	 * @spec openspec/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
 	 */
 	public function handle(Event $event): void {
 		if ($event instanceof ObjectUpdatingEvent === false) {
@@ -138,7 +138,7 @@ class PublishedGradeFreezeListener implements IEventListener {
 	 *
 	 * @return bool True when the write must be checked.
 	 *
-	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
+	 * @spec openspec/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
 	 */
 	private function isPoliced(ObjectUpdatingEvent $event): bool {
 		try {
@@ -160,7 +160,7 @@ class PublishedGradeFreezeListener implements IEventListener {
 	 *
 	 * @return array<int,string> The changed field names.
 	 *
-	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
+	 * @spec openspec/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
 	 */
 	private function changedGradeFields(array $old, array $new): array {
 		$changed = [];
@@ -182,7 +182,7 @@ class PublishedGradeFreezeListener implements IEventListener {
 	 *
 	 * @return bool True when equal.
 	 *
-	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
+	 * @spec openspec/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
 	 */
 	private function same(mixed $left, mixed $right): bool {
 		if (is_numeric($left) === true && is_numeric($right) === true) {

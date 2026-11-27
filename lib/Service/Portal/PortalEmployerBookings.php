@@ -32,7 +32,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
  */
 
 declare(strict_types=1);
@@ -41,16 +41,20 @@ namespace OCA\Learniq\Service\Portal;
 
 use DateTimeImmutable;
 use DateTimeZone;
+use OCA\Learniq\Kernel\Contracts\PortalEmployerBookingsInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
+use OCP\AppFramework\Utility\ITimeFactory;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
 /**
  * Checks and stores an employer's bookings, participants and birth dates.
  *
- * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
  */
-class PortalEmployerBookings {
+class PortalEmployerBookings implements PortalEmployerBookingsInterface {
 
 	private const REGISTER = 'learniq';
 
@@ -60,11 +64,19 @@ class PortalEmployerBookings {
 	public const MAX_PLACES = 12;
 
 	/**
+	 * The withdrawal reason of a participant whose employer sent a colleague instead.
+	 *
+	 * @var string
+	 */
+	public const SUBSTITUTED = 'vervangen door collega';
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService             $objectService Writes the rows.
 	 * @param EmployerBookingProjection $projection    Reads rows and re-derives a booking.
 	 * @param LoggerInterface           $logger        PSR logger.
+	 * @param ITimeFactory|null          $time          The clock the substitution deadline is read against; the system clock when absent.
 	 *
 	 * @return void
 	 */
@@ -72,6 +84,7 @@ class PortalEmployerBookings {
 		private readonly ObjectService $objectService,
 		private readonly EmployerBookingProjection $projection,
 		private readonly LoggerInterface $logger,
+		private readonly ?ITimeFactory $time = null,
 	) {
 	}//end __construct()
 
@@ -83,13 +96,14 @@ class PortalEmployerBookings {
 	 *
 	 * @return PortalOutcome 201 with the booking, or 403 / 404 / 409 / 422 / 502.
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
 	 */
 	public function book(string $organisationRef, array $body): PortalOutcome {
-		$cohortId = $this->text(value: ($body['cohortId'] ?? null));
-		$places = filter_var(($body['participantCount'] ?? null), FILTER_VALIDATE_INT);
-		if ($cohortId === '' || $places === false || $places < 1 || $places > self::MAX_PLACES) {
-			return new PortalOutcome(status: 422, body: ['error' => 'incomplete'], reason: 'incomplete');
+		$answers = new PortalAnswers();
+		$cohortId = $answers->text(field: 'cohortId', value: ($body['cohortId'] ?? null));
+		$places = $answers->count(field: 'participantCount', value: ($body['participantCount'] ?? null), min: 1, max: self::MAX_PLACES);
+		if ($cohortId === '' || $places === null) {
+			return $answers->refused(error: 'incomplete', reason: 'incomplete');
 		}
 
 		return $this->guarded(
@@ -104,7 +118,7 @@ class PortalEmployerBookings {
 					return new PortalOutcome(status: 404, body: ['error' => 'edition_not_bookable'], reason: 'edition-not-bookable');
 				}
 
-				$saved = $this->save(
+				$saved = $this->inCompanyOrganisation(company: $company, write: fn (): array => $this->save(
 					schema: 'course-booking',
 					row: [
 						'organisationRef' => $organisationRef,
@@ -118,7 +132,7 @@ class PortalEmployerBookings {
 						'lifecycle' => 'received',
 						'tenant_id' => ($company['tenant_id'] ?? null),
 					]
-				);
+				));
 				$booking = ($this->projection->project(bookingId: (string)($saved['id'] ?? '')) ?? $saved);
 
 				return new PortalOutcome(status: 201, body: $this->bookingBody(booking: $booking));
@@ -134,13 +148,14 @@ class PortalEmployerBookings {
 	 *
 	 * @return PortalOutcome 201 with the booking, or 403 / 404 / 409 / 422 / 502.
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-books-places-and-names-her-participants
 	 */
 	public function addParticipant(string $organisationRef, array $body): PortalOutcome {
-		$bookingId = $this->text(value: ($body['bookingRef'] ?? null));
-		$learnerRef = $this->text(value: ($body['learnerRef'] ?? null));
+		$answers = new PortalAnswers();
+		$bookingId = $answers->text(field: 'bookingRef', value: ($body['bookingRef'] ?? null));
+		$learnerRef = $answers->text(field: 'learnerRef', value: ($body['learnerRef'] ?? null));
 		if ($bookingId === '' || $learnerRef === '') {
-			return new PortalOutcome(status: 422, body: ['error' => 'incomplete'], reason: 'incomplete');
+			return $answers->refused(error: 'incomplete', reason: 'incomplete');
 		}
 
 		return $this->guarded(
@@ -190,13 +205,14 @@ class PortalEmployerBookings {
 	 *
 	 * @return PortalOutcome 200 `{learnerRef, detailsStatus}`, or 404 / 409 / 422 / 502.
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-an-employer-supplies-a-missing-birth-date-and-never-reads-it
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-supplies-a-missing-birth-date-and-never-reads-it
 	 */
 	public function supplyBirthDate(string $organisationRef, array $body): PortalOutcome {
-		$learnerRef = $this->text(value: ($body['learnerRef'] ?? null));
-		$birthDate = $this->birthDate(value: $this->text(value: ($body['birthDate'] ?? null)));
+		$answers = new PortalAnswers();
+		$learnerRef = $answers->text(field: 'learnerRef', value: ($body['learnerRef'] ?? null));
+		$birthDate = $this->answeredBirthDate(answers: $answers, value: ($body['birthDate'] ?? null));
 		if ($learnerRef === '' || $birthDate === null) {
-			return new PortalOutcome(status: 422, body: ['error' => 'birth_date_invalid'], reason: 'birth-date-invalid');
+			return $answers->refused(error: 'birth_date_invalid', reason: 'birth-date-invalid');
 		}
 
 		return $this->guarded(
@@ -225,6 +241,189 @@ class PortalEmployerBookings {
 			}
 		);
 	}//end supplyBirthDate()
+
+	/**
+	 * Send one of the company's people in place of a participant, before the deadline.
+	 *
+	 * The booking keeps its place: the replaced participant's enrolment is
+	 * withdrawn with the reason in words, and the substitute's created. After
+	 * the deadline the request is refused with the deadline in words.
+	 *
+	 * @param string               $organisationRef The company, from the claim.
+	 * @param array<string, mixed> $body            `bookingRef` and `learnerRef` (replaced), or the replaced
+	 *                                              participant's `enrolmentId` (the row action on her
+	 *                                              participants list), and `substituteRef` (sent instead).
+	 *
+	 * @return PortalOutcome 200 with the booking, or 404 / 409 / 422 / 502.
+	 *
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-sends-a-colleague-in-place-of-a-participant-before-the-deadline
+	 */
+	public function substituteParticipant(string $organisationRef, array $body): PortalOutcome {
+		$substituteRef = $this->text(value: ($body['substituteRef'] ?? null));
+		if ($substituteRef === '' || ($this->text(value: ($body['enrolmentId'] ?? null)) === ''
+			&& ($this->text(value: ($body['bookingRef'] ?? null)) === '' || $this->text(value: ($body['learnerRef'] ?? null)) === ''))
+		) {
+			return new PortalOutcome(status: 422, body: ['error' => 'incomplete'], reason: 'incomplete');
+		}
+
+		return $this->guarded(
+			work: function () use ($organisationRef, $body, $substituteRef): PortalOutcome {
+				$refs = $this->substitutionRefs(organisationRef: $organisationRef, body: $body);
+				if ($refs instanceof PortalOutcome) {
+					return $refs;
+				}
+
+				[$bookingId, $learnerRef] = $refs;
+				if ($learnerRef === $substituteRef) {
+					return new PortalOutcome(status: 422, body: ['error' => 'incomplete'], reason: 'incomplete');
+				}
+
+				$booking = $this->projection->one(schema: 'course-booking', id: $bookingId);
+				$substitute = $this->projection->one(schema: 'learner-profile', id: $substituteRef);
+				if ($booking === null || ($booking['organisationRef'] ?? null) !== $organisationRef
+					|| $substitute === null || ($substitute['organisationRef'] ?? null) !== $organisationRef
+				) {
+					return new PortalOutcome(status: 404, body: ['error' => 'not_found'], reason: 'not-yours');
+				}
+
+				$replaced = $this->substitutionRefusal(booking: $booking, refs: ['learner' => $learnerRef, 'substitute' => $substituteRef]);
+				if ($replaced instanceof PortalOutcome) {
+					return $replaced;
+				}
+
+				$this->swap(replaced: $replaced, substitute: $substitute);
+				$booking = ($this->projection->project(bookingId: $bookingId) ?? $booking);
+
+				return new PortalOutcome(status: 200, body: $this->bookingBody(booking: $booking));
+			}
+		);
+	}//end substituteParticipant()
+
+	/**
+	 * The booking and the replaced participant a substitution names: given
+	 * as `bookingRef` and `learnerRef`, or read from her own company's
+	 * enrolment the row action stamps as `enrolmentId`.
+	 *
+	 * @param string               $organisationRef The company, from the claim.
+	 * @param array<string, mixed> $body            The request.
+	 *
+	 * @return PortalOutcome|array{0: string, 1: string} The refusal, or the booking id and the replaced participant.
+	 *
+	 * @spec openspec/changes/archive/2026-11-24-employer-substitutes-a-colleague/tasks.md#T4
+	 */
+	private function substitutionRefs(string $organisationRef, array $body): PortalOutcome|array {
+		$bookingId = $this->text(value: ($body['bookingRef'] ?? null));
+		$learnerRef = $this->text(value: ($body['learnerRef'] ?? null));
+		if ($bookingId !== '' && $learnerRef !== '') {
+			return [$bookingId, $learnerRef];
+		}
+
+		$enrolment = $this->projection->one(schema: 'enrolment', id: $this->text(value: ($body['enrolmentId'] ?? null)));
+		if ($enrolment === null || ($enrolment['organisationRef'] ?? null) !== $organisationRef) {
+			return new PortalOutcome(status: 404, body: ['error' => 'not_found'], reason: 'not-yours');
+		}
+
+		$bookingId = (string)($enrolment['bookingRef'] ?? '');
+		$learnerRef = (string)($enrolment['learnerRef'] ?? '');
+		if ($bookingId === '' || $learnerRef === '') {
+			return new PortalOutcome(status: 404, body: ['error' => 'not_on_booking'], reason: 'not-on-booking');
+		}
+
+		return [$bookingId, $learnerRef];
+	}//end substitutionRefs()
+
+	/**
+	 * Why a substitution cannot go ahead, or the enrolment it replaces.
+	 *
+	 * @param array<string, mixed>  $booking The booking.
+	 * @param array<string, string> $refs    `learner`, the participant to replace, and `substitute`, the colleague sent instead.
+	 *
+	 * @return PortalOutcome|array<string, mixed> The refusal, or the replaced enrolment.
+	 */
+	private function substitutionRefusal(array $booking, array $refs): PortalOutcome|array {
+		if (in_array(($booking['lifecycle'] ?? 'received'), ['received', 'confirmed'], true) === false) {
+			return new PortalOutcome(status: 409, body: ['error' => 'booking_closed'], reason: 'booking-closed');
+		}
+
+		$replaced = null;
+		foreach ($this->projection->many(schema: 'enrolment', filters: ['bookingRef' => (string)($booking['id'] ?? '')]) as $enrolment) {
+			if (($enrolment['lifecycle'] ?? '') === 'withdrawn') {
+				continue;
+			}
+
+			if (($enrolment['learnerRef'] ?? null) === $refs['substitute']) {
+				return new PortalOutcome(status: 409, body: ['error' => 'already_on_booking'], reason: 'already-on-booking');
+			}
+
+			if (($enrolment['learnerRef'] ?? null) === $refs['learner']) {
+				$replaced = $enrolment;
+			}
+		}
+
+		if ($replaced === null) {
+			return new PortalOutcome(status: 404, body: ['error' => 'not_on_booking'], reason: 'not-on-booking');
+		}
+
+		$cohort = ($this->projection->one(schema: 'cohort', id: (string)($booking['cohortId'] ?? '')) ?? []);
+		$late = SubstitutionDeadline::refusal(
+			deadline: SubstitutionDeadline::moment(cohort: $cohort, firstDay: ($booking['firstDay'] ?? null)),
+			now: $this->now()
+		);
+		if ($late !== null) {
+			return new PortalOutcome(status: 409, body: ['error' => 'too_late', 'message' => $late], reason: 'too-late');
+		}
+
+		return $replaced;
+	}//end substitutionRefusal()
+
+	/**
+	 * Withdraw the replaced participant's enrolment and enrol the substitute on the same booking.
+	 *
+	 * The substitute is enrolled first: a withdrawn enrolment cannot be put
+	 * back, so when the substitute's enrolment cannot be written the replaced
+	 * participant stays enrolled and the request can be sent again.
+	 *
+	 * @param array<string, mixed> $replaced   The replaced participant's enrolment.
+	 * @param array<string, mixed> $substitute The substitute's learner profile.
+	 *
+	 * @return void
+	 */
+	private function swap(array $replaced, array $substitute): void {
+		$enrolment = $replaced;
+		unset($enrolment['@self'], $enrolment['id'], $enrolment['uuid'], $enrolment['withdrawReason']);
+		$this->save(
+			schema: 'enrolment',
+			row: array_merge(
+				$enrolment,
+				[
+					'learnerId' => (string)($substitute['ncUserId'] ?? ''),
+					'learnerRef' => (string)($substitute['id'] ?? ''),
+					'lifecycle' => ($replaced['lifecycle'] ?? 'pending'),
+					'requestedAt' => $this->now()->format(DATE_ATOM),
+				]
+			)
+		);
+
+		$withdrawn = $replaced;
+		unset($withdrawn['@self']);
+		$withdrawn['lifecycle'] = 'withdrawn';
+		$withdrawn['withdrawReason'] = self::SUBSTITUTED;
+		$this->save(schema: 'enrolment', row: $withdrawn);
+	}//end swap()
+
+	/**
+	 * The moment of the request.
+	 *
+	 * @return DateTimeImmutable
+	 */
+	private function now(): DateTimeImmutable {
+		$zone = new DateTimeZone(EmployerBookingFacts::ZONE);
+		if ($this->time === null) {
+			return new DateTimeImmutable('now', $zone);
+		}
+
+		return (new DateTimeImmutable('@'.$this->time->getTime()))->setTimezone($zone);
+	}//end now()
 
 	/**
 	 * Why a person cannot take a place on this booking, or null when they can.
@@ -278,6 +477,24 @@ class PortalEmployerBookings {
 
 		return $company;
 	}//end company()
+
+	/**
+	 * The form's birth date if it is one, else null with the answer refused
+	 * as not a `date`.
+	 *
+	 * @param PortalAnswers $answers The form's answers.
+	 * @param mixed         $value   What the form sent.
+	 *
+	 * @return string|null `yyyy-mm-dd`.
+	 */
+	private function answeredBirthDate(PortalAnswers $answers, mixed $value): ?string {
+		$birthDate = $this->birthDate(value: $answers->text(field: 'birthDate', value: $value));
+		if ($birthDate === null) {
+			$answers->wrongKind(field: 'birthDate', kind: 'date');
+		}
+
+		return $birthDate;
+	}//end answeredBirthDate()
 
 	/**
 	 * A birth date that is a real day between 100 and 14 years ago, or null.
@@ -337,6 +554,29 @@ class PortalEmployerBookings {
 	}//end guarded()
 
 	/**
+	 * Run a write acting for the company's OpenRegister organisation, so a
+	 * row created without a user gets the company's organisation and not the
+	 * default one. A company without an organisation writes as before.
+	 *
+	 * @param array<string, mixed>        $company The company row, with its `@self`.
+	 * @param callable(): array<string, mixed> $write   The write.
+	 *
+	 * @return array<string, mixed> What the write answered.
+	 *
+	 * @throws \Throwable When OpenRegister cannot be written, or the organisation does not exist.
+	 *
+	 * @spec openspec/changes/system-saved-bookings-get-the-employer-organisation/specs/portal-contribution/spec.md#requirement-a-booking-an-employer-makes-belongs-to-the-companys-organisation
+	 */
+	private function inCompanyOrganisation(array $company, callable $write): array {
+		$organisation = (string)($company['@self']['organisation'] ?? '');
+		if ($organisation === '') {
+			return $write();
+		}
+
+		return $this->objectService->runForOrganisation(organisationUuid: $organisation, operation: $write);
+	}//end inCompanyOrganisation()
+
+	/**
 	 * Store a row; answers it as stored.
 	 *
 	 * @param string               $schema The schema slug.
@@ -347,7 +587,12 @@ class PortalEmployerBookings {
 	 * @throws \Throwable When OpenRegister cannot be written.
 	 */
 	private function save(string $schema, array $row): array {
-		$saved = $this->objectService->saveObject(object: $row, register: self::REGISTER, schema: $schema, _rbac: false, _multitenancy: false);
+		$saved = $this->objectService->saveObject(
+			object: $row,
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: $schema)),
+			_rbac: false,
+			_multitenancy: false
+		);
 
 		return (array)$saved->jsonSerialize();
 	}//end save()

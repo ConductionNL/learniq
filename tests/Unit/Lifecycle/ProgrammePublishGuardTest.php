@@ -33,6 +33,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Lifecycle;
 
 use OCA\Learniq\Tests\Support\GuardVerdicts;
+use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Service\ObjectService;
 use OCA\Learniq\Lifecycle\ProgrammePublishGuard;
 use PHPUnit\Framework\TestCase;
@@ -72,6 +73,27 @@ class ProgrammePublishGuardTest extends TestCase {
 		self::assertAllowed($guard->check($object, 'publish', ''));
 
 	}//end testProgrammeWithPublishedPlanAndRequiredCoursesIsAllowedToPublish()
+
+	/**
+	 * ObjectService answers ObjectEntity rows: the guard reads the plan's
+	 * required courses from one, instead of failing with a 500 (found live).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/archive/2026-07-13-delegate-ooapi-to-opencatalogi/tasks.md#task-4.1
+	 */
+	public function testAPlanReadAsAnObjectEntityIsAllowedToPublish(): void {
+		$plan = new ObjectEntity();
+		$plan->setUuid('plan-1');
+		$plan->setObject(['id' => 'plan-1', 'lifecycle' => 'published', 'requiredCourseIds' => ['course-1']]);
+		$objectService = $this->createMock(originalClassName: ObjectService::class);
+		$objectService->method('findAll')->willReturn(value: [$plan]);
+
+		$guard = new ProgrammePublishGuard(objectService: $objectService, logger: $this->createMock(originalClassName: LoggerInterface::class));
+		$object = ['id' => 'programme-1', 'curriculumPlanId' => 'plan-1', 'tenant_id' => 'tenant-a', 'lifecycle' => 'published'];
+
+		self::assertAllowed(verdict: $guard->check(object: $object, action: 'publish', userId: ''));
+	}//end testAPlanReadAsAnObjectEntityIsAllowedToPublish()
 
 	/**
 	 * A Programme with no CurriculumPlan assigned is blocked from publishing.

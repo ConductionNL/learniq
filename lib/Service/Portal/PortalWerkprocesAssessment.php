@@ -39,9 +39,9 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service\Portal;
 
 use DateTimeImmutable;
-use OCA\OpenRegister\Service\ObjectService;
-use OCP\IAppConfig;
-use Psr\Log\LoggerInterface;
+use OCA\Learniq\Kernel\Contracts\PortalWerkprocesAssessmentInterface;
+use OCA\Learniq\Service\Portal\Support\AssessmentRowValues;
+use OCA\Learniq\Service\Portal\Support\TrainerPortalWrite;
 use Throwable;
 
 /**
@@ -49,9 +49,9 @@ use Throwable;
  *
  * @spec openspec/changes/an-invited-trainer-may-assess/specs/bpv/spec.md#requirement-an-invited-trainer-may-submit-a-werkproces-assessment
  */
-class PortalWerkprocesAssessment {
+class PortalWerkprocesAssessment extends TrainerPortalWrite implements PortalWerkprocesAssessmentInterface {
 
-	private const REGISTER = 'learniq';
+	use AssessmentRowValues;
 
 	private const ASSESSMENT_SCHEMA = 'werkproces-assessment';
 
@@ -70,21 +70,6 @@ class PortalWerkprocesAssessment {
 	 * assess (Ruben, 4 October 2026).
 	 */
 	public const MIN_ASSURANCE_KEY = 'bpv_assessment_min_assurance';
-
-	/**
-	 * The eIDAS ladder, as `PokSignature.assuranceLevel` spells it.
-	 *
-	 * @var array<string, int>
-	 */
-	private const ASSURANCE_ORDER = ['none' => 0, 'basic' => 1, 'substantial' => 2, 'high' => 3];
-
-	/**
-	 * What a portal session's trust means on that ladder. A portal trust
-	 * cannot be `none`: the session exists.
-	 *
-	 * @var array<string, string>
-	 */
-	private const TRUST_TO_ASSURANCE = ['low' => 'basic', 'substantial' => 'substantial', 'high' => 'high'];
 
 	/**
 	 * The fields the trainer's form may send. Everything else on the record is
@@ -106,22 +91,6 @@ class PortalWerkprocesAssessment {
 	];
 
 	/**
-	 * Constructor.
-	 *
-	 * @param ObjectService   $objectService Reads the trainer and writes the assessment.
-	 * @param IAppConfig      $appConfig     Holds the school's assurance floor.
-	 * @param LoggerInterface $logger        PSR logger.
-	 *
-	 * @return void
-	 */
-	public function __construct(
-		private readonly ObjectService $objectService,
-		private readonly IAppConfig $appConfig,
-		private readonly LoggerInterface $logger,
-	) {
-	}//end __construct()
-
-	/**
 	 * Store one assessment for the trainer the assertion names.
 	 *
 	 * @param string               $trainerRef The `practicalTrainerId` claim.
@@ -134,19 +103,16 @@ class PortalWerkprocesAssessment {
 	 * @spec openspec/changes/an-invited-trainer-may-assess/specs/bpv/spec.md#requirement-an-assessment-records-who-assessed-and-how-sure-the-school-is
 	 */
 	public function submit(string $trainerRef, string $trust, array $body): PortalOutcome {
-		$assurance = (self::TRUST_TO_ASSURANCE[$trust] ?? 'basic');
-		$floor = $this->floor();
-		if (self::ASSURANCE_ORDER[$assurance] < self::ASSURANCE_ORDER[$floor]) {
-			return new PortalOutcome(
-				status: 403,
-				body: ['error' => 'assurance_too_low', 'required' => $floor],
-				reason: 'assurance-too-low'
-			);
-		}
-
-		$placementId = $this->text(value: ($body['bpvPlacementId'] ?? null));
-		if ($trainerRef === '' || $placementId === '') {
-			return new PortalOutcome(status: 422, body: ['error' => 'incomplete'], reason: 'incomplete');
+		$assurance = $this->assuranceOf(trust: $trust);
+		$answers = new PortalAnswers();
+		$placementId = $answers->text(field: 'bpvPlacementId', value: ($body['bpvPlacementId'] ?? null));
+		$refusal = $this->requestRefusal(
+			assurance: $assurance,
+			request: ['trainerRef' => $trainerRef, 'placementId' => $placementId],
+			answers: $answers
+		);
+		if ($refusal !== null) {
+			return $refusal;
 		}
 
 		try {
@@ -159,22 +125,13 @@ class PortalWerkprocesAssessment {
 				return new PortalOutcome(status: 403, body: ['error' => 'not_your_placement'], reason: 'not-your-placement');
 			}
 
-			$saved = $this->objectService->saveObject(
-				object: $this->stamped(trainerRef: $trainerRef, trainer: $trainer, assurance: $assurance, body: $body),
-				register: self::REGISTER,
+			$row = $this->store(
 				schema: self::ASSESSMENT_SCHEMA,
-				_rbac: false,
-				_multitenancy: false
+				object: $this->stamped(trainerRef: $trainerRef, trainer: $trainer, assurance: $assurance, body: $body)
 			);
 		} catch (Throwable $exception) {
-			$this->logger->error(
-				'[PortalWerkprocesAssessment] A portal assessment could not be stored: {msg}',
-				['msg' => $exception->getMessage(), 'exception' => $exception]
-			);
-			return new PortalOutcome(status: 502, body: ['error' => 'downstream_error'], reason: 'downstream');
+			return $this->downstream(exception: $exception);
 		}//end try
-
-		$row = $this->toRow(object: $saved);
 
 		return new PortalOutcome(
 			status: 201,
@@ -184,6 +141,30 @@ class PortalWerkprocesAssessment {
 			]
 		);
 	}//end submit()
+
+	/**
+	 * Why the request is refused before any read: assurance below the floor, or an incomplete request.
+	 *
+	 * @param string               $assurance The caller's assurance level.
+	 * @param array<string, mixed> $request   trainerRef and placementId.
+	 * @param PortalAnswers        $answers   The form's answers, which name the missing fields.
+	 *
+	 * @return PortalOutcome|null Null when the request may proceed.
+	 *
+	 * @spec openspec/changes/an-invited-trainer-may-assess/specs/bpv/spec.md#requirement-an-assessment-records-who-assessed-and-how-sure-the-school-is
+	 */
+	private function requestRefusal(string $assurance, array $request, PortalAnswers $answers): ?PortalOutcome {
+		$floor = $this->belowFloor(assurance: $assurance, floor: $this->floor());
+		if ($floor !== null) {
+			return $floor;
+		}
+
+		if ($request['trainerRef'] === '' || $request['placementId'] === '') {
+			return $answers->refused(error: 'incomplete', reason: 'incomplete');
+		}
+
+		return null;
+	}//end requestRefusal()
 
 	/**
 	 * The assessment as it is stored: the trainer's own fields, then who
@@ -225,20 +206,6 @@ class PortalWerkprocesAssessment {
 	}//end stamped()
 
 	/**
-	 * The assurance a school demands before it accepts an assessment.
-	 *
-	 * @return string One of the eIDAS levels; `basic` when unset or unknown.
-	 */
-	private function floor(): string {
-		$declared = $this->appConfig->getValueString(self::APP_ID, self::MIN_ASSURANCE_KEY, 'basic');
-		if (isset(self::ASSURANCE_ORDER[$declared]) === false) {
-			return 'basic';
-		}
-
-		return $declared;
-	}//end floor()
-
-	/**
 	 * Whether this placement is one of the trainer's own.
 	 *
 	 * @param string $trainerRef  The trainer's uuid.
@@ -253,84 +220,4 @@ class PortalWerkprocesAssessment {
 
 		return $placement !== null && $this->text(value: ($placement['practicalTrainerId'] ?? null)) === $trainerRef;
 	}//end ownsPlacement()
-
-	/**
-	 * One learniq row by uuid, or null.
-	 *
-	 * @param string $schema The schema slug.
-	 * @param string $id     The uuid.
-	 *
-	 * @return array<string, mixed>|null
-	 *
-	 * @throws \Throwable When OpenRegister cannot be read.
-	 */
-	private function row(string $schema, string $id): ?array {
-		$objects = $this->objectService->findAll(
-			config: [
-				'filters' => ['register' => self::REGISTER, 'schema' => $schema],
-				'ids' => [$id],
-				'limit' => 1,
-			],
-			_rbac: false,
-			_multitenancy: false
-		);
-
-		foreach ($objects as $object) {
-			$row = $this->toRow(object: $object);
-			if (($row['id'] ?? ($row['uuid'] ?? null)) === $id) {
-				return $row;
-			}
-		}
-
-		return null;
-	}//end row()
-
-	/**
-	 * An OpenRegister result as an array.
-	 *
-	 * @param mixed $object An array or a serialisable entity.
-	 *
-	 * @return array<string, mixed>
-	 */
-	private function toRow(mixed $object): array {
-		if (is_array($object) === true) {
-			return $object;
-		}
-
-		if (is_object($object) === true && method_exists($object, 'jsonSerialize') === true) {
-			return (array)$object->jsonSerialize();
-		}
-
-		return [];
-	}//end toRow()
-
-	/**
-	 * A string value, or '' for anything else.
-	 *
-	 * @param mixed $value The value.
-	 *
-	 * @return string
-	 */
-	private function text(mixed $value): string {
-		if (is_string($value) === false) {
-			return '';
-		}
-
-		return $value;
-	}//end text()
-
-	/**
-	 * The text, or null when it is empty.
-	 *
-	 * @param string $value The text.
-	 *
-	 * @return string|null
-	 */
-	private function orNull(string $value): ?string {
-		if ($value === '') {
-			return null;
-		}
-
-		return $value;
-	}//end orNull()
 }//end class

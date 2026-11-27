@@ -34,9 +34,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Kernel\Contracts\SegmentServiceInterface;
 use OCA\Learniq\Service\ConferenceBookingMode;
-use OCA\Learniq\Service\ListenerSchemaResolver;
-use OCA\Learniq\Service\SegmentService;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -59,15 +59,15 @@ class ConferenceRoundBookingModeStamp implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param ListenerSchemaResolver $schemaResolver Entity schema id to slug.
-	 * @param SegmentService $segments The kind of school this instance runs as.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Entity schema id to slug.
+	 * @param SegmentServiceInterface $segments The kind of school this instance runs as.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ListenerSchemaResolver $schemaResolver,
-		private readonly SegmentService $segments,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
+		private readonly SegmentServiceInterface $segments,
 		private readonly LoggerInterface $logger,
 	) {
 	}//end __construct()

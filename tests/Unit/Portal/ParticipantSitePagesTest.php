@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/participant-portal/specs/portal-contribution/spec.md#requirement-a-participant-lands-on-his-next-course-day
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-a-participant-lands-on-his-next-course-day
  */
 
 declare(strict_types=1);
@@ -24,6 +24,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Portal;
 
 use OCA\Learniq\Portal\PortalContributionProvider;
+use OCA\Learniq\Service\Portal\PortalEmployerBookings;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -63,6 +64,30 @@ class ParticipantSitePagesTest extends TestCase {
 	}//end testEveryReadIsHisOwn()
 
 	/**
+	 * His certificates link to their check page with a word, not with the bare address.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/archive/2026-11-26-certificates-group-the-first-to-expire-first/tasks.md#T2
+	 */
+	public function testHisCertificatesLinkToTheirCheckPageWithAWord(): void {
+		$links = [];
+		foreach (self::manifest()['collections'] as $collection) {
+			foreach (($collection['columns'] ?? []) as $column) {
+				if ($column['field'] === 'verificationUrl') {
+					$links[] = $column;
+				}
+			}
+		}
+
+		self::assertNotSame(expected: [], actual: $links);
+		foreach ($links as $column) {
+			self::assertSame(expected: 'link', actual: $column['render']);
+			self::assertSame(expected: 'Check', actual: $column['linkLabel']);
+		}
+	}//end testHisCertificatesLinkToTheirCheckPageWithAWord()
+
+	/**
 	 * The overview opens with the greeting and the next course day as a highlight,
 	 * and every field a block reads is projected.
 	 *
@@ -76,6 +101,12 @@ class ParticipantSitePagesTest extends TestCase {
 		self::assertSame(['greeting', 'tasks', 'collection', 'collection'], array_column($pages['participantOverview']['blocks'], 'type'));
 		self::assertSame(['upcoming' => true], $collections['participantComingDays']['filter']);
 		self::assertSame(['lifecycle' => 'issued', 'kind' => 'certificate'], $collections['participantCertificates']['filter']);
+		// credential-wallet-offer-for-the-learner: the open wallet offer as a QR code with its link.
+		self::assertContains('walletOfferUri', $collections['participantCertificates']['fields']);
+		self::assertContains(
+			['field' => 'walletOfferUri', 'label' => 'Wallet', 'render' => 'qr', 'linkLabel' => 'Add to wallet'],
+			$collections['participantCertificates']['columns']
+		);
 		foreach ($manifest['pages'] as $page) {
 			foreach ($page['blocks'] as $block) {
 				if (isset($block['collection']) === false) {
@@ -120,4 +151,85 @@ class ParticipantSitePagesTest extends TestCase {
 			$days
 		);
 	}//end testTomsCourseDaysAreOnHisEnrolments()
+
+	/**
+	 * "Uw volgende cursusdag" once: the highlight shows only the next day, and
+	 * the list under it is "Daarna", the days after it (REPORT-2, item 10).
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/guardian-and-participant-pages-follow-the-boards/specs/portal-contribution/spec.md#requirement-the-participant-reads-his-next-course-day-once
+	 */
+	public function testTheNextCourseDayShowsOnce(): void {
+		$overview = array_column(self::manifest()['pages'], null, 'id')['participantOverview'];
+		$coming   = array_values(array_filter($overview['blocks'], static fn (array $b): bool => ($b['collection'] ?? '') === 'participantComingDays'));
+
+		self::assertCount(2, $coming);
+		self::assertSame(['tasks', 1], [$coming[0]['type'], $coming[0]['limit']]);
+		self::assertSame(['After that', 1, 4], [$coming[1]['label'], $coming[1]['skip'], $coming[1]['limit']]);
+		self::assertSame(['field' => 'firstDay', 'direction' => 'asc'], $coming[1]['sort']);
+	}//end testTheNextCourseDayShowsOnce()
+
+	/**
+	 * When his employer sends a colleague instead, his portal tells him: one rule
+	 * on his course days, addressed by his own claim, worded only for the
+	 * substitution reason, and every placeholder it fills is a field he may read.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-an-employer-sends-a-colleague-in-place-of-a-participant-before-the-deadline
+	 */
+	public function testHeIsToldWhenAColleagueGoesInHisPlace(): void {
+		$manifest = self::manifest();
+		$rules    = array_column($manifest['notifications'], null, 'ruleKey');
+		self::assertArrayHasKey(key: 'enrolment.substituted', array: $rules);
+		$rule = $rules['enrolment.substituted'];
+
+		self::assertSame(expected: ['field' => 'withdrawReason', 'operator' => 'changed'], actual: $rule['on']);
+		self::assertSame(expected: ['field' => 'learnerRef', 'claim' => 'learnerRef'], actual: $rule['recipients']);
+		self::assertSame(expected: [PortalEmployerBookings::SUBSTITUTED], actual: array_keys($rule['messages']));
+		self::assertSame(expected: 'vervangen door collega', actual: PortalEmployerBookings::SUBSTITUTED);
+
+		$collection = array_column($manifest['collections'], null, 'id')[$rule['collection']];
+		self::assertSame(expected: 'enrolment', actual: $collection['schema']);
+		self::assertContains(needle: $rule['titleField'], haystack: $collection['fields']);
+		$message = $rule['messages'][PortalEmployerBookings::SUBSTITUTED];
+		self::assertSame(expected: 'Een collega gaat in uw plaats', actual: $message['subject']['nl']);
+		foreach (['nl', 'en'] as $language) {
+			preg_match_all('/\{(\w+)/', $message['body'][$language], $placeholders);
+			self::assertNotEmpty(actual: $placeholders[1]);
+			foreach ($placeholders[1] as $field) {
+				self::assertContains(needle: $field, haystack: $collection['fields'], message: $language.': '.$field);
+			}
+		}
+	}//end testHeIsToldWhenAColleagueGoesInHisPlace()
+
+	/**
+	 * Tom's next course day, F-gassen: herhaling en examen, carries the three
+	 * lines of its bring list, and his course day collections show them under
+	 * "What to bring" ("Meenemen").
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/course-management/spec.md#requirement-a-course-says-what-to-bring
+	 */
+	public function testTomReadsWhatToBringOnHisNextCourseDay(): void {
+		$set = json_decode((string)file_get_contents(__DIR__ . '/../../../lib/Settings/profiles/training.json'), true);
+		$objects = $set['x-openregister']['seedData']['objects'];
+		$tom = array_values(array_filter($objects['learner-profile'], static fn (array $p): bool => ($p['fullName'] ?? '') === 'Tom Verbeek'))[0];
+		$next = array_values(
+			array_filter(
+				$objects['enrolment'],
+				static fn (array $e): bool => $e['learnerRef'] === $tom['uuid'] && ($e['firstDay'] ?? '') === '2026-10-08'
+			)
+		)[0];
+
+		self::assertSame(['Een geldig legitimatiebewijs', 'Uw huidige F-gassencertificaat', 'Werkschoenen en werkkleding'], $next['bringList']);
+
+		$collections = array_column(self::manifest()['collections'], null, 'id');
+		foreach (['participantComingDays', 'participantCourseDays'] as $id) {
+			self::assertContains('bringList', $collections[$id]['fields'], $id);
+			self::assertSame('What to bring', $collections[$id]['fieldConfigs']['bringList']['label'], $id);
+		}
+	}//end testTomReadsWhatToBringOnHisNextCourseDay()
 }//end class

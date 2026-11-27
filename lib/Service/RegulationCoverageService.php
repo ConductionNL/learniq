@@ -32,6 +32,7 @@ namespace OCA\Learniq\Service;
 
 use DateTimeImmutable;
 use DateTimeZone;
+use OCA\Learniq\Kernel\Contracts\RegulationCoverageServiceInterface;
 
 /**
  * Coverage per active regulation.
@@ -40,7 +41,7 @@ use DateTimeZone;
  *
  * @spec openspec/changes/compliance-rule-coverage-table/specs/compliance-rule-coverage/spec.md#requirement-per-rule-coverage-table
  */
-class RegulationCoverageService {
+class RegulationCoverageService implements RegulationCoverageServiceInterface {
 
 	/**
 	 * Regulation.ragRedThreshold and ragAmberThreshold defaults, as the register declares them.
@@ -80,11 +81,55 @@ class RegulationCoverageService {
 	 * @spec openspec/changes/compliance-rule-coverage-table/specs/compliance-rule-coverage/spec.md#requirement-per-rule-coverage-table
 	 */
 	public function byRegulation(?string $department=null, ?DateTimeImmutable $now=null): array {
-		$now = ($now ?? new DateTimeImmutable('now', new DateTimeZone('UTC')));
 		$population = $this->rollup->population();
-		$regulations = $population['regulations'];
-		$exemptions = $population['exemptions'];
+		$run = [
+			'regulations' => $population['regulations'],
+			'exemptions' => $population['exemptions'],
+			'department' => $department,
+			'now' => ($now ?? new DateTimeImmutable('now', new DateTimeZone('UTC'))),
+		];
 
+		$finished = [];
+		foreach ($this->countAll(run: $run, learners: $population['learners']) as $index => $row) {
+			$finished[] = $this->finishRegulationRow(row: $row, regulation: $run['regulations'][$index]);
+		}
+
+		usort($finished, static fn (array $left, array $right): int => strcasecmp($left['name'], $right['name']));
+
+		return $finished;
+	}//end byRegulation()
+
+	/**
+	 * The counted row of every regulation over the learners under the department filter.
+	 *
+	 * @param array<string,mixed>            $run      `regulations`, `exemptions`, `department` (filter or null) and `now`.
+	 * @param array<int,array<string,mixed>> $learners The learners.
+	 *
+	 * @return array<int,array<string,mixed>> Keyed like the regulations.
+	 */
+	private function countAll(array $run, array $learners): array {
+		$rows = $this->emptyRows(regulations: $run['regulations']);
+		foreach ($learners as $profile) {
+			if ($this->inDepartment(profile: $profile, department: $run['department']) === false) {
+				continue;
+			}
+
+			foreach ($this->outcomesOf(profile: $profile, run: $run) as $index => $outcome) {
+				$rows[$index] = $this->addOutcome(row: $rows[$index], outcome: $outcome);
+			}
+		}
+
+		return $rows;
+	}//end countAll()
+
+	/**
+	 * A row per regulation with nothing counted yet.
+	 *
+	 * @param array<int,array<string,mixed>> $regulations The regulations.
+	 *
+	 * @return array<int,array<string,mixed>> Keyed like the regulations.
+	 */
+	private function emptyRows(array $regulations): array {
 		$rows = [];
 		foreach ($regulations as $index => $regulation) {
 			$rows[$index] = [
@@ -97,40 +142,59 @@ class RegulationCoverageService {
 			];
 		}
 
-		foreach ($population['learners'] as $profile) {
-			if ($this->inDepartment(profile: $profile, department: $department) === false) {
+		return $rows;
+	}//end emptyRows()
+
+	/**
+	 * Per regulation whose audience holds the learner: `excused`, `covered` or `uncovered`.
+	 *
+	 * @param array<string,mixed> $profile The learner.
+	 * @param array<string,mixed> $run     `regulations`, `exemptions`, `department` and `now`.
+	 *
+	 * @return array<int,string> Keyed like the regulations.
+	 */
+	private function outcomesOf(array $profile, array $run): array {
+		$keys = $this->rollup->learnerKeys(profile: $profile);
+		$excusedFrom = $this->runningExemptions->regulationsFor(keys: $keys, exemptions: $run['exemptions'], now: $run['now']);
+		$outcomes = [];
+		foreach ($run['regulations'] as $index => $regulation) {
+			if ($this->audience->covers(regulation: $regulation, profile: $profile) === false) {
 				continue;
 			}
 
-			$keys = $this->rollup->learnerKeys(profile: $profile);
-			$excusedFrom = $this->runningExemptions->regulationsFor(keys: $keys, exemptions: $exemptions, now: $now);
-			foreach ($regulations as $index => $regulation) {
-				if ($this->audience->covers(regulation: $regulation, profile: $profile) === false) {
-					continue;
-				}
-
-				$slug = (string)($regulation['slug'] ?? '');
-				if (isset($excusedFrom[$slug]) === true) {
-					$rows[$index]['excused']++;
-					continue;
-				}
-
-				$rows[$index]['inScope']++;
-				if ($this->rollup->isCovered(keys: $keys, regulationSlug: $slug, now: $now) === true) {
-					$rows[$index]['covered']++;
-				}
+			$slug = (string)($regulation['slug'] ?? '');
+			$outcomes[$index] = 'uncovered';
+			if (isset($excusedFrom[$slug]) === true) {
+				$outcomes[$index] = 'excused';
+			} else if ($this->rollup->isCovered(keys: $keys, regulationSlug: $slug, now: $run['now']) === true) {
+				$outcomes[$index] = 'covered';
 			}
-		}//end foreach
-
-		$finished = [];
-		foreach ($rows as $index => $row) {
-			$finished[] = $this->finishRegulationRow(row: $row, regulation: $regulations[$index]);
 		}
 
-		usort($finished, static fn (array $left, array $right): int => strcasecmp($left['name'], $right['name']));
+		return $outcomes;
+	}//end outcomesOf()
 
-		return $finished;
-	}//end byRegulation()
+	/**
+	 * A row with one learner's outcome counted: excused, or in scope and perhaps covered.
+	 *
+	 * @param array<string,mixed> $row     The counted row.
+	 * @param string              $outcome `excused`, `covered` or `uncovered`.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private function addOutcome(array $row, string $outcome): array {
+		if ($outcome === 'excused') {
+			$row['excused']++;
+			return $row;
+		}
+
+		$row['inScope']++;
+		if ($outcome === 'covered') {
+			$row['covered']++;
+		}
+
+		return $row;
+	}//end addOutcome()
 
 	/**
 	 * Whether a learner counts under the department filter: no filter, or
@@ -159,6 +223,8 @@ class RegulationCoverageService {
 	 * @param array<string,mixed> $regulation The regulation.
 	 *
 	 * @return array<string,mixed>
+	 *
+	 * @spec openspec/specs/compliance-rule-coverage/spec.md#requirement-each-rule-has-its-own-red-and-amber-limits
 	 */
 	private function finishRegulationRow(array $row, array $regulation): array {
 		$row['coveragePercent'] = null;

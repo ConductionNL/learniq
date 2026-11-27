@@ -40,6 +40,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
+use OCA\Learniq\Kernel\Contracts\ReportCardTemplateSectionResolverInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 
@@ -49,7 +51,7 @@ use Psr\Log\LoggerInterface;
  *
  * @spec openspec/specs/report-card/spec.md#requirement-composition-is-a-declared-transition-triggered-php-composer-not-a-dataexchangejob-and-not-a-timedjob
  */
-class ReportCardTemplateSectionResolver {
+class ReportCardTemplateSectionResolver implements ReportCardTemplateSectionResolverInterface {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const REPORT_CARD_TEMPLATE_SCHEMA = 'report-card-template';
@@ -89,7 +91,10 @@ class ReportCardTemplateSectionResolver {
 
 		$templateId = (string)$rawTemplateId;
 
-		$template = $this->objectService->find(id: $templateId, register: self::LEARNIQ_REGISTER, schema: self::REPORT_CARD_TEMPLATE_SCHEMA);
+		$template = $this->objectService->find(
+			id: $templateId,
+			options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::REPORT_CARD_TEMPLATE_SCHEMA)
+		);
 		if ($template === null) {
 			$this->logger->warning(
 				'[ReportCardTemplateSectionResolver] ReportCardTemplate {template} not found; falling back to the fixed composition shape.',

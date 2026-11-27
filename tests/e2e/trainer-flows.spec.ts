@@ -28,8 +28,9 @@
  *      the row records her name, her company, its KvK number and that the
  *      school is `basic` sure who assessed;
  *   d. the assessment she wrote is on her own page, and only hers;
- *   e. signing a praktijkovereenkomst still demands a higher bar than an
- *      invitation gives, and a placement that is not hers resolves nothing;
+ *   e. she signs a praktijkovereenkomst from her invitation, and the stored
+ *      signature says `basic`; a school floor of `substantial` refuses it
+ *      and names that level; an agreement that is not hers resolves nothing;
  *   f. a week of her student's hours is waiting for her, she approves another
  *      number with a note, and both numbers stay on the row;
  *   g. her overview reads the hours done against the hours the agreement
@@ -38,9 +39,11 @@
  * Screenshots land in `test-results/audience-flow/trainer/`.
  *
  * @spec openspec/changes/an-invited-trainer-may-assess/specs/bpv/spec.md#requirement-an-invited-trainer-may-submit-a-werkproces-assessment
+ * @spec openspec/changes/an-invited-trainer-may-activate-a-placement/specs/bpv/spec.md#requirement-an-invited-trainer-may-sign-a-praktijkovereenkomst
+ * @spec openspec/changes/an-invited-trainer-may-activate-a-placement/specs/bpv/spec.md#requirement-a-school-may-still-demand-eherkenning-for-a-praktijkovereenkomst
  * @spec openspec/changes/site-workplace-trainer-portal-design/specs/portal-contribution/spec.md#requirement-a-workplace-trainer-lands-on-what-is-waiting-for-her
- * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
- * @spec openspec/changes/internship-hours/specs/bpv/spec.md#requirement-hours-are-shown-against-the-hours-that-were-agreed
+ * @spec openspec/specs/bpv/spec.md#requirement-a-week-of-bpv-hours-is-a-record-of-its-own
+ * @spec openspec/specs/bpv/spec.md#requirement-hours-are-shown-against-the-hours-that-were-agreed
  * @spec openspec/specs/bpv/spec.md#requirement-praktijkopleider-portal-access-is-a-direct-scope-portalcontributionprovider-audience
  */
 
@@ -127,6 +130,9 @@ test.describe('trainer: an invited workplace trainer', () => {
 	// instance whose checkout predates learniq#1679 still asks `substantial`,
 	// and an invited trainer can then not assess — correctly, for that build.
 	let assessmentTrust = ''
+	// The same for signing a praktijkovereenkomst: `low` since
+	// an-invited-trainer-may-activate-a-placement, `substantial` before it.
+	let signTrust = ''
 
 	test.beforeAll(async ({ browser }) => {
 		test.setTimeout(300_000)
@@ -247,6 +253,12 @@ test.describe('trainer: an invited workplace trainer', () => {
 					action.id === 'createWerkprocesAssessment',
 			)?.minTrust ?? '',
 		)
+		signTrust = String(
+			actions.find(
+				(action: Record<string, any>) =>
+					action.id === 'signPraktijkovereenkomst',
+			)?.minTrust ?? '',
+		)
 	})
 
 	test.afterAll(async () => {
@@ -361,21 +373,84 @@ test.describe('trainer: an invited workplace trainer', () => {
 		}
 	})
 
-	test('e. the invitation is not a signature, and another placement is not hers', async () => {
-		// Signing a praktijkovereenkomst stays `minTrust: substantial`: the
-		// school lowered the bar for assessing, not for signing.
+	test('e. her invitation signs the agreement as basic, a school may demand more, and another placement is not hers', async () => {
+		// an-invited-trainer-may-activate-a-placement (Ruben, 25 November 2026):
+		// an invited trainer may sign the praktijkovereenkomst. The signature
+		// goes through learniq's own endpoint, which stamps the level her
+		// sign-in really reached, so it says `basic`.
+		test.skip(
+			signTrust !== 'low',
+			"this instance's learniq predates an-invited-trainer-may-activate-a-placement: signing still asks a higher bar",
+		)
+		const agreement = await createRow(admin, created, 'learniq', 'praktijkovereenkomst', {
+			bpvPlacementId: placementId,
+			periodFrom: '2026-09-01',
+			periodTo: '2027-01-31',
+			version: 1,
+			lifecycle: 'pending-signatures',
+			tenant_id: TENANT,
+		})
+		const agreementId = String(agreement.id)
+
 		const signed = await trainer.page.request.post(
-			'/apps/portaliq/portal/api/collections/learniq/pok-signature',
+			'/apps/portaliq/portal/api/actions/learniq/signPraktijkovereenkomst',
 			{
 				headers: { Authorization: `Bearer ${trainer.token}` },
-				data: {
-					subjectId: placementId,
-					subjectVersion: '1',
-					method: 'portal',
-				},
+				// A claimed level is not hers to send; the server replaces it.
+				data: { subjectId: agreementId, assuranceLevel: 'high' },
 			},
 		)
-		expect(signed.status()).toBe(403)
+		expect(signed.status(), await signed.text()).toBeLessThan(300)
+
+		const stored = await admin.get(
+			'/apps/openregister/api/objects/learniq/pok-signature',
+			{ params: { subjectId: agreementId, signerId: trainerRef } },
+		)
+		expect(stored.status(), await stored.text()).toBe(200)
+		const rows: Record<string, any>[] = (await stored.json()).results ?? []
+		const mine = rows.find((row) => String(row.subjectId) === agreementId && String(row.signerId) === trainerRef)
+		expect(mine, 'her signature on the agreement').toBeTruthy()
+		created.push({ register: 'learniq', schema: 'pok-signature', id: String(mine!.id) })
+		expect(mine!.signerRole).toBe('praktijkopleider')
+		expect(mine!.assuranceLevel).toBe('basic')
+		expect(mine!.subjectVersion).toBe(1)
+
+		// A school that demands eHerkenning for a POK refuses the same
+		// signature, and the answer names what it requires.
+		const floor = '/ocs/v2.php/apps/provisioning_api/api/v1/config/apps/learniq/bpv_pok_min_assurance'
+		const second = await createRow(admin, created, 'learniq', 'praktijkovereenkomst', {
+			bpvPlacementId: placementId,
+			periodFrom: '2026-09-01',
+			periodTo: '2027-01-31',
+			version: 1,
+			lifecycle: 'pending-signatures',
+			tenant_id: TENANT,
+		})
+		const raised = await admin.post(floor, { form: { value: 'substantial' } })
+		expect(raised.status(), await raised.text()).toBeLessThan(300)
+		try {
+			const refused = await trainer.page.request.post(
+				'/apps/portaliq/portal/api/actions/learniq/signPraktijkovereenkomst',
+				{
+					headers: { Authorization: `Bearer ${trainer.token}` },
+					data: { subjectId: String(second.id) },
+				},
+			)
+			expect(refused.status()).toBe(403)
+			expect(await refused.text()).toContain('substantial')
+		} finally {
+			await admin.delete(floor)
+		}
+
+		// An agreement that is not hers resolves nothing.
+		const foreignAgreement = await trainer.page.request.post(
+			'/apps/portaliq/portal/api/actions/learniq/signPraktijkovereenkomst',
+			{
+				headers: { Authorization: `Bearer ${trainer.token}` },
+				data: { subjectId: '00000000-0000-4000-8000-00000000dead' },
+			},
+		)
+		expect(foreignAgreement.status()).toBeGreaterThanOrEqual(400)
 
 		// An assessment on a placement that is not hers is refused by learniq's
 		// own endpoint, which checks the placement against her claim.

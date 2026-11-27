@@ -33,15 +33,19 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service;
 
-use OCA\Learniq\Timetabling\Source\TimetableSourceResolver;
+use OCA\Learniq\Kernel\Contracts\PersonalTimetableServiceInterface;
+use OCA\Learniq\Kernel\Contracts\TimetableSourceResolverInterface;
+use OCA\Learniq\Support\ObjectRow;
 use OCA\OpenRegister\Service\ObjectService;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 
 /**
  * Resolves and projects one user's own lessons for a window.
+ *
+ * @spec openspec/specs/personal-timetable/spec.md#requirement-a-signed-in-user-can-see-their-own-upcoming-sessions
  */
-class PersonalTimetableService {
+class PersonalTimetableService implements PersonalTimetableServiceInterface {
 	/**
 	 * OpenRegister register slug that owns the Learniq schemas.
 	 *
@@ -57,19 +61,27 @@ class PersonalTimetableService {
 	private const ENDED_ENROLMENT = ['withdrawn', 'completed', 'failed'];
 
 	/**
+	 * Turns one OpenRegister result into a plain array.
+	 *
+	 * @var ObjectRow
+	 */
+	private readonly ObjectRow $objectRow;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService           $objectService OR object query service (RBAC-scoped).
 	 * @param TimetableProjector      $projector     Window resolution and Session projection.
-	 * @param TimetableSourceResolver $sources       Where sessions are read from: planninq when installed, else Session.
+	 * @param TimetableSourceResolverInterface $sources       Where sessions are read from: planninq when installed, else Session.
 	 * @param LoggerInterface         $logger        Application logger.
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly TimetableProjector $projector,
-		private readonly TimetableSourceResolver $sources,
+		private readonly TimetableSourceResolverInterface $sources,
 		private readonly LoggerInterface $logger,
 	) {
+		$this->objectRow = new ObjectRow();
 	}//end __construct()
 
 	/**
@@ -124,10 +136,7 @@ class PersonalTimetableService {
 		// Each lesson carries the notes the caller may read, and whether the
 		// caller may add one (timetabling-lesson-note).
 		$sessions = $this->projector->personalSessions(
-			rawSessions: $rawSessions,
-			windowFrom: $windowFrom,
-			windowTo: $windowTo,
-			roomCache: $roomCache,
+			lessons: ['sessions' => $rawSessions, 'window' => [$windowFrom, $windowTo], 'roomCache' => $roomCache],
 			uid: $uid,
 			taughtCohortIds: $taughtCohortIds
 		);
@@ -216,7 +225,15 @@ class PersonalTimetableService {
 	 * Teacher membership: the caller's uid appears in `Cohort.teacherIds`.
 	 * Learner membership: the caller's uid appears in `Cohort.learnerIds`, or
 	 * the caller has an `Enrolment` whose `learnerId` is the caller and whose
-	 * `cohortId` is set. All reads are RBAC/multitenancy-scoped by ObjectService.
+	 * `cohortId` is set.
+	 *
+	 * The cohorts are read without RBAC and filtered on membership here: a
+	 * learner may not read a Cohort row unless its `ncGroupId` is one of her
+	 * groups, and no example set or SIS import sets one, so an RBAC-scoped read
+	 * left every learner listed in `learnerIds` with an empty timetable (found
+	 * live, 25 Nov 2026). No cohort row leaves this method, only the ids of the
+	 * cohorts the caller is listed in, and their lessons are read without RBAC
+	 * already. Multitenancy stays on. Enrolments are read as the caller.
 	 *
 	 * An enrolment that is withdrawn, completed or failed reaches nothing. A
 	 * live enrolment with no cohort names its course in $electives.
@@ -226,6 +243,8 @@ class PersonalTimetableService {
 	 * @param array<int,string> $electives Filled with the courses the caller is enrolled in without a cohort.
 	 *
 	 * @return array<int,string> The unique cohort UUIDs (may be empty).
+	 *
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-signed-in-user-can-see-their-own-upcoming-sessions
 	 */
 	private function resolveCallerCohortIds(string $uid, array &$taught, array &$electives): array {
 		$cohortIds = [];
@@ -239,7 +258,8 @@ class PersonalTimetableService {
 					'register' => self::LEARNIQ_REGISTER,
 					'schema' => 'cohort',
 				],
-			]
+			],
+			_rbac: false
 		);
 
 		foreach ($cohorts as $row) {
@@ -261,6 +281,53 @@ class PersonalTimetableService {
 
 		return array_keys($cohortIds);
 	}//end resolveCallerCohortIds()
+
+	/**
+	 * The groups the user is the mentor of, for the Mentor class scope of My timetable.
+	 *
+	 * Asks for the cohorts whose `mentorId` is the user, with her own rights,
+	 * and checks the field again here, so a store that ignores the key cannot
+	 * widen the list. A failing read answers an empty list: the page then
+	 * shows only her own week.
+	 *
+	 * @param string $uid The user's Nextcloud user id.
+	 *
+	 * @return array<int,array{id: string, name: string}> The groups, by name.
+	 *
+	 * @spec openspec/specs/personal-timetable/spec.md#requirement-a-teacher-reads-her-week-as-day-columns-and-lesson-hours
+	 */
+	public function mentorClasses(string $uid): array {
+		try {
+			$rows = $this->objectService->findAll(
+				[
+					'filters' => [
+						'register' => self::LEARNIQ_REGISTER,
+						'schema' => 'cohort',
+						'mentorId' => $uid,
+					],
+				]
+			);
+		} catch (\Exception $e) {
+			$this->logger->warning('[PersonalTimetableService] Mentor classes not readable: {msg}', ['msg' => $e->getMessage()]);
+			return [];
+		}
+
+		$classes = [];
+		foreach ($rows as $row) {
+			$cohort = $this->toArray(row: $row);
+			$cohortId = (string)($cohort['id'] ?? ($cohort['uuid'] ?? ''));
+			if ($cohortId === '' || ($cohort['mentorId'] ?? null) !== $uid) {
+				continue;
+			}
+
+			$classes[$cohortId] = ['id' => $cohortId, 'name' => (string)($cohort['name'] ?? $cohortId)];
+		}
+
+		$classes = array_values($classes);
+		usort($classes, static fn (array $left, array $right): int => strnatcasecmp($left['name'], $right['name']));
+
+		return $classes;
+	}//end mentorClasses()
 
 	/**
 	 * Add what the caller's live enrolments reach: a cohort, or a course when
@@ -334,15 +401,7 @@ class PersonalTimetableService {
 	 * @return array<string,mixed> The serialized object data.
 	 */
 	private function toArray(mixed $row): array {
-		if (is_array($row) === true) {
-			return $row;
-		}
-
-		if (is_object($row) === true && method_exists($row, 'jsonSerialize') === true) {
-			return (array)$row->jsonSerialize();
-		}
-
-		return [];
+		return $this->objectRow->asArray(object: $row);
 	}//end toArray()
 
 	/**

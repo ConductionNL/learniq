@@ -33,12 +33,16 @@ use OCA\Learniq\Service\IntegriqExchangeClient;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
+use OCA\OpenRegister\Kernel\Contracts\RegisterSchemaRef;
+use OCA\OpenRegister\Service\Lifecycle\TransitionActor;
+use OCA\OpenRegister\Service\Lifecycle\TransitionMove;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\IAppConfig;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 
 /**
  * Tests for SupportRequestSubmitHandler.
@@ -75,7 +79,11 @@ class SupportRequestSubmitHandlerTest extends TestCase {
 		$this->saved = [];
 		$objectService = $this->createMock(ObjectService::class);
 		$objectService->method('saveObject')->willReturnCallback(
-			function (array|ObjectEntity $object, ?array $extend = [], $register = null, $schema = null, $uuid = null, bool $_rbac = true): ObjectEntity {
+			function (array|ObjectEntity $object, ObjectSaveOptions $options = new ObjectSaveOptions(), bool $_rbac = true): ObjectEntity {
+				$extend = $options->extend ?? [];
+				$register = $options->target->register;
+				$schema = $options->target->schema;
+				$uuid = $options->uuid;
 				$this->rbacWrites[] = ['schema' => (string)$schema, 'rbac' => $_rbac];
 				$data = ($object instanceof ObjectEntity) ? $object->jsonSerialize() : $object;
 				$this->saved[] = ['schema' => (string)$schema, 'object' => $data, 'uuid' => $uuid];
@@ -100,7 +108,7 @@ class SupportRequestSubmitHandlerTest extends TestCase {
 	 * @return ObjectTransitionedEvent
 	 */
 	private function event(array $request, string $to = 'submitted', string $schema = 'support-request'): ObjectTransitionedEvent {
-		return new ObjectTransitionedEvent(OrEntityFactory::make($request, $schema), 'submit', 'draft', $to, 'coordinator-1', 'learniq', $schema);
+		return new ObjectTransitionedEvent(object: OrEntityFactory::make($request, $schema), move: new TransitionMove(action: 'submit', from: 'draft', to: $to), scope: new RegisterSchemaRef(register: 'learniq', schema: $schema), actor: new TransitionActor(userId: 'coordinator-1'));
 	}//end event()
 
 	/**

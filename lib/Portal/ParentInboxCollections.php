@@ -21,7 +21,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/school-portals-use-the-new-blocks/specs/portal-contribution/spec.md#requirement-a-new-grade-reaches-the-guardians-inbox-when-it-becomes-visible
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-a-new-grade-reaches-the-guardians-inbox-when-it-becomes-visible
  */
 
 declare(strict_types=1);
@@ -31,11 +31,33 @@ namespace OCA\Learniq\Portal;
 /**
  * The guardian's inbox collections.
  *
- * @spec openspec/changes/school-portals-use-the-new-blocks/specs/portal-contribution/spec.md#requirement-a-new-grade-reaches-the-guardians-inbox-when-it-becomes-visible
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-a-new-grade-reaches-the-guardians-inbox-when-it-becomes-visible
  */
 class ParentInboxCollections {
 
 	private const REGISTER = 'learniq';
+
+	private const PARENT_INBOX_FIELDS = [
+		'learnerRef',
+		'event',
+		'subject',
+		'visibleFrom',
+	];
+
+	private const PARENT_INBOX_MESSAGE_FIELDS = [
+		'subject' => 'subject',
+		'receivedAt' => 'visibleFrom',
+	];
+
+	private const PUPIL_BOOKING_INBOX_MESSAGE_FIELDS = [
+		'subject' => 'slotLabel',
+		'receivedAt' => 'bookedAt',
+	];
+
+	private const PARENT_GRADE_INBOX_MESSAGE_FIELDS = [
+		'subject' => 'courseName',
+		'receivedAt' => 'visibleFrom',
+	];
 
 	/**
 	 * Both inbox collections, report cards first.
@@ -44,10 +66,14 @@ class ParentInboxCollections {
 	 *
 	 * @return array<int, array<string, mixed>>
 	 *
-	 * @spec openspec/changes/school-portals-use-the-new-blocks/specs/portal-contribution/spec.md#requirement-a-new-grade-reaches-the-guardians-inbox-when-it-becomes-visible
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-new-grade-reaches-the-guardians-inbox-when-it-becomes-visible
 	 */
 	public function collections(array $childJoin): array {
-		return [$this->reportCardInbox(childJoin: $childJoin), $this->gradeInbox(childJoin: $childJoin)];
+		return [
+			$this->reportCardInbox(childJoin: $childJoin),
+			$this->gradeInbox(childJoin: $childJoin),
+			$this->pupilBookingInbox(childJoin: $childJoin),
+		];
 	}//end collections()
 
 	/**
@@ -67,7 +93,7 @@ class ParentInboxCollections {
 	 *
 	 * @return array<string, mixed> The collection.
 	 *
-	 * @spec openspec/changes/site-guardian-portal-design/specs/portal-contribution/spec.md#requirement-new-school-notices-about-a-child-reach-the-guardians-inbox
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-new-school-notices-about-a-child-reach-the-guardians-inbox
 	 */
 	private function reportCardInbox(array $childJoin): array {
 		return [
@@ -82,16 +108,8 @@ class ParentInboxCollections {
 			'label' => 'Messages from school',
 			'listable' => true,
 			'minTrust' => 'substantial',
-			'fields' => [
-				'learnerRef',
-				'event',
-				'subject',
-				'visibleFrom',
-			],
-			'messageFields' => [
-				'subject' => 'subject',
-				'receivedAt' => 'visibleFrom',
-			],
+			'fields' => self::PARENT_INBOX_FIELDS,
+			'messageFields' => self::PARENT_INBOX_MESSAGE_FIELDS,
 			// A notice waits until its moment has come (lane L2, portaliq #1198).
 			'visibleFromField' => 'visibleFrom',
 		];
@@ -108,7 +126,7 @@ class ParentInboxCollections {
 	 *
 	 * @return array<string, mixed> The collection.
 	 *
-	 * @spec openspec/changes/school-portals-use-the-new-blocks/specs/portal-contribution/spec.md#requirement-a-new-grade-reaches-the-guardians-inbox-when-it-becomes-visible
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-new-grade-reaches-the-guardians-inbox-when-it-becomes-visible
 	 */
 	private function gradeInbox(array $childJoin): array {
 		return [
@@ -124,12 +142,43 @@ class ParentInboxCollections {
 			'listable' => true,
 			'minTrust' => 'substantial',
 			'fields' => ['learnerRef', 'event', 'courseName', 'visibleFrom'],
-			'messageFields' => [
-				'subject' => 'courseName',
-				'receivedAt' => 'visibleFrom',
-			],
+			'messageFields' => self::PARENT_GRADE_INBOX_MESSAGE_FIELDS,
 			'visibleFromField' => 'visibleFrom',
 		];
 
 	}//end gradeInbox()
+
+	/**
+	 * The guardian's notice of a talk her child booked herself, in a round
+	 * that lets pupils book ("Noor koos vanochtend een tijd"). A pupil's own
+	 * booking names no guardian, so the change rule that answers a guardian's
+	 * booking reaches nobody for it; this inbox reads the booking itself,
+	 * only one the child made (`bookedBy: pupil`), through the same reverse
+	 * join on the guardian's children as every parent read. The time itself
+	 * also shows under the guardian's conference times.
+	 *
+	 * @param array<string, mixed> $childJoin The shared reverse `via` join descriptor.
+	 *
+	 * @return array<string, mixed> The collection.
+	 *
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-pupil-may-book-her-own-mentor-talk-when-the-round-allows-it
+	 */
+	private function pupilBookingInbox(array $childJoin): array {
+		return [
+			'id' => 'parentPupilBookingInbox',
+			'kind' => 'inbox',
+			'register' => self::REGISTER,
+			'schema' => 'conference-signup',
+			'scopeField' => 'learnerRef',
+			'scopeClaim' => 'guardianRef',
+			'via' => $childJoin,
+			'groupByField' => 'learnerRef',
+			'filter' => ['bookedBy' => 'pupil'],
+			'label' => 'Talks your child booked',
+			'listable' => true,
+			'minTrust' => 'substantial',
+			'fields' => ['learnerRef', 'slotLabel', 'teacherName', 'startsAt', 'bookedAt', 'lifecycle'],
+			'messageFields' => self::PUPIL_BOOKING_INBOX_MESSAGE_FIELDS,
+		];
+	}//end pupilBookingInbox()
 }//end class

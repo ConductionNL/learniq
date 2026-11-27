@@ -21,14 +21,12 @@ declare(strict_types=1);
 namespace OCA\Learniq\BackgroundJob;
 
 use DateTimeImmutable;
-use OCA\Learniq\Service\PointEngagementEvaluator;
-use OCA\OpenRegister\BackgroundJob\ActorForwardedJob;
+use OCA\Learniq\Kernel\Contracts\PointEngagementEvaluatorInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\Deferral\DeferredListenerContext;
 use OCA\OpenRegister\Service\ObjectService;
-use OCA\OpenRegister\Service\OrganisationService;
 use OCP\AppFramework\Utility\ITimeFactory;
-use OCP\IUserManager;
-use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -48,7 +46,7 @@ use Psr\Log\LoggerInterface;
  * @psalm-suppress UnusedClass Enqueued by ListenerDeferralService at request
  *  shutdown, never constructed by name.
  */
-class LearnerEngagementRollupJob extends ActorForwardedJob {
+class LearnerEngagementRollupJob extends ForwardedJob {
 
 	private const LEARNIQ_REGISTER = 'learniq';
 	private const LEARNER_ENGAGEMENT_SCHEMA = 'learner-engagement';
@@ -57,32 +55,20 @@ class LearnerEngagementRollupJob extends ActorForwardedJob {
 	private const STREAK_MILESTONE_KIND = 'streak-milestone';
 
 	/**
-	 * @param ITimeFactory            $time          Clock, for the base job.
-	 * @param IUserSession            $userSession   Actor forwarding, for the base job.
-	 * @param IUserManager            $userManager   Actor forwarding, for the base job.
-	 * @param OrganisationService     $organisation  Tenant context, for the base job.
+	 * @param ActorForwarding $forwarding Clock, session, user manager and tenant context.
 	 * @param LoggerInterface         $logger        Logger; the base declares it protected.
 	 * @param ObjectService           $objectService OR object access.
-	 * @param PointEngagementEvaluator $evaluator    Points/level/streak calculation engine.
+	 * @param PointEngagementEvaluatorInterface $evaluator    Points/level/streak calculation engine.
 	 * @param ITimeFactory            $timeFactory   Clock for the written timestamps.
 	 */
 	public function __construct(
-		ITimeFactory $time,
-		IUserSession $userSession,
-		IUserManager $userManager,
-		OrganisationService $organisation,
+		ActorForwarding $forwarding,
 		LoggerInterface $logger,
 		private readonly ObjectService $objectService,
-		private readonly PointEngagementEvaluator $evaluator,
+		private readonly PointEngagementEvaluatorInterface $evaluator,
 		private readonly ITimeFactory $timeFactory,
 	) {
-		parent::__construct(
-			time: $time,
-			userSession: $userSession,
-			userManager: $userManager,
-			organisation: $organisation,
-			logger: $logger
-		);
+		parent::__construct(forwarding: $forwarding, logger: $logger);
 	}//end __construct()
 
 	/**
@@ -105,7 +91,7 @@ class LearnerEngagementRollupJob extends ActorForwardedJob {
 			$sourceKind = (string)($entry['sourceKind'] ?? '');
 
 			try {
-				$this->rollUp(learnerId: $learnerId, tenantId: $tenantId, sourceKind: $sourceKind);
+				$this->rollUp(sourceKind: $sourceKind, learner: ['learnerId' => $learnerId, 'tenantId' => $tenantId]);
 			} catch (\Throwable $e) {
 				$this->logger->warning(
 					message: '[LearnerEngagementRollupJob] Roll-up failed for entry',
@@ -124,15 +110,16 @@ class LearnerEngagementRollupJob extends ActorForwardedJob {
 	/**
 	 * Recompute one learner's engagement row, then check milestones.
 	 *
-	 * @param string $learnerId  The learner.
-	 * @param string $tenantId   The tenant.
-	 * @param string $sourceKind The award kind that triggered this.
+	 * @param array{learnerId: string, tenantId: string} $learner    The learner and the tenant.
+	 * @param string                                     $sourceKind The award kind that triggered this.
 	 *
 	 * @return void
 	 *
 	 * @spec openspec/specs/engagement/spec.md#scenario-a-learner-sees-their-own-points-and-level-regardless-of-leaderboard-opt-out
 	 */
-	private function rollUp(string $learnerId, string $tenantId, string $sourceKind): void {
+	private function rollUp(array $learner, string $sourceKind): void {
+		$learnerId = $learner['learnerId'];
+		$tenantId = $learner['tenantId'];
 		$existing = $this->findExistingEngagement(learnerId: $learnerId, tenantId: $tenantId);
 		$previousStreak = (int)($existing['currentStreakDays'] ?? 0);
 
@@ -153,9 +140,11 @@ class LearnerEngagementRollupJob extends ActorForwardedJob {
 		);
 
 		$this->objectService->saveObject(
-			register: self::LEARNIQ_REGISTER,
-			schema: self::LEARNER_ENGAGEMENT_SCHEMA,
-			object: $data
+			object: $data,
+			options: new ObjectSaveOptions(target: new ObjectFindTarget(
+					register: self::LEARNIQ_REGISTER,
+					schema: self::LEARNER_ENGAGEMENT_SCHEMA
+				))
 		);
 
 		if ($sourceKind === self::STREAK_MILESTONE_KIND) {
@@ -247,24 +236,12 @@ class LearnerEngagementRollupJob extends ActorForwardedJob {
 				$rule = $rule->jsonSerialize();
 			}
 
-			$milestoneDays = $rule['milestoneDays'] ?? null;
-			if ($milestoneDays === null) {
-				continue;
-			}
-
-			$milestoneDays = (int)$milestoneDays;
-			if ($previousStreak >= $milestoneDays || $newStreak < $milestoneDays) {
-				continue;
-			}
-
-			$ruleId = $rule['id'] ?? ($rule['uuid'] ?? null);
+			$ruleId = $this->crossedMilestoneRuleId(rule: $rule, streak: ['previous' => $previousStreak, 'new' => $newStreak]);
 			if ($ruleId === null) {
 				continue;
 			}
 
 			$this->objectService->saveObject(
-				register: self::LEARNIQ_REGISTER,
-				schema: self::POINT_AWARD_SCHEMA,
 				object: [
 					'learnerId' => $learnerId,
 					'pointRuleId' => $ruleId,
@@ -273,9 +250,35 @@ class LearnerEngagementRollupJob extends ActorForwardedJob {
 					'sourceObjectId' => null,
 					'awardedAt' => DateTimeImmutable::createFromMutable($this->timeFactory->getDateTime())->format(\DATE_ATOM),
 					'tenant_id' => $tenantId,
-				]
+				],
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::LEARNIQ_REGISTER, schema: self::POINT_AWARD_SCHEMA))
 			);
 		}//end foreach
 
 	}//end checkStreakMilestones()
+
+	/**
+	 * The id of a streak-milestone rule the streak just crossed, or null when it did not
+	 * cross it (or the rule has no milestone or id).
+	 *
+	 * @param array<string, mixed> $rule   The PointRule.
+	 * @param array<string, int>   $streak previous and new streak length.
+	 *
+	 * @return mixed
+	 *
+	 * @spec openspec/specs/engagement/spec.md#scenario-a-learner-sees-their-own-points-and-level-regardless-of-leaderboard-opt-out
+	 */
+	private function crossedMilestoneRuleId(array $rule, array $streak): mixed {
+		$milestoneDays = $rule['milestoneDays'] ?? null;
+		if ($milestoneDays === null) {
+			return null;
+		}
+
+		$milestoneDays = (int)$milestoneDays;
+		if ($streak['previous'] >= $milestoneDays || $streak['new'] < $milestoneDays) {
+			return null;
+		}
+
+		return $rule['id'] ?? ($rule['uuid'] ?? null);
+	}//end crossedMilestoneRuleId()
 }//end class

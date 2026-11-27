@@ -30,6 +30,7 @@ use OCA\Learniq\Tests\Support\OrEntityFactory;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 
 /**
  * Tests for the AdmissionsDecisionGuard lifecycle guard.
@@ -68,7 +69,11 @@ class AdmissionsDecisionGuardTest extends TestCase {
 		// and returns ?ObjectEntity. willReturnCallback() hands the closure the
 		// mock's arguments POSITIONALLY, so the closure must mirror that order.
 		$this->objectService->method('find')->willReturnCallback(
-			function (int|string $id, ?array $_extend = [], bool $files = false, $register = null, $schema = null) use ($round) {
+			function (int|string $id, ?ObjectFindOptions $options = null) use ($round) {
+				$_extend = $options?->extend ?? [];
+				$files = $options?->files ?? false;
+				$register = $options?->register;
+				$schema = $options?->schema;
 				if ($schema === 'admissions-round' && $round !== null) {
 					return OrEntityFactory::make($round, 'admissions-round');
 				}
@@ -500,4 +505,228 @@ class AdmissionsDecisionGuardTest extends TestCase {
 		self::assertAllowed($this->makeGuard()->check($object, 'reject', ''));
 
 	}//end testGenericKindSkipsToelatingsrechtAndSchooladviesBranches()
+
+	/**
+	 * The toelatingsrecht safeguard at every boundary: a rejection without a
+	 * named reason is blocked unless the application came in after a readable
+	 * deadline or without a studiekeuzeadvies; an unreadable or missing date
+	 * counts as on time, an unparsable one as late.
+	 *
+	 * @return void
+	 */
+	public function testToelatingsrechtAtEveryBoundary(): void {
+		$cases = [
+			'on the deadline'        => ['2026-04-01', '2026-04-01T00:00:00+00:00', true, '', false],
+			'one second late'        => ['2026-04-01T00:00:00+00:00', '2026-04-01T00:00:01+00:00', true, '', true],
+			'no deadline'            => [null, '2026-09-01T10:00:00+01:00', true, '', false],
+			'empty deadline'         => ['', '2026-09-01T10:00:00+01:00', true, '', false],
+			'no submission date'     => ['2026-04-01', null, true, '', false],
+			'numeric submission'     => ['2026-04-01', 20260901, true, '', false],
+			'unparsable deadline'    => ['not a date', '2026-03-01T10:00:00+01:00', true, '', true],
+			'unparsable submission'  => ['2026-04-01', 'soon', true, '', true],
+			'no advies'              => ['2026-04-01', '2026-03-01T10:00:00+01:00', false, '', true],
+			'advies as string'       => ['2026-04-01', '2026-03-01T10:00:00+01:00', 'yes', '', true],
+			'blank reason'           => ['2026-04-01', '2026-03-01T10:00:00+01:00', true, '   ', false],
+			'named reason'           => ['2026-04-01', '2026-03-01T10:00:00+01:00', true, 'no diploma', true],
+		];
+
+		foreach ($cases as $name => [$deadline, $submittedAt, $advies, $reason, $allowed]) {
+			$this->objectService = $this->createMock(ObjectService::class);
+			$this->wireRound(['kind' => 'mbo-toelatingsrecht', 'applicationDeadline' => $deadline]);
+			$object = array_merge(
+				$this->application(['submittedAt' => $submittedAt, 'studiekeuzeadviesGiven' => $advies, 'decisionReason' => $reason]),
+				['lifecycle' => 'rejected']
+			);
+
+			$verdict = $this->makeGuard()->check($object, 'reject', '');
+			if ($allowed === true) {
+				self::assertAllowed($verdict, $name);
+				continue;
+			}
+
+			self::assertDenied($verdict, $name);
+		}
+	}//end testToelatingsrechtAtEveryBoundary()
+
+	/**
+	 * The schooladvies rule at every branch: nothing to compare, a toets that
+	 * does not outrank, a matching adjustment, a motivation, and the pro /
+	 * vmbo-bb exemption only when both levels are in it.
+	 *
+	 * @return void
+	 */
+	public function testSchooladviesAtEveryBranch(): void {
+		$cases = [
+			'nothing recorded'     => [null, null, null, '', true],
+			'unknown level'        => ['vmbo-gt', 'gymnasium-plus', null, '', true],
+			'toets lower'          => ['havo', 'vmbo-gt', null, '', true],
+			'toets equal'          => ['havo', 'havo', null, '', true],
+			'adjusted to toets'    => ['vmbo-gt', 'havo', 'havo', '', true],
+			'adjusted elsewhere'   => ['vmbo-gt', 'havo', 'vmbo-kb', '', false],
+			'blank motivation'     => ['vmbo-gt', 'havo', null, '  ', false],
+			'motivated'            => ['vmbo-gt', 'havo', null, 'past niet', true],
+			'pro to vmbo-bb'       => ['pro', 'vmbo-bb', null, '', true],
+			'pro to vmbo-kb'       => ['pro', 'vmbo-kb', null, '', false],
+		];
+
+		foreach ($cases as $name => [$advice, $toets, $adjusted, $motivation, $allowed]) {
+			$this->objectService = $this->createMock(ObjectService::class);
+			$this->wireRound(['kind' => 'vo-schooladvies-doorstroomtoets']);
+			$object = array_merge(
+				$this->application(
+					[
+						'schoolAdviceLevel' => $advice,
+						'progressionTestLevel' => $toets,
+						'schoolAdviceAdjustedLevel' => $adjusted,
+						'adjustmentMotivation' => $motivation,
+					]
+				),
+				['lifecycle' => 'waitlisted']
+			);
+
+			$verdict = $this->makeGuard()->check($object, 'waitlist', '');
+			if ($allowed === true) {
+				self::assertAllowed($verdict, $name);
+				continue;
+			}
+
+			self::assertDenied($verdict, $name);
+		}
+	}//end testSchooladviesAtEveryBranch()
+
+	/**
+	 * Wire a round with a review panel and the application's advice rows.
+	 *
+	 * @param array<int,string>              $panel  The panel's member ids.
+	 * @param array<int,array<string,mixed>> $advice The advice rows on app-1.
+	 *
+	 * @return void
+	 */
+	private function wirePanel(array $panel, array $advice): void {
+		$this->wireRound(round: ['kind' => 'generic', 'panelMemberIds' => $panel]);
+		$this->objectService->method('findAll')->willReturnCallback(
+			callback: static function (array $config) use ($advice): array {
+				$isAdvice = (($config['filters']['schema'] ?? '') === 'admission-advice');
+				if ($isAdvice === false || ($config['filters']['applicationId'] ?? '') !== 'app-1') {
+					return [];
+				}
+
+				return array_map(static fn (array $row) => OrEntityFactory::make(data: $row, schema: 'admission-advice'), $advice);
+			}
+		);
+	}//end wirePanel()
+
+	/**
+	 * One member's advice on app-1.
+	 *
+	 * @param string $memberId The member.
+	 * @param string $advice   place, waitlist or reject.
+	 *
+	 * @return array<string,string>
+	 */
+	private function adviceOf(string $memberId, string $advice): array {
+		return ['id' => 'adv-' . $memberId, 'applicationId' => 'app-1', 'memberId' => $memberId, 'advice' => $advice];
+	}//end adviceOf()
+
+	/**
+	 * The application at a decision state.
+	 *
+	 * @param string $state placed, waitlisted or rejected.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private function decidedAs(string $state): array {
+		return array_merge($this->application(overrides: []), ['lifecycle' => $state]);
+	}//end decidedAs()
+
+	/**
+	 * Scenario "Three panel members review one application": each member
+	 * advises place, so the application moves to placed.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/enrolment/spec.md#requirement-a-review-panel-decides-an-application-together
+	 */
+	public function testThreePanelMembersPlaceTheApplicantTogether(): void {
+		$this->wirePanel(
+			panel: ['anna', 'bram', 'cem'],
+			advice: [
+				$this->adviceOf(memberId: 'anna', advice: 'place'),
+				$this->adviceOf(memberId: 'bram', advice: 'place'),
+				$this->adviceOf(memberId: 'cem', advice: 'place'),
+			]
+		);
+
+		self::assertAllowed(verdict: $this->makeGuard()->check(object: $this->decidedAs(state: 'placed'), action: 'place', userId: 'anna'));
+	}//end testThreePanelMembersPlaceTheApplicantTogether()
+
+	/**
+	 * Scenario "One member cannot decide alone": with one advice of three,
+	 * the placement is refused and the refusal says how far the panel is.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/enrolment/spec.md#requirement-a-review-panel-decides-an-application-together
+	 */
+	public function testOnePanelMemberCannotDecideAlone(): void {
+		$this->wirePanel(panel: ['anna', 'bram', 'cem'], advice: [$this->adviceOf(memberId: 'anna', advice: 'place')]);
+
+		$verdict = $this->makeGuard()->check(object: $this->decidedAs(state: 'placed'), action: 'place', userId: 'anna');
+
+		self::assertDenied(verdict: $verdict);
+		self::assertSame(expected: 'The review panel has not decided yet: 1 of 3 members gave their advice.', actual: $verdict->getMessage());
+	}//end testOnePanelMemberCannotDecideAlone()
+
+	/**
+	 * A decision the panel did not advise is refused, and the one it advised passes.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/enrolment/spec.md#requirement-a-review-panel-decides-an-application-together
+	 */
+	public function testThePanelsMajorityAdviceIsTheOnlyDecision(): void {
+		$this->wirePanel(
+			panel: ['anna', 'bram', 'cem'],
+			advice: [
+				$this->adviceOf(memberId: 'anna', advice: 'waitlist'),
+				$this->adviceOf(memberId: 'bram', advice: 'waitlist'),
+				$this->adviceOf(memberId: 'cem', advice: 'place'),
+			]
+		);
+
+		$placed = $this->makeGuard()->check(object: $this->decidedAs(state: 'placed'), action: 'place', userId: 'cem');
+		self::assertDenied(verdict: $placed);
+		self::assertSame(expected: 'The review panel did not advise this decision: 1 of 3 members advised it.', actual: $placed->getMessage());
+
+		self::assertAllowed(verdict: $this->makeGuard()->check(object: $this->decidedAs(state: 'waitlisted'), action: 'waitlist', userId: 'anna'));
+	}//end testThePanelsMajorityAdviceIsTheOnlyDecision()
+
+	/**
+	 * The waiting list's promote is not a panel decision: a freed seat moves
+	 * a waitlisted application on without new advice.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/enrolment/spec.md#requirement-a-review-panel-decides-an-application-together
+	 */
+	public function testPromotionFromTheWaitingListNeedsNoNewAdvice(): void {
+		$this->wirePanel(panel: ['anna', 'bram', 'cem'], advice: []);
+
+		self::assertAllowed(verdict: $this->makeGuard()->check(object: $this->decidedAs(state: 'placed'), action: 'promote', userId: ''));
+	}//end testPromotionFromTheWaitingListNeedsNoNewAdvice()
+
+	/**
+	 * An application without an id finds no advice, so a panel round refuses its decision.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/enrolment/spec.md#requirement-a-review-panel-decides-an-application-together
+	 */
+	public function testAnApplicationWithoutAnIdHasNoPanelAdvice(): void {
+		$this->wirePanel(panel: ['anna'], advice: [$this->adviceOf(memberId: 'anna', advice: 'place')]);
+		$object = $this->decidedAs(state: 'placed');
+		unset($object['id']);
+
+		self::assertDenied(verdict: $this->makeGuard()->check(object: $object, action: 'place', userId: 'anna'));
+	}//end testAnApplicationWithoutAnIdHasNoPanelAdvice()
 }//end class

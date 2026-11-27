@@ -23,17 +23,18 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-audit-of-corrections
+ * @spec openspec/specs/governance-four-eyes/spec.md#requirement-audit-of-corrections
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -46,7 +47,7 @@ use Throwable;
  *
  * @implements IEventListener<Event>
  *
- * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-audit-of-corrections
+ * @spec openspec/specs/governance-four-eyes/spec.md#requirement-audit-of-corrections
  */
 class DataCorrectionRequestStamp implements IEventListener {
 
@@ -80,14 +81,14 @@ class DataCorrectionRequestStamp implements IEventListener {
 	/**
 	 * Constructor.
 	 *
-	 * @param ListenerSchemaResolver $schemaResolver Entity schema id to slug.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Entity schema id to slug.
 	 * @param ObjectService          $objects        OpenRegister object access.
 	 * @param IUserSession           $userSession    The signed-in user.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ListenerSchemaResolver $schemaResolver,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
 		private readonly ObjectService $objects,
 		private readonly IUserSession $userSession,
 	) {
@@ -100,7 +101,7 @@ class DataCorrectionRequestStamp implements IEventListener {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#scenario-an-auditor-reads-the-trail
+	 * @spec openspec/specs/governance-four-eyes/spec.md#scenario-an-auditor-reads-the-trail
 	 */
 	public function handle(Event $event): void {
 		if ($event instanceof ObjectCreatingEvent === false && $event instanceof ObjectUpdatingEvent === false) {
@@ -111,6 +112,20 @@ class DataCorrectionRequestStamp implements IEventListener {
 			return;
 		}
 
+		$this->stampOrKeep(event: $event);
+	}//end handle()
+
+	/**
+	 * For a data correction request: keep what an update may not change, stamp a
+	 * new one; any other schema is left alone.
+	 *
+	 * @param ObjectCreatingEvent|ObjectUpdatingEvent $event The save, not stopped.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/governance-four-eyes/spec.md#scenario-an-auditor-reads-the-trail
+	 */
+	private function stampOrKeep(ObjectCreatingEvent|ObjectUpdatingEvent $event): void {
 		try {
 			$slug = $this->schemaResolver->guardSchemaSlug(entity: $this->entityOf(event: $event));
 		} catch (Throwable) {
@@ -128,7 +143,7 @@ class DataCorrectionRequestStamp implements IEventListener {
 		}
 
 		$this->stampRequest(event: $event);
-	}//end handle()
+	}//end stampOrKeep()
 
 	/**
 	 * Stamp a new request: the session user asks, the value before the change
@@ -184,7 +199,7 @@ class DataCorrectionRequestStamp implements IEventListener {
 		}
 
 		try {
-			return $this->objects->find(id: $entryId, register: 'learniq', schema: 'grade-entry')?->jsonSerialize();
+			return $this->objects->find(id: $entryId, options: new ObjectFindOptions(register: 'learniq', schema: 'grade-entry'))?->jsonSerialize();
 		} catch (Throwable) {
 			return null;
 		}
@@ -221,11 +236,7 @@ class DataCorrectionRequestStamp implements IEventListener {
 	 * @return ObjectEntity
 	 */
 	private function entityOf(ObjectCreatingEvent|ObjectUpdatingEvent $event): ObjectEntity {
-		if ($event instanceof ObjectUpdatingEvent === true) {
-			return $event->getNewObject();
-		}
-
-		return $event->getObject();
+		return (new WrittenObject())->entityOf(event: $event);
 	}//end entityOf()
 
 	/**

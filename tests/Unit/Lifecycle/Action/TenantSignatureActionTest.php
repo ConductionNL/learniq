@@ -22,6 +22,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Lifecycle\Action;
 
 use OCA\Learniq\Lifecycle\Action\TenantSignatureAction;
+use OCA\OpenRegister\Lifecycle\LifecycleActionContext;
 use OCA\OpenRegister\Lifecycle\LifecycleActionInterface;
 use OCA\OpenRegister\Service\TenantKeyService;
 use PHPUnit\Framework\TestCase;
@@ -80,7 +81,14 @@ class TenantSignatureActionTest extends TestCase {
 	 * @return void
 	 */
 	public function testSignatureAndKeyIdEndUpOnTheSavedObject(): void {
-		$result = $this->makeAction('super-secret-key')->execute($this->objectData(), [], [], TenantSignatureAction::class);
+		$result = $this->makeAction('super-secret-key')->execute(
+			new LifecycleActionContext(
+				objectData: $this->objectData(),
+				previousData: [],
+				parameters: [],
+				actionName: TenantSignatureAction::class
+			)
+		);
 
 		$canonical = [
 			'id' => 'attestation-1',
@@ -100,20 +108,104 @@ class TenantSignatureActionTest extends TestCase {
 	}//end testSignatureAndKeyIdEndUpOnTheSavedObject()
 
 	/**
+	 * A revocation reason is not part of what is signed, so a revoked record's signature still verifies.
+	 *
+	 * @return void
+	 */
+	public function testARevocationReasonIsLeftOutOfTheSignature(): void {
+		$action = $this->makeAction('super-secret-key');
+		$context = static fn (array $data): LifecycleActionContext => new LifecycleActionContext(
+			objectData: $data,
+			previousData: [],
+			parameters: [],
+			actionName: TenantSignatureAction::class
+		);
+
+		$plain = $action->execute($context($this->objectData()));
+		$withReason = $action->execute($context($this->objectData() + ['revocationReason' => 'Signed for the wrong course']));
+
+		$this->assertSame($plain['signature'], $withReason['signature']);
+	}//end testARevocationReasonIsLeftOutOfTheSignature()
+
+	/**
+	 * A negative study decision is signed on decide and keeps the credits and
+	 * warnings it rests on: the decided record stores 38 against 45 and [w1],
+	 * and a later change to any of them breaks the signature.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/study-progress/spec.md#requirement-a-decided-study-decision-keeps-the-credits-and-warnings-it-rests-on
+	 */
+	public function testADecidedStudyDecisionKeepsItsCreditsAndWarnings(): void {
+		$json     = (string)file_get_contents(filename: __DIR__.'/../../../../lib/Settings/learniq_register.json');
+		$register = json_decode(json: $json, associative: true);
+		$decide   = $register['components']['schemas']['BsaDecision']['x-openregister-lifecycle']['transitions']['decide'];
+		$this->assertSame(expected: 'decided', actual: $decide['to']);
+		$this->assertContains(needle: ['action' => TenantSignatureAction::class], haystack: $decide['actions']);
+
+		$decision = [
+			'id' => 'decision-daan',
+			'learnerId' => 'daan',
+			'outcome' => 'negative',
+			'ectsAchieved' => 38,
+			'ectsNormRequired' => 45,
+			'warningIds' => ['w1'],
+			'tenant_id' => 'tenant-a',
+			'lifecycle' => 'decided',
+		];
+		$action   = $this->makeAction(key: 'super-secret-key');
+		$context  = static fn (array $data): LifecycleActionContext => new LifecycleActionContext(
+			objectData: $data,
+			previousData: [],
+			parameters: [],
+			actionName: TenantSignatureAction::class
+		);
+		$decided  = $action->execute(context: $context($decision));
+
+		$this->assertSame(expected: 38, actual: $decided['ectsAchieved']);
+		$this->assertSame(expected: 45, actual: $decided['ectsNormRequired']);
+		$this->assertSame(expected: ['w1'], actual: $decided['warningIds']);
+		$this->assertNotEmpty(actual: $decided['signature']);
+
+		foreach (['ectsAchieved' => 45, 'ectsNormRequired' => 38, 'warningIds' => []] as $field => $changed) {
+			$tampered = array_merge($decision, [$field => $changed]);
+			$this->assertNotSame(
+				expected: $decided['signature'],
+				actual: $action->execute(context: $context($tampered))['signature'],
+				message: $field.' is part of the signed payload'
+			);
+		}
+	}//end testADecidedStudyDecisionKeepsItsCreditsAndWarnings()
+
+	/**
 	 * Stale signature fields and the lifecycle value do not change the digest.
 	 *
 	 * @return void
 	 */
 	public function testSignatureIsStableUnderItsOwnFields(): void {
 		$action = $this->makeAction('k');
-		$first = $action->execute($this->objectData(), [], [], TenantSignatureAction::class)['signature'];
+		$first = $action->execute(
+			new LifecycleActionContext(
+				objectData: $this->objectData(),
+				previousData: [],
+				parameters: [],
+				actionName: TenantSignatureAction::class
+			)
+		)['signature'];
 
 		$withSelf = $this->objectData();
 		$withSelf['signature'] = 'stale';
 		$withSelf['signingKeyId'] = 'stale-key';
 		$withSelf['lifecycle'] = 'drafted';
 
-		$this->assertSame($first, $action->execute($withSelf, [], [], TenantSignatureAction::class)['signature']);
+		$this->assertSame($first, $action->execute(
+			new LifecycleActionContext(
+				objectData: $withSelf,
+				previousData: [],
+				parameters: [],
+				actionName: TenantSignatureAction::class
+			)
+		)['signature']);
 	}//end testSignatureIsStableUnderItsOwnFields()
 
 	/**
@@ -124,6 +216,13 @@ class TenantSignatureActionTest extends TestCase {
 	public function testMissingTenantKeyThrows(): void {
 		$this->expectException(RuntimeException::class);
 
-		$this->makeAction('')->execute($this->objectData(), [], [], TenantSignatureAction::class);
+		$this->makeAction('')->execute(
+			new LifecycleActionContext(
+				objectData: $this->objectData(),
+				previousData: [],
+				parameters: [],
+				actionName: TenantSignatureAction::class
+			)
+		);
 	}//end testMissingTenantKeyThrows()
 }//end class

@@ -23,14 +23,15 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
+ * @spec openspec/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Lifecycle;
 
-use OCA\Learniq\Service\Grading\CorrectionApprovals;
+use OCA\Learniq\Kernel\Contracts\CorrectionApprovalsInterface;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Lifecycle\GuardResult;
 use OCA\OpenRegister\Lifecycle\LifecycleGuardInterface;
 use OCA\OpenRegister\Service\ObjectService;
@@ -39,7 +40,7 @@ use Throwable;
 /**
  * Guards the decision on, and the application of, a data correction request.
  *
- * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
+ * @spec openspec/specs/governance-four-eyes/spec.md#requirement-second-approver-for-changes-to-approved-data
  */
 class DataCorrectionDecisionGuard implements LifecycleGuardInterface {
 
@@ -47,13 +48,13 @@ class DataCorrectionDecisionGuard implements LifecycleGuardInterface {
 	 * Constructor.
 	 *
 	 * @param ObjectService       $objects   OpenRegister object access, to read the grade entry on apply.
-	 * @param CorrectionApprovals $approvals Whether a grade carries the approved value.
+	 * @param CorrectionApprovalsInterface $approvals Whether a grade carries the approved value.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objects,
-		private readonly CorrectionApprovals $approvals,
+		private readonly CorrectionApprovalsInterface $approvals,
 	) {
 	}//end __construct()
 
@@ -66,7 +67,7 @@ class DataCorrectionDecisionGuard implements LifecycleGuardInterface {
 	 *
 	 * @return GuardResult Allow, or deny with the reason shown to the caller.
 	 *
-	 * @spec openspec/changes/governance-four-eyes-on-approved-data/specs/governance-four-eyes/spec.md#scenario-the-requester-cannot-approve
+	 * @spec openspec/specs/governance-four-eyes/spec.md#scenario-the-requester-cannot-approve
 	 */
 	public function check(array $object, string $action, string $userId): GuardResult {
 		if ($action === 'apply') {
@@ -99,7 +100,7 @@ class DataCorrectionDecisionGuard implements LifecycleGuardInterface {
 		}
 
 		try {
-			$entity = $this->objects->find(id: $entryId, register: 'learniq', schema: 'grade-entry', _rbac: false);
+			$entity = $this->objects->find(id: $entryId, options: new ObjectFindOptions(register: 'learniq', schema: 'grade-entry'), _rbac: false);
 		} catch (Throwable) {
 			$entity = null;
 		}

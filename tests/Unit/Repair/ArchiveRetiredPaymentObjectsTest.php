@@ -301,4 +301,110 @@ class ArchiveRetiredPaymentObjectsTest extends TestCase {
 		$this->files['retired-payments.json'] = 'not json';
 		self::assertFalse($this->makeStep()->isFullyArchived(schema: 'order', expectedRows: 1));
 	}//end testNoReadableArchiveMeansNotArchived()
+
+	/**
+	 * Rows archived under `uuid` or `@self.id` read as archived; a current row
+	 * without any id never does.
+	 *
+	 * @return void
+	 */
+	public function testEveryIdShapeCountsAndARowWithoutAnIdRefuses(): void {
+		$this->folderExists = true;
+		$this->files['retired-payments.json'] = (string)json_encode(
+			['objects' => ['order' => [['uuid' => 'o-1'], ['@self' => ['id' => 'o-2']], 'not-a-row']]]
+		);
+		$this->rows = ['order' => [['id' => 'o-1'], ['id' => 'o-2']]];
+		self::assertTrue($this->makeStep()->isFullyArchived(schema: 'order', expectedRows: 2));
+
+		$this->files['retired-payments.json'] = (string)json_encode(['objects' => ['order' => [['id' => 'o-1']]]]);
+		$this->rows = ['order' => [['id' => 'o-1'], ['id' => 'o-2']]];
+		self::assertFalse($this->makeStep()->isFullyArchived(schema: 'order', expectedRows: 2));
+
+		$this->files['retired-payments.json'] = (string)json_encode(5);
+		self::assertFalse($this->makeStep()->isFullyArchived(schema: 'order', expectedRows: 2));
+	}//end testEveryIdShapeCountsAndARowWithoutAnIdRefuses()
+
+	/**
+	 * A schema whose rows cannot be read counts as zero rows: archived when
+	 * the prune would delete none, refused otherwise.
+	 *
+	 * @return void
+	 */
+	public function testAnUnreadableSchemaCountsAsNoRows(): void {
+		$this->folderExists = true;
+		$this->files['retired-payments.json'] = (string)json_encode(['objects' => []]);
+		$this->gone = ['order'];
+
+		self::assertTrue($this->makeStep()->isFullyArchived(schema: 'order', expectedRows: 0));
+		self::assertFalse($this->makeStep()->isFullyArchived(schema: 'order', expectedRows: 1));
+	}//end testAnUnreadableSchemaCountsAsNoRows()
+
+	/**
+	 * More rows than one page are all read and archived, and the summary names
+	 * the exact counts and the file.
+	 *
+	 * @return void
+	 */
+	public function testEveryPageIsReadAndTheSummaryIsExact(): void {
+		$this->rows = ['order' => array_map(static fn (int $i): array => ['id' => 'o-' . $i], range(1, 450))];
+		$this->makeStep()->run($this->repairOutput());
+
+		$export = json_decode($this->files['retired-payments.json'], true);
+		self::assertSame(['order' => 450, 'order-line' => 0, 'payment-transaction' => 0], $export['counts']);
+		self::assertSame('learniq', $export['register']);
+		self::assertSame(
+			'Learniq payments archive: 450 order(s), 0 order line(s), 0 payment transaction(s) written to payments-archive/retired-payments.json.',
+			end($this->messages)
+		);
+		self::assertTrue($this->makeStep()->isFullyArchived(schema: 'order', expectedRows: 450));
+	}//end testEveryPageIsReadAndTheSummaryIsExact()
+
+	/**
+	 * An app data folder that cannot be opened, and a write that fails, are
+	 * reported as warnings and leave no archive.
+	 *
+	 * @return void
+	 */
+	public function testUnwritableFolderAndFailedWriteAreReported(): void {
+		$objectService = $this->createMock(ObjectService::class);
+		$factory       = $this->createMock(IAppDataFactory::class);
+		$factory->method('get')->willThrowException(new RuntimeException('no app data'));
+		$step = new ArchiveRetiredPaymentObjects($objectService, $factory, $this->createMock(ITimeFactory::class), new NullLogger());
+		$objectService->expects(self::never())->method('findAll');
+		$step->run($this->repairOutput());
+		self::assertSame('Learniq payments archive: the app data folder is not writable, nothing archived (no app data).', end($this->messages));
+
+		$folder = $this->createMock(ISimpleFolder::class);
+		$folder->method('fileExists')->willReturn(false);
+		$folder->method('newFile')->willThrowException(new RuntimeException('disk full'));
+		$appData = $this->createMock(IAppData::class);
+		$appData->method('getFolder')->willReturn($folder);
+		$factory = $this->createMock(IAppDataFactory::class);
+		$factory->method('get')->willReturn($appData);
+		$finder = $this->createMock(ObjectService::class);
+		$finder->method('findAll')->willReturnCallback(
+			static fn (array $config = []): array => OrEntityFactory::makeMany(
+				(($config['filters']['schema'] ?? '') === 'order' ? [['id' => 'o-1']] : []),
+				'order'
+			)
+		);
+		$clock = $this->createMock(ITimeFactory::class);
+		$clock->method('getDateTime')->willReturn(new DateTime('2026-09-27T12:00:00+00:00'));
+		(new ArchiveRetiredPaymentObjects($finder, $factory, $clock, new NullLogger()))->run($this->repairOutput());
+		self::assertSame('Learniq payments archive: could not write the archive (disk full).', end($this->messages));
+	}//end testUnwritableFolderAndFailedWriteAreReported()
+
+	/**
+	 * The exact messages for an existing archive and for nothing to archive.
+	 *
+	 * @return void
+	 */
+	public function testTheNoOpMessagesAreExact(): void {
+		$this->makeStep()->run($this->repairOutput());
+		self::assertSame('Learniq payments archive: no orders, order lines or payment transactions to archive.', end($this->messages));
+
+		$this->files['retired-payments.json'] = '{}';
+		$this->makeStep()->run($this->repairOutput());
+		self::assertSame('Learniq payments archive: payments-archive/retired-payments.json already exists, nothing to do.', end($this->messages));
+	}//end testTheNoOpMessagesAreExact()
 }//end class

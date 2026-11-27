@@ -4,7 +4,7 @@
  * Learniq example portal content
  *
  * Reads and writes the objects of one example portal in portaliq: the portal
- * itself, its menus, its pages and its news. Split out of
+ * itself, its menus, its pages, its news and its events. Split out of
  * ExamplePortalProvisioner so the provisioner decides WHAT is written and
  * this class only HOW, matching every existing object before it writes.
  *
@@ -29,6 +29,9 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Portal;
 
+use OCA\Learniq\Service\DemoDates;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 
 /**
@@ -44,14 +47,21 @@ class ExamplePortalContent {
 	private const REGISTER = 'portaliq';
 
 	/**
+	 * Portaliq's schema for an event a guardian or a pupil answers.
+	 */
+	private const EVENT_SCHEMA = 'schoolEvent';
+
+	/**
 	 * Constructor.
 	 *
 	 * @param ObjectService $objectService Reads and writes portaliq's objects.
+	 * @param DemoDates     $demoDates     Moves the declared dates to the week of the load.
 	 *
 	 * @return void
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
+		private readonly DemoDates $demoDates=new DemoDates(),
 	) {
 	}//end __construct()
 
@@ -132,12 +142,53 @@ class ExamplePortalContent {
 	 * @spec openspec/changes/example-portal-declares-its-site/specs/example-sets/spec.md#requirement-loading-a-set-writes-its-declared-site-once
 	 */
 	public function news(array $declaration): array {
-		$items = (array)($declaration['news'] ?? []);
+		return $this->writeOnceByTitle(
+			schema: 'newsItem',
+			items: (array)($declaration['news'] ?? []),
+			finish: fn (array $item): array => $this->withEventRef(item: $item) + ['status' => 'published', 'portal' => (string)$declaration['portal']['slug']]
+		);
+	}//end news()
+
+	/**
+	 * Create every declared event that does not exist yet, matched by title.
+	 *
+	 * An event is portaliq's `schoolEvent`: who may answer (`rsvpBy`), the
+	 * seats an answer asks for, the capacity and the last day to answer all
+	 * come from the declaration as written. Run before the news, so a news
+	 * item can name its event.
+	 *
+	 * @param array<string, mixed> $declaration The set's declaration.
+	 *
+	 * @return array{created: int, kept: int}
+	 *
+	 * @spec openspec/changes/example-set-declares-its-events/specs/example-sets/spec.md#requirement-a-set-may-declare-events-and-a-news-item-may-name-one
+	 */
+	public function events(array $declaration): array {
+		return $this->writeOnceByTitle(
+			schema: self::EVENT_SCHEMA,
+			items: (array)($declaration['events'] ?? []),
+			finish: static fn (array $item): array => $item + ['status' => 'published']
+		);
+	}//end events()
+
+	/**
+	 * Write each item whose title the schema does not hold yet, as `$finish`
+	 * makes it; an item without a title, or with one already stored, is kept.
+	 *
+	 * @param string                           $schema The portaliq schema.
+	 * @param array<int, array<string, mixed>> $items  The declared items.
+	 * @param callable                         $finish Makes the object to write from an item.
+	 *
+	 * @return array{created: int, kept: int}
+	 *
+	 * @spec openspec/changes/example-set-declares-its-events/specs/example-sets/spec.md#requirement-a-set-may-declare-events-and-a-news-item-may-name-one
+	 */
+	private function writeOnceByTitle(string $schema, array $items, callable $finish): array {
 		if ($items === []) {
 			return ['created' => 0, 'kept' => 0];
 		}
 
-		$stored = $this->findAll(schema: 'newsItem');
+		$stored = $this->findAll(schema: $schema);
 		$titles = array_flip(array_map(static fn (array $row): string => (string)($row['title'] ?? ''), $stored));
 		$counts = ['created' => 0, 'kept' => 0];
 		foreach ($items as $item) {
@@ -147,13 +198,152 @@ class ExamplePortalContent {
 				continue;
 			}
 
-			$this->save(schema: 'newsItem', object: $item + ['status' => 'published', 'portal' => (string)$declaration['portal']['slug']]);
+			$this->save(schema: $schema, object: $finish($item));
 			$titles[$title] = true;
 			$counts['created']++;
 		}
 
 		return $counts;
-	}//end news()
+	}//end writeOnceByTitle()
+
+	/**
+	 * A news item with the event it names by title (`event`) written as its
+	 * `eventRef`. The `event` key itself is never written; an event that is
+	 * not there leaves the item without a reference.
+	 *
+	 * @param array<string, mixed> $item The declared news item.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/changes/example-set-declares-its-events/specs/example-sets/spec.md#requirement-a-set-may-declare-events-and-a-news-item-may-name-one
+	 */
+	private function withEventRef(array $item): array {
+		if (array_key_exists('event', $item) === false) {
+			return $item;
+		}
+
+		$title = (string)$item['event'];
+		unset($item['event']);
+		if ($title === '') {
+			return $item;
+		}
+
+		$event = $this->findOne(schema: self::EVENT_SCHEMA, match: static fn (array $row): bool => ($row['title'] ?? null) === $title);
+		if ($event !== null) {
+			$item['eventRef'] = $this->idOf(row: $event);
+		}
+
+		return $item;
+	}//end withEventRef()
+
+	/**
+	 * A declaration with the dates of its pages and news moved by `$days`.
+	 *
+	 * @param array<string, mixed> $declaration The shipped declaration.
+	 * @param int                  $days        The days.
+	 *
+	 * @return array<string, mixed>
+	 *
+	 * @spec openspec/specs/example-sets/spec.md#requirement-a-load-moves-every-date-to-the-week-it-runs-in
+	 * @spec openspec/changes/example-set-declares-its-events/specs/example-sets/spec.md#requirement-a-set-may-declare-events-and-a-news-item-may-name-one
+	 */
+	public function dated(array $declaration, int $days): array {
+		foreach (['pages', 'news', 'events'] as $part) {
+			if (isset($declaration[$part]) === true) {
+				$declaration[$part] = $this->demoDates->shift(value: $declaration[$part], days: $days);
+			}
+		}
+
+		return $declaration;
+	}//end dated()
+
+	/**
+	 * Move the dates of the declared pages, news and events the portal already
+	 * has (demo-dates-follow-the-load-week). A page is found by its route, a
+	 * news item or an event by its title as the previous load wrote it. A row
+	 * without a date that moves is not written.
+	 *
+	 * @param array<string, mixed> $declaration The set's declaration, as shipped (dates of the boards).
+	 * @param array<int, string>   $refs        The portal's slug and id.
+	 * @param int                  $previous    The offset the stored rows carry.
+	 * @param int                  $days        The days to move them.
+	 *
+	 * @return int The rows written.
+	 *
+	 * @spec openspec/specs/example-sets/spec.md#requirement-a-reload-in-another-week-moves-what-exists-and-a-reload-in-the-same-week-writes-nothing
+	 * @spec openspec/changes/example-set-declares-its-events/specs/example-sets/spec.md#requirement-a-set-may-declare-events-and-a-news-item-may-name-one
+	 */
+	public function moveDates(array $declaration, array $refs, ?int $previous, int $days): int {
+		if ($previous === null || $days === 0) {
+			return 0;
+		}
+
+		$routes = array_flip(array_map(static fn (array $page): string => (string)($page['route'] ?? ''), (array)($declaration['pages'] ?? [])));
+
+		$written = 0;
+		$pages   = $this->findAll(
+			schema: 'page',
+			match: static fn (array $row): bool => in_array((string)($row['portal'] ?? ''), $refs, true) && isset($routes[(string)($row['route'] ?? '')])
+		);
+		foreach ($pages as $row) {
+			$written += $this->moveRow(schema: 'page', row: $row, days: $days);
+		}
+
+		$written += $this->moveByTitle(schema: 'newsItem', items: (array)($declaration['news'] ?? []), previous: $previous, days: $days);
+		$written += $this->moveByTitle(schema: self::EVENT_SCHEMA, items: (array)($declaration['events'] ?? []), previous: $previous, days: $days);
+
+		return $written;
+	}//end moveDates()
+
+	/**
+	 * Move the stored rows of a schema whose title is a declared item's title
+	 * as the previous load wrote it.
+	 *
+	 * @param string                           $schema   The portaliq schema.
+	 * @param array<int, array<string, mixed>> $items    The declared items, as shipped.
+	 * @param int                              $previous The offset the stored rows carry.
+	 * @param int                              $days     The days to move them.
+	 *
+	 * @return int The rows written.
+	 *
+	 * @spec openspec/changes/example-set-declares-its-events/specs/example-sets/spec.md#requirement-a-set-may-declare-events-and-a-news-item-may-name-one
+	 */
+	private function moveByTitle(string $schema, array $items, int $previous, int $days): int {
+		$titles = array_flip(
+			array_map(
+				fn (array $item): string => $this->demoDates->shiftString(text: (string)($item['title'] ?? ''), days: $previous),
+				$items
+			)
+		);
+
+		$written = 0;
+		foreach ($this->findAll(schema: $schema, match: static fn (array $row): bool => isset($titles[(string)($row['title'] ?? '')])) as $row) {
+			$written += $this->moveRow(schema: $schema, row: $row, days: $days);
+		}
+
+		return $written;
+	}//end moveByTitle()
+
+	/**
+	 * Write one stored row with its dates moved; 0 when nothing moved.
+	 *
+	 * @param string               $schema The schema.
+	 * @param array<string, mixed> $row    The stored row.
+	 * @param int                  $days   The days.
+	 *
+	 * @return int 1 when written.
+	 */
+	private function moveRow(string $schema, array $row, int $days): int {
+		$uuid = $this->idOf(row: $row);
+		unset($row['@self']);
+		$moved = $this->demoDates->shift(value: $row, days: $days);
+		if ($uuid === '' || $moved === $row) {
+			return 0;
+		}
+
+		$this->save(schema: $schema, object: $moved, uuid: $uuid);
+		return 1;
+	}//end moveRow()
 
 	/**
 	 * The first stored row of a schema that matches.
@@ -181,7 +371,18 @@ class ExamplePortalContent {
 	 * @return array<int, array<string, mixed>>
 	 */
 	private function findAll(string $schema, ?callable $match = null): array {
-		$rows = $this->objectService->findAll(
+		return $this->matching(rows: $this->allRows(schema: $schema), match: $match);
+	}//end findAll()
+
+	/**
+	 * Every row of one of portaliq's schemas, read as the system.
+	 *
+	 * @param string $schema The schema.
+	 *
+	 * @return array<int, mixed>
+	 */
+	private function allRows(string $schema): array {
+		return $this->objectService->findAll(
 			config: [
 				'filters' => [
 					'register' => self::REGISTER,
@@ -192,17 +393,39 @@ class ExamplePortalContent {
 			_rbac: false,
 			_multitenancy: false
 		);
+	}//end allRows()
 
+	/**
+	 * The non-empty rows, as arrays, that the match accepts (all when there is none).
+	 *
+	 * @param array<int, mixed> $rows  The rows read.
+	 * @param callable|null     $match Keeps a row when it answers true.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function matching(array $rows, ?callable $match): array {
 		$found = [];
 		foreach ($rows as $row) {
 			$data = self::asArray(row: $row);
-			if ($data !== [] && ($match === null || $match($data) === true)) {
+			if ($this->accepts(data: $data, match: $match) === true) {
 				$found[] = $data;
 			}
 		}
 
 		return $found;
-	}//end findAll()
+	}//end matching()
+
+	/**
+	 * Whether a row is kept: it is not empty and the match, if any, accepts it.
+	 *
+	 * @param array<string, mixed> $data  The row.
+	 * @param callable|null        $match Keeps a row when it answers true.
+	 *
+	 * @return bool
+	 */
+	private function accepts(array $data, ?callable $match): bool {
+		return $data !== [] && ($match === null || $match($data) === true);
+	}//end accepts()
 
 	/**
 	 * Save one portaliq object and answer its id.
@@ -218,9 +441,10 @@ class ExamplePortalContent {
 	public function save(string $schema, array $object, ?string $uuid = null): string {
 		$saved = $this->objectService->saveObject(
 			object: $object,
-			register: self::REGISTER,
-			schema: $schema,
-			uuid: $uuid,
+			options: new ObjectSaveOptions(
+				target: new ObjectFindTarget(register: self::REGISTER, schema: $schema),
+				uuid: $uuid
+			),
 			_rbac: false,
 			_multitenancy: false
 		);

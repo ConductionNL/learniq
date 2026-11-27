@@ -35,10 +35,12 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
-use OCA\Learniq\Service\ListenerSchemaResolver;
+use OCA\Learniq\Kernel\Contracts\ListenerSchemaResolverInterface;
+use OCA\Learniq\Service\SchemaRows;
 use OCA\OpenRegister\Db\ObjectEntity;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
@@ -63,19 +65,27 @@ class ExamSittingPlacementCheck implements IEventListener {
 	private const QUERY_LIMIT = 2000;
 
 	/**
+	 * Reads the rows of one learniq schema.
+	 *
+	 * @var SchemaRows
+	 */
+	private readonly SchemaRows $schemaRows;
+
+	/**
 	 * Constructor.
 	 *
-	 * @param ListenerSchemaResolver $schemaResolver Entity schema id to slug.
+	 * @param ListenerSchemaResolverInterface $schemaResolver Entity schema id to slug.
 	 * @param ObjectService $objectService OpenRegister object access.
 	 * @param LoggerInterface $logger PSR logger.
 	 *
 	 * @return void
 	 */
 	public function __construct(
-		private readonly ListenerSchemaResolver $schemaResolver,
+		private readonly ListenerSchemaResolverInterface $schemaResolver,
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
 	) {
+		$this->schemaRows = new SchemaRows(objectService: $objectService, limit: self::QUERY_LIMIT);
 	}//end __construct()
 
 	/**
@@ -151,12 +161,17 @@ class ExamSittingPlacementCheck implements IEventListener {
 	 *
 	 * @param array<string, mixed> $sitting The sitting being written.
 	 *
+	 * Rooms are read without the writer's own read rights: the check needs every
+	 * room's capacity whoever writes, also a write without a user (occ).
+	 *
 	 * @return array<string, mixed>|null
+	 *
+	 * @spec openspec/specs/exam-schedule/spec.md#requirement-exam-periods-and-sittings
 	 */
 	private function capacityRefusal(array $sitting): ?array {
 		$capacity = 0;
 		foreach ($this->ids(value: ($sitting['roomIds'] ?? [])) as $roomId) {
-			$room = $this->objectService->find(id: $roomId, register: self::REGISTER, schema: 'room');
+			$room = $this->objectService->find(id: $roomId, options: new ObjectFindOptions(register: self::REGISTER, schema: 'room'), _rbac: false);
 			if ($room === null) {
 				return ['reason' => 'exam-room-unknown', 'message' => 'One of the rooms for this exam does not exist.'];
 			}
@@ -246,24 +261,7 @@ class ExamSittingPlacementCheck implements IEventListener {
 	 * @return array<int, array<string, mixed>>
 	 */
 	private function rows(string $schema, array $filters): array {
-		$rows = $this->objectService->findAll(
-			[
-				'filters' => array_merge($filters, ['register' => self::REGISTER, 'schema' => $schema]),
-				'limit' => self::QUERY_LIMIT,
-			]
-		);
-
-		$arrays = [];
-		foreach ($rows as $row) {
-			if ($row instanceof ObjectEntity) {
-				$arrays[] = ($row->getObject() ?? []);
-				continue;
-			}
-
-			$arrays[] = (array)$row;
-		}
-
-		return $arrays;
+		return $this->schemaRows->objectData(schema: $schema, filters: $filters);
 	}//end rows()
 
 	/**
@@ -279,7 +277,7 @@ class ExamSittingPlacementCheck implements IEventListener {
 			return 'Exam';
 		}
 
-		$assessment = $this->objectService->find(id: $assessmentId, register: self::REGISTER, schema: 'exam');
+		$assessment = $this->objectService->find(id: $assessmentId, options: new ObjectFindOptions(register: self::REGISTER, schema: 'exam'));
 
 		return (string)(($assessment?->getObject() ?? [])['title'] ?? 'Exam');
 	}//end examTitle()
@@ -350,11 +348,7 @@ class ExamSittingPlacementCheck implements IEventListener {
 	 * @return ObjectEntity
 	 */
 	private function entityOf(ObjectCreatingEvent|ObjectUpdatingEvent $event): ObjectEntity {
-		if ($event instanceof ObjectUpdatingEvent === true) {
-			return $event->getNewObject();
-		}
-
-		return $event->getObject();
+		return (new WrittenObject())->entityOf(event: $event);
 	}//end entityOf()
 
 	/**

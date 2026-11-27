@@ -21,17 +21,19 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\ExamSchedule;
 
-use OCA\Learniq\AppInfo\Registrar\EventListenerWiring;
+use OCA\Learniq\Listener\Registrar\EventListenerWiring;
 use OCA\Learniq\Listener\ExamSittingPlacementCheck;
 use OCA\Learniq\Service\ListenerSchemaResolver;
 use OCA\Learniq\Tests\Support\ExamScheduleFixture;
 use OCA\Learniq\Tests\Support\OrEntityFactory;
 use OCA\OpenRegister\Event\ObjectCreatingEvent;
 use OCA\OpenRegister\Event\ObjectUpdatingEvent;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use RuntimeException;
 
 /**
  * Capacity refusal and clash recording for an ExamSitting write.
@@ -145,6 +147,45 @@ class ExamSittingPlacementCheckTest extends TestCase {
 
 		self::assertFalse($event->isPropagationStopped());
 	}//end testRoomsAddUpTheirCapacity()
+
+	/**
+	 * The rooms' capacity is read without the writer's own read rights: a write
+	 * without a user (an example set stamped from occ) or by a role that cannot
+	 * read rooms is still checked, not refused as "could not be checked".
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/specs/exam-schedule/spec.md#requirement-exam-periods-and-sittings
+	 */
+	public function testTheRoomsAreReadWithoutTheWritersRights(): void {
+		$wired   = $this->fx->wire(service: $this->createMock(originalClassName: ObjectService::class));
+		$service = $this->createMock(originalClassName: ObjectService::class);
+		$service->method('findAll')->willReturnCallback(
+			fn (array $config = [], bool $_rbac = true, bool $_multitenancy = true): array => $wired->findAll(
+				config: $config,
+				_rbac: $_rbac,
+				_multitenancy: $_multitenancy
+			)
+		);
+		$service->method('find')->willReturnCallback(
+			function (int|string $id, ?ObjectFindOptions $options = null, bool $_rbac = true) use ($wired) {
+				if ($_rbac === true) {
+					throw new RuntimeException(message: "User 'Anonymous' does not have permission to 'read' objects in schema 'Room'");
+				}
+
+				return $wired->find(id: $id, options: $options);
+			}
+		);
+		$resolver = $this->createMock(originalClassName: ListenerSchemaResolver::class);
+		$resolver->method('guardSchemaSlug')->willReturn('exam-sitting');
+		$check = new ExamSittingPlacementCheck(schemaResolver: $resolver, objectService: $service, logger: new NullLogger());
+
+		$event = new ObjectCreatingEvent(OrEntityFactory::make(data: $this->sitting(extra: ['headcount' => 60]), schema: 'exam-sitting'));
+		$check->handle(event: $event);
+
+		self::assertSame(expected: 'exam-room-too-small', actual: $event->getErrors()['reason']);
+		self::assertSame(expected: 30, actual: $event->getErrors()['capacity']);
+	}//end testTheRoomsAreReadWithoutTheWritersRights()
 
 	/**
 	 * A room the register does not know is refused, never counted as zero seats silently.

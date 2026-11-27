@@ -28,7 +28,7 @@
 				<div class="my-training-widget__item-info">
 					<span class="my-training-widget__item-name">
 						{{
-							enrolment.courseTitle
+							enrolment.courseName
 							|| enrolment.courseId
 							|| t('learniq', 'Course')
 						}}
@@ -78,9 +78,21 @@
 </template>
 
 <script>
+import { getCurrentUser } from '@nextcloud/auth'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcLoadingIcon } from '@nextcloud/vue'
+
+/**
+ * The rows of a list answer: its results, or the answer itself when it is a list.
+ *
+ * @param {object|Array|null} body The answer body.
+ * @return {Array<object>}
+ */
+function listedRows(body) {
+	const data = body ?? {}
+	return data.results ?? (Array.isArray(data) ? data : [])
+}
 
 export default {
 	name: 'MyMandatoryTrainingWidget',
@@ -110,24 +122,48 @@ export default {
 		async fetchEnrolments() {
 			this.loading = true
 			try {
-				const params = new URLSearchParams({
-					_limit: '20',
-					mandatory: 'true',
-					lifecycle__in: 'pending,active',
-					_order: 'dueDate',
-				})
-				const url = generateUrl(
-					'/apps/openregister/api/objects/learniq/Enrolment?'
-						+ params.toString(),
-				)
-				const response = await axios.get(url)
-				const data = response.data ?? {}
-				this.enrolments = data.results ?? (Array.isArray(data) ? data : [])
+				const user = getCurrentUser()
+				if (!user) {
+					this.enrolments = []
+					return
+				}
+				this.enrolments = await this.readEnrolments(user)
 			} catch {
 				this.enrolments = []
 			} finally {
 				this.loading = false
 			}
+		},
+
+		/**
+		 * Read the user's open mandatory enrolments.
+		 *
+		 * @param {object} user The signed-in user.
+		 * @return {Promise<Array<object>>}
+		 */
+		async readEnrolments(user) {
+			const response = await axios.get(this.enrolmentsUrl(user))
+			return listedRows(response.data)
+		},
+
+		/**
+		 * The list URL of the user's open mandatory enrolments, soonest due first.
+		 *
+		 * @param {object} user The signed-in user.
+		 * @return {string}
+		 */
+		enrolmentsUrl(user) {
+			const params = new URLSearchParams({
+				_limit: '20',
+				learnerId: user.uid,
+				mandatory: 'true',
+				lifecycle__in: 'pending,active',
+				_order: 'dueDate',
+			})
+			return generateUrl(
+				'/apps/openregister/api/objects/learniq/Enrolment?'
+					+ params.toString(),
+			)
 		},
 
 		/**

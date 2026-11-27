@@ -29,8 +29,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Tests\Unit\AppInfo;
 
-use OCA\Learniq\AppInfo\Registrar\EventListenerWiring;
-use OCA\Learniq\AppInfo\Registrar\TransitionBridgeListenerRegistrar;
+use OCA\Learniq\Listener\Registrar\EventListenerWiring;
+use OCA\Learniq\Listener\Registrar\TransitionBridgeListenerRegistrar;
 use OCA\Learniq\Listener\CredentialRenewalListener;
 use OCA\Learniq\Listener\SchoolAdviesSendToRodHandler;
 use OCA\Learniq\Listener\SchoolAdviesVoorlopigRodHandler;

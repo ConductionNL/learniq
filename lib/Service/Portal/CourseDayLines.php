@@ -21,7 +21,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
  */
 
 declare(strict_types=1);
@@ -34,7 +34,7 @@ use DateTimeZone;
 /**
  * Formats course days and times as the institute writes them.
  *
- * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
+ * @spec openspec/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
  */
 class CourseDayLines {
 
@@ -45,7 +45,7 @@ class CourseDayLines {
 
 	private const WEEKDAYS = ['maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag'];
 
-	private const MONTHS = [
+	public const MONTHS = [
 		'januari',
 		'februari',
 		'maart',
@@ -67,7 +67,7 @@ class CourseDayLines {
 	 *
 	 * @return array<int, DateTimeImmutable>
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
 	 */
 	public function days(array $sessions): array {
 		$days = [];
@@ -90,7 +90,7 @@ class CourseDayLines {
 	 *
 	 * @return string|null
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
 	 */
 	public function dayLabel(array $days): ?string {
 		if ($days === []) {
@@ -131,7 +131,7 @@ class CourseDayLines {
 	 *
 	 * @return string|null
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
 	 */
 	public function timeLabel(array $sessions, ?DateTimeImmutable $firstDay): ?string {
 		if ($firstDay === null) {
@@ -166,7 +166,7 @@ class CourseDayLines {
 	 *
 	 * @return string|null An ISO date-time, or null without a day.
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
 	 */
 	public function detailsDueAt(?DateTimeImmutable $firstDay): ?string {
 		if ($firstDay === null) {
@@ -189,7 +189,7 @@ class CourseDayLines {
 	 *
 	 * @return DateTimeImmutable
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
 	 */
 	public function workingDaysAfter(DateTimeImmutable $day, int $count): DateTimeImmutable {
 		while ($count > 0) {
@@ -209,7 +209,7 @@ class CourseDayLines {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
 	 */
 	public function weekday(DateTimeImmutable $day): string {
 		return self::WEEKDAYS[((int)$day->format('N') - 1)];
@@ -222,7 +222,7 @@ class CourseDayLines {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
 	 */
 	public function dayAndDate(DateTimeImmutable $day): string {
 		return $this->weekday(day: $day) . ' ' . $day->format('j') . ' ' . self::MONTHS[((int)$day->format('n') - 1)];
@@ -235,7 +235,7 @@ class CourseDayLines {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/portal-certificates/specs/portal-contribution/spec.md#requirement-a-certificate-names-its-holder-its-course-and-its-renewal
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-certificate-names-its-holder-its-course-and-its-renewal
 	 */
 	public function dayMonth(DateTimeImmutable $day): string {
 		return $day->format('j') . ' ' . self::MONTHS[((int)$day->format('n') - 1)];
@@ -248,7 +248,7 @@ class CourseDayLines {
 	 *
 	 * @return string
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
 	 */
 	public function longDate(DateTimeImmutable $day): string {
 		return $day->format('j') . ' ' . self::MONTHS[((int)$day->format('n') - 1)] . ' ' . $day->format('Y');
@@ -261,7 +261,7 @@ class CourseDayLines {
 	 *
 	 * @return DateTimeImmutable|null
 	 *
-	 * @spec openspec/changes/employer-portal-audience/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
+	 * @spec openspec/specs/portal-contribution/spec.md#requirement-a-booking-tells-the-employer-what-still-waits-for-her
 	 */
 	public function date(mixed $value): ?DateTimeImmutable {
 		if (is_string($value) === false || trim($value) === '') {

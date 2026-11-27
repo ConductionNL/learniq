@@ -69,9 +69,15 @@ test.describe('certificate issuance', () => {
 					timeout: 60_000,
 				},
 			)
+			// The transitions sit in the page header's menu ("More"), not as buttons.
 			await page
-				.getByRole('button', { name: 'Complete', exact: true })
+				.getByRole('main')
+				.getByRole('button', { name: /^(More|Actions)$/ })
+				.first()
 				.click({ timeout: 60_000 })
+			await page
+				.getByRole('menuitem', { name: 'Complete', exact: true })
+				.click({ timeout: 30_000 })
 			const confirm = page
 				.getByRole('dialog')
 				.getByRole('button', { name: /^(Complete|Confirm)$/ })
@@ -137,7 +143,8 @@ test.describe('certificate issuance', () => {
 				waitUntil: 'domcontentloaded',
 			})
 			await learnerPage
-				.getByRole('button', { name: 'Actions' })
+				.getByRole('main')
+				.getByRole('button', { name: /^(More|Actions)$/ })
 				.first()
 				.click({ timeout: 60_000 })
 			const [download] = await Promise.all([

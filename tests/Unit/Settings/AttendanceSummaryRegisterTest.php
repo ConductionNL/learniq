@@ -16,7 +16,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-who-reads-an-attendance-summary
+ * @spec openspec/specs/attendance/spec.md#requirement-who-reads-an-attendance-summary
  */
 
 declare(strict_types=1);
@@ -69,7 +69,7 @@ class AttendanceSummaryRegisterTest extends TestCase {
 	}//end strings()
 
 	/**
-	 * Teachers read their own pupils' rows, school-wide staff read all, nobody writes through the API.
+	 * Teachers read their own pupils' rows, the mentor reads their pupils' rows, school-wide staff read all, nobody writes through the API.
 	 *
 	 * @return void
 	 */
@@ -80,6 +80,8 @@ class AttendanceSummaryRegisterTest extends TestCase {
 			[
 				'read' => [
 					['group' => 'instructors', 'match' => ['teacherIds' => ['$contains' => '$userId']]],
+					// attendance-warns-before-the-threshold: the pupil's mentor reads their rows.
+					['group' => 'instructors', 'match' => ['mentorId' => '$userId']],
 					'coordinators',
 					'administration-managers',
 					'compliance-officers',
@@ -97,7 +99,12 @@ class AttendanceSummaryRegisterTest extends TestCase {
 	 */
 	public function testTheSummaryFieldsAreDeclaredAndTranslated(): void {
 		$schema = self::shippedSchema(slug: 'attendance-summary');
-		$fields = ['learnerId', 'learnerRef', 'schoolYear', 'absentDays', 'absentAuthorisedDays', 'absentUnauthorisedDays', 'lateCount', 'lateMinutes', 'updatedAt', 'teacherIds', 'tenant_id'];
+		$fields = [
+			'learnerId', 'learnerRef', 'schoolYear', 'absentDays', 'absentAuthorisedDays', 'absentUnauthorisedDays', 'lateCount', 'lateMinutes', 'updatedAt',
+			// attendance-warns-before-the-threshold: the rolling count against the limit.
+			'unauthorisedHoursWindow', 'thresholdHours', 'windowLabel', 'thresholdNearing',
+			'teacherIds', 'mentorId', 'tenant_id',
+		];
 		self::assertSame($fields, array_keys($schema['properties']));
 		foreach (['absentDays', 'absentAuthorisedDays', 'absentUnauthorisedDays', 'lateCount', 'lateMinutes'] as $count) {
 			self::assertSame('integer', $schema['properties'][$count]['type']);
@@ -118,7 +125,7 @@ class AttendanceSummaryRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
 	 */
 	public function testTheRecordCarriesLateMinutesAndAReasonForAbsence(): void {
 		$schema = self::shippedSchema(slug: 'attendance-record');
@@ -144,7 +151,7 @@ class AttendanceSummaryRegisterTest extends TestCase {
 	 *
 	 * @return void
 	 *
-	 * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-absence-and-lateness-are-counted-per-learner-per-school-year
+	 * @spec openspec/specs/attendance/spec.md#requirement-absence-and-lateness-are-counted-per-learner-per-school-year
 	 */
 	public function testThePrimarySchoolSummariesMatchTheCalculator(): void {
 		$set = json_decode((string)file_get_contents(__DIR__ . '/../../../lib/Settings/profiles/po.json'), true);

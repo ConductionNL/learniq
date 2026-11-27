@@ -21,9 +21,13 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Repair;
 
+use OCA\OpenRegister\Db\SchemaMapper;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\Migration\IOutput;
 use OCP\Migration\IRepairStep;
+use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
@@ -56,6 +60,15 @@ use Throwable;
  * upgrade; when it is not there yet the saves fail, are counted, and the next
  * upgrade retries.
  *
+ * NO READ OF A SLUG THE INSTANCE DOES NOT CARRY. The learniq descriptor no
+ * longer declares `data-subject-request`, so a fresh install, and an instance
+ * where PruneRetiredSchemas already removed it, has no such schema. OpenRegister
+ * refuses a read of a slug its register does not carry. So the step first asks
+ * OpenRegister's schema store whether a learniq (or pre-rename scholiq) schema
+ * under that slug exists, the way PruneRetiredSchemas looks it up, and only
+ * then reads its rows. When the schema store cannot be asked, the step reads as
+ * before and treats a refused read as "nothing to move".
+ *
  * @spec openspec/specs/avg-verwerkingsregister/spec.md#requirement-privacy-requests-live-in-openregisters-data-subject-request-register
  */
 class MigrateDataSubjectRequestsToOpenRegister implements IRepairStep {
@@ -64,6 +77,13 @@ class MigrateDataSubjectRequestsToOpenRegister implements IRepairStep {
 	private const LEARNIQ_SCHEMA = 'data-subject-request';
 	private const OR_REGISTER = 'data-subject-requests';
 	private const OR_SCHEMA = 'dataSubjectRequest';
+
+	/**
+	 * The application ids a learniq schema can carry (as in PruneRetiredSchemas).
+	 *
+	 * @var array<int, string>
+	 */
+	private const APPLICATIONS = PruneRetiredSchemas::APPLICATIONS;
 
 	/**
 	 * First-line marker in a migrated case's `notes`.
@@ -85,7 +105,7 @@ class MigrateDataSubjectRequestsToOpenRegister implements IRepairStep {
 	 *
 	 * @var array<string, string>
 	 */
-	private const KIND_TO_TYPE = [
+	public const KIND_TO_TYPE = [
 		'correction' => 'rectification',
 		'deletion' => 'erasure',
 	];
@@ -105,14 +125,19 @@ class MigrateDataSubjectRequestsToOpenRegister implements IRepairStep {
 	/**
 	 * Constructor.
 	 *
-	 * @param ObjectService $objectService OpenRegister object access.
-	 * @param LoggerInterface $logger PSR logger.
+	 * @param ObjectService           $objectService OpenRegister object access.
+	 * @param LoggerInterface         $logger        PSR logger.
+	 * @param ContainerInterface|null $container     Server container, for a lazy SchemaMapper
+	 *                                               lookup; null reads without asking first.
 	 *
 	 * @return void
+	 *
+	 * @spec openspec/specs/avg-verwerkingsregister/spec.md#requirement-privacy-requests-live-in-openregisters-data-subject-request-register
 	 */
 	public function __construct(
 		private readonly ObjectService $objectService,
 		private readonly LoggerInterface $logger,
+		private readonly ?ContainerInterface $container = null,
 	) {
 	}//end __construct()
 
@@ -137,6 +162,11 @@ class MigrateDataSubjectRequestsToOpenRegister implements IRepairStep {
 	 * @spec openspec/specs/avg-verwerkingsregister/spec.md#requirement-privacy-requests-live-in-openregisters-data-subject-request-register
 	 */
 	public function run(IOutput $output): void {
+		if ($this->sourceSchemaExists() === false) {
+			$output->info('Learniq privacy requests: this instance has no learniq data subject request schema, nothing to move.');
+			return;
+		}
+
 		try {
 			$sources = $this->readAll(register: self::LEARNIQ_REGISTER, schema: self::LEARNIQ_SCHEMA);
 		} catch (Throwable $exception) {
@@ -175,6 +205,40 @@ class MigrateDataSubjectRequestsToOpenRegister implements IRepairStep {
 	}//end run()
 
 	/**
+	 * Whether OpenRegister holds a learniq schema under the retired slug.
+	 *
+	 * True or false when the schema store answered; null when it could not be
+	 * asked (no container, OpenRegister absent, a failed lookup), so the caller
+	 * falls back to reading and catching a refusal.
+	 *
+	 * @return bool|null
+	 *
+	 * @spec openspec/specs/avg-verwerkingsregister/spec.md#requirement-privacy-requests-live-in-openregisters-data-subject-request-register
+	 */
+	public function sourceSchemaExists(): ?bool {
+		if ($this->container === null) {
+			return null;
+		}
+
+		try {
+			$schemaMapper = $this->container->get(SchemaMapper::class);
+			foreach (self::APPLICATIONS as $application) {
+				if ($schemaMapper->findAllByApplicationAndSlug(slug: self::LEARNIQ_SCHEMA, application: $application) !== []) {
+					return true;
+				}
+			}
+		} catch (Throwable $exception) {
+			$this->logger->info(
+				'[MigrateDataSubjectRequestsToOpenRegister] Schema lookup failed, reading directly: {msg}',
+				['msg' => $exception->getMessage()]
+			);
+			return null;
+		}
+
+		return false;
+	}//end sourceSchemaExists()
+
+	/**
 	 * Move one source row, returning the outcome.
 	 *
 	 * @param array<string, mixed> $row      The learniq request.
@@ -195,8 +259,7 @@ class MigrateDataSubjectRequestsToOpenRegister implements IRepairStep {
 		try {
 			$this->objectService->saveObject(
 				object: self::toCase(row: $row, sourceId: $sourceId),
-				register: self::OR_REGISTER,
-				schema: self::OR_SCHEMA,
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::OR_REGISTER, schema: self::OR_SCHEMA)),
 				_rbac: false,
 				_multitenancy: false
 			);
@@ -243,7 +306,6 @@ class MigrateDataSubjectRequestsToOpenRegister implements IRepairStep {
 
 		return array_filter($case, static fn ($value): bool => $value !== '');
 	}//end toCase()
-
 	/**
 	 * The case notes: the marker line, then the description and the audit trail.
 	 *
@@ -253,60 +315,8 @@ class MigrateDataSubjectRequestsToOpenRegister implements IRepairStep {
 	 * @return string
 	 */
 	private static function notesFor(array $row, string $sourceId): string {
-		$lines = [self::MARKER . $sourceId];
-
-		$kind = (string)($row['kind'] ?? '');
-		if ($kind !== '' && isset(self::KIND_TO_TYPE[$kind]) === false) {
-			$lines[] = 'Original kind: ' . $kind;
-		}
-
-		$description = ($row['description'] ?? null);
-		if (is_string($description) === true && trim($description) !== '') {
-			$lines[] = '';
-			$lines[] = trim($description);
-		}
-
-		$history = self::historyLines(trail: ($row['auditTrail'] ?? []));
-		if ($history !== []) {
-			$lines[] = '';
-			$lines[] = 'History:';
-			array_push($lines, ...$history);
-		}
-
-		// OpenRegister caps notes at 4000 characters.
-		return mb_substr(implode("\n", $lines), 0, 4000);
+		return (new DataSubjectRequestNotes())->notesFor(row: $row, sourceId: $sourceId);
 	}//end notesFor()
-
-	/**
-	 * One line per audit trail entry: when, who, what, and the note if any.
-	 *
-	 * @param mixed $trail The learniq `auditTrail` value.
-	 *
-	 * @return array<int, string>
-	 */
-	private static function historyLines(mixed $trail): array {
-		if (is_array($trail) === false) {
-			return [];
-		}
-
-		$lines = [];
-		foreach ($trail as $entry) {
-			if (is_array($entry) === false) {
-				continue;
-			}
-
-			$line = '- ' . (string)($entry['recordedAt'] ?? '') . ' ' . (string)($entry['recordedBy'] ?? '')
-				. ': ' . (string)($entry['action'] ?? '');
-			$note = ($entry['note'] ?? null);
-			if (is_string($note) === true && $note !== '') {
-				$line .= ' (' . $note . ')';
-			}
-
-			$lines[] = $line;
-		}
-
-		return $lines;
-	}//end historyLines()
 
 	/**
 	 * Source uuids that already have a case, read from the marker line.
@@ -316,19 +326,46 @@ class MigrateDataSubjectRequestsToOpenRegister implements IRepairStep {
 	private function alreadyMigrated(): array {
 		$migrated = [];
 		foreach ($this->readAll(register: self::OR_REGISTER, schema: self::OR_SCHEMA) as $case) {
-			$notes = ($case['notes'] ?? null);
-			if (is_string($notes) === false || str_starts_with($notes, self::MARKER) === false) {
-				continue;
-			}
-
-			$firstLine = strtok(substr($notes, strlen(self::MARKER)), "\n");
-			if (is_string($firstLine) === true && trim($firstLine) !== '') {
-				$migrated[trim($firstLine)] = true;
+			$sourceId = self::markedSourceId(notes: ($case['notes'] ?? null));
+			if ($sourceId !== null) {
+				$migrated[$sourceId] = true;
 			}
 		}
 
 		return $migrated;
 	}//end alreadyMigrated()
+
+	/**
+	 * The source uuid a case's notes name on their marker line, or null when
+	 * the notes carry no marker or name nothing.
+	 *
+	 * @param mixed $notes The case notes.
+	 *
+	 * @return string|null
+	 */
+	private static function markedSourceId(mixed $notes): ?string {
+		if (self::hasMarker(notes: $notes) === false) {
+			return null;
+		}
+
+		$firstLine = strtok(substr($notes, strlen(self::MARKER)), "\n");
+		if (is_string($firstLine) === true && trim($firstLine) !== '') {
+			return trim($firstLine);
+		}
+
+		return null;
+	}//end markedSourceId()
+
+	/**
+	 * Whether the notes are a string that starts with the marker.
+	 *
+	 * @param mixed $notes The case notes.
+	 *
+	 * @return bool
+	 */
+	private static function hasMarker(mixed $notes): bool {
+		return is_string($notes) === true && str_starts_with($notes, self::MARKER) === true;
+	}//end hasMarker()
 
 	/**
 	 * Every row of one schema, as arrays, without RBAC (no session in a repair step).
@@ -339,39 +376,61 @@ class MigrateDataSubjectRequestsToOpenRegister implements IRepairStep {
 	 * @return array<int, array<string, mixed>>
 	 */
 	private function readAll(string $register, string $schema): array {
-		$rows = [];
+		$filters = ['register' => $register, 'schema' => $schema];
+		$rows    = [];
 		for ($page = 0; $page < self::MAX_PAGES; $page++) {
-			$objects = $this->objectService->findAll(
-				config: [
-					'filters' => [
-						'register' => $register,
-						'schema' => $schema,
-					],
-					'limit' => self::PAGE_SIZE,
-					'offset' => ($page * self::PAGE_SIZE),
-				],
-				_rbac: false,
-				_multitenancy: false
-			);
-
-			foreach ($objects as $object) {
-				if (is_array($object) === true) {
-					$rows[] = $object;
-					continue;
-				}
-
-				if (is_object($object) === true && method_exists($object, 'jsonSerialize') === true) {
-					$rows[] = (array)$object->jsonSerialize();
-				}
-			}
-
+			$objects = $this->findPage(filters: $filters, page: $page);
+			$rows    = array_merge($rows, self::asRows(objects: $objects));
 			if (count($objects) < self::PAGE_SIZE) {
 				break;
 			}
-		}//end for
+		}
 
 		return $rows;
 	}//end readAll()
+
+	/**
+	 * One page of rows matching the filters, without RBAC or tenancy.
+	 *
+	 * @param array<string, string> $filters The register and schema filters.
+	 * @param int                   $page    Zero-based page number.
+	 *
+	 * @return array<int, mixed>
+	 */
+	private function findPage(array $filters, int $page): array {
+		return $this->objectService->findAll(
+			config: [
+				'filters' => $filters,
+				'limit' => self::PAGE_SIZE,
+				'offset' => ($page * self::PAGE_SIZE),
+			],
+			_rbac: false,
+			_multitenancy: false
+		);
+	}//end findPage()
+
+	/**
+	 * The page's objects as arrays; an object that cannot be serialised is passed over.
+	 *
+	 * @param array<int, mixed> $objects One page of objects or arrays.
+	 *
+	 * @return array<int, array<mixed>>
+	 */
+	private static function asRows(array $objects): array {
+		$rows = [];
+		foreach ($objects as $object) {
+			if (is_array($object) === true) {
+				$rows[] = $object;
+				continue;
+			}
+
+			if (is_object($object) === true && method_exists($object, 'jsonSerialize') === true) {
+				$rows[] = (array)$object->jsonSerialize();
+			}
+		}
+
+		return $rows;
+	}//end asRows()
 
 	/**
 	 * The object uuid of a serialised row: `id`, `uuid`, or `@self.id`.

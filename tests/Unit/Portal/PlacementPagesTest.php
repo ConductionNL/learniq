@@ -59,7 +59,9 @@ class PlacementPagesTest extends TestCase {
 
 			$page = array_column($manifest['pages'], null, 'id')[$id];
 			self::assertSame($id, $page['record']['collection'], $id);
-			self::assertContains(['type' => 'steps', 'collection' => $id, 'label' => $collection['steps']['label']], $page['blocks'], $id);
+			// The student's steps draw as bars (placement-and-bookings-follow-the-boards); the rest of the block is the same.
+			$steps = array_map(static fn (array $b): array => array_diff_key($b, ['display' => 1]), $page['blocks']);
+			self::assertContains(['type' => 'steps', 'collection' => $id, 'label' => $collection['steps']['label']], $steps, $id);
 		}
 	}//end testThePlacementPagesShowTheirSteps()
 
@@ -99,6 +101,30 @@ class PlacementPagesTest extends TestCase {
 		self::assertContains('assessment', $action['requiredFields']);
 		self::assertSame('endpoint-forward', $action['type']);
 	}//end testTheAssessmentRunsInStepsWithADraft()
+
+	/**
+	 * The unfinished assessment is kept on its own draft schema, which holds
+	 * every field the form asks and the trainer the portal stamps on it.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/trainer-saves-an-assessment-for-later/tasks.md#T1
+	 */
+	public function testTheUnfinishedAssessmentIsKeptOnItsDraftSchema(): void {
+		$action = array_column(self::manifest(audience: 'praktijkopleider')['actions'], null, 'id')['createWerkprocesAssessment'];
+		self::assertSame(expected: 'endpoint-forward', actual: $action['type']);
+		self::assertSame(expected: ['register' => 'learniq', 'schema' => 'werkproces-assessment-draft'], actual: $action['draftSchema']);
+
+		$register = json_decode((string)file_get_contents(__DIR__ . '/../../../lib/Settings/learniq_register.json'), true);
+		$schemas  = array_column($register['components']['schemas'], null, 'slug');
+		self::assertArrayHasKey(key: 'werkproces-assessment-draft', array: $schemas);
+		self::assertContains(needle: 'werkproces-assessment-draft', haystack: $register['components']['registers']['learniq']['schemas']);
+		$draft = $schemas['werkproces-assessment-draft'];
+		self::assertSame(expected: [], actual: $draft['required']);
+		foreach (array_merge($action['fields'], [$action['subjectField']]) as $field) {
+			self::assertArrayHasKey(key: $field, array: $draft['properties'], message: $field);
+		}
+	}//end testTheUnfinishedAssessmentIsKeptOnItsDraftSchema()
 	/**
 	 * The steps, the placement step labels and the confirmation have a Dutch entry, and the
 	 * translator reaches a step's title and description.

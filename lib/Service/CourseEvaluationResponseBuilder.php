@@ -20,7 +20,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#requirement-learner-answers-an-evaluation
+ * @spec openspec/specs/course-evaluation-answering/spec.md#requirement-learner-answers-an-evaluation
  */
 
 declare(strict_types=1);
@@ -30,7 +30,7 @@ namespace OCA\Learniq\Service;
 /**
  * Checks answers and builds the response object.
  *
- * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#requirement-learner-answers-an-evaluation
+ * @spec openspec/specs/course-evaluation-answering/spec.md#requirement-learner-answers-an-evaluation
  */
 class CourseEvaluationResponseBuilder {
 
@@ -48,7 +48,7 @@ class CourseEvaluationResponseBuilder {
 	 *
 	 * @return array{answers: array<int, array<string, mixed>>, missing: array<int, string>}
 	 *
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-a-learner-answers-an-invitation
 	 */
 	public function checkAnswers(array $questions, array $given): array {
 		$answers = [];
@@ -110,7 +110,7 @@ class CourseEvaluationResponseBuilder {
 	 *
 	 * @return array<string, mixed>
 	 *
-	 * @spec openspec/changes/assessment-course-evaluation-answer-page/specs/course-evaluation-answering/spec.md#scenario-anonymous-answers-cannot-be-linked
+	 * @spec openspec/specs/course-evaluation-answering/spec.md#scenario-anonymous-answers-cannot-be-linked
 	 */
 	public function responsePayload(array $invitation, array $answers): array {
 		$overall = null;

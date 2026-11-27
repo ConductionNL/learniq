@@ -181,4 +181,41 @@ class LearningPlanSignatureGuardTest extends TestCase {
 
 		self::assertDenied($this->makeGuard()->check($this->plan(), 'activate', 'teacher-1'));
 	}//end testAPlanWithoutSignaturesStaysInDraftWhenTheTemplateRequiresThem()
+
+	/**
+	 * A template that asks for the learner's own signature: a plan signed by the
+	 * parent and the coordinator only stays in draft.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/learning-plan/spec.md#requirement-the-learners-own-signature-is-required-and-counted-when-the-template-asks-for-it
+	 */
+	public function testAPlanWaitsForTheLearnersOwnSignature(): void {
+		$this->store->rows['learning-plan-template'][0]['requiredSignerRoles'] = ['learner', 'parent', 'coordinator'];
+		$this->store->rows['signature'] = [
+			$this->signature(role: 'parent', signerId: 'parent-1'),
+			$this->signature(role: 'coordinator', signerId: 'coordinator-1'),
+		];
+
+		self::assertDenied(verdict: $this->makeGuard()->check(object: $this->plan(), action: 'activate', userId: 'coordinator-1'));
+	}//end testAPlanWaitsForTheLearnersOwnSignature()
+
+	/**
+	 * Once the learner whose id is the plan's learnerId signs as learner, the
+	 * guard counts that signature and the plan may activate.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/learning-plan/spec.md#requirement-the-learners-own-signature-is-required-and-counted-when-the-template-asks-for-it
+	 */
+	public function testTheLearnersSignatureIsCounted(): void {
+		$this->store->rows['learning-plan-template'][0]['requiredSignerRoles'] = ['learner', 'parent', 'coordinator'];
+		$this->store->rows['signature'] = [
+			$this->signature(role: 'parent', signerId: 'parent-1'),
+			$this->signature(role: 'coordinator', signerId: 'coordinator-1'),
+			$this->signature(role: 'learner', signerId: 'learner-1'),
+		];
+
+		self::assertAllowed(verdict: $this->makeGuard()->check(object: $this->plan(), action: 'activate', userId: 'coordinator-1'));
+	}//end testTheLearnersSignatureIsCounted()
 }//end class

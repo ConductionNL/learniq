@@ -20,7 +20,7 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/attendance-summary-per-school-year/specs/attendance/spec.md#requirement-the-summary-follows-every-attendance-write
+ * @spec openspec/specs/attendance/spec.md#requirement-the-summary-follows-every-attendance-write
  */
 
 declare(strict_types=1);
@@ -36,7 +36,9 @@ use OCA\OpenRegister\Event\ObjectCreatedEvent;
 use OCA\OpenRegister\Event\ObjectDeletedEvent;
 use OCA\OpenRegister\Event\ObjectTransitionedEvent;
 use OCA\OpenRegister\Event\ObjectUpdatedEvent;
+use OCA\OpenRegister\Kernel\Contracts\RegisterSchemaRef;
 use OCA\OpenRegister\Service\Deferral\ListenerDeferralService;
+use OCA\OpenRegister\Service\Lifecycle\TransitionMove;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -213,7 +215,7 @@ class AttendanceSummaryListenerTest extends TestCase {
 		$this->listener(register: 'shillinq')->handle(new ObjectCreatedEvent(self::entity()));
 		self::assertSame([], $this->deferred);
 
-		$this->listener()->handle(new ObjectTransitionedEvent(object: self::entity(), action: 'go', from: 'a', to: 'b', userId: null, register: 'learniq', schema: 'attendance-record'));
+		$this->listener()->handle(new ObjectTransitionedEvent(object: self::entity(), move: new TransitionMove(action: 'go', from: 'a', to: 'b'), scope: new RegisterSchemaRef(register: 'learniq', schema: 'attendance-record')));
 		self::assertSame([], $this->deferred);
 
 		$this->listener()->handle(new ObjectCreatedEvent(self::entity(['learnerId' => ''])));

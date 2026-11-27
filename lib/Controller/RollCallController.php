@@ -21,16 +21,16 @@
  *
  * @link https://conduction.nl
  *
- * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-who-may-open-which-groups-register
+ * @spec openspec/specs/attendance/spec.md#requirement-who-may-open-which-groups-register
  */
 
 declare(strict_types=1);
 
 namespace OCA\Learniq\Controller;
 
-use OCA\Learniq\AppInfo\Application;
+use OCA\Learniq\Kernel\AppIdentity;
+use OCA\Learniq\Kernel\Contracts\RollCallServiceInterface;
 use OCA\Learniq\Service\Attendance\RollCallException;
-use OCA\Learniq\Service\Attendance\RollCallService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -44,7 +44,7 @@ use Throwable;
 /**
  * The roll-call endpoints.
  *
- * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-who-may-open-which-groups-register
+ * @spec openspec/specs/attendance/spec.md#requirement-who-may-open-which-groups-register
  */
 class RollCallController extends Controller {
 
@@ -53,7 +53,7 @@ class RollCallController extends Controller {
 	 *
 	 * @param IRequest        $request     The request.
 	 * @param IUserSession    $userSession The signed-in user.
-	 * @param RollCallService $rollCall    The register rules.
+	 * @param RollCallServiceInterface $rollCall    The register rules.
 	 * @param LoggerInterface $logger      PSR logger.
 	 * @param IL10N           $l10n        Messages.
 	 *
@@ -62,11 +62,11 @@ class RollCallController extends Controller {
 	public function __construct(
 		IRequest $request,
 		private readonly IUserSession $userSession,
-		private readonly RollCallService $rollCall,
+		private readonly RollCallServiceInterface $rollCall,
 		private readonly LoggerInterface $logger,
 		private readonly IL10N $l10n,
 	) {
-		parent::__construct(appName: Application::APP_ID, request: $request);
+		parent::__construct(appName: AppIdentity::APP_ID, request: $request);
 	}//end __construct()
 
 	/**
@@ -78,7 +78,7 @@ class RollCallController extends Controller {
 	 *
 	 * @return JSONResponse
 	 *
-	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-who-may-open-which-groups-register
+	 * @spec openspec/specs/attendance/spec.md#requirement-who-may-open-which-groups-register
 	 *
 	 * @no-admin-idor-exempt the per-group guard is in the service, not here: RollCallAccess::cohortsFor()
 	 *  admits only teachers of the group or school-wide roles, and chosenCohort() answers 403 for any
@@ -106,7 +106,7 @@ class RollCallController extends Controller {
 	 *
 	 * @return JSONResponse
 	 *
-	 * @spec openspec/changes/attendance-roll-call/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
+	 * @spec openspec/specs/attendance/spec.md#requirement-a-group-teacher-takes-the-days-register-of-their-group-in-one-screen
 	 *
 	 * @no-admin-idor-exempt the per-group guard is in the service, not here: RollCallAccess::cohortsFor()
 	 *  admits only teachers of the group or school-wide roles, and chosenCohort() answers 403 for any

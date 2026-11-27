@@ -31,10 +31,12 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Service\Programme;
 
+use OCA\Learniq\Kernel\Contracts\ProgrammeRequirementsInterface;
+
 /**
  * The default `mandatory` flag of one part of a programme.
  */
-class ProgrammeRequirements {
+class ProgrammeRequirements implements ProgrammeRequirementsInterface {
 
 	/**
 	 * Whether the course is a mandatory part of the programme by default.

@@ -99,9 +99,11 @@ test.describe('certificate reissue', () => {
 			await page.goto(`${APP}/courses/${courseId}`, {
 				waitUntil: 'domcontentloaded',
 			})
-			// Header actions past the first few live in the page's Actions menu.
+			// Header actions live in the page header's menu: "More" on the board
+			// look ("Actions" is the tab bar's menu).
 			await page
-				.getByRole('button', { name: 'Actions' })
+				.getByRole('main')
+				.getByRole('button', { name: /^(More|Actions)$/ })
 				.first()
 				.click({ timeout: 60_000 })
 			await page
@@ -168,16 +170,18 @@ test.describe('certificate reissue', () => {
 			})
 			const data = page.getByRole('group', { name: 'cred-data', exact: true })
 			const fields = data.or(page.locator('main').first())
+			// The data widget shows its first fields only; the issue date sits
+			// behind "Show all N fields".
+			await page
+				.getByRole('button', { name: /Show all \d+ fields/ })
+				.first()
+				.click({ timeout: 60_000 })
+				.catch(() => {})
 			// 3 March, in the data widget's date format.
 			await expect(fields.first()).toContainText(
 				/2026-03-03|3 (Mar|mrt)|03\/03\/2026|3\/3\/2026/,
 				{ timeout: 60_000 },
 			)
-			await page
-				.getByRole('button', { name: /Show all \d+ fields/ })
-				.first()
-				.click({ timeout: 30_000 })
-				.catch(() => {})
 			// The certificate itself carries the reissue: when, by whom, why.
 			await expect(page.getByText(reason).first()).toBeVisible({
 				timeout: 30_000,
@@ -191,21 +195,44 @@ test.describe('certificate reissue', () => {
 		// endpoint answers "Logged in account must be an admin" to everyone
 		// else, so the History tab is read as admin; for an HR officer or
 		// compliance officer it shows "No audit trail entries".
+		// nextcloud-vue's "Support <app>" note can greet the admin here and
+		// cover the More menu.
+		await admin.addLocatorHandler(
+			admin.locator('[data-testid-modal="cn-support-dialog"]'),
+			async (dialog) => {
+				await dialog.getByRole('button', { name: /close/i }).first().click()
+			},
+		)
 		await admin.goto(`${APP}/credentials/${issued[0]}`, {
 			waitUntil: 'domcontentloaded',
 		})
-		const sidebar = admin.locator('.app-sidebar')
-		if (!(await sidebar.isVisible().catch(() => false))) {
-			await admin
-				.locator('.app-sidebar__toggle')
-				.first()
-				.click({ timeout: 60_000 })
+		// The board look shows the trail on the "Record history" tab; the
+		// detail page in its sidebar, opened from the header's More menu
+		// ("Open sidebar"), since the page keeps its own toggle hidden.
+		const historyTab = admin.getByRole('tab', { name: 'Record history' })
+		let trail = admin.locator('.app-sidebar')
+		if (await historyTab.isVisible({ timeout: 30_000 }).catch(() => false)) {
+			await historyTab.click()
+			trail = admin.getByRole('tabpanel', { name: 'Record history' })
+		} else if (!(await trail.isVisible().catch(() => false))) {
+			const toggle = admin.locator('.app-sidebar__toggle').first()
+			if (await toggle.isVisible().catch(() => false)) {
+				await toggle.click()
+			} else {
+				await admin
+					.getByRole('button', { name: 'More', exact: true })
+					.first()
+					.click({ timeout: 30_000 })
+				await admin
+					.getByRole('menuitem', { name: 'Open sidebar' })
+					.click({ timeout: 30_000 })
+			}
 		}
-		await expect(sidebar).toBeVisible({ timeout: 30_000 })
-		await expect(sidebar).not.toContainText('No audit trail entries', {
+		await expect(trail).toBeVisible({ timeout: 30_000 })
+		await expect(trail).not.toContainText('No audit trail entries', {
 			timeout: 30_000,
 		})
-		await expect(sidebar).toContainText(/update|Updated|reissue/i, {
+		await expect(trail).toContainText(/update|Updated|reissue/i, {
 			timeout: 30_000,
 		})
 	})

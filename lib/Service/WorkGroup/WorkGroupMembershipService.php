@@ -37,8 +37,11 @@ declare(strict_types=1);
 namespace OCA\Learniq\Service\WorkGroup;
 
 use DateTimeImmutable;
+use OCA\Learniq\Kernel\Contracts\WorkGroupMembershipServiceInterface;
 use OCA\Learniq\Service\Portal\PortalLearner;
 use OCA\Learniq\Service\Portal\PortalOutcome;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindTarget;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectSaveOptions;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -50,7 +53,7 @@ use Throwable;
  *
  * @spec openspec/specs/enrolment/spec.md#requirement-a-learner-joins-a-work-group-with-a-free-place
  */
-class WorkGroupMembershipService {
+class WorkGroupMembershipService implements WorkGroupMembershipServiceInterface {
 
 	private const REGISTER = 'learniq';
 	private const SCHEMA = 'work-group';
@@ -248,7 +251,11 @@ class WorkGroupMembershipService {
 		$uuid = (string)$group['id'];
 		$this->objects->runAs(
 			user: $learner->user,
-			operation: fn () => $this->objects->saveObject(object: $row, register: self::REGISTER, schema: self::SCHEMA, uuid: $uuid, _rbac: false)
+			operation: fn () => $this->objects->saveObject(
+				object: $row,
+				options: new ObjectSaveOptions(target: new ObjectFindTarget(register: self::REGISTER, schema: self::SCHEMA), uuid: $uuid),
+				_rbac: false
+			)
 		);
 	}//end save()
 }//end class

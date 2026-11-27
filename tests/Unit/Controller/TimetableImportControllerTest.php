@@ -25,6 +25,7 @@ declare(strict_types=1);
 namespace OCA\Learniq\Tests\Unit\Controller;
 
 use OCA\Learniq\Controller\TimetableImportController;
+use OCA\Learniq\Service\CallerActions;
 use OCA\Learniq\Service\ActionAuthService;
 use OCA\Learniq\Timetabling\PlanninqTimetableImport;
 use OCP\AppFramework\Http;
@@ -68,7 +69,15 @@ class TimetableImportControllerTest extends TestCase {
 		$random = $this->createMock(ISecureRandom::class);
 		$random->method('generate')->willReturn('corr-1');
 
-		return new TimetableImportController($request, $session, $auth, $planninq, $random);
+		return new TimetableImportController(
+			request: $request,
+			caller: new CallerActions(
+				userSession: $session,
+				actionAuth: $auth
+			),
+			planninq: $planninq,
+			secureRandom: $random
+		);
 	}//end controller()
 
 	/**
@@ -135,9 +144,44 @@ class TimetableImportControllerTest extends TestCase {
 		$auth = $this->createMock(ActionAuthService::class);
 		$auth->expects($this->once())->method('can')->with($user, 'exchange.request')->willReturn(false);
 
-		$controller = new TimetableImportController($this->createMock(IRequest::class), $session, $auth, $planninq, $this->createMock(ISecureRandom::class));
+		$controller = new TimetableImportController(
+			request: $this->createMock(IRequest::class),
+			caller: new CallerActions(
+				userSession: $session,
+				actionAuth: $auth
+			),
+			planninq: $planninq,
+			secureRandom: $this->createMock(ISecureRandom::class)
+		);
 
 		$this->assertSame(['canImport' => false, 'planninq' => true], $controller->access()->getData());
 		$this->assertSame(Http::STATUS_UNAUTHORIZED, $this->controller($planninq, true, false)->access()->getStatus());
 	}//end testTheAccessCheckAnswersTheRightAndPlanninq()
+
+	/**
+	 * Without planninq the page still knows the user may import, and that
+	 * planninq is missing, so it disables the button with the reason.
+	 *
+	 * @return void
+	 *
+	 * @spec openspec/changes/capability-rows-say-what-they-do/specs/timetabling/spec.md#requirement-an-import-started-from-the-timetable-page-reports-its-outcome-and-refreshes-the-conflicts
+	 */
+	public function testWithoutPlanninqTheAccessCheckSaysSo(): void {
+		$planninq = $this->createMock(originalClassName: PlanninqTimetableImport::class);
+		$planninq->method('applies')->willReturn(false);
+		$user    = $this->createMock(originalClassName: IUser::class);
+		$session = $this->createMock(originalClassName: IUserSession::class);
+		$session->method('getUser')->willReturn($user);
+		$auth = $this->createMock(originalClassName: ActionAuthService::class);
+		$auth->method('can')->willReturn(true);
+
+		$controller = new TimetableImportController(
+			request: $this->createMock(originalClassName: IRequest::class),
+			caller: new CallerActions(userSession: $session, actionAuth: $auth),
+			planninq: $planninq,
+			secureRandom: $this->createMock(originalClassName: ISecureRandom::class)
+		);
+
+		$this->assertSame(expected: ['canImport' => true, 'planninq' => false], actual: $controller->access()->getData());
+	}//end testWithoutPlanninqTheAccessCheckSaysSo()
 }//end class

@@ -26,6 +26,8 @@ declare(strict_types=1);
 
 namespace OCA\Learniq\Listener;
 
+use OCA\Learniq\Support\EventGetter;
+use OCA\OpenRegister\Kernel\Contracts\Value\ObjectFindOptions;
 use OCA\OpenRegister\Service\Lifecycle\TransitionEngine;
 use OCA\OpenRegister\Service\ObjectService;
 use OCP\EventDispatcher\Event;
@@ -93,8 +95,7 @@ class ExchangeJobConcludedListener implements IEventListener {
 		try {
 			$request = $this->objectService->find(
 				id: $supportRequestId,
-				register: self::LEARNIQ_REGISTER,
-				schema: self::SUPPORT_REQUEST_SCHEMA,
+				options: new ObjectFindOptions(register: self::LEARNIQ_REGISTER, schema: self::SUPPORT_REQUEST_SCHEMA),
 				_rbac: false,
 				_multitenancy: false
 			);
@@ -121,10 +122,6 @@ class ExchangeJobConcludedListener implements IEventListener {
 	 * @return mixed The value, or null when the getter does not exist.
 	 */
 	private function read(Event $event, string $getter): mixed {
-		if (method_exists($event, $getter) === false) {
-			return null;
-		}
-
-		return $event->$getter();
+		return (new EventGetter())->value(event: $event, getter: $getter);
 	}//end read()
 }//end class
