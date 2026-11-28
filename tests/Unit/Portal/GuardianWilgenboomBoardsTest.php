@@ -84,7 +84,13 @@ class GuardianWilgenboomBoardsTest extends TestCase {
 		self::assertSame(['Mijn Wilgenboom', 'Mijn kinderen', 'Regelen', 'Van school', 'Uw gegevens'], array_column($groups, 'title'));
 		self::assertSame(['learniq:parentChildren'], $groups[1]['items']);
 		$pages = array_column($this->manifest['pages'], 'id');
-		foreach (array_merge(...array_column($groups, 'items')) as $name) {
+		foreach (array_merge(...array_column($groups, 'items')) as $entry) {
+			// A menu entry is a page name, or an object that relabels one (wilgenboom-own-area-menu).
+			$name = $entry;
+			if (is_array($entry) === true) {
+				$name = (string)$entry['item'];
+			}
+
 			if (str_starts_with($name, 'learniq:') === true) {
 				self::assertContains(substr($name, 8), $pages, $name);
 			}
